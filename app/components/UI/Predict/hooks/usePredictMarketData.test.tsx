@@ -6,12 +6,17 @@ import {
 } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { usePredictMarketData } from './usePredictMarketData';
 import { PredictMarket, PredictOutcome, Recurrence } from '../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -169,6 +174,7 @@ describe('usePredictMarketData', () => {
   });
 
   afterEach(async () => {
+    jest.useRealTimers();
     // Force-unmount any hooks left over from the test so their pending
     // promises / state-setters don't leak into the next test (e.g. the
     // "marks fetching when enabled becomes true" case below uses a
@@ -511,6 +517,55 @@ describe('usePredictMarketData', () => {
         );
         expect(result.current.isFetching).toBe(false);
       });
+    });
+  });
+
+  describe('market load failure reporting', () => {
+    const NSURL_CANNOT_CONNECT_ERROR_MESSAGE = `Error Domain=NSURLErrorDomain Code=-1004 "Could not connect to the server." UserInfo={_kCFStreamErrorCodeKey=61, NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1004 "(null)" UserInfo={_NSURLErrorNWPathKey=satisfied (Path is satisfied), interface: en0[802.11], ipv4, dns, uses wifi, LQM: good, _kCFStreamErrorCodeKey=61, _kCFStreamErrorDomainKey=1}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+    "LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>"
+), NSLocalizedDescription=Could not connect to the server., NSErrorFailingURLStringKey=**, NSErrorFailingURLKey=**, _kCFStreamErrorDomainKey=1}
+`;
+
+    it('logs a breadcrumb and does not report an iOS connectivity failure', async () => {
+      jest.useFakeTimers();
+      const networkError = new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE);
+      mockGetMarkets.mockRejectedValue(networkError);
+
+      const { result } = renderHook(() => usePredictMarketData());
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(3);
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict request failed due to network conditions:',
+        networkError.message,
+        expect.objectContaining({
+          context: expect.objectContaining({ name: 'usePredictMarketData' }),
+        }),
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(result.current.error).toBe(networkError.message);
+    });
+
+    it('still reports a non-network market load failure', async () => {
+      jest.useFakeTimers();
+      const error = new Error('Failed to fetch related tags');
+      mockGetMarkets.mockRejectedValue(error);
+
+      renderHook(() => usePredictMarketData());
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
+
+      expect(mockGetMarkets).toHaveBeenCalledTimes(3);
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          context: expect.objectContaining({ name: 'usePredictMarketData' }),
+        }),
+      );
+      expect(Logger.log).not.toHaveBeenCalled();
     });
   });
 });
