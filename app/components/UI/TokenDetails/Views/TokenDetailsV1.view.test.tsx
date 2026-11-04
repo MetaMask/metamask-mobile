@@ -370,8 +370,8 @@ describeForPlatforms('TokenDetailsV1', () => {
     // The header subtitle must NOT contain the address or copy button — it was
     // deduplicated so the address only appears in the security row above the
     // stat bar.
-    expect(queryByTestId('token-details-address')).toBeNull();
-    expect(queryByTestId('copy-contract-address-button')).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.header.address)).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.header.copyAddressButton)).toBeNull();
   });
 
   it('stays on the legacy page when the asset has no launchpad data', async () => {

@@ -41,6 +41,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import { TokenDetailsIds } from '../testIds';
 
 const COMPACT_ADDRESS_EDGE_LENGTH = 4;
 
@@ -253,7 +254,7 @@ export const TokenDetailsInlineHeader = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="shrink-0 gap-1"
-            testID="token-details-address"
+            testID={TokenDetailsIds.header.address}
           >
             <Text
               variant={TextVariant.BodySm}
@@ -271,7 +272,7 @@ export const TokenDetailsInlineHeader = ({
                 color: IconColor.IconAlternative,
                 size: IconSize.Sm,
               }}
-              testID="copy-contract-address-button"
+              testID={TokenDetailsIds.header.copyAddressButton}
               accessibilityLabel={strings('token.contract_address')}
             />
           </Box>
@@ -302,7 +303,7 @@ export const TokenDetailsInlineHeader = ({
         alignItems={BoxAlignItems.Center}
         twClassName="w-full min-w-0 gap-1"
         style={tw.style('min-w-0 flex-1 -ml-1')}
-        testID="token-details-subtitle"
+        testID={TokenDetailsIds.header.subtitle}
       >
         {showTickerBelowName ? (
           <Text
@@ -312,7 +313,7 @@ export const TokenDetailsInlineHeader = ({
             numberOfLines={1}
             ellipsizeMode="tail"
             twClassName="shrink min-w-0"
-            testID="token-details-ticker"
+            testID={TokenDetailsIds.header.ticker}
           >
             {tokenTicker}
           </Text>
