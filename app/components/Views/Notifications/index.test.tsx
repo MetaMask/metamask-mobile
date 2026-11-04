@@ -20,6 +20,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 // eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
+import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
@@ -203,7 +204,7 @@ describe('NotificationsView - content', () => {
 
 describe('useMarkAsReadCallback', () => {
   const arrangeMocks = () => {
-    const mockMarkNotificationsAsRead = jest.fn();
+    const mockMarkNotificationsAsRead = jest.fn().mockResolvedValue(undefined);
     jest
       .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')
       .mockReturnValue({
@@ -211,7 +212,9 @@ describe('useMarkAsReadCallback', () => {
         markNotificationAsRead: mockMarkNotificationsAsRead,
       });
 
-    const mockSetBadgeCount = jest.spyOn(NotificationsService, 'setBadgeCount');
+    const mockSetBadgeCount = jest
+      .spyOn(NotificationsService, 'setBadgeCount')
+      .mockResolvedValue(undefined);
 
     return {
       mockMetrics,
@@ -222,6 +225,11 @@ describe('useMarkAsReadCallback', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('marks content as read and fires event', async () => {
@@ -233,13 +241,49 @@ describe('useMarkAsReadCallback', () => {
 
     await act(() => hook.result.current.handleMarkAllAsRead());
 
-    // Assert - mark as read action called
     expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled();
-
-    // Assert - badge count updated
     expect(mocks.mockSetBadgeCount).toHaveBeenCalled();
+    expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
 
-    // Assert - event fired
+  it('logs when marking notifications as read rejects', async () => {
+    const mocks = arrangeMocks();
+    const failure = new Error('mark failed');
+    mocks.mockMarkNotificationsAsRead.mockRejectedValue(failure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      failure,
+      'Failed to mark all notifications as read',
+    );
+    expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+  });
+
+  it('logs when clearing the notification badge rejects', async () => {
+    const mocks = arrangeMocks();
+    const failure = new Error('badge failed');
+    mocks.mockSetBadgeCount.mockRejectedValue(failure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      failure,
+      'Failed to clear the notification badge',
+    );
     expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
   });
 });

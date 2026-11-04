@@ -35,7 +35,17 @@ import { useNotificationListPerformance } from '../../../util/notifications/hook
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Logger from '../../../util/Logger';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+
+const logNotificationFailure =
+  (message: string) =>
+  (error: unknown): void => {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      message,
+    );
+  };
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
@@ -45,8 +55,12 @@ export function useMarkAsReadCallback(props: {
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
-    markNotificationAsRead(notifications);
-    NotificationsService.setBadgeCount(0);
+    markNotificationAsRead(notifications).catch(
+      logNotificationFailure('Failed to mark all notifications as read'),
+    );
+    NotificationsService.setBadgeCount(0).catch(
+      logNotificationFailure('Failed to clear the notification badge'),
+    );
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
