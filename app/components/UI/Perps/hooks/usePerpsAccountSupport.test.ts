@@ -199,7 +199,7 @@ describe('usePerpsAccountSupport', () => {
     expect(support).toBe('unmounted');
   });
 
-  it('reports an unsupported account without opening the modal after unmount', async () => {
+  it('returns unsupported when the caller unmounts during an unsupported check', async () => {
     const hook = renderHook(() => usePerpsAccountSupport());
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
     let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
@@ -218,7 +218,6 @@ describe('usePerpsAccountSupport', () => {
           support = result;
         });
     });
-    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
     hook.unmount();
     await act(async () => {
       resolveSupport?.({ isSupported: false, reason: 'multi_sig_account' });
@@ -226,6 +225,7 @@ describe('usePerpsAccountSupport', () => {
     });
 
     expect(support).toBe('unsupported');
+    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
   });
 
   it('returns stale when the account changes before the caller unmounts', async () => {
