@@ -345,20 +345,18 @@ function stellarProofHex(result: Json): string | null {
 }
 
 /**
- * BIP-322 simple signature over the claim challenge, as `0x` hex.
- *
- * The Bitcoin snap's `signMessage` shows its confirmation and returns the
- * witness as base64. The claim route wants those bytes as hex. `params.account`
- * is the address; the request's `account` is the snap account id.
+ * Sends `signMessage` to the snap that holds `accountId`. A missing snap, a
+ * refused confirmation, and any other keyring failure become `SIGN_FAILED`.
+ * `account` on the request is the snap account id; chain params stay with
+ * the caller.
  */
-export async function signBitcoinClaimMessage(
+async function submitSnapSignMessage(
   accountId: string,
-  address: string,
-  message: string,
-): Promise<string> {
-  let result: Json;
+  scope: string,
+  params: Record<string, Json>,
+): Promise<Json> {
   try {
-    result = (await Engine.context.KeyringController.withKeyringV2(
+    return (await Engine.context.KeyringController.withKeyringV2(
       {
         filter: (keyring) =>
           isSnapKeyring(keyring) && keyring.hasAccount(accountId),
@@ -370,11 +368,11 @@ export async function signBitcoinClaimMessage(
         return keyring.submitRequest({
           id: uuidv4(),
           origin: 'metamask',
-          scope: BtcScope.Mainnet,
+          scope,
           account: accountId,
           request: {
             method: 'signMessage',
-            params: { account: { address }, message },
+            params,
           },
         });
       },
@@ -385,7 +383,24 @@ export async function signBitcoinClaimMessage(
     }
     throw new Error('SIGN_FAILED');
   }
+}
 
+/**
+ * BIP-322 simple signature over the claim challenge, as `0x` hex.
+ *
+ * The Bitcoin snap's `signMessage` shows its confirmation and returns the
+ * witness as base64. The claim route wants those bytes as hex. `params.account`
+ * is the address; the request's `account` is the snap account id.
+ */
+export async function signBitcoinClaimMessage(
+  accountId: string,
+  address: string,
+  message: string,
+): Promise<string> {
+  const result = await submitSnapSignMessage(accountId, BtcScope.Mainnet, {
+    account: { address },
+    message,
+  });
   const signature = signatureFromKeyringResult(result);
   if (!signature) {
     throw new Error('SIGN_FAILED');
@@ -408,38 +423,10 @@ export async function signSolanaClaimMessage(
   address: string,
   message: string,
 ): Promise<string> {
-  let result: Json;
-  try {
-    result = (await Engine.context.KeyringController.withKeyringV2(
-      {
-        filter: (keyring) =>
-          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
-      },
-      async ({ keyring }) => {
-        if (!isSnapKeyring(keyring)) {
-          throw new Error('SIGN_FAILED');
-        }
-        return keyring.submitRequest({
-          id: uuidv4(),
-          origin: 'metamask',
-          scope: SolScope.Mainnet,
-          account: accountId,
-          request: {
-            method: 'signMessage',
-            params: {
-              account: { address },
-              message: Buffer.from(message, 'utf8').toString('base64'),
-            },
-          },
-        });
-      },
-    )) as Json;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'SIGN_FAILED') {
-      throw error;
-    }
-    throw new Error('SIGN_FAILED');
-  }
+  const result = await submitSnapSignMessage(accountId, SolScope.Mainnet, {
+    account: { address },
+    message: Buffer.from(message, 'utf8').toString('base64'),
+  });
 
   if (
     typeof result !== 'object' ||
@@ -469,36 +456,9 @@ export async function signStellarClaimMessage(
   accountId: string,
   message: string,
 ): Promise<string> {
-  let result: Json;
-  try {
-    result = (await Engine.context.KeyringController.withKeyringV2(
-      {
-        filter: (keyring) =>
-          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
-      },
-      async ({ keyring }) => {
-        if (!isSnapKeyring(keyring)) {
-          throw new Error('SIGN_FAILED');
-        }
-        return keyring.submitRequest({
-          id: uuidv4(),
-          origin: 'metamask',
-          scope: XlmScope.Pubnet,
-          account: accountId,
-          request: {
-            method: 'signMessage',
-            params: { message },
-          },
-        });
-      },
-    )) as Json;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'SIGN_FAILED') {
-      throw error;
-    }
-    throw new Error('SIGN_FAILED');
-  }
-
+  const result = await submitSnapSignMessage(accountId, XlmScope.Pubnet, {
+    message,
+  });
   const signature = stellarProofHex(result);
   if (!signature) {
     throw new Error('SIGN_FAILED');
