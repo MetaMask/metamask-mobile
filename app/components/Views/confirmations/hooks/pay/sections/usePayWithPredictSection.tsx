@@ -17,7 +17,6 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
@@ -30,6 +29,7 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import { usePredictEntryActions } from '../../../../../UI/PredictNext';
 import useApprovalRequest from '../../useApprovalRequest';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
@@ -54,6 +54,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
   const clearPaymentOverride = useClearPaymentOverride();
+  const { openPredict } = usePredictEntryActions();
 
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -73,11 +74,8 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const handleAdd = useCallback(() => {
     onReject();
     dismissActivePreviewSheet();
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      params: { autoDeposit: true },
-    });
-  }, [navigation, onReject]);
+    openPredict({ type: 'addFunds', autoDeposit: true });
+  }, [onReject, openPredict]);
 
   return useMemo(() => {
     if (!isPredictDepositAndOrder) {

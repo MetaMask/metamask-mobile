@@ -700,6 +700,35 @@ describe('Predict API canonical response parsers', () => {
       ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
     });
 
+    it.each([
+      {
+        key: 'game:rushing_yards:henry',
+        groupType: 'choice',
+        displayOrder: 0,
+      },
+      {
+        key: 'game:spread',
+        groupType: 'marketSelector',
+        marketType: 'spread',
+        option: { type: 'number', value: 2.5 },
+      },
+      { key: 'game:future', groupType: 'future-group-type' },
+    ])('keeps a label on a $groupType group', (group) => {
+      expect(
+        PredictMarketGroupSchema.create({ ...group, label: 'Derrick Henry' }),
+      ).toEqual({ ...group, label: 'Derrick Henry' });
+    });
+
+    it.each(['', '  '])('rejects a group label of %j', (label) => {
+      expect(() =>
+        PredictMarketGroupSchema.create({
+          key: 'game:rushing_yards:henry',
+          groupType: 'choice',
+          label,
+        }),
+      ).toThrow();
+    });
+
     it('keeps a malformed choice group as an unsupported group', () => {
       expect(
         PredictMarketGroupSchema.create({

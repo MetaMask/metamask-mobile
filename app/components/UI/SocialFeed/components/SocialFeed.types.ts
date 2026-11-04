@@ -16,6 +16,12 @@ import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
  */
 export type SocialFeedScrollMode = 'content' | 'virtualized';
 
+/** What the feed knows about a tapped post's position. */
+export interface SocialFeedPositionPressContext {
+  /** True when the feed was streaming socket revisions while showing the post. */
+  isSnapshotLive: boolean;
+}
+
 /** A host row spliced into the list between posts. */
 export interface SocialFeedInlineRow {
   /** Unique among the feed's inline rows. */
@@ -55,7 +61,11 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   emptyState?: React.ReactNode;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
-  onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** `context` is passed only by the virtualized feed. */
+  onPositionPress?: (
+    post: SocialV1FeedPost,
+    context?: SocialFeedPositionPressContext,
+  ) => void;
   /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
   requireSocialProfile?: boolean;
   testID?: string;
