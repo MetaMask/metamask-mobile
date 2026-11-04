@@ -593,7 +593,10 @@ object PerfSession {
             .put("samples", samples)
             .put("events", limit(events, 300))
             .put("spans", limit(spans, 200))
-            .put("stalls", limit(stalls, 20))
+        val batchStalls = limit(stalls, MAX_STALLS_PER_BATCH)
+        if (batchStalls.length() > 0) {
+            batch.put("stacks", shareStacks(batchStalls)).put("stalls", batchStalls)
+        }
         samples = JSONArray()
         events = JSONArray()
         spans = JSONArray()
@@ -602,9 +605,9 @@ object PerfSession {
         var body = batch.toString()
         if (body.length > MAX_BATCH_CHARS) {
             // Stall stacks are the bulk; shorten them before giving up anything else.
-            val trimmed = batch.getJSONArray("stalls")
-            for (i in 0 until trimmed.length()) {
-                val stack = trimmed.getJSONObject(i).getJSONArray("stack")
+            val stacks = batch.optJSONArray("stacks") ?: JSONArray()
+            for (i in 0 until stacks.length()) {
+                val stack = stacks.getJSONArray(i)
                 while (stack.length() > 10) stack.remove(stack.length() - 1)
             }
             body = batch.toString()
@@ -618,6 +621,24 @@ object PerfSession {
             drainQueue()
             PerfProfiles.drainQueue()
         }
+    }
+
+    /**
+     * Replaces each stall's `stack` with `stackRef`, an index into the returned
+     * table of distinct stacks. A screen that stalls repeatedly usually stalls in
+     * the same place, so this is most of a batch's size. Per batch, so every batch
+     * stays readable on its own.
+     */
+    private fun shareStacks(batchStalls: JSONArray): JSONArray {
+        val stacks = JSONArray()
+        val index = HashMap<String, Int>()
+        for (i in 0 until batchStalls.length()) {
+            val stall = batchStalls.getJSONObject(i)
+            val stack = stall.remove("stack") as? JSONArray ?: JSONArray()
+            val ref = index.getOrPut(stack.toString()) { stacks.put(stack); stacks.length() - 1 }
+            stall.put("stackRef", ref)
+        }
+        return stacks
     }
 
     private fun limit(array: JSONArray, max: Int): JSONArray {
