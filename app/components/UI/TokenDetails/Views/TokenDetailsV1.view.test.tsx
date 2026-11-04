@@ -353,6 +353,27 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the contract address from the header while showing it in the security row', async () => {
+    const { findByTestId, queryByTestId } = renderTokenDetailsV1View();
+
+    // Wait for the security row address to appear — proves the page has loaded.
+    const copyButton = await findByTestId(
+      SecuritySocialSectionSelectors.COPY_ADDRESS,
+      {},
+      FIND_TIMEOUT,
+    );
+
+    expect(copyButton).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
+
+    // The header subtitle must NOT contain the address or copy button — it was
+    // deduplicated so the address only appears in the security row above the
+    // stat bar.
+    expect(queryByTestId('token-details-address')).toBeNull();
+    expect(queryByTestId('copy-contract-address-button')).toBeNull();
+  });
+
   it('stays on the legacy page when the asset has no launchpad data', async () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false });
     const { findByTestId, queryByTestId } = renderTokenDetailsV1View();
