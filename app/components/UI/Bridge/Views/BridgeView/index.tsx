@@ -101,6 +101,10 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
@@ -111,8 +115,16 @@ const BridgeView = () => {
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
