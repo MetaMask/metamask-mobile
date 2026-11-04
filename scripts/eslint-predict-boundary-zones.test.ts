@@ -94,7 +94,6 @@ const BURNDOWN_BASELINE = [
   'app/components/Views/TrendingView/feeds/search-utils.ts',
   'app/components/Views/TrendingView/search/SearchFeedRow.test.tsx',
   'app/components/Views/TrendingView/search/SearchFeedRow.tsx',
-  'app/components/Views/TrendingView/tabs/MacroTab.tsx',
   'app/components/Views/TrendingView/tabs/NowTab.test.tsx',
   'app/components/Views/TrendingView/tabs/NowTab.tsx',
   'app/components/Views/TrendingView/tabs/RwasTab.tsx',

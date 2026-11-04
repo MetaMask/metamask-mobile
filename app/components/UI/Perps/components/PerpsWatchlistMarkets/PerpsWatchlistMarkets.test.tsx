@@ -40,11 +40,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 const mockAddToWatchlist = jest.fn();
+const mockUsePerpsWatchlistActions = jest.fn();
 jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
-  usePerpsWatchlistActions: () => ({
-    addToWatchlist: mockAddToWatchlist,
-    removeFromWatchlist: jest.fn(),
-  }),
+  usePerpsWatchlistActions: (source: string) => {
+    mockUsePerpsWatchlistActions(source);
+    return {
+      addToWatchlist: mockAddToWatchlist,
+      removeFromWatchlist: jest.fn(),
+    };
+  },
 }));
 
 jest.mock('../PerpsMarketRowItem', () => {
@@ -244,6 +248,29 @@ describe('PerpsWatchlistMarkets', () => {
           screen.getByTestId(`perps-market-row-${market.symbol}-add-button`),
         ).toBeOnTheScreen();
       }
+    });
+
+    it('attributes watchlist adds to the Perps home watchlist by default', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(mockUsePerpsWatchlistActions).toHaveBeenCalledWith(
+        'perps_home_watchlist',
+      );
+    });
+
+    it('attributes watchlist adds to addSource when provided', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+          addSource="explore"
+        />,
+      );
+      expect(mockUsePerpsWatchlistActions).toHaveBeenCalledWith('explore');
     });
 
     it('calls addToWatchlist with the correct symbol when an add button is pressed', () => {

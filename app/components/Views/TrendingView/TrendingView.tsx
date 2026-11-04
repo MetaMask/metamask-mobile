@@ -44,7 +44,7 @@ import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
-import MacroTab from './tabs/MacroTab';
+import PerpsTab from './tabs/PerpsTab';
 import RwasTab from './tabs/RwasTab';
 import CryptoTab from './tabs/CryptoTab';
 import SportsTab from './tabs/SportsTab';
@@ -59,9 +59,9 @@ import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndic
 
 const TAB_NAMES: ExploreTabName[] = [
   'Now',
-  'Macro',
-  'RWAs',
   'Crypto',
+  'Perps',
+  'RWAs',
   'Sports',
   'Sites',
 ];
@@ -284,11 +284,18 @@ export const ExploreFeed: React.FC = () => {
         <NowTab {...tabProps} />
       </Box>,
       <Box
-        key="macro"
+        key="crypto"
         twClassName="flex-1"
-        {...({ tabLabel: strings('trending.tabs.macro') } as TabViewProps)}
+        {...({ tabLabel: strings('trending.tabs.crypto') } as TabViewProps)}
       >
-        <MacroTab {...tabProps} />
+        <CryptoTab {...tabProps} />
+      </Box>,
+      <Box
+        key="perps"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.perps') } as TabViewProps)}
+      >
+        <PerpsTab {...tabProps} />
       </Box>,
       <Box
         key="rwas"
@@ -296,13 +303,6 @@ export const ExploreFeed: React.FC = () => {
         {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
       >
         <RwasTab {...tabProps} />
-      </Box>,
-      <Box
-        key="crypto"
-        twClassName="flex-1"
-        {...({ tabLabel: strings('trending.tabs.crypto') } as TabViewProps)}
-      >
-        <CryptoTab {...tabProps} />
       </Box>,
       <Box
         key="sports"

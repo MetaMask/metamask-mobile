@@ -61,6 +61,8 @@ interface PerpsWatchlistMarketsProps {
   source?: string;
   /** Sub-section of the parent screen that triggered navigation (e.g., 'watchlist'). */
   source_section?: string;
+  /** Analytics source for watchlist adds (defaults to the Perps home watchlist). */
+  addSource?: string;
   /** Bound onto market-details routes for downstream transaction attribution. */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Override section styles (e.g., to adjust margins) */
@@ -207,6 +209,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   orders = [],
   source,
   source_section,
+  addSource = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
   transactionActiveAbTests,
   sectionStyle,
   headerStyle,
@@ -225,9 +228,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
   const { track } = usePerpsEventTracking();
 
-  const { addToWatchlist } = usePerpsWatchlistActions(
-    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-  );
+  const { addToWatchlist } = usePerpsWatchlistActions(addSource);
 
   const handleSeeAllPress = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
