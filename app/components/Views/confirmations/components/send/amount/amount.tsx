@@ -6,20 +6,13 @@ import React, {
   useState,
 } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
-import TagBase, {
-  TagShape,
-} from '../../../../../../component-library/base-components/TagBase';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import {
@@ -44,11 +37,15 @@ import { styleSheet } from './amount.styles';
 import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontFamily,
-  Text,
-  TextVariant,
-  TextColor,
   FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
@@ -239,25 +236,24 @@ export const Amount = () => {
             />
           </View>
         </View>
-        {conversionSupportedForAsset && (
-          <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
-            <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.TextAlternative}>
-                {alternateDisplayValue}
-              </Text>
-              <Icon
-                color={IconColor.Alternative}
-                name={IconName.SwapVertical}
-              />
-            </TagBase>
-          </TouchableOpacity>
-        )}
         {isNftLoading ? (
-          <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
+          <Skeleton twClassName="h-4 w-40 rounded self-center mt-2" />
         ) : (
           <Text color={TextColor.TextAlternative} style={styles.balanceText}>
             {balanceDisplayValue}
           </Text>
+        )}
+        {conversionSupportedForAsset && (
+          <Button
+            endIconName={IconName.SwapVertical}
+            onPress={toggleFiatMode}
+            size={ButtonSize.Md}
+            testID="fiat_toggle"
+            twClassName="mt-4 self-center"
+            variant={ButtonVariant.Secondary}
+          >
+            {alternateDisplayValue}
+          </Button>
         )}
       </View>
       <AmountKeyboard
