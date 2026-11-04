@@ -194,6 +194,7 @@ jest.mock('../../hooks/useMoneyAccountAvailability', () => ({
   useMoneyAccountAvailability: jest.fn(() => ({
     accessBlockReason: undefined,
     isMoneyAccountAccessible: true,
+    assertMoneyAccountAccessible: jest.fn(),
   })),
   useMoneyAccountAccessRedirect: jest.fn(() => true),
 }));
