@@ -66,6 +66,7 @@ interface Setup {
   state?: Partial<CardControllerState>;
   getBearerToken?: jest.Mock;
   provider?: Partial<ICardProvider>;
+  remoteFeatureFlags?: Record<string, unknown>;
 }
 
 function setup({
@@ -74,6 +75,7 @@ function setup({
   state = {},
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
   provider = {},
+  remoteFeatureFlags = {},
 }: Setup = {}) {
   const subscriptions: Record<string, (...args: unknown[]) => void> = {};
   const selectors: Record<string, (state: unknown) => unknown> = {};
@@ -94,6 +96,7 @@ function setup({
           return {
             remoteFeatureFlags: {
               cardLinkApi: { enabled: flagEnabled, minimumVersion: '0.0.0' },
+              ...remoteFeatureFlags,
             },
           };
         case 'AuthenticationController:getBearerToken':
@@ -143,16 +146,23 @@ function setup({
 
   const baanx = {
     id: 'baanx',
-    capabilities: {},
+    capabilities: { authMethod: 'email_password' },
     submitCredentials: jest.fn(),
     ...provider,
   } as unknown as ICardProvider;
 
   const controller = new CardController({
     messenger,
-    providers: { baanx, immersve: { ...baanx, id: 'immersve' } },
+    providers: {
+      baanx,
+      immersve: {
+        ...baanx,
+        id: 'immersve',
+        capabilities: { authMethod: 'siwe' },
+      } as unknown as ICardProvider,
+    },
     cardService: cardService as unknown as CardService,
-    state: { ...defaultCardControllerState, ...state },
+    state: { ...defaultCardControllerState, selectedCountry: 'US', ...state },
     sha256: testSha256,
     isBasicFunctionalityEnabled: () => basicFunctionality,
   });
@@ -241,6 +251,29 @@ describe('CardController card links', () => {
 
       expect(cardService.getCardLinks).not.toHaveBeenCalled();
       expect(controller.state.cardLinks).toBeNull();
+    });
+
+    it('refreshes the session when a 401 retries the same bearer token', async () => {
+      const getBearerToken = jest
+        .fn()
+        .mockResolvedValueOnce('stale-token')
+        .mockResolvedValueOnce('stale-token')
+        .mockResolvedValueOnce('fresh-token');
+      const { controller, cardService, messenger } = setup({ getBearerToken });
+      cardService.getCardLinks
+        .mockRejectedValueOnce(apiError(401))
+        .mockResolvedValueOnce([link()]);
+
+      await controller.fetchCardLinks();
+
+      expect(messenger.call).toHaveBeenCalledWith(
+        'AuthenticationController:refreshCanonicalProfileId',
+      );
+      expect(cardService.getCardLinks).toHaveBeenNthCalledWith(
+        2,
+        'fresh-token',
+      );
+      expect(controller.state.cardLinks).toStrictEqual([link()]);
     });
 
     it('re-authenticates and retries the same call once on 401', async () => {
@@ -484,6 +517,15 @@ describe('CardController card links', () => {
       expect(controller.state.cardLinks).toBeNull();
     });
 
+    it('fetches again when the profile signs in', async () => {
+      const { cardService, subscriptions } = setup();
+
+      subscriptions['AuthenticationController:profileSignIn']();
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
     it('fetches on wallet unlock', async () => {
       const { cardService, subscriptions } = setup();
       jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
@@ -667,6 +709,71 @@ describe('CardController card links', () => {
       );
     });
 
+    it('waits for a country, then seeds a Baanx country', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          selectedCountry: null,
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      controller.setSelectedCountry('US');
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(CARDHOLDER_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('does not seed a GB cardholder', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          selectedCountry: 'GB',
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(controller.state.cardLinksSeeded).toBe(false);
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toStrictEqual({
+        provider: 'baanx',
+        outcome: 'skipped',
+        skip_reason: 'gb',
+      });
+    });
+
+    it('does not seed when the country resolves to Immersve', async () => {
+      const { controller, cardService } = setup({
+        remoteFeatureFlags: {
+          cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          cardImmersveCountries: ['FR'],
+        },
+        state: {
+          selectedCountry: 'FR',
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toMatchObject({
+        outcome: 'skipped',
+        skip_reason: 'not_baanx',
+      });
+    });
+
     it('ends the seed on a 400 without retrying it', async () => {
       const { controller, cardService } = setup({
         state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
@@ -751,6 +858,91 @@ describe('CardController card links', () => {
       expect(cardService.putCardLink).toHaveBeenCalledWith(
         'immersve',
         { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('records a passwordless Baanx login as active when it completes', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: '',
+        otpCode: '123456',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('writes an active Baanx link after a verified external session', async () => {
+      const { controller, cardService } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(controller, 'validateAndRefreshSession').mockResolvedValue({
+        isAuthenticated: true,
+      });
+      jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockImplementation(async () => {
+          (
+            controller as unknown as {
+              update: (fn: (state: { cardHomeData: unknown }) => void) => void;
+            }
+          ).update((state) => {
+            state.cardHomeData = {
+              account: { verificationStatus: 'VERIFIED' },
+            };
+          });
+        });
+
+      await controller.syncSessionAfterExternalAuth();
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('writes a Baanx onboarding link after an unverified external session', async () => {
+      const { controller, cardService } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(controller, 'validateAndRefreshSession').mockResolvedValue({
+        isAuthenticated: true,
+      });
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue(undefined);
+
+      await controller.syncSessionAfterExternalAuth();
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'onboarding', linkedAccountRef: refFor(SELECTED_ADDRESS) },
         'token-1',
       );
     });
@@ -1293,6 +1485,280 @@ describe('CardController card links', () => {
 
     expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
     expect(controller.state.cardLinks).toBeNull();
+  });
+
+  describe('findLinkedAccountAddress', () => {
+    it('returns the account whose hash matches the routable link', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBe(
+        SELECTED_ADDRESS,
+      );
+    });
+
+    it('returns null when no account matches', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+
+    it('ignores a closed row', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              status: 'closed',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+
+    it('returns null when cardLinkApi is off', async () => {
+      const { controller } = setup({
+        flagEnabled: false,
+        state: {
+          cardLinks: [link({ linkedAccountRef: refFor(SELECTED_ADDRESS) })],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+  });
+
+  describe('resolveSignIn with a card link', () => {
+    const immersveForGb = {
+      cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+      cardImmersveCountries: ['GB'],
+    };
+    const ukSignInRouting = {
+      cardUkMigrationSignInRouting: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    };
+
+    const resolve = (controller: CardController, country = 'US') =>
+      controller.resolveSignIn({
+        country,
+        candidateAddresses: [SELECTED_ADDRESS],
+        deviceAddresses: [SELECTED_ADDRESS],
+      });
+
+    it('resolves an Immersve link to SIWE for the linked account', async () => {
+      const { controller } = setup({
+        remoteFeatureFlags: immersveForGb,
+        state: {
+          cardLinks: [
+            link({ provider: 'baanx', status: 'closed' }),
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller, 'GB')).toStrictEqual({
+        kind: 'wallet',
+        option: { providerId: 'immersve', method: 'siwe' },
+        address: SELECTED_ADDRESS,
+        source: 'card_link',
+      });
+    });
+
+    it('looks up candidate accounts when the linked account is not on this device', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const { controller } = setup({
+        remoteFeatureFlags: { ...immersveForGb, ...ukSignInRouting },
+        provider: { lookupAccount },
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller, 'GB')).toStrictEqual({
+        kind: 'wallet',
+        option: { providerId: 'immersve', method: 'siwe' },
+        address: SELECTED_ADDRESS,
+        source: 'lookup',
+      });
+      expect(lookupAccount).toHaveBeenCalledWith(SELECTED_ADDRESS);
+    });
+
+    it('ignores a link for a provider the country does not offer', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller)).toStrictEqual({
+        kind: 'email',
+        option: { providerId: 'baanx', method: 'email_password' },
+      });
+    });
+
+    it('keeps a local sign-in record ahead of the stored link', async () => {
+      const { controller } = setup({
+        remoteFeatureFlags: { ...immersveForGb, ...ukSignInRouting },
+        state: {
+          signInLink: {
+            providerId: 'immersve',
+            status: 'linked',
+            address: SELECTED_ADDRESS,
+            updatedAt: Date.now(),
+          },
+          cardLinks: [
+            link({
+              provider: 'baanx',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller, 'GB')).toMatchObject({
+        kind: 'wallet',
+        source: 'record',
+        address: SELECTED_ADDRESS,
+      });
+    });
+
+    it('resolves a Baanx link to Baanx email login', async () => {
+      const { controller } = setup({
+        state: { cardLinks: [link({ provider: 'baanx' })] },
+      });
+
+      expect(await resolve(controller)).toStrictEqual({
+        kind: 'email',
+        option: { providerId: 'baanx', method: 'email_password' },
+      });
+    });
+
+    it('ignores the link when cardLinkApi is off', async () => {
+      const { controller } = setup({
+        flagEnabled: false,
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller)).not.toMatchObject({
+        source: 'card_link',
+      });
+    });
+  });
+
+  describe('Card Link Missed At Login', () => {
+    const loginBaanx = async (state: Partial<CardControllerState>) => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller } = setup({ provider: { submitCredentials }, state });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+    };
+
+    const missedEvents = () =>
+      mockTrackEvent.mock.calls.filter(
+        ([event]) => event.name === 'Card Link Missed At Login',
+      );
+
+    it('tracks a Baanx login when the read returned no links', async () => {
+      await loginBaanx({ cardLinks: [] });
+
+      expect(missedEvents()).toHaveLength(1);
+      expect(missedEvents()[0][0].properties).toStrictEqual({
+        provider: 'baanx',
+      });
+    });
+
+    it('does not track when links were never fetched', async () => {
+      await loginBaanx({ cardLinks: null });
+
+      expect(missedEvents()).toHaveLength(0);
+    });
+
+    it('does not track when the profile already has a link', async () => {
+      await loginBaanx({ cardLinks: [link()] });
+
+      expect(missedEvents()).toHaveLength(0);
+    });
+
+    it('tracks an Immersve SIWE login when the read returned no links', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller } = setup({
+        provider: { submitCredentials },
+        state: { cardLinks: [], activeProviderId: 'immersve' },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'siwe' },
+        _metadata: { address: SELECTED_ADDRESS },
+      };
+      await controller.submitCredentials({ type: 'siwe', signature: 'sig' });
+      await flush();
+
+      expect(missedEvents()).toHaveLength(1);
+      expect(missedEvents()[0][0].properties).toStrictEqual({
+        provider: 'immersve',
+      });
+    });
   });
 
   it('clears card links on resetAll', async () => {
