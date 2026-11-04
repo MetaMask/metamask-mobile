@@ -1840,6 +1840,9 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "posts_tab": "Posts ({{count}})",
+      "transactions_tab": "Transactions ({{count}})",
+      "no_posts": "No posts on this trade yet",
       "level": {
         "entry": "Entry",
         "exit": "Exit",
