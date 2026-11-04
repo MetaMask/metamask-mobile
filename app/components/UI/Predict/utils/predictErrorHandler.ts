@@ -37,7 +37,7 @@ const IOS_CONNECTIVITY_ERROR_CODES = {
 } as const;
 
 const IOS_CONNECTIVITY_ERROR_PATTERN = new RegExp(
-  `NSURLErrorDomain Code=(${Object.values(IOS_CONNECTIVITY_ERROR_CODES).join('|')})\\b`,
+  String.raw`NSURLErrorDomain Code=(${Object.values(IOS_CONNECTIVITY_ERROR_CODES).join('|')})\b`,
   'u',
 );
 
