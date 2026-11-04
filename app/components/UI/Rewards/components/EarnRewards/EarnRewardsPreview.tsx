@@ -30,7 +30,7 @@ import {
 } from '../../../../../selectors/geolocationController';
 import {
   selectIsCardAuthenticated,
-  selectHasLinkedCard,
+  selectHasCard,
 } from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
@@ -153,7 +153,7 @@ const EarnRewardsPreview: React.FC = () => {
   const { apyPercent } = useMoneyVaultApy();
 
   // Card check — subtitle varies by cardholder status; card is always rendered
-  const isCardholder = useSelector(selectHasLinkedCard);
+  const isCardholder = useSelector(selectHasCard);
   const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
   const cardSubtitle =
     isCardholder || isAuthenticatedCard

@@ -7,7 +7,7 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectIsCardAuthenticated,
-  selectHasLinkedCard,
+  selectHasCard,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { useCardHomeData } from './useCardHomeData';
@@ -112,7 +112,7 @@ function setupSelectors(
     [selectCardPrimaryToken, primaryToken],
     [selectCardAvailableTokens, availableTokens],
     [selectCardFundingTokens, fundingTokens],
-    [selectHasLinkedCard, ownership.isCardholder],
+    [selectHasCard, ownership.isCardholder],
     [selectIsCardAuthenticated, ownership.isCardAuthenticated],
     [selectCardHomeDataFetchedThisSession, fetchedThisSession],
   ]);

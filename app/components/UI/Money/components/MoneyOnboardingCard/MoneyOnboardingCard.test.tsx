@@ -103,7 +103,7 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
-  selectHasLinkedCard: () => mockIsCardholder(),
+  selectHasCard: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
   selectIsCardStateResolved: () => mockIsCardStateResolved(),
   selectCardActiveProviderId: () => 'baanx',

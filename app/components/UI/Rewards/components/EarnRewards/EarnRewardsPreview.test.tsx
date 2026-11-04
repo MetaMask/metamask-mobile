@@ -84,7 +84,7 @@ import {
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
 import {
-  selectHasLinkedCard,
+  selectHasCard,
   selectIsCardAuthenticated,
 } from '../../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
@@ -110,7 +110,7 @@ const setupSelectors = ({
     if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectMoneyEnableMoneyAccountFlag)
       return isMoneyAccountEnabled;
-    if (selector === selectHasLinkedCard) return isCardholder;
+    if (selector === selectHasCard) return isCardholder;
     if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
   });
