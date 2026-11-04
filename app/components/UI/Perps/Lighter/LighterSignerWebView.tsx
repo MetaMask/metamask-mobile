@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
@@ -12,10 +18,13 @@ import type {
 // @ts-expect-error HTML import handled by babel-plugin-inline-import.
 import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
+  clearLighterSignerRequest,
   connectLighterExecutor,
+  isLighterSignerRequested,
   reviveLighterBridge,
   resetLighterBridge,
   setLighterBridgeUnavailable,
+  subscribeLighterSignerRequest,
   LIGHTER_SIGNER_LOCKED_ERROR,
   type LighterExecutorCall,
   type LighterExecutor,
@@ -197,8 +206,8 @@ export function isValidLighterSignerResult(
 /**
  * Hidden off-screen WebView hosting the Lighter Go/WASM signer.
  *
- * Follows the SnapsExecutionWebView precedent (0x0 view mounted in Root before
- * Engine interactions) and the reference Lighter RN SDK postMessage protocol:
+ * Follows the SnapsExecutionWebView precedent (0x0 view in Root), mounted on
+ * the first signer request, and the reference Lighter RN SDK postMessage protocol:
  * page → RN: ready | initError | log | warn | error | executeResult | executeError;
  * RN → page: { type: 'execute', function, params, executeId }.
  *
@@ -473,8 +482,22 @@ const UnlockedLighterSignerWebView = () => {
   );
 };
 
-/** Keep the key-holding native page outside locked wallet sessions. */
+/**
+ * Keep the key-holding native page outside locked wallet sessions, and don't
+ * load it until a Lighter call needs it: the page is a 10 MB inline document
+ * whose load blocks the Android main thread for hundreds of ms, which used to
+ * land on every unlock. Calls wait behind the bridge's readiness promise, so
+ * the first one simply waits for the page to load.
+ */
 export const LighterSignerWebView = () => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  return isUnlocked ? <UnlockedLighterSignerWebView /> : null;
+  const isRequested = useSyncExternalStore(
+    subscribeLighterSignerRequest,
+    isLighterSignerRequested,
+  );
+  useEffect(() => {
+    // Locking unmounts the page; the next unlock waits for a new request.
+    if (!isUnlocked) clearLighterSignerRequest();
+  }, [isUnlocked]);
+  return isUnlocked && isRequested ? <UnlockedLighterSignerWebView /> : null;
 };

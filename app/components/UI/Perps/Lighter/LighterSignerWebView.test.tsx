@@ -14,7 +14,10 @@ import {
   parseLighterPageMessage,
 } from './LighterSignerWebView';
 import {
+  clearLighterSignerRequest,
+  isLighterSignerRequested,
   lighterSignerBridge,
+  requestLighterSigner,
   resetLighterBridge,
   reviveLighterBridge,
 } from './lighterSignerBridge';
@@ -127,9 +130,12 @@ describe('LighterSignerWebView', () => {
     mockWebViewProps = {};
     mockWebViewRenderCount = 0;
     mockAttachWebViewRef = true;
+    // Most cases exercise a mounted page; lazy mounting has its own block below.
+    requestLighterSigner();
   });
 
   afterEach(() => {
+    clearLighterSignerRequest();
     reviveLighterBridge();
     resetLighterBridge();
     jest.restoreAllMocks();
@@ -145,6 +151,104 @@ describe('LighterSignerWebView', () => {
     expect(subscription).toBeDefined();
     (subscription?.[1] as () => void)();
   };
+
+  describe('lazy mounting', () => {
+    beforeEach(() => {
+      clearLighterSignerRequest();
+    });
+
+    it('does not load the signer page at unlock until a call needs it', () => {
+      render(<LighterSignerWebView />);
+
+      expect(mockWebViewRenderCount).toBe(0);
+    });
+
+    it('mounts the page on the first signer call, which waits for ready', async () => {
+      render(<LighterSignerWebView />);
+      expect(mockWebViewRenderCount).toBe(0);
+
+      let settled = false;
+      const pending = lighterSignerBridge
+        .execute({ function: '_createAuthToken', params: [28, 7] })
+        .finally(() => {
+          settled = true;
+        });
+      await act(async () => undefined);
+
+      expect(mockWebViewRenderCount).toBe(1);
+      expect(mockPostMessage).not.toHaveBeenCalled();
+      expect(settled).toBe(false);
+
+      act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+      await act(async () => undefined);
+      expect(mockPostMessage).toHaveBeenCalledTimes(1);
+      const { executeId } = JSON.parse(mockPostMessage.mock.calls[0][0]);
+      act(() =>
+        mockWebViewProps.onMessage?.(
+          messageEvent({
+            type: 'executeResult',
+            executeId,
+            result: { token: 'token', deadline: 1 },
+          }),
+        ),
+      );
+
+      await expect(pending).resolves.toEqual({ token: 'token', deadline: 1 });
+    });
+
+    it('starts loading the page as soon as client setup begins', async () => {
+      render(<LighterSignerWebView />);
+
+      const setup = lighterSignerBridge
+        .createClient({
+          chainId: 304,
+          accountIndex: 7,
+          nonce: 1,
+          apiKeyIndex: 3,
+        })
+        .catch((error: Error) => error);
+      await act(async () => undefined);
+
+      expect(mockWebViewRenderCount).toBeGreaterThan(0);
+      act(() => {
+        jest
+          .mocked(Engine.context.KeyringController.isUnlocked)
+          .mockReturnValue(false);
+        emitWalletEvent('KeyringController:lock');
+      });
+      await setup;
+    });
+
+    it('key discovery does not load the page', async () => {
+      render(<LighterSignerWebView />);
+
+      await act(async () => {
+        await lighterSignerBridge.getStoredKeyIndices?.({
+          chainId: 304,
+          accountIndex: 7,
+          apiKeyIndices: [3],
+        });
+      });
+
+      expect(mockWebViewRenderCount).toBe(0);
+      expect(isLighterSignerRequested()).toBe(false);
+    });
+
+    it('forgets the request on lock, so the next unlock waits for a new call', () => {
+      const { rerender } = render(<LighterSignerWebView />);
+      act(() => requestLighterSigner());
+      expect(mockWebViewRenderCount).toBe(1);
+
+      jest.mocked(useSelector).mockReturnValue(false);
+      rerender(<LighterSignerWebView />);
+      expect(isLighterSignerRequested()).toBe(false);
+      expect(mockWebViewUnmount).toHaveBeenCalledTimes(1);
+
+      jest.mocked(useSelector).mockReturnValue(true);
+      rerender(<LighterSignerWebView />);
+      expect(mockWebViewRenderCount).toBe(1);
+    });
+  });
 
   it('does not mount the native signer while the wallet is locked', () => {
     jest.mocked(useSelector).mockReturnValue(false);
