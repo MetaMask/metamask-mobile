@@ -217,4 +217,136 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
       }),
     ).rejects.toThrow('MFA recovery: signed in with a different account');
   });
+
+  it('throws when MfaRecoveryController is missing from Engine', async () => {
+    const previous = (
+      Engine.context as unknown as {
+        MfaRecoveryController?: unknown;
+      }
+    ).MfaRecoveryController;
+    (
+      Engine.context as unknown as {
+        MfaRecoveryController?: unknown;
+      }
+    ).MfaRecoveryController = undefined;
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).rejects.toThrow('MfaRecoveryController is not on Engine.context');
+
+    (
+      Engine.context as unknown as {
+        MfaRecoveryController?: unknown;
+      }
+    ).MfaRecoveryController = previous;
+  });
+
+  it('throws when seedlessAuthData is missing idTokens', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
+      seedlessAuthData: {
+        idTokens: [],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        revokeToken: 'revoke',
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+        userId: 'auth-sub',
+      },
+    });
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).rejects.toThrow('MFA recovery: seedlessAuthData is missing idTokens');
+  });
+
+  it('throws when seedlessAuthData is missing revokeToken', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
+      seedlessAuthData: {
+        idTokens: ['auth-jwt'],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+        userId: 'auth-sub',
+      },
+    });
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).rejects.toThrow('MFA recovery: seedlessAuthData is missing revokeToken');
+  });
+
+  it('throws when handleSeedlessAuthenticate returns an error result', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
+      seedlessAuthData: {
+        idTokens: ['auth-jwt'],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        revokeToken: 'revoke',
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+        userId: 'auth-sub',
+      },
+    });
+    (
+      OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
+    ).mockResolvedValue({
+      type: OAuthLoginResultType.ERROR,
+      existingUser: false,
+      error: 'auth failed',
+    });
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).rejects.toThrow('auth failed');
+  });
+
+  it('omits account_name when socialLoginEmail is absent', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
+      seedlessAuthData: {
+        idTokens: ['auth-jwt'],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        revokeToken: 'revoke',
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+        userId: 'auth-sub',
+      },
+    });
+    (
+      OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
+    ).mockResolvedValue({
+      type: OAuthLoginResultType.SUCCESS,
+      existingUser: true,
+    });
+
+    await authenticateSeedlessViaMfaIdentifier(identifier, { clientId });
+
+    expect(OAuthLoginService.handleSeedlessAuthenticate).toHaveBeenCalledWith(
+      expect.not.objectContaining({ account_name: expect.anything() }),
+      AuthConnection.Apple,
+      clientId,
+    );
+  });
+});
+
+describe('buildOidcIdentifier extras', () => {
+  it('preserves an explicit verifier', () => {
+    expect(
+      buildOidcIdentifier({
+        authConnection: AuthConnection.Telegram,
+        providerSubject: 'tg-1',
+        verifier: { auds: ['bot'] },
+      }),
+    ).toEqual({
+      type: 'social',
+      namespace: 'https://oauth.telegram.org',
+      value: 'tg-1',
+      verifier: { auds: ['bot'] },
+    });
+  });
 });
