@@ -326,15 +326,22 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   // Read at tap time so the row callback stays stable across socket updates.
-  const isSnapshotLiveRef = useRef(false);
-  isSnapshotLiveRef.current = Boolean(live);
+  // A card with a held-back update (paused or scrolled away from the top)
+  // shows an older copy than the socket already sent.
+  const liveRef = useRef(live);
+  liveRef.current = live;
   const handlePositionPress = useMemo(
     () =>
       onPositionPress
-        ? (post: SocialV1FeedPost) =>
+        ? (post: SocialV1FeedPost) => {
+            const current = liveRef.current;
+            const positionId = post.position?.positionId;
             onPositionPress(post, {
-              isSnapshotLive: isSnapshotLiveRef.current,
-            })
+              isSnapshotLive: Boolean(
+                current && positionId && !current.hasPendingUpdate(positionId),
+              ),
+            });
+          }
         : undefined,
     [onPositionPress],
   );

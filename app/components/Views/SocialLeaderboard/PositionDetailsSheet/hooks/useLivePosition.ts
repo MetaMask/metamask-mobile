@@ -86,12 +86,17 @@ export const useLivePosition = ({
       setLiveRevision({ revision: event.revision, position: event.data });
     });
     const removeReconnectListener = service.addReconnectListener(() => {
-      // Revisions sent while disconnected are lost, so the API copy is newer.
+      // Revisions sent while disconnected are lost, so the API copy beats
+      // anything older than the reconnect, but not what arrived during the
+      // fetch: those are already ignored as duplicates if they come again.
+      const revisionAtReconnect = lastRevisionRef.current;
       refetchRef
         .current()
         .then(() => {
           setDidCatchUp(true);
-          setLiveRevision(null);
+          setLiveRevision((current) =>
+            current && current.revision > revisionAtReconnect ? current : null,
+          );
         })
         .catch(noop);
     });

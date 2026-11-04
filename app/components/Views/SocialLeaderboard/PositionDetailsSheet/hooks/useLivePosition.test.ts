@@ -171,6 +171,29 @@ describe('useLivePosition', () => {
     await waitFor(() => expect(result.current.position).toBe(caughtUp));
   });
 
+  it('keeps a revision that arrives while the reconnect fetch is in flight', async () => {
+    const { result, rerender } = renderLivePosition({ isSnapshotLive: true });
+    emit('position-1', 1, buildPosition({ tokenSymbol: 'REV1' }));
+    const duringFetch = buildPosition({ tokenSymbol: 'REV2' });
+    let settleFetch: () => void = () => undefined;
+    mockRefetch.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          settleFetch = () => {
+            mockFetchedPosition = buildPosition({ tokenSymbol: 'API' });
+            resolve();
+          };
+        }),
+    );
+
+    act(() => reconnectListener?.());
+    emit('position-1', 2, duringFetch);
+    await act(async () => settleFetch());
+    rerender({});
+
+    expect(result.current.position).toBe(duringFetch);
+  });
+
   it('releases the lease on unmount', () => {
     const { unmount } = renderLivePosition();
 

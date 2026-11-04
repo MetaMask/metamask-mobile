@@ -307,15 +307,18 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
     const heldPnl = result.current?.posts[0]?.position?.pnlValueUsd;
     const heldCount = result.current?.realtime.pendingNewCount;
+    const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
 
     rerender({ rows, paused: false });
 
     expect(heldPnl).not.toBe(99);
     expect(heldCount).toBe(0);
+    expect(wasHeld).toBe(true);
     await waitFor(() =>
       expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
     );
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });
 
   it('caps socket-only posts and refreshes to catch up', async () => {

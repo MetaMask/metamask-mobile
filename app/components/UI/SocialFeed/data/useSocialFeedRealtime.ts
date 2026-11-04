@@ -40,6 +40,8 @@ export interface SocialFeedRealtimeState {
   pendingNewCount: number;
   /** Applies every held-back post at once. */
   revealPending: () => void;
+  /** True while an update to this post is held back, so the shown copy is stale. */
+  hasPendingUpdate: (feedItemId: string) => boolean;
   entrances: SocialFeedEntrances;
 }
 
@@ -589,13 +591,19 @@ export const useSocialFeedRealtime = (
     setRevealRequested(true);
   }, []);
 
+  const hasPendingUpdate = useCallback(
+    (feedItemId: string) => storeRef.current.pending.has(feedItemId),
+    [],
+  );
+
   const realtime = useMemo<SocialFeedRealtimeState>(
     () => ({
       pendingNewCount: visiblePendingNewCount,
       revealPending,
+      hasPendingUpdate,
       entrances,
     }),
-    [entrances, revealPending, visiblePendingNewCount],
+    [entrances, hasPendingUpdate, revealPending, visiblePendingNewCount],
   );
 
   return realtimeScope ? { posts, realtime } : null;
