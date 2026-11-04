@@ -1,3 +1,22 @@
+// Bounded value-keyed memo for parseBalanceWithDecimals: pure on
+// (balanceString, decimals). Zero/small recurring amounts ('0', round numbers)
+// dominate real states, so the BigInt round-trip is mostly repeated work.
+const parseBalanceCache = new Map();
+const PARSE_BALANCE_CACHE_LIMIT = 4096;
+function parseBalanceWithDecimalsCached(balanceString, decimals) {
+    const key = balanceString + '\u0000' + decimals;
+    const cached = parseBalanceCache.get(key);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const parsed = parseBalanceWithDecimals(balanceString, decimals);
+    if (parseBalanceCache.size >= PARSE_BALANCE_CACHE_LIMIT) {
+        parseBalanceCache.clear();
+    }
+    parseBalanceCache.set(key, parsed);
+    return parsed;
+}
+
 // Bounded value-keyed memo for decimalToPrefixedHex: pure map of the chain
 // reference string to its hex chain id; the same few chain references are
 // re-derived for every asset on every state change.
@@ -90,7 +109,7 @@ const getAccountTrackerControllerAccountsByChainId = makeDirect([
                     // staked-token entry processed earlier in this loop.
                     ...result[hexChainId][checksummedAddress],
                     // TODO: Use raw value from state when available
-                    balance: parseBalanceWithDecimals(amount, metadata.decimals),
+                    balance: parseBalanceWithDecimalsCached(amount, metadata.decimals),
                 };
             }
             else if (metadata && isStakedTokenAssetId(assetId)) {
@@ -104,7 +123,7 @@ const getAccountTrackerControllerAccountsByChainId = makeDirect([
                     balance: '0x0',
                 });
                 result[hexChainId][checksummedAddress].stakedBalance =
-                    parseBalanceWithDecimals(amount, metadata.decimals);
+                    parseBalanceWithDecimalsCached(amount, metadata.decimals);
             }
         }
     }
@@ -241,7 +260,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             (_a = result[accountAddress])[hexChainId] ?? (_a[hexChainId] = {});
             result[accountAddress][hexChainId][assetAddress] =
                 // TODO: Use raw value from state when available
-                parseBalanceWithDecimals(assetBalance.amount, metadata.decimals);
+                parseBalanceWithDecimalsCached(assetBalance.amount, metadata.decimals);
         }
     }
     // Custom EVM tokens may have metadata (assetsInfo) but no balance
@@ -275,7 +294,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             if (!result[accountAddress]?.[hexChainId]?.[assetAddress]) {
                 (_b = result[accountAddress])[hexChainId] ?? (_b[hexChainId] = {});
                 result[accountAddress][hexChainId][assetAddress] =
-                    parseBalanceWithDecimals('0', metadata.decimals);
+                    parseBalanceWithDecimalsCached('0', metadata.decimals);
             }
         }
     }
