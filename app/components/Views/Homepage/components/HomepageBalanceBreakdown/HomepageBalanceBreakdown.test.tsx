@@ -20,6 +20,7 @@ import type {
   SliceKey,
 } from '../../BalanceBreakdown/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
@@ -54,6 +55,13 @@ let mockIsWalletHomeOnboardingActive = false;
 let mockIsMoneyAccountGeoEligible = true;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
+
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -220,7 +228,10 @@ describe('HomepageBalanceBreakdown', () => {
       if (selector === selectShouldShowWalletHomeOnboardingSteps) {
         return mockIsWalletHomeOnboardingActive;
       }
-      return undefined;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
     jest.mocked(useBalanceBreakdown).mockReturnValue(breakdown);
   });

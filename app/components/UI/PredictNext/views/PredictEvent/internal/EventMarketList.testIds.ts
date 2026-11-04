@@ -3,6 +3,8 @@ export const EventMarketListTestIds = {
   TABS: 'predict-next-event-market-list-tabs',
   MARKETS_TAB: 'predict-next-event-market-list-markets-tab',
   POSITIONS_TAB: 'predict-next-event-market-list-positions-tab',
+  layoutTab: (tabKey: string) =>
+    `predict-next-event-market-list-layout-tab-${tabKey}`,
   POSITION_ROWS: /^predict-next-event-market-list-position-/,
   positionRow: (marketId: string, side: string) =>
     `predict-next-event-market-list-position-${marketId}-${side}`,

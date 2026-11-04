@@ -4,13 +4,15 @@ import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import {
   TokenDetailsV1,
-  TOKEN_DETAILS_V1_TEST_ID,
-  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
-  TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
   TOKEN_DETAILS_TAB_BAR_STICKY_INDEX,
   resolveSwipeTargetTab,
 } from './TokenDetailsV1';
+import { TokenDetailsIds } from '../testIds';
+
+const TOKEN_DETAILS_V1_TEST_ID = TokenDetailsIds.v1;
+const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = TokenDetailsIds.ageChip;
+const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID = TokenDetailsIds.scrollView;
+const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID = TokenDetailsIds.tabContent;
 import {
   TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
@@ -22,6 +24,7 @@ import {
   selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import {
   LIVE_PRICE_HEADER_TEST_ID,
   LIVE_PRICE_SCROLL_THRESHOLD_PX,
@@ -69,10 +72,12 @@ const mockSelectors = ({
   socialEnabled = false,
   tabConfigOrder = TOKEN_DETAILS_V1_TABS,
   tokenApiBaseUrl = PROD_TOKEN_API_BASE_URL,
+  brandRefreshEnabled = false,
 }: {
   socialEnabled?: boolean;
   tabConfigOrder?: TokenDetailsV1TabKey[];
   tokenApiBaseUrl?: string;
+  brandRefreshEnabled?: boolean;
 } = {}) => {
   const { useSelector } = jest.requireMock('react-redux') as {
     useSelector: jest.Mock;
@@ -87,6 +92,9 @@ const mockSelectors = ({
     }
     if (selector === selectMemecoinTdpV1TokenApiBaseUrl) {
       return tokenApiBaseUrl;
+    }
+    if (selector === selectTokenDetailsBrandRefreshEnabled) {
+      return brandRefreshEnabled;
     }
     return undefined;
   });
@@ -318,35 +326,48 @@ jest.mock('../components/tabs/OverviewTab', () => {
 
 // Tab bar stand-in: expose each tab as a pressable that reports the tab key,
 // so this view test can cover tab switching end to end.
+const mockTabBarProps: Record<string, unknown>[] = [];
+
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
   return {
     ...actual,
     __esModule: true,
-    default: ({
-      activeTab,
-      onTabPress,
-      onLayout,
-      tabs = ['feed', 'overview', 'security'],
-    }: {
+    default: (props: {
       activeTab: string;
       onTabPress: (tab: string) => void;
       onLayout?: (event: LayoutChangeEvent) => void;
+      topInset?: number;
       tabs?: readonly string[];
-    }) => (
-      <View testID="mock-tab-bar" onLayout={onLayout}>
-        {tabs.map((tab) => (
-          <Pressable
-            key={tab}
-            testID={`token-details-v1-tab-${tab}`}
-            onPress={() => onTabPress(tab)}
-          >
-            <Text>{`${tab}:${activeTab === tab}`}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
+    }) => {
+      mockTabBarProps.push(props);
+      const {
+        activeTab,
+        onTabPress,
+        onLayout,
+        topInset = 0,
+        tabs = ['feed', 'overview', 'security'],
+      } = props;
+
+      return (
+        <View
+          testID="mock-tab-bar"
+          onLayout={onLayout}
+          style={{ paddingTop: topInset }}
+        >
+          {tabs.map((tab) => (
+            <Pressable
+              key={tab}
+              testID={`token-details-v1-tab-${tab}`}
+              onPress={() => onTabPress(tab)}
+            >
+              <Text>{`${tab}:${activeTab === tab}`}</Text>
+            </Pressable>
+          ))}
+        </View>
+      );
+    },
   };
 });
 
@@ -526,6 +547,7 @@ describe('TokenDetailsV1', () => {
     mockSecurityQueryResult.dataUpdatedAt = 0;
     mockStickyFooterProps.length = 0;
     mockInlineHeaderProps.length = 0;
+    mockTabBarProps.length = 0;
     mockActionsSectionProps.length = 0;
   });
 
@@ -548,6 +570,69 @@ describe('TokenDetailsV1', () => {
     expect(mockActionsSectionProps[0]).toEqual(
       expect.objectContaining({ tdpVersion: 'v3' }),
     );
+  });
+
+  describe('glass header', () => {
+    it('keeps the header in normal flow when brand refresh is disabled', () => {
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(mockInlineHeaderProps[0]).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+      expect(mockTabBarProps[0]).toEqual(
+        expect.objectContaining({ topInset: 0 }),
+      );
+    });
+
+    it('passes glass layout and scroll props when brand refresh is enabled', () => {
+      mockSelectors({ brandRefreshEnabled: true });
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      const headerProps = mockInlineHeaderProps[0] as React.ComponentProps<
+        typeof TokenDetailsInlineHeader
+      >;
+
+      expect(headerProps.isGlass).toBe(true);
+      expect(headerProps.scrollY?.value).toBe(0);
+      expect(headerProps.onLayout).toEqual(expect.any(Function));
+      expect(mockTabBarProps[0].topInset).toBeGreaterThan(0);
+      expect(mockTabBarProps[0].scrollY).toBe(headerProps.scrollY);
+
+      const layoutEvent = {
+        nativeEvent: { layout: { height: 120 } },
+      } as LayoutChangeEvent;
+
+      act(() => {
+        headerProps.onLayout?.(layoutEvent);
+      });
+
+      expect(
+        getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+          .contentContainerStyle,
+      ).toEqual(
+        expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
+      );
+      expect(mockTabBarProps.at(-1)?.topInset).toBe(120);
+
+      fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
+        nativeEvent: {
+          contentOffset: { y: 80 },
+        },
+      });
+
+      expect(headerProps.scrollY?.value).toBe(80);
+    });
   });
 
   it('renders the age chip when launchedAt is available', () => {
@@ -1583,7 +1668,10 @@ describe('TokenDetailsV1', () => {
       // A different token must re-fire (dedup keys on the token, not mount).
       rerender(
         <TokenDetailsV1
-          token={{ ...baseToken, address: '0xdifferentaddress' }}
+          token={{
+            ...baseToken,
+            address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+          }}
           variant={TokenDetailsVariant.Memecoin}
         />,
       );

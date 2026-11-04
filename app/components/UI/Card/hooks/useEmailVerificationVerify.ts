@@ -8,8 +8,8 @@ import {
 } from '../types';
 
 /**
- * Gets the user's profile ID (JWT sub claim) from authenticated MetaMask requests.
- * Only returns the profileId if the user is signed in.
+ * Profile id sent as `userExternalId`. The canonical id is the one card-api
+ * stores; the session profile id is the alias left when no canonical is cached.
  *
  * @returns The profile ID string or undefined if not signed in
  */
@@ -21,8 +21,10 @@ const getProfileId = async (): Promise<string | undefined> => {
       return undefined;
     }
     const sessionProfile = await AuthenticationController.getSessionProfile();
-    if (sessionProfile?.profileId) {
-      return sessionProfile.profileId;
+    const profileId =
+      sessionProfile?.canonicalProfileId || sessionProfile?.profileId;
+    if (profileId) {
+      return profileId;
     }
   } catch {
     // Return undefined if any error occurs

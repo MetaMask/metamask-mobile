@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView } from 'react-native';
+import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -17,11 +17,11 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   ListItem,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
@@ -83,11 +83,12 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { AVENIA_URL } from './constants';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
-// Keep the Figma disclosure ready while Product finalizes the copy.
-const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
@@ -101,7 +102,8 @@ export const VbaDetailsSelectorsIDs = {
   ROUTING_NUMBER: 'vba-details-routing-number',
   ACCOUNT_NUMBER: 'vba-details-account-number',
   BANK_NAME: 'vba-details-bank-name',
-  HELPER_TEXT: 'vba-details-helper-text',
+  PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
+  PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
@@ -234,6 +236,7 @@ const buildDetailRows = (
  * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
@@ -748,6 +751,14 @@ const VbaDetails = () => {
     [],
   );
 
+  const handleOpenProviderInfo = useCallback(() => {
+    Linking.openURL(AVENIA_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the provider link',
+      });
+    });
+  }, []);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -782,6 +793,11 @@ const VbaDetails = () => {
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
+  // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
+  // the user's country. The US bank transfer layout never shows it.
+  const showProviderDisclosure = instructions
+    ? instructions.type === 'Pix'
+    : sourceCurrency === 'BRL';
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -791,7 +807,7 @@ const VbaDetails = () => {
   if (!isApproved) {
     return (
       <VbaCreatingAccount
-        onBack={handleDone}
+        onBack={handleBack}
         awaitingProviderApproval={awaitingProviderApproval}
       />
     );
@@ -802,7 +818,9 @@ const VbaDetails = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
         includesTopInset
@@ -926,14 +944,23 @@ const VbaDetails = () => {
         )}
       </ScrollView>
       <Box gap={4} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
-        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+        {showProviderDisclosure ? (
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="text-center"
-            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+            testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE}
           >
-            {strings('virtual_bank_account.vba_details.helper_text')}
+            {strings('virtual_bank_account.vba_details.provider_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenProviderInfo}
+              testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK}
+            >
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              )}
+            </TextButton>
           </Text>
         ) : null}
         {debugEnabled ? (

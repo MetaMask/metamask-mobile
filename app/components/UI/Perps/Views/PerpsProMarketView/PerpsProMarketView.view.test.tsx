@@ -20,6 +20,7 @@ import {
   type PerpsProviderType,
   type TwapOrder,
   type TwapOrderFill,
+  PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import type { ComponentType } from 'react';
@@ -34,12 +35,14 @@ import {
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
+  createShortPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
@@ -56,6 +59,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProPositionRowSelector,
   PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
@@ -3297,6 +3301,80 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
+  itForPlatforms('keeps coin sizing after opening another market', async () => {
+    const { store } = renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        marketData: [
+          createEthMarketForViews({ providerId: 'hyperliquid' }),
+          createBtcMarketForViews({ providerId: 'hyperliquid' }),
+        ],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+          BTC: {
+            symbol: 'BTC',
+            price: '50000',
+            markPrice: '50000',
+            percentChange24h: '1',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+        positions: [createShortPositionForViews()],
+      },
+    });
+    const unwire = wirePerpsControllerForStore(store);
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+    await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    await waitFor(() => {
+      expect(sizeInput).toHaveProp('value', '0.04');
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+    });
+    // ETH szDecimals is 2, so a third decimal place is rejected.
+    fireEvent.changeText(sizeInput, '0.123');
+    expect(sizeInput).toHaveProp('value', '0.04');
+    expect(
+      (
+        store.getState().engine.backgroundState.PerpsController as {
+          orderBookPreferences?: { currency?: string };
+        }
+      ).orderBookPreferences?.currency,
+    ).toBe('base');
+
+    const btcRow = await screen.findByTestId(
+      getPerpsProPositionRowSelector('BTC'),
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    fireEvent.press(within(btcRow).getByText('BTC'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (BTC)',
+      );
+    });
+    const nextSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+    // BTC szDecimals is 5. A sixth decimal is rejected once market data lands.
+    // Stay under the balance cap so the draft is not clamped back to USD.
+    await waitFor(() => {
+      fireEvent.changeText(nextSizeInput, '0.00123');
+      fireEvent.changeText(nextSizeInput, '0.001234');
+      expect(nextSizeInput).toHaveProp('value', '0.00123');
+    });
+    unwire();
+  });
+
   itForPlatforms(
     'opens the size field and order book in the saved coin denomination',
     async () => {
@@ -5560,6 +5638,76 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
       ),
     ).toBeOnTheScreen();
     await waitFor(() => expect(submit).toBeDisabled());
+  });
+});
+
+describe('PerpsProMarketView section header button location', () => {
+  const market = createEthMarketForViews();
+
+  const screenViewedEvent = (trackEventSpy: jest.SpyInstance) =>
+    trackEventSpy.mock.calls
+      .map(
+        ([event]) =>
+          event as {
+            name?: string;
+            properties?: Record<string, unknown>;
+          },
+      )
+      .find(
+        (event) =>
+          event.name === MetaMetricsEvents.PERPS_SCREEN_VIEWED.category,
+      );
+
+  it('forwards button_location on Perp Screen Viewed for a section header tap', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderPerpsProMarketView({
+        initialParams: {
+          market,
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
+      });
+
+      await waitFor(() => {
+        expect(screenViewedEvent(trackEventSpy)?.properties).toEqual(
+          expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: 'perps_section_header',
+            source: 'home_section',
+          }),
+        );
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('omits button_location on Perp Screen Viewed when the route param is absent', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderPerpsProMarketView({
+        initialParams: {
+          market,
+          source: 'home_section',
+        },
+      });
+
+      await waitFor(() => {
+        expect(screenViewedEvent(trackEventSpy)).toEqual(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_SCREEN_VIEWED.category,
+          }),
+        );
+      });
+
+      expect(screenViewedEvent(trackEventSpy)?.properties).not.toHaveProperty(
+        PERPS_EVENT_PROPERTY.BUTTON_LOCATION,
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
   });
 });
 
