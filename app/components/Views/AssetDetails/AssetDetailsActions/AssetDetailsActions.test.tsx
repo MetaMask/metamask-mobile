@@ -19,8 +19,18 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
+import { WALLET_HOME_HEADER_ACTIONS_AB_KEY } from './abTestConfig';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../UI/Ramp/constants/rampsBuyCufTags';
 
 const mockGoToSwaps = jest.fn();
+const mockGoToBuy = jest.fn();
+const mockGoToSell = jest.fn();
+jest.mock('../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
+    goToSell: mockGoToSell,
+  }),
+}));
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
@@ -102,12 +112,35 @@ describe('AssetDetailsActions', () => {
     },
   });
 
+  const withHeaderActionsVariant = (
+    baseState: ReturnType<typeof createStateWithSigningCapability>,
+    variant: 'control' | 'treatment',
+  ) => ({
+    ...baseState,
+    engine: {
+      ...baseState.engine,
+      backgroundState: {
+        ...baseState.engine.backgroundState,
+        RemoteFeatureFlagController: {
+          ...baseState.engine.backgroundState.RemoteFeatureFlagController,
+          remoteFeatureFlags: {
+            ...(baseState.engine.backgroundState.RemoteFeatureFlagController
+              ?.remoteFeatureFlags ?? {}),
+            [WALLET_HOME_HEADER_ACTIONS_AB_KEY]: variant,
+          },
+        },
+      },
+    },
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
     mockAddListener.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
+    mockGoToBuy.mockClear();
+    mockGoToSell.mockClear();
     jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
@@ -365,4 +398,208 @@ describe('AssetDetailsActions', () => {
   // is covered by the fund button logic in AssetDetailsActions component lines 61-66.
   // When isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported evaluates to false,
   // the fund button will not be displayed. This scenario is tested in the Asset component tests.
+
+  describe('header actions experiment', () => {
+    const signingState = () => createStateWithSigningCapability();
+    const actionLabels = new Set(['Buy', 'Sell', 'Swap', 'Send', 'Receive']);
+
+    const collectActionLabels = (node: unknown): string[] => {
+      if (!node || typeof node !== 'object') {
+        return [];
+      }
+      if (Array.isArray(node)) {
+        return node.flatMap(collectActionLabels);
+      }
+      const { children } = node as { children?: unknown };
+      if (typeof children === 'string' && actionLabels.has(children)) {
+        return [children];
+      }
+      if (!Array.isArray(children)) {
+        return [];
+      }
+      return children.flatMap((child) =>
+        typeof child === 'string' && actionLabels.has(child)
+          ? [child]
+          : collectActionLabels(child),
+      );
+    };
+
+    it('keeps Buy, Swap, Send, and Receive when the flag is missing', () => {
+      const { getByText, queryByText, toJSON } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: signingState() },
+      );
+
+      expect(getByText(strings('asset_overview.buy_button'))).toBeOnTheScreen();
+      expect(getByText(strings('asset_overview.swap'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.send_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.receive_button')),
+      ).toBeOnTheScreen();
+      expect(queryByText(strings('asset_overview.sell_button'))).toBeNull();
+      expect(collectActionLabels(toJSON())).toMatchInlineSnapshot(`
+        [
+          "Buy",
+          "Swap",
+          "Send",
+          "Receive",
+        ]
+      `);
+    });
+
+    it('keeps Buy, Swap, Send, and Receive when the flag is control', () => {
+      const { getByText, queryByText, toJSON } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: withHeaderActionsVariant(signingState(), 'control') },
+      );
+
+      expect(getByText(strings('asset_overview.swap'))).toBeOnTheScreen();
+      expect(queryByText(strings('asset_overview.sell_button'))).toBeNull();
+      expect(collectActionLabels(toJSON())).toMatchInlineSnapshot(`
+        [
+          "Buy",
+          "Swap",
+          "Send",
+          "Receive",
+        ]
+      `);
+    });
+
+    it('renders Buy, Sell, Send, and Receive when the flag is treatment', () => {
+      const { getByText, queryByText, getByTestId, queryByTestId, toJSON } =
+        renderWithProvider(<AssetDetailsActions {...defaultProps} />, {
+          state: withHeaderActionsVariant(signingState(), 'treatment'),
+        });
+
+      expect(getByText(strings('asset_overview.buy_button'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.sell_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.send_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('asset_overview.receive_button')),
+      ).toBeOnTheScreen();
+      expect(queryByText(strings('asset_overview.swap'))).toBeNull();
+      expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeNull();
+      expect(getByTestId('wallet-home-sell-button')).toBeOnTheScreen();
+      expect(collectActionLabels(toJSON())).toMatchInlineSnapshot(`
+        [
+          "Buy",
+          "Sell",
+          "Send",
+          "Receive",
+        ]
+      `);
+    });
+
+    it('opens the ramp buy flow from the treatment buy button', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: withHeaderActionsVariant(signingState(), 'treatment') },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+      expect(mockGoToBuy).toHaveBeenCalledWith(undefined, {
+        surface: RAMPS_BUY_CUF_SURFACE.HOME,
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.BUY,
+        action_position: ActionPosition.FIRST_POSITION,
+        button_label: strings('asset_overview.buy_button'),
+        location: ActionLocation.HOME,
+      });
+    });
+
+    it('opens the ramp sell flow from the treatment sell button', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: withHeaderActionsVariant(signingState(), 'treatment') },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      fireEvent.press(getByTestId('wallet-home-sell-button'));
+
+      expect(mockGoToSell).toHaveBeenCalledTimes(1);
+      const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SELL,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: strings('asset_overview.sell_button'),
+        location: ActionLocation.HOME,
+      });
+    });
+
+    it('keeps send and receive on the existing callbacks in treatment', () => {
+      const { getByTestId, unmount } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: withHeaderActionsVariant(signingState(), 'treatment') },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON));
+      expect(mockOnSend).toHaveBeenCalledTimes(1);
+
+      unmount();
+      const receive = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: withHeaderActionsVariant(signingState(), 'treatment') },
+      );
+      fireEvent.press(
+        receive.getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+      );
+      expect(mockOnReceive).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables buy, sell, and send in treatment when the account cannot sign', () => {
+      const mockState = {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        internalAccounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+          accounts: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+            [expectedUuid2]: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                expectedUuid2
+              ],
+              methods: Object.values(EthMethod).filter(
+                (method) => method !== EthMethod.SignTransaction,
+              ),
+            },
+          },
+        },
+      };
+      const unsignedState = withHeaderActionsVariant(
+        {
+          ...initialRootState,
+          engine: {
+            ...initialRootState.engine,
+            backgroundState: {
+              ...initialRootState.engine.backgroundState,
+              AccountsController: mockState,
+            },
+          },
+        },
+        'treatment',
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: unsignedState },
+      );
+
+      expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeDisabled();
+      expect(getByTestId('wallet-home-sell-button')).toBeDisabled();
+      expect(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeDisabled();
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+      ).not.toBeDisabled();
+    });
+  });
 });

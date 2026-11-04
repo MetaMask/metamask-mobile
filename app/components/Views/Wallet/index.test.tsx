@@ -977,6 +977,7 @@ describe('Wallet', () => {
         onSend: expect.any(Function),
         buyButtonActionID: 'wallet-buy-button',
         swapButtonActionID: 'wallet-swap-button',
+        sellButtonActionID: 'wallet-sell-button',
         sendButtonActionID: 'wallet-send-button',
         receiveButtonActionID: 'wallet-receive-button',
       });
