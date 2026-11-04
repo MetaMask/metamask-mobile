@@ -282,8 +282,13 @@ interface PredictFeed {
   malformed `choice` group is kept as an unsupported group.
 - `group.label` is the card's title, set by the backend only when the client
   can't name the card itself, such as a Player's name on a player-props card.
-  It is optional on every group type and never blank; mobile shows it as sent.
-  A moneyline has no label and sits under its section header.
+  It is optional on every group type and never blank. Mobile shows it only as
+  the title of a `choice` card; on other group types it is parsed and unused.
+- An unlabelled `choice` group is a moneyline when it has a Game and its rows
+  back different Teams (or the tie). It sits under its section header with Team
+  names and logos. Any other unlabelled `choice` group, such as a Player the
+  backend couldn't name or a single row, is an untitled choice card showing its
+  outcome labels. Without a Game, its Markets render as standard cards.
 - `group.key` identifies one presentation group within the Event. Markets with
   the same key may share one selector; different keys must remain separate.
 - A `marketSelector` group has a `marketType` and a numeric `option`. For a

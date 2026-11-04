@@ -89,9 +89,24 @@ const getTeamTotalTitle = (
 };
 
 /**
- * A titled choice card, such as a Player's thresholds: each row in the color
- * of the Team its yes side backs, without an avatar; neutral without a Game
- * or a Team.
+ * A moneyline backs a different Team (or the tie) on every row. A Player's
+ * thresholds all back one Team, and a single row can't tell, so neither is one.
+ */
+const isMoneyline = (markets: readonly PredictMarket[]): boolean => {
+  const selections = markets.map(
+    (market) =>
+      market.outcomes.find((outcome) => outcome.side === 'yes')
+        ?.gameSelection ?? 'tie',
+  );
+  return (
+    selections.length > 1 && new Set(selections).size === selections.length
+  );
+};
+
+/**
+ * A choice card read from its outcome labels, such as a Player's thresholds:
+ * each row in the color of the Team its yes side backs, without an avatar;
+ * neutral without a Game or a Team. Untitled when the backend sent no label.
  */
 const LabelledChoiceCard = ({
   game,
@@ -99,7 +114,7 @@ const LabelledChoiceCard = ({
 }: {
   groupKey: string;
   markets: readonly PredictMarket[];
-  title: string;
+  title?: string;
   game?: PredictGame;
   onOrder: EventMarketLayoutCardProps['onOrder'];
 }) => {
@@ -145,30 +160,34 @@ export const EventMarketLayoutCard = ({
   }
 
   if (card.type === 'choice') {
-    const label = card.markets[0]?.group?.label;
-    if (label !== undefined) {
+    const label = card.markets.find((market) => market.group?.label)?.group
+      ?.label;
+    if (label === undefined && !game) {
       return (
-        <LabelledChoiceCard
+        <StandardCards
+          markets={card.markets}
+          onOrder={onOrder}
+          onRulesPress={onRulesPress}
+        />
+      );
+    }
+    if (label === undefined && game && isMoneyline(card.markets)) {
+      return (
+        <MoneylineMarketGroupCard
           groupKey={card.key}
           markets={card.markets}
-          title={label}
           game={game}
           onOrder={onOrder}
         />
       );
     }
-    return game ? (
-      <MoneylineMarketGroupCard
+    return (
+      <LabelledChoiceCard
         groupKey={card.key}
         markets={card.markets}
+        title={label}
         game={game}
         onOrder={onOrder}
-      />
-    ) : (
-      <StandardCards
-        markets={card.markets}
-        onOrder={onOrder}
-        onRulesPress={onRulesPress}
       />
     );
   }
