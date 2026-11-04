@@ -427,6 +427,23 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 
+// Byte-exact error.message from Sentry event 21edcb35 (NSURLErrorCannotConnectToHost).
+const NSURL_CANNOT_CONNECT_ERROR_MESSAGE = `Error Domain=NSURLErrorDomain Code=-1004 "Could not connect to the server." UserInfo={_kCFStreamErrorCodeKey=61, NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1004 "(null)" UserInfo={_NSURLErrorNWPathKey=satisfied (Path is satisfied), interface: en0[802.11], ipv4, dns, uses wifi, LQM: good, _kCFStreamErrorCodeKey=61, _kCFStreamErrorDomainKey=1}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+    "LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>"
+), NSLocalizedDescription=Could not connect to the server., NSErrorFailingURLStringKey=**, NSErrorFailingURLKey=**, _kCFStreamErrorDomainKey=1}
+`;
+
+const NSURL_ERROR_NETWORK_CONNECTION_LOST = -1005;
+const NSURL_NETWORK_CONNECTION_LOST_DESCRIPTION =
+  'The network connection was lost.';
+
+function nsurlErrorMessage(code: number, description: string): string {
+  return NSURL_CANNOT_CONNECT_ERROR_MESSAGE.replaceAll(
+    'Code=-1004',
+    `Code=${code}`,
+  ).replaceAll('Could not connect to the server.', description);
+}
+
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
   return new PolymarketProvider({
     getFeatureFlags: () => ({ ...defaultFeatureFlags, ...featureFlags }),
@@ -849,6 +866,23 @@ describe('PolymarketProvider', () => {
       expect(Logger.error).toHaveBeenCalledWith(abortError, expect.any(Object));
     });
 
+    it('rethrows an iOS cannot-connect failure without reporting it to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE);
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(networkError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(networkError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict request failed due to network conditions:',
+        networkError.message,
+        expect.any(Object),
+      );
+    });
+
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
       const provider = createProvider();
       const moneylineOutcome = {
@@ -1122,6 +1156,30 @@ describe('PolymarketProvider', () => {
       await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
         'queries parameter is required and must not be empty',
       );
+    });
+
+    it('returns empty results for an iOS connection-lost failure without reporting it to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new Error(
+        nsurlErrorMessage(
+          NSURL_ERROR_NETWORK_CONNECTION_LOST,
+          NSURL_NETWORK_CONNECTION_LOST_DESCRIPTION,
+        ),
+      );
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+      const provider = createProvider();
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result).toEqual({
+        providerId: provider.providerId,
+        results: [],
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 

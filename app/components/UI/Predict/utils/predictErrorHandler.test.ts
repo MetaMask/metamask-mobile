@@ -5,6 +5,7 @@ import {
   ensureError,
   isNetworkError,
   isPredictNoMatchError,
+  reportPredictError,
   showDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
@@ -43,8 +44,44 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
-  default: { error: jest.fn() },
+  default: { error: jest.fn(), log: jest.fn() },
 }));
+
+// Byte-exact error.message from Sentry event 21edcb35 (NSURLErrorCannotConnectToHost).
+const NSURL_CANNOT_CONNECT_ERROR_MESSAGE = `Error Domain=NSURLErrorDomain Code=-1004 "Could not connect to the server." UserInfo={_kCFStreamErrorCodeKey=61, NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1004 "(null)" UserInfo={_NSURLErrorNWPathKey=satisfied (Path is satisfied), interface: en0[802.11], ipv4, dns, uses wifi, LQM: good, _kCFStreamErrorCodeKey=61, _kCFStreamErrorDomainKey=1}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+    "LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>"
+), NSLocalizedDescription=Could not connect to the server., NSErrorFailingURLStringKey=**, NSErrorFailingURLKey=**, _kCFStreamErrorDomainKey=1}
+`;
+
+const NSURL_ERROR_TIMED_OUT = -1001;
+const NSURL_ERROR_CANNOT_FIND_HOST = -1003;
+const NSURL_ERROR_CANNOT_CONNECT_TO_HOST = -1004;
+const NSURL_ERROR_NETWORK_CONNECTION_LOST = -1005;
+const NSURL_ERROR_NOT_CONNECTED_TO_INTERNET = -1009;
+const NSURL_ERROR_BAD_SERVER_RESPONSE = -1011;
+const NSURL_ERROR_SECURE_CONNECTION_FAILED = -1200;
+
+const TIMED_OUT_DESCRIPTION = 'The request timed out.';
+const CANNOT_FIND_HOST_DESCRIPTION =
+  'A server with the specified hostname could not be found.';
+const NETWORK_CONNECTION_LOST_DESCRIPTION = 'The network connection was lost.';
+const NOT_CONNECTED_TO_INTERNET_DESCRIPTION =
+  'The Internet connection appears to be offline.';
+const SECURE_CONNECTION_FAILED_DESCRIPTION =
+  'An SSL error has occurred and a secure connection to the server cannot be made.';
+const BAD_SERVER_RESPONSE_DESCRIPTION =
+  'There was a bad response from the server.';
+const LOCALIZED_CANNOT_CONNECT_DESCRIPTION =
+  'No se pudo conectar con el servidor.';
+const NETWORK_FAILURE_BREADCRUMB_MESSAGE =
+  'Predict request failed due to network conditions:';
+
+function nsurlErrorMessage(code: number, description: string): string {
+  return NSURL_CANNOT_CONNECT_ERROR_MESSAGE.replaceAll(
+    'Code=-1004',
+    `Code=${code}`,
+  ).replaceAll('Could not connect to the server.', description);
+}
 
 describe('predictErrorHandler', () => {
   describe('ensureError', () => {
@@ -130,6 +167,97 @@ describe('predictErrorHandler', () => {
     it('returns false for null/undefined', () => {
       expect(isNetworkError(null)).toBe(false);
       expect(isNetworkError(undefined)).toBe(false);
+    });
+
+    it('returns true for the iOS cannot-connect NSError fixture', () => {
+      expect(
+        isNetworkError(new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE)),
+      ).toBe(true);
+    });
+
+    it.each([
+      [NSURL_ERROR_TIMED_OUT, TIMED_OUT_DESCRIPTION],
+      [NSURL_ERROR_CANNOT_FIND_HOST, CANNOT_FIND_HOST_DESCRIPTION],
+      [
+        NSURL_ERROR_NETWORK_CONNECTION_LOST,
+        NETWORK_CONNECTION_LOST_DESCRIPTION,
+      ],
+      [
+        NSURL_ERROR_NOT_CONNECTED_TO_INTERNET,
+        NOT_CONNECTED_TO_INTERNET_DESCRIPTION,
+      ],
+      [
+        NSURL_ERROR_SECURE_CONNECTION_FAILED,
+        SECURE_CONNECTION_FAILED_DESCRIPTION,
+      ],
+      [
+        NSURL_ERROR_CANNOT_CONNECT_TO_HOST,
+        LOCALIZED_CANNOT_CONNECT_DESCRIPTION,
+      ],
+    ])(
+      'returns true for an NSURLErrorDomain connectivity variant %s',
+      (code, description) => {
+        expect(
+          isNetworkError(new Error(nsurlErrorMessage(code, description))),
+        ).toBe(true);
+      },
+    );
+
+    it('returns false for an NSCocoaErrorDomain secure-connection failure', () => {
+      // The raw fixture's English "Could not connect" text matches an existing
+      // phrase, so the negative case has to be the -1200 variant.
+      const message = nsurlErrorMessage(
+        NSURL_ERROR_SECURE_CONNECTION_FAILED,
+        SECURE_CONNECTION_FAILED_DESCRIPTION,
+      ).replaceAll('NSURLErrorDomain', 'NSCocoaErrorDomain');
+
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
+    it('returns false for an NSURLErrorDomain bad-server-response failure', () => {
+      const message = nsurlErrorMessage(
+        NSURL_ERROR_BAD_SERVER_RESPONSE,
+        BAD_SERVER_RESPONSE_DESCRIPTION,
+      );
+
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+  });
+
+  describe('reportPredictError', () => {
+    const errorContext = {
+      tags: { feature: 'Predict' },
+      context: {
+        name: 'PolymarketProvider',
+        data: { method: 'getMarkets' },
+      },
+    };
+
+    beforeEach(() => {
+      jest.mocked(Logger.log).mockClear();
+      jest.mocked(Logger.error).mockClear();
+    });
+
+    it('logs a breadcrumb for an iOS connectivity failure', () => {
+      const error = new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE);
+
+      reportPredictError(error, errorContext);
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        NETWORK_FAILURE_BREADCRUMB_MESSAGE,
+        error.message,
+        errorContext,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports a non-network error to Sentry', () => {
+      const error = new Error('Failed to fetch related tags');
+
+      reportPredictError(error, errorContext);
+
+      expect(Logger.error).toHaveBeenCalledWith(error, errorContext);
+      expect(Logger.log).not.toHaveBeenCalled();
     });
   });
 
