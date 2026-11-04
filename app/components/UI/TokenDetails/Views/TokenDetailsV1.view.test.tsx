@@ -126,7 +126,7 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toHaveTextContent('0x...1933');
+    ).toHaveTextContent('0x69825...11933');
     expect(
       within(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).getByText(
         TOKEN_DETAILS_V1_DESCRIPTION,
