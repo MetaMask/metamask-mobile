@@ -72,10 +72,8 @@ function setup(
       ? [{ id: 'ar-1', walletAddress: options.autorampWallet }]
       : [],
   };
+  jest.mocked(selectKycSessionStatus).mockReturnValue(sessionStatus as never);
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectKycSessionStatus) {
-      return sessionStatus;
-    }
     if (typeof selector === 'function') {
       return (selector as (state: unknown) => unknown)({
         engine: {

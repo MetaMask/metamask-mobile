@@ -73,14 +73,27 @@ const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 const mockGetState = jest.fn();
-const mockHasAcceptedVbaVendorTerms = jest.fn();
-const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
 const mockReset = jest.fn();
-const mockKycState: { email: string | null } = { email: null };
+interface MockVendorAcceptance {
+  disclaimerIds: string[];
+  acceptedAt: string | null;
+  submitted: boolean;
+}
+const mockKycState: {
+  sessions: {
+    iron?: { vendorDisclaimersAccepted: MockVendorAcceptance | null };
+  };
+} = { sessions: {} };
+/** Stores (or clears) Iron terms acceptance on the mocked KYC controller. */
+const setIronAcceptance = (acceptance: MockVendorAcceptance | null) => {
+  mockKycState.sessions = acceptance
+    ? { iron: { vendorDisclaimersAccepted: acceptance } }
+    : {};
+};
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
 } = { autoramps: [] };
@@ -100,7 +113,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       get state() {
         return mockKycState;
       },
-      readSessionStatus: () => mockReadSessionStatus(),
+      readSessionStatus: (...args: unknown[]) => mockReadSessionStatus(...args),
       getSessionStatusForVendor: (...args: unknown[]) =>
         mockGetSessionStatusForVendor(...args),
       startSession: (...args: unknown[]) => mockStartSession(...args),
@@ -145,21 +158,12 @@ jest.mock('../vbaDevOverrides.env', () => ({
   readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
-jest.mock('../vbaVendorTermsStorage', () => ({
-  hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
-    mockHasAcceptedVbaVendorTerms(...args),
-  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
-    mockGetVbaVendorTermsAcceptance(...args),
-}));
-
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    setIronAcceptance(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
@@ -202,12 +206,15 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    setIronAcceptance({
+      disclaimerIds: ['terms'],
+      acceptedAt: null,
+      submitted: false,
+    });
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
 
-    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
     expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
   });
 
@@ -277,9 +284,10 @@ describe('useOpenVbaOnboarding', () => {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
     });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
+    setIronAcceptance({
       disclaimerIds: ['privacy', 'terms'],
+      acceptedAt: null,
+      submitted: false,
     });
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
@@ -287,7 +295,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
-      disclaimerIds: ['privacy', 'terms'],
+      vendor: 'iron',
     });
     expectResetTo({
       name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
@@ -898,10 +906,8 @@ describe('resolveVbaOnboarding', () => {
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    setIronAcceptance(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
@@ -1055,7 +1061,6 @@ describe('resolveVbaOnboarding', () => {
   });
 
   it('resumes a persisted KYC session when no email is stored', async () => {
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
 
     await resolveVbaOnboarding('money-add-money-bank-account');

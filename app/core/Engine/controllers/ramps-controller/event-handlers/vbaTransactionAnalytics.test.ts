@@ -254,9 +254,12 @@ describe('readVbaTransactionBaseProperties', () => {
           ],
         },
         KycController: {
-          vendor: 'iron',
-          providerFlowStatus: 'submitted',
-          sessionStatus: { finalStatus: 'approved' },
+          sessions: {
+            iron: {
+              providerFlowStatus: 'submitted',
+              sessionStatus: { finalStatus: 'approved' },
+            },
+          },
         },
         GeolocationController: { location: 'UNKNOWN' },
       }),

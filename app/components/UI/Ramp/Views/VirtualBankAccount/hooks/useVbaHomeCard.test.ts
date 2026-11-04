@@ -23,10 +23,10 @@ import {
 import {
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
+  selectKycVendorDisclaimersAccepted,
 } from '../../../../../../selectors/kycController';
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
-import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import {
   hasViewedVbaAccountDetails,
   subscribeVbaAccountDetailsViewed,
@@ -40,6 +40,11 @@ import {
   type VbaHomeCardInputs,
 } from './useVbaHomeCard';
 
+// The Iron session the KYC controller holds, as the refresh hook reads it.
+const mockIronSession: { current: KycSessionStatus | null } = {
+  current: null,
+};
+
 jest.mock('react-redux');
 jest.mock('../../../../../../core/Engine', () => ({
   __esModule: true,
@@ -50,7 +55,8 @@ jest.mock('../../../../../../core/Engine', () => ({
         refreshSessionStatus: jest.fn(),
         startSessionStatusPolling: jest.fn(),
         clearState: jest.fn(),
-        state: { sessionStatus: null as KycSessionStatus | null },
+        // Reads the mocked Iron session the tests set.
+        readSessionStatus: () => mockIronSession.current,
       },
       RampsController: {
         hydrateVbaOnboarding: jest.fn(),
@@ -64,7 +70,6 @@ jest.mock('../../../../../../selectors/rampsController');
 jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../../../hooks/useNetworkTier');
-jest.mock('../vbaVendorTermsStorage');
 jest.mock('../vbaAccountDetailsViewedStorage', () => ({
   hasViewedVbaAccountDetails: jest.fn(),
   subscribeVbaAccountDetailsViewed: jest.fn(),
@@ -88,7 +93,9 @@ const mockSelectKycSessionStatus = jest.mocked(selectKycSessionStatus);
 const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
 );
-const mockHasAcceptedVbaVendorTerms = jest.mocked(hasAcceptedVbaVendorTerms);
+const mockSelectKycVendorDisclaimersAccepted = jest.mocked(
+  selectKycVendorDisclaimersAccepted,
+);
 const mockHasViewedVbaAccountDetails = jest.mocked(hasViewedVbaAccountDetails);
 const mockSubscribeVbaAccountDetailsViewed = jest.mocked(
   subscribeVbaAccountDetailsViewed,
@@ -644,7 +651,7 @@ describe('useVbaHomeCard', () => {
     mockSelectUsableVbaAutoramp.mockReturnValue(
       hasUsableAutoramp ? makeAutoramp() : undefined,
     );
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
+    mockSelectKycVendorDisclaimersAccepted.mockReturnValue(null);
     mockHasViewedVbaAccountDetails.mockResolvedValue(false);
   };
 
@@ -702,67 +709,25 @@ describe('useVbaHomeCard', () => {
     expect(result.current).toEqual({ type: 'kyc_decision' });
   });
 
-  it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {
+  it('shows finish_verification once vendor terms are accepted on the device', () => {
     setupSelectors();
-
-    let resolveTerms: (accepted: boolean) => void = () => undefined;
-    mockHasAcceptedVbaVendorTerms.mockImplementation(
-      () =>
-        new Promise<boolean>((resolve) => {
-          resolveTerms = resolve;
-        }),
-    );
+    mockSelectKycVendorDisclaimersAccepted.mockReturnValue({
+      disclaimerIds: ['terms'],
+      acceptedAt: null,
+      submitted: false,
+    });
 
     const { result } = renderHook(() => useVbaHomeCard());
-    expect(result.current).toEqual({ type: 'get_started' });
 
-    await act(async () => {
-      resolveTerms(true);
-    });
-
-    await waitFor(() => {
-      expect(result.current).toEqual({ type: 'finish_verification' });
-    });
-    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith(WALLET);
-  });
-
-  it('keeps get_started when local terms resolve as not accepted', async () => {
-    setupSelectors();
-
-    const { result } = renderHook(() => useVbaHomeCard());
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(result.current).toEqual({ type: 'get_started' });
-  });
-
-  it('re-reads local terms and resets to not accepted when the wallet changes', async () => {
-    mockHasAcceptedVbaVendorTerms
-      .mockResolvedValueOnce(true) // WALLET
-      .mockResolvedValueOnce(false); // OTHER_WALLET
-    setupSelectors();
-
-    const { result, rerender } = renderHook(() => useVbaHomeCard());
-    await act(async () => {
-      await Promise.resolve();
-    });
     expect(result.current).toEqual({ type: 'finish_verification' });
+  });
 
-    mockSelectSelectedVbaWalletAddress.mockReturnValue(OTHER_WALLET);
-    rerender();
+  it('keeps get_started when no vendor terms are accepted', () => {
+    setupSelectors();
 
-    // New wallet: treated as not accepted while the fresh read is in flight.
+    const { result } = renderHook(() => useVbaHomeCard());
+
     expect(result.current).toEqual({ type: 'get_started' });
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(result.current).toEqual({ type: 'get_started' });
-    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenNthCalledWith(1, WALLET);
-    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenNthCalledWith(
-      2,
-      OTHER_WALLET,
-    );
   });
 
   describe('account details viewed flag', () => {
@@ -920,16 +885,16 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseVbaEligibility.mockReturnValue(makeEligibility({ isEligible }));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
     // The refresh hook reads the session from Engine state at focus time.
-    Engine.context.KycController.state.sessionStatus = sessionStatus;
+    mockIronSession.current = sessionStatus;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     storedFocusCallback = undefined;
     isFocused = false;
-    Engine.context.KycController.state.sessionStatus = null;
+    mockIronSession.current = null;
     mockClearState.mockImplementation(() => {
-      Engine.context.KycController.state.sessionStatus = null;
+      mockIronSession.current = null;
     });
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
@@ -946,7 +911,7 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseNetworkTier.mockReturnValue(null);
     Engine.context.RampsController.state.autoramps = [];
     mockFetchSessionStatusOnce.mockResolvedValue(makeSession());
-    Engine.context.KycController.state.sessionStatus = null;
+    mockIronSession.current = null;
   });
 
   it('does not fetch during initial render before focus', () => {
@@ -965,7 +930,9 @@ describe('useVbaHomeCardRefresh', () => {
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith({
+      vendor: 'iron',
+    });
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
@@ -1076,7 +1043,9 @@ describe('useVbaHomeCardRefresh', () => {
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith({
+      vendor: 'iron',
+    });
   });
 
   it('fetches on the rerender when the user becomes eligible while already focused', () => {
@@ -1095,7 +1064,9 @@ describe('useVbaHomeCardRefresh', () => {
     rerender();
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith({
+      vendor: 'iron',
+    });
   });
 
   it('stays one GET when the fetched status writes mid-focus', async () => {
@@ -1103,7 +1074,7 @@ describe('useVbaHomeCardRefresh', () => {
     const fetched = makeSession({ finalStatus: 'pending' });
     mockFetchSessionStatusOnce.mockImplementation(async () => {
       // The real controller writes the resolved session onto its state.
-      Engine.context.KycController.state.sessionStatus = fetched;
+      mockIronSession.current = fetched;
       return fetched;
     });
     setupRefreshSelectors({ sessionStatus: stored });
@@ -1118,7 +1089,9 @@ describe('useVbaHomeCardRefresh', () => {
     });
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith({
+      vendor: 'iron',
+    });
   });
 
   it('starts no polling loop after the one-shot fetch', () => {

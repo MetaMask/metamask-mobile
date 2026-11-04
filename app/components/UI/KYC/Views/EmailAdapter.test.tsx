@@ -8,8 +8,6 @@ import KycEmailAdapter, { KycEmailAdapterSelectorsIDs } from './EmailAdapter';
 import { strings } from '../../../../../locales/i18n';
 
 const mockAdvance = jest.fn();
-const mockGetState = jest.fn();
-const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockGoBack = jest.fn();
 const mockVerifyOrEnroll = jest.fn();
 const mockNavigation = {
@@ -43,7 +41,7 @@ jest.mock('../../../../util/identity/mfa', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { email: null as string | null },
+      state: { sessions: {} as Record<string, unknown> },
       getSessionStatusForVendor: jest.fn(),
       startSession: jest.fn(),
       reset: jest.fn(),
@@ -51,23 +49,6 @@ jest.mock('../../../../core/Engine', () => ({
       recordVendorDisclaimers: jest.fn(),
     },
   },
-}));
-
-jest.mock('../../../../core/redux', () => ({
-  store: {
-    getState: () => mockGetState(),
-  },
-}));
-
-jest.mock('../../../../selectors/rampsController', () => ({
-  selectSelectedVbaWalletAddress: jest.fn(
-    (state: { address?: string }) => state.address ?? null,
-  ),
-}));
-
-jest.mock('../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage', () => ({
-  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
-    mockGetVbaVendorTermsAcceptance(...args),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -79,7 +60,7 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { email: string | null };
+  state: { sessions: Record<string, unknown> };
   getSessionStatusForVendor: jest.Mock<Promise<unknown>, [unknown]>;
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   reset: jest.Mock<Promise<unknown>, []>;
@@ -111,11 +92,16 @@ describe('KycEmailAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockVerifyOrEnroll.mockResolvedValue(verifiedEmail());
-    mockKycController.state.email = null;
-    mockGetState.mockReturnValue({ address: '0xabc' });
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
-      disclaimerIds: ['privacy', 'terms'],
-    });
+    // Terms accepted on VBA's terms screen, not yet submitted to Iron.
+    mockKycController.state.sessions = {
+      iron: {
+        vendorDisclaimersAccepted: {
+          disclaimerIds: ['privacy', 'terms'],
+          acceptedAt: null,
+          submitted: false,
+        },
+      },
+    };
     mockKycController.getSessionStatusForVendor.mockResolvedValue(null);
     mockKycController.startSession.mockResolvedValue({
       id: 'session-1',
@@ -165,9 +151,8 @@ describe('KycEmailAdapter', () => {
         vendor: VBA_KYC_VENDOR,
         aal2Token: 'aal2-token',
       });
-      expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
       expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
-        disclaimerIds: ['privacy', 'terms'],
+        vendor: VBA_KYC_VENDOR,
       });
       expect(mockAdvance).toHaveBeenCalled();
     });
@@ -222,8 +207,27 @@ describe('KycEmailAdapter', () => {
     });
   });
 
+  it('does not resubmit vendor terms Iron already recorded', async () => {
+    mockKycController.state.sessions = {
+      iron: {
+        vendorDisclaimersAccepted: {
+          disclaimerIds: ['privacy', 'terms'],
+          acceptedAt: null,
+          submitted: true,
+        },
+      },
+    };
+
+    renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
+      expect(mockAdvance).toHaveBeenCalled();
+    });
+  });
+
   it('advances when local vendor terms are missing', async () => {
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    mockKycController.state.sessions = {};
 
     renderWithProvider(<KycEmailAdapter />);
 
