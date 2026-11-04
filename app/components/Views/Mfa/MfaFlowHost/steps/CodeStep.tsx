@@ -29,7 +29,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import {
   getErrorHandling,
-  isErrorShown,
+  isCooldownCountdown,
 } from '../../../../../util/identity/mfa/engine/errors';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 import { maskEmail } from '../../labels';
@@ -166,7 +166,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     cellProps.onPressOut(event);
   };
 
-  const showError = isErrorShown(state);
+  // An email cooldown with a wait time shows as the countdown on the resend
+  // button, also once it ended. Authenticator app errors always show.
+  const showError = error !== undefined && !isCooldownCountdown(state);
   // The code on screen can no longer be used: the main action is a new one.
   const needsNewCode =
     showError && error !== undefined && getErrorHandling(error) === 'restart';

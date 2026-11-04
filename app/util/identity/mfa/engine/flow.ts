@@ -9,7 +9,7 @@ import {
   MfaFlowError,
   getErrorHandling,
   getFlowErrorCode,
-  isErrorShown,
+  isCooldownCountdown,
   isReportable,
 } from './errors';
 import {
@@ -99,7 +99,11 @@ export const createMfaFlow = ({
         tracker.errorViewed(state.step.code, state.step);
       }
     }
-    if (state.error && state.error !== previous.error && isErrorShown(state)) {
+    if (
+      state.error &&
+      state.error !== previous.error &&
+      !isCooldownCountdown(state)
+    ) {
       tracker.errorViewed(state.error, state.step);
     }
     listeners.forEach((listener) => listener());
