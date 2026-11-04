@@ -49,7 +49,7 @@ function assertSanitizedAuthenticationExport(
   auth: SanitizedAuthenticationExport | undefined,
 ): void {
   const sessions = auth?.srpSessionData;
-  if (!sessions || Object.keys(sessions).length === 0) {
+  if (!auth || !sessions || Object.keys(sessions).length === 0) {
     throw new Error('State export is missing sanitized profile session data');
   }
   for (const session of Object.values(sessions)) {
