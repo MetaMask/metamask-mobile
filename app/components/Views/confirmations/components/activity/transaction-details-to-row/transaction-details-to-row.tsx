@@ -105,7 +105,18 @@ function useRecipient(): Hex | undefined {
       return undefined;
     }
     const parsed = parseStandardTokenTransactionData(data);
-    return parsed?.args?._to?.toString() as Hex | undefined;
+    const recipient = parsed?.args?._to?.toString() as Hex | undefined;
+
+    // A quoted Money Account withdrawal keeps the mUSD on the money account
+    // and Pay sends the output, so the transfer does not name the destination.
+    const isTransferToMoneyAccount =
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]) &&
+      recipient?.toLowerCase() ===
+        transactionMeta?.txParams?.from?.toLowerCase();
+
+    return isTransferToMoneyAccount ? undefined : recipient;
   }, [transactionMeta]);
 }
 

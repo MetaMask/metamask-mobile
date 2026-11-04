@@ -377,8 +377,14 @@ export const useMoneyTransactionStatus = () => {
         const amountFiat = transfer
           ? formatMusdAmountForToast(BigInt(transfer.amount))
           : undefined;
+        // A quoted withdrawal keeps the mUSD on the money account and Pay
+        // sends the output, so the transfer does not name the destination.
+        const recipient =
+          transfer?.recipient === transactionMeta.txParams?.from?.toLowerCase()
+            ? undefined
+            : transfer?.recipient;
         const destination =
-          resolveWithdrawDestination(transfer?.recipient) ??
+          resolveWithdrawDestination(recipient) ??
           strings('money.toasts.withdraw_fallback_destination');
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),
