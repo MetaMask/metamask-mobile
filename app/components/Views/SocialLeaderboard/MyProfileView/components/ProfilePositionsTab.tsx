@@ -17,6 +17,7 @@ import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import { partitionUncountedPositions } from '../utils/partitionUncountedPositions';
 import {
   filterPositionsByAsset,
   getProfilePositionsEmptyMessageKey,
@@ -36,6 +37,10 @@ export interface ProfilePositionsTabProps {
   filter: ProfileAssetFilter;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  /**
+   * When true, flagged rows use the V1 subline treatment and ignore presses.
+   * Own profiles omit this so flagged data stays a normal row.
+   */
   showFlaggedState?: boolean;
 }
 
@@ -49,14 +54,38 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onRetry,
   showFlaggedState,
 }) => {
-  const visiblePositions = useMemo(
-    () => filterPositionsByAsset(positions, filter),
-    [filter, positions],
-  );
-  const isEmpty = visiblePositions.length === 0;
+  const { counted, uncounted } = useMemo(() => {
+    // Every viewer, including the owner, pins flagged rows after the counted
+    // list. `showFlaggedState` blocks presses on other traders' rows and draws
+    // them with the subline treatment. The owner omits it, so those rows stay
+    // tappable. The filter is applied by the parent, including inside the pin.
+    const split = partitionUncountedPositions(positions);
+
+    return {
+      counted: filterPositionsByAsset(split.counted, filter),
+      uncounted: filterPositionsByAsset(split.uncounted, filter),
+    };
+  }, [filter, positions]);
+  const isEmpty = counted.length === 0 && uncounted.length === 0;
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
+
+  const renderRows = (sectionPositions: Position[]) =>
+    sectionPositions.map((position) => (
+      <PositionRow
+        key={getPositionListKey(position)}
+        position={position}
+        isClosed={isClosed}
+        showTradeDate={isClosed}
+        flaggedPresentation={showFlaggedState ? 'subline' : undefined}
+        onPress={
+          showFlaggedState && getPositionFlagLabelKey(position)
+            ? undefined
+            : onPositionPress
+        }
+      />
+    ));
 
   return (
     <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
@@ -105,20 +134,22 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           </Text>
         </Box>
       ) : (
-        visiblePositions.map((position) => (
-          <PositionRow
-            key={getPositionListKey(position)}
-            position={position}
-            isClosed={isClosed}
-            showTradeDate={isClosed}
-            showFlaggedState={showFlaggedState}
-            onPress={
-              showFlaggedState && getPositionFlagLabelKey(position)
-                ? undefined
-                : onPositionPress
-            }
-          />
-        ))
+        <>
+          {renderRows(counted)}
+          {uncounted.length > 0 ? (
+            <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                accessibilityRole="header"
+                twClassName="px-4 pt-2 pb-1"
+              >
+                {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
+              </Text>
+              {renderRows(uncounted)}
+            </Box>
+          ) : null}
+        </>
       )}
     </Box>
   );
