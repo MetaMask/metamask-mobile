@@ -49,6 +49,21 @@ export interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  /** The card's title when the client can't name it, such as a Player. */
+  label?: string;
+}
+
+/** One level of a Market's Event screen placement. Keys are opaque IDs. */
+export interface PredictMarketLayoutLevel {
+  key: string;
+  order: number;
+}
+
+/** Where a Market goes on the Event screen: tab › section › subgroup. */
+export interface PredictMarketLayout {
+  tab: PredictMarketLayoutLevel;
+  section: PredictMarketLayoutLevel;
+  subgroup?: PredictMarketLayoutLevel;
 }
 
 export interface PredictSport {
@@ -134,6 +149,7 @@ export interface PredictMarket {
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   group?: PredictMarketGroup;
+  layout?: PredictMarketLayout;
   /**
    * Last traded price, yes-side, as of `updatedAt`. Absent when the Market has
    * never traded. Streamed only; the REST read model does not carry it.

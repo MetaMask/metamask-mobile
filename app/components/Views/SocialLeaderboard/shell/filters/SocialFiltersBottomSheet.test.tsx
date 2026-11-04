@@ -177,7 +177,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           onPress: () => onChange?.(value),
         });
       }),
-    FilterButtonSize: { Lg: 'lg' },
+    FilterButtonSize: { Sm: 'sm', Lg: 'lg' },
     FilterButtonVariant: { Secondary: 'secondary' },
   };
 });

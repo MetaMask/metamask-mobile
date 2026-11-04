@@ -829,6 +829,10 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${SUMMARY_FEES_VALUE}-taker`/`-maker`.
+  SUMMARY_FEES_VALUE_TAKER: 'perps-pro-order-form-summary-fees-value-taker',
+  SUMMARY_FEES_VALUE_MAKER: 'perps-pro-order-form-summary-fees-value-maker',
   SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
   SUMMARY_TWAP_RUNTIME_VALUE: 'perps-pro-order-form-summary-twap-runtime-value',
   SUMMARY_TWAP_SIZE_PER_SUBORDER:
@@ -1060,6 +1064,10 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${FEES_VALUE}-taker`/`-maker`.
+  FEES_VALUE_TAKER: 'perps-order-view-fees-value-taker',
+  FEES_VALUE_MAKER: 'perps-order-view-fees-value-maker',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
@@ -1117,6 +1125,10 @@ export const PerpsTradeSheetSelectorsIDs = {
     'perps-trade-sheet-limit-price-preset-percentage-1',
   LIMIT_PRICE_PRESET_PERCENTAGE_2:
     'perps-trade-sheet-limit-price-preset-percentage-2',
+  KEYPAD_25_PERCENT_BUTTON: 'perps-trade-sheet-keypad-25-percent-button',
+  KEYPAD_50_PERCENT_BUTTON: 'perps-trade-sheet-keypad-50-percent-button',
+  KEYPAD_MAX_BUTTON: 'perps-trade-sheet-keypad-max-button',
+  AMOUNT_KEYPAD_DONE_BUTTON: 'perps-trade-sheet-amount-keypad-done-button',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };

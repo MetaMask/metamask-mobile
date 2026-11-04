@@ -6,7 +6,7 @@ import { Colors } from '../../../../../util/theme/models';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
-      padding: 18,
+      padding: 16,
       borderRadius: 6,
       backgroundColor: colors.background.hover,
     },

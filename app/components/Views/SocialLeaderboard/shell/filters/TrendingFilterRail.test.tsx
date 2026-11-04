@@ -1,3 +1,4 @@
+import { ButtonIcon, IconColor } from '@metamask/design-system-react-native';
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -31,5 +32,27 @@ describe('TrendingFilterRail', () => {
     expect(screen.getByTestId('trending-filters-disc')).toHaveStyle({
       backgroundColor: mockTheme.colors.background.default,
     });
+  });
+
+  it('fills an active filter button with icon-default and inverts the glyph', () => {
+    renderWithProvider(
+      <TrendingFilterRail testID="trending-filters" isFilterActive>
+        {null}
+      </TrendingFilterRail>,
+    );
+
+    const button = screen.UNSAFE_getByType(ButtonIcon);
+    expect(button.props.twClassName).toBe('rounded-full bg-icon-default');
+    expect(button.props.iconProps.color).toBe(IconColor.IconInverse);
+  });
+
+  it('returns a cleared filter button to the muted fill and default glyph', () => {
+    renderWithProvider(
+      <TrendingFilterRail testID="trending-filters">{null}</TrendingFilterRail>,
+    );
+
+    const button = screen.UNSAFE_getByType(ButtonIcon);
+    expect(button.props.twClassName).toBe('rounded-full bg-muted');
+    expect(button.props.iconProps.color).toBe(IconColor.IconDefault);
   });
 });

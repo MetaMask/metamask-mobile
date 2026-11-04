@@ -4,7 +4,10 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import { mapFeedItem } from '../../../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from './tokenHolders.fixture';
-import TokenHolderRow, { TokenHolderRowSelectorsIDs } from './TokenHolderRow';
+import TokenHolderRow from './TokenHolderRow';
+import { TokenDetailsIds } from '../../../testIds';
+
+const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 
 /**
  * A fixture holder, with room to override either half of the row: `core` is

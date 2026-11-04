@@ -1510,7 +1510,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "应用",
         "apply": "应用",
         "reset": "重设",
@@ -6314,8 +6314,7 @@
           "description": "The main trading pool reported for this token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "title": "Volume flags"
         },
         "listed_on_exchange": {
           "title": "已上线交易所",
@@ -10124,7 +10123,6 @@
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
       "predict_withdraw": "提取",
-      "money_account_add_money": "充值",
       "money_account_send": "发送"
     },
     "sub_title": {

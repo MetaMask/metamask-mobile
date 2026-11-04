@@ -1,4 +1,5 @@
 import { PredictError, PredictErrorCode } from '../../errors';
+import composedNflGame from './fixtures/composed-nfl-game.json';
 import marketHistoryMillisecondUtc from './fixtures/market-history-millisecond-utc.json';
 import {
   parsePredictEvent,
@@ -593,6 +594,162 @@ describe('Predict API canonical response parsers', () => {
     expect(() => parsePredictEvent(input)).toThrow(
       'Invalid Predict API response.',
     );
+  });
+
+  describe('Event screen layout and choice groups', () => {
+    const layout = {
+      tab: { key: 'game_lines', order: 0 },
+      section: { key: 'moneyline', order: 0 },
+      subgroup: { key: 'full_game', order: 0 },
+    };
+
+    it('parses a composed game with layout, choice and line-picker groups', () => {
+      const result = parsePredictEvent(composedNflGame);
+
+      expect(result.markets).toHaveLength(9);
+      expect(result.markets[0]).toMatchObject({
+        group: {
+          key: 'KXNFLGAME-26NOV02CHISEA:moneyline',
+          groupType: 'choice',
+          displayOrder: 0,
+        },
+        layout,
+      });
+      expect(result.markets[3].layout?.subgroup?.key).toBe('first_half');
+      expect(result.markets[5].group).toMatchObject({
+        groupType: 'marketSelector',
+        marketType: 'spread',
+      });
+    });
+
+    it('parses a Market without layout', () => {
+      const result = parsePredictEvent(createEvent());
+
+      expect(result.markets[0].layout).toBeUndefined();
+    });
+
+    it('parses layout keys it does not know', () => {
+      const unknownLayout = {
+        tab: { key: 'player_props', order: 4 },
+        section: { key: 'passing_yards', order: 0 },
+      };
+
+      const result = parsePredictEvent(
+        createEvent({ markets: [createMarket({ layout: unknownLayout })] }),
+      );
+
+      expect(result.markets[0].layout).toEqual(unknownLayout);
+    });
+
+    it('strips unknown fields from layout levels', () => {
+      const result = parsePredictEvent(
+        createEvent({
+          markets: [
+            createMarket({
+              layout: {
+                ...layout,
+                tab: { key: 'game_lines', order: 0, label: 'Game lines' },
+                extra: true,
+              },
+            }),
+          ],
+        }),
+      );
+
+      expect(result.markets[0].layout).toEqual(layout);
+    });
+
+    it.each([
+      { name: 'no section', value: { tab: layout.tab } },
+      {
+        name: 'an empty key',
+        value: { ...layout, section: { key: ' ', order: 0 } },
+      },
+      {
+        name: 'a fractional order',
+        value: { ...layout, subgroup: { key: 'q1', order: 1.5 } },
+      },
+      { name: 'a string', value: 'game_lines' },
+    ])('drops a layout with $name and keeps the Market', ({ value }) => {
+      const result = parsePredictEvent(
+        createEvent({ markets: [createMarket({ layout: value })] }),
+      );
+
+      expect(result.markets[0].id).toBe('market-1');
+      expect(result.markets[0].layout).toBeUndefined();
+    });
+
+    it('parses a choice group with and without display order', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+          displayOrder: 2,
+          marketType: 'ignored',
+        }),
+      ).toEqual({
+        key: 'game:moneyline',
+        groupType: 'choice',
+        displayOrder: 2,
+      });
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+        }),
+      ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
+    });
+
+    it.each([
+      {
+        key: 'game:rushing_yards:henry',
+        groupType: 'choice',
+        displayOrder: 0,
+      },
+      {
+        key: 'game:spread',
+        groupType: 'marketSelector',
+        marketType: 'spread',
+        option: { type: 'number', value: 2.5 },
+      },
+      { key: 'game:future', groupType: 'future-group-type' },
+    ])('keeps a label on a $groupType group', (group) => {
+      expect(
+        PredictMarketGroupSchema.create({ ...group, label: 'Derrick Henry' }),
+      ).toEqual({ ...group, label: 'Derrick Henry' });
+    });
+
+    it.each(['', '  '])('rejects a group label of %j', (label) => {
+      expect(() =>
+        PredictMarketGroupSchema.create({
+          key: 'game:rushing_yards:henry',
+          groupType: 'choice',
+          label,
+        }),
+      ).toThrow();
+    });
+
+    it('keeps a malformed choice group as an unsupported group', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+          displayOrder: -1,
+        }),
+      ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
+    });
+
+    it('parses a team total line picker', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:team_total:sea',
+          groupType: 'marketSelector',
+          marketType: 'team_total',
+          option: { type: 'number', value: 20.5 },
+          displayOrder: 0,
+        }),
+      ).toMatchObject({ marketType: 'team_total' });
+    });
   });
 
   it('parses a paginated event response', () => {

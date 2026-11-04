@@ -194,7 +194,7 @@ describe('Price Component', () => {
   });
 
   describe('showCandleEmptyState logic', () => {
-    it('shows empty state when OHLCV data length is below threshold (< 5)', () => {
+    it('shows empty state when OHLCV data length is below threshold (< 3)', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
