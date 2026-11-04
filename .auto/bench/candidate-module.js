@@ -455,9 +455,11 @@ const getCurrencyRateControllerCurrencyRates = makeDirect([
     for (let i = 0; i < infoIds.length; i++) {
         const assetId = infoIds[i];
         const metadata = assetsInfo[assetId];
+        if (metadata.type !== 'native') {
+            continue;
+        }
         const assetType = parseCaipAssetTypeCached(assetId);
-        if (metadata.type === 'native' &&
-            assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+        if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
             nativeEntries.push([assetId, metadata]);
         }
     }
