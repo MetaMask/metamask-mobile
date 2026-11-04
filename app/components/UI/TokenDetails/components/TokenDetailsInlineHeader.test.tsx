@@ -561,6 +561,23 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByText('0x..0000')).toBeNull();
     });
 
+    it('hides the contract address when hideContractAddress is true', () => {
+      const { queryByTestId, queryByText } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
+        hideContractAddress: true,
+      });
+
+      // resolveTokenContractAddress should not even be called.
+      expect(mockResolveTokenContractAddress).not.toHaveBeenCalled();
+      expect(queryByTestId('token-details-address')).toBeNull();
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
+    });
+
     it('renders price alert button when onPriceAlertPress is provided', () => {
       const mockOnPriceAlertPress = jest.fn();
       const { getByTestId } = renderHeader({

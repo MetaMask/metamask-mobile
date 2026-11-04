@@ -32,6 +32,7 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
+import { formatAddress, toChecksumAddress } from '../../../../util/address';
 
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
@@ -126,7 +127,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toHaveTextContent('0x69825...11933');
+    ).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
     expect(
       within(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).getByText(
         TOKEN_DETAILS_V1_DESCRIPTION,
@@ -304,7 +307,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     );
 
     await waitFor(() => {
-      expect(clipboardSpy).toHaveBeenCalledWith(TOKEN_DETAILS_V1_ADDRESS);
+      expect(clipboardSpy).toHaveBeenCalledWith(
+        toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS),
+      );
     });
     expect(
       await findByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),

@@ -29,7 +29,7 @@ import {
 } from './nockHelpers';
 
 export const TOKEN_DETAILS_V1_ADDRESS =
-  '0x6982508145454Ce325dDbE47a25d4ec3d2311933';
+  '0x6982508145454ce325ddbe47a25d4ec3d2311933';
 
 export const TOKEN_DETAILS_V1_ASSET_ID =
   `eip155:1/erc20:${TOKEN_DETAILS_V1_ADDRESS}` as CaipAssetType;
