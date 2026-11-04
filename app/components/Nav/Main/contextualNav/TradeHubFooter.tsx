@@ -14,6 +14,8 @@ export interface TradeHubFooterProps {
   onHubPress: (hub: TradingHubTab) => void;
   onCollectiblesPress: () => void;
   inline?: boolean;
+  /** Leave Home to the shared shell so it stays put during the morph. */
+  omitHome?: boolean;
 }
 
 const TABS: TradeTab<TradeFooterTab>[] = [
@@ -38,6 +40,7 @@ const TradeHubFooter = ({
   onHubPress,
   onCollectiblesPress,
   inline = false,
+  omitHome = false,
 }: TradeHubFooterProps) => {
   const handleTabPress = useCallback(
     (nextTab: TradeFooterTab) => {
@@ -57,13 +60,16 @@ const TradeHubFooter = ({
     [active, onCollectiblesPress, onHomePress, onHubPress],
   );
 
+  const tabs = omitHome ? TABS.filter((item) => item.id !== 'home') : TABS;
+
   return (
     <TradeTabBar
-      tabs={TABS}
+      tabs={tabs}
       activeTab={active}
       onTabPress={handleTabPress}
       testIDPrefix="trade-hub"
       inline={inline}
+      itemsOnly={omitHome}
     />
   );
 };

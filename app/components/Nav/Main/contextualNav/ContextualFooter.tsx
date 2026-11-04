@@ -9,48 +9,25 @@ import NavigationService from '../../../../core/NavigationService';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import TabBarFloatingItem from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingItem';
-import TabBarFloatingSurface from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingSurface';
-import { useBlurMaterial } from '../../../../component-library/hooks/useBlurMaterial';
-import {
-  TAB_BAR_FLOATING_HEIGHT,
-  TAB_BAR_FLOATING_HORIZONTAL_INSET,
-} from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { TAB_BAR_FLOATING_HORIZONTAL_INSET } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import AnimatedFooterShell from './AnimatedFooterShell';
 import ContextualCollectiblesTabBar from './ContextualCollectiblesTabBar';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
 import { setActiveHomeTab } from './footerPresence';
+import { getFooterTransitionId } from './footerMotion';
 import TradeHubFooter from './TradeHubFooter';
 import {
   enterCollectiblesSection,
   enterMoneySection,
   enterTradeDashboard,
+  enterTradingHub,
   exitContextualSection,
   useContextualNavState,
   type TradingHubTab,
 } from './contextualSection';
-import { pushTradingHub, replaceTradingHub } from './tradeHubRoutes';
-import { useTradingHubAvailability } from './useTradingHubAvailability';
 
 export type FooterSetId = 'default' | 'trade' | 'money' | 'collectibles';
-
-const HUB_ROUTES = new Set<string>([
-  Routes.BRIDGE.ROOT,
-  Routes.PERPS.ROOT,
-  Routes.PREDICT.ROOT,
-  Routes.TRADE_HUB,
-]);
-
-const OVERLAY_STYLE: ViewStyle = {
-  position: 'absolute',
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: 60,
-  elevation: 60,
-};
-
-const PILL_STYLE: ViewStyle = { height: TAB_BAR_FLOATING_HEIGHT };
 
 export const getFooterSetId = (section: string | null): FooterSetId => {
   if (section === 'trading') {
@@ -63,6 +40,15 @@ export const getFooterSetId = (section: string | null): FooterSetId => {
     return 'collectibles';
   }
   return 'default';
+};
+
+const OVERLAY_STYLE: ViewStyle = {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 60,
+  elevation: 60,
 };
 
 interface DefaultTab {
@@ -123,15 +109,33 @@ export interface ContextualFooterProps {
  */
 const ContextualFooter = ({
   homeRouteName,
-  rootRouteName,
   onHeightChange,
 }: ContextualFooterProps) => {
   const { section, tab } = useContextualNavState();
-  const availability = useTradingHubAvailability();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { isBlurAvailable, colorScheme } = useBlurMaterial();
   const setId = getFooterSetId(section);
+  const transitionId = getFooterTransitionId(section, tab);
+  const homeSelected =
+    setId === 'default' && homeRouteName === Routes.WALLET.HOME;
+  const homeTestId =
+    setId === 'trade'
+      ? 'trade-hub-tab-home'
+      : setId === 'money'
+        ? 'contextual-money-tab-home'
+        : setId === 'collectibles'
+          ? 'contextual-collectibles-tab-home'
+          : 'footer-tab-home';
+
+  const stayOnTradeTab = useCallback(() => {
+    setActiveHomeTab(Routes.TRADE_DASHBOARD);
+    if (homeRouteName === Routes.TRADE_DASHBOARD) {
+      return;
+    }
+    NavigationService.navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.TRADE_DASHBOARD,
+    });
+  }, [homeRouteName]);
 
   const goHome = useCallback(() => {
     setActiveHomeTab(Routes.WALLET.HOME);
@@ -144,21 +148,16 @@ const ContextualFooter = ({
 
   const openHub = useCallback(
     (hub: TradingHubTab) => {
-      const onHubScreen =
-        rootRouteName !== undefined && HUB_ROUTES.has(rootRouteName);
-      if (onHubScreen) {
-        replaceTradingHub(hub, availability);
-        return;
-      }
-      pushTradingHub(hub, availability);
+      stayOnTradeTab();
+      enterTradingHub(hub);
     },
-    [availability, rootRouteName],
+    [stayOnTradeTab],
   );
 
   const openCollectibles = useCallback(() => {
+    stayOnTradeTab();
     enterCollectiblesSection();
-    NavigationService.navigation.navigate(Routes.COLLECTIBLES_VIEW);
-  }, []);
+  }, [stayOnTradeTab]);
 
   const pressDefault = useCallback(
     (item: DefaultTab) => {
@@ -218,6 +217,41 @@ const ContextualFooter = ({
     [bottomPadding],
   );
 
+  const rest =
+    setId === 'trade' ? (
+      <TradeHubFooter
+        omitHome
+        active={tradeActive}
+        onHomePress={goHome}
+        onHubPress={openHub}
+        onCollectiblesPress={openCollectibles}
+      />
+    ) : setId === 'money' ? (
+      <ContextualMoneyTabBar omitHome onHomePress={goHome} />
+    ) : setId === 'collectibles' ? (
+      <ContextualCollectiblesTabBar omitHome onHomePress={goHome} />
+    ) : (
+      <>
+        {DEFAULT_TABS.filter((item) => item.id !== 'home').map((item) => {
+          const selected = homeRouteName === item.route;
+          return (
+            <TabBarFloatingItem
+              key={item.id}
+              testID={`footer-tab-${item.id}`}
+              iconName={
+                selected && item.selectedIconName
+                  ? item.selectedIconName
+                  : item.iconName
+              }
+              label={item.label}
+              isActive={selected}
+              onPress={() => pressDefault(item)}
+            />
+          );
+        })}
+      </>
+    );
+
   return (
     <View
       style={frameStyle}
@@ -225,50 +259,28 @@ const ContextualFooter = ({
       testID="contextual-footer"
       onLayout={handleLayout}
     >
-      <AnimatedFooterShell setId={setId}>
-        {setId === 'trade' ? (
-          <TradeHubFooter
-            inline
-            active={tradeActive}
-            onHomePress={goHome}
-            onHubPress={openHub}
-            onCollectiblesPress={openCollectibles}
+      <AnimatedFooterShell
+        transitionId={transitionId}
+        home={
+          <TabBarFloatingItem
+            testID={homeTestId}
+            iconName={homeSelected ? IconName.HomeFilled : IconName.Home}
+            label={strings('bottom_nav.home')}
+            isActive={homeSelected}
+            fullContrast={setId !== 'default'}
+            onPress={
+              setId === 'default'
+                ? () =>
+                    pressDefault(
+                      DEFAULT_TABS.find((item) => item.id === 'home') ??
+                        DEFAULT_TABS[0],
+                    )
+                : goHome
+            }
           />
-        ) : null}
-        {setId === 'money' ? (
-          <ContextualMoneyTabBar inline onHomePress={goHome} />
-        ) : null}
-        {setId === 'collectibles' ? (
-          <ContextualCollectiblesTabBar inline onHomePress={goHome} />
-        ) : null}
-        {setId === 'default' ? (
-          <TabBarFloatingSurface
-            isBlurAvailable={isBlurAvailable}
-            colorScheme={colorScheme}
-            twClassName="flex-row items-center rounded-full p-1"
-            style={PILL_STYLE}
-            testID="footer-default-pill"
-          >
-            {DEFAULT_TABS.map((item) => {
-              const selected = homeRouteName === item.route;
-              return (
-                <TabBarFloatingItem
-                  key={item.id}
-                  testID={`footer-tab-${item.id}`}
-                  iconName={
-                    selected && item.selectedIconName
-                      ? item.selectedIconName
-                      : item.iconName
-                  }
-                  label={item.label}
-                  isActive={selected}
-                  onPress={() => pressDefault(item)}
-                />
-              );
-            })}
-          </TabBarFloatingSurface>
-        ) : null}
-      </AnimatedFooterShell>
+        }
+        rest={rest}
+      />
     </View>
   );
 };

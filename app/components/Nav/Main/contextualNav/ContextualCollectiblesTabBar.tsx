@@ -12,6 +12,7 @@ import {
 export interface ContextualCollectiblesTabBarProps {
   onHomePress: () => void;
   inline?: boolean;
+  omitHome?: boolean;
 }
 
 type CollectiblesFooterTab =
@@ -43,6 +44,7 @@ const COLLECTIBLES_TABS: readonly ContextualTab[] = [
 const ContextualCollectiblesTabBar = ({
   onHomePress,
   inline = false,
+  omitHome = false,
 }: ContextualCollectiblesTabBarProps) => {
   const { section, tab } = useContextualNavState();
   const activeTab: CollectiblesFooterTab =
@@ -63,11 +65,12 @@ const ContextualCollectiblesTabBar = ({
 
   return (
     <TradeTabBar
-      tabs={TABS}
+      tabs={omitHome ? TABS.filter((item) => item.id !== 'home') : TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
       testIDPrefix="contextual-collectibles"
       inline={inline}
+      itemsOnly={omitHome}
     />
   );
 };

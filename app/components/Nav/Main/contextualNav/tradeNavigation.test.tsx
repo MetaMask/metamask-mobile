@@ -24,6 +24,26 @@ jest.mock('../../../../core/NavigationService', () => ({
 jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: () => true,
 }));
+jest.mock('../../../UI/Perps/routes', () => {
+  const stubs = jest.requireActual('./tradeInPlaceStubs');
+  return { __esModule: true, default: stubs.PerpsStub };
+});
+jest.mock('../../../UI/Bridge/routes', () => {
+  const stubs = jest.requireActual('./tradeInPlaceStubs');
+  return { BridgeScreenStack: stubs.SwapStub };
+});
+jest.mock('../../../UI/PredictNext', () => {
+  const stubs = jest.requireActual('./tradeInPlaceStubs');
+  return { PredictRoot: stubs.PredictionsStub };
+});
+jest.mock('../../../Views/Collectibles/CollectiblesView', () => {
+  const stubs = jest.requireActual('./tradeInPlaceStubs');
+  return {
+    __esModule: true,
+    default: stubs.CollectiblesStub,
+    CollectiblesView: stubs.CollectiblesStub,
+  };
+});
 
 describe('trade navigation', () => {
   const navigate = NavigationService.navigation.navigate as jest.Mock;
@@ -60,14 +80,11 @@ describe('trade navigation', () => {
     }
   });
 
-  it('selects Perps and navigates there from the trade footer', () => {
+  it('shows Perps in place with no stack push and no back button', () => {
     enterTradeDashboard();
 
-    const { getByTestId } = renderWithProvider(
-      <ContextualFooter
-        homeRouteName={Routes.TRADE_DASHBOARD}
-        rootRouteName={Routes.HOME_TABS}
-      />,
+    const { getByTestId, queryByLabelText } = renderWithProvider(
+      <ContextualFooter homeRouteName={Routes.TRADE_DASHBOARD} />,
     );
 
     fireEvent.press(getByTestId('trade-hub-tab-perps'));
@@ -76,13 +93,17 @@ describe('trade navigation', () => {
       section: 'trading',
       tab: 'perps',
     });
-    expect(navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT);
+    expect(navigate).not.toHaveBeenCalledWith(Routes.PERPS.ROOT);
+    expect(NavigationService.navigation.dispatch).not.toHaveBeenCalled();
     expect(getByTestId('trade-hub-tab-perps').props.accessibilityState).toEqual(
       { selected: true },
     );
-    expect(getByTestId('trade-hub-tab-swap').props.accessibilityState).toEqual({
-      selected: false,
-    });
+
+    const screen = renderWithProvider(<TradeDashboard />);
+    expect(screen.getByTestId('trade-inplace-perps')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-inplace-screen')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Back')).toBeNull();
+    expect(queryByLabelText('Back')).toBeNull();
   });
 
   it('opens Collectibles from the trade footer', () => {
@@ -98,7 +119,7 @@ describe('trade navigation', () => {
       section: 'collectibles',
       tab: 'popular',
     });
-    expect(navigate).toHaveBeenCalledWith(Routes.COLLECTIBLES_VIEW);
+    expect(navigate).not.toHaveBeenCalledWith(Routes.COLLECTIBLES_VIEW);
     expect(queryByTestId('trade-hub-tab-swap')).toBeNull();
     expect(
       getByTestId('contextual-collectibles-tab-popular'),
@@ -109,16 +130,17 @@ describe('trade navigation', () => {
     ).toEqual({ selected: true });
   });
 
-  it('keeps the selected hub when replacing from inside that hub', () => {
+  it('switches Predictions in place instead of replacing the stack', () => {
     enterTradingHub('swap');
 
     const { getByTestId } = renderWithProvider(
-      <ContextualFooter rootRouteName={Routes.BRIDGE.ROOT} />,
+      <ContextualFooter homeRouteName={Routes.TRADE_DASHBOARD} />,
     );
 
     fireEvent.press(getByTestId('trade-hub-tab-predictions'));
 
     expect(getContextualNavState().tab).toBe('predictions');
-    expect(NavigationService.navigation.dispatch).toHaveBeenCalled();
+    expect(NavigationService.navigation.dispatch).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalledWith(Routes.PREDICT.ROOT);
   });
 });

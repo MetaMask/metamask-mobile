@@ -1,3 +1,11 @@
+import {
+  Easing,
+  withSequence,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import type {
   HardwareTier,
   NetworkTier,
@@ -27,6 +35,100 @@ export const getFooterMotion = (
   return 'morph';
 };
 
-export const FOOTER_COLLAPSE_MS = 150;
-export const FOOTER_EXPAND_MS = 200;
+export const FOOTER_COLLAPSE_MS = 220;
+export const FOOTER_EXPAND_MS = 280;
 export const FOOTER_CROSSFADE_MS = 140;
+export const FOOTER_REST_TRANSLATE = -8;
+
+/** Identity of a footer destination. Changes when Swap, Perps, Predictions, or Collectibles is entered or left. */
+export const getFooterTransitionId = (
+  section: string | null,
+  tab: string | null,
+): string => {
+  if (section === 'trading') {
+    if (tab === 'swap' || tab === 'perps' || tab === 'predictions') {
+      return `trade-${tab}`;
+    }
+    return 'trade-dashboard';
+  }
+  if (section === 'collectibles') {
+    return 'collectibles';
+  }
+  if (section === 'money') {
+    return 'money';
+  }
+  return 'default';
+};
+
+const EASE_IN_OUT = Easing.inOut(Easing.cubic);
+
+/**
+ * One continuous width change: collapse to the Home tab, then expand, with
+ * no wait between the two. Home itself is not scaled. Reduce Motion only
+ * fades the other items and leaves the width alone.
+ */
+export const animateFooterTransition = (
+  clipWidth: SharedValue<number>,
+  restOpacity: SharedValue<number>,
+  restTranslateX: SharedValue<number>,
+  swapClock: SharedValue<number>,
+  fullWidth: number,
+  homeWidth: number,
+  motion: FooterMotion,
+  onMidpoint: () => void,
+): void => {
+  if (motion === 'crossfade') {
+    clipWidth.value = fullWidth;
+    restTranslateX.value = 0;
+    swapClock.value = 0;
+    restOpacity.value = withTiming(
+      0,
+      { duration: FOOTER_CROSSFADE_MS, easing: EASE_IN_OUT },
+      (finished) => {
+        if (finished) {
+          scheduleOnRN(onMidpoint);
+        }
+      },
+    );
+    return;
+  }
+
+  restOpacity.value = withSequence(
+    withTiming(0, { duration: FOOTER_COLLAPSE_MS, easing: EASE_IN_OUT }),
+    withTiming(1, { duration: FOOTER_EXPAND_MS, easing: EASE_IN_OUT }),
+  );
+  restTranslateX.value = withSequence(
+    withTiming(FOOTER_REST_TRANSLATE, {
+      duration: FOOTER_COLLAPSE_MS,
+      easing: EASE_IN_OUT,
+    }),
+    withTiming(0, { duration: FOOTER_EXPAND_MS, easing: EASE_IN_OUT }),
+  );
+  // Collapse and expand are one sequenced animation, so the width never
+  // waits on a React render between the two.
+  clipWidth.value = withSequence(
+    withTiming(homeWidth, {
+      duration: FOOTER_COLLAPSE_MS,
+      easing: EASE_IN_OUT,
+    }),
+    withTiming(fullWidth, { duration: FOOTER_EXPAND_MS, easing: EASE_IN_OUT }),
+  );
+  // Assigned shared value: a bare withTiming call does not run. This clock
+  // swaps the non-Home items as the width turns around.
+  swapClock.value = 0;
+  swapClock.value = withTiming(
+    1,
+    { duration: FOOTER_COLLAPSE_MS, easing: EASE_IN_OUT },
+    (finished) => {
+      if (finished) {
+        scheduleOnRN(onMidpoint);
+      }
+    },
+  );
+};
+
+/** Live object so tests can spy on the transition without a namespace import. */
+export const footerAnimator = {
+  getMotion: getFooterMotion,
+  animate: animateFooterTransition,
+};

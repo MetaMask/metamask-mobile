@@ -29,7 +29,7 @@ const TITLE = 'Collectibles';
  * Collectibles page. The header matches Money: a native bar when that header
  * is native, otherwise the same glass root header, titled Collectibles.
  */
-const CollectiblesView = () => {
+export const CollectiblesView = () => {
   const isBrandRefresh = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const isGlass = useIsGlassSurfaceEnabled(selectMoneyBrandRefreshEnabled);
 

@@ -33,8 +33,9 @@ export interface TradeTabBarProps<T extends string> {
   onTabPress: (tab: T) => void;
   testIDPrefix: string;
   onHeightChange?: (height: number) => void;
-  /** Render only the pill, for the shared animated shell. */
   inline?: boolean;
+  /** Render the tab buttons only, so the shared pill can own the surface. */
+  itemsOnly?: boolean;
 }
 
 const OVERLAY_STYLE: ViewStyle = {
@@ -58,6 +59,7 @@ const TradeTabBar = <T extends string>({
   testIDPrefix,
   onHeightChange,
   inline = false,
+  itemsOnly = false,
 }: TradeTabBarProps<T>) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -105,6 +107,22 @@ const TradeTabBar = <T extends string>({
     return null;
   }
 
+  const items = tabs.map((item) => (
+    <TabBarFloatingItem
+      key={item.id}
+      testID={`${testIDPrefix}-tab-${item.id}`}
+      iconName={item.iconName}
+      label={item.label}
+      isActive={activeTab !== null && activeTab === item.id}
+      fullContrast
+      onPress={() => handleTabPress(item.id)}
+    />
+  ));
+
+  if (itemsOnly) {
+    return <>{items}</>;
+  }
+
   const pill = (
     <TabBarFloatingSurface
       isBlurAvailable={isBlurAvailable}
@@ -113,17 +131,7 @@ const TradeTabBar = <T extends string>({
       style={PILL_STYLE}
       testID={`${testIDPrefix}-tab-pill`}
     >
-      {tabs.map((item) => (
-        <TabBarFloatingItem
-          key={item.id}
-          testID={`${testIDPrefix}-tab-${item.id}`}
-          iconName={item.iconName}
-          label={item.label}
-          isActive={activeTab !== null && activeTab === item.id}
-          fullContrast
-          onPress={() => handleTabPress(item.id)}
-        />
-      ))}
+      {items}
     </TabBarFloatingSurface>
   );
 
