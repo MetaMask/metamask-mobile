@@ -173,15 +173,18 @@ const isCanonicalCommitFailure = (error: PredictError): boolean => {
 };
 
 /**
- * The backend answered that this request created nothing: a canonical
- * Commit failure code, or a 401 from the auth guard that runs before the
- * Commit route. Everything else, including network failures, timeouts,
- * aborts, 5xx without a canonical code and unparseable responses, leaves the
- * operation ambiguous.
+ * This request created nothing: the phone refused or could not sign it, so
+ * it was never sent, or the backend answered with a canonical Commit failure
+ * code or a 401 from the auth guard that runs before the Commit route.
+ * Everything else, including network failures, timeouts, aborts, 5xx
+ * without a canonical code and unparseable responses, leaves the operation
+ * ambiguous.
  */
 const isPreOperationFailure = (error: unknown): error is PredictError =>
   error instanceof PredictError &&
-  (error.metadata?.status === 401 || isCanonicalCommitFailure(error));
+  (error.metadata?.requestSent === false ||
+    error.metadata?.status === 401 ||
+    isCanonicalCommitFailure(error));
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -659,6 +662,9 @@ export class PredictOrderService {
     signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     this.#assertNotAbandoned(generation);
+    // Only the Predict User's approval confirms. Every later POST of this
+    // operation, re-POST or background, signs the intent it pinned.
+    operation.signing = { ...signing, confirmed: false };
     const receipt = await this.#trading.commitOrder(
       operation.previewId,
       signing,

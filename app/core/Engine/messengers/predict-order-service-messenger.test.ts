@@ -1,6 +1,6 @@
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type {
-  PredictDeviceAuthServiceClearAction,
+  PredictDeviceAuthServiceInvalidateA2tAction,
   PredictDeviceAuthServiceSignOperationAction,
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import {
@@ -79,7 +79,7 @@ describe('getPredictOrderServiceInitMessenger', () => {
       MockAnyNamespace,
       | AuthenticationController.AuthenticationControllerGetBearerTokenAction
       | PredictDeviceAuthServiceSignOperationAction
-      | PredictDeviceAuthServiceClearAction,
+      | PredictDeviceAuthServiceInvalidateA2tAction,
       never
     >({ namespace: MOCK_ANY_NAMESPACE });
     rootMessenger.registerActionHandler(

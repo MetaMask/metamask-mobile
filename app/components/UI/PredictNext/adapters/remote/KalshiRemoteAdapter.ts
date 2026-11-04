@@ -27,6 +27,7 @@ import type {
 import {
   type PredictApiReadTransport,
   PredictHttpError,
+  PredictRequestNotSentError,
 } from './PredictApiReadClient';
 
 /** Backend canonical trading error codes (preview and commit) → client
@@ -57,13 +58,18 @@ const isSameAmount = (left: string, right: string): boolean =>
 
 /**
  * Keeps the HTTP status and the backend's canonical code for diagnosis.
- * Never the response body.
+ * Never the response body. `requestSent: false` marks a call the phone never
+ * sent, so it cannot have created anything.
  */
-const toHttpErrorMetadata = ({
-  status,
-  bodyCode,
-}: PredictHttpError): Record<string, unknown> =>
-  bodyCode === undefined ? { status } : { status, bodyCode };
+const toHttpErrorMetadata = (
+  error: PredictHttpError,
+): Record<string, unknown> => ({
+  status: error.status,
+  ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
+  ...(error instanceof PredictRequestNotSentError
+    ? { requestSent: false }
+    : {}),
+});
 
 const mapError = (error: unknown): never => {
   if (isAbortError(error) || error instanceof PredictError) {

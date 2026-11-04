@@ -61,19 +61,21 @@ const isRenewable = (attempt: SignedAttempt): boolean =>
  * signature or the A2T is stale is signed again and sent once more.
  *
  * `send` performs the HTTP call with the header and returns the response, and
- * `describe` reads its status and code. The caller keeps the response.
+ * `readAttempt` reads its status and code. The caller keeps the response.
  */
 export const sendSigned = async <Response>(
   deps: SignedVenueCallDependencies,
   operation: VenueOperationName,
   input: SignOperationInput | undefined,
   send: (header: DeviceAuthHeader) => Promise<Response>,
-  describe: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
+  readAttempt: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
 ): Promise<Response> => {
-  const sign = async (): Promise<DeviceAuthHeader> => {
+  const sign = async (
+    signInput: SignOperationInput | undefined,
+  ): Promise<DeviceAuthHeader> => {
     let header: DeviceAuthHeader | undefined;
     try {
-      header = await deps.signOperation(operation, input);
+      header = await deps.signOperation(operation, signInput);
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: venue signing refused', error.rule);
@@ -87,12 +89,16 @@ export const sendSigned = async <Response>(
     return header;
   };
 
+  // The first signature already pinned a confirmed intent. Signing it again
+  // is not a new confirmation by the user.
+  const renewed = input && { ...input, confirmed: false };
+
   const attempt = async (retried: boolean): Promise<Response> => {
-    const response = await send(await sign());
+    const response = await send(await sign(retried ? renewed : input));
     if (retried) {
       return response;
     }
-    const described = await describe(response);
+    const described = await readAttempt(response);
     if (!isRenewable(described)) {
       return response;
     }

@@ -1024,7 +1024,7 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(5);
       expect(trading.commitOrder).toHaveBeenLastCalledWith(
         'preview-1',
-        commitSigning,
+        { ...commitSigning, confirmed: false },
         commitSignal,
       );
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -1089,7 +1089,7 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
       expect(trading.commitOrder).toHaveBeenLastCalledWith(
         'preview-1',
-        commitSigning,
+        { ...commitSigning, confirmed: false },
         commitSignal,
       );
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -1136,6 +1136,42 @@ describe('PredictOrderService', () => {
       );
       await jest.advanceTimersByTimeAsync(60_000);
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('resolves a Commit the phone refused to sign as not placed, without background observation', async () => {
+      trading.commitOrder.mockRejectedValueOnce(
+        PredictError.from(PredictErrorCode.INVALID_RESPONSE, {
+          metadata: {
+            status: 400,
+            bodyCode: 'venue_signing_refused_confirmation',
+            requestSent: false,
+          },
+        }),
+      );
+      const orderService = await quote(
+        serviceWith(0, { backgroundObservationDelaysMs: [1_000] }),
+      );
+
+      await expect(
+        settleWithFakeTimers(
+          orderService.commitPreview(
+            KALSHI_VENUE_ID,
+            'preview-1',
+            commitSigning,
+          ),
+        ),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+      await jest.advanceTimersByTimeAsync(10 * 60_000);
+
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+      expect(orderResolved).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: {
+            status: 'not_placed',
+            code: PredictErrorCode.INVALID_RESPONSE,
+          },
+        }),
+      );
     });
 
     it('does not conclude "not placed" from a post-expiry 401 after an ambiguous Commit', async () => {

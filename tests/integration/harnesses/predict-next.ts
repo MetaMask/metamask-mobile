@@ -467,7 +467,10 @@ export const buildPredictDeviceAuthIntegrationHarness = (
       });
     },
   });
-  subscribers.set('KeyringController:lock', () => controller.clear());
+  const clearApprovals = () => {
+    controller.clearApprovals().catch(() => undefined);
+  };
+  subscribers.set('KeyringController:lock', clearApprovals);
   let wasSignedIn = authenticationState.isSignedIn;
   subscribers.set('AuthenticationController:stateChange', () => {
     if (wasSignedIn && !authenticationState.isSignedIn) {
@@ -481,7 +484,7 @@ export const buildPredictDeviceAuthIntegrationHarness = (
       authenticationState.srpSessionData['entropy-source-id']?.profile
         .canonicalProfileId;
     if (nextCanonicalProfileId !== canonicalProfileId) {
-      controller.clear();
+      clearApprovals();
     }
     canonicalProfileId = nextCanonicalProfileId;
   });

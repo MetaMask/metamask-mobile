@@ -75,7 +75,10 @@
       },
       "onboarding.activate": {
         "class": "mutation",
-        "confirmation": "per-intent",
+        "confirmation": {
+          "kind": "per-intent",
+          "signLimit": 3
+        },
         "steps": {
           "default": [
             {
@@ -110,7 +113,16 @@
       },
       "orders.commit": {
         "class": "mutation",
-        "confirmation": "per-intent",
+        "confirmation": {
+          "kind": "per-intent",
+          "signLimit": 3,
+          "pinnedTimes": [
+            {
+              "value": "min_ts",
+              "maxBeforePinSec": 600
+            }
+          ]
+        },
         "steps": {
           "submit": [
             {
@@ -456,6 +468,10 @@
               "feeCeilingCentsPerContract": 2,
               "amountInput": "amountCents",
               "contractsInput": "contracts",
+              "priceField": "price",
+              "countField": "count",
+              "actionInput": "action",
+              "outcomeInput": "outcome",
               "minOutcomePriceInput": "minOutcomePrice"
             }
           }

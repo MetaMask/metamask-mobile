@@ -9,6 +9,7 @@ import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   type PredictApiReadTransport,
   PredictHttpError,
+  PredictRequestNotSentError,
 } from './PredictApiReadClient';
 
 const eventId = 'event-1' as PredictEntityId;
@@ -1109,6 +1110,25 @@ describe('KalshiRemoteAdapter', () => {
       ).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.MARKET_NOT_TRADEABLE,
+        }),
+      );
+    });
+
+    it('marks a commit the phone never sent', async () => {
+      client.commitOrder.mockRejectedValue(
+        new PredictRequestNotSentError('venue_signing_refused_confirmation'),
+      );
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
+      ).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.INVALID_RESPONSE,
+          metadata: {
+            status: 400,
+            bodyCode: 'venue_signing_refused_confirmation',
+            requestSent: false,
+          },
         }),
       );
     });

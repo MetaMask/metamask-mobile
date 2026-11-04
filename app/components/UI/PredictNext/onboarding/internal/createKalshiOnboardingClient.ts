@@ -15,5 +15,5 @@ export const createKalshiOnboardingClient = (): KalshiOnboardingClient =>
         input,
       ),
     invalidateSigningSession: () =>
-      Engine.controllerMessenger.call('PredictDeviceAuthService:clear'),
+      Engine.controllerMessenger.call('PredictDeviceAuthService:invalidateA2t'),
   });

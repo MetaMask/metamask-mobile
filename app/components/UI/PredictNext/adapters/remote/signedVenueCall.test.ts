@@ -63,6 +63,33 @@ describe('sendSigned', () => {
     expect(invalidate).toHaveBeenCalledTimes(1);
   });
 
+  it('signs the renewal without the user confirmation', async () => {
+    const sign = jest.fn().mockResolvedValue(HEADER);
+    const queue: Reply[] = [
+      { status: 403, code: 'venue_authorization_invalid' },
+      { status: 200 },
+    ];
+    const input = {
+      step: 'submit',
+      confirmed: true,
+      inputs: { idempotencyKey: 'key' },
+    };
+
+    await sendSigned(
+      { signOperation: sign, invalidateSigningSession: jest.fn() },
+      'orders.commit',
+      input,
+      async () => queue.shift() as Reply,
+      (reply) => reply,
+    );
+
+    expect(sign).toHaveBeenNthCalledWith(1, 'orders.commit', input);
+    expect(sign).toHaveBeenNthCalledWith(2, 'orders.commit', {
+      ...input,
+      confirmed: false,
+    });
+  });
+
   it('signs again once, keeping the A2T, when the signature expired in flight', async () => {
     const { result, sign, invalidate } = await run({
       replies: [

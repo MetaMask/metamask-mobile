@@ -36,10 +36,8 @@ import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
 import { PredictError, PredictErrorCode } from '../../../errors';
-import {
-  amountToCents,
-  readOrderCommitDisplay,
-} from '../../../auth/signing/orderCommit';
+import { amountToCents } from '../../../auth/signing/orderCommit';
+import { previewOperation } from '../../../auth/previewOperation';
 import { TemplateError } from '../../../auth/signing/venueTemplates';
 import type {
   PredictAmount,
@@ -133,7 +131,16 @@ export const PredictOrderFlowSheet = ({
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
-  const idempotencyKeyRef = useRef(uuidv4());
+  // One key per Order. Quotes of the same intent reuse it, so an ambiguous
+  // Commit can never be placed again under a new key. A Receipt proves an
+  // operation holds the key, and a new intent is a new Order: either way the
+  // next quote gets a fresh key.
+  const idempotencyKeyRef = useRef<string | null>(null);
+  const isKeySpentRef = useRef(false);
+  const orderKey = useCallback((): string => {
+    idempotencyKeyRef.current ??= uuidv4();
+    return idempotencyKeyRef.current;
+  }, []);
   const breakdownSheetRef =
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
 
@@ -235,8 +242,16 @@ export const PredictOrderFlowSheet = ({
     setCommitError(null);
     setVenueExpired(false);
     requestIdRef.current += 1;
+    idempotencyKeyRef.current = null;
+    isKeySpentRef.current = false;
     releasePresentation();
   }, [intent, releasePresentation]);
+
+  useEffect(() => {
+    if (receipt) {
+      isKeySpentRef.current = true;
+    }
+  }, [receipt]);
 
   // Pre-submit work dies with the Venue change: the quote and an approval
   // that was never committed go back to an empty amount entry.
@@ -311,6 +326,11 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      if (isKeySpentRef.current) {
+        isKeySpentRef.current = false;
+        idempotencyKeyRef.current = null;
+      }
+      const idempotencyKey = orderKey();
       const params: PredictOrderPreviewParams =
         intent.action === 'buy'
           ? {
@@ -318,14 +338,14 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
-              idempotencyKey: idempotencyKeyRef.current,
+              idempotencyKey,
             }
           : {
               marketId: intent.marketId,
               side: intent.side,
               action: 'sell',
               contracts: contracts as PredictAmount,
-              idempotencyKey: idempotencyKeyRef.current,
+              idempotencyKey,
             };
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
@@ -362,6 +382,7 @@ export const PredictOrderFlowSheet = ({
     intent,
     isQuotable,
     isStale,
+    orderKey,
     phase,
     quoteNonce,
     service,
@@ -399,34 +420,36 @@ export const PredictOrderFlowSheet = ({
         if (cents === undefined) {
           return undefined;
         }
-        return readOrderCommitDisplay(
-          {
+        return previewOperation('orders.commit', {
+          step: 'submit',
+          values: quote,
+          inputs: {
             action: 'buy',
             outcome: intent.side,
             marketId: intent.marketId,
-            idempotencyKey: idempotencyKeyRef.current,
+            idempotencyKey: orderKey(),
             amountCents: cents,
           },
-          quote,
-        );
+        });
       }
-      return readOrderCommitDisplay(
-        {
+      return previewOperation('orders.commit', {
+        step: 'submit',
+        values: quote,
+        inputs: {
           action: 'sell',
           outcome: intent.side,
           marketId: intent.marketId,
-          idempotencyKey: idempotencyKeyRef.current,
+          idempotencyKey: orderKey(),
           contracts,
         },
-        quote,
-      );
+      });
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: order check refused', error.rule);
       }
       return undefined;
     }
-  }, [amount, contracts, intent, preview]);
+  }, [amount, contracts, intent, orderKey, preview]);
   const canReview =
     phase === 'input' &&
     preview !== null &&
@@ -488,13 +511,13 @@ export const PredictOrderFlowSheet = ({
         action: intent.action,
         outcome: intent.side,
         marketId: intent.marketId,
-        idempotencyKey: idempotencyKeyRef.current,
+        idempotencyKey: orderKey(),
         ...(intent.action === 'buy'
           ? { amountCents: cents ?? 0 }
           : { contracts }),
       },
     };
-  }, [amount, contracts, intent, orderCheck, preview]);
+  }, [amount, contracts, intent, orderCheck, orderKey, preview]);
 
   const handleCommit = useCallback(async () => {
     const signing = commitSigning();

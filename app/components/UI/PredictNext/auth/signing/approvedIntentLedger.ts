@@ -7,12 +7,6 @@ import { TemplateError } from './venueTemplates';
 /** How long a confirmation stays valid. ADR-0004. */
 export const APPROVED_INTENT_TTL_MS = 30 * 60 * 1000;
 
-/** Re-signs of one order body. The first confirmation is sign 1. */
-export const APPROVED_INTENT_SIGN_LIMIT = 3;
-
-/** `min_ts` on an order scan must fall in this window before the pin. */
-const SCAN_LOOKBACK_SEC = 600;
-
 const LEDGER_VERSION = 1;
 const LEDGER_ACCOUNT = 'approved-intents';
 const LEDGER_SCOPE = {
@@ -37,8 +31,13 @@ export interface IntentSignatureClaim {
   idempotencyKey: string;
   /** The mutation body. Absent for a read-only step of an already pinned intent. */
   body?: string;
-  /** Unix seconds. Checked against the pin for an order scan. */
-  minTs?: number;
+  /** Signatures allowed for one confirmed body. From the operation's rule. */
+  signLimit: number;
+  /**
+   * Server-provided Unix times, in seconds, that must lie at or before the
+   * pin and within `maxBeforePinSec` of it. From the operation's rule.
+   */
+  pinnedTimes?: readonly { seconds: number; maxBeforePinSec: number }[];
   nowMs: number;
   /** The user confirmed this intent on screen. Required for the first signature. */
   confirmed: boolean;
@@ -109,9 +108,15 @@ export const clearApprovedIntents = async (): Promise<void> => {
   }
 };
 
-const scanFitsPin = (minTs: number, pinnedAt: number): boolean => {
+const timesFitPin = (
+  times: IntentSignatureClaim['pinnedTimes'],
+  pinnedAt: number,
+): boolean => {
   const pinnedSec = Math.floor(pinnedAt / 1000);
-  return minTs <= pinnedSec && minTs >= pinnedSec - SCAN_LOOKBACK_SEC;
+  return (times ?? []).every(
+    ({ seconds, maxBeforePinSec }) =>
+      seconds <= pinnedSec && seconds >= pinnedSec - maxBeforePinSec,
+  );
 };
 
 /**
@@ -132,21 +137,14 @@ export const claimIntentSignature = async (
       : undefined;
 
   if (claim.body === undefined) {
-    if (
-      !live ||
-      (claim.minTs !== undefined && !scanFitsPin(claim.minTs, live.pinnedAt))
-    ) {
+    if (!live || !timesFitPin(claim.pinnedTimes, live.pinnedAt)) {
       throw new TemplateError('confirmation', claim.operation);
     }
     return;
   }
 
   const digest = contentDigest(claim.body);
-  if (
-    live &&
-    live.bodyDigest === digest &&
-    live.signCount < APPROVED_INTENT_SIGN_LIMIT
-  ) {
+  if (live && live.bodyDigest === digest && live.signCount < claim.signLimit) {
     entries[claim.idempotencyKey] = {
       ...live,
       signCount: live.signCount + 1,

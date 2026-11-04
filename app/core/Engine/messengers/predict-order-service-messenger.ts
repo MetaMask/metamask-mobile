@@ -5,7 +5,7 @@ import {
   type MessengerEvents,
 } from '@metamask/messenger';
 import type {
-  PredictDeviceAuthServiceClearAction,
+  PredictDeviceAuthServiceInvalidateA2tAction,
   PredictDeviceAuthServiceSignOperationAction,
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import {
@@ -48,7 +48,7 @@ export type PredictOrderServiceInitMessenger = Messenger<
   'PredictOrderServiceInit',
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | PredictDeviceAuthServiceSignOperationAction
-  | PredictDeviceAuthServiceClearAction,
+  | PredictDeviceAuthServiceInvalidateA2tAction,
   never
 >;
 
@@ -66,7 +66,7 @@ export const getPredictOrderServiceInitMessenger = (
     actions: [
       'AuthenticationController:getBearerToken',
       'PredictDeviceAuthService:signOperation',
-      'PredictDeviceAuthService:clear',
+      'PredictDeviceAuthService:invalidateA2t',
     ],
     events: [],
     messenger,

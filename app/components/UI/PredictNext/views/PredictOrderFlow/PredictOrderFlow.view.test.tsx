@@ -44,6 +44,27 @@ import {
 } from './PredictOrderFlowProvider';
 import { type PredictDecimal, type PredictEntityId } from '../../types';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
+import { renderStep } from '../../auth/signing/venueTemplates';
+import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import {
+  KALSHI_DEMO_SIGNING_PROFILE,
+  type VenueOperationName,
+} from '../../auth/venueSigningProfiles';
+
+/**
+ * The sheet asks PredictDeviceAuthService whether Confirm is allowed. The
+ * component-view Engine has no signing service, so this stands in with the
+ * bundled demo profile and the real renderer.
+ */
+const previewFromDemoProfile = (
+  operation: VenueOperationName,
+  input: SignOperationInput = {},
+) =>
+  renderStep(KALSHI_DEMO_SIGNING_PROFILE, operation, input.step ?? 'default', {
+    inputs: input.inputs,
+    values: input.values,
+    nowMs: Date.now(),
+  }).find((request) => request.display !== undefined)?.display;
 
 // The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the shared composer binds the
@@ -137,6 +158,11 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       url: String(url),
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
+
+const previewKeys = (): unknown[] =>
+  previewCalls().map(
+    ({ body }) => (body as { idempotencyKey?: unknown }).idempotencyKey,
+  );
 
 const stubBalance = (venueStatus?: { termsUrl?: string }) =>
   mockPredictNextMessenger((action: string) => {
@@ -272,6 +298,9 @@ describe('PredictOrderFlow', () => {
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     (Engine.context as Record<string, unknown>).PredictOrderService =
       composeOrderService();
+    (Engine.context as Record<string, unknown>).PredictDeviceAuthService = {
+      previewOperation: previewFromDemoProfile,
+    };
   });
 
   afterEach(() => {
@@ -507,6 +536,9 @@ describe('PredictOrderFlow', () => {
 
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
+    // The same Order: an amount edit keeps its idempotency key.
+    const [first, second] = previewKeys();
+    expect(second).toBe(first);
   });
 
   it('keeps Review disabled while a fresh quote loads for the changed amount', async () => {
@@ -887,6 +919,10 @@ describe('PredictOrderFlow', () => {
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
+    // The Receipt proves an operation holds the first key: a new Order.
+    const [first, second] = previewKeys();
+    expect(second).toEqual(IDEMPOTENCY_KEY);
+    expect(second).not.toBe(first);
   }, 30000);
 
   it('renders a rejection honestly: nothing filled, balance untouched, re-quote offered', async () => {

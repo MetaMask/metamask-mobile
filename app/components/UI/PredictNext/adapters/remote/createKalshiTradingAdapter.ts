@@ -20,6 +20,6 @@ export const createKalshiTradingAdapter = (): KalshiRemoteAdapter =>
       signOperation: (operation, input) =>
         Engine.context.PredictDeviceAuthService.signOperation(operation, input),
       invalidateSigningSession: () =>
-        Engine.context.PredictDeviceAuthService.clear(),
+        Engine.context.PredictDeviceAuthService.invalidateA2t(),
     }),
   );

@@ -129,7 +129,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
     },
     'onboarding.activate': {
       class: 'mutation',
-      confirmation: 'per-intent',
+      confirmation: { kind: 'per-intent', signLimit: 3 },
       steps: { default: [{ request: 'wallet_register' }] },
     },
     'orders.preview': {
@@ -144,7 +144,11 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
     },
     'orders.commit': {
       class: 'mutation',
-      confirmation: 'per-intent',
+      confirmation: {
+        kind: 'per-intent',
+        signLimit: 3,
+        pinnedTimes: [{ value: 'min_ts', maxBeforePinSec: 600 }],
+      },
       steps: {
         submit: [
           { request: 'balance', when: WHEN_BUY },
@@ -325,6 +329,10 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
             feeCeilingCentsPerContract: ORDER_FEE_CEILING_CENTS,
             amountInput: 'amountCents',
             contractsInput: 'contracts',
+            priceField: 'price',
+            countField: 'count',
+            actionInput: 'action',
+            outcomeInput: 'outcome',
             minOutcomePriceInput: 'minOutcomePrice',
           },
         },

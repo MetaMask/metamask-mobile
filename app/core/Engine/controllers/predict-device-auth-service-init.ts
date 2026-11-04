@@ -118,7 +118,11 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     fetch: (input, init) => global.fetch(input, init),
   });
 
-  initMessenger.subscribe('KeyringController:lock', () => controller.clear());
+  // clearApprovals logs its own failures.
+  const clearApprovals = () => {
+    controller.clearApprovals().catch(() => undefined);
+  };
+  initMessenger.subscribe('KeyringController:lock', clearApprovals);
   initMessenger.subscribe('AuthenticationController:stateChange', () => {
     const currentAuthentication = initMessenger.call(
       'AuthenticationController:getState',
@@ -133,7 +137,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     'AuthenticationController:profileSignIn',
     ({ profileId, profileIdChanged }) => {
       if (profileIdChanged) {
-        controller.clear();
+        clearApprovals();
       }
       rememberCanonicalProfileId(profileId);
     },

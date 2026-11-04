@@ -19,6 +19,7 @@ const claim = {
   operation: 'orders.commit',
   idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
   body: '{"ticker":"MKT"}',
+  signLimit: 3,
   nowMs: 1_700_000_000_000,
   confirmed: true,
 };
@@ -58,6 +59,16 @@ describe('approved intent ledger', () => {
     ).rejects.toBeInstanceOf(TemplateError);
   });
 
+  it('takes the sign limit from the claim', async () => {
+    const two = { ...claim, signLimit: 2 };
+    await claimIntentSignature(two);
+    await claimIntentSignature({ ...two, confirmed: false });
+
+    await expect(
+      claimIntentSignature({ ...two, confirmed: false }),
+    ).rejects.toBeInstanceOf(TemplateError);
+  });
+
   it('replaces the pin when a different body is confirmed', async () => {
     await claimIntentSignature(claim);
     await claimIntentSignature({
@@ -83,12 +94,18 @@ describe('approved intent ledger', () => {
     });
 
     const pinnedSec = Math.floor(claim.nowMs / 1000);
+    await claimIntentSignature({
+      ...claim,
+      body: undefined,
+      confirmed: false,
+      pinnedTimes: [{ seconds: pinnedSec - 600, maxBeforePinSec: 600 }],
+    });
     await expect(
       claimIntentSignature({
         ...claim,
         body: undefined,
         confirmed: false,
-        minTs: pinnedSec - 601,
+        pinnedTimes: [{ seconds: pinnedSec - 601, maxBeforePinSec: 600 }],
       }),
     ).rejects.toBeInstanceOf(TemplateError);
   });

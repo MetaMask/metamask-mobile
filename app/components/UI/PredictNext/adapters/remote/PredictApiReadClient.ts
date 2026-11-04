@@ -167,6 +167,18 @@ export class PredictHttpError extends Error {
   }
 }
 
+/**
+ * The phone refused or could not sign the call, so it was never sent. The
+ * synthetic 400 maps to the generic invalid-response error rather than to a
+ * region block.
+ */
+export class PredictRequestNotSentError extends PredictHttpError {
+  constructor(bodyCode: string) {
+    super(400, bodyCode);
+    this.name = 'PredictRequestNotSentError';
+  }
+}
+
 export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #baseUrl?: URL;
   readonly #clientVersion: string;
@@ -401,9 +413,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     const cursor = params?.cursor;
     const remembered =
       typeof cursor === 'string' ? this.#nextSigning.get(cursor) : undefined;
-    let step =
-      remembered?.step ??
-      (operation === 'portfolio.activity' ? 'settlements' : 'holdings');
+    // A first page names no step. The signing profile starts the operation at
+    // its first declared one.
+    let step: string | undefined = remembered?.step;
     let values = remembered?.values;
     let continuation: string | undefined;
     for (let guard = 0; guard < 200; guard += 1) {
@@ -604,9 +616,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<Response> {
     const signOperation = this.#signOperation;
     if (!signOperation) {
-      // Synthetic statuses: the call was never sent. Status 400 maps to the
-      // generic invalid-response error rather than to a region block.
-      throw new PredictHttpError(400, 'venue_signing_unavailable');
+      throw new PredictRequestNotSentError('venue_signing_unavailable');
     }
     try {
       return await sendSigned(
@@ -628,10 +638,12 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       );
     } catch (error) {
       if (error instanceof VenueSigningRefusedError) {
-        throw new PredictHttpError(400, `venue_signing_refused_${error.rule}`);
+        throw new PredictRequestNotSentError(
+          `venue_signing_refused_${error.rule}`,
+        );
       }
       if (error instanceof VenueSigningUnavailableError) {
-        throw new PredictHttpError(400, 'venue_signing_unavailable');
+        throw new PredictRequestNotSentError('venue_signing_unavailable');
       }
       throw error;
     }

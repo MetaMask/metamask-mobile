@@ -108,12 +108,28 @@ export interface RequestTemplate {
   }[];
 }
 
+/** A confirmation the user gives on screen before the first signature. */
+export interface ConfirmationRule {
+  readonly kind: 'per-intent';
+  /** Signatures of one confirmed body. The first confirmation is sign 1. */
+  readonly signLimit: number;
+  /**
+   * Server values that are Unix-second times. Each must fall at or before the
+   * pin and at most `maxBeforePinSec` seconds before it.
+   */
+  readonly pinnedTimes?: readonly {
+    readonly value: string;
+    readonly maxBeforePinSec: number;
+  }[];
+}
+
 export interface OperationRule {
   readonly class: 'read' | 'mutation';
-  /** Single-step operations have one step, `default`. */
+  /** Single-step operations have one step, `default`. A multi-step operation
+   * starts at the first step declared here. */
   readonly steps: Readonly<Record<string, readonly StepRequest[]>>;
   /** The user must confirm on screen before the first signature. */
-  readonly confirmation?: 'per-intent';
+  readonly confirmation?: ConfirmationRule;
 }
 
 /** The parts of a signing profile that describe venue requests. */
@@ -493,6 +509,10 @@ const checkBinaryLimitOrder = (
   // narrow `params[key]`, so a later read would still be `string | number | boolean`.
   const amountInput = params?.amountInput;
   const contractsInput = params?.contractsInput;
+  const priceField = params?.priceField;
+  const countField = params?.countField;
+  const actionInput = params?.actionInput;
+  const outcomeInput = params?.outcomeInput;
   const feeCeilingCentsPerContract = params?.feeCeilingCentsPerContract;
   if (
     !params ||
@@ -501,14 +521,18 @@ const checkBinaryLimitOrder = (
     !Number.isSafeInteger(feeCeilingCentsPerContract) ||
     feeCeilingCentsPerContract < 0 ||
     typeof amountInput !== 'string' ||
-    typeof contractsInput !== 'string'
+    typeof contractsInput !== 'string' ||
+    typeof priceField !== 'string' ||
+    typeof countField !== 'string' ||
+    typeof actionInput !== 'string' ||
+    typeof outcomeInput !== 'string'
   ) {
     throw new TemplateError('invariant', implementation);
   }
-  const price = scaled(bodyField(body, 'price', implementation), 4);
-  const count = scaled(bodyField(body, 'count', implementation), 2);
-  const outcome = inputString(context, 'outcome');
-  const action = inputString(context, 'action');
+  const price = scaled(bodyField(body, priceField, implementation), 4);
+  const count = scaled(bodyField(body, countField, implementation), 2);
+  const outcome = inputString(context, outcomeInput);
+  const action = inputString(context, actionInput);
   if (price === undefined || count === undefined || !outcome || !action) {
     throw new TemplateError('invariant', implementation);
   }
@@ -552,7 +576,7 @@ const checkBinaryLimitOrder = (
   }
   return {
     maxCost: dollarsFromCents((cost + 9_999n) / 10_000n),
-    contracts: bodyField(body, 'count', implementation),
+    contracts: bodyField(body, countField, implementation),
     minProceeds: dollarsFromCents(proceeds / 10_000n),
   };
 };
@@ -651,6 +675,29 @@ const contextsFor = (
     nowMs: context.nowMs,
     values: { ...context.values, [each.as]: item as Scalar },
   }));
+};
+
+/**
+ * The step a call starts at when it names none: `default` for a single-step
+ * operation, otherwise the first step the profile declares. Which step comes
+ * first is profile data, so callers do not name venue steps.
+ */
+export const defaultStep = (
+  profile: TemplateProfile,
+  operation: string,
+): string => {
+  if (!has(profile.operations, operation)) {
+    throw new TemplateError('operation', operation);
+  }
+  const { steps } = profile.operations[operation] as OperationRule;
+  if (has(steps, 'default')) {
+    return 'default';
+  }
+  const [first] = Object.keys(steps);
+  if (first === undefined) {
+    throw new TemplateError('step', 'none declared');
+  }
+  return first;
 };
 
 /**

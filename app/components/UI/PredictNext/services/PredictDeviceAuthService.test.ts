@@ -5,6 +5,7 @@ import {
 } from './PredictDeviceAuthService';
 import { A2tSession } from '../auth/a2tSession';
 import { createP256DeviceKey } from '../auth/p256DeviceKey';
+import { clearApprovedIntents } from '../auth/signing/approvedIntentLedger';
 import { TemplateError } from '../auth/signing/venueTemplates';
 import {
   KALSHI_AUTHENTICATION_PROFILE,
@@ -24,6 +25,11 @@ const mockEnsureDeviceKey = jest.fn();
 const mockClearDeviceKey = jest.fn();
 const mockDeleteDeviceKey = jest.fn();
 const mockSignDeviceBytes = jest.fn();
+
+jest.mock('../auth/signing/approvedIntentLedger', () => ({
+  ...jest.requireActual('../auth/signing/approvedIntentLedger'),
+  clearApprovedIntents: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('../auth/a2tSession', () => ({
   A2tSession: jest.fn().mockImplementation(() => ({
@@ -127,7 +133,9 @@ describe('PredictDeviceAuthService', () => {
       'PredictDeviceAuthService:ensureDeviceKey',
       'PredictDeviceAuthService:getA2t',
       'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:previewOperation',
       'PredictDeviceAuthService:prefetch',
+      'PredictDeviceAuthService:invalidateA2t',
       'PredictDeviceAuthService:clear',
       'PredictDeviceAuthService:reset',
     ]);
@@ -140,6 +148,96 @@ describe('PredictDeviceAuthService', () => {
 
     expect(mockEnsureDeviceKey).toHaveBeenCalledTimes(1);
     expect(mockGetA2t).toHaveBeenCalledTimes(1);
+  });
+
+  describe('previewOperation', () => {
+    const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
+    const preview = (
+      service: PredictDeviceAuthService,
+      inputs: Record<string, string | number>,
+      values: { price: string; count: string },
+    ) =>
+      service.previewOperation('orders.commit', {
+        step: 'submit',
+        inputs: { marketId: 'MKT', idempotencyKey: KEY, ...inputs },
+        values,
+      });
+
+    it('returns the buy cap rounded up to the cent', () => {
+      const { service } = createService();
+
+      expect(
+        preview(
+          service,
+          { action: 'buy', outcome: 'yes', amountCents: 52 },
+          { count: '1.00', price: '0.5000' },
+        ),
+      ).toEqual({ maxCost: '0.52', contracts: '1.00', minProceeds: '0.50' });
+    });
+
+    it('refuses a buy one cent under the cap', () => {
+      const { service } = createService();
+
+      expect(() =>
+        preview(
+          service,
+          { action: 'buy', outcome: 'yes', amountCents: 51 },
+          { count: '1.00', price: '0.5000' },
+        ),
+      ).toThrow(TemplateError);
+    });
+
+    it('prices a NO outcome as one minus the yes-leg price', () => {
+      const { service } = createService();
+
+      const display = preview(
+        service,
+        { action: 'buy', outcome: 'no', amountCents: 42 },
+        { count: '1.00', price: '0.6000' },
+      );
+
+      expect(display?.maxCost).toBe('0.42');
+      expect(display?.minProceeds).toBe('0.40');
+    });
+
+    it('rounds sell proceeds down and requires the typed contract count', () => {
+      const { service } = createService();
+      const quote = { count: '75.00', price: '0.4000' };
+
+      expect(
+        preview(
+          service,
+          { action: 'sell', outcome: 'yes', contracts: '75' },
+          quote,
+        )?.minProceeds,
+      ).toBe('30.00');
+      expect(() =>
+        preview(
+          service,
+          { action: 'sell', outcome: 'yes', contracts: '1' },
+          quote,
+        ),
+      ).toThrow(TemplateError);
+    });
+
+    it('renders from the active profile, not a named one', () => {
+      const { service } = createService({ getProfile: () => undefined });
+
+      expect(
+        preview(
+          service,
+          { action: 'buy', outcome: 'yes', amountCents: 52 },
+          { count: '1.00', price: '0.5000' },
+        ),
+      ).toBeUndefined();
+    });
+
+    it('returns nothing for an operation with no invariant, and signs nothing', () => {
+      const { service } = createService();
+
+      expect(service.previewOperation('portfolio.balance')).toBeUndefined();
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+    });
   });
 
   describe('signOperation', () => {
@@ -172,6 +270,14 @@ describe('PredictDeviceAuthService', () => {
         signatures: [{ signatureInput: expect.stringContaining('kalshi=(') }],
       });
       expect(mockSignDeviceBytes).toHaveBeenCalledTimes(1);
+    });
+
+    it("starts a multi-step operation at the profile's first declared step", async () => {
+      const { service } = createService();
+
+      const header = await service.signOperation('portfolio.activity');
+
+      expect(decodeHeader(header?.value as string).step).toBe('settlements');
     });
 
     it('signs one signature per rendered request, in render order', async () => {
@@ -256,6 +362,48 @@ describe('PredictDeviceAuthService', () => {
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
     expect(mockGetA2t).not.toHaveBeenCalled();
+  });
+
+  describe('confirmations', () => {
+    const clearLedger = jest.mocked(clearApprovedIntents);
+
+    const loadSession = async () => {
+      const { service } = createService();
+      await service.getA2t();
+      mockClearSession.mockClear();
+      mockClearDeviceKey.mockClear();
+      return service;
+    };
+
+    it('drops only the A2T when predict-api rejects it', async () => {
+      const service = await loadSession();
+
+      service.invalidateA2t();
+
+      expect(mockClearSession).toHaveBeenCalledTimes(1);
+      expect(mockClearDeviceKey).not.toHaveBeenCalled();
+      expect(clearLedger).not.toHaveBeenCalled();
+    });
+
+    it('keeps the pinned intents when the session is cleared', async () => {
+      const service = await loadSession();
+
+      service.clear();
+
+      expect(mockClearSession).toHaveBeenCalledTimes(1);
+      expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+      expect(clearLedger).not.toHaveBeenCalled();
+    });
+
+    it('drops the session and the pinned intents on clearApprovals', async () => {
+      const service = await loadSession();
+
+      await service.clearApprovals();
+
+      expect(mockClearSession).toHaveBeenCalledTimes(1);
+      expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+      expect(clearLedger).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('keeps the local key but skips issuance while signed out', async () => {

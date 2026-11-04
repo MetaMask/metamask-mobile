@@ -93,7 +93,14 @@ interface OperationRule {
   readonly class: 'read' | 'mutation'; // a read operation never renders a mutation
   /** Steps the operation may take. Single-step operations have one, 'default'. */
   readonly steps: Readonly<Record<string, readonly StepRequest[]>>;
-  readonly confirmation?: 'per-intent';
+  readonly confirmation?: ConfirmationRule;
+}
+
+interface ConfirmationRule {
+  readonly kind: 'per-intent';
+  readonly signLimit: number; // signatures of one confirmed body, 3 for orders
+  /** Server values that are Unix-second times. Each falls at or before the pin and at most `maxBeforePinSec` before it. */
+  readonly pinnedTimes?: readonly { value: string; maxBeforePinSec: number }[];
 }
 
 interface StepRequest {
@@ -137,13 +144,15 @@ Both renderers follow these rules and are tested against the shared fixture.
 
 Invariants are allowlisted checks that span fields. They return `display` values for the confirmation sheet. The first invariant is `binary-limit-order-v1`:
 
-| Parameter                    | Value                                                                            |
-| ---------------------------- | -------------------------------------------------------------------------------- |
-| `pricing`                    | `'yes-leg'`. For NO, the body price is `1 − outcome price`, as in `acrossYesLeg` |
-| `feeCeilingCentsPerContract` | The per-contract fee ceiling                                                     |
-| `amountInput`                | `'amountCents'`                                                                  |
-| `contractsInput`             | `'contracts'`                                                                    |
-| `minOutcomePriceInput`       | Optional                                                                         |
+| Parameter                     | Value                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| `pricing`                     | `'yes-leg'`. For NO, the body price is `1 − outcome price`, as in `acrossYesLeg` |
+| `feeCeilingCentsPerContract`  | The per-contract fee ceiling                                                     |
+| `amountInput`                 | `'amountCents'`                                                                  |
+| `contractsInput`              | `'contracts'`                                                                    |
+| `minOutcomePriceInput`        | Optional                                                                         |
+| `priceField`, `countField`    | The body keys the invariant reads, for example `price` and `count`               |
+| `actionInput`, `outcomeInput` | The inputs that say buy or sell, and yes or no                                   |
 
 It enforces, in integer ten-thousandths:
 

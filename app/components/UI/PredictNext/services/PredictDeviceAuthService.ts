@@ -23,7 +23,12 @@ import {
   claimIntentSignature,
   clearApprovedIntents,
 } from '../auth/signing/approvedIntentLedger';
-import { renderStep, TemplateError } from '../auth/signing/venueTemplates';
+import {
+  defaultStep,
+  renderStep,
+  TemplateError,
+  type InvariantDisplay,
+} from '../auth/signing/venueTemplates';
 import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
@@ -57,9 +62,22 @@ export interface PredictDeviceAuthServiceSignOperationAction {
   ) => Promise<DeviceAuthHeader | undefined>;
 }
 
+export interface PredictDeviceAuthServicePreviewOperationAction {
+  type: 'PredictDeviceAuthService:previewOperation';
+  handler: (
+    operation: VenueOperationName,
+    input?: SignOperationInput,
+  ) => InvariantDisplay | undefined;
+}
+
 export interface PredictDeviceAuthServicePrefetchAction {
   type: 'PredictDeviceAuthService:prefetch';
   handler: (includeA2t?: boolean) => Promise<void>;
+}
+
+export interface PredictDeviceAuthServiceInvalidateA2tAction {
+  type: 'PredictDeviceAuthService:invalidateA2t';
+  handler: () => void;
 }
 
 export interface PredictDeviceAuthServiceClearAction {
@@ -76,7 +94,9 @@ export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
   | PredictDeviceAuthServiceSignOperationAction
+  | PredictDeviceAuthServicePreviewOperationAction
   | PredictDeviceAuthServicePrefetchAction
+  | PredictDeviceAuthServiceInvalidateA2tAction
   | PredictDeviceAuthServiceClearAction
   | PredictDeviceAuthServiceResetAction;
 
@@ -145,8 +165,16 @@ export class PredictDeviceAuthService {
       this.signOperation.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictDeviceAuthService:previewOperation',
+      this.previewOperation.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
       this.prefetch.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:invalidateA2t',
+      this.invalidateA2t.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:clear',
@@ -189,6 +217,38 @@ export class PredictDeviceAuthService {
    * when signing is not available (disabled, locked, signed out, no signing
    * profile, or no A2T).
    */
+  /**
+   * Renders the operation from the active signing profile exactly as
+   * `signOperation` would, and returns the worst-case figures its invariant
+   * computed, for the confirmation sheet. Nothing is signed and nothing leaves
+   * the phone. Returns undefined when no signing profile is active, or when
+   * no request of the step carries an invariant. Throws `TemplateError` when
+   * the profile does not allow the request, which keeps Confirm disabled.
+   */
+  previewOperation(
+    operation: VenueOperationName,
+    input: SignOperationInput = {},
+  ): InvariantDisplay | undefined {
+    const binding = this.#resolveBinding();
+    const profile = binding
+      ? resolveBundledSigningProfile(binding.profileId)
+      : undefined;
+    if (!profile) {
+      return undefined;
+    }
+    const requests = renderStep(
+      profile,
+      operation,
+      input.step ?? defaultStep(profile, operation),
+      {
+        inputs: input.inputs,
+        values: input.values,
+        nowMs: this.#deps.nowMs(),
+      },
+    );
+    return requests.find((request) => request.display !== undefined)?.display;
+  }
+
   async signOperation(
     operation: VenueOperationName,
     input: SignOperationInput = {},
@@ -202,7 +262,7 @@ export class PredictDeviceAuthService {
     if (!binding || !profile) {
       return undefined;
     }
-    const step = input.step ?? 'default';
+    const step = input.step ?? defaultStep(profile, operation);
     const nowMs = this.#deps.nowMs();
     const requests = renderStep(profile, operation, step, {
       inputs: input.inputs,
@@ -226,7 +286,8 @@ export class PredictDeviceAuthService {
       return undefined;
     }
     const rule = profile.operations[operation];
-    if (rule?.confirmation === 'per-intent') {
+    const confirmation = rule?.confirmation;
+    if (confirmation?.kind === 'per-intent') {
       const mutation = requests.find(
         (request) => request.idempotencyKey !== undefined,
       );
@@ -237,12 +298,20 @@ export class PredictDeviceAuthService {
       if (!idempotencyKey) {
         throw new TemplateError('confirmation', operation);
       }
-      const minTs = input.values?.min_ts;
+      const pinnedTimes = (confirmation.pinnedTimes ?? []).flatMap(
+        ({ value, maxBeforePinSec }) => {
+          const seconds = input.values?.[value];
+          return typeof seconds === 'number'
+            ? [{ seconds, maxBeforePinSec }]
+            : [];
+        },
+      );
       await claimIntentSignature({
         operation,
         idempotencyKey,
         body: mutation?.body,
-        minTs: typeof minTs === 'number' ? minTs : undefined,
+        signLimit: confirmation.signLimit,
+        pinnedTimes,
         nowMs,
         confirmed: input.confirmed === true,
       });
@@ -291,11 +360,27 @@ export class PredictDeviceAuthService {
     }
   }
 
+  /**
+   * Drops the cached A2T only, after predict-api rejected it. The pinned
+   * intents stay: a stale A2T does not undo what the user confirmed.
+   */
+  invalidateA2t(): void {
+    this.#active?.session.clear();
+  }
+
+  /** Drops the in-memory session and device key. The pinned intents stay. */
   clear(): void {
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
-    // The ledger is the confirmation record. A lock drops it with the session.
-    void clearApprovedIntents();
+  }
+
+  /**
+   * Also drops every pinned intent, the confirmation record. Lock and a
+   * change of Predict User call this. Wallet reset drops them in `reset`.
+   */
+  async clearApprovals(): Promise<void> {
+    this.clear();
+    await clearApprovedIntents();
   }
 
   /**

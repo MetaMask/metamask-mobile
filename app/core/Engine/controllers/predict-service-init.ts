@@ -93,7 +93,7 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
           input,
         ),
       invalidateSigningSession: () =>
-        initMessenger.call('PredictDeviceAuthService:clear'),
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   return {
@@ -128,7 +128,7 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
           input,
         ),
       invalidateSigningSession: () =>
-        initMessenger.call('PredictDeviceAuthService:clear'),
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   const controller = new PredictOrderService({

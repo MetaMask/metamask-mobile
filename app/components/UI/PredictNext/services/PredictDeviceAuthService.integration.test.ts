@@ -283,4 +283,58 @@ describe('PredictDeviceAuthService integration', () => {
       expect(fetchMock).toHaveBeenCalledTimes(3);
     },
   );
+
+  describe('confirmation ledger', () => {
+    const LEDGER_SERVICE = 'com.metamask.predict.approved-intents';
+    const pinIntent = () =>
+      secureItems.set(LEDGER_SERVICE, JSON.stringify({ v: 1, entries: {} }));
+    const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+    it('keeps the pinned intents when only the A2T or the session drops', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      await harness.messenger.call('PredictDeviceAuthService:invalidateA2t');
+      await harness.messenger.call('PredictDeviceAuthService:clear');
+      harness.authenticationState.isSignedIn = false;
+      harness.emit('AuthenticationController:stateChange');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(true);
+    });
+
+    it('drops the pinned intents when the wallet locks', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      harness.keyringState.isUnlocked = false;
+      harness.emit('KeyringController:lock');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+
+    it('drops the pinned intents when another Predict User signs in', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      await harness.messenger.call('PredictDeviceAuthService:ensureDeviceKey');
+      pinIntent();
+
+      harness.authenticationState.srpSessionData[
+        'entropy-source-id'
+      ].profile.canonicalProfileId = 'replacement-profile-id';
+      harness.emit('AuthenticationController:profileSignIn');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+
+    it('drops the pinned intents on wallet reset', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      await harness.messenger.call('PredictDeviceAuthService:reset');
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+  });
 });
