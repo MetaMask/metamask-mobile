@@ -3,33 +3,21 @@ import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import Pressable from '../../../component-library/components-temp/Pressable';
-import Icon, {
+import {
+  FontWeight,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import {
-  Box,
-  BoxFlexDirection,
-  FontWeight,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import ListItem from '../../../component-library/components/List/ListItem';
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    root: {
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingLeft: 16,
-      paddingRight: 16,
-    },
-    action: {
-      paddingLeft: 16,
-    },
     warningTag: {
       flexDirection: 'row',
       alignSelf: 'flex-start',
@@ -99,54 +87,57 @@ const SettingsDrawer = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const hasSecondary = Boolean(description) || Boolean(warning);
+  // Warning stays in the description slot so the chevron stays centered on the
+  // whole block. OneLine keeps rows without a description at the 48dp minimum.
+  const descriptionContent = warning ? (
+    <>
+      {description ? (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {description}
+        </Text>
+      ) : null}
+      <View style={styles.warningTag}>
+        <Icon
+          size={IconSize.Sm}
+          color={IconColor.ErrorDefault}
+          name={IconName.Danger}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.ErrorDefault}
+          style={styles.warningText}
+        >
+          {warning}
+        </Text>
+      </View>
+    </>
+  ) : (
+    description
+  );
+
   return (
-    <Pressable onPress={onPress} testID={testID}>
-      <ListItem style={styles.root} gap={16}>
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={titleColor}
-          >
-            {title}
-          </Text>
-          {description && (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {description}
-            </Text>
-          )}
-          {warning && (
-            <View style={styles.warningTag}>
-              <Icon
-                size={IconSize.Sm}
-                color={IconColor.Error}
-                name={IconName.Danger}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.ErrorDefault}
-                style={styles.warningText}
-              >
-                {warning}
-              </Text>
-            </View>
-          )}
-        </Box>
-        {renderArrowRight && (
-          <Box>
-            <Icon
-              style={styles.action}
-              size={IconSize.Md}
-              name={IconName.ArrowRight}
-            />
-          </Box>
-        )}
-      </ListItem>
-    </Pressable>
+    <ListItem
+      isInteractive
+      onPress={onPress}
+      testID={testID}
+      variant={
+        hasSecondary ? ListItemVariant.TwoLines : ListItemVariant.OneLine
+      }
+      title={title}
+      titleProps={{ color: titleColor }}
+      description={descriptionContent}
+      endAccessory={
+        renderArrowRight ? (
+          <Icon size={IconSize.Md} name={IconName.ArrowRight} />
+        ) : undefined
+      }
+      accessoryGap={4}
+    />
   );
 };
 

@@ -1,16 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  Box,
+  ListItem,
+} from '@metamask/design-system-react-native';
 import { renderShortAddress } from '../../../../../util/address';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './SamplePetNamesList.styles';
 import { SamplePetNamesListProps } from './SamplePetNamesList.types';
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
@@ -34,7 +30,7 @@ import { useSamplePetNames } from '../../hooks/useSamplePetNames';
  * This is a sample feature and should not be used in production code.
  * It demonstrates:
  * - Controller integration with reactive updates
- * - List rendering
+ * - List rendering with the design-system ListItem
  * - Avatar component usage
  * - Address formatting
  * - Event handling
@@ -48,36 +44,32 @@ export function SamplePetNamesList({
   chainId,
   onAccountPress,
 }: Readonly<SamplePetNamesListProps>) {
-  const { styles } = useStyles(styleSheet, {});
   const { petNames } = useSamplePetNames(chainId);
 
   return (
-    <View>
+    <Box>
       {petNames.map(({ address, name }) => (
-        <TouchableOpacity
+        <ListItem
           key={address}
+          isInteractive
           onPress={() =>
             onAccountPress({
               address,
               name,
             })
           }
-        >
-          <ListItem>
-            <Avatar
-              variant={AvatarVariant.Account}
-              accountAddress={address}
-              size={AvatarSize.Md}
+          avatar={
+            <AvatarAccount
+              address={address}
+              // Legacy AvatarAccount defaulted to Maskicon. Keep that art.
+              variant={AvatarAccountVariant.Maskicon}
+              size={AvatarAccountSize.Md}
             />
-            <View style={styles.listItemTextContainer}>
-              <Text variant={TextVariant.HeadingMD}>{name}</Text>
-              <Text variant={TextVariant.BodySM}>
-                {renderShortAddress(address)}
-              </Text>
-            </View>
-          </ListItem>
-        </TouchableOpacity>
+          }
+          title={name}
+          description={renderShortAddress(address)}
+        />
       ))}
-    </View>
+    </Box>
   );
 }

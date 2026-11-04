@@ -13,7 +13,6 @@ import {
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import ListItem from '../../../../../component-library/components/List/ListItem';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -38,13 +37,7 @@ function ConfirmAddAssetRowComponent({
   asset,
   networkName,
 }: ConfirmAddAssetRowProps) {
-  const tw = useTailwind();
-
-  return (
-    <ListItem gap={20} style={tw.style('p-0')}>
-      <AddAssetTokenRow asset={asset} networkName={networkName} />
-    </ListItem>
-  );
+  return <AddAssetTokenRow asset={asset} networkName={networkName} />;
 }
 
 const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);

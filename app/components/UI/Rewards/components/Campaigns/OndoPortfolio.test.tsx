@@ -180,45 +180,6 @@ jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
   return { __esModule: true, default: RewardsNoPositionsImage };
 });
 
-jest.mock(
-  '../../../../../component-library/components/List/ListItemSelect',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        onPress,
-      }: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        isSelected?: boolean;
-        isDisabled?: boolean;
-        verticalAlignment?: string;
-      }) =>
-        ReactActual.createElement(
-          TouchableOpacity,
-          { onPress, testID: 'list-item-select' },
-          children,
-        ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, { testID: 'avatar-account' }),
-    };
-  },
-);
-
 const mockRefetch = jest.fn();
 const MOCK_POSITION_DISPLAY_NAME = 'Apple Inc. (Ondo Tokenized)';
 
@@ -614,7 +575,7 @@ describe('OndoPortfolio', () => {
     it('calls onPress when the row is pressed', () => {
       const group = { id: 'g1', metadata: { name: 'My Group' } } as never;
       const onPress = jest.fn();
-      const { getByTestId } = render(
+      const { getByRole } = render(
         <AccountGroupSelectRow
           group={group}
           balance="0"
@@ -623,7 +584,7 @@ describe('OndoPortfolio', () => {
           onPress={onPress}
         />,
       );
-      fireEvent.press(getByTestId('list-item-select'));
+      fireEvent.press(getByRole('button'));
       expect(onPress).toHaveBeenCalledTimes(1);
     });
   });

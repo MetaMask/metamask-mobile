@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  ListItemSelect,
+  ListItemVariant,
   SectionDivider,
   Text,
   TextColor,
@@ -20,8 +19,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import { cancelBulkLink } from '../../../../../store/sagas/rewardsBulkLinkAccountGroups';
 import {
   resetRewardsState,
@@ -113,18 +110,11 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
             testID={`${optionTestIDPrefix}${env}`}
             onPress={() => onSelect(env)}
             isSelected={env === currentEnv}
-            isDisabled={false}
-            gap={8}
-            verticalAlignment={VerticalAlignment.Center}
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="flex-1"
-            >
-              <Text variant={TextVariant.BodyMd}>{env}</Text>
-              {env === defaultEnv ? (
+            accessibilityState={{ selected: env === currentEnv }}
+            variant={ListItemVariant.OneLine}
+            title={<Text variant={TextVariant.BodyMd}>{env}</Text>}
+            value={
+              env === defaultEnv ? (
                 <Box twClassName="px-2 py-0.5 rounded bg-muted">
                   <Text
                     variant={TextVariant.BodySm}
@@ -133,9 +123,9 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
                     {strings('rewards.settings.environment_default')}
                   </Text>
                 </Box>
-              ) : null}
-            </Box>
-          </ListItemSelect>
+              ) : undefined
+            }
+          />
         ))}
       </BottomSheet>
     ) : null}

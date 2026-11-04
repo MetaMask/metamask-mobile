@@ -1,17 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
   BadgeWrapper,
   BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  ListItemSelect,
+  ListItemVariant,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -29,7 +34,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import type {
@@ -52,9 +56,6 @@ import {
   selectAccountToGroupMap,
   selectResolvedSelectedAccountGroup,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../../core/Engine';
 import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
@@ -109,28 +110,22 @@ export const AccountGroupSelectRow: React.FC<AccountGroupSelectRowProps> = ({
   return (
     <ListItemSelect
       isSelected={isSelected}
-      isDisabled={false}
       onPress={onPress}
-      verticalAlignment={VerticalAlignment.Center}
-    >
-      <AvatarAccount
-        accountAddress={evmAddress}
-        type={AvatarAccountType.Blockies}
-        size={AvatarSize.Md}
-      />
-      <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          numberOfLines={1}
-        >
-          {group.metadata.name}
-        </Text>
-      </Box>
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {`${balance} ${tokenSymbol}`}
-      </Text>
-    </ListItemSelect>
+      accessibilityState={{ selected: isSelected }}
+      variant={ListItemVariant.OneLine}
+      avatar={
+        evmAddress ? (
+          <AvatarAccount
+            address={evmAddress}
+            variant={AvatarAccountVariant.Blockies}
+            size={AvatarAccountSize.Md}
+          />
+        ) : undefined
+      }
+      title={group.metadata.name}
+      titleProps={{ numberOfLines: 1 }}
+      value={`${balance} ${tokenSymbol}`}
+    />
   );
 };
 
