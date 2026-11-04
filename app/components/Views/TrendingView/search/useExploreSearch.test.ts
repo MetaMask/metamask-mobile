@@ -51,8 +51,8 @@ jest.mock('../feeds/stocks/useStocksFeed', () => ({
   })),
 }));
 
-jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(() => ({
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(() => ({
     data: mockPredictionsData,
     isLoading: false,
     fetchMore: mockFetchMore,
@@ -60,6 +60,14 @@ jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
     hasMore: true,
   })),
 }));
+
+let mockIsPredictTrendingSupported = true;
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictTrendingSupported',
+  () => ({
+    usePredictTrendingSupported: () => mockIsPredictTrendingSupported,
+  }),
+);
 
 jest.mock('../feeds/sites/useSitesFeed', () => ({
   useSitesFeed: jest.fn(() => ({ data: mockSitesData, isLoading: false })),
@@ -110,7 +118,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
+import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 
@@ -126,6 +134,7 @@ describe('useExploreSearch', () => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
     mockIsExploreEarnSectionVisible = false;
+    mockIsPredictTrendingSupported = true;
     (useTokensFeed as jest.Mock).mockReturnValue({
       data: mockTokensData,
       isLoading: false,
@@ -167,6 +176,19 @@ describe('useExploreSearch', () => {
         'earn',
         'stocks',
         'predictions',
+        'sites',
+      ]);
+    });
+
+    it('omits predictions while the Active Venue has no Explore predictions', () => {
+      mockIsPredictTrendingSupported = false;
+
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'stocks',
         'sites',
       ]);
     });
@@ -278,7 +300,7 @@ describe('useExploreSearch', () => {
     });
 
     it('reflects updated hasMore from the predictions feed', () => {
-      (usePredictionsFeed as jest.Mock).mockReturnValue({
+      (usePredictTrendingFeed as jest.Mock).mockReturnValue({
         data: mockPredictionsData,
         isLoading: false,
         fetchMore: mockFetchMore,
@@ -298,7 +320,7 @@ describe('useExploreSearch', () => {
 
       const mockSearchFetchMore = jest.fn();
 
-      (usePredictionsFeed as jest.Mock).mockReturnValue({
+      (usePredictTrendingFeed as jest.Mock).mockReturnValue({
         data: mockPredictionsData,
         isLoading: false,
         fetchMore: mockSearchFetchMore,
@@ -423,7 +445,7 @@ describe('useExploreSearch', () => {
       expect(useTokensFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePerpsFeed).toHaveBeenCalledWith({ query: '' });
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
-      expect(usePredictionsFeed).toHaveBeenCalledWith(
+      expect(usePredictTrendingFeed).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'trending',
           query: '',

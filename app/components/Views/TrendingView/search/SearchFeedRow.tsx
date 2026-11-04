@@ -2,13 +2,15 @@ import React, { useCallback, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
-import { PredictEventProperties } from '../../../UI/Predict/constants/eventNames';
+import {
+  PredictTrendingSearchRow,
+  getPredictTrendingMarketAnalyticsProperties,
+  type PredictTrendingMarket,
+} from '../../../UI/PredictNext';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import { TokenSearchRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsRowItem from '../feeds/perps/PerpsRowItem';
-import { PredictionSearchRowItem } from '../../../UI/Predict/trending/PredictionRowItem';
 import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
@@ -46,7 +48,7 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
     case 'perps':
       return (item as PerpsMarketData).symbol ?? '';
     case 'predictions':
-      return (item as PredictMarketType).id ?? '';
+      return (item as PredictTrendingMarket).id ?? '';
     case 'sites':
       return (item as SiteData).url ?? '';
     case 'earn':
@@ -78,13 +80,9 @@ export const getPredictMarketProperties = (
   if (feedId !== 'predictions') {
     return {};
   }
-  const { id, slug, tags, title } = item as PredictMarketType;
-  return {
-    ...(id ? { [PredictEventProperties.MARKET_ID]: id } : {}),
-    ...(slug ? { [PredictEventProperties.MARKET_SLUG]: slug } : {}),
-    ...(tags ? { [PredictEventProperties.MARKET_TAGS]: tags } : {}),
-    ...(title ? { [PredictEventProperties.MARKET_TITLE]: title } : {}),
-  };
+  return getPredictTrendingMarketAnalyticsProperties(
+    item as PredictTrendingMarket,
+  );
 };
 
 /** Renders a search-result row for any feed and tracks taps with analytics. */
@@ -144,7 +142,9 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
           </Box>
         );
       case 'predictions':
-        return <PredictionSearchRowItem market={item as PredictMarketType} />;
+        return (
+          <PredictTrendingSearchRow market={item as PredictTrendingMarket} />
+        );
       case 'sites':
         return <SiteRowItem site={item as SiteData} />;
       case 'earn':

@@ -3,7 +3,6 @@ import { Pressable, Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import SearchFeedRow, {
@@ -20,6 +19,15 @@ import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constan
 const MockPressable = Pressable;
 const MockText = Text;
 
+// Explore sees an opaque Predict market; these are the fields Predict's
+// search analytics reads from it.
+interface PredictMarketType {
+  id: string;
+  slug?: string;
+  title?: string;
+  tags?: string[];
+}
+
 jest.mock('./TapView', () => ({
   __esModule: true,
   default: ({
@@ -33,6 +41,13 @@ jest.mock('./TapView', () => ({
       {children}
     </MockPressable>
   ),
+}));
+
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -107,8 +122,8 @@ jest.mock('../feeds/perps/PerpsRowItem', () => ({
   ),
 }));
 
-jest.mock('../../../UI/Predict/trending/PredictionRowItem', () => ({
-  PredictionSearchRowItem: ({ market }: { market: PredictMarketType }) => (
+jest.mock('../../../UI/PredictNext/trending/PredictTrendingSearchRow', () => ({
+  PredictTrendingSearchRow: ({ market }: { market: PredictMarketType }) => (
     <MockText testID="stub-predict-row">{market.id}</MockText>
   ),
 }));

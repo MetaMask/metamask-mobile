@@ -37,3 +37,16 @@ export {
   PredictHomeSection,
   type PredictHomeSectionProps,
 } from './homeSection';
+export {
+  PredictTrendingCarousel,
+  PredictTrendingMarketCard,
+  PredictTrendingSearchRow,
+  PredictTrendingSkeleton,
+  getPredictTrendingMarketAnalyticsProperties,
+  usePredictSportsMarketsFeed,
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
+  type PredictSportsMarketsFeed,
+  type PredictTrendingMarket,
+  type PredictTrendingVariant,
+} from './trending';

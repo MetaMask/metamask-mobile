@@ -20,23 +20,21 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { useTheme } from '../../../../util/theme';
 import {
-  PredictEventValues,
+  PredictTrendingCarousel,
+  PredictTrendingMarketCard,
+  PredictTrendingSkeleton,
   selectPredictAvailability,
   usePredictEntryActions,
+  usePredictSportsMarketsFeed,
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
   type PredictEntryActions,
+  type PredictSportsMarketsFeed,
+  type PredictTrendingMarket,
 } from '../../../UI/PredictNext';
-import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { strings } from '../../../../../locales/i18n';
-import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
-import {
-  useSportsMarketsFeed,
-  type UseSportsMarketsFeedResult,
-} from '../../../UI/Predict/trending/useSportsMarketsFeed';
-import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
-import PredictionsSkeleton from '../../../UI/Predict/trending/PredictionsSkeleton';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -53,9 +51,10 @@ const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
 
 interface SportsListHeaderProps {
   showSportsPredictions: boolean;
-  sportsPredictionsData: PredictMarketType[];
+  sportsPredictionsData: PredictTrendingMarket[];
   sportsPredictionsLoading: boolean;
-  sportsMarkets: UseSportsMarketsFeedResult;
+  sportsMarkets: PredictSportsMarketsFeed;
+  showAllSports: boolean;
   showAllSportsSkeleton: boolean;
   showAllSportsEmpty: boolean;
   openPredict: PredictEntryActions['openPredict'];
@@ -66,13 +65,14 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   sportsPredictionsData,
   sportsPredictionsLoading,
   sportsMarkets,
+  showAllSports,
   showAllSportsSkeleton,
   showAllSportsEmpty,
   openPredict,
 }) => (
   <>
     <Box twClassName={showSportsPredictions ? 'pb-3' : undefined}>
-      <PredictionsCarouselSection
+      <PredictTrendingCarousel
         feed={{
           data: sportsPredictionsData,
           isLoading: sportsPredictionsLoading,
@@ -89,40 +89,42 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
       />
     </Box>
 
-    <Box>
-      {showSportsPredictions ? <SectionDivider /> : null}
-      <SectionHeader
-        title={strings('trending.all_sports')}
-        testID="section-header-view-all-all_sports"
-      />
-      <PillRow
-        pills={sportsMarkets.pills}
-        activeKey={sportsMarkets.activeKey}
-        onSelect={sportsMarkets.select}
-        testIdPrefix="all-sports"
-      />
+    {showAllSports ? (
+      <Box>
+        {showSportsPredictions ? <SectionDivider /> : null}
+        <SectionHeader
+          title={strings('trending.all_sports')}
+          testID="section-header-view-all-all_sports"
+        />
+        <PillRow
+          pills={sportsMarkets.pills}
+          activeKey={sportsMarkets.activeKey}
+          onSelect={sportsMarkets.select}
+          testIdPrefix="all-sports"
+        />
 
-      {showAllSportsSkeleton && (
-        <Box twClassName="gap-2 px-4">
-          {[0, 1, 2].map((i) => (
-            <Box
-              key={`all-sports-skeleton-${i}`}
-              twClassName="h-[220px] w-full overflow-hidden rounded-2xl"
-            >
-              <PredictionsSkeleton />
-            </Box>
-          ))}
-        </Box>
-      )}
+        {showAllSportsSkeleton && (
+          <Box twClassName="gap-2 px-4">
+            {[0, 1, 2].map((i) => (
+              <Box
+                key={`all-sports-skeleton-${i}`}
+                twClassName="h-[220px] w-full overflow-hidden rounded-2xl"
+              >
+                <PredictTrendingSkeleton />
+              </Box>
+            ))}
+          </Box>
+        )}
 
-      {showAllSportsEmpty && (
-        <Box twClassName="items-center py-8" testID="all-sports-empty-state">
-          <TabEmptyState
-            description={strings('trending.all_sports_no_markets')}
-          />
-        </Box>
-      )}
-    </Box>
+        {showAllSportsEmpty && (
+          <Box twClassName="items-center py-8" testID="all-sports-empty-state">
+            <TabEmptyState
+              description={strings('trending.all_sports_no_markets')}
+            />
+          </Box>
+        )}
+      </Box>
+    ) : null}
   </>
 );
 
@@ -133,26 +135,26 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const { colors } = useTheme();
 
-  const sportsPredictions = usePredictionsFeed({
+  const sportsPredictions = usePredictTrendingFeed({
     variant: 'sports',
     refresh,
     enabled: isPredictEnabled,
   });
-  const sportsMarkets = useSportsMarketsFeed({ refresh });
+  const sportsMarkets = usePredictSportsMarketsFeed({ refresh });
+  const showAllSports = usePredictTrendingSupported();
 
   const { active, activeKey } = sportsMarkets;
   const activeKeyRef = useRef(activeKey);
   activeKeyRef.current = activeKey;
 
-  const renderActiveMarketItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item, index }) => {
+  const renderActiveMarketItem: ListRenderItem<PredictTrendingMarket> =
+    useCallback(({ item, index }) => {
       const sectionName =
         SPORT_KEY_TO_SECTION[activeKeyRef.current] ?? 'predictions_football';
       return (
         <Box twClassName="px-4">
-          <PredictMarket
+          <PredictTrendingMarketCard
             market={item}
-            entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -174,9 +176,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           />
         </Box>
       );
-    },
-    [],
-  );
+    }, []);
 
   const showSportsPredictions =
     isPredictEnabled &&
@@ -192,6 +192,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       sportsPredictionsData={sportsPredictions.data}
       sportsPredictionsLoading={sportsPredictions.isLoading}
       sportsMarkets={sportsMarkets}
+      showAllSports={showAllSports}
       showAllSportsSkeleton={showAllSportsSkeleton}
       showAllSportsEmpty={showAllSportsEmpty}
       openPredict={openPredict}
@@ -231,7 +232,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     showAllSportsSkeleton || showAllSportsEmpty ? [] : active.marketData;
 
   return (
-    <FlashList<PredictMarketType>
+    <FlashList<PredictTrendingMarket>
       data={listData}
       renderItem={renderActiveMarketItem}
       keyExtractor={(item) => `all_sports-${activeKey}-${item.id}`}

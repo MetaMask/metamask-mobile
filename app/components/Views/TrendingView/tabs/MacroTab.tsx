@@ -9,8 +9,10 @@ import {
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import {
+  PredictTrendingCarousel,
   selectPredictAvailability,
   usePredictEntryActions,
+  usePredictTrendingFeed,
 } from '../../../UI/PredictNext';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
@@ -20,8 +22,6 @@ import PerpsToggleBlock, {
   type PerpsFilterKey,
 } from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
-import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
@@ -95,7 +95,7 @@ const MacroTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
 
-  const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ variant: 'politics', refresh });
   const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
 
   const showPredictions =
@@ -110,7 +110,7 @@ const MacroTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={politics}
             tabName="Macro"
             sectionName="predictions_politics"
