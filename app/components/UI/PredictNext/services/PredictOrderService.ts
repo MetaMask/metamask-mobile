@@ -704,8 +704,8 @@ export class PredictOrderService {
       ? now
       : operation.expiresAt + this.#ambiguousCommitGraceMs;
     operation.backgroundObservations += 1;
-    operation.backgroundTimer = setTimeout(
-      () => {
+    const arm = (ms: number) => {
+      operation.backgroundTimer = setTimeout(() => {
         operation.backgroundTimer = undefined;
         if (
           this.#operations.get(operation.previewId) !== operation ||
@@ -713,11 +713,19 @@ export class PredictOrderService {
         ) {
           return;
         }
+        // A timer can fire a millisecond before Date.now() reaches its
+        // target. A re-POST sent before `earliest` can't prove the operation
+        // never existed, so wait out the rest.
+        const remaining = earliest - Date.now();
+        if (remaining > 0) {
+          arm(remaining);
+          return;
+        }
         // Failures are handled inside; the background has no caller.
         this.#dispatch(operation, 0).catch(() => undefined);
-      },
-      Math.max(delay, earliest - now),
-    );
+      }, ms);
+    };
+    arm(Math.max(delay, earliest - now));
   }
 
   #clearBackgroundTimer(operation: OrderOperation): void {
