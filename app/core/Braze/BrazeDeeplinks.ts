@@ -55,10 +55,15 @@ export function getBrazeInitialPush(): Promise<{
  * links are resolved by Branch and delivered through the Branch flow with
  * ORIGIN_DEEPLINK (unless further tagged).
  *
- * In-app messages, Content Cards, and Banners are not delivered here. Native
- * `shouldOpenURL` opens http(s) CTAs with `UIApplication.open` so they leave
- * the app (Safari / the system browser) instead of Braze's in-app webview.
- * Custom schemes are still opened by BrazeKit.
+ * In-app messages, Content Cards, and Banners are not delivered here. In-app
+ * message CTAs for `metamask://` are handed natively to React Native Linking
+ * (iOS `shouldOpenURL`, Android `MetaMaskBrazeDeeplinkHandler`), so they
+ * arrive through the `url` event without Branch. Universal-link CTAs still go
+ * through Branch for resolution and attribution; on Android they also reach
+ * Linking, without an Activity relaunch. On iOS, other http(s) CTAs open with
+ * `UIApplication.open` so they leave the app (Safari / the system browser)
+ * instead of Braze's in-app webview. Other custom schemes are still opened by
+ * BrazeKit.
  *
  * @returns An EmitterSubscription, or null on error.
  */
