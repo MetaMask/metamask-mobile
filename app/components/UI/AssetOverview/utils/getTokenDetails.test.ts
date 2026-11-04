@@ -342,6 +342,15 @@ describe('resolveTokenContractAddress', () => {
     ).toBe(zeroAddress());
   });
 
+  it('returns null for a token with no chain id', () => {
+    expect(
+      resolveTokenContractAddress({
+        ...mockAsset,
+        chainId: undefined,
+      }),
+    ).toBeNull();
+  });
+
   it('returns null for non-EVM native slip44 tokens', () => {
     (parseCaipAssetType as jest.Mock).mockReturnValue({
       assetNamespace: 'slip44',

@@ -283,6 +283,16 @@ jest.mock('../../Bridge/utils/exchange-rates', () => ({
   calcUsdAmountFromFiat: () => 1,
 }));
 
+// The hook writes whatever it is handed to the clipboard, which it covers in
+// its own test; what this page owns is the value it hands over.
+const mockCopiedAddress = jest.fn();
+jest.mock('../hooks/useCopyTokenContractAddress', () => ({
+  useCopyTokenContractAddress: (contractAddress: string | null) => {
+    mockCopiedAddress(contractAddress);
+    return jest.fn();
+  },
+}));
+
 jest.mock(
   '../../Assets/watchlist/components/WatchlistStarButton',
   () => () => null,
@@ -493,6 +503,22 @@ const baseToken = {
   logo: '',
   aggregators: [],
   decimals: 18,
+} as unknown as TokenDetailsRouteParams;
+
+const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const SOLANA_MINT_ADDRESS = 'HsprHxBRgiVaQdRf3TnKNuZZtaX9JUSPgMFdAkk6pump';
+
+/**
+ * A Solana token arrives with a full CAIP-19 asset id in `address`, which is
+ * what the chip below the header used to render and copy verbatim.
+ */
+const solanaToken = {
+  ...baseToken,
+  address: `${SOLANA_CHAIN_ID}/token:${SOLANA_MINT_ADDRESS}`,
+  chainId: SOLANA_CHAIN_ID,
+  symbol: 'PUMP',
+  name: 'Pump',
+  decimals: 6,
 } as unknown as TokenDetailsRouteParams;
 
 /** Minimal shape that satisfies the hook's prefetched-data validation. */
@@ -1090,10 +1116,13 @@ describe('TokenDetailsV1', () => {
   });
 
   // A native token's `address` is a placeholder, not something worth copying.
-  it('hides the copy chip for a native token', () => {
+  it.each([
+    ['isNative', { isNative: true }],
+    ['isETH', { isETH: true }],
+  ])('hides the copy chip for a native token (%s)', (_name, nativeFlag) => {
     const { queryByTestId } = render(
       <TokenDetailsV1
-        token={{ ...baseToken, isNative: true }}
+        token={{ ...baseToken, ...nativeFlag }}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
@@ -1101,6 +1130,42 @@ describe('TokenDetailsV1', () => {
     expect(
       queryByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
     ).toBeNull();
+  });
+
+  // A non-EVM token's `address` is a full CAIP-19 asset id, so the page has to
+  // resolve it before the chip sees it: the header resolves the same value, and
+  // the raw id is neither readable on the chip nor pasteable from the clipboard.
+  describe('non-EVM contract address', () => {
+    it('shows the bare mint on the chip rather than the CAIP-19 asset id', () => {
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={solanaToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      const chip = within(
+        getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
+      );
+
+      expect(chip.getByText('HsprH...6pump')).toBeOnTheScreen();
+      expect(chip.queryByText(/solana:/)).toBeNull();
+    });
+
+    it('copies the bare mint and reads it out in full', () => {
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={solanaToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(
+        getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS).props
+          .accessibilityLabel,
+      ).toBe(`Copy contract address ${SOLANA_MINT_ADDRESS}`);
+      expect(mockCopiedAddress).toHaveBeenCalledWith(SOLANA_MINT_ADDRESS);
+    });
   });
 
   describe('remote tab config', () => {
@@ -1668,7 +1733,10 @@ describe('TokenDetailsV1', () => {
       // A different token must re-fire (dedup keys on the token, not mount).
       rerender(
         <TokenDetailsV1
-          token={{ ...baseToken, address: '0xdifferentaddress' }}
+          token={{
+            ...baseToken,
+            address: '0x514910771af9ca656af840dff83e8264ecf986ca',
+          }}
           variant={TokenDetailsVariant.Memecoin}
         />,
       );
