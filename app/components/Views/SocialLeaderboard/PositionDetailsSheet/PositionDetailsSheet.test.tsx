@@ -16,6 +16,8 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
 const mockToggleFollow = jest.fn();
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn(() => true);
 let mockParams: PositionDetailsSheetParams;
 let mockSheetData: PositionSheetData;
 let mockProfile: { profileId: string; linkedAccountAddress?: string } | null;
@@ -62,6 +64,18 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
   useFollowWithNotificationSetup: () => ({
     followWithSetup: (_isFollowing: boolean, perform: () => void) => perform(),
+  }),
+}));
+
+jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
+jest.mock('../terms/useSocialTermsGate', () => ({
+  useSocialTermsGate: () => ({
+    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
   }),
 }));
 
@@ -171,6 +185,8 @@ describe('PositionDetailsSheet', () => {
     mockProfile = { profileId: 'viewer-1', linkedAccountAddress: '0xViewer' };
     mockIsFollowing = false;
     mockHeldBalance = undefined;
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
   });
 
   it('titles the sheet with the trader and shows the current price', () => {
@@ -276,6 +292,32 @@ describe('PositionDetailsSheet', () => {
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('buy');
     });
 
+    it('skips copy trade when social terms are not accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+    });
+
+    it('skips copy trade when there is no linked social wallet', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+    });
+
     it('offers Long and Short on a closed perp', () => {
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData({ isClosed: true });
@@ -293,6 +335,23 @@ describe('PositionDetailsSheet', () => {
           PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
         ),
       ).toBeNull();
+      expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
+        direction: 'long',
+        asset: 'BTC',
+        leverage: undefined,
+      });
+    });
+
+    it('opens Long on a closed perp without a linked social wallet', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      );
+
       expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',

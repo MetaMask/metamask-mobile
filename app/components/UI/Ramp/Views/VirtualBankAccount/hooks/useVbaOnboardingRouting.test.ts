@@ -4,6 +4,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
+  canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -1101,6 +1102,29 @@ describe('resolveVbaOnboarding', () => {
     expect(calls).toEqual(['start', 'hydrate']);
   });
 
+  it('keeps a reattached provider-pending session out of SumSub after reinstall', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+    });
+
+    await expect(resolveVbaOnboarding('money-home-card')).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycPending',
+      }),
+    );
+    expect(mockGetSessionStatusForVendor).toHaveBeenCalledWith(VBA_KYC_VENDOR);
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+  });
+
   it('continues as a new user when the discovered session is gone before start', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
     mockStartSession.mockRejectedValue(
@@ -1315,6 +1339,8 @@ describe('openVbaEntry', () => {
   });
 
   it('opens details directly and hydrates in the background for an approved account', () => {
+    expect(canOpenPersistedVbaDetails()).toBe(true);
+
     openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
 
     expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
@@ -1345,6 +1371,8 @@ describe('openVbaEntry', () => {
     ['the approved autoramp belongs to another wallet', 'Approved', '0xdef'],
   ])('opens the loading screen when %s', (_case, status, walletAddress) => {
     mockRampsState.autoramps = [{ id: 'ar-1', walletAddress, status }];
+
+    expect(canOpenPersistedVbaDetails()).toBe(false);
 
     openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
 

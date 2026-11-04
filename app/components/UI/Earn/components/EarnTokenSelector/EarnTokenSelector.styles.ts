@@ -10,34 +10,35 @@ export default (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
       borderRadius: 8,
       minHeight: 56,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
+      borderWidth: 0,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
     },
     startAccessoryContainer: {
       paddingRight: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      maxWidth: '95%',
+      flexShrink: 1,
+    },
+    avatarWrapper: {
+      alignSelf: 'center',
+    },
+    tokenDetails: {
+      marginLeft: 16,
+      flexShrink: 1,
+      justifyContent: 'center',
     },
     endAccessoryContainer: {
       alignItems: 'flex-end',
-      maxWidth: '100%',
-      minWidth: '50%',
+      justifyContent: 'center',
     },
     aprText: {
       color: theme.colors.success.default,
       marginBottom: 2,
     },
-    tokenText: {
-      marginLeft: 8,
-    },
-    balanceText: {
-      textAlign: 'right',
-      width: '100%',
-    },
     networkAvatar: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     },
   });
 };

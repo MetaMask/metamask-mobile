@@ -77,7 +77,7 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
     <>
       <ButtonBase
         onPress={handlePress}
-        size={ButtonSize.Md}
+        size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
         label={label}
         labelColor={isHighlighted ? TextColor.Primary : TextColor.Default}
