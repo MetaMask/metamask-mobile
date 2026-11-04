@@ -2,6 +2,7 @@ import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
+import { resyncFollowingIfSyncInFlight } from '../../util/social/followingSync';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
@@ -272,6 +273,19 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
         }
+        resyncFollowingIfSyncInFlight().catch((err: unknown) => {
+          reportSocialServiceFailure(
+            err,
+            {
+              surface: 'follow',
+              operation: 'resync_following',
+              extraMessage: 'Following state resync failed',
+              source: 'useFollowToggle',
+              endpoint: 'following',
+            },
+            { breadcrumb: false },
+          );
+        });
         await invalidateFollowingQuery();
         if (requestEpoch !== followToggleSessionEpoch) {
           return;

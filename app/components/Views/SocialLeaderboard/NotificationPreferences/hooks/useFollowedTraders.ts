@@ -2,8 +2,8 @@ import { useQuery } from '@metamask/react-data-query';
 import type { FollowingResponse } from '@metamask/social-controllers';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../core/Engine';
 import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
+import { syncFollowingState } from '../../../../../util/social/followingSync';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -89,21 +89,19 @@ export const useFollowedTraders = (
       return;
     }
     hasRequestedSyncRef.current = true;
-    Engine.controllerMessenger
-      .call('SocialController:updateFollowing')
-      .catch((err: unknown) => {
-        reportSocialServiceFailure(
-          err,
-          {
-            surface: 'followed_traders',
-            operation: 'sync_following',
-            extraMessage: 'Following state sync failed',
-            source: FOLLOWED_TRADERS_SOURCE,
-            endpoint: 'following',
-          },
-          { breadcrumb: false },
-        );
-      });
+    syncFollowingState().catch((err: unknown) => {
+      reportSocialServiceFailure(
+        err,
+        {
+          surface: 'followed_traders',
+          operation: 'sync_following',
+          extraMessage: 'Following state sync failed',
+          source: FOLLOWED_TRADERS_SOURCE,
+          endpoint: 'following',
+        },
+        { breadcrumb: false },
+      );
+    });
   }, [data, enabled, followingProfileIds]);
 
   useLogSocialQueryError(error, {
