@@ -171,7 +171,7 @@ describe('usePerpsAccountSupport', () => {
     expect(support).toBe('supported');
   });
 
-  it('returns stale when the caller unmounts during a support check', async () => {
+  it('returns unmounted when the caller unmounts during a supported check', async () => {
     const hook = renderHook(() => usePerpsAccountSupport());
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
     let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
@@ -190,6 +190,65 @@ describe('usePerpsAccountSupport', () => {
           support = result;
         });
     });
+    hook.unmount();
+    await act(async () => {
+      resolveSupport?.({ isSupported: true });
+      await checkPromise;
+    });
+
+    expect(support).toBe('unmounted');
+  });
+
+  it('reports an unsupported account without opening the modal after unmount', async () => {
+    const hook = renderHook(() => usePerpsAccountSupport());
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
+    mockGetAccountSupport.mockReturnValueOnce(
+      new Promise<PerpsAccountSupport>((resolve) => {
+        resolveSupport = resolve;
+      }),
+    );
+    let support = 'supported';
+    let checkPromise: Promise<void> | undefined;
+
+    act(() => {
+      checkPromise = hook.result.current
+        .checkAccountSupport()
+        .then((result) => {
+          support = result;
+        });
+    });
+    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+    hook.unmount();
+    await act(async () => {
+      resolveSupport?.({ isSupported: false, reason: 'multi_sig_account' });
+      await checkPromise;
+    });
+
+    expect(support).toBe('unsupported');
+  });
+
+  it('returns stale when the account changes before the caller unmounts', async () => {
+    const hook = renderHook(() => usePerpsAccountSupport());
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
+    mockGetAccountSupport.mockReturnValueOnce(
+      new Promise<PerpsAccountSupport>((resolve) => {
+        resolveSupport = resolve;
+      }),
+    );
+    let support = 'supported';
+    let checkPromise: Promise<void> | undefined;
+
+    act(() => {
+      checkPromise = hook.result.current
+        .checkAccountSupport()
+        .then((result) => {
+          support = result;
+        });
+    });
+    mockSelectedAddress = '0xdef';
+    hook.rerender({});
     hook.unmount();
     await act(async () => {
       resolveSupport?.({ isSupported: true });
