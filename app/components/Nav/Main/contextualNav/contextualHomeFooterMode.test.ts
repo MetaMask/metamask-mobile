@@ -5,10 +5,11 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 
 describe('contextualHomeFooterMode', () => {
-  it('maps Money and Explore routes onto their footers', () => {
+  it('maps the Money route onto its footer and leaves Trending on the default footer', () => {
     expect(getHomeFooterMode(Routes.MONEY.ROOT)).toBe('money');
-    expect(getHomeFooterMode(Routes.TRENDING_VIEW)).toBe('explore');
+    expect(getHomeFooterMode(Routes.TRENDING_VIEW)).toBe('home');
     expect(getHomeFooterMode(Routes.WALLET.HOME)).toBe('home');
+    expect(getHomeFooterMode(Routes.TRADE_DASHBOARD)).toBe('home');
     expect(getHomeFooterMode(undefined)).toBe('home');
   });
 

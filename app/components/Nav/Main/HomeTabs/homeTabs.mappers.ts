@@ -1,4 +1,5 @@
 import type { NativeBottomTabNavigationOptions } from '@react-navigation/bottom-tabs/unstable';
+import type { SFSymbol } from 'sf-symbols-typescript';
 import type { NavigationState, PartialState } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -74,19 +75,26 @@ export const toNativeTabOptions = (
   route?: HomeTabRoute,
   newBadgeColor?: string,
 ): NativeBottomTabNavigationOptions => {
-  const { nativeIcon } = tab;
+  const { nativeIcon, nativeSfSymbol } = tab;
   const isHidden = route ? (tab.hidesTabBarFor?.(route) ?? false) : false;
   return {
     title: strings(LABEL_BY_TAB_BAR_ICON_KEY[tab.iconKey]),
-    ...(nativeIcon
+    ...(nativeSfSymbol
       ? {
-          tabBarIcon: ({ focused }: { focused: boolean }) => ({
-            type: 'image',
-            source: focused ? nativeIcon.selectedSource : nativeIcon.source,
-            tinted: true,
+          tabBarIcon: () => ({
+            type: 'sfSymbol' as const,
+            name: nativeSfSymbol as SFSymbol,
           }),
         }
-      : null),
+      : nativeIcon
+        ? {
+            tabBarIcon: ({ focused }: { focused: boolean }) => ({
+              type: 'image' as const,
+              source: focused ? nativeIcon.selectedSource : nativeIcon.source,
+              tinted: true,
+            }),
+          }
+        : null),
     ...(tab.showNewBadge
       ? {
           tabBarBadge: '',

@@ -5,6 +5,7 @@ import {
   enterPerpsSection,
   enterPredictSection,
   enterRewardsSection,
+  enterTradingHub,
   exitContextualSection,
   getContextualCircleAction,
   getContextualNavState,
@@ -95,6 +96,26 @@ describe('contextualSection', () => {
     expect(getContextualCircleAction(getContextualNavState().section)).toBe(
       'home',
     );
+  });
+
+  it('enters a trading hub on the selected way to trade', () => {
+    enterTradingHub('perps');
+
+    expect(getContextualNavState()).toEqual({
+      section: 'trading',
+      tab: 'perps',
+    });
+
+    enterTradingHub('perps');
+
+    expect(getContextualNavState().tab).toBe('perps');
+
+    enterTradingHub('predictions');
+
+    expect(getContextualNavState()).toEqual({
+      section: 'trading',
+      tab: 'predictions',
+    });
   });
 
   it('switches the Money tab and restores the default footer', () => {

@@ -6,7 +6,10 @@ export type ContextualSection =
   | 'rewards'
   | 'collectibles'
   | 'money'
-  | 'explore';
+  | 'explore'
+  | 'trading';
+
+export type TradingHubTab = 'swap' | 'perps' | 'predictions';
 
 export type ContextualTab =
   | 'explore'
@@ -22,8 +25,10 @@ export type ContextualTab =
   | 'market'
   | 'account'
   | 'payments'
+  | 'card'
   | 'news'
-  | 'browser';
+  | 'browser'
+  | TradingHubTab;
 
 /** Round button beside the pill. + on Home, Home in every section. */
 export type ContextualCircleAction = 'add' | 'home';
@@ -78,9 +83,24 @@ export const enterCollectiblesSection = (): void => {
   emit();
 };
 
-/** Money section: footer becomes Account and Payments, plus Home. */
+/** Money section: footer becomes Home, Account, Card, and Earn. */
 export const enterMoneySection = (): void => {
+  if (state.section === 'money') {
+    return;
+  }
   state = { section: 'money', tab: 'account' };
+  emit();
+};
+
+/**
+ * Trading hub. The footer is Home, Swap, Perps, and Predictions, with `tab`
+ * selected. It does not list sub-sections of a hub.
+ */
+export const enterTradingHub = (tab: TradingHubTab): void => {
+  if (state.section === 'trading' && state.tab === tab) {
+    return;
+  }
+  state = { section: 'trading', tab };
   emit();
 };
 

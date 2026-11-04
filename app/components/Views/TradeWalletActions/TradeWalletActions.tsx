@@ -94,11 +94,8 @@ import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import {
   enterCollectiblesSection,
-  enterPerpsSection,
-  enterPredictSection,
-  enterRewardsSection,
+  enterTradingHub,
 } from '../../Nav/Main/contextualNav/contextualSection';
-import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 import {
   MORPH_COLLAPSE,
   MORPH_CONTENT_FADE_IN,
@@ -368,16 +365,9 @@ function TradeWalletActions() {
     onDismiss,
   ]);
 
-  const onActionSelected = useCallback(
-    (callback: () => void | Promise<void>) => {
-      postCallback.current = callback;
-      handleNavigateBack();
-    },
-    [handleNavigateBack],
-  );
-
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
+      enterTradingHub('swap');
       goToSwapsBase();
     };
     handleNavigateBack();
@@ -385,7 +375,7 @@ function TradeWalletActions() {
 
   const onPerps = useCallback(() => {
     postCallback.current = async () => {
-      enterPerpsSection();
+      enterTradingHub('perps');
       if (isPerpsProModeEnabled) {
         const hasCompletedModeSelection =
           await hasCompletedPerpsModeSelection();
@@ -424,21 +414,13 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      enterPredictSection();
+      enterTradingHub('predictions');
       navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
       });
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
-
-  const onRewards = useCallback(() => {
-    postCallback.current = () => {
-      enterRewardsSection();
-      navigate(Routes.REWARDS_VIEW);
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate]);
@@ -530,18 +512,6 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      <ActionListItem
-        label="Rewards"
-        description="Earn, claim, and track rewards"
-        iconName={IconName.Gift}
-        onPress={onRewards}
-        testID={WalletActionsBottomSheetSelectorsIDs.REWARDS_BUTTON}
-        isDisabled={!canSignTransactions}
-      />
-      <EarnTradeMenuRow
-        onActionSelected={onActionSelected}
-        isDisabled={!canSignTransactions}
-      />
     </>
   );
 

@@ -5,47 +5,36 @@ import TabBarFloating, {
   type TabBarFloatingProps,
 } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
-import { useNetworkTier } from '../../../../hooks/useNetworkTier';
-import { getHardwareTier } from '../../../../util/deviceCapability';
-import ContextualExploreTabBar from './ContextualExploreTabBar';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
+import { getHomeFooterMode } from './contextualHomeFooterMode';
 import {
-  getHomeFooterMode,
-  shouldFadeHomeFooter,
-} from './contextualHomeFooterMode';
-import {
-  enterExploreSection,
   enterMoneySection,
   exitContextualSection,
-  isPlusMenuSection,
   useContextualNavState,
 } from './contextualSection';
 
 export type ContextualHomeFooterProps = TabBarFloatingProps;
 
 /**
- * Home floating footer. Money and Explore replace the pill in this same slot.
- * + menu sections keep their own pushed screens and are left alone here.
+ * Home floating footer: Home, Trending, Trade, Money, Social, with no circle.
+ * Money replaces that pill in this same slot. Trading hubs and Collectibles
+ * keep their own pushed screens. The swap is instant: it does not animate,
+ * fetch, or blur.
  */
 const ContextualHomeFooter = ({
   state,
   descriptors,
   navigation,
   onHeightChange,
-  trailingAction,
 }: ContextualHomeFooterProps) => {
   const { section } = useContextualNavState();
-  const hardware = getHardwareTier();
-  const network = useNetworkTier();
   const routeName = state.routes[state.index]?.name;
   const routeMode = getHomeFooterMode(routeName);
   const routeModeRef = useRef(routeMode);
-  // The section wins so a tab press can swap the pill before the route
-  // commits, and so the native bar (which never mounts this component) is
-  // not the only place the section is visible.
-  const mode =
-    section === 'money' || section === 'explore' ? section : routeMode;
-  const fadeIn = shouldFadeHomeFooter(hardware, network);
+  // The section wins so a Money press can swap the pill before the route
+  // commits. The native bar never mounts this component; its chrome reads the
+  // same store.
+  const mode = section === 'money' ? 'money' : 'home';
   const modeRef = useRef(mode);
   modeRef.current = mode;
   const onHeightChangeRef = useRef(onHeightChange);
@@ -56,14 +45,8 @@ const ContextualHomeFooter = ({
     routeModeRef.current = routeMode;
 
     if (routeMode === 'money') {
-      if (section !== 'money' && !isPlusMenuSection(section)) {
+      if (section !== 'money') {
         enterMoneySection();
-      }
-      return;
-    }
-    if (routeMode === 'explore') {
-      if (section !== 'explore' && !isPlusMenuSection(section)) {
-        enterExploreSection();
       }
       return;
     }
@@ -116,17 +99,6 @@ const ContextualHomeFooter = ({
     return (
       <ContextualMoneyTabBar
         onHomePress={handleHomePress}
-        fadeIn={fadeIn}
-        onHeightChange={handleHeightChange}
-      />
-    );
-  }
-
-  if (mode === 'explore') {
-    return (
-      <ContextualExploreTabBar
-        onHomePress={handleHomePress}
-        fadeIn={fadeIn}
         onHeightChange={handleHeightChange}
       />
     );
@@ -138,7 +110,7 @@ const ContextualHomeFooter = ({
       descriptors={descriptors}
       navigation={navigation}
       onHeightChange={handleHeightChange}
-      trailingAction={trailingAction}
+      trailingAction="none"
     />
   );
 };

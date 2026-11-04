@@ -3,7 +3,6 @@ import type { ParamListBase } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
@@ -90,24 +89,27 @@ describe('useHomeTabDefinitions', () => {
       );
   });
 
-  it('lists Home, Explore, hidden Browser, Activity and Rewards by default', () => {
+  it('lists Home, Trending, Trade, hidden Browser, Money, hidden Rewards and Social', () => {
     const { result } = renderDefinitions();
 
     expect(result.current.tabs.map((tab) => tab.name)).toEqual([
       Routes.WALLET.HOME,
       Routes.TRENDING_VIEW,
+      Routes.TRADE_DASHBOARD,
       Routes.BROWSER.HOME,
-      Routes.TRANSACTIONS_VIEW,
+      Routes.MONEY.ROOT,
       Routes.REWARDS_VIEW,
+      Routes.SOCIAL.TAB,
     ]);
-    expect(result.current.tabs[2]).toMatchObject({
+    expect(result.current.tabs[3]).toMatchObject({
       isHidden: true,
       freezeOnBlur: false,
     });
-    expect(result.current.tabs[2].nativeIcon).toBeUndefined();
+    expect(result.current.tabs[3].nativeIcon).toBeUndefined();
+    expect(result.current.tabs[5]).toMatchObject({ isHidden: true });
   });
 
-  it('orders Home, Explore, Money and Social when Social V1 is enabled', () => {
+  it('keeps the same tabs when Social V1 and Money are enabled', () => {
     const { result } = renderDefinitions({
       isMoneyAccountVisible: true,
       showSocialTab: true,
@@ -117,8 +119,10 @@ describe('useHomeTabDefinitions', () => {
     expect(result.current.tabs.map((tab) => tab.name)).toEqual([
       Routes.WALLET.HOME,
       Routes.TRENDING_VIEW,
+      Routes.TRADE_DASHBOARD,
       Routes.BROWSER.HOME,
       Routes.MONEY.ROOT,
+      Routes.REWARDS_VIEW,
       Routes.SOCIAL.TAB,
     ]);
   });
@@ -130,23 +134,28 @@ describe('useHomeTabDefinitions', () => {
       showSocialTabNewBadge: true,
     });
 
-    const social = result.current.tabs[4];
+    const social = result.current.tabs.find((tab) => tab.key === 'social');
+    if (!social) {
+      throw new Error('Social tab is not defined');
+    }
 
     expect(social.showNewBadge).toBe(true);
   });
 
-  it('keeps the legacy Social tab in its existing position', () => {
+  it('keeps Social in the footer when the legacy social flag is on', () => {
     const { result } = renderDefinitions({
       showSocialTab: true,
       isSocialV1Enabled: false,
     });
 
-    expect(result.current.tabs.map((tab) => tab.name)).toEqual([
-      Routes.WALLET.HOME,
-      Routes.TRENDING_VIEW,
-      Routes.BROWSER.HOME,
-      Routes.TRANSACTIONS_VIEW,
-      Routes.SOCIAL.TAB,
+    expect(result.current.tabs.map((tab) => tab.key)).toEqual([
+      'home',
+      'explore',
+      'trade',
+      'browser',
+      'money',
+      'rewards',
+      'social',
     ]);
   });
 
@@ -192,7 +201,8 @@ describe('useHomeTabDefinitions', () => {
       trackMoneyTabPress,
     });
 
-    result.current.tabs[3].onPress?.();
+    const money = result.current.tabs.find((tab) => tab.key === 'money');
+    money?.onPress?.();
 
     expect(trackMoneyTabPress).toHaveBeenCalledTimes(1);
   });
@@ -232,26 +242,12 @@ describe('useHomeTabDefinitions', () => {
       });
     });
 
-    it('opens Activity with the bottom nav entry point', () => {
-      const { result } = renderDefinitions();
-      const activity = result.current.tabs[3];
-
-      result.current
-        .getNativeTabListeners(activity)({ navigation: mockNavigation })
-        .tabPress?.();
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.TRANSACTIONS_VIEW,
-        {
-          screen: Routes.TRANSACTIONS_VIEW,
-          params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },
-        },
-      );
-    });
-
     it('sends Money through its onboarding-aware navigation', () => {
       const { result } = renderDefinitions({ isMoneyAccountVisible: true });
-      const money = result.current.tabs[3];
+      const money = result.current.tabs.find((tab) => tab.key === 'money');
+      if (!money) {
+        throw new Error('Money tab is not defined');
+      }
 
       result.current
         .getNativeTabListeners(money)({ navigation: mockNavigation })
@@ -286,30 +282,53 @@ describe('useHomeTabDefinitions', () => {
 
     it('maps onLeave to the blur listener', () => {
       const { result } = renderDefinitions();
-      const explore = result.current.tabs[1];
-      const rewards = result.current.tabs[4];
+      const explore = result.current.tabs.find((tab) => tab.key === 'explore');
+      const social = result.current.tabs.find((tab) => tab.key === 'social');
+      if (!explore || !social) {
+        throw new Error('Trending or Social tab is not defined');
+      }
 
       const exploreListeners = result.current.getNativeTabListeners(explore)({
         navigation: mockNavigation,
       });
-      const rewardsListeners = result.current.getNativeTabListeners(rewards)({
+      const socialListeners = result.current.getNativeTabListeners(social)({
         navigation: mockNavigation,
       });
       exploreListeners.blur?.();
 
       expect(mockSessionManager.endSession).toHaveBeenCalledTimes(1);
-      expect(rewardsListeners.blur).toBeUndefined();
+      expect(socialListeners.blur).toBeUndefined();
     });
 
-    it('records the Explore section from the native tab press', () => {
+    it('does not open an Explore section from the Trending tab', () => {
       const { result } = renderDefinitions();
-      const explore = result.current.tabs[1];
+      const explore = result.current.tabs.find((tab) => tab.key === 'explore');
+      if (!explore) {
+        throw new Error('Trending tab is not defined');
+      }
 
       result.current
         .getNativeTabListeners(explore)({ navigation: mockNavigation })
         .tabPress?.();
 
-      expect(getContextualNavState().section).toBe('explore');
+      expect(getContextualNavState().section).toBeNull();
+    });
+
+    it('records Money from the native focus listener so the overlay can update', () => {
+      const { result } = renderDefinitions({ isMoneyAccountVisible: true });
+      const money = result.current.tabs.find((tab) => tab.key === 'money');
+      if (!money) {
+        throw new Error('Money tab is not defined');
+      }
+
+      result.current
+        .getNativeTabListeners(money)({ navigation: mockNavigation })
+        .focus?.();
+
+      expect(getContextualNavState()).toEqual({
+        section: 'money',
+        tab: 'account',
+      });
       exitContextualSection();
     });
   });

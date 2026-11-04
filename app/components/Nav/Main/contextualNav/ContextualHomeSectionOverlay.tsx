@@ -12,27 +12,22 @@ const OVERLAY_STYLE: ViewStyle = {
 };
 
 const TITLE_BY_TAB = {
-  payments: 'Payments',
-  search: 'Search',
-  news: 'News',
-  browser: 'Browser',
+  card: 'Card',
+  earn: 'Earn',
 } as const;
 
 /**
- * Covers the home tab while a Money or Explore sub-tab is selected.
- * Account and the Explore feed keep the real screens underneath.
+ * Covers the Money screen while Card or Earn is selected.
+ * Account keeps the real Money screen underneath.
  */
 const ContextualHomeSectionOverlay = () => {
   const { section, tab } = useContextualNavState();
   const tabBarInset = useFloatingTabBarInset();
 
   const title =
-    section === 'money' && tab === 'payments'
-      ? TITLE_BY_TAB.payments
-      : section === 'explore' &&
-          (tab === 'news' || tab === 'browser' || tab === 'search')
-        ? TITLE_BY_TAB[tab]
-        : null;
+    section === 'money' && (tab === 'card' || tab === 'earn')
+      ? TITLE_BY_TAB[tab]
+      : null;
 
   if (title === null) {
     return null;

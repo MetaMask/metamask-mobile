@@ -4,17 +4,17 @@ import type {
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
 
-export type HomeFooterMode = 'home' | 'money' | 'explore';
+export type HomeFooterMode = 'home' | 'money';
 
-/** Which footer the active home tab shows. Money and Explore swap in place. */
+/**
+ * Which footer the active home tab shows. Money swaps in place.
+ * Trending keeps the default footer.
+ */
 export const getHomeFooterMode = (
   routeName: string | undefined,
 ): HomeFooterMode => {
   if (routeName === Routes.MONEY.ROOT) {
     return 'money';
-  }
-  if (routeName === Routes.TRENDING_VIEW) {
-    return 'explore';
   }
   return 'home';
 };

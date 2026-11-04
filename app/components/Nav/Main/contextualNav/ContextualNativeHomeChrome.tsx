@@ -3,7 +3,6 @@ import { Box } from '@metamask/design-system-react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import ContextualExploreTabBar from './ContextualExploreTabBar';
 import ContextualHomeSectionOverlay from './ContextualHomeSectionOverlay';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
 import {
@@ -13,7 +12,9 @@ import {
 
 /**
  * Footer shown over the native iOS tab bar. That bar cannot change its items,
- * so Money and Explore hide it and this chrome draws their pill instead.
+ * so Money hides it and this chrome draws Home, Account, Card, and Earn.
+ * It subscribes to the section store, so a tab press updates the footer even
+ * when the native navigator does not remount this view.
  */
 const ContextualNativeHomeChrome = () => {
   const { section } = useContextualNavState();
@@ -26,7 +27,7 @@ const ContextualNativeHomeChrome = () => {
     });
   }, []);
 
-  if (section !== 'money' && section !== 'explore') {
+  if (section !== 'money') {
     return null;
   }
 
@@ -37,11 +38,7 @@ const ContextualNativeHomeChrome = () => {
       testID="contextual-native-home-chrome"
     >
       <ContextualHomeSectionOverlay />
-      {section === 'money' ? (
-        <ContextualMoneyTabBar onHomePress={handleHomePress} />
-      ) : (
-        <ContextualExploreTabBar onHomePress={handleHomePress} />
-      )}
+      <ContextualMoneyTabBar onHomePress={handleHomePress} />
     </Box>
   );
 };

@@ -136,7 +136,6 @@ import {
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
-import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import {
@@ -168,11 +167,7 @@ import {
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { getExploreSearchScreenOptions } from '../../../constants/navigation/exploreSearchScreenOptions';
-import {
-  TabBarIconKey,
-  type ExtendedBottomTabNavigationOptions,
-  type TabBarProps,
-} from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import { type TabBarProps } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
@@ -197,19 +192,22 @@ import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDeposi
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
-import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import { BridgeModalStack } from '../../UI/Bridge/routes';
 import {
   PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import ContextualPerpsRoot from './contextualNav/ContextualPerpsRoot';
+import TradeDashboard from './contextualNav/TradeDashboard';
+import TradeHubScreen from './contextualNav/TradeHubScreen';
+import TradePerpsRoot from './contextualNav/TradePerpsRoot';
+import TradeSwapRoot from './contextualNav/TradeSwapRoot';
 import {
   PredictModalStack,
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import ContextualPredictRoot from './contextualNav/ContextualPredictRoot';
+import TradePredictRoot from './contextualNav/TradePredictRoot';
 import ContextualRewardsTabBar from './contextualNav/ContextualRewardsTabBar';
 import CollectiblesSectionScreen from '../../Views/Collectibles/CollectiblesView';
 import {
@@ -786,7 +784,6 @@ const SettingsFlow = () => {
 
 // Replaces `unmountOnBlur` (removed in React Navigation v7).
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
-const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
@@ -794,12 +791,12 @@ const HOME_TAB_COMPONENTS = {
   home: WalletTabStackFlow,
   explore: ExploreFeed,
   browser: BrowserFlowUnmountOnTabBlur,
-  activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
+  trade: TradeDashboard,
   // Rewards stays mounted. Leaving the tab used to throw the tree away, so
   // every return rebuilt the screen. Data refreshes on focus instead.
   rewards: RewardsHome,
-} satisfies Record<Exclude<HomeTabKey, 'social'>, unknown>;
+} satisfies Record<Exclude<HomeTabKey, 'social' | 'activity'>, unknown>;
 
 const HomeTabSheetHosts = ({ children }: { children: React.ReactNode }) => (
   <PredictPreviewSheetProvider>
@@ -823,12 +820,6 @@ const HomeTabs = () => {
 
   const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
   const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
-  // Refreshed nav configs use `search` or `trade`. `none` is control-only and
-  // does not render this bar. Undefined keeps `TabBarFloating`'s `search` default.
-  const trailingNavBarAction =
-    homeNavBarConfig.trailingNavBarAction === 'none'
-      ? undefined
-      : homeNavBarConfig.trailingNavBarAction;
   const isNativeTabBar = useIsNativeTabBar();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
@@ -869,15 +860,6 @@ const HomeTabs = () => {
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
-  const systemSlotTab = useNativeSystemSlotTab(
-    homeNavBarConfig.trailingNavBarAction,
-  );
-
-  // Control only: a modal trigger the bar handles itself.
-  const tradeOptions: ExtendedBottomTabNavigationOptions = {
-    tabBarIconKey: TabBarIconKey.Trade,
-    rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
-  };
 
   useEffect(() => {
     // Hide keyboard on Android when keyboard is visible.
@@ -935,7 +917,6 @@ const HomeTabs = () => {
           descriptors={extendedDescriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
-          trailingAction={trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -970,7 +951,7 @@ const HomeTabs = () => {
           toNativeTabOptions(tab, route, colors.success.default)
       : toNativeTabOptions(tab, undefined, colors.success.default);
     // Money and Explore replace the system bar with the contextual pill.
-    const hidesSystemBar = tab.key === 'money' || tab.key === 'explore';
+    const hidesSystemBar = tab.key === 'money';
     const options = hidesSystemBar
       ? typeof baseOptions === 'function'
         ? ({ route }: { route: HomeTabRoute }) => ({
@@ -1014,12 +995,6 @@ const HomeTabs = () => {
               }}
             >
               {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-              <NativeTab.Screen
-                name={systemSlotTab.name}
-                options={systemSlotTab.options}
-                listeners={systemSlotTab.listeners}
-                component={systemSlotTab.component}
-              />
             </NativeTab.Navigator>
             <ContextualNativeHomeChrome />
           </View>
@@ -1046,17 +1021,7 @@ const HomeTabs = () => {
               freezeOnBlur: false,
             }}
           >
-            {tabs.slice(0, 3).map(renderJsTabScreen)}
-
-            {isFloatingTabBar ? null : (
-              <JsTab.Screen
-                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                options={tradeOptions}
-                component={WalletTabStackFlow}
-              />
-            )}
-
-            {tabs.slice(3).map(renderJsTabScreen)}
+            {tabs.map(renderJsTabScreen)}
           </JsTab.Navigator>
           {isFloatingTabBar ? <ContextualHomeSectionOverlay /> : null}
         </View>
@@ -1429,8 +1394,13 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
-        component={BridgeScreenStack}
+        component={TradeSwapRoot}
         options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.TRADE_HUB}
+        component={TradeHubScreen}
+        options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1533,7 +1503,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PERPS.ROOT}
-            component={ContextualPerpsRoot}
+            component={TradePerpsRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen
@@ -1571,7 +1541,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={ContextualPredictRoot}
+            component={TradePredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen

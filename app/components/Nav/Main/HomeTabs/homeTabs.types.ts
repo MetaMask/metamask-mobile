@@ -9,6 +9,7 @@ import type { TabBarIconKey } from '../../../../component-library/components/Nav
 export type HomeTabKey =
   | 'home'
   | 'explore'
+  | 'trade'
   | 'browser'
   | 'activity'
   | 'money'
@@ -31,6 +32,8 @@ export interface HomeTabDefinition {
   iconKey: TabBarIconKey;
   rootScreenName: string;
   nativeIcon?: NativeTabIconPair;
+  /** iOS 26 system symbol. Used instead of `nativeIcon` when set. */
+  nativeSfSymbol?: string;
   onPress?: () => void;
   onLeave?: () => void;
   freezeOnBlur?: boolean;

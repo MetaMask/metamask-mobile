@@ -343,6 +343,14 @@ describe('ProfileDrawer', () => {
     });
   });
 
+  it('navigates to Rewards when the rewards row is pressed', () => {
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.REWARDS_ROW));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
   it('navigates to the activity screen when the activity row is pressed', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
@@ -360,6 +368,7 @@ describe('ProfileDrawer', () => {
       'profile_drawer.notifications',
     ],
     [ProfileDrawerSelectorsIDs.ACTIVITY_ROW, 'profile_drawer.activity'],
+    [ProfileDrawerSelectorsIDs.REWARDS_ROW, 'bottom_nav.rewards'],
     [ProfileDrawerSelectorsIDs.SETTINGS_ROW, 'profile_drawer.settings'],
     [
       ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,

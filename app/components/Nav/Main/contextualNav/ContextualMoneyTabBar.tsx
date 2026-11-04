@@ -1,9 +1,8 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 
-import ContextualFloatingTabBar, {
-  type ContextualFloatingTab,
-} from './ContextualFloatingTabBar';
+import { strings } from '../../../../../locales/i18n';
+import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import {
   enterMoneySection,
   getContextualNavState,
@@ -14,51 +13,51 @@ import {
 
 export interface ContextualMoneyTabBarProps {
   onHomePress: () => void;
-  fadeIn?: boolean;
   onHeightChange?: (height: number) => void;
 }
 
-const TABS: ContextualFloatingTab[] = [
+type MoneyFooterTab = 'home' | 'account' | 'card' | 'earn';
+
+const TABS: TradeTab<MoneyFooterTab>[] = [
+  { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
   { id: 'account', label: 'Account', iconName: IconName.UserCircle },
-  { id: 'payments', label: 'Payments', iconName: IconName.Cash },
+  { id: 'card', label: 'Card', iconName: IconName.Card },
+  { id: 'earn', label: 'Earn', iconName: IconName.Gift },
 ];
 
-const MONEY_TABS: readonly ContextualTab[] = ['account', 'payments'];
+const MONEY_TABS: readonly ContextualTab[] = ['account', 'card', 'earn'];
 
 /**
- * Money footer. Account and Payments sit in the pill. Home returns to the
- * wallet footer.
+ * Money footer. Account is the existing Money screen. Card and Earn are
+ * placeholders. Home is the first tab and returns to the default footer.
  */
 const ContextualMoneyTabBar = ({
   onHomePress,
-  fadeIn = false,
   onHeightChange,
 }: ContextualMoneyTabBarProps) => {
   const { section, tab } = useContextualNavState();
-  const activeTab =
+  const activeTab: MoneyFooterTab =
     section === 'money' && MONEY_TABS.includes(tab) ? tab : 'account';
 
-  const ensureMoneySection = useCallback(() => {
-    if (getContextualNavState().section !== 'money') {
-      enterMoneySection();
-    }
-  }, []);
-
   const handleTabPress = useCallback(
-    (nextTab: ContextualTab) => {
-      ensureMoneySection();
+    (nextTab: MoneyFooterTab) => {
+      if (nextTab === 'home') {
+        onHomePress();
+        return;
+      }
+      if (getContextualNavState().section !== 'money') {
+        enterMoneySection();
+      }
       setContextualTab(nextTab);
     },
-    [ensureMoneySection],
+    [onHomePress],
   );
 
   return (
-    <ContextualFloatingTabBar
+    <TradeTabBar
       tabs={TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
-      onHomePress={onHomePress}
-      fadeIn={fadeIn}
       onHeightChange={onHeightChange}
       testIDPrefix="contextual-money"
     />

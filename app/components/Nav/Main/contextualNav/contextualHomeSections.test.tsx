@@ -4,15 +4,14 @@ import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
+import { TAB_BAR_FLOATING_TEST_IDS } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import ContextualExploreTabBar from './ContextualExploreTabBar';
 import ContextualHomeFooter from './ContextualHomeFooter';
 import ContextualHomeSectionOverlay from './ContextualHomeSectionOverlay';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
 import ContextualNativeHomeChrome from './ContextualNativeHomeChrome';
 import {
-  enterExploreSection,
   enterMoneySection,
   exitContextualSection,
   getContextualNavState,
@@ -20,24 +19,76 @@ import {
 } from './contextualSection';
 
 jest.mock('../../../../util/haptics');
-jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
-  trackExploreSearchOpened: jest.fn(),
-}));
-jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
+jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({ navigateToMoneyHome: jest.fn() }),
 }));
-jest.mock(
-  '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
-  () => ({
-    navigateToSocialTab: jest.fn(),
-  }),
-);
 jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
   default: { navigation: { navigate: jest.fn() } },
 }));
 
-describe('contextual Money and Explore footers', () => {
+const homeFooter = (navigate = jest.fn()) => (
+  <ContextualHomeFooter
+    state={{
+      stale: false,
+      type: 'tab',
+      key: 'tab-home',
+      index: 0,
+      routeNames: [
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.TRADE_DASHBOARD,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ],
+      routes: [
+        { key: 'home', name: Routes.WALLET.HOME },
+        { key: 'explore', name: Routes.TRENDING_VIEW },
+        { key: 'trade', name: Routes.TRADE_DASHBOARD },
+        { key: 'money', name: Routes.MONEY.ROOT },
+        { key: 'social', name: Routes.SOCIAL.TAB },
+      ],
+      history: [],
+      preloadedRouteKeys: [],
+    }}
+    descriptors={{
+      home: {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+      explore: {
+        options: {
+          tabBarIconKey: TabBarIconKey.Trending,
+          rootScreenName: Routes.TRENDING_VIEW,
+        },
+      },
+      trade: {
+        options: {
+          tabBarIconKey: TabBarIconKey.Actions,
+          rootScreenName: Routes.TRADE_DASHBOARD,
+        },
+      },
+      money: {
+        options: {
+          tabBarIconKey: TabBarIconKey.Money,
+          rootScreenName: Routes.MONEY.HOME,
+          callback: () => enterMoneySection(),
+        },
+      },
+      social: {
+        options: {
+          tabBarIconKey: TabBarIconKey.Social,
+          rootScreenName: Routes.SOCIAL.TAB,
+        },
+      },
+    }}
+    navigation={{ navigate }}
+  />
+);
+
+describe('contextual home and Money footers', () => {
   const onHomePress = jest.fn();
 
   afterEach(() => {
@@ -47,113 +98,64 @@ describe('contextual Money and Explore footers', () => {
     onHomePress.mockClear();
   });
 
-  it('selects Payments and marks it selected', () => {
+  it('selects Card and marks it selected', () => {
     enterMoneySection();
 
     const { getByTestId } = renderWithProvider(
       <ContextualMoneyTabBar onHomePress={onHomePress} />,
     );
 
-    fireEvent.press(getByTestId('contextual-money-tab-payments'));
+    fireEvent.press(getByTestId('contextual-money-tab-card'));
 
     expect(getContextualNavState()).toEqual({
       section: 'money',
-      tab: 'payments',
+      tab: 'card',
     });
     expect(
-      getByTestId('contextual-money-tab-payments').props.accessibilityState,
+      getByTestId('contextual-money-tab-card').props.accessibilityState,
     ).toEqual({ selected: true });
     expect(
       getByTestId('contextual-money-tab-account').props.accessibilityState,
     ).toEqual({ selected: false });
     expect(
-      getByTestId('contextual-money-tab-payments').props.accessibilityLabel,
-    ).toBe('Payments');
+      getByTestId('contextual-money-tab-home').props.accessibilityState,
+    ).toEqual({ selected: false });
+    expect(
+      getByTestId('contextual-money-tab-card').props.accessibilityLabel,
+    ).toBe('Card');
   });
 
-  it('returns to the wallet footer from the Money Home circle', () => {
+  it('returns to the default footer from the Money Home tab', () => {
     enterMoneySection();
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualMoneyTabBar onHomePress={onHomePress} />,
     );
-    const homeButton = getByTestId('contextual-money-home-button');
+    const homeTab = getByTestId('contextual-money-tab-home');
 
-    expect(queryByTestId('contextual-money-search-button')).toBeNull();
-    expect(homeButton.props.accessibilityLabel).toBe(
-      strings('bottom_nav.home'),
-    );
-    expect(homeButton.props.accessibilityState).toEqual({ selected: false });
-    expect(homeButton.props.hitSlop).toEqual({
-      top: 4,
-      bottom: 4,
-      left: 4,
-      right: 4,
-    });
+    expect(queryByTestId('contextual-money-home-button')).toBeNull();
+    expect(homeTab.props.accessibilityLabel).toBe(strings('bottom_nav.home'));
+    expect(homeTab.props.accessibilityState).toEqual({ selected: false });
 
-    fireEvent.press(homeButton);
+    fireEvent.press(homeTab);
 
     expect(onHomePress).toHaveBeenCalledTimes(1);
-    expect(getContextualNavState().tab).toBe('account');
   });
 
-  it('selects Browser in the Explore pill', () => {
-    enterExploreSection();
-
-    const { getByTestId } = renderWithProvider(
-      <ContextualExploreTabBar onHomePress={onHomePress} />,
-    );
-
-    fireEvent.press(getByTestId('contextual-explore-tab-browser'));
-
-    expect(getContextualNavState()).toEqual({
-      section: 'explore',
-      tab: 'browser',
-    });
-    expect(
-      getByTestId('contextual-explore-tab-browser').props.accessibilityState,
-    ).toEqual({ selected: true });
-    expect(
-      getByTestId('contextual-explore-home-button').props.accessibilityState,
-    ).toEqual({ selected: false });
-  });
-
-  it('keeps Search as an Explore tab', () => {
-    enterExploreSection();
-
-    const { getByRole, getByTestId } = renderWithProvider(
-      <>
-        <ContextualExploreTabBar onHomePress={onHomePress} />
-        <ContextualHomeSectionOverlay />
-      </>,
-    );
-
-    fireEvent.press(getByTestId('contextual-explore-tab-search'));
-
-    expect(getContextualNavState()).toEqual({
-      section: 'explore',
-      tab: 'search',
-    });
-    expect(
-      getByTestId('contextual-explore-tab-search').props.accessibilityState,
-    ).toEqual({ selected: true });
-    expect(getByRole('header')).toHaveTextContent('Search');
-  });
-
-  it('shows a Payments placeholder with a header', () => {
+  it('shows a Card placeholder with a header', () => {
     enterMoneySection();
-    setContextualTab('payments');
+    setContextualTab('card');
 
     const { getByTestId, getByRole } = renderWithProvider(
       <ContextualHomeSectionOverlay />,
     );
 
     expect(getByTestId('contextual-section-placeholder')).toBeOnTheScreen();
-    expect(getByRole('header')).toHaveTextContent('Payments');
+    expect(getByRole('header')).toHaveTextContent('Card');
   });
 
-  it('leaves the Explore feed uncovered', () => {
-    enterExploreSection();
+  it('leaves the Money account screen uncovered', () => {
+    enterMoneySection();
 
     const { queryByTestId } = renderWithProvider(
       <ContextualHomeSectionOverlay />,
@@ -162,130 +164,54 @@ describe('contextual Money and Explore footers', () => {
     expect(queryByTestId('contextual-section-placeholder')).toBeNull();
   });
 
-  it('swaps the home pill when Explore is pressed, before the tab route changes', () => {
+  it('keeps the default footer on Trending, with no circle and no Explore section', () => {
     const navigate = jest.fn();
-    const { getByTestId, getByText } = renderWithProvider(
-      <ContextualHomeFooter
-        state={{
-          stale: false,
-          type: 'tab',
-          key: 'tab-home',
-          index: 0,
-          routeNames: [
-            Routes.WALLET.HOME,
-            Routes.TRENDING_VIEW,
-            Routes.MONEY.ROOT,
-          ],
-          routes: [
-            { key: 'home', name: Routes.WALLET.HOME },
-            { key: 'explore', name: Routes.TRENDING_VIEW },
-            { key: 'money', name: Routes.MONEY.ROOT },
-          ],
-          history: [],
-          preloadedRouteKeys: [],
-        }}
-        descriptors={{
-          home: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Wallet,
-              rootScreenName: Routes.WALLET_VIEW,
-            },
-          },
-          explore: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Trending,
-              rootScreenName: Routes.TRENDING_VIEW,
-              callback: () => enterExploreSection(),
-            },
-          },
-          money: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Money,
-              rootScreenName: Routes.MONEY.HOME,
-              callback: () => enterMoneySection(),
-            },
-          },
-        }}
-        navigation={{ navigate }}
-        trailingAction="search"
-      />,
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      homeFooter(navigate),
     );
 
     fireEvent.press(getByText(strings('bottom_nav.trending')));
 
-    expect(getContextualNavState().section).toBe('explore');
-    expect(getByTestId('contextual-explore-tab-news')).toBeOnTheScreen();
-    expect(getByTestId('contextual-explore-home-button')).toBeOnTheScreen();
+    expect(getContextualNavState().section).toBeNull();
+    expect(queryByTestId('contextual-explore-tab-news')).toBeNull();
+    expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toBeNull();
+    expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON)).toBeNull();
+    expect(getByTestId('tab-bar-item-Actions')).toBeOnTheScreen();
     expect(navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
   it('swaps the home pill when Money is pressed, before the tab route changes', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <ContextualHomeFooter
-        state={{
-          stale: false,
-          type: 'tab',
-          key: 'tab-home',
-          index: 0,
-          routeNames: [
-            Routes.WALLET.HOME,
-            Routes.TRENDING_VIEW,
-            Routes.MONEY.ROOT,
-          ],
-          routes: [
-            { key: 'home', name: Routes.WALLET.HOME },
-            { key: 'explore', name: Routes.TRENDING_VIEW },
-            { key: 'money', name: Routes.MONEY.ROOT },
-          ],
-          history: [],
-          preloadedRouteKeys: [],
-        }}
-        descriptors={{
-          home: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Wallet,
-              rootScreenName: Routes.WALLET_VIEW,
-            },
-          },
-          explore: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Trending,
-              rootScreenName: Routes.TRENDING_VIEW,
-              callback: () => enterExploreSection(),
-            },
-          },
-          money: {
-            options: {
-              tabBarIconKey: TabBarIconKey.Money,
-              rootScreenName: Routes.MONEY.HOME,
-              callback: () => enterMoneySection(),
-            },
-          },
-        }}
-        navigation={{ navigate: jest.fn() }}
-        trailingAction="search"
-      />,
-    );
+    const { getByTestId, getByText, queryByTestId } =
+      renderWithProvider(homeFooter());
 
     fireEvent.press(getByText(strings('bottom_nav.money')));
 
     expect(getContextualNavState().section).toBe('money');
+    expect(getByTestId('contextual-money-tab-home')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-account')).toBeOnTheScreen();
-    expect(getByTestId('contextual-money-tab-payments')).toBeOnTheScreen();
-    expect(getByTestId('contextual-money-home-button')).toBeOnTheScreen();
+    expect(getByTestId('contextual-money-tab-card')).toBeOnTheScreen();
+    expect(getByTestId('contextual-money-tab-earn')).toBeOnTheScreen();
+    expect(queryByTestId('contextual-money-home-button')).toBeNull();
   });
 
-  it('draws the Explore pill over the native tab bar once that tab is pressed', () => {
-    enterExploreSection();
+  it('draws the Money pill over the native tab bar after that section is entered', () => {
+    const { queryByTestId, getByTestId, getByRole } = renderWithProvider(
+      <ContextualNativeHomeChrome />,
+    );
 
-    const { getByTestId } = renderWithProvider(<ContextualNativeHomeChrome />);
+    expect(queryByTestId('contextual-native-home-chrome')).toBeNull();
+
+    act(() => {
+      enterMoneySection();
+    });
 
     expect(getByTestId('contextual-native-home-chrome')).toBeOnTheScreen();
-    expect(getByTestId('contextual-explore-tab-browser')).toBeOnTheScreen();
-    expect(getByTestId('contextual-explore-tab-search')).toBeOnTheScreen();
-    expect(getByTestId('contextual-explore-home-button')).toBeOnTheScreen();
+    expect(getByTestId('contextual-money-tab-account')).toBeOnTheScreen();
+    expect(
+      getByTestId('contextual-money-tab-account').props.accessibilityState,
+    ).toEqual({ selected: true });
 
-    fireEvent.press(getByTestId('contextual-explore-home-button'));
+    fireEvent.press(getByTestId('contextual-money-tab-home'));
 
     expect(getContextualNavState().section).toBeNull();
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
@@ -295,5 +221,18 @@ describe('contextual Money and Explore footers', () => {
         params: { screen: Routes.WALLET_VIEW },
       },
     );
+  });
+
+  it('covers the native Money screen with an Earn placeholder', () => {
+    enterMoneySection();
+
+    const { getByRole, getByTestId } = renderWithProvider(
+      <ContextualNativeHomeChrome />,
+    );
+
+    fireEvent.press(getByTestId('contextual-money-tab-earn'));
+
+    expect(getContextualNavState().tab).toBe('earn');
+    expect(getByRole('header')).toHaveTextContent('Earn');
   });
 });

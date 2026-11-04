@@ -1,9 +1,8 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 
-import ContextualFloatingTabBar, {
-  type ContextualFloatingTab,
-} from './ContextualFloatingTabBar';
+import { strings } from '../../../../../locales/i18n';
+import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import {
   setContextualTab,
   useContextualNavState,
@@ -14,32 +13,57 @@ export interface ContextualCollectiblesTabBarProps {
   onHomePress: () => void;
 }
 
-const TABS: ContextualFloatingTab[] = [
+type CollectiblesFooterTab =
+  | 'home'
+  | 'popular'
+  | 'packs'
+  | 'collection'
+  | 'market';
+
+const TABS: TradeTab<CollectiblesFooterTab>[] = [
+  { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
   { id: 'popular', label: 'Popular', iconName: IconName.TrendUp },
   { id: 'packs', label: 'Packs', iconName: IconName.Copy },
   { id: 'collection', label: 'Collection', iconName: IconName.Card },
   { id: 'market', label: 'Market', iconName: IconName.Bank },
 ];
 
+const COLLECTIBLES_TABS: readonly ContextualTab[] = [
+  'popular',
+  'packs',
+  'collection',
+  'market',
+];
+
 /**
- * Footer for Collectibles. Popular, Packs, Collection, and Market stay on
- * this page; only the selected item changes.
+ * Collectibles footer. Popular, Packs, Collection, and Market stay. Home is
+ * the first tab and leaves the section.
  */
 const ContextualCollectiblesTabBar = ({
   onHomePress,
 }: ContextualCollectiblesTabBarProps) => {
-  const { tab } = useContextualNavState();
+  const { section, tab } = useContextualNavState();
+  const activeTab: CollectiblesFooterTab =
+    section === 'collectibles' && COLLECTIBLES_TABS.includes(tab)
+      ? tab
+      : 'popular';
 
-  const handleTabPress = useCallback((nextTab: ContextualTab) => {
-    setContextualTab(nextTab);
-  }, []);
+  const handleTabPress = useCallback(
+    (nextTab: CollectiblesFooterTab) => {
+      if (nextTab === 'home') {
+        onHomePress();
+        return;
+      }
+      setContextualTab(nextTab);
+    },
+    [onHomePress],
+  );
 
   return (
-    <ContextualFloatingTabBar
+    <TradeTabBar
       tabs={TABS}
-      activeTab={tab}
+      activeTab={activeTab}
       onTabPress={handleTabPress}
-      onHomePress={onHomePress}
       testIDPrefix="contextual-collectibles"
     />
   );
