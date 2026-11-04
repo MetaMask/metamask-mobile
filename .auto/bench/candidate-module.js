@@ -1,0 +1,487 @@
+// CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
+// vault token that should never surface as regular ERC-20 tokens in the wallet
+// token list or balance maps. Staking is only supported on Ethereum mainnet
+// (eip155:1) and the Hoodi testnet (eip155:560048), where the vault token shares
+// the same address. Scoping by CAIP-19 keeps the filter chain-aware so an
+// identically-addressed token on an unsupported chain is left untouched.
+const STAKED_TOKEN_ASSET_IDS_TO_FILTER = new Set([
+    'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+    'eip155:560048/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+]);
+// AssetIds may carry the contract address in any case, so normalize the asset
+// reference to its checksummed form before matching against the filter set.
+const isStakedTokenAssetId = (assetId) => {
+    const { chainId, assetNamespace, assetReference } = parseCaipAssetType(assetId);
+    return STAKED_TOKEN_ASSET_IDS_TO_FILTER.has(`${chainId}/${assetNamespace}:${toChecksumHexAddress(assetReference)}`);
+};
+// ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
+const getAccountTrackerControllerAccountsByChainId = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetsBalance, assetsInfo, internalAccountsById) => {
+    var _a;
+    const result = {};
+    for (const [accountId, accountBalances] of Object.entries(assetsBalance)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        const checksummedAddress = toChecksumHexAddress(internalAccount.address);
+        for (const [assetId, balanceData] of Object.entries(accountBalances)) {
+            const metadata = assetsInfo[assetId];
+            const assetType = parseCaipAssetType(assetId);
+            if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const amount = balanceData?.amount ?? '0';
+            if (metadata?.type === 'native') {
+                result[hexChainId] ?? (result[hexChainId] = {});
+                result[hexChainId][checksummedAddress] = {
+                    // Spread preserves stakedBalance if it was already set by a
+                    // staked-token entry processed earlier in this loop.
+                    ...result[hexChainId][checksummedAddress],
+                    // TODO: Use raw value from state when available
+                    balance: parseBalanceWithDecimals(amount, metadata.decimals),
+                };
+            }
+            else if (metadata && isStakedTokenAssetId(assetId)) {
+                // Use the ERC-20 balance of the pooled-staking vault token as the
+                // stakedBalance for this chain.  The token is filtered from the
+                // regular token list (see STAKED_TOKEN_ASSET_IDS_TO_FILTER) and
+                // surfaced here so it appears in the Staked Ethereum section on
+                // Token Details instead.
+                result[hexChainId] ?? (result[hexChainId] = {});
+                (_a = result[hexChainId])[checksummedAddress] ?? (_a[checksummedAddress] = {
+                    balance: '0x0',
+                });
+                result[hexChainId][checksummedAddress].stakedBalance =
+                    parseBalanceWithDecimals(amount, metadata.decimals);
+            }
+        }
+    }
+    return result;
+});
+// ChainId (hex) -> AccountAddress (hex lowercase) -> Array of Tokens
+const getTokensControllerAllTokens = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetsInfo, assetsBalance, customAssets, internalAccountsById) => {
+    var _a, _b;
+    const result = {};
+    // Merge assetsBalance and customAssets: accountId -> assetId[]
+    const allAssets = Object.fromEntries([
+        ...new Set([
+            ...Object.keys(assetsBalance),
+            ...Object.keys(customAssets),
+        ]),
+    ].map((accountId) => {
+        const fromBalance = Object.keys(assetsBalance[accountId] ?? {});
+        const fromCustom = customAssets[accountId] ?? [];
+        return [
+            accountId,
+            [...new Set([...fromBalance, ...fromCustom])],
+        ];
+    }));
+    for (const [accountId, assetIds] of Object.entries(allAssets)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        for (const assetId of assetIds) {
+            const metadata = assetsInfo[assetId];
+            if (!metadata || metadata.type === 'native') {
+                continue;
+            }
+            const assetType = parseCaipAssetType(assetId);
+            if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const assetAddress = toChecksumHexAddress(assetType.assetReference);
+            if (isStakedTokenAssetId(assetId)) {
+                continue;
+            }
+            const token = {
+                address: assetAddress,
+                symbol: metadata.symbol,
+                decimals: metadata.decimals,
+                name: metadata.name,
+                image: metadata.image,
+            };
+            result[hexChainId] ?? (result[hexChainId] = {});
+            (_a = result[hexChainId])[_b = internalAccount.address] ?? (_a[_b] = []);
+            result[hexChainId][internalAccount.address].push(token);
+        }
+    }
+    return result;
+});
+// ChainId (hex) -> AccountAddress (hex lowercase) -> Array of TokenAddress (hex lowercase)
+const getTokensControllerAllIgnoredTokens = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetPreferences, internalAccountsById) => {
+    var _a, _b;
+    const result = {};
+    for (const [assetId, { hidden }] of Object.entries(assetPreferences)) {
+        if (!hidden) {
+            continue;
+        }
+        const assetType = parseCaipAssetType(assetId);
+        if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+            continue;
+        }
+        const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+        // The asset is hidden for all EVM accounts
+        for (const internalAccount of Object.values(internalAccountsById)) {
+            if (!isEvmAccountType(internalAccount.type)) {
+                continue;
+            }
+            result[hexChainId] ?? (result[hexChainId] = {});
+            (_a = result[hexChainId])[_b = internalAccount.address] ?? (_a[_b] = []);
+            result[hexChainId][internalAccount.address].push(assetType.assetReference);
+        }
+    }
+    return result;
+});
+// AcountAddress (hex lowercase) -> ChainId (hex) -> TokenAddress (hex checksummed) -> Balance (hex)
+const getTokenBalancesControllerTokenBalances = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetsInfo, assetsBalance, customAssets, internalAccountsById) => {
+    var _a, _b;
+    const result = {};
+    for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        const accountAddress = internalAccount.address;
+        result[accountAddress] ?? (result[accountAddress] = {});
+        for (const [assetId, assetBalance] of Object.entries(chainIdBalances)) {
+            const metadata = assetsInfo[assetId];
+            if (!metadata) {
+                continue;
+            }
+            const assetType = parseCaipAssetType(assetId);
+            // TokenBalancesController is EVM-only; skip non-eip155 assets (e.g.
+            // Solana) that can appear under the same account in unified state.
+            // Otherwise `decimalToPrefixedHex` on a non-decimal reference yields
+            // invalid keys such as `0xNaN`.
+            if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const assetAddress = toChecksumHexAddress(metadata.type === 'native'
+                ? // TokenBalancesController always uses zero address for native tokens
+                    '0x0000000000000000000000000000000000000000'
+                : assetType.assetReference);
+            if (isStakedTokenAssetId(assetId)) {
+                continue;
+            }
+            (_a = result[accountAddress])[hexChainId] ?? (_a[hexChainId] = {});
+            result[accountAddress][hexChainId][assetAddress] =
+                // TODO: Use raw value from state when available
+                parseBalanceWithDecimals(assetBalance.amount, metadata.decimals);
+        }
+    }
+    // Custom EVM tokens may have metadata (assetsInfo) but no balance
+    // in assetsBalance yet (the async fetch hasn't completed).  Add a
+    // zero-balance placeholder so selectAllEvmAssets doesn't filter them out.
+    for (const [accountId, assetIds] of Object.entries(customAssets)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        const accountAddress = internalAccount.address;
+        result[accountAddress] ?? (result[accountAddress] = {});
+        const accountBalances = assetsBalance[accountId] ?? {};
+        for (const assetId of assetIds) {
+            if (accountBalances[assetId]) {
+                continue;
+            }
+            const metadata = assetsInfo[assetId];
+            if (!metadata || metadata.type === 'native') {
+                continue;
+            }
+            const assetType = parseCaipAssetType(assetId);
+            if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const assetAddress = toChecksumHexAddress(assetType.assetReference);
+            if (isStakedTokenAssetId(assetId)) {
+                continue;
+            }
+            if (!result[accountAddress]?.[hexChainId]?.[assetAddress]) {
+                (_b = result[accountAddress])[hexChainId] ?? (_b[hexChainId] = {});
+                result[accountAddress][hexChainId][assetAddress] =
+                    parseBalanceWithDecimals('0', metadata.decimals);
+            }
+        }
+    }
+    return result;
+});
+// AccountId -> Array of AssetIds
+const getMultiChainAssetsControllerAccountsAssets = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetsBalance, customAssets, internalAccountsById) => {
+    const result = {};
+    // Merge assetsBalance and customAssets: accountId -> assetId[]
+    const allAssets = Object.fromEntries([
+        ...new Set([
+            ...Object.keys(assetsBalance),
+            ...Object.keys(customAssets),
+        ]),
+    ].map((accountId) => {
+        const fromBalance = Object.keys(assetsBalance[accountId] ?? {});
+        const fromCustom = customAssets[accountId] ?? [];
+        return [
+            accountId,
+            [...new Set([...fromBalance, ...fromCustom])],
+        ];
+    }));
+    for (const [accountId, assetIds] of Object.entries(allAssets)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        result[accountId] = [];
+        for (const assetId of assetIds) {
+            const assetType = parseCaipAssetType(assetId);
+            if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            result[accountId].push(assetId);
+        }
+    }
+    return result;
+});
+// TODO There are issues with the new image url not matching the one in assetsMetadata iconUrl
+// AssetId -> AssetMetadata
+const getMultiChainAssetsControllerAssetsMetadata = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+], (assetsInfo) => {
+    const result = {};
+    for (const [assetId, metadata] of Object.entries(assetsInfo)) {
+        const assetType = parseCaipAssetType(assetId);
+        if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+            continue;
+        }
+        result[assetId] = {
+            fungible: true,
+            iconUrl: metadata.image ?? '',
+            units: [
+                {
+                    decimals: metadata.decimals,
+                    symbol: metadata.symbol,
+                    name: metadata.name,
+                },
+            ],
+            symbol: metadata.symbol,
+            name: metadata.name,
+        };
+    }
+    return result;
+});
+// AccountId -> Array of AssetIds
+const getMultiChainAssetsControllerAllIgnoredAssets = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetPreferences, internalAccountsById) => {
+    const result = {};
+    for (const accountId of Object.keys(internalAccountsById)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        result[accountId] = [];
+        for (const [assetId, { hidden }] of Object.entries(assetPreferences)) {
+            if (!hidden) {
+                continue;
+            }
+            const assetType = parseCaipAssetType(assetId);
+            if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            result[accountId].push(assetId);
+        }
+    }
+    return result;
+});
+// AccountId -> AssetId -> Balance (amount + unit)
+const getMultiChainBalancesControllerBalances = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    (state) => state.engine?.backgroundState?.AccountsController?.internalAccounts
+        ?.accounts ?? {},
+], (assetsBalance, assetsInfo, internalAccountsById) => {
+    const result = {};
+    for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+            continue;
+        }
+        result[accountId] = {};
+        for (const [assetId, balance] of Object.entries(chainIdBalances)) {
+            const assetType = parseCaipAssetType(assetId);
+            const metadata = assetsInfo[assetId];
+            if (!metadata ||
+                assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+                continue;
+            }
+            result[accountId][assetId] = {
+                amount: balance.amount,
+                unit: metadata.symbol,
+            };
+        }
+    }
+    return result;
+});
+const getCurrencyRateControllerCurrentCurrency = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.selectedCurrency,
+], (selectedCurrency) => selectedCurrency);
+// Native Symbol -> Rates (conversionRate, usdConversionRate, conversionDate)
+const getCurrencyRateControllerCurrencyRates = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
+], (assetsInfo, assetsPrice) => {
+    const result = {};
+    // Sorting just to ensure that we process mainnet (eip155:1) first
+    for (const [assetId, metadata] of Object.entries(assetsInfo).sort((a, b) => a[0].localeCompare(b[0]))) {
+        // Skip if we already have an entry for this symbol
+        if (result[metadata.symbol]) {
+            continue;
+        }
+        const assetType = parseCaipAssetType(assetId);
+        // Skip if not a native asset or not evm
+        if (metadata.type !== 'native' ||
+            assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+            continue;
+        }
+        const price = assetsPrice[assetId];
+        if (price?.assetPriceType !== 'fungible') {
+            continue;
+        }
+        result[metadata.symbol] = {
+            conversionDate: price.lastUpdated / 1000,
+            conversionRate: price.price,
+            usdConversionRate: price.usdPrice,
+        };
+    }
+    return augmentTempoCurrencyRates(result, assetsPrice);
+});
+// ChainId (hex) -> TokenAddress (hex checksummed) -> MarketData
+const getTokenRatesControllerMarketData = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
+    getCurrencyRateControllerCurrencyRates,
+    (state) => state.engine?.backgroundState?.NetworkController
+        ?.networkConfigurationsByChainId ?? {},
+], (assetsPrice, assetsInfo, currencyRates, networkConfigurationsByChainId) => {
+    const result = {};
+    for (const [assetId, price] of Object.entries(assetsPrice)) {
+        const assetType = parseCaipAssetType(assetId);
+        if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+            continue;
+        }
+        const metadata = assetsInfo[assetId];
+        if (!metadata) {
+            continue;
+        }
+        const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+        const nativeAssetSymbol = networkConfigurationsByChainId[hexChainId]?.nativeCurrency ?? 'NATIVE';
+        const assetAddress = toChecksumHexAddress(metadata.type === 'native'
+            ? getNativeTokenAddress(hexChainId)
+            : assetType.assetReference);
+        const nativeCurrencyRate = currencyRates[nativeAssetSymbol]?.conversionRate;
+        if (!nativeCurrencyRate) {
+            continue;
+        }
+        const convertToNativeCurrency = (amount) => amount === undefined ? undefined : amount / nativeCurrencyRate;
+        result[hexChainId] ?? (result[hexChainId] = {});
+        result[hexChainId][assetAddress] = {
+            id: price.id,
+            price: convertToNativeCurrency(price.price),
+            marketCap: convertToNativeCurrency(price.marketCap),
+            allTimeHigh: convertToNativeCurrency(price.allTimeHigh),
+            allTimeLow: convertToNativeCurrency(price.allTimeLow),
+            totalVolume: convertToNativeCurrency(price.totalVolume),
+            high1d: convertToNativeCurrency(price.high1d),
+            low1d: convertToNativeCurrency(price.low1d),
+            circulatingSupply: price.circulatingSupply,
+            dilutedMarketCap: convertToNativeCurrency(price.dilutedMarketCap),
+            marketCapPercentChange1d: price.marketCapPercentChange1d,
+            priceChange1d: price.priceChange1d,
+            pricePercentChange1h: price.pricePercentChange1h,
+            pricePercentChange1d: price.pricePercentChange1d,
+            pricePercentChange7d: price.pricePercentChange7d,
+            pricePercentChange14d: price.pricePercentChange14d,
+            pricePercentChange30d: price.pricePercentChange30d,
+            pricePercentChange200d: price.pricePercentChange200d,
+            pricePercentChange1y: price.pricePercentChange1y,
+            chainId: hexChainId,
+            tokenAddress: assetAddress,
+            assetId,
+            currency: nativeAssetSymbol,
+        };
+    }
+    return result;
+});
+const getMultichainAssetsRatesControllerConversionRates = makeDirect([
+    (state) => state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
+], (assetsPrice) => {
+    const result = {};
+    for (const [assetId, assetPrice] of Object.entries(assetsPrice)) {
+        const assetType = parseCaipAssetType(assetId);
+        if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+            continue;
+        }
+        result[assetId] = {
+            rate: `${assetPrice.price}`,
+            conversionTime: assetPrice.lastUpdated,
+            expirationTime: undefined,
+            marketData: {
+                fungible: true,
+                allTimeHigh: `${assetPrice.allTimeHigh}`,
+                allTimeLow: `${assetPrice.allTimeLow}`,
+                circulatingSupply: `${assetPrice.circulatingSupply}`,
+                marketCap: `${assetPrice.marketCap}`,
+                totalVolume: `${assetPrice.totalVolume}`,
+                pricePercentChange: {
+                    PT1H: assetPrice.pricePercentChange1h,
+                    P1D: assetPrice.pricePercentChange1d,
+                    P7D: assetPrice.pricePercentChange7d,
+                    P14D: assetPrice.pricePercentChange14d,
+                    P30D: assetPrice.pricePercentChange30d,
+                    P200D: assetPrice.pricePercentChange200d,
+                    P1Y: assetPrice.pricePercentChange1y,
+                },
+            },
+        };
+    }
+    return result;
+});
+function parseBalanceWithDecimals(balanceString, decimals) {
+    const [integerPart, fractionalPart = ''] = balanceString.split('.');
+    if (decimals === 0) {
+        return bigIntToHex(BigInt(integerPart));
+    }
+    if (fractionalPart.length >= decimals) {
+        return bigIntToHex(BigInt(`${integerPart}${fractionalPart.slice(0, decimals)}`));
+    }
+    return bigIntToHex(BigInt(`${integerPart}${fractionalPart}${'0'.repeat(decimals - fractionalPart.length)}`));
+}

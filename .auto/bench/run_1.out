@@ -1,0 +1,15 @@
+METRIC primary_ms=23.950000
+METRIC sel_getAccountTrackerControllerAccountsByChainId=3.400000
+METRIC sel_getTokensControllerAllTokens=4.500000
+METRIC sel_getTokensControllerAllIgnoredTokens=0.050000
+METRIC sel_getTokenBalancesControllerTokenBalances=5.450000
+METRIC sel_getMultiChainAssetsControllerAccountsAssets=0.500000
+METRIC sel_getMultiChainAssetsControllerAssetsMetadata=0.550000
+METRIC sel_getMultiChainAssetsControllerAllIgnoredAssets=0.300000
+METRIC sel_getMultiChainBalancesControllerBalances=0.100000
+METRIC sel_getCurrencyRateControllerCurrentCurrency=0.000000
+METRIC sel_getCurrencyRateControllerCurrencyRates=3.850000
+METRIC sel_getTokenRatesControllerMarketData=4.700000
+METRIC sel_getMultichainAssetsRatesControllerConversionRates=0.550000
+SINK=3600
+SELF_CHECK=OK
