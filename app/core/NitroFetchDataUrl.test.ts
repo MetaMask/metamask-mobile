@@ -62,14 +62,18 @@ const readDataUrlHelpers = (): string => {
   );
   const start = source.indexOf('function base64ToBytes(');
   const end = source.indexOf('async function fetchLocalResource(');
-  if (start < 0 || end < 0) {
+  const slice = start >= 0 && end > start ? source.slice(start, end) : '';
+  if (
+    !slice.includes('function resolveTextDecoder(') ||
+    !slice.includes('function decodeDataUrl(')
+  ) {
     throw new Error(
       'nitro-fetch data: URL helpers not found in lib/module/fetch.js. ' +
         'react-native-nitro-fetch was likely bumped: re-check the yarn patch ' +
         'for #38849 and update this test.',
     );
   }
-  return `${source.slice(start, end)}\nexports.decodeDataUrl = decodeDataUrl;\n`;
+  return `${slice}\nexports.decodeDataUrl = decodeDataUrl;\n`;
 };
 
 /** Transforms a module the way metro-transform-worker does for a release (non-dev) bundle. */
