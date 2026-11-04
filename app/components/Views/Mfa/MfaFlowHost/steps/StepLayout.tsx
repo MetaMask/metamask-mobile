@@ -92,7 +92,7 @@ export const StepError = ({
             variant={TextVariant.BodySm}
             onPress={() => {
               trackMfaErrorCta(code, 'learn_more');
-              Linking.openURL(link);
+              Linking.openURL(link).catch(() => undefined);
             }}
             testID={MfaFlowSelectorsIDs.ERROR_LINK}
           >
