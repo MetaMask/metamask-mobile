@@ -15,6 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import {
@@ -32,9 +33,11 @@ import {
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import {
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import {
@@ -65,6 +68,13 @@ const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
 /**
+ * Blocks repeat CTA taps until the destination has had time to present. A
+ * second onboarding open in that window would remount the loading route and
+ * start a second hydrate.
+ */
+const CTA_REENTRY_WINDOW_MS = 1000;
+
+/**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
  * kyc_decision); all per-variant differences — copy, analytics names, CTA
@@ -72,7 +82,8 @@ const HERO_GRADIENT_ANGLE = 224;
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
- * This avoids flashing a standalone full-screen loading route.
+ * This avoids flashing a standalone full-screen loading route. The failed-KYC card opens the MetaMask support article through
+ * the support consent sheet instead of that flow.
  */
 const MoneyVbaHomeCard = ({
   variant,
@@ -82,6 +93,7 @@ const MoneyVbaHomeCard = ({
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const navigation = useNavigation<AppNavigationProp>();
+  const { openSupportWithConsent } = useSupportConsent();
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: config.componentName,
@@ -109,6 +121,19 @@ const MoneyVbaHomeCard = ({
 
   const handleCtaPress = useCallback(async () => {
     if (hasPendingCtaOpenRef.current) {
+      return;
+    }
+    if (config.opensSupportArticle) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: config.buttonIntent,
+        label_key: `${config.i18nPrefix}.cta`,
+        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+      });
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
       return;
     }
     trackButtonClicked({
@@ -181,7 +206,7 @@ const MoneyVbaHomeCard = ({
         setIsRouting(false);
       }
     }
-  }, [config, navigation, trackButtonClicked, variant]);
+  }, [config, navigation, openSupportWithConsent, trackButtonClicked, variant]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({

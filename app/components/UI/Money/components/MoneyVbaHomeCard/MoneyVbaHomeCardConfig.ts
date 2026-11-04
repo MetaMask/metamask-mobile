@@ -29,6 +29,11 @@ interface MoneyVbaHomeCardConfig {
   i18nPrefix: string;
   /** `button_intent` on the CTA-tap event. */
   buttonIntent: MONEY_BUTTON_INTENTS;
+  /**
+   * Opens the MetaMask support article through the consent sheet. The other
+   * variants enter VBA onboarding instead.
+   */
+  opensSupportArticle?: boolean;
   /** Hero illustration shown above the copy. */
   heroArt: MoneyVbaHomeCardHeroArt;
   /** Tailwind classes for the CTA button background. */
@@ -106,7 +111,8 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     componentName: COMPONENT_NAMES.MONEY_VBA_KYC_DECISION_CARD,
     source: 'vba-home-card-kyc-decision',
     i18nPrefix: 'money.vba_home_card.kyc_decision',
-    buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+    buttonIntent: MONEY_BUTTON_INTENTS.LEARN_MORE,
+    opensSupportArticle: true,
     heroArt: {
       source: moneyVbaKycDecisionArt,
       width: 106.5,
