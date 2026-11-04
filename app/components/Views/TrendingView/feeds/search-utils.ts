@@ -1,4 +1,4 @@
-import Fuse, { type FuseOptions } from 'fuse.js';
+import type { FuseOptions } from 'fuse.js';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import {
@@ -6,15 +6,9 @@ import {
   PriceChangeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
+import { BASE_FUSE_OPTIONS } from './fuseSearch';
 
-export const BASE_FUSE_OPTIONS = {
-  shouldSort: true,
-  threshold: 0.2,
-  location: 0,
-  distance: 100,
-  maxPatternLength: 32,
-  minMatchCharLength: 1,
-} as const;
+export { fuseSearch } from './fuseSearch';
 
 export const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
   ...BASE_FUSE_OPTIONS,
@@ -24,19 +18,6 @@ export const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
 export const PERPS_FUSE_OPTIONS: FuseOptions<PerpsMarketData> = {
   ...BASE_FUSE_OPTIONS,
   keys: ['symbol', 'name'],
-};
-
-export const fuseSearch = <T>(
-  data: T[],
-  searchQuery: string | undefined,
-  fuseOptions: FuseOptions<T>,
-  searchSortingFn?: (a: T, b: T) => number,
-): T[] => {
-  const trimmed = searchQuery?.trim();
-  if (!trimmed) return data;
-  const fuse = new Fuse(data, fuseOptions);
-  const results = fuse.search(trimmed);
-  return searchSortingFn ? results.sort(searchSortingFn) : results;
 };
 
 export const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {

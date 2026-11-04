@@ -4,7 +4,7 @@ import { usePredictMarketData } from '../hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../hooks/usePredictSearchMarketData';
 import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
-import { fuseSearch } from '../../../Views/TrendingView/feeds/search-utils';
+import { fuseSearch } from '../../../Views/TrendingView/feeds/fuseSearch';
 import { PREDICTIONS_FUSE_OPTIONS } from './predictionsFuseOptions';
 
 export type PredictionsVariant = 'trending' | 'sports' | 'crypto' | 'politics';
