@@ -66,6 +66,7 @@ const KalshiKycPoc = () => {
   const [terms, setTerms] = useState<Terms | null>(null);
   const [accepted, setAccepted] = useState<Terms | null>(null);
   const [email, setEmail] = useState('');
+  const [aal2Token, setAal2Token] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
@@ -186,16 +187,29 @@ const KalshiKycPoc = () => {
       });
     });
 
-  const startKalshiSession = () =>
-    run('Create Kalshi user', async () => {
+  // MetaMask MFA first; its verified email prefills the Kalshi account email.
+  const verifyWithMetaMask = () =>
+    run('MetaMask MFA', async () => {
       const result = await verifyOrEnroll({
         methods: ['email_otp'],
         verifyWith: 'email_otp',
         reason: { operation: 'kalshi.poc', presentation: 'card' },
       });
-      const aal2Token = result.token?.accessToken;
-      if (!aal2Token) {
+      const token = result.token?.accessToken;
+      if (!token) {
         throw new Error('MFA returned no token');
+      }
+      const verifiedEmail = result.credentials?.find(
+        (credential) => credential.type === 'email_otp',
+      ) as { email?: string } | undefined;
+      setAal2Token(token);
+      setEmail((current) => current || verifiedEmail?.email || '');
+    });
+
+  const startKalshiSession = () =>
+    run('Create Kalshi user', async () => {
+      if (!aal2Token) {
+        throw new Error('Verify with MetaMask first');
       }
       await Engine.context.KycController.startSession({
         vendor: VENDOR,
@@ -315,26 +329,43 @@ const KalshiKycPoc = () => {
     </Box>
   );
 
-  const renderDetails = () => (
-    <Box twClassName="gap-3">
-      <Text variant={TextVariant.HeadingMd}>2. Your Kalshi account</Text>
-      <Text color={TextColor.TextAlternative}>
-        MetaMask verifies you first, then the relay registers this email at
-        Kalshi.
-      </Text>
-      {input(email, setEmail, 'Email for the Kalshi account', 'email-address')}
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        isDisabled={!email.trim() || busy}
-        isLoading={busy}
-        onPress={startKalshiSession}
-      >
-        Verify with MetaMask and create Kalshi user
-      </Button>
-    </Box>
-  );
+  const renderDetails = () =>
+    !aal2Token ? (
+      <Box twClassName="gap-3">
+        <Text variant={TextVariant.HeadingMd}>2. Verify with MetaMask</Text>
+        <Text color={TextColor.TextAlternative}>
+          MetaMask confirms it's you before any vendor account is created.
+        </Text>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={busy}
+          onPress={verifyWithMetaMask}
+        >
+          Verify with MetaMask
+        </Button>
+      </Box>
+    ) : (
+      <Box twClassName="gap-3">
+        <Text variant={TextVariant.HeadingMd}>3. Your Kalshi account</Text>
+        <Text color={TextColor.TextAlternative}>
+          The relay registers this email at Kalshi. Prefilled from MetaMask; use
+          a new +alias for each run.
+        </Text>
+        {input(email, setEmail, 'Email for the Kalshi account', 'email-address')}
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isDisabled={!email.trim() || busy}
+          isLoading={busy}
+          onPress={startKalshiSession}
+        >
+          Create Kalshi user
+        </Button>
+      </Box>
+    );
 
   const renderStep = () => {
     if (!session) {
