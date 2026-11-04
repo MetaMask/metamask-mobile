@@ -1,5 +1,10 @@
 import React from 'react';
-import { View, type LayoutChangeEvent } from 'react-native';
+import {
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -41,6 +46,8 @@ export interface HeaderGlassProps {
   onLayout?: (event: LayoutChangeEvent) => void;
   /** Status bar space, when the screen doesn't already pad it. */
   topInset?: number;
+  /** Style for the floating wrapper around the header content. */
+  containerStyle?: StyleProp<ViewStyle>;
   /** @default 'animated' */
   backdrop?: HeaderGlassBackdropMode;
   /** How far the content has scrolled from its resting top; drives `animated`. */
@@ -65,6 +72,7 @@ const HeaderGlass = ({
   children,
   onLayout,
   topInset = 0,
+  containerStyle,
   backdrop = 'animated',
   scrollDistance,
   fadeInDistance,
@@ -78,6 +86,7 @@ const HeaderGlass = ({
       pointerEvents="box-none"
       style={[
         isFloating && tw.style('absolute left-0 right-0 top-0 z-10'),
+        containerStyle,
         { paddingTop: topInset },
       ]}
       onLayout={onLayout}

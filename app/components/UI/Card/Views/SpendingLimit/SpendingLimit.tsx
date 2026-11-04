@@ -268,7 +268,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box twClassName="flex-1 justify-center items-center px-4">
           <ActivityIndicator
             testID={SpendingLimitSelectors.LOADING_INDICATOR}
             size="large"
@@ -299,7 +299,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           {...headerHandlers}
         />
         <Box
-          twClassName="flex-1 justify-center items-center px-6"
+          twClassName="flex-1 justify-center items-center px-4"
           testID={SpendingLimitSelectors.ERROR_CONTAINER}
         >
           <Icon

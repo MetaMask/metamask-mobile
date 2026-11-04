@@ -16,8 +16,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderBase,
-  ButtonIcon,
   ButtonIconSize,
   FontWeight,
   IconName,
@@ -47,12 +45,15 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyHubEvents';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 
 const CashTokensFullView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
 
@@ -145,20 +146,20 @@ const CashTokensFullView = () => {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
-      <HeaderBase
-        startAccessory={
-          <ButtonIcon
-            size={ButtonIconSize.Md}
-            onPress={handleBackPress}
-            iconName={IconName.ArrowLeft}
-            testID={CashTokensFullViewTestIds.BACK_BUTTON}
-          />
-        }
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        startButtonIconProps={{
+          size: ButtonIconSize.Md,
+          onPress: handleBackPress,
+          iconName: IconName.ArrowLeft,
+          testID: CashTokensFullViewTestIds.BACK_BUTTON,
+        }}
         style={tw`p-4`}
         twClassName="h-auto"
       >
         {strings('money.title')}
-      </HeaderBase>
+      </HeaderBaseGlass>
       {hasMusdBalanceOnAnyChain ? (
         isTokenListReady ? (
           <Tokens
