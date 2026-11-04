@@ -4,7 +4,9 @@ import {
   type KycControllerState,
   type KycProviderFlowStatus,
   type KycSessionStatus,
-  type KycVendorDisclaimersAccepted,
+  type KycVendor,
+  type KycVendorDisclaimersAcceptance,
+  type KycVendorSessionState,
 } from '@metamask/kyc-controller';
 import { RootState } from '../../reducers';
 
@@ -25,34 +27,43 @@ export const selectKycControllerState = (
 ): KycControllerState =>
   state.engine.backgroundState.KycController ?? DEFAULT_KYC_CONTROLLER_STATE;
 
+const selectVendorParam = (_state: RootState, vendor: KycVendor) => vendor;
+
 /**
- * Selects the persisted UKYC session status, or `null` when no session has
- * been fetched for this profile.
+ * Selects a vendor's KYC session entry, or `undefined` when the vendor has
+ * none.
  */
-export const selectKycSessionStatus = createSelector(
-  selectKycControllerState,
-  (kycControllerState): KycSessionStatus | null =>
-    kycControllerState?.sessionStatus ?? null,
+export const selectKycVendorSession = createSelector(
+  [selectKycControllerState, selectVendorParam],
+  (kycControllerState, vendor): KycVendorSessionState | undefined =>
+    kycControllerState?.sessions?.[vendor],
 );
 
 /**
- * Selects the durable identity-provider flow outcome. Unlike the session's
- * `finalStatus`, this distinguishes a session that has not entered the
- * provider flow (`'not_started'`) from one the customer submitted,
+ * Selects a vendor's persisted UKYC session status, or `null` when no session
+ * has been fetched for that vendor.
+ */
+export const selectKycSessionStatus = createSelector(
+  selectKycVendorSession,
+  (entry): KycSessionStatus | null => entry?.sessionStatus ?? null,
+);
+
+/**
+ * Selects a vendor's durable identity-provider flow outcome. Unlike the
+ * session's `finalStatus`, this distinguishes a session that has not entered
+ * the provider flow (`'not_started'`) from one the customer submitted,
  * abandoned, or failed.
  */
 export const selectKycProviderFlowStatus = createSelector(
-  selectKycControllerState,
-  (kycControllerState): KycProviderFlowStatus =>
-    kycControllerState?.providerFlowStatus ?? 'not_started',
+  selectKycVendorSession,
+  (entry): KycProviderFlowStatus => entry?.providerFlowStatus ?? 'not_started',
 );
 
 /**
- * Selects the persisted vendor-disclaimer (T&C1) acceptance state, with fixed
- * `moonpay` and `iron` keys.
+ * Selects a vendor's T&C acceptance, whether or not it has been submitted yet.
  */
 export const selectKycVendorDisclaimersAccepted = createSelector(
-  selectKycControllerState,
-  (kycControllerState): KycVendorDisclaimersAccepted =>
-    kycControllerState.vendorDisclaimersAccepted,
+  selectKycVendorSession,
+  (entry): KycVendorDisclaimersAcceptance | null =>
+    entry?.vendorDisclaimersAccepted ?? null,
 );

@@ -1,10 +1,10 @@
-import { getDefaultKycVendorDisclaimersAccepted } from '@metamask/kyc-controller';
 import { RootState } from '../../reducers';
 import {
   selectKycControllerState,
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
   selectKycVendorDisclaimersAccepted,
+  selectKycVendorSession,
 } from './index';
 
 const MOCK_SESSION_STATUS = {
@@ -16,90 +16,60 @@ const MOCK_SESSION_STATUS = {
   vendorStatus: 'pending',
 };
 
+const MOCK_IRON_ENTRY = {
+  sessionStatus: MOCK_SESSION_STATUS,
+  providerFlowStatus: 'submitted',
+  residenceCountry: 'BRA',
+  vendorDisclaimersAccepted: {
+    disclaimerIds: ['t1'],
+    acceptedAt: null,
+    submitted: true,
+  },
+  providerDisclaimersAccepted: null,
+  idosDisclaimersAccepted: null,
+  credentialReusabilityConsentGiven: null,
+};
+
 const createMockRootState = (kycControllerState: unknown): RootState =>
   ({
     engine: { backgroundState: { KycController: kycControllerState } },
   }) as unknown as RootState;
 
+const missingControllerState = {
+  engine: { backgroundState: {} },
+} as unknown as RootState;
+
 describe('kycController selectors', () => {
-  describe('selectKycControllerState', () => {
-    it('returns the KycController state from the engine background state', () => {
-      const kycState = { sessionStatus: MOCK_SESSION_STATUS };
-      const state = createMockRootState(kycState);
-
-      expect(selectKycControllerState(state)).toBe(kycState);
-    });
-
-    it('falls back to the controller defaults when the state is missing', () => {
-      const state = {
-        engine: { backgroundState: {} },
-      } as unknown as RootState;
-
-      expect(selectKycControllerState(state)).toEqual(
-        expect.objectContaining({ sessionStatus: null }),
-      );
+  it('selectKycControllerState falls back to empty sessions', () => {
+    expect(selectKycControllerState(missingControllerState)).toEqual({
+      sessions: {},
     });
   });
 
-  describe('selectKycSessionStatus', () => {
-    it('returns the persisted session status', () => {
-      const state = createMockRootState({
-        sessionStatus: MOCK_SESSION_STATUS,
-      });
+  it('selects a vendor entry', () => {
+    const state = createMockRootState({ sessions: { iron: MOCK_IRON_ENTRY } });
 
-      expect(selectKycSessionStatus(state)).toEqual(MOCK_SESSION_STATUS);
-    });
-
-    it('returns null when no session has been fetched', () => {
-      const state = createMockRootState({ sessionStatus: null });
-
-      expect(selectKycSessionStatus(state)).toBeNull();
-    });
-
-    it('returns null when the controller state is missing', () => {
-      const state = {
-        engine: { backgroundState: {} },
-      } as unknown as RootState;
-
-      expect(selectKycSessionStatus(state)).toBeNull();
-    });
+    expect(selectKycVendorSession(state, 'iron')).toBe(MOCK_IRON_ENTRY);
+    expect(selectKycVendorSession(state, 'moonpay')).toBeUndefined();
   });
 
-  describe('selectKycProviderFlowStatus', () => {
-    it('returns the durable provider flow status', () => {
-      const state = createMockRootState({ providerFlowStatus: 'submitted' });
+  it('selects a vendor session status, provider flow and acceptance', () => {
+    const state = createMockRootState({ sessions: { iron: MOCK_IRON_ENTRY } });
 
-      expect(selectKycProviderFlowStatus(state)).toBe('submitted');
-    });
-
-    it("defaults to 'not_started' when absent", () => {
-      const state = createMockRootState({});
-
-      expect(selectKycProviderFlowStatus(state)).toBe('not_started');
-    });
+    expect(selectKycSessionStatus(state, 'iron')).toEqual(MOCK_SESSION_STATUS);
+    expect(selectKycProviderFlowStatus(state, 'iron')).toBe('submitted');
+    expect(selectKycVendorDisclaimersAccepted(state, 'iron')).toEqual(
+      MOCK_IRON_ENTRY.vendorDisclaimersAccepted,
+    );
   });
 
-  describe('selectKycVendorDisclaimersAccepted', () => {
-    it('returns the persisted vendor disclaimers acceptance', () => {
-      const vendorDisclaimersAccepted = {
-        ...getDefaultKycVendorDisclaimersAccepted(),
-        moonpay: { termsAcceptedAt: '2026-10-08T00:00:00.000Z' },
-      };
-      const state = createMockRootState({ vendorDisclaimersAccepted });
-
-      expect(selectKycVendorDisclaimersAccepted(state)).toEqual(
-        vendorDisclaimersAccepted,
-      );
-    });
-
-    it('returns the default disclaimers when the controller state is missing', () => {
-      const state = {
-        engine: { backgroundState: {} },
-      } as unknown as RootState;
-
-      expect(selectKycVendorDisclaimersAccepted(state)).toEqual(
-        getDefaultKycVendorDisclaimersAccepted(),
-      );
-    });
+  it('returns defaults for a vendor with no entry', () => {
+    expect(selectKycSessionStatus(missingControllerState, 'iron')).toBeNull();
+    expect(selectKycProviderFlowStatus(missingControllerState, 'iron')).toBe(
+      'not_started',
+    );
+    expect(
+      selectKycVendorDisclaimersAccepted(missingControllerState, 'iron'),
+    ).toBeNull();
   });
 });

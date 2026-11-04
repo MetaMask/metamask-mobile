@@ -10,6 +10,7 @@ import I18n from '../../../../../locales/i18n';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -47,6 +48,7 @@ async function recordSessionConsents(): Promise<void> {
     country,
   });
   await KycController.recordSessionDisclaimers({
+    vendor: VBA_KYC_VENDOR,
     providerDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.kycProvider),
     idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
     credentialReusabilityConsentGiven: false,
@@ -118,6 +120,7 @@ export const useLaunchSumSub = (
 
         trackKycVerificationUpdated({ status: 'started' });
         const outcome = await KycController.launchProviderFlow({
+          vendor: VBA_KYC_VENDOR,
           locale: toSumSubLocale(I18n.locale),
         });
         if (cancelled) {

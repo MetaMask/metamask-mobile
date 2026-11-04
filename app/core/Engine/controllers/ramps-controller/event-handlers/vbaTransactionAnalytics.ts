@@ -72,9 +72,15 @@ interface BackgroundControllers {
     }[];
   };
   KycController?: {
-    vendor?: string | null;
-    providerFlowStatus?: string;
-    sessionStatus?: KycSessionShape | null;
+    sessions?: Partial<
+      Record<
+        string,
+        {
+          providerFlowStatus?: string;
+          sessionStatus?: KycSessionShape | null;
+        }
+      >
+    >;
   };
   GeolocationController?: {
     location?: string;
@@ -201,7 +207,11 @@ export function readVbaTransactionBaseProperties(
     (candidate) => candidate.id === autorampId,
   );
   const fiatCode = autoramp?.depositRailsSummary?.currency;
-  const kyc = backgroundState.KycController;
+  // VBA onboarding uses the Iron KYC session. An absent entry still reports
+  // `kyc_status`, as the single-session state did before any session existed.
+  const kyc = backgroundState.KycController
+    ? (backgroundState.KycController.sessions?.iron ?? {})
+    : undefined;
   const region = toAnalyticsRegion(
     backgroundState.GeolocationController?.location,
   );

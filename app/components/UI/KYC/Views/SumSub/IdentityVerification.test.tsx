@@ -128,6 +128,7 @@ describe('VbaIdentityVerificationModule', () => {
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        vendor: 'iron',
         locale: toSumSubLocale(I18n.locale),
       });
     });
@@ -144,6 +145,7 @@ describe('VbaIdentityVerificationModule', () => {
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        vendor: 'iron',
         locale: toSumSubLocale(I18n.locale),
       });
     });
