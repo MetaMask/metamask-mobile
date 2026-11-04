@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import {
   FontWeight,
   IconColor,
@@ -29,6 +29,8 @@ jest.mock('../../../../../../util/deviceCapability', () => ({
 jest.mock('../../../../../../util/haptics');
 
 const mockSetFrameCallbackActive = jest.fn();
+const mockMotionCompletions: ((finished?: boolean) => void)[] = [];
+let mockReduceMotionEnabled = false;
 
 jest.mock('react-native-reanimated', () => {
   const actual = jest.requireActual('react-native-reanimated');
@@ -41,10 +43,33 @@ jest.mock('react-native-reanimated', () => {
           callbackId: 1,
         });
       }
+      if (prop === 'useReducedMotion') {
+        return () => mockReduceMotionEnabled;
+      }
+      if (prop === 'withTiming') {
+        return (
+          toValue: unknown,
+          config: unknown,
+          callback?: (finished?: boolean) => void,
+        ) => {
+          if (callback) {
+            mockMotionCompletions.push(callback);
+          }
+          return actual.withTiming(toValue, config);
+        };
+      }
       return Reflect.get(target, prop, receiver);
     },
   });
 });
+
+/** Runs the slide completion, including the microtask that applies the new rail. */
+const finishChipMotion = async () => {
+  await act(async () => {
+    mockMotionCompletions.forEach((complete) => complete(true));
+    await Promise.resolve();
+  });
+};
 
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
 
@@ -75,6 +100,8 @@ const railChipTestIds = () =>
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMotionCompletions.length = 0;
+    mockReduceMotionEnabled = false;
     mockGetHardwareTier.mockReturnValue(null);
   });
 
@@ -119,6 +146,8 @@ describe('HotTokensCarousel', () => {
     ).not.toBeOnTheScreen();
   });
 
+  // Local rail motion and a haptic call. The carousel is already covered here;
+  // a component-view of Trending would only re-render the screen around it.
   it('plays a selection haptic when a chip is pressed', () => {
     arrange([mockHotToken(), NVIDIA]);
 
@@ -144,6 +173,76 @@ describe('HotTokensCarousel', () => {
     );
 
     expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the other chips mounted while the selected chip moves', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(<HotTokensCarousel />);
+
+    rerender(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+  });
+
+  it('drops the other chips once the selected chip finishes moving', async () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(<HotTokensCarousel />);
+
+    rerender(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+    await finishChipMotion();
+
+    expect(
+      screen.queryByTestId(getSocialV1HotTokenChipTestId('hot-btc'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+    ]);
+  });
+
+  it('hides the other chips immediately when motion is reduced', () => {
+    mockReduceMotionEnabled = true;
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(<HotTokensCarousel />);
+
+    rerender(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+    ]);
+  });
+
+  it('brings the other chips back while the selected chip moves home', async () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel selectedTokenId={NVIDIA.id} />,
+    );
+
+    rerender(<HotTokensCarousel selectedTokenId={null} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+
+    await finishChipMotion();
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-btc'),
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+    ]);
   });
 
   it('passes the pressed token to onTokenPress', () => {
