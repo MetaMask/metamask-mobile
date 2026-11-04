@@ -144,6 +144,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  requireSocialProfile,
   testID,
   scrollTestID,
 }) => {
@@ -340,6 +341,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             <SocialFeedRow
               post={item.post}
               requireSocialTerms
+              requireSocialProfile={requireSocialProfile}
               dividerTestID={dividerTestID}
               entrances={entrances}
               scheduleEntryDelay={scheduleEntryDelay}
@@ -375,6 +377,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       onAuthorPress,
       onCopyTrade,
       onPositionPress,
+      requireSocialProfile,
       scheduleEntryDelay,
       state,
     ],

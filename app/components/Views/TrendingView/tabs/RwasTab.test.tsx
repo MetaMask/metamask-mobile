@@ -41,6 +41,10 @@ jest.mock('../../../UI/Perps', () => ({
 
 jest.mock('../../../UI/PredictNext', () => ({
   selectPredictAvailability: jest.fn(() => false),
+  usePredictEntryActions: () => ({
+    openPredict: jest.fn(() => true),
+    canOpenPredict: jest.fn(() => true),
+  }),
 }));
 
 const mockOpenQuickBuy = jest.fn();
