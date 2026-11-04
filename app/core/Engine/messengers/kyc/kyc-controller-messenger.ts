@@ -26,6 +26,8 @@ const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:createUkycSession',
   'KycService:resetWrappingKeys',
   'KycService:setAuthorizations',
+  'KycService:createDeletion',
+  'KycService:completeDeletion',
   'KycService:createJourney',
   'KycService:getSessionStatus',
   'KycService:getSessionStatusForVendor',

@@ -465,16 +465,15 @@ describe('CreateVirtualBankAccount', () => {
         <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
       );
 
-      await waitFor(() => expect(Logger.error).toHaveBeenCalledWith(
-        secretError,
-        {
+      await waitFor(() =>
+        expect(Logger.error).toHaveBeenCalledWith(secretError, {
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'CreateVirtualBankAccount',
             data: { step: 'ensureLocalUserSecret' },
           },
-        },
-      ));
+        }),
+      );
 
       expect(
         getByTestId(
