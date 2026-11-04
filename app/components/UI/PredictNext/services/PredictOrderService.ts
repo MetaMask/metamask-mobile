@@ -13,6 +13,11 @@ import type {
   PredictVenueId,
 } from '../types';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
+import type { SignOperationInput } from '../auth/signing/signOperationTypes';
+import type {
+  TemplateInputs,
+  TemplateValues,
+} from '../auth/signing/venueTemplates';
 import type { VenueTradingAdapter } from '../adapters/types';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
@@ -33,9 +38,17 @@ const TERMINAL_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'rejected',
 ];
 
-/** How many re-POSTs observe one in-flight Commit before handing control
- * back to the caller. The backend's own Commit is fast, so this stays small. */
-const MAX_COMMIT_OBSERVATIONS = 3;
+/** How many further commits observe one operation. Each call is one step
+ * (submit, lookup, or a scan page), so the bound covers a short scan. */
+const MAX_COMMIT_OBSERVATIONS = 8;
+
+/** What the phone signs for one commit call. */
+export interface PredictOrderCommitSigning {
+  inputs: TemplateInputs;
+  values: TemplateValues;
+  step: string;
+  confirmed?: boolean;
+}
 
 /** How long to wait between observation re-POSTs, in milliseconds. */
 const COMMIT_OBSERVATION_DELAY_MS = 500;
@@ -69,6 +82,7 @@ export interface PredictOrderServiceCommitPreviewAction {
   handler: (
     venueId: PredictVenueId,
     previewId: string,
+    signing?: PredictOrderCommitSigning,
   ) => Promise<PredictOrderReceipt>;
 }
 
@@ -114,6 +128,8 @@ export class PredictOrderService {
   readonly #venueId: PredictVenueId;
   readonly #observationDelayMs: number;
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
+  /** The step the next commit of a preview signs. Kept for Keep checking. */
+  readonly #commitSigning = new Map<string, PredictOrderCommitSigning>();
   /** Bumped when every Commit already underway is abandoned. */
   #commitGeneration = 0;
 
@@ -174,8 +190,13 @@ export class PredictOrderService {
   async commitPreview(
     venueId: PredictVenueId,
     previewId: string,
+    signing?: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     this.#assertVenue(venueId);
+    const committed = signing ?? this.#commitSigning.get(previewId);
+    if (!committed) {
+      throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+    }
     const inFlight = this.#inFlightCommits.get(previewId);
     if (inFlight) {
       return inFlight.promise;
@@ -188,7 +209,7 @@ export class PredictOrderService {
     // Racing the abandonment is what makes the rejection immediate: a caller
     // must not wait out the observation delay after the reset.
     const commit = Promise.race([
-      this.#commitAndObserve(previewId, generation),
+      this.#commitAndObserve(previewId, generation, committed),
       abandonment,
     ]);
     const tracked = commit.finally(() => {
@@ -213,6 +234,7 @@ export class PredictOrderService {
     this.#commitGeneration += 1;
     const commits = [...this.#inFlightCommits.values()];
     this.#inFlightCommits.clear();
+    this.#commitSigning.clear();
     commits.forEach((commit) =>
       commit.abandon(PredictError.from(PredictErrorCode.UNAUTHENTICATED)),
     );
@@ -221,6 +243,7 @@ export class PredictOrderService {
   async #commitAndObserve(
     previewId: string,
     generation: number,
+    signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     const receipt = await withPredictNextTrace(
       {
@@ -229,7 +252,7 @@ export class PredictOrderService {
         op: TraceOperation.PredictOrderSubmission,
         tags: { venueId: this.#venueId },
       },
-      () => this.#observe(previewId, generation),
+      () => this.#observe(previewId, generation, signing),
     );
     // Checked before refreshing: a receipt for an abandoned Commit describes
     // the previous Predict User, so it must not repopulate the cache the
@@ -240,22 +263,38 @@ export class PredictOrderService {
     return receipt;
   }
 
-  /** Commits once, then observes an in-progress operation with bounded
-   * re-POSTs. The Commit is idempotent by Preview reference, so each re-POST
-   * observes the same operation instead of placing another Order. */
+  /** Commits once, then follows `next` one step per call. Re-arming is the
+   * step the receipt names, not a resubmit inside this call. */
   async #observe(
     previewId: string,
     generation: number,
+    signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
-    let receipt = await this.#commitOnce(previewId, generation);
+    let current = signing;
+    let receipt = await this.#commitOnce(previewId, generation, current);
     let observations = 0;
     while (
       isInProgressReceipt(receipt) &&
+      receipt.next &&
       observations < MAX_COMMIT_OBSERVATIONS
     ) {
+      current = {
+        inputs: current.inputs,
+        step: receipt.next.step,
+        values: receipt.next.values,
+        confirmed: false,
+      };
       await sleep(this.#observationDelayMs);
-      receipt = await this.#commitOnce(previewId, generation);
+      receipt = await this.#commitOnce(previewId, generation, current);
       observations += 1;
+    }
+    if (receipt.next) {
+      this.#commitSigning.set(previewId, {
+        inputs: current.inputs,
+        step: receipt.next.step,
+        values: receipt.next.values,
+        confirmed: false,
+      });
     }
     return receipt;
   }
@@ -266,9 +305,16 @@ export class PredictOrderService {
   async #commitOnce(
     previewId: string,
     generation: number,
+    signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     this.#assertNotAbandoned(generation);
-    const receipt = await this.#trading.commitOrder(previewId);
+    const input: SignOperationInput = {
+      inputs: signing.inputs,
+      values: signing.values,
+      step: signing.step,
+      confirmed: signing.confirmed,
+    };
+    const receipt = await this.#trading.commitOrder(previewId, input);
     this.#assertNotAbandoned(generation);
     return receipt;
   }

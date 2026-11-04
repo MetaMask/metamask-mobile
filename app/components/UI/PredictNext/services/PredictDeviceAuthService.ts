@@ -19,7 +19,11 @@ import type {
   DeviceAuthHeader,
   SignOperationInput,
 } from '../auth/signing/signOperationTypes';
-import { renderStep } from '../auth/signing/venueTemplates';
+import {
+  claimIntentSignature,
+  clearApprovedIntents,
+} from '../auth/signing/approvedIntentLedger';
+import { renderStep, TemplateError } from '../auth/signing/venueTemplates';
 import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
@@ -199,10 +203,11 @@ export class PredictDeviceAuthService {
       return undefined;
     }
     const step = input.step ?? 'default';
+    const nowMs = this.#deps.nowMs();
     const requests = renderStep(profile, operation, step, {
       inputs: input.inputs,
       values: input.values,
-      nowMs: this.#deps.nowMs(),
+      nowMs,
     });
     const { maxSignatures } = profile.implementation.params;
     if (requests.length > maxSignatures) {
@@ -220,20 +225,45 @@ export class PredictDeviceAuthService {
     if (!a2t) {
       return undefined;
     }
+    const rule = profile.operations[operation];
+    if (rule?.confirmation === 'per-intent') {
+      const mutation = requests.find(
+        (request) => request.idempotencyKey !== undefined,
+      );
+      const fromInput = input.inputs?.idempotencyKey;
+      const idempotencyKey =
+        mutation?.idempotencyKey ??
+        (typeof fromInput === 'string' ? fromInput : undefined);
+      if (!idempotencyKey) {
+        throw new TemplateError('confirmation', operation);
+      }
+      const minTs = input.values?.min_ts;
+      await claimIntentSignature({
+        operation,
+        idempotencyKey,
+        body: mutation?.body,
+        minTs: typeof minTs === 'number' ? minTs : undefined,
+        nowMs,
+        confirmed: input.confirmed === true,
+      });
+    }
     const context: DeviceSigningContext = {
       a2t,
       deviceKey: key.publicKey,
       salt: key.salt,
     };
-    const signatures = await Promise.all(
-      requests.map((request) =>
-        signDeviceRequest(profile, request, context, {
-          sign: binding.deviceKey.sign,
-          requestId: () => uuidv4(),
-          now: this.#deps.now,
-        }),
-      ),
-    );
+    const signatures =
+      requests.length === 0
+        ? []
+        : await Promise.all(
+            requests.map((request) =>
+              signDeviceRequest(profile, request, context, {
+                sign: binding.deviceKey.sign,
+                requestId: () => uuidv4(),
+                now: this.#deps.now,
+              }),
+            ),
+          );
     return {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
@@ -264,6 +294,8 @@ export class PredictDeviceAuthService {
   clear(): void {
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
+    // The ledger is the confirmation record. A lock drops it with the session.
+    void clearApprovedIntents();
   }
 
   /**
@@ -278,6 +310,7 @@ export class PredictDeviceAuthService {
         'Failed to reset Predict device authentication',
       );
     };
+    await clearApprovedIntents();
     const active = this.#active;
     this.#active = undefined;
     try {

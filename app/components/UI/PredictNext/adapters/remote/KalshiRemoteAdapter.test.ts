@@ -758,12 +758,26 @@ describe('KalshiRemoteAdapter', () => {
       side: 'yes' as const,
       action: 'buy' as const,
       amount: '20' as never,
+      idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
     };
     const sellPreviewParams = {
       marketId,
       side: 'yes' as const,
       action: 'sell' as const,
       contracts: '70' as never,
+      idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+    };
+    const commitSigning = {
+      step: 'submit',
+      confirmed: true,
+      inputs: {
+        action: 'buy',
+        outcome: 'yes',
+        marketId,
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        amountCents: 2000,
+      },
+      values: { price: '0.4500', count: '10.00' },
     };
 
     it('sends the sell intent through the transport unchanged', async () => {
@@ -830,7 +844,12 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.fetchOrderPreview).toHaveBeenCalledWith(
         adapter.venueId,
         // Version tolerance: no `action` key reaches the wire for a buy.
-        { marketId, side: 'yes', amount: '20' },
+        {
+          marketId,
+          side: 'yes',
+          amount: '20',
+          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        },
         undefined,
       );
     });
@@ -977,6 +996,7 @@ describe('KalshiRemoteAdapter', () => {
 
       const result = await adapter.trading.commitOrder(
         sellReceiptPayload.previewId,
+        commitSigning,
       );
 
       expect(result).toMatchObject({
@@ -994,7 +1014,10 @@ describe('KalshiRemoteAdapter', () => {
       });
 
       await expect(
-        adapter.trading.commitOrder(sellReceiptPayload.previewId),
+        adapter.trading.commitOrder(
+          sellReceiptPayload.previewId,
+          commitSigning,
+        ),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1005,6 +1028,7 @@ describe('KalshiRemoteAdapter', () => {
 
       const result = await adapter.trading.commitOrder(
         receiptPayload.previewId,
+        commitSigning,
       );
 
       expect(result.status).toBe('submitted');
@@ -1014,6 +1038,7 @@ describe('KalshiRemoteAdapter', () => {
         adapter.venueId,
         { previewId: receiptPayload.previewId },
         undefined,
+        commitSigning,
       );
     });
 
@@ -1021,12 +1046,17 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockResolvedValue(receiptPayload);
       const signal = new AbortController().signal;
 
-      await adapter.trading.commitOrder(receiptPayload.previewId, { signal });
+      await adapter.trading.commitOrder(
+        receiptPayload.previewId,
+        commitSigning,
+        { signal },
+      );
 
       expect(client.commitOrder).toHaveBeenCalledWith(
         adapter.venueId,
         { previewId: receiptPayload.previewId },
         { signal },
+        commitSigning,
       );
     });
 
@@ -1034,7 +1064,10 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockResolvedValue(receiptPayload);
 
       await expect(
-        adapter.trading.commitOrder('b3c2a1d0-1111-4222-8333-444455559999'),
+        adapter.trading.commitOrder(
+          'b3c2a1d0-1111-4222-8333-444455559999',
+          commitSigning,
+        ),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1047,7 +1080,7 @@ describe('KalshiRemoteAdapter', () => {
       });
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1060,7 +1093,7 @@ describe('KalshiRemoteAdapter', () => {
       });
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1072,7 +1105,7 @@ describe('KalshiRemoteAdapter', () => {
       );
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.MARKET_NOT_TRADEABLE,
@@ -1084,7 +1117,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(new PredictHttpError(401));
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
       );
@@ -1094,7 +1127,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(new PredictHttpError(503));
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
       );
@@ -1106,7 +1139,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(abortError);
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId),
+        adapter.trading.commitOrder(receiptPayload.previewId, commitSigning),
       ).rejects.toBe(abortError);
     });
   });

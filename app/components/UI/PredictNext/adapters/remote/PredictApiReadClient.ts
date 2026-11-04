@@ -1,6 +1,7 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import type { TemplateValues } from '../../auth/signing/venueTemplates';
 import type { VenueOperationName } from '../../auth/venueSigningProfiles';
 import type {
   FetchFeedParams,
@@ -82,6 +83,7 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     params: FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SignOperationInput,
   ): Promise<unknown>;
 }
 
@@ -90,7 +92,30 @@ type PredictApiReadQueryParams = FetchFeedParams &
     range?: PredictMarketHistoryRange;
     status?: string;
     sort?: FetchPositionsParams['sort'];
+    continuation?: string;
   };
+
+const continuationOf = (
+  value: unknown,
+): { token: string; step: string; values: TemplateValues } | undefined => {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.token !== 'string' ||
+    typeof record.step !== 'string' ||
+    typeof record.values !== 'object' ||
+    record.values === null
+  ) {
+    return undefined;
+  }
+  return {
+    token: record.token,
+    step: record.step,
+    values: record.values as TemplateValues,
+  };
+};
 
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
@@ -123,12 +148,22 @@ export class PredictHttpError extends Error {
   readonly status: number;
   /** Canonical error code from the response body, when the backend sends one. */
   readonly bodyCode?: string;
+  /** The step predict-api now expects, on `venue_step_changed`. */
+  readonly next?: {
+    step: string;
+    values: Record<string, string | number | boolean>;
+  };
 
-  constructor(status: number, bodyCode?: string) {
+  constructor(
+    status: number,
+    bodyCode?: string,
+    next?: PredictHttpError['next'],
+  ) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
     this.bodyCode = bodyCode;
+    this.next = next;
   }
 }
 
@@ -139,6 +174,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #getBearerToken: () => Promise<string | undefined>;
   readonly #signOperation?: SignOperation;
   readonly #invalidateSigningSession?: () => void;
+  /** Values the next page of a cursor must sign, from the page that named it. */
+  readonly #nextSigning = new Map<
+    string,
+    { step: string; values: TemplateValues }
+  >();
 
   constructor({
     baseUrl,
@@ -178,11 +218,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     { status, ...params }: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
+    return this.#getSignedPaged(
+      'portfolio.positions',
       ['v1', 'venues', venueId, 'positions'],
       // The route takes the status filter as a comma-separated list.
       { ...params, status: status?.length ? status.join(',') : undefined },
       options,
+      (body) => body.positions !== undefined,
     );
   }
 
@@ -190,10 +232,12 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
+    return this.#getSignedPaged(
+      'portfolio.summary',
       ['v1', 'venues', venueId, 'portfolio', 'summary'],
       undefined,
       options,
+      (body) => body.availableBalance !== undefined,
     );
   }
 
@@ -202,7 +246,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
+    return this.#getSignedPaged(
+      'portfolio.activity',
+      ['v1', 'venues', venueId, 'activity'],
+      params,
+      options,
+      (body) => body.activity !== undefined,
+    );
   }
 
   fetchFeed(
@@ -260,24 +310,58 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'orders', 'preview'],
       params,
       options,
+      {
+        operation: 'orders.preview',
+        input: {
+          inputs: {
+            action:
+              'action' in params && params.action === 'sell' ? 'sell' : 'buy',
+            marketId: params.marketId,
+            idempotencyKey: params.idempotencyKey,
+          },
+        },
+      },
     );
   }
 
   /**
    * Commits an approved Order Preview. The body carries the Preview
-   * reference only; the backend derives every executable detail from the
-   * stored Preview and derives identity from the bearer token.
+   * reference only. `signing` is the step the phone renders and signs.
+   * `venue_step_changed` is rendered again from the body's `next` and sent
+   * once more.
    */
-  commitOrder(
+  async commitOrder(
     venueId: PredictVenueId,
     params: FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SignOperationInput,
   ): Promise<unknown> {
-    return this.#postAuthenticated(
-      ['v1', 'venues', venueId, 'orders', 'commit'],
-      params,
-      options,
-    );
+    const post = (input: SignOperationInput | undefined) =>
+      this.#postAuthenticated(
+        ['v1', 'venues', venueId, 'orders', 'commit'],
+        params,
+        options,
+        input ? { operation: 'orders.commit', input } : undefined,
+      );
+    try {
+      return await post(signing);
+    } catch (error) {
+      if (
+        !signing ||
+        !(error instanceof PredictHttpError) ||
+        error.status !== 409 ||
+        error.bodyCode !== 'venue_step_changed' ||
+        !error.next
+      ) {
+        throw error;
+      }
+      return post({
+        ...signing,
+        step: error.next.step,
+        values: error.next.values,
+        confirmed: false,
+      });
+    }
   }
 
   /**
@@ -300,6 +384,69 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       throw new PredictHttpError(401);
     }
     return token;
+  }
+
+  /**
+   * One signed venue read per call. A body without the page is a partial
+   * result: its continuation is signed and sent until the page is present.
+   * A finished page can also name the values the next cursor must sign.
+   */
+  async #getSignedPaged(
+    operation: VenueOperationName,
+    segments: readonly string[],
+    params: PredictApiReadQueryParams | undefined,
+    options: PredictReadOptions | undefined,
+    ready: (body: Record<string, unknown>) => boolean,
+  ): Promise<unknown> {
+    const cursor = params?.cursor;
+    const remembered =
+      typeof cursor === 'string' ? this.#nextSigning.get(cursor) : undefined;
+    let step =
+      remembered?.step ??
+      (operation === 'portfolio.activity' ? 'settlements' : 'holdings');
+    let values = remembered?.values;
+    let continuation: string | undefined;
+    for (let guard = 0; guard < 200; guard += 1) {
+      try {
+        const body = await this.#get(
+          segments,
+          { ...params, continuation },
+          options,
+          { operation, input: { step, values } },
+        );
+        if (typeof body !== 'object' || body === null) {
+          return body;
+        }
+        const record = body as Record<string, unknown>;
+        const next = continuationOf(record.continuation);
+        const nextCursor = record.nextCursor;
+        if (typeof nextCursor === 'string' && next) {
+          this.#nextSigning.set(nextCursor, {
+            step: next.step,
+            values: next.values,
+          });
+        }
+        if (ready(record) || !next) {
+          return body;
+        }
+        continuation = next.token;
+        step = next.step;
+        values = next.values;
+      } catch (error) {
+        if (
+          error instanceof PredictHttpError &&
+          error.status === 409 &&
+          error.bodyCode === 'venue_step_changed' &&
+          error.next
+        ) {
+          step = error.next.step;
+          values = error.next.values;
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new PredictHttpError(503);
   }
 
   /**
@@ -348,8 +495,8 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       : await send();
 
     if (!response.ok) {
-      const bodyCode = await this.#extractErrorCode(response);
-      throw new PredictHttpError(response.status, bodyCode);
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
     }
 
     try {
@@ -366,9 +513,43 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     body: FetchOrderPreviewParams | FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SigningIntent,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
-    return this.#post(segments, body, bearerToken, options);
+    if (!signing) {
+      return this.#post(segments, body, bearerToken, options);
+    }
+    const url = new URL(
+      segments.map(encodeURIComponent).join('/'),
+      this.#baseUrlWithTrailingSlash(),
+    );
+    const response = await this.#sendSignedRead(signing, (deviceAuth) =>
+      this.#fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'x-metamask-clientproduct': 'metamask-mobile',
+          'x-metamask-clientversion': this.#clientVersion,
+          Authorization: `Bearer ${bearerToken}`,
+          [deviceAuth.name]: deviceAuth.value,
+        },
+        body: JSON.stringify(body),
+        signal: options?.signal,
+      }),
+    );
+    if (!response.ok) {
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
+    }
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      throw new PredictHttpError(response.status);
+    }
   }
 
   async #post(
@@ -396,8 +577,8 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     });
 
     if (!response.ok) {
-      const bodyCode = await this.#extractErrorCode(response);
-      throw new PredictHttpError(response.status, bodyCode);
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
     }
 
     try {
@@ -435,7 +616,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
           // A success has no error code to read.
           code: response.ok
             ? undefined
-            : await this.#extractErrorCode(response.clone()),
+            : (await this.#readError(response.clone())).code,
         }),
       );
     } catch (error) {
@@ -449,13 +630,44 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
   }
 
-  /** Reads the canonical error code from an error response body, if any. */
-  async #extractErrorCode(response: Response): Promise<string | undefined> {
+  /** Reads the canonical error code, and `next` when the step moved. */
+  async #readError(response: Response): Promise<{
+    code?: string;
+    next?: PredictHttpError['next'];
+  }> {
     try {
-      const body = (await response.json()) as { code?: unknown };
-      return typeof body.code === 'string' ? body.code : undefined;
+      const body = (await response.json()) as {
+        code?: unknown;
+        next?: unknown;
+      };
+      const next = body.next;
+      const values =
+        typeof next === 'object' &&
+        next !== null &&
+        'values' in next &&
+        typeof next.values === 'object' &&
+        next.values !== null
+          ? next.values
+          : undefined;
+      const step =
+        typeof next === 'object' &&
+        next !== null &&
+        'step' in next &&
+        typeof next.step === 'string'
+          ? next.step
+          : undefined;
+      return {
+        code: typeof body.code === 'string' ? body.code : undefined,
+        next:
+          step && values
+            ? {
+                step,
+                values: values as Record<string, string | number | boolean>,
+              }
+            : undefined,
+      };
     } catch {
-      return undefined;
+      return {};
     }
   }
 

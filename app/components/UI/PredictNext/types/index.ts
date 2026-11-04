@@ -286,6 +286,8 @@ export type PredictOrderPreviewParams =
       action: 'buy';
       /** The entered maximum USD spend before fees. */
       amount: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     }
   | {
       marketId: PredictEntityId;
@@ -295,6 +297,8 @@ export type PredictOrderPreviewParams =
        * a Position is share-denominated and the Venue matches whole
        * contracts only. */
       contracts: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     };
 
 /** Wire-shape twin of PredictOrderPreviewParams for the API transport.
@@ -307,6 +311,7 @@ export type FetchOrderPreviewParams =
       marketId: string;
       side: PredictOutcomeSide;
       amount: string;
+      idempotencyKey: string;
     }
   | {
       marketId: string;
@@ -314,6 +319,7 @@ export type FetchOrderPreviewParams =
       action: 'sell';
       /** Positive-integer decimal string: whole contracts only. */
       contracts: string;
+      idempotencyKey: string;
     };
 
 /** Structured fee component source, keyed by the client into localized
@@ -339,6 +345,10 @@ interface PredictOrderPreviewBase {
   /** Backend-owned breakdown of the fee; present when the backend reports it. */
   feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
   expiresAt: PredictTimestamp;
+  /** Yes-leg limit the commit signs. Absent until predict-api quotes it. */
+  price?: PredictDecimal;
+  /** Contract count the commit signs, fixed to 2 decimals. */
+  count?: PredictAmount;
 }
 
 /** A buy Order Preview: estimated cost, fees, and potential return. */
@@ -454,11 +464,21 @@ export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
   netProceeds: PredictAmount | null;
 }
 
+/** The step the next commit call signs, and the server values it renders from. */
+export interface PredictOrderContinuation {
+  step: 'submit' | 'lookup' | 'scan' | 'none';
+  values: Readonly<Record<string, string | number | boolean>>;
+}
+
 /** The canonical result of a committed Order, discriminated by the Order
  * Action. Cross-action fields fail validation at the parse boundary. */
-export type PredictOrderReceipt =
+export type PredictOrderReceipt = (
   | PredictBuyOrderReceipt
-  | PredictSellOrderReceipt;
+  | PredictSellOrderReceipt
+) & {
+  /** Present while the operation still has a step to sign. */
+  next?: PredictOrderContinuation;
+};
 
 export interface FetchPortfolioPageParams {
   cursor?: string;

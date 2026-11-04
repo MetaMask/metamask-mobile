@@ -10,8 +10,23 @@ import { getPredictOrderServiceMessenger } from '../../../../core/Engine/messeng
 import {
   PREDICT_ORDER_SERVICE_NAME,
   PredictOrderService,
+  type PredictOrderCommitSigning,
 } from '../services/PredictOrderService';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+
+const ORDER_KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
+const commitSigning: PredictOrderCommitSigning = {
+  step: 'submit',
+  confirmed: true,
+  inputs: {
+    action: 'buy',
+    outcome: 'yes',
+    marketId: 'KXTEST-26-A',
+    idempotencyKey: ORDER_KEY,
+    amountCents: 2000,
+  },
+  values: { price: '0.4500', count: '10.00' },
+};
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -196,6 +211,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
+      idempotencyKey: ORDER_KEY,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
@@ -214,6 +230,7 @@ describe('PredictNext Order Preview request', () => {
           marketId: 'KXTEST-26-A',
           side: 'yes',
           amount: '20.00',
+          idempotencyKey: ORDER_KEY,
         }),
       }),
     );
@@ -238,6 +255,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '999.00' as never,
+        idempotencyKey: ORDER_KEY,
       }),
     ).rejects.toMatchObject({ code: 'INSUFFICIENT_BALANCE' });
   });
@@ -260,6 +278,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: ORDER_KEY,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -279,6 +298,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: ORDER_KEY,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -298,6 +318,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: ORDER_KEY,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -314,6 +335,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20' as never,
+      idempotencyKey: ORDER_KEY,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
@@ -332,6 +354,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
+      idempotencyKey: ORDER_KEY,
     });
 
     expect(result.previewId).toBe(sellPreviewResponse.previewId);
@@ -348,6 +371,7 @@ describe('PredictNext Order Preview request', () => {
           side: 'yes',
           action: 'sell',
           contracts: '70',
+          idempotencyKey: ORDER_KEY,
         }),
       }),
     );
@@ -420,6 +444,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       sellReceiptResponse.previewId,
+      commitSigning,
     );
 
     expect(receipt).toMatchObject({
@@ -517,6 +542,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       buyReceiptResponse.previewId,
+      commitSigning,
     );
 
     expect(receipt).toMatchObject({
@@ -564,6 +590,10 @@ describe('PredictNext Order Preview request', () => {
       fee: null,
       actualSpend: null,
       payoutExposure: null,
+      next: {
+        step: 'lookup',
+        values: { order_id: 'c1b2c3d4-1111-4222-8333-444455556666' },
+      },
     };
 
     it('stops an observation loop without further commits or portfolio refreshes', async () => {
@@ -611,6 +641,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         buyReceiptResponse.previewId,
+        commitSigning,
       );
       await until(() => commitCalls === 2);
 

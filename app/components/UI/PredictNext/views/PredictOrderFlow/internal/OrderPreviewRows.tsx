@@ -14,6 +14,7 @@ import type {
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
+import type { InvariantDisplay } from '../../../auth/signing/venueTemplates';
 import { OrderDataRow } from './OrderDataRow';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
@@ -169,11 +170,31 @@ const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
  * quoted Order Action. */
 export const OrderPreviewRows = ({
   preview,
+  display,
 }: {
   preview: PredictOrderPreview;
+  /** The bound the signing invariant computed for this order. */
+  display?: InvariantDisplay;
 }) => (
   <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
     <BuyPreviewRows preview={preview} />
     <SellPreviewRows preview={preview} />
+    {display ? (
+      <QuoteRow
+        label={strings(
+          preview.action === 'sell'
+            ? 'predict_next.order_preview.min_proceeds'
+            : 'predict_next.order_preview.max_cost',
+        )}
+        value={formatUsd(
+          preview.action === 'sell' ? display.minProceeds : display.maxCost,
+        )}
+        testID={
+          preview.action === 'sell'
+            ? PredictOrderFlowTestIds.MIN_PROCEEDS
+            : PredictOrderFlowTestIds.MAX_COST
+        }
+      />
+    ) : null}
   </Box>
 );

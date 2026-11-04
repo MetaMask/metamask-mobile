@@ -23,6 +23,8 @@ export const PredictOrderFlowTestIds = {
   TOTAL_DEBIT: 'predict-order-flow-total-debit',
   PAY_WITH: 'predict-order-flow-pay-with',
   TOTAL: 'predict-order-flow-total',
+  MAX_COST: 'predict-order-flow-max-cost',
+  MIN_PROCEEDS: 'predict-order-flow-min-proceeds',
   TOTAL_INFO: 'predict-order-flow-total-info',
   BREAKDOWN: 'predict-order-flow-breakdown',
   EXPIRED: 'predict-order-flow-expired',

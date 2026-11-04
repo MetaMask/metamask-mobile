@@ -103,6 +103,7 @@ describe('KalshiOnboardingClient', () => {
           network: 'base',
           idempotencyKey: KEY,
         },
+        confirmed: true,
       },
     ],
   ])(

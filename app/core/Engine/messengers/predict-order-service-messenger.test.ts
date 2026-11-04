@@ -1,4 +1,8 @@
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type {
+  PredictDeviceAuthServiceClearAction,
+  PredictDeviceAuthServiceSignOperationAction,
+} from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -73,7 +77,9 @@ describe('getPredictOrderServiceInitMessenger', () => {
   it('delegates the bearer-token action from the root messenger', async () => {
     const rootMessenger = new Messenger<
       MockAnyNamespace,
-      AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+      | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+      | PredictDeviceAuthServiceSignOperationAction
+      | PredictDeviceAuthServiceClearAction,
       never
     >({ namespace: MOCK_ANY_NAMESPACE });
     rootMessenger.registerActionHandler(

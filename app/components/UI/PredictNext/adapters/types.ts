@@ -1,3 +1,4 @@
+import type { SignOperationInput } from '../auth/signing/signOperationTypes';
 import type {
   FetchFeedParams,
   FetchPortfolioPageParams,
@@ -49,10 +50,11 @@ export interface VenueTradingAdapter {
     options?: PredictReadOptions,
   ): Promise<PredictOrderPreview>;
   /** Commits an approved Order Preview and returns its canonical Order
-   * Receipt. Sends the Preview reference only; every executable detail is
-   * backend-owned. Safe to repeat for the same `previewId`, never automatic. */
+   * Receipt. Sends the Preview reference only. `signing` is the step the
+   * phone renders. Safe to repeat for the same `previewId`, never automatic. */
   commitOrder(
     previewId: string,
+    signing: SignOperationInput,
     options?: PredictReadOptions,
   ): Promise<PredictOrderReceipt>;
 }

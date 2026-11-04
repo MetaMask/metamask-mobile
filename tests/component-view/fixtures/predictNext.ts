@@ -550,6 +550,10 @@ export const composePredictNextOrderService = (): PredictOrderService => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'test-envelope',
+      }),
     }),
   );
   return new PredictOrderService({
@@ -576,6 +580,10 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'test-envelope',
+      }),
     }),
   );
   const portfolioService = new PredictPortfolioService({
@@ -701,7 +709,8 @@ export const makePredictNextSellPreview = (
   marketId: 'KXTEST-26-A',
   side: 'yes',
   action: 'sell',
-  requestedContracts: 75,
+  price: '0.4000',
+  count: Number(overrides.requestedContracts ?? 75).toFixed(2),
   estimatedContracts: 70,
   averagePrice: '0.4800',
   limitPrice: '0.4000',
@@ -713,6 +722,7 @@ export const makePredictNextSellPreview = (
   estimatedProceeds: '33.60',
   estimatedNetProceeds: '33.26',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  requestedContracts: 75,
   ...overrides,
 });
 

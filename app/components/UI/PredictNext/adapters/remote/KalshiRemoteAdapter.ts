@@ -150,12 +150,14 @@ export class KalshiRemoteAdapter {
                   marketId: params.marketId,
                   side: params.side,
                   amount: params.amount,
+                  idempotencyKey: params.idempotencyKey,
                 }
               : {
                   marketId: params.marketId,
                   side: params.side,
                   action: 'sell',
                   contracts: params.contracts,
+                  idempotencyKey: params.idempotencyKey,
                 };
           const value = await client.fetchOrderPreview(
             this.venueId,
@@ -195,12 +197,13 @@ export class KalshiRemoteAdapter {
       },
       // One network attempt per invocation; observation and reconciliation
       // re-commit deliberately, never automatically.
-      commitOrder: async (previewId, options) => {
+      commitOrder: async (previewId, signing, options) => {
         try {
           const value = await client.commitOrder(
             this.venueId,
             { previewId },
             options,
+            signing,
           );
           const result = parsePredictOrderReceipt(value);
           if (

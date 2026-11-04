@@ -119,6 +119,14 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:clear'),
     }),
   );
   return {

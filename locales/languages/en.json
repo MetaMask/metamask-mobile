@@ -3828,6 +3828,8 @@
       "net_proceeds": "Net proceeds",
       "net_proceeds_line": "Net proceeds {{amount}}",
       "max": "Max",
+      "max_cost": "Max cost",
+      "min_proceeds": "Minimum proceeds",
       "potential_payout": "Potential payout",
       "potential_profit": "Potential profit",
       "fee": "Fee",

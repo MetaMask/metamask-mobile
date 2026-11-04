@@ -183,7 +183,10 @@ export class KalshiOnboardingClient {
       ['activate'],
       { walletAddress, network, idempotencyKey },
       'onboarding.activate',
-      { inputs: { walletAddress, network, idempotencyKey } },
+      {
+        inputs: { walletAddress, network, idempotencyKey },
+        confirmed: true,
+      },
     );
     return parseKalshiActivate(value);
   }

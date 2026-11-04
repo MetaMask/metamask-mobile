@@ -14,4 +14,10 @@ export interface SignOperationInput {
   values?: TemplateValues;
   /** Defaults to `default`. Multi-step operations name their step. */
   step?: string;
+  /**
+   * The user confirmed this intent on screen. Required the first time a
+   * `per-intent` operation is signed. A later signature of the same body
+   * does not need it.
+   */
+  confirmed?: boolean;
 }

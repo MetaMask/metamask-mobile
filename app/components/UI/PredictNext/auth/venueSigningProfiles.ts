@@ -44,10 +44,41 @@ export type VenueOperationName =
   | 'onboarding.start'
   | 'onboarding.link'
   | 'onboarding.verify'
-  | 'onboarding.activate';
+  | 'onboarding.activate'
+  | 'orders.preview'
+  | 'orders.commit'
+  | 'portfolio.positions'
+  | 'portfolio.summary'
+  | 'portfolio.activity';
 
 const TRADE_API = '/trade-api/v2';
+const OPAQUE_CURSOR = {
+  value: 'cursor',
+  shape: { kind: 'opaque', maxLength: 512 },
+} as const;
+/** One settlements read per resolved ticker, bounded by maxSignatures. */
+const TICKERS = {
+  value: 'tickers',
+  as: 'ticker',
+  shape: {
+    kind: 'array',
+    of: { kind: 'opaque', maxLength: 256 },
+    maxItems: 4,
+  },
+} as const;
 const IDEMPOTENCY_KEY = { input: 'idempotencyKey' } as const;
+const IDEMPOTENCY_UUID = {
+  input: 'idempotencyKey',
+  shape: { kind: 'uuid-v4' },
+} as const;
+/** Kalshi's taker fee is at most 2 cents per contract. */
+const ORDER_FEE_CEILING_CENTS = 2;
+const MARKET_ID = {
+  input: 'marketId',
+  shape: { kind: 'opaque', maxLength: 128 },
+} as const;
+const WHEN_BUY = { input: 'action', equals: 'buy' } as const;
+const WHEN_SELL = { input: 'action', equals: 'sell' } as const;
 
 /**
  * Kalshi demo. The authority is what Kalshi demo verifies, even though
@@ -100,6 +131,52 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       class: 'mutation',
       confirmation: 'per-intent',
       steps: { default: [{ request: 'wallet_register' }] },
+    },
+    'orders.preview': {
+      class: 'read',
+      steps: {
+        default: [
+          { request: 'balance', when: WHEN_BUY },
+          { request: 'positions_for_market', when: WHEN_SELL },
+          { request: 'market_restriction' },
+        ],
+      },
+    },
+    'orders.commit': {
+      class: 'mutation',
+      confirmation: 'per-intent',
+      steps: {
+        submit: [
+          { request: 'balance', when: WHEN_BUY },
+          { request: 'positions_for_market', when: WHEN_SELL },
+          { request: 'order_create' },
+        ],
+        lookup: [{ request: 'order_lookup' }],
+        scan: [{ request: 'order_scan' }],
+        none: [],
+      },
+    },
+    'portfolio.positions': {
+      class: 'read',
+      steps: {
+        holdings: [{ request: 'holdings_page' }],
+        settlements: [{ request: 'holding_settlement', each: TICKERS }],
+      },
+    },
+    'portfolio.summary': {
+      class: 'read',
+      steps: {
+        holdings: [{ request: 'holdings_page' }],
+        balance: [{ request: 'balance' }],
+        settlements: [{ request: 'holding_settlement', each: TICKERS }],
+      },
+    },
+    'portfolio.activity': {
+      class: 'read',
+      steps: {
+        settlements: [{ request: 'activity_settlements' }],
+        archive: [{ request: 'historical_positions' }],
+      },
     },
   },
   requests: {
@@ -178,6 +255,159 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
         maxBytes: 512,
       },
       idempotencyKey: IDEMPOTENCY_KEY,
+    },
+    positions_for_market: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/positions`,
+      query: [
+        { key: 'ticker', value: MARKET_ID },
+        { key: 'count_filter', value: { const: 'position' } },
+        { key: 'limit', value: { const: 200 } },
+      ],
+    },
+    market_restriction: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/isv/market-restriction`,
+      query: [{ key: 'ticker', value: MARKET_ID }],
+    },
+    order_create: {
+      class: 'mutation',
+      method: 'POST',
+      path: `${TRADE_API}/portfolio/events/orders`,
+      body: {
+        json: [
+          { key: 'ticker', value: MARKET_ID },
+          { key: 'client_order_id', value: IDEMPOTENCY_UUID },
+          {
+            key: 'side',
+            value: {
+              map: {
+                inputs: ['action', 'outcome'],
+                table: {
+                  'buy:yes': 'bid',
+                  'buy:no': 'ask',
+                  'sell:yes': 'ask',
+                  'sell:no': 'bid',
+                },
+              },
+            },
+          },
+          {
+            key: 'count',
+            value: {
+              value: 'count',
+              shape: { kind: 'decimal', scale: 2, min: '1' },
+            },
+          },
+          {
+            key: 'price',
+            value: {
+              value: 'price',
+              shape: { kind: 'decimal', scale: 4, min: '0.01', max: '0.99' },
+            },
+          },
+          { key: 'time_in_force', value: { const: 'immediate_or_cancel' } },
+          {
+            key: 'self_trade_prevention_type',
+            value: { const: 'taker_at_cross' },
+          },
+        ],
+        maxBytes: 1024,
+      },
+      idempotencyKey: IDEMPOTENCY_UUID,
+      invariants: [
+        {
+          implementation: 'binary-limit-order-v1',
+          params: {
+            pricing: 'yes-leg',
+            feeCeilingCentsPerContract: ORDER_FEE_CEILING_CENTS,
+            amountInput: 'amountCents',
+            contractsInput: 'contracts',
+            minOutcomePriceInput: 'minOutcomePrice',
+          },
+        },
+      ],
+    },
+    order_lookup: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/orders/{order_id}`,
+      pathParams: {
+        order_id: { value: 'order_id', shape: { kind: 'uuid-v4' } },
+      },
+    },
+    order_scan: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/orders`,
+      query: [
+        { key: 'ticker', value: MARKET_ID },
+        {
+          key: 'min_ts',
+          value: {
+            value: 'min_ts',
+            shape: {
+              kind: 'time',
+              unit: 's',
+              maxAgeSec: 2400,
+              maxAheadSec: 60,
+            },
+          },
+        },
+        { key: 'limit', value: { const: 200 } },
+        {
+          key: 'cursor',
+          value: { value: 'cursor', shape: { kind: 'opaque', maxLength: 512 } },
+          optional: true,
+        },
+      ],
+    },
+    holdings_page: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/positions`,
+      query: [
+        { key: 'count_filter', value: { const: 'position' } },
+        { key: 'limit', value: { const: 200 } },
+        { key: 'cursor', value: OPAQUE_CURSOR, optional: true },
+      ],
+    },
+    holding_settlement: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/settlements`,
+      query: [
+        {
+          key: 'ticker',
+          value: { value: 'ticker', shape: { kind: 'opaque', maxLength: 256 } },
+        },
+        { key: 'limit', value: { const: 10 } },
+      ],
+    },
+    activity_settlements: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/portfolio/settlements`,
+      query: [
+        { key: 'limit', value: { const: 200 } },
+        {
+          key: 'max_ts',
+          value: {
+            value: 'max_ts',
+            shape: { kind: 'time', unit: 's', maxAheadSec: 60 },
+          },
+          optional: true,
+        },
+        { key: 'cursor', value: OPAQUE_CURSOR, optional: true },
+      ],
+    },
+    historical_positions: {
+      class: 'read',
+      method: 'GET',
+      path: `${TRADE_API}/historical/positions`,
+      query: [{ key: 'limit', value: { const: 1 } }],
     },
   },
 };

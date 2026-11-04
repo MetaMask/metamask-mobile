@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
+
 import {
   act,
   fireEvent,
@@ -109,11 +110,13 @@ const stubFetch = (
     const { status = 200, body } = isCommit
       ? (commit?.() ?? { status: 200, body: makeReceipt() })
       : reply(String(url), init);
-    return {
+    const response = {
       ok: status >= 200 && status < 300,
       status,
       json: async () => body,
-    } as Response;
+      clone: (): Response => response as unknown as Response,
+    };
+    return response as unknown as Response;
   });
 };
 
@@ -217,9 +220,20 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   totalDebit: '20.86',
   potentialPayout: '43.00',
   potentialProfit: '22.14',
+  price: '0.0100',
+  count: '1.00',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
+
+/** The sheet mints a fresh v4 key per open; assert the shape, not a stub. */
+const IDEMPOTENCY_KEY = expect.stringMatching(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+);
+const continuation = {
+  step: 'lookup',
+  values: { order_id: 'c1b2c3d4-1111-4222-8333-444455556666' },
+};
 
 const typeAmount = (amount: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
@@ -426,6 +440,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '20',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -441,6 +456,28 @@ describe('PredictOrderFlow', () => {
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+  });
+
+  it('keeps Review disabled when the quoted order exceeds the typed amount', async () => {
+    stubFetch((_url, init) => {
+      const body = JSON.parse(String(init?.body)) as { amount: string };
+      const echoed = Number(body.amount).toFixed(2);
+      return {
+        body: makePreview({
+          requestedAmount: echoed,
+          orderAmount: echoed,
+          price: '0.9900',
+          count: '100.00',
+        }),
+      };
+    });
+
+    await openSheet();
+    typeAmount('1');
+    await flushDebounce();
+    await waitFor(() => expect(previewCalls()).toHaveLength(1));
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
   });
 
   it('re-quotes and discards the old preview when the amount changes', async () => {
@@ -530,6 +567,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '5',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -568,6 +606,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '15',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -870,7 +909,12 @@ describe('PredictOrderFlow', () => {
       commit: () => {
         commits += 1;
         return commits === 1
-          ? { body: makeUnresolvedReceipt('reconciliation_required') }
+          ? {
+              body: {
+                ...makeUnresolvedReceipt('reconciliation_required'),
+                next: continuation,
+              },
+            }
           : { body: makeReceipt() };
       },
     });
@@ -1117,6 +1161,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '70',
+        idempotencyKey: IDEMPOTENCY_KEY,
       });
     });
 
@@ -1151,6 +1196,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '75',
+        idempotencyKey: IDEMPOTENCY_KEY,
       });
     });
 
@@ -1435,7 +1481,12 @@ describe('PredictOrderFlow', () => {
         commit: () => {
           commits += 1;
           return commits === 1
-            ? { body: makeUnresolvedSellReceipt('reconciliation_required') }
+            ? {
+                body: {
+                  ...makeUnresolvedSellReceipt('reconciliation_required'),
+                  next: continuation,
+                },
+              }
             : { body: makePredictNextSellReceipt() };
         },
       });

@@ -19,12 +19,9 @@ export const buildVenueAuthorization = (input: {
   signatures: readonly DeviceSignature[];
   maxSignatures: number;
 }): string => {
-  if (
-    input.signatures.length === 0 ||
-    input.signatures.length > input.maxSignatures
-  ) {
+  if (input.signatures.length > input.maxSignatures) {
     throw new Error(
-      `Venue authorization needs 1 to ${input.maxSignatures} signatures`,
+      `Venue authorization needs at most ${input.maxSignatures} signatures`,
     );
   }
   const json = JSON.stringify({

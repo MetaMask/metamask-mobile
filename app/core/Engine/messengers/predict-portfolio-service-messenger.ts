@@ -6,7 +6,7 @@ import {
 } from '@metamask/messenger';
 import type {
   PredictDeviceAuthServiceClearAction,
-  PredictDeviceAuthServiceSignVenueRequestsAction,
+  PredictDeviceAuthServiceSignOperationAction,
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { PredictPortfolioServiceMessenger } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import type { RootMessenger } from '../types';
@@ -25,7 +25,7 @@ export const getPredictPortfolioServiceMessenger = (
 export type PredictPortfolioServiceInitMessenger = Messenger<
   'PredictPortfolioServiceInit',
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
-  | PredictDeviceAuthServiceSignVenueRequestsAction
+  | PredictDeviceAuthServiceSignOperationAction
   | PredictDeviceAuthServiceClearAction,
   never
 >;

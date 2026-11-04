@@ -46,6 +46,10 @@ describe('PredictApiReadClient', () => {
       clientVersion: '7.0.0',
       fetch: fetchMock,
       getBearerToken: async () => 'secret-token',
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'envelope',
+      }),
     });
   });
 
@@ -226,6 +230,81 @@ describe('PredictApiReadClient', () => {
         }),
       }),
     );
+  });
+
+  it('follows a Positions continuation until the page is present', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        createResponse({
+          json: {
+            venueId: 'kalshi',
+            continuation: {
+              token: 'step-2',
+              step: 'settlements',
+              values: { tickers: ['KXTEST'] },
+            },
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        createResponse({
+          json: { venueId: 'kalshi', positions: [] },
+        }),
+      );
+
+    await expect(
+      client.fetchPositions(venueId, { limit: 20 }),
+    ).resolves.toEqual({
+      venueId: 'kalshi',
+      positions: [],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=20&continuation=step-2',
+      expect.anything(),
+    );
+  });
+
+  it('signs the next Activity page with the values the previous page returned', async () => {
+    const signOperation = jest.fn().mockResolvedValue({
+      name: 'Venue-Authorization',
+      value: 'envelope',
+    });
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signOperation,
+    });
+    fetchMock
+      .mockResolvedValueOnce(
+        createResponse({
+          json: {
+            venueId: 'kalshi',
+            activity: [],
+            nextCursor: 'page-2',
+            continuation: {
+              token: 'unused',
+              step: 'settlements',
+              values: { max_ts: 1700000000 },
+            },
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        createResponse({
+          json: { venueId: 'kalshi', activity: [] },
+        }),
+      );
+
+    await client.fetchActivity(venueId, { limit: 20 });
+    await client.fetchActivity(venueId, { limit: 20, cursor: 'page-2' });
+
+    expect(signOperation).toHaveBeenLastCalledWith('portfolio.activity', {
+      step: 'settlements',
+      values: { max_ts: 1700000000 },
+    });
   });
 
   it('authenticates Activity requests with encoded page parameters', async () => {
@@ -536,6 +615,48 @@ describe('PredictApiReadClient', () => {
         expect.any(String),
         expect.objectContaining({ signal }),
       );
+    });
+
+    it('signs the commit and renders the next step once when it changed', async () => {
+      const header = { name: 'Venue-Authorization', value: 'envelope' };
+      const signOperation = jest.fn().mockResolvedValue(header);
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+      const signing = {
+        step: 'submit',
+        confirmed: true,
+        inputs: { action: 'buy' },
+        values: { price: '0.4500', count: '10.00' },
+      };
+      const moved = {
+        code: 'venue_step_changed',
+        next: {
+          step: 'lookup',
+          values: { order_id: 'c1b2c3d4-1111-4222-8333-444455556666' },
+        },
+      };
+      const error = createResponse({ status: 409, json: moved });
+      (error as unknown as { clone: () => Response }).clone = () =>
+        createResponse({ status: 409, json: moved });
+      fetchMock
+        .mockResolvedValueOnce(error)
+        .mockResolvedValueOnce(createResponse({ json: { ok: true } }));
+
+      await expect(
+        client.commitOrder(venueId, { previewId }, undefined, signing),
+      ).resolves.toEqual({ ok: true });
+
+      expect(signOperation).toHaveBeenNthCalledWith(
+        2,
+        'orders.commit',
+        expect.objectContaining({ step: 'lookup', confirmed: false }),
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it('surfaces the canonical backend code from an error body', async () => {

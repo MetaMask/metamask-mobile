@@ -4,12 +4,16 @@ import {
   enums,
   literal,
   mask,
+  boolean,
   nullable,
   number,
   object,
+  optional,
+  record,
   refine,
   size,
   string,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -56,6 +60,8 @@ const previewHeader = {
   fee: amount,
   feeBreakdown: size(array(feeComponentSchema), 1, Infinity),
   expiresAt: timestamp,
+  price: optional(decimal),
+  count: optional(amount),
 };
 
 const buyPreviewSchema = object({
@@ -103,6 +109,12 @@ const receiptHeader = {
   venueOrderId: nullable(entityId),
   averageFillPrice: nullable(decimal),
   fee: nullable(amount),
+  next: optional(
+    object({
+      step: enums(['submit', 'lookup', 'scan', 'none'] as const),
+      values: record(string(), union([string(), number(), boolean()])),
+    }),
+  ),
 };
 
 const buyReceiptSchema = object({

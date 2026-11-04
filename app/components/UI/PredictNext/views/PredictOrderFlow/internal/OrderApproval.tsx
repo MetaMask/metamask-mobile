@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import type { InvariantDisplay } from '../../../auth/signing/venueTemplates';
 import type { PredictOrderPreview } from '../../../types';
 
 import { OrderPreviewRows } from './OrderPreviewRows';
@@ -22,6 +23,8 @@ const EXPIRY_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
 
 interface OrderApprovalProps {
   preview: PredictOrderPreview;
+  /** The bound the signing invariant computed for this order. */
+  display?: InvariantDisplay;
   /** Whether the Preview can no longer be committed, locally or at the venue. */
   isExpired: boolean;
   onApprove: () => void;
@@ -38,6 +41,7 @@ interface OrderApprovalProps {
  */
 export const OrderApproval = ({
   preview,
+  display,
   isExpired,
   onApprove,
   onBack,
@@ -47,7 +51,7 @@ export const OrderApproval = ({
     <Text variant={TextVariant.HeadingSm}>
       {strings('predict_next.order_approval.title')}
     </Text>
-    <OrderPreviewRows preview={preview} />
+    <OrderPreviewRows preview={preview} display={display} />
     <Text
       variant={TextVariant.BodyXs}
       color={TextColor.TextAlternative}

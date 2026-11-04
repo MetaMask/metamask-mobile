@@ -66,6 +66,16 @@ export interface StepRequest {
   /** A key of the profile's `requests`. */
   readonly request: string;
   readonly when?: Condition;
+  /**
+   * Render this request once per element of an array server value. The
+   * element is bound as the value named by `as` for that one render. An
+   * empty array renders no copy of the request.
+   */
+  readonly each?: {
+    readonly value: string;
+    readonly as: string;
+    readonly shape: Extract<Shape, { kind: 'array' }>;
+  };
 }
 
 export interface RequestTemplate {
@@ -91,8 +101,11 @@ export interface RequestTemplate {
       };
   /** Required for every mutation. */
   readonly idempotencyKey?: Source;
-  /** Allowlisted cross-field checks. None are bundled yet. */
-  readonly invariants?: readonly { readonly implementation: string }[];
+  /** Allowlisted cross-field checks. Each names a bundled implementation. */
+  readonly invariants?: readonly {
+    readonly implementation: string;
+    readonly params?: Readonly<Record<string, Scalar>>;
+  }[];
 }
 
 export interface OperationRule {
@@ -121,6 +134,18 @@ export interface RenderedRequest {
   /** Exact body bytes. Empty for reads and empty mutations. */
   readonly body: string;
   readonly idempotencyKey?: string;
+  /** Worst-case figures from an invariant, for the confirmation sheet. */
+  readonly display?: InvariantDisplay;
+}
+
+/** What `binary-limit-order-v1` shows on the confirmation sheet. */
+export interface InvariantDisplay {
+  /** Worst buy cost, in dollars, rounded up to the cent. */
+  readonly maxCost: string;
+  /** Contract count from the rendered body. */
+  readonly contracts: string;
+  /** Worst sell proceeds, in dollars, rounded down to the cent. */
+  readonly minProceeds: string;
 }
 
 export type TemplateRule =
@@ -138,7 +163,8 @@ export type TemplateRule =
   | 'body'
   | 'max_bytes'
   | 'idempotency_key'
-  | 'invariant';
+  | 'invariant'
+  | 'confirmation';
 
 /** A request cannot be rendered. Nothing is signed or relayed. */
 export class TemplateError extends Error {
@@ -412,18 +438,149 @@ const renderBody = (
   return text;
 };
 
+const dollarsFromCents = (cents: bigint): string => {
+  const whole = cents / 100n;
+  const fraction = (cents % 100n).toString().padStart(2, '0');
+  return `${whole}.${fraction}`;
+};
+
+const bodyField = (
+  body: string,
+  key: string,
+  implementation: string,
+): string => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    throw new TemplateError('invariant', implementation);
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new TemplateError('invariant', implementation);
+  }
+  const value = (parsed as Record<string, unknown>)[key];
+  if (typeof value !== 'string') {
+    throw new TemplateError('invariant', implementation);
+  }
+  return value;
+};
+
+const inputString = (
+  context: RenderContext,
+  name: string,
+): string | undefined => {
+  if (!has(context.inputs, name)) {
+    return undefined;
+  }
+  const value = context.inputs[name];
+  return typeof value === 'string' ? value : undefined;
+};
+
+/**
+ * `binary-limit-order-v1`. Prices are yes-leg: a NO outcome price is
+ * `1 − body price`. The comparison is exact, in millionths of a dollar
+ * (`count` hundredths times price ten-thousandths). The displayed dollars
+ * round the buy cap up and the sell floor down, so the sheet never shows
+ * a better number than the check allowed.
+ */
+const checkBinaryLimitOrder = (
+  implementation: string,
+  params: Readonly<Record<string, Scalar>> | undefined,
+  body: string,
+  context: RenderContext,
+): InvariantDisplay => {
+  const fail = (): never => {
+    throw new TemplateError('invariant', implementation);
+  };
+  if (
+    !params ||
+    params.pricing !== 'yes-leg' ||
+    typeof params.feeCeilingCentsPerContract !== 'number' ||
+    !Number.isSafeInteger(params.feeCeilingCentsPerContract) ||
+    params.feeCeilingCentsPerContract < 0 ||
+    typeof params.amountInput !== 'string' ||
+    typeof params.contractsInput !== 'string'
+  ) {
+    fail();
+  }
+  const price = scaled(bodyField(body, 'price', implementation), 4);
+  const count = scaled(bodyField(body, 'count', implementation), 2);
+  const outcome = inputString(context, 'outcome');
+  const action = inputString(context, 'action');
+  if (price === undefined || count === undefined || !outcome || !action) {
+    fail();
+  }
+  const outcomeLimit =
+    outcome === 'no' ? 10_000n - price : outcome === 'yes' ? price : undefined;
+  if (outcomeLimit === undefined || outcomeLimit <= 0n) {
+    fail();
+  }
+  const floorName = params.minOutcomePriceInput;
+  if (typeof floorName === 'string' && has(context.inputs, floorName)) {
+    const floorText = inputString(context, floorName);
+    const floor = floorText === undefined ? undefined : scaled(floorText, 4);
+    if (floor === undefined || outcomeLimit < floor) {
+      fail();
+    }
+  }
+  const fee = BigInt(params.feeCeilingCentsPerContract) * 100n;
+  const proceeds = count * outcomeLimit;
+  const cost = count * (outcomeLimit + fee);
+  if (action === 'buy') {
+    const amount = context.inputs[params.amountInput];
+    if (
+      typeof amount !== 'number' ||
+      !Number.isSafeInteger(amount) ||
+      amount < 0
+    ) {
+      fail();
+    }
+    // `amount` is cents. One cent is 10_000 units of `cost`.
+    if (cost > BigInt(amount) * 10_000n) {
+      fail();
+    }
+  } else if (action === 'sell') {
+    const contracts = inputString(context, params.contractsInput);
+    const offered = contracts === undefined ? undefined : scaled(contracts, 2);
+    if (offered === undefined || offered !== count) {
+      fail();
+    }
+  } else {
+    fail();
+  }
+  return {
+    maxCost: dollarsFromCents((cost + 9_999n) / 10_000n),
+    contracts: bodyField(body, 'count', implementation),
+    minProceeds: dollarsFromCents(proceeds / 10_000n),
+  };
+};
+
+const checkInvariants = (
+  template: RequestTemplate,
+  body: string,
+  context: RenderContext,
+): InvariantDisplay | undefined => {
+  let display: InvariantDisplay | undefined;
+  for (const invariant of template.invariants ?? []) {
+    if (invariant.implementation === 'binary-limit-order-v1') {
+      display = checkBinaryLimitOrder(
+        invariant.implementation,
+        invariant.params,
+        body,
+        context,
+      );
+      continue;
+    }
+    throw new TemplateError('invariant', invariant.implementation);
+  }
+  return display;
+};
+
 const renderRequest = (
   name: string,
   template: RequestTemplate,
   context: RenderContext,
 ): RenderedRequest => {
-  if (template.invariants && template.invariants.length > 0) {
-    // No invariant implementation is bundled yet, so none can be satisfied.
-    throw new TemplateError(
-      'invariant',
-      template.invariants[0]?.implementation,
-    );
-  }
   const base = {
     name,
     class: template.class,
@@ -450,7 +607,13 @@ const renderRequest = (
   if (typeof key !== 'string' || key.length === 0 || key.length > 128) {
     throw new TemplateError('idempotency_key', name);
   }
-  return { ...base, body: renderBody(template, context), idempotencyKey: key };
+  const body = renderBody(template, context);
+  return {
+    ...base,
+    body,
+    idempotencyKey: key,
+    display: checkInvariants(template, body, context),
+  };
 };
 
 const conditionHolds = (
@@ -459,6 +622,34 @@ const conditionHolds = (
 ): boolean =>
   has(context.inputs, condition.input) &&
   context.inputs[condition.input] === condition.equals;
+
+/** One render context per array element, or the parent context when the
+ * request is not repeated. */
+const contextsFor = (
+  entry: StepRequest,
+  context: RenderContext,
+): RenderContext[] => {
+  const each = entry.each;
+  if (!each) {
+    return [context];
+  }
+  if (each.shape.kind !== 'array') {
+    throw new TemplateError('template', `${entry.request} repeats a non-array`);
+  }
+  if (!has(context.values, each.value)) {
+    throw new TemplateError('value', `missing ${each.value}`);
+  }
+  const raw = context.values[each.value];
+  checkShape(each.shape, raw, 'value', context.nowMs);
+  if (!Array.isArray(raw)) {
+    throw new TemplateError('shape', each.value);
+  }
+  return raw.map((item) => ({
+    inputs: context.inputs,
+    nowMs: context.nowMs,
+    values: { ...context.values, [each.as]: item as Scalar },
+  }));
+};
 
 /**
  * Renders the requests of one step of one operation. Pure: the same profile,
@@ -487,8 +678,13 @@ export const renderStep = (
     values: given.values ?? {},
     nowMs: given.nowMs,
   };
+  const entries = rule.steps[step] as readonly StepRequest[];
+  // An empty step, such as `orders.commit` `none`, signs nothing.
+  if (entries.length === 0) {
+    return [];
+  }
   const rendered: RenderedRequest[] = [];
-  for (const entry of rule.steps[step] as readonly StepRequest[]) {
+  for (const entry of entries) {
     if (entry.when && !conditionHolds(entry.when, context)) {
       continue;
     }
@@ -499,7 +695,9 @@ export const renderStep = (
     if (rule.class === 'read' && template.class !== 'read') {
       throw new TemplateError('class', `${operation} renders ${entry.request}`);
     }
-    rendered.push(renderRequest(entry.request, template, context));
+    for (const child of contextsFor(entry, context)) {
+      rendered.push(renderRequest(entry.request, template, child));
+    }
   }
   if (rendered.length === 0) {
     throw new TemplateError('step', `${step} rendered no requests`);

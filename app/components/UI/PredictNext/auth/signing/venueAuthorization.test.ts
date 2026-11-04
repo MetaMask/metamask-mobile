@@ -33,18 +33,18 @@ describe('buildVenueAuthorization', () => {
     });
   });
 
-  it('refuses no signatures and more than the profile allows', () => {
+  it('allows an empty signature list and refuses more than the profile allows', () => {
     const build = (count: number) =>
       buildVenueAuthorization({
         signingProfileId: 'p',
-        step: 'default',
+        step: 'none',
         context,
         signatures: Array.from({ length: count }, () => signature),
         maxSignatures: 2,
       });
 
-    expect(() => build(0)).toThrow('1 to 2');
-    expect(() => build(3)).toThrow('1 to 2');
+    expect(decode(build(0))).toMatchObject({ signatures: [] });
+    expect(() => build(3)).toThrow('at most 2');
     expect(() => build(2)).not.toThrow();
   });
 });
