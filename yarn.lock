@@ -4218,7 +4218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereumjs/tx@npm:^5.4.0":
+"@ethereumjs/tx@npm:5.4.0":
   version: 5.4.0
   resolution: "@ethereumjs/tx@npm:5.4.0"
   dependencies:
@@ -4227,6 +4227,18 @@ __metadata:
     "@ethereumjs/util": "npm:^9.1.0"
     ethereum-cryptography: "npm:^2.2.1"
   checksum: 10/8d2c0a69ab37015f945f9de065cfb9f05e8e79179efeed725ea0a14760c3eb8ff900bcf915bb71ec29fe2f753db35d1b78a15ac4ddec489e87c995dec1ba6e85
+  languageName: node
+  linkType: hard
+
+"@ethereumjs/tx@patch:@ethereumjs/tx@npm%3A5.4.0#~/.yarn/patches/@ethereumjs-tx-npm-5.4.0-0c4a0f973e.patch":
+  version: 5.4.0
+  resolution: "@ethereumjs/tx@patch:@ethereumjs/tx@npm%3A5.4.0#~/.yarn/patches/@ethereumjs-tx-npm-5.4.0-0c4a0f973e.patch::version=5.4.0&hash=20f328"
+  dependencies:
+    "@ethereumjs/common": "npm:^4.4.0"
+    "@ethereumjs/rlp": "npm:^5.0.2"
+    "@ethereumjs/util": "npm:^9.1.0"
+    ethereum-cryptography: "npm:^2.2.1"
+  checksum: 10/46ebd5359365d55390f20f01dd0672a22b2c00b245a24c51ca90ffeff7a71226a0c8fb76ed9bf57ed77246fe7324c6b572125548333a161432b9db813276ba4e
   languageName: node
   linkType: hard
 
@@ -38336,6 +38348,8 @@ __metadata:
     "@braze/react-native-sdk": "npm:23.0.0"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.2"
+    "@ethereumjs/common": "npm:^4.4.0"
+    "@ethereumjs/tx": "npm:^5.4.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
