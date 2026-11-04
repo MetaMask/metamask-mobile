@@ -208,7 +208,7 @@ export const EventPositionCard = ({
           )}
         </Box>
       </Box>
-      <Box twClassName="flex-row gap-[10px]">
+      <Box twClassName="flex-row gap-2">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
