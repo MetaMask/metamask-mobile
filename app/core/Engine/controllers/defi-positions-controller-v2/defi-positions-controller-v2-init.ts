@@ -61,14 +61,13 @@ async function safeGetBearerToken(
 function getApiClient(
   initMessenger: DeFiPositionsControllerV2InitMessenger,
 ): DeFiPositionsApiClient {
-  if (!apiClient) {
-    apiClient = createApiPlatformClient({
-      clientProduct: 'metamask-mobile',
-      clientVersion: getVersion(),
-      getBearerToken: () => safeGetBearerToken(initMessenger),
-      ...getBackendApiUrlsOption(),
-    }) as unknown as DeFiPositionsApiClient;
-  }
+  apiClient ??= createApiPlatformClient({
+    clientProduct: 'metamask-mobile',
+    clientVersion: getVersion(),
+    getBearerToken: () => safeGetBearerToken(initMessenger),
+    ...getBackendApiUrlsOption(),
+  }) as unknown as DeFiPositionsApiClient;
+
   return apiClient;
 }
 
