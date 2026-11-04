@@ -14,8 +14,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+let mockGlassHeadersEnabled = false;
+
 jest.mock('react-redux', () => ({
-  useSelector: () => false,
+  useSelector: () => mockGlassHeadersEnabled,
 }));
 
 jest.mock('../../../util/navigation/navUtils', () => ({
@@ -153,6 +155,7 @@ jest.mock(
 describe('AgenticCliApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
     mockWebViewProps = {};
   });
 
@@ -165,6 +168,23 @@ describe('AgenticCliApproval', () => {
           title: 'Review request',
           isGlass: false,
           isFloating: false,
+          includesTopInset: true,
+        }),
+        undefined,
+      ),
+    );
+  });
+
+  it('drops the top inset when glass headers are enabled', async () => {
+    mockGlassHeadersEnabled = true;
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(HeaderStandardGlass).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGlass: true,
+          isFloating: false,
+          includesTopInset: false,
         }),
         undefined,
       ),
@@ -277,12 +297,10 @@ describe('AgenticCliApproval', () => {
       expect.objectContaining({
         isGlass: false,
         isFloating: false,
+        includesTopInset: true,
       }),
       undefined,
     );
-    expect(
-      jest.mocked(HeaderStandardGlass).mock.lastCall?.[0].includesTopInset,
-    ).toBeUndefined();
     expect(getByTestId('agentic-cli-approval-error-title').props.children).toBe(
       'Something went wrong',
     );

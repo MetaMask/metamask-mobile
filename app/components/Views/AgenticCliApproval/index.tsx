@@ -115,6 +115,7 @@ const AgenticCliApproval: React.FC = () => {
     <HeaderStandardGlass
       isGlass={isGlassHeader}
       isFloating={false}
+      includesTopInset={!isGlassHeader}
       title={title}
       onBack={handleClose}
       endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
