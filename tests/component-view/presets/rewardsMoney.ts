@@ -94,6 +94,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   funnelFeeGenerating: 'Fee-generating referrals',
   funnelFeeGeneratingDescription: 'Referrals that generated fees',
   tradingCommissionsSection: 'Trading commissions',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
+  copyTradingInfoDescription:
+    'Earn 15% from fees when someone copies your trade.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
