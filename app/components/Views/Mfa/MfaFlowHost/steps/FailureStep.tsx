@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
@@ -11,10 +11,6 @@ import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { getErrorHandling } from '../../../../../util/identity/mfa/engine/errors';
 import FailureImage from '../../../../../images/mfa-failure.svg';
-import {
-  trackMfaErrorCta,
-  trackMfaErrorViewed,
-} from '../../../../../util/identity/mfa/engine/activeFlow';
 import { getFailureCopy } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { type StepProps } from './StepLayout';
@@ -27,19 +23,16 @@ import StepLayout, { type StepProps } from './StepLayout';
 const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
   const { openSupportWithConsent } = useSupportConsent();
   const { title, description } = getFailureCopy(step.code);
-  useEffect(() => {
-    trackMfaErrorViewed(step.code);
-  }, [step.code]);
 
   const contactSupport = () => {
-    trackMfaErrorCta(step.code, 'contact_support');
+    onAction({ type: 'errorCtaClicked', cta: 'contact_support' });
     const url = new URL(METAMASK_SUPPORT_URL);
     url.searchParams.set('mfa_error', step.code);
     openSupportWithConsent((link) => Linking.openURL(link), url.toString());
   };
   const dismiss = () => onAction({ type: 'dismiss' });
   const retry = () => {
-    trackMfaErrorCta(step.code, 'try_again');
+    onAction({ type: 'errorCtaClicked', cta: 'try_again' });
     onAction({ type: 'retry' });
   };
 
@@ -95,6 +88,7 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
 
   return (
     <StepLayout
+      onAction={onAction}
       isVerticallyCentered
       top={
         <Box twClassName="items-center">

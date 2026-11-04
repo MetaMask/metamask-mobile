@@ -15,17 +15,6 @@ import IntroStep from './IntroStep';
 import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
 import TotpSetupStep from './TotpSetupStep';
-import {
-  trackMfaErrorCta,
-  trackMfaErrorViewed,
-  trackMfaEvent,
-} from '../../../../../util/identity/mfa/engine/activeFlow';
-
-jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
-  trackMfaEvent: jest.fn(),
-  trackMfaErrorViewed: jest.fn(),
-  trackMfaErrorCta: jest.fn(),
-}));
 
 const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
@@ -35,10 +24,6 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
 }));
 
 const reason = { operation: 'test' };
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
 
 const buildState = <Step extends MfaFlowStep>(
   step: Step,
@@ -170,11 +155,6 @@ describe('PickerStep', () => {
       type: 'choose',
       method: 'email_otp',
     });
-    expect(trackMfaEvent).toHaveBeenCalledWith('MFA Method Selected', {
-      method: 'email_otp',
-      methods_offered: ['email_otp', 'passkey'],
-      purpose: 'verify',
-    });
     fireEvent.press(
       getByTestId(`${MfaFlowSelectorsIDs.PICKER_OPTION}-passkey`),
     );
@@ -280,11 +260,12 @@ describe('EmailEntryStep', () => {
 
   it('links the help article when the email is already in use', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const onAction = jest.fn();
     const { getByTestId, getByText } = render(
       <EmailEntryStep
         {...buildState({ name: 'emailEntry' }, { error: 'email_claimed' })}
         reason={reason}
-        onAction={jest.fn()}
+        onAction={onAction}
       />,
     );
 
@@ -293,15 +274,14 @@ describe('EmailEntryStep', () => {
         exact: false,
       }),
     ).toBeOnTheScreen();
-    expect(trackMfaErrorViewed).toHaveBeenCalledWith('email_claimed');
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.ERROR_LINK));
     expect(openURL).toHaveBeenCalledWith(
       'https://support.metamask.io/configure/wallet/email-in-use',
     );
-    expect(trackMfaErrorCta).toHaveBeenCalledWith(
-      'email_claimed',
-      'learn_more',
-    );
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'errorCtaClicked',
+      cta: 'learn_more',
+    });
   });
 
   it.each([
@@ -526,10 +506,6 @@ describe('CodeStep', () => {
     expect(getByText('This code isn’t correct. Try again')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
-    expect(trackMfaEvent).toHaveBeenCalledWith('MFA Code Resent', {
-      trigger: 'user',
-      purpose: 'verify',
-    });
   });
 
   it('hides the wrong-code error once the user types again', () => {
@@ -623,7 +599,7 @@ describe('CodeStep', () => {
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
-    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend', trigger: 'auto' });
   });
 
   it('waits out a new cooldown before sending again', () => {
@@ -716,12 +692,11 @@ describe('CodeStep', () => {
 
     expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'errorCtaClicked',
+      cta: 'try_again',
+    });
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
-    expect(trackMfaErrorCta).toHaveBeenCalledWith('server_error', 'try_again');
-    expect(trackMfaEvent).not.toHaveBeenCalledWith(
-      'MFA Code Resent',
-      expect.anything(),
-    );
   });
 
   it('shows a cooldown and its countdown before trying again', () => {
@@ -837,9 +812,11 @@ describe('FailureStep', () => {
       expect(getByText("We couldn't verify your details")).toBeOnTheScreen();
       expect(getByText('Contact support to continue.')).toBeOnTheScreen();
 
-      expect(trackMfaErrorViewed).toHaveBeenCalledWith(code);
       fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-      expect(trackMfaErrorCta).toHaveBeenCalledWith(code, 'contact_support');
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'errorCtaClicked',
+        cta: 'contact_support',
+      });
       const [, url] = mockOpenSupportWithConsent.mock.lastCall ?? [];
       expect(new URL(url).searchParams.get('mfa_error')).toBe(code);
 

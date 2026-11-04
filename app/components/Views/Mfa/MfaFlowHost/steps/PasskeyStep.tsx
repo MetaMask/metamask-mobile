@@ -6,11 +6,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
-import { trackMfaErrorCta } from '../../../../../util/identity/mfa/engine/activeFlow';
 import StepLayout, { type StepProps } from './StepLayout';
 
 const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
   <StepLayout
+    onAction={onAction}
     title={strings(
       step.purpose === 'setup'
         ? 'mfa.passkey.title_setup'
@@ -24,9 +24,7 @@ const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
         isFullWidth
         isLoading={state.busy}
         onPress={() => {
-          if (state.error) {
-            trackMfaErrorCta(state.error, 'try_again');
-          }
+          onAction({ type: 'errorCtaClicked', cta: 'try_again' });
           onAction({ type: 'continue' });
         }}
         testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}

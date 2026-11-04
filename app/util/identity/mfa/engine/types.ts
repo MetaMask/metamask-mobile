@@ -15,7 +15,7 @@ import type {
   VerificationChallenge,
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
-import type { MfaTrackEvent } from './analytics';
+import type { MfaErrorCta, MfaTrackEvent } from './analytics';
 
 export type MfaMethod = MfaCredentialType;
 
@@ -248,8 +248,9 @@ export type MfaFlowAction =
   | { type: 'choose'; method: MfaMethod }
   | { type: 'submitEmail'; email: string }
   | { type: 'submitCode'; code: string }
-  | { type: 'resend' }
+  | { type: 'resend'; trigger?: 'user' | 'auto' }
   | { type: 'retry' }
+  | { type: 'errorCtaClicked'; cta: MfaErrorCta }
   | { type: 'dismiss' }
   | { type: 'cancel' }
   | { type: 'back' };

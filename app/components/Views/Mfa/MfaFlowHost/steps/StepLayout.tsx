@@ -1,4 +1,4 @@
-import React, { useEffect, type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -27,10 +27,6 @@ import type {
 } from '../../../../../util/identity/mfa/engine/types';
 import shieldImage from '../../../../../images/mfa-shield.png';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  trackMfaErrorCta,
-  trackMfaErrorViewed,
-} from '../../../../../util/identity/mfa/engine/activeFlow';
 import { getErrorLink, getErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 
@@ -45,6 +41,7 @@ export interface StepProps<Name extends MfaFlowStep['name']> {
 }
 
 interface StepLayoutProps {
+  onAction: (action: MfaFlowAction) => void;
   title: string;
   description?: string;
   error?: MfaFlowErrorCode;
@@ -70,14 +67,13 @@ export const MfaShield = () => {
 export const StepError = ({
   code,
   method,
+  onAction,
 }: {
   code: MfaFlowErrorCode;
   method?: MfaMethod;
+  onAction: (action: MfaFlowAction) => void;
 }) => {
   const link = getErrorLink(code);
-  useEffect(() => {
-    trackMfaErrorViewed(code);
-  }, [code]);
   return (
     <HelpText
       severity={HelpTextSeverity.Danger}
@@ -91,7 +87,7 @@ export const StepError = ({
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
-              trackMfaErrorCta(code, 'learn_more');
+              onAction({ type: 'errorCtaClicked', cta: 'learn_more' });
               Linking.openURL(link).catch(() => undefined);
             }}
             testID={MfaFlowSelectorsIDs.ERROR_LINK}
@@ -140,6 +136,7 @@ export const StepHeader = ({
 };
 
 const StepLayout = ({
+  onAction,
   title,
   description,
   error,
@@ -172,7 +169,7 @@ const StepLayout = ({
           isCentered={top !== undefined}
         />
         {children}
-        {error ? <StepError code={error} /> : null}
+        {error ? <StepError code={error} onAction={onAction} /> : null}
       </ScrollView>
       {footer ? (
         <Box

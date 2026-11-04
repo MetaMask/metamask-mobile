@@ -4,10 +4,12 @@ import {
   type EnrollmentChallenge,
   type VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
+import { createMfaTracker } from './analytics';
 import {
   MfaFlowError,
   getErrorHandling,
   getFlowErrorCode,
+  isErrorShown,
   isReportable,
 } from './errors';
 import {
@@ -53,8 +55,10 @@ export const createMfaFlow = ({
   passkey,
   now = Date.now,
   reportError,
+  trackEvent,
 }: MfaFlowOptions): MfaFlow => {
   const tokenReason = { operation: reason.operation };
+  const tracker = createMfaTracker({ reason, request, trackEvent });
   const completed: MfaMethod[] = [];
   const listeners = new Set<() => void>();
 
@@ -86,7 +90,18 @@ export const createMfaFlow = ({
     if (settled) {
       return;
     }
+    const previous = state;
     state = { ...state, ...next };
+    // Analytics follow what the user sees: a new screen, a new error on it.
+    if (next.step) {
+      tracker.stepViewed(state.step);
+      if (state.step.name === 'failure') {
+        tracker.errorViewed(state.step.code, state.step);
+      }
+    }
+    if (state.error && state.error !== previous.error && isErrorShown(state)) {
+      tracker.errorViewed(state.error, state.step);
+    }
     listeners.forEach((listener) => listener());
   };
 
@@ -111,7 +126,11 @@ export const createMfaFlow = ({
   };
 
   const rejectWith = (code: MfaFlowErrorCode) =>
-    settle(() => rejectResult(new MfaFlowError(code, [...completed])));
+    settle(() => {
+      const error = new MfaFlowError(code, [...completed]);
+      tracker.ended(error, state);
+      rejectResult(error);
+    });
 
   const fail = (code: MfaFlowErrorCode, canRetry = false, error?: unknown) => {
     if (isReportable(code)) {
@@ -160,7 +179,10 @@ export const createMfaFlow = ({
       toList(request.verifyWith).length > 0;
     const value =
       wantsToken && token ? { credentials, token } : { credentials };
-    settle(() => resolveResult(value));
+    settle(() => {
+      tracker.completed();
+      resolveResult(value);
+    });
   };
 
   /**
@@ -437,11 +459,11 @@ export const createMfaFlow = ({
     if (!isRecovery && current?.flowId && state.step.name === 'otp') {
       if (current.method === 'email_otp') {
         return async () => {
-          // Clear the previous notice so each resend is a change of state:
-          // observers (analytics) see `codeResent` rise once per new code.
-          setState({ codeResent: undefined });
           await beginCodeChallenge();
           setState({ codeResent: true });
+          if (state.step.name === 'otp') {
+            tracker.codeResent('auto', state.step);
+          }
         };
       }
       if (current.method === 'totp') {
@@ -682,6 +704,7 @@ export const createMfaFlow = ({
       case 'choose':
         if (step.name === 'picker' && step.options.includes(action.method)) {
           const { purpose } = step;
+          tracker.methodSelected(action.method, step);
           await run(() => startVerification(action.method, purpose));
         }
         return;
@@ -702,6 +725,9 @@ export const createMfaFlow = ({
           step.name === 'otp' &&
           (step.method === 'email_otp' || !step.codeSent)
         ) {
+          if (step.method === 'email_otp') {
+            tracker.codeResent(action.trigger ?? 'user', step);
+          }
           await run(beginCodeChallenge);
         }
         return;
@@ -710,6 +736,13 @@ export const createMfaFlow = ({
           await run(lastOperation);
         }
         return;
+      case 'errorCtaClicked': {
+        const code = step.name === 'failure' ? step.code : state.error;
+        if (code) {
+          tracker.errorCtaClicked(code, action.cta);
+        }
+        return;
+      }
       case 'back':
         // Setup codes return to the setup behind them without replacing the
         // authenticator secret or sending another email code.
@@ -736,6 +769,7 @@ export const createMfaFlow = ({
   };
 
   const start = () => {
+    tracker.started();
     flowStartedAt = now();
     const needsPasskey =
       request.kind === 'enroll'
