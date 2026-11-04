@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
@@ -191,6 +192,84 @@ const createHistory = (marketId: string, range = 'ALL', pointCount = 2) => ({
   ].slice(0, pointCount),
 });
 
+const createTopMarket = (
+  id: string,
+  label: string,
+  yesAskPrice?: string,
+  status: PredictEvent['markets'][number]['status'] = 'active',
+): PredictEvent['markets'][number] => ({
+  id: id as PredictEntityId,
+  question: `Will ${label} win?`,
+  status,
+  outcomes: [
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label,
+      askPrice: yesAskPrice as PredictDecimal | undefined,
+    },
+    { id: `${id}-no` as PredictEntityId, side: 'no', label: `Not ${label}` },
+  ],
+});
+
+// Drake, Ella Langley and Taylor Swift lead; the closed and unpriced Markets
+// never chart, and Kacey Musgraves ranks fourth.
+const createTopMarketsEvent = () =>
+  createEvent({
+    markets: [
+      createTopMarket('taylor', 'Taylor Swift', '0.05'),
+      createTopMarket('drake', 'Drake', '0.81'),
+      createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+      createTopMarket('ella', 'Ella Langley', '0.14'),
+      createTopMarket('kacey', 'Kacey Musgraves', '0.03'),
+      createTopMarket('unpriced', 'Unpriced Act'),
+    ],
+  });
+
+const TOP_MARKET_IDS = ['drake', 'ella', 'taylor'] as const;
+// Theme colors of the top Markets, in rank order.
+const topMarketColors = [
+  lightTheme.colors.success.default,
+  lightTheme.colors.primary.default,
+  lightTheme.colors.warning.default,
+];
+
+const publishTopMarketQuote = ({
+  marketId,
+  yesAskPrice,
+  lastPrice,
+  updatedAt = '2026-08-17T21:00:00.000Z',
+}: {
+  marketId: string;
+  yesAskPrice?: string;
+  lastPrice?: string;
+  updatedAt?: string;
+}) =>
+  act(() => {
+    publishPredictNextQuoteUpdate({
+      venueId,
+      marketId: marketId as PredictEntityId,
+      outcomes: [
+        {
+          id: `${marketId}-yes` as PredictEntityId,
+          side: 'yes',
+          askPrice: yesAskPrice as PredictDecimal | undefined,
+        },
+        { id: `${marketId}-no` as PredictEntityId, side: 'no' },
+      ],
+      lastPrice: lastPrice as PredictDecimal | undefined,
+      updatedAt: updatedAt as PredictTimestamp,
+    });
+  });
+
+const getHistoryCalls = (marketId: string, range = 'ALL') =>
+  messengerCall.mock.calls.filter(
+    ([action, , id, callRange]) =>
+      action === 'PredictMarketDataService:getMarketHistory' &&
+      id === marketId &&
+      callRange === range,
+  );
+
 const resolveEvent = (event: PredictEvent = createEvent()) => {
   mockPredictNextMessenger(
     (action: string, _venueId: string, id: string, range?: string) => {
@@ -260,41 +339,212 @@ describe('PredictEventScreen', () => {
     expect(view.getByTestId(PredictEventScreenTestIds.IMAGE)).toBeOnTheScreen();
   });
 
-  it('selects a Market and fetches its history', async () => {
-    const firstMarket = createEvent().markets[0];
-    const secondMarket = {
-      ...firstMarket,
-      id: 'market-2' as PredictEntityId,
-      question: 'Will the other thing happen?',
-      outcomes: [
-        { ...firstMarket.outcomes[0], id: 'yes-2' as PredictEntityId },
-        { ...firstMarket.outcomes[1], id: 'no-2' as PredictEntityId },
-      ] as typeof firstMarket.outcomes,
+  describe('standard Event top Markets chart', () => {
+    const renderTopMarkets = async () => {
+      resolveEvent(createTopMarketsEvent());
+      const view = renderPredictEventScreen(routeParams);
+      const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+      fireEvent(chart, 'layout', {
+        nativeEvent: { layout: { width: 343, height: 150 } },
+      });
+      return view;
     };
-    resolveEvent(createEvent({ markets: [firstMarket, secondMarket] }));
-    const view = renderPredictEventScreen(routeParams);
+    const getLegendValues = (
+      view: Awaited<ReturnType<typeof renderTopMarkets>>,
+    ) =>
+      within(view.getByTestId(PredictMarketHistoryTestIds.LEGEND))
+        .getAllByTestId(/^predict-market-history-legend-value-/)
+        .map((value) => value.props.testID);
 
-    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    messengerCall.mockClear();
-    fireEvent.press(
-      view.getByTestId(PredictEventScreenTestIds.market(secondMarket.id)),
-    );
+    it('charts the three highest yes asks with a legend in rank order', async () => {
+      const view = await renderTopMarkets();
 
-    await waitFor(() =>
-      expectMessengerCalledWith(
+      const legend = view.getByTestId(PredictMarketHistoryTestIds.LEGEND);
+      expect(legend).toHaveTextContent('Drake81%Ella Langley14%Taylor Swift5%');
+      expect(getLegendValues(view)).toEqual(
+        TOP_MARKET_IDS.map(PredictMarketHistoryTestIds.legendValue),
+      );
+      TOP_MARKET_IDS.forEach((marketId, index) => {
+        expect(getHistoryCalls(marketId)).not.toHaveLength(0);
+        expect(
+          view.getByTestId(
+            `${PredictMarketHistoryTestIds.CHART}-line-${marketId}`,
+          ).props.stroke.payload,
+        ).toEqual(processColor(topMarketColors[index]));
+      });
+      ['closed', 'kacey', 'unpriced'].forEach((marketId) => {
+        expect(getHistoryCalls(marketId)).toHaveLength(0);
+        expect(
+          view.queryByTestId(PredictMarketHistoryTestIds.legendItem(marketId)),
+        ).not.toBeOnTheScreen();
+      });
+      // Line ends show the legend's live yes ask, not the last history point.
+      await waitFor(() =>
+        expect(
+          view.getByLabelText(/Drake 81%, Ella Langley 14%, Taylor Swift 5%/),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('charts as many Markets as are eligible', async () => {
+      resolveEvent(
+        createEvent({
+          markets: [
+            createTopMarket('drake', 'Drake', '0.81'),
+            createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+            createTopMarket('unpriced', 'Unpriced Act'),
+          ],
+        }),
+      );
+      const view = renderPredictEventScreen(routeParams);
+
+      await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+      expect(getLegendValues(view)).toEqual([
+        PredictMarketHistoryTestIds.legendValue('drake'),
+      ]);
+    });
+
+    it('renders no chart when no Market is eligible', async () => {
+      resolveEvent(
+        createEvent({
+          markets: [
+            createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+            createTopMarket('unpriced', 'Unpriced Act'),
+          ],
+        }),
+      );
+      const view = renderPredictEventScreen(routeParams);
+
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      expect(
+        view.queryByTestId(PredictMarketHistoryTestIds.VIEW),
+      ).not.toBeOnTheScreen();
+      expect(messengerCall).not.toHaveBeenCalledWith(
         'PredictMarketDataService:getMarketHistory',
-        venueId,
-        secondMarket.id,
-        'ALL',
-      ),
-    );
-    expect(
-      view.getByTestId(PredictEventScreenTestIds.market(secondMarket.id)).props
-        .accessibilityState,
-    ).toEqual(expect.objectContaining({ selected: true }));
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('keeps the charted Markets when a live quote reorders them', async () => {
+      const view = await renderTopMarkets();
+
+      publishTopMarketQuote({ marketId: 'kacey', yesAskPrice: '0.95' });
+      publishTopMarketQuote({ marketId: 'drake', yesAskPrice: '0.7' });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictMarketHistoryTestIds.legendValue('drake')),
+        ).toHaveTextContent('70%'),
+      );
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('kacey')),
+      ).toHaveTextContent(/95¢/);
+      expect(getLegendValues(view)).toEqual(
+        TOP_MARKET_IDS.map(PredictMarketHistoryTestIds.legendValue),
+      );
+      expect(view.getByLabelText(/Drake 70%/)).toBeOnTheScreen();
+      expect(getHistoryCalls('kacey')).toHaveLength(0);
+    });
+
+    it('shows a dash in the legend when a charted ask disappears', async () => {
+      const view = await renderTopMarkets();
+
+      publishTopMarketQuote({ marketId: 'ella' });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictMarketHistoryTestIds.legendValue('ella')),
+        ).toHaveTextContent('–'),
+      );
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.legendItem('ella')),
+      ).toBeOnTheScreen();
+      // The line end agrees with the legend, not the last plotted price.
+      expect(view.getByLabelText(/Ella Langley –/)).toBeOnTheScreen();
+    });
+
+    it('moves a line end to the last trade on the ALL range', async () => {
+      const view = await renderTopMarkets();
+      const drakeLine = () =>
+        view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-drake`)
+          .props.d as string;
+      const beforeQuote = drakeLine();
+
+      publishTopMarketQuote({
+        marketId: 'drake',
+        yesAskPrice: '0.81',
+        lastPrice: '0.9',
+      });
+
+      await waitFor(() => expect(drakeLine()).not.toBe(beforeQuote));
+    });
+
+    it('offers 1D, 1W, 1M and ALL and refetches every line per range', async () => {
+      const view = await renderTopMarkets();
+
+      expect(
+        (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
+          view.getByTestId(PredictMarketHistoryTestIds.range(range)),
+        ),
+      ).toHaveLength(4);
+      expect(
+        view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(PredictMarketHistoryTestIds.range('1W')),
+      );
+
+      await waitFor(() =>
+        TOP_MARKET_IDS.forEach((marketId) =>
+          expect(getHistoryCalls(marketId, '1W')).toHaveLength(1),
+        ),
+      );
+    });
+
+    it('retries every line after a history error', async () => {
+      let ellaAttempts = 0;
+      mockPredictNextMessenger(
+        (action: string, _venueId: string, id: string, range?: string) => {
+          if (action === 'PredictMarketDataService:getEvent') {
+            return Promise.resolve(createTopMarketsEvent());
+          }
+          if (action === 'PredictMarketDataService:getMarketHistory') {
+            if (id === 'ella') {
+              ellaAttempts += 1;
+              if (ellaAttempts === 1) {
+                return Promise.reject(new Error('unsafe history detail'));
+              }
+            }
+            return Promise.resolve(createHistory(id, range));
+          }
+          return action.startsWith('PredictPortfolioService:getPositions')
+            ? Promise.resolve({ venueId, positions: [] })
+            : Promise.resolve(undefined);
+        },
+      );
+      const view = renderPredictEventScreen(routeParams);
+      const error = await view.findByTestId(PredictMarketHistoryTestIds.ERROR);
+      const drakeCallsBeforeRetry = getHistoryCalls('drake').length;
+
+      fireEvent.press(
+        within(error).getByTestId(PredictMarketHistoryTestIds.RETRY),
+      );
+
+      expect(
+        await view.findByTestId(PredictMarketHistoryTestIds.CHART),
+      ).toBeOnTheScreen();
+      expect(getHistoryCalls('drake').length).toBeGreaterThan(
+        drakeCallsBeforeRetry,
+      );
+    });
   });
 
-  it('selects a history range for the same Market', async () => {
+  it('selects a history range for a single-Market standard Event', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
 
@@ -304,10 +554,13 @@ describe('PredictEventScreen', () => {
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(
-      (['LIVE', '1D', '1W', '1M', 'ALL'] as const).map((range) =>
+      (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
         view.getByTestId(PredictMarketHistoryTestIds.range(range)),
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(4);
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+    ).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.range('1Y')),
     ).not.toBeOnTheScreen();
@@ -325,20 +578,6 @@ describe('PredictEventScreen', () => {
     expect(
       await view.findByTestId(PredictMarketHistoryTestIds.CHART),
     ).toBeOnTheScreen();
-
-    messengerCall.mockClear();
-    fireEvent.press(
-      view.getByTestId(PredictMarketHistoryTestIds.range('LIVE')),
-    );
-
-    await waitFor(() =>
-      expectMessengerCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        'market-1',
-        'LIVE',
-      ),
-    );
   });
 
   it('renders complete Market history after async load', async () => {
@@ -368,7 +607,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('adds a chart entry for every live quote on the live range', async () => {
+  it('adds a chart entry for every live quote on the live range of a Game', async () => {
     const publishQuote = (lastPrice: string, updatedAt: string) =>
       act(() => {
         publishPredictNextQuoteUpdate({
@@ -392,7 +631,7 @@ describe('PredictEventScreen', () => {
           updatedAt: updatedAt as PredictTimestamp,
         });
       });
-    resolveEvent();
+    resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
     const yesLinePath = () =>
       view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props
@@ -439,7 +678,7 @@ describe('PredictEventScreen', () => {
     ).toContain('No 23%');
   });
 
-  it('keeps the chart on the REST snapshot outside the live range while cards stay live', async () => {
+  it('moves a standard Event line end to the last trade outside the live range', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
     const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
@@ -487,10 +726,10 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByTestId(PredictMarketHistoryTestIds.CHART).props
         .accessibilityLabel,
-    ).toContain('Yes 42%');
+    ).toContain('Yes 67%, No 33%');
     expect(
       view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props.d,
-    ).toBe(beforeQuote);
+    ).not.toBe(beforeQuote);
   });
 
   it('retries Market history after an initial error', async () => {
@@ -661,9 +900,6 @@ describe('PredictEventScreen', () => {
         ]),
       ]),
     );
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
   });
 
   it('plots a Team history from the Outcome that carries Game Selection', async () => {
@@ -691,9 +927,6 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByLabelText(/Panthers 42%, Cardinals 58%/),
     ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
   });
 
   it('plots both Team lines when Game Selections share one Market', async () => {
@@ -1053,9 +1286,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1093,9 +1323,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1196,9 +1423,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1220,20 +1444,6 @@ describe('PredictEventScreen', () => {
       'nfl-total-220-5',
       'ALL',
     );
-  });
-
-  it('omits the top Market filter for grouped-only Events', async () => {
-    const event = makePredictNextTotalsEvent();
-    resolveEventForRoute(event);
-    const view = renderPredictEventScreen(routeParams);
-
-    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.market('nfl-total-220-5')),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders a grouped Market without a selector when it has one option', async () => {
