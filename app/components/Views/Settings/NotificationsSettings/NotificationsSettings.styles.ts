@@ -15,6 +15,9 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 48,
       backgroundColor: params.theme.colors.background.default,
     },
+    notificationsList: {
+      paddingTop: 12,
+    },
     contentContainer: {
       flexGrow: 1,
     },

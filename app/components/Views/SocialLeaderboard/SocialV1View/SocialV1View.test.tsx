@@ -407,6 +407,7 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,

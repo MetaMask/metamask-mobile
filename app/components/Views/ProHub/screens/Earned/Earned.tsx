@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -9,12 +10,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FontFamily,
   FontWeight,
-  HeaderBase,
   IconName,
   SectionDivider,
   Text,
@@ -26,6 +25,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { MOCK_EARNED_DATA } from './Earned.constants';
 import { EarnedTestIds } from './Earned.testIds';
 import { useDigitTicker } from '../../hooks';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface BreakdownRowProps {
   title: string;
@@ -72,6 +73,7 @@ const BreakdownRow = ({
 const Earned = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const paidForItselfValue = useDigitTicker(MOCK_EARNED_DATA.paidForItself);
 
   const handleBack = useCallback(() => {
@@ -88,16 +90,16 @@ const Earned = () => {
       edges={['top', 'bottom']}
       testID={EarnedTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={EarnedTestIds.BACK_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: EarnedTestIds.BACK_BUTTON,
+        }}
       />
 
       <ScrollView

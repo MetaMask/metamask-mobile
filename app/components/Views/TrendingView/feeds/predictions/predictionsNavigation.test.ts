@@ -1,100 +1,104 @@
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  type PredictEntryActions,
+} from '../../../../UI/PredictNext';
 import {
   navigateToExplorePredictionsList,
   navigateToPredictionsList,
 } from './predictionsNavigation';
 
+const createOpenPredict = () =>
+  jest.fn<
+    ReturnType<PredictEntryActions['openPredict']>,
+    Parameters<PredictEntryActions['openPredict']>
+  >(() => true);
+
 describe('navigateToPredictionsList', () => {
-  it('navigates with an explicit entryPoint and trending tab for trending variant', () => {
-    const navigate = jest.fn();
-    const navigation = { navigate } as unknown as AppNavigationProp;
+  it('opens the trending feed with an explicit entryPoint for trending variant', () => {
+    const openPredict = createOpenPredict();
 
     navigateToPredictionsList(
-      navigation,
+      openPredict,
       'trending',
       PredictEventValues.ENTRY_POINT.EXPLORE,
     );
 
-    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        tab: 'trending',
-      },
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'trending',
+      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
     });
   });
 
-  it('includes tab and explore entryPoint for sports variant', () => {
-    const navigate = jest.fn();
-    const navigation = { navigate } as unknown as AppNavigationProp;
+  it('opens the sports feed with the explore entryPoint for sports variant', () => {
+    const openPredict = createOpenPredict();
 
     navigateToPredictionsList(
-      navigation,
+      openPredict,
       'sports',
       PredictEventValues.ENTRY_POINT.EXPLORE,
     );
 
-    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        tab: 'sports',
-      },
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'sports',
+      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
     });
   });
 
-  it('includes tab and explore entryPoint for crypto variant', () => {
-    const navigate = jest.fn();
-    const navigation = { navigate } as unknown as AppNavigationProp;
+  it('opens the crypto feed with the explore entryPoint for crypto variant', () => {
+    const openPredict = createOpenPredict();
 
     navigateToPredictionsList(
-      navigation,
+      openPredict,
       'crypto',
       PredictEventValues.ENTRY_POINT.EXPLORE,
     );
 
-    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        tab: 'crypto',
-      },
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'crypto',
+      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+    });
+  });
+
+  it('opens the politics feed for politics variant', () => {
+    const openPredict = createOpenPredict();
+
+    navigateToPredictionsList(openPredict, 'politics');
+
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'politics',
+      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
     });
   });
 
   it('passes a custom entryPoint when provided', () => {
-    const navigate = jest.fn();
-    const navigation = { navigate } as unknown as AppNavigationProp;
+    const openPredict = createOpenPredict();
 
     navigateToPredictionsList(
-      navigation,
+      openPredict,
       'trending',
       PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     );
 
-    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        tab: 'trending',
-      },
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'trending',
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
   });
 
-  it('navigates from Explore with explore entryPoint', () => {
-    const navigate = jest.fn();
-    const navigation = { navigate } as unknown as AppNavigationProp;
+  it('opens the feed from Explore with explore entryPoint', () => {
+    const openPredict = createOpenPredict();
 
-    navigateToExplorePredictionsList(navigation, 'trending');
+    navigateToExplorePredictionsList(openPredict, 'trending');
 
-    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        tab: 'trending',
-      },
+    expect(openPredict).toHaveBeenCalledWith({
+      type: 'feed',
+      category: 'trending',
+      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
     });
   });
 });

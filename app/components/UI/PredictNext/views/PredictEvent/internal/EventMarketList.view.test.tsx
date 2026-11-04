@@ -3,6 +3,7 @@ import {
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
   makePredictNextLaidOutGameEvent,
+  makePredictNextPlayerPropsEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
   makePredictNextTotalsEvent,
@@ -23,6 +24,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
 import { MarketListTestIds } from '../../../events/markets/MarketList.testIds';
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
+import { ChoiceMarketGroupCardTestIds } from '../../../events/markets/ChoiceMarketGroupCard.testIds';
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
 import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
@@ -1756,7 +1758,7 @@ describe('EventMarketList', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('lists Markets without layout after the first tab sections, with sections flush and a gap before the Markets', async () => {
+    it('lists each section as a header row and a row per card, flush, then Markets without layout after a gap', async () => {
       const event = makePredictNextLaidOutGameEvent();
       const [flat] = makePredictNextMultiMarketEvent().markets;
       const { view } = renderLaidOut({
@@ -1768,13 +1770,205 @@ describe('EventMarketList', () => {
       const list = view.UNSAFE_getByType(FlatList);
       const keys = list.props.data.map(list.props.keyExtractor);
 
-      expect(keys.at(-1)).toBe(`markets:market:${flat.id}`);
-      expect(keys.slice(0, 3)).toEqual([
-        expect.stringMatching(/^markets:section:/),
-        expect.stringMatching(/^markets:section:/),
-        expect.stringMatching(/^markets:section:/),
+      const section = (key: string) =>
+        `markets:section:${JSON.stringify(['game_lines', key])}`;
+      const card = (sectionKey: string, cardKey: string) =>
+        `markets:card:${JSON.stringify(['game_lines', sectionKey])}:${cardKey}`;
+
+      expect(keys).toEqual([
+        section('moneyline'),
+        card('moneyline', FULL_GAME_MONEYLINE),
+        section('spread'),
+        card('spread', 'nfl-spreads'),
+        section('total_points'),
+        card('total_points', 'nfl-total-points'),
+        `markets:market:${flat.id}`,
       ]);
+      // The first card sits under the header, or 12px under period chips.
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card(
+            'moneyline',
+            FULL_GAME_MONEYLINE,
+          ),
+        ),
+      ).toHaveStyle({ paddingTop: 12 });
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+        ),
+      ).not.toHaveStyle({ paddingTop: 12 });
       expect(view.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
+    });
+
+    it('spaces the standard cards of a card with no group card 12px apart', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const { view } = renderLaidOut({
+        ...event,
+        markets: event.markets.map(
+          (market): PredictMarket =>
+            market.group?.key === 'nfl-spreads'
+              ? {
+                  ...market,
+                  group: { ...market.group, marketType: 'unknown_line' },
+                }
+              : market,
+        ),
+      });
+
+      const cardRow = await view.findByTestId(
+        EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+      );
+
+      expect(
+        within(cardRow).getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN)
+          .length,
+      ).toBeGreaterThan(1);
+      expect(cardRow).toHaveStyle({ gap: 12 });
+    });
+  });
+
+  describe('with player props', () => {
+    const event = makePredictNextPlayerPropsEvent();
+    const playerKey = (stat: string, player: string) =>
+      `${event.id}:${stat}:${player}`;
+    const rushing = (player: string) => playerKey('rushing_yards', player);
+
+    const renderPlayerProps = async () => {
+      const props = {
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      const view = renderEventMarketList(props);
+      fireEvent.press(
+        await view.findByTestId(
+          EventMarketListTestIds.layoutTab('player_props'),
+        ),
+      );
+      return { props, view };
+    };
+    const titles = (view: ReturnType<typeof renderEventMarketList>) =>
+      view
+        .queryAllByTestId(/^predict-next-choice-.*-title$/)
+        .map((title) => title.props.children);
+
+    it('shows the Player props tab with one titled card per Player, rows in threshold order', async () => {
+      const { view } = await renderPlayerProps();
+
+      expect(
+        within(
+          view.getByTestId(EventMarketListTestIds.layoutTab('player_props')),
+        ).getAllByText(
+          strings('predict_next.event.market_layout.player_props'),
+        )[0],
+      ).toBeOnTheScreen();
+      expect(
+        view
+          .getAllByTestId(
+            new RegExp(`^${EventMarketLayoutSectionTestIds.section('')}`),
+          )
+          .map((section) => section.props.testID),
+      ).toEqual([
+        EventMarketLayoutSectionTestIds.section('rushing_yards'),
+        EventMarketLayoutSectionTestIds.section('passing_yards'),
+      ]);
+      expect(titles(view)).toEqual([
+        'Rhamondre Stevenson',
+        'Kenneth Walker',
+        'Drake Maye',
+        'Drake Maye',
+      ]);
+      const stevenson = rushing('Rhamondre Stevenson');
+      expect(
+        view
+          .getAllByTestId(
+            new RegExp(`^${ChoiceMarketGroupCardTestIds.row(stevenson, '')}`),
+          )
+          .filter((row) => !/-(line|price|title)$/.test(row.props.testID))
+          .map((row) => row.props.testID),
+      ).toEqual(
+        [40, 60, 80].map((threshold) =>
+          ChoiceMarketGroupCardTestIds.row(
+            stevenson,
+            `${event.id}-rushing_yards-Rhamondre Stevenson-${threshold}`,
+          ),
+        ),
+      );
+      // A Player with a single threshold still gets a card.
+      expect(
+        view.getByTestId(
+          ChoiceMarketGroupCardTestIds.card(rushing('Drake Maye')),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the first three Players and expands the rest with View all, until the section closes', async () => {
+      const { view } = await renderPlayerProps();
+      const viewAll = EventMarketLayoutSectionTestIds.viewAll('rushing_yards');
+      const charbonnet = ChoiceMarketGroupCardTestIds.card(
+        rushing('Zach Charbonnet'),
+      );
+
+      expect(view.queryByTestId(charbonnet)).not.toBeOnTheScreen();
+      expect(view.getByTestId(viewAll)).toHaveTextContent(
+        strings('predict_next.event.view_all_markets', { count: 7 }),
+      );
+      expect(
+        view.queryByTestId(
+          EventMarketLayoutSectionTestIds.viewAll('passing_yards'),
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(viewAll));
+
+      expect(view.getByTestId(charbonnet)).toBeOnTheScreen();
+      expect(view.queryByTestId(viewAll)).not.toBeOnTheScreen();
+
+      const header = () =>
+        within(
+          view.getByTestId(
+            EventMarketLayoutSectionTestIds.section('rushing_yards'),
+          ),
+        ).getByTestId(EventMarketSectionTestIds.HEADER);
+      fireEvent.press(header());
+      fireEvent.press(header());
+
+      expect(view.queryByTestId(charbonnet)).not.toBeOnTheScreen();
+      expect(view.getByTestId(viewAll)).toBeOnTheScreen();
+    });
+
+    it('orders from a Player row by its yes side', async () => {
+      const { props, view } = await renderPlayerProps();
+      const marketId = `${event.id}-rushing_yards-Kenneth Walker-70`;
+      const market = event.markets.find(({ id }) => id === marketId);
+
+      fireEvent.press(
+        view.getByTestId(
+          ChoiceMarketGroupCardTestIds.price(
+            rushing('Kenneth Walker'),
+            marketId,
+          ),
+        ),
+      );
+
+      expect(props.onOrder).toHaveBeenCalledWith(market, market?.outcomes[0]);
+    });
+
+    it('keeps the Game lines moneyline on its own card', async () => {
+      const { view } = await renderPlayerProps();
+
+      fireEvent.press(
+        view.getByTestId(EventMarketListTestIds.layoutTab('game_lines')),
+      );
+
+      expect(
+        view.getByTestId(
+          MoneylineMarketGroupCardTestIds.card(`${event.id}:moneyline`),
+        ),
+      ).toBeOnTheScreen();
+      expect(titles(view)).toEqual([]);
     });
   });
 });
