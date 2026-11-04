@@ -6,7 +6,7 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import { BackHandler, TouchableOpacity, Alert } from 'react-native';
+import { Alert, BackHandler, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -109,13 +109,18 @@ import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
-import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
+import {
+  getMfaErrorCode,
+  type EnrolledCredential,
+} from '@metamask/profile-sync-controller/sdk';
 import { performSignIn } from '../../../actions/identity';
+import Engine from '../../../core/Engine';
 import { useMfa } from '../../../util/identity/mfa';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 import {
   WalletRecoveryPassword,
   WalletRecoveryVerify,
+  socialRecoveryMethodFlags,
   type WalletRecoveryMethod,
 } from './WalletRecovery';
 
@@ -162,11 +167,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       : null,
   );
   const [disabledInput, setDisabledInput] = useState(false);
-  // password → unlock → verify (before home). verify is post-unlock only for now.
+  // Interim order while pre-unlock vault gate blocks exchangeSocialAccessToken:
+  // password unlock → Verify it's you → home.
   const [recoveryStep, setRecoveryStep] = useState<'password' | 'verify'>(
     'password',
   );
   const [mfaBusy, setMfaBusy] = useState(false);
+  const [socialCredentialsLoading, setSocialCredentialsLoading] =
+    useState(false);
+  const [socialCredentials, setSocialCredentials] = useState<
+    EnrolledCredential[]
+  >([]);
   const postUnlockVerifyResolveRef = useRef<(() => void) | null>(null);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
@@ -590,6 +601,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
+  const recoveryMethodFlags = useMemo(
+    () => socialRecoveryMethodFlags(socialCredentials),
+    [socialCredentials],
+  );
+
   const finishPostUnlockVerify = useCallback(() => {
     const resolve = postUnlockVerifyResolveRef.current;
     postUnlockVerifyResolveRef.current = null;
@@ -597,8 +613,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, []);
 
   /**
-   * After password unlock: show "Verify it's you", then continue to home.
-   * Blocks unlockWallet navigation until the user verifies or skips (back).
+   * After password unlock: list MFA via refreshEnrolledCredentials (unlocked
+   * Auth path — does not need social pairing / exchangeSocialAccessToken).
+   * Show Verify it's you; block home until verify/skip.
    */
   const offerSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
@@ -616,7 +633,33 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           phase: 'performSignIn',
         },
       });
-      // Still show the screen; kit calls may fail without a profile session.
+    }
+
+    setSocialCredentialsLoading(true);
+    try {
+      const credentials =
+        await Engine.context.AuthenticationController.refreshEnrolledCredentials();
+      if (isMountedRef.current) {
+        setSocialCredentials(credentials);
+      }
+    } catch (listError) {
+      Logger.error(
+        listError instanceof Error ? listError : new Error(String(listError)),
+        {
+          tags: {
+            feature: 'mfa',
+            operation: 'onboarding.social_mfa_verify',
+            phase: 'refreshEnrolledCredentials',
+          },
+        },
+      );
+      if (isMountedRef.current) {
+        setSocialCredentials([]);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setSocialCredentialsLoading(false);
+      }
     }
 
     await new Promise<void>((resolve) => {
@@ -625,10 +668,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     });
   }, [canOfferSocialMfaVerify]);
 
+  /**
+   * Post-unlock Verify it's you. Password row skips to home (already unlocked).
+   * Passkey/email/totp run kit verify, then continue home.
+   */
   const handlePostUnlockVerifyMethod = useCallback(
     async (method: WalletRecoveryMethod) => {
       if (method === 'password') {
-        // Already unlocked — treat as skip to home.
         finishPostUnlockVerify();
         return;
       }
@@ -657,7 +703,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       } catch (mfaError) {
         const code = getMfaErrorCode(mfaError);
         if (code === 'flow_cancelled') {
-          // Stay on Verify it's you so they can pick another method or back out.
           return;
         }
         Logger.error(
@@ -669,6 +714,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               feature: 'mfa',
               mfaCode: code ?? 'unknown',
               operation: 'onboarding.social_mfa_verify',
+              phase: 'post_unlock_verify',
             },
           },
         );
@@ -741,7 +787,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
               await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // Temporary: MFA verify after unlock (wallet unlocked).
+              // Interim: MFA verify after unlock while pre-unlock vault gate is blocked.
               await offerSocialMfaVerify();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
@@ -1024,13 +1070,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     </OnboardingLoginCanvas>
   );
 
-  // Temporary order: password unlock → Verify it's you → home.
+  // Interim order: password unlock → Verify it's you → home.
   const renderWalletRecovery = () => {
     if (recoveryStep === 'verify') {
       return (
         <WalletRecoveryVerify
+          showPasskey={recoveryMethodFlags.showPasskey}
           showPassword={false}
-          isBusy={mfaBusy}
+          showEmail={recoveryMethodFlags.showEmail}
+          showTotp={recoveryMethodFlags.showTotp}
+          isBusy={mfaBusy || socialCredentialsLoading}
           onBack={finishPostUnlockVerify}
           onSelectMethod={(method) => {
             handlePostUnlockVerifyMethod(method).catch(() => undefined);

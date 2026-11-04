@@ -6,3 +6,7 @@ export type {
 export { default as WalletRecoveryPassword } from './WalletRecoveryPassword';
 export type { WalletRecoveryPasswordProps } from './WalletRecoveryPassword';
 export { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
+export {
+  listSocialEnrolledCredentials,
+  socialRecoveryMethodFlags,
+} from './listSocialEnrolledCredentials';
