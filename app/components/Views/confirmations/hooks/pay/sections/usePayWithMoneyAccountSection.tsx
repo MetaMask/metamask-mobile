@@ -54,7 +54,21 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
   const { isAvailable: isMoneyAccountAvailable } =
     usePayMoneyAccountAvailable();
-  const { apyPercent } = useMoneyVaultApy();
+
+  // Perps and Predict withdraws only. Those flows pay *into* the Money account,
+  // so the vault rate is what the user earns on the funds they are about to
+  // receive. Every other flow spends from the account, where the rate is not a
+  // property of the payment, so the tag must never show there.
+  const isApyTagTransactionType = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+
+  // Skip the vault APY request entirely on the flows that cannot render the tag.
+  const { apyPercent } = useMoneyVaultApy({
+    enabled: isApyTagTransactionType,
+  });
+  const showApyTag = isApyTagTransactionType && apyPercent !== undefined;
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -107,10 +121,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      ...(showNoDepositFeeTag || apyPercent !== undefined
+      ...(showNoDepositFeeTag || showApyTag
         ? {
             tagRenderers: [
-              ...(apyPercent !== undefined
+              ...(showApyTag
                 ? [
                     () => (
                       <ApyTag
@@ -148,6 +162,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     isEnabled,
     isMoneyAccountAvailable,
     isMoneyAccountSelected,
+    showApyTag,
     showNoDepositFeeTag,
     withdrawableFiatFormatted,
     apyPercent,
