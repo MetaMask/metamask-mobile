@@ -303,10 +303,12 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   );
 
   if (isFootballEvent(event)) {
+    // With the screen's 16px padding, the 56px Team columns put each 40px
+    // helmet 40px from the screen edge.
     return (
       <Box
         testID={PredictEventScreenTestIds.GAME_HEADER}
-        twClassName="flex-row items-center justify-center gap-6 py-4"
+        twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
       >
         <FootballTeam {...teamProps('away')} />
         <FootballScore score={game.score?.away} selection="away" />
