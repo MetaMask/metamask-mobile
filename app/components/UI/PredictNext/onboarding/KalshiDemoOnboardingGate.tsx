@@ -15,7 +15,6 @@ import { selectPredictConfig } from '../selectors/predictConfig';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import {
-  isKalshiDemoOnboardingEnabled,
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
@@ -101,8 +100,8 @@ interface KalshiDemoOnboardingGateProps {
  * Temporary Kalshi demo onboarding (mobile plan §7). Reads onboarding status
  * once per mount of the Predict stack and opens the sheet when this profile
  * is not activated on Kalshi. *Not now* hides it until the next mount.
- * Renders nothing extra unless the demo build flag is on, Kalshi is enabled,
- * and the wallet is signed in and unlocked.
+ * Renders nothing extra unless Kalshi is enabled and the wallet is signed in
+ * and unlocked.
  */
 export const KalshiDemoOnboardingGate = ({
   children,
@@ -112,10 +111,7 @@ export const KalshiDemoOnboardingGate = ({
   const walletUnlocked = useSelector(selectIsUnlocked);
   const evmAddress = useSelector(selectEvmAddress);
   const enabled =
-    isKalshiDemoOnboardingEnabled() &&
-    resolveVenueAuthProfile(config) !== undefined &&
-    signedIn &&
-    walletUnlocked;
+    resolveVenueAuthProfile(config) !== undefined && signedIn && walletUnlocked;
   const client = useMemo(
     () => (enabled ? createKalshiOnboardingClient() : undefined),
     [enabled],

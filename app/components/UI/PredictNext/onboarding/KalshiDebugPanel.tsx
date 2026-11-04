@@ -22,7 +22,6 @@ import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import { portfolioQueries } from '../queries/portfolioQueries';
 import type { PredictBalance } from '../types';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
-import { isKalshiDemoOnboardingEnabled } from './internal/demoOnboardingConfig';
 import { requestKalshiRelink } from './internal/kalshiRelinkRequest';
 import {
   readKalshiDemoEmail,
@@ -97,8 +96,7 @@ const describeError = (error: unknown): string => {
 
 /**
  * TEMPORARY. Shows which Kalshi account this profile is linked to and what
- * Kalshi says about it. Rendered only when the demo onboarding build flag is
- * on. Delete with the demo onboarding.
+ * Kalshi says about it. Delete with the demo onboarding.
  */
 export const KalshiDebugPanel = ({
   balance,
@@ -170,10 +168,6 @@ export const KalshiDebugPanel = ({
       Clipboard.setString(profileId);
     }
   }, [snapshot?.a2t.sub]);
-
-  if (!isKalshiDemoOnboardingEnabled()) {
-    return null;
-  }
 
   return (
     <Box>

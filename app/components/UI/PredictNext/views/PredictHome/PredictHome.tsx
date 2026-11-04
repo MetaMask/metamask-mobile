@@ -267,7 +267,7 @@ const PredictHomeView = ({
               {homeTitle}
             </Text>
             {/* TEMPORARY: Kalshi demo debug. Same line as the title, so it
-                does not add a row. Self-gates on the demo build flag. */}
+                does not add a row. */}
             <KalshiDebugPanel
               balance={balanceQuery.data}
               balanceError={balanceQuery.error}

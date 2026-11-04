@@ -3,16 +3,11 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   DEMO_PAYOUT_WALLET,
   DEMO_PAYOUT_NETWORK,
-  isKalshiDemoOnboardingEnabled,
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './demoOnboardingConfig';
 
 describe('demoOnboardingConfig', () => {
-  it('is enabled by default', () => {
-    expect(isKalshiDemoOnboardingEnabled()).toBe(true);
-  });
-
   it('defaults to the Stripe sandbox wallet, unchanged by checksumming', () => {
     const selected = '0x44934055428d2eF7E3F97D98187f2459007fa49F';
 

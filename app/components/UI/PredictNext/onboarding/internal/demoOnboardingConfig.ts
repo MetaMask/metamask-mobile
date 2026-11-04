@@ -5,11 +5,6 @@ export const KALSHI_WALLET_NETWORKS = ['base', 'polygon'] as const;
 export type KalshiWalletNetwork = (typeof KALSHI_WALLET_NETWORKS)[number];
 
 /**
- * Demo onboarding is enabled by default.
- */
-export const isKalshiDemoOnboardingEnabled = (): boolean => true;
-
-/**
  * Kalshi demo checks the payout wallet against Stripe's sandbox and rejects
  * arbitrary addresses (`STRIPE_PAYOUT_METHOD_INVALID`). This is the USDC on
  * Base address we were given for demo onboarding.

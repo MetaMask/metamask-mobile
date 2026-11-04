@@ -6,13 +6,9 @@ import Engine from '../../../../core/Engine';
 import { KalshiDebugPanel, KalshiDebugTestIds } from './KalshiDebugPanel';
 
 /**
- * Unit, not component-view: this sheet is a temporary demo-flag modal, not a
+ * Unit, not component-view: this sheet is a temporary debug modal, not a
  * registered route, and the behavior under test is the clipboard write.
  */
-
-jest.mock('./internal/demoOnboardingConfig', () => ({
-  isKalshiDemoOnboardingEnabled: () => true,
-}));
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
