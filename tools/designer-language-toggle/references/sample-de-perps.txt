@@ -3,32 +3,43 @@ File: locales/languages/de.json
 This is the file locales/i18n.js imports. The Android preview uses this file.
 Scope: perps
 Limits: tools/designer-language-toggle/references/limits.json
-RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.
 
 Keys in scope: 1417
 Missing: 9
 Still English: 73
-Over the limit: 1
+Over the limit: 0
 Too long: 263
 Check wrapping: 111
 Placeholder mismatches: 0
 Plural forms partly missing: 0
 Skipped as shared names or tokens: 38
 Extra keys not in English: 2
-Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
+Length rule: "over the limit" compares character count, including placeholders, with references/limits.json (Pro buttons 10, Post to feed 20). A width hint counts CJK, kana, and hangul as 2 and does not decide the limit. "Too long" is a hint for English of 25 characters or fewer that grew to at least 1.4x and 4 width units. Longer English copy is "check wrapping", because sentences wrap.
+
+Over the limit (0)
+  None.
 
 Hard limits
-  perps.pro_positions_panel.card.close  max 8  over  "Schließen" (9 graphemes, width 9)
-    Perps Pro position card, Close. Three buttons share one row.
-  perps.pro_positions_panel.card.reverse  max 8  ok  "Umkehren" (8 graphemes, width 8)
-    Perps Pro position card, Reverse. Three buttons share one row.
-  perps.pro_positions_panel.card.share  max 8  ok  "Teilen" (6 graphemes, width 6)
-    Perps Pro position card, Share. Three buttons share one row.
-  perps.position.card.post_to_feed  max 16  missing  not in this file
-    Post to feed on a position card.
+  perps.pro_positions_panel.card.close  limit 10  ok  "Schließen" (9 characters, width hint 9)
+    Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2).
+  perps.pro_positions_panel.card.reverse  limit 10  ok  "Umkehren" (8 characters, width hint 8)
+    The longest are Russian Реверсировать and Turkish Tersine Çevir, 13 characters each, both over the limit.
+  perps.pro_positions_panel.card.share  limit 10  ok  "Teilen" (6 characters, width hint 6)
+    Portuguese Compartilhar (12) and Greek Κοινοποίηση (11) are over 10. German Schließen (9) is the longest Close and fits.
+  perps.position.card.post_to_feed  limit 20  missing  not in this file
+    At most 20 characters. If a translation doesn't fit, fall back to "Post". There is no German translation yet.
 
-Over the limit (1)
-  perps.pro_positions_panel.card.close  max 8  "Schließen" (9 graphemes, width 9)
+Too long (263)
+  perps.errors.unknown.retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
+  perps.connection.websocket_retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
+  perps.tutorial.skip  en "Skip" (4 graphemes, width 4)  →  "Überspringen" (12 graphemes, width 12, 3.00x)
+  perps.slippage.custom  en "Custom" (6 graphemes, width 6)  →  "Benutzerdefiniert" (17 graphemes, width 17, 2.83x)
+  perps.deposit.slippage_auto  en "Auto" (4 graphemes, width 4)  →  "Automatisch" (11 graphemes, width 11, 2.75x)
+  perps.transactions.funding.rate  en "Rate" (4 graphemes, width 4)  →  "Wechselkurs" (11 graphemes, width 11, 2.75x)
+  perps.auto_close.edit_button  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
+  perps.pro_positions_panel.order_card.edit  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
+  … 255 more. Re-run with --limit 263 to see all.
 
 Missing (9)
   perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
@@ -51,17 +62,6 @@ Still English (73)
   perps.home.tabs.memecoin  "Memecoins"
   perps.home.watchlist  "Watchlist"
   … 65 more. Re-run with --limit 73 to see all.
-
-Too long (263)
-  perps.errors.unknown.retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
-  perps.connection.websocket_retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
-  perps.tutorial.skip  en "Skip" (4 graphemes, width 4)  →  "Überspringen" (12 graphemes, width 12, 3.00x)
-  perps.slippage.custom  en "Custom" (6 graphemes, width 6)  →  "Benutzerdefiniert" (17 graphemes, width 17, 2.83x)
-  perps.deposit.slippage_auto  en "Auto" (4 graphemes, width 4)  →  "Automatisch" (11 graphemes, width 11, 2.75x)
-  perps.transactions.funding.rate  en "Rate" (4 graphemes, width 4)  →  "Wechselkurs" (11 graphemes, width 11, 2.75x)
-  perps.auto_close.edit_button  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
-  perps.pro_positions_panel.order_card.edit  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
-  … 255 more. Re-run with --limit 263 to see all.
 
 Check wrapping (111)
   perps.stop_loss_prompt.near_liquidation_subtitle  en "Add margin to derisk your position" (34 graphemes, width 34)  →  "Um das Risiko Ihrer Position zu minimieren, fügen Sie eine Margin hinzu" (71 graphemes, width 71, 2.09x)
@@ -101,5 +101,5 @@ Regional files (not imported by locales/i18n.js)
 
 Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
 
-SUMMARY de perps missing=9 still_english=73 too_long=263 check_wrapping=111 over_limit=1 placeholder_mismatches=0 plural_gaps=0 date_hints=36
+SUMMARY de perps missing=9 still_english=73 too_long=263 check_wrapping=111 over_limit=0 placeholder_mismatches=0 plural_gaps=0 date_hints=36
 No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

@@ -19,8 +19,9 @@ Usage
 Options
   --locale de            Force this language at startup
   --languages en,ja      Limit Settings > General > Current language
-  --pseudo accented      Bracketed accented English, to spot overflow
+  --pseudo accented      English with accents inside ⟦ ⟧, to find text that is not translated
   --pseudo longest       Each string becomes the longest shipped translation
+  --languages en,ja      Can be combined with --locale or --pseudo
   --dry-run              Print the plan and do not write files
   --root <path>          Repo root
 
@@ -102,7 +103,7 @@ function main() {
   if (pseudo) {
     console.log(`Mode: pseudo ${pseudo}`);
     console.log(
-      'Settings > General > Current language reads the first two letters of the locale, so "pseudo" shows up as "ps". The strings still use the stress bundle.',
+      "While a stress test is on, Settings shows the language as 'ps'. That's expected.",
     );
   } else if (locale) {
     console.log(`Locale: ${locale} (${lib.SHIPPED[locale].label})`);
@@ -159,8 +160,12 @@ function main() {
   }
   const tmp = `${i18nFile}.designer-tmp`;
   lib.assertNotTranslationFile(root, tmp);
-  fs.writeFileSync(tmp, patched);
-  fs.renameSync(tmp, i18nFile);
+  try {
+    fs.writeFileSync(tmp, patched);
+    fs.renameSync(tmp, i18nFile);
+  } finally {
+    if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+  }
   fs.writeFileSync(`${overrideFile}`, `${JSON.stringify(override, null, 2)}\n`);
 
   console.log('');

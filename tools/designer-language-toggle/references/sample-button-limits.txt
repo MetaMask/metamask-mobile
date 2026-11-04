@@ -1,0 +1,15 @@
+language	close	reverse	share	post_to_feed
+de	ok 9 "Schließen"	ok 8 "Umkehren"	ok 6 "Teilen"	missing
+el	ok 8 "Κλείσιμο"	ok 10 "Αντιστροφή"	over 11 "Κοινοποίηση"	missing
+es	ok 6 "Cerrar"	ok 8 "Revertir"	ok 9 "Compartir"	missing
+fr	ok 6 "Fermer"	ok 8 "Inverser"	ok 8 "Partager"	missing
+hi	ok 5 "बंद करें"	ok 6 "रिवर्स करें"	ok 5 "साझा करें"	missing
+id	ok 5 "Tutup"	ok 5 "Balik"	ok 7 "Bagikan"	missing
+ja	ok 3 "閉じる"	ok 2 "反転"	ok 2 "共有"	missing
+ko	ok 2 "닫기"	ok 2 "전환"	ok 2 "공유"	missing
+pt	ok 6 "Fechar"	ok 8 "Inverter"	over 12 "Compartilhar"	missing
+ru	ok 7 "Закрыть"	over 13 "Реверсировать"	ok 10 "Поделиться"	missing
+tl	ok 5 "Isara"	ok 6 "Ibalik"	ok 7 "Ibahagi"	missing
+tr	ok 5 "Kapat"	over 13 "Tersine Çevir"	ok 6 "Paylaş"	missing
+vi	ok 4 "Đóng"	ok 9 "Đảo ngược"	ok 7 "Chia sẻ"	missing
+zh	ok 2 "关闭"	ok 2 "反转"	ok 2 "共享"	missing

@@ -29,9 +29,11 @@ function main() {
   const backupFile = lib.backupPath(root);
   const overrideFile = lib.overridePath(root);
   const pseudoFile = lib.pseudoPath(root);
-  [i18nFile, backupFile, overrideFile, pseudoFile].forEach((file) => {
+  const tmpFile = `${i18nFile}.designer-tmp`;
+  [i18nFile, backupFile, overrideFile, pseudoFile, tmpFile].forEach((file) => {
     lib.assertNotTranslationFile(root, file);
   });
+  const removedTmp = removeIfPresent(tmpFile);
 
   if (!fs.existsSync(backupFile)) {
     const current = fs.readFileSync(i18nFile, 'utf8');
@@ -42,7 +44,7 @@ function main() {
     }
     const removedOverride = removeIfPresent(overrideFile);
     const removedPseudo = removeIfPresent(pseudoFile);
-    if (removedOverride || removedPseudo) {
+    if (removedOverride || removedPseudo || removedTmp) {
       console.log('Removed leftover preview files. locales/i18n.js was already clean.');
       return;
     }

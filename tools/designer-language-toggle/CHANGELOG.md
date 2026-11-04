@@ -2,13 +2,13 @@
 
 ## v0.1
 
-- Length uses grapheme clusters, so a Hindi letter with a vowel sign counts once. CJK, kana, and hangul still count as width 2.
-- Hard limits live in `references/limits.json`. The Perps Pro Close, Reverse, and Share buttons are width 8. Post to feed is width 16. Hits are reported as over the limit.
-- English strings of 25 graphemes or fewer can be too long. Longer English copy goes to check wrapping instead of the too-long list.
-- The string check also reports placeholder mismatches and plural forms that are only partly translated.
-- `screenshot-keys.js` takes `--lang` and lists placeholders and plural siblings next to each key.
-- `--format json` is available on the string check and the screenshot list.
-- The feedback note asks for plural form, placeholders, and which length bucket you saw.
+- Length hints use grapheme clusters. A Hindi letter with a vowel sign counts once. CJK, kana, and hangul count as width 2, and that width is only a hint.
+- Hard limits are character counts in `references/limits.json`. The Perps Pro buttons are 10. Post to feed is 20, with a fallback of "Post" when a translation doesn't fit. Placeholders count toward the limit.
+- English of 25 characters or fewer can be flagged too long, as a hint. Longer English copy is "check wrapping".
+- The string check reports placeholder mismatches. Russian plurals are `one` and `other` only. The app's i18n library does not use CLDR `few` or `many`.
+- `screenshot-keys.js --lang` shows the translation, character count, and limit. It expands plural keys, `*_I18N` maps, and template-string keys. `--format json` uses source, feature, component, description, and max_length.
+- `--match`, `--limit`, `--ratio`, and `--pseudo` with `--languages` are documented. Apply again replaces the preview. Revert also deletes a leftover `locales/i18n.js.designer-tmp`.
+- The feedback note points at Laurel Klafehn's i18n intake form and uses a pt-BR example.
 
 ## v0
 

@@ -5,20 +5,20 @@
   "minEnglishWidth": 4,
   "keys": {
     "perps.pro_positions_panel.card.close": {
-      "maxWidth": 8,
-      "where": "Perps Pro position card, Close. Three buttons share one row."
+      "maxCharacters": 10,
+      "where": "Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2)."
     },
     "perps.pro_positions_panel.card.reverse": {
-      "maxWidth": 8,
-      "where": "Perps Pro position card, Reverse. Three buttons share one row."
+      "maxCharacters": 10,
+      "where": "The longest are Russian Реверсировать and Turkish Tersine Çevir, 13 characters each, both over the limit."
     },
     "perps.pro_positions_panel.card.share": {
-      "maxWidth": 8,
-      "where": "Perps Pro position card, Share. Three buttons share one row."
+      "maxCharacters": 10,
+      "where": "Portuguese Compartilhar (12) and Greek Κοινοποίηση (11) are over 10. German Schließen (9) is the longest Close and fits."
     },
     "perps.position.card.post_to_feed": {
-      "maxWidth": 16,
-      "where": "Post to feed on a position card."
+      "maxCharacters": 20,
+      "where": "At most 20 characters. If a translation doesn't fit, fall back to \"Post\". There is no German translation yet."
     }
   }
 }

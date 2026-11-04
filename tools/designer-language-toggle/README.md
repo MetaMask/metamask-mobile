@@ -72,9 +72,9 @@ After apply or revert, reload the Android preview. If that preview is a prebuilt
 - `SKILL.md` — instructions the agent follows
 - `references/how-it-works.md` — why startup patching beats the saved language
 - `references/screens.md` — Perps and Social screenshot notes
-- `references/limits.json` — hard widths for the Pro buttons and Post to feed, plus the 25-grapheme cutoff
+- `references/limits.json` — character limits: Pro buttons 10, Post to feed 20. CJK width is a hint only.
 - `references/sample-de-perps.txt`, `references/sample-ja-perps.txt`, and `references/sample-hi-perps.txt` — Perps checks from this repo
-- `references/sample-de-social.txt` and `references/sample-ja-social.txt` — Social checks
+- `references/sample-button-limits.txt` — Close, Reverse, Share, and Post to feed against the 10 and 20 character limits
 - `references/sample-screenshot-position-card.txt` — string keys on the Perps position card
 - `CHANGELOG.md` — v0
 - `FEEDBACK.md` — for the translation team, later

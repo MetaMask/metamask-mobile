@@ -39,13 +39,15 @@ Both modes set `I18n.locale` to `pseudo` and load `locales/designer-pseudo.gener
 
 - Missing: the English key is absent or blank.
 - Still English: the value equals English. Strings shorter than 3 characters, strings with no real word once `{{placeholders}}` are removed, and strings that match English in at least 80% of the other shipped files (and at least 8 of them) are skipped. `--strict` lists the shared ones too.
-- Over the limit: the translation's grapheme width is above the `maxWidth` in `references/limits.json`. v0.1 sets the three Perps Pro position-card buttons to 8 and Post to feed to 16.
-- Too long: English is 25 graphemes or fewer, and the translation is at least 1.4× as wide and at least 4 width units wider. These are the labels that clip.
-- Check wrapping: the same growth rule, but the English string is longer than 25 graphemes, so it should wrap instead of being treated as a clipped button.
+- Over the limit: the translation's character count, including `{{placeholders}}`, is above `maxCharacters` in `references/limits.json`. The Pro buttons are 10. Post to feed is 20, and a translation that doesn't fit falls back to "Post". A width hint still counts CJK, kana, and hangul as 2, but that hint does not decide the limit.
+- Too long: a hint. English is 25 characters or fewer, and the translation's display width is at least 1.4× English and at least 4 width units wider. Sentences wrap, so this is not a hard failure.
+- Check wrapping: the same growth hint, but the English string is longer than 25 characters.
 - Placeholder mismatch: a `{{name}}` is missing or extra.
 - Plural gap: English has more than one of `one` / `other` / `few` / `many`, and the translation has some of those forms but not all.
 
-Width is counted on grapheme clusters. A Hindi letter plus its vowel sign is one cluster of width 1. CJK, kana, and hangul clusters are width 2. `{{placeholders}}` are removed before the width is counted, and they are checked on their own.
+Width for that hint is counted on grapheme clusters. A Hindi letter plus its vowel sign is one cluster of width 1. CJK, kana, and hangul clusters are width 2, and that width is only a hint next to the character limit. Hard limits count every character, including placeholder text such as `{{count}}`.
+
+Russian locale files only include `one` and `other`. CLDR also defines `few` and `many` for Russian. The app uses `react-native-i18n` with i18n-js 3. That library's default pluralizer only looks up `zero`, `one`, and `other`, so `few` and `many` are not used.
 
 Regional files (`ja-jp.json`, `zh-cn.json`, `pt-br.json`, and the other `xx-yy.json` files next to the shipped JSON) are counted in a separate section. `locales/i18n.js` does not import them. Crowdin's config (`crowdin.yml`) uploads `en.json` and downloads `%two_letters_code%.json`, which is the shipped two-letter file.
 

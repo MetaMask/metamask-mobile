@@ -91,6 +91,25 @@ function testWidthAndAccent() {
   const accented = lib.accentString('Hello {{name}}');
   assert(accented.includes('{{name}}'), 'placeholders survive accenting');
   assert(accented.startsWith('⟦') && accented.endsWith('⟧'), 'accent brackets');
+  assert(lib.characterCount('Close {{count}}') === 15, 'placeholders count toward length');
+  assert(
+    lib.scanDateValues({ 'perps.note': 'See you May 2' }, ['perps']).length === 1,
+    'May is included in date hints',
+  );
+  assert(
+    lib.screenName('app/components/UI/SocialFeed/components/CopyTradeButton.tsx') ===
+      'SocialFeed',
+    'screen name does not stop at app/components',
+  );
+  assert(
+    lib.screenName('app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.tsx') ===
+      'PerpsHomeView',
+    'view folder names the screen',
+  );
+  assert(
+    lib.screenName('app/components/UI/Perps/utils/formatUtils.ts') === 'Perps',
+    'Perps files outside Views group under Perps',
+  );
   assert(lib.resolveLanguage('ja-JP') === 'ja', 'ja-JP alias');
   assert(lib.resolveLanguage('Portuguese') === 'pt', 'portuguese alias');
   assert(lib.resolveLanguage('pt-BR') === 'pt', 'pt-BR alias');
@@ -138,6 +157,7 @@ function testAnalyze(root) {
     },
     {
       'perps.card.close': 'Schließen',
+      'perps.card.reverse': 'Реверсировать',
       'perps.blurb':
         'Dieser Satz ist absichtlich viel länger als das englische Original und soll umbrechen.',
       'perps.hello': 'Hallo',
@@ -156,15 +176,20 @@ function testAnalyze(root) {
         minDelta: 4,
         minEnglishWidth: 4,
         keys: {
-          'perps.card.close': { maxWidth: 8, where: 'fixture button' },
-          'perps.position.card.post_to_feed': { maxWidth: 16, where: 'missing' },
+          'perps.card.close': { maxCharacters: 10, where: 'fixture button' },
+          'perps.card.reverse': { maxCharacters: 10, where: 'fixture reverse' },
+          'perps.position.card.post_to_feed': { maxCharacters: 20, where: 'missing' },
         },
       },
     },
   );
   assert(
-    ruled.overLimit.some((row) => row.key === 'perps.card.close'),
-    'Schließen is over the hard limit of 8',
+    !ruled.overLimit.some((row) => row.key === 'perps.card.close'),
+    'Schließen is 9 characters and fits a limit of 10',
+  );
+  assert(
+    ruled.overLimit.some((row) => row.key === 'perps.card.reverse'),
+    'Реверсировать is over the 10 character limit',
   );
   assert(
     ruled.limitChecks.some(
@@ -204,6 +229,44 @@ function testAnalyze(root) {
   );
 }
 
+function testRuntimeKeys() {
+  const root = lib.findRepoRoot();
+  const enFlat = lib.flattenFile(path.join(root, 'locales', 'languages', 'en.json'));
+  const header = fs.readFileSync(
+    path.join(
+      root,
+      'app/components/UI/SocialFeed/components/PositionCardHeader.tsx',
+    ),
+    'utf8',
+  );
+  const headerKeys = lib.extractStringKeys(header, enFlat);
+  assert(
+    headerKeys.has('social_leaderboard.trader_position.long'),
+    'DIRECTION_I18N keys are collected',
+  );
+  assert(
+    headerKeys.has('social_leaderboard.feed.position_card.buy'),
+    'SIDE_I18N keys are collected',
+  );
+  const card = fs.readFileSync(
+    path.join(
+      root,
+      'app/components/UI/SocialFeed/components/SocialFeedPositionCard.tsx',
+    ),
+    'utf8',
+  );
+  const cardKeys = lib.extractStringKeys(card, enFlat);
+  assert(
+    cardKeys.has('social_leaderboard.feed.position_card.entry'),
+    'template-string position card keys are expanded',
+  );
+  const forms = lib.pluralFormsFor(
+    enFlat,
+    'social_leaderboard.feed.live_stream.new_posts',
+  );
+  assert(forms && forms.one && forms.other, 'plural parent expands to one and other');
+}
+
 function testRealI18nTransform(realI18n) {
   const patched = lib.transformI18nSource(
     realI18n,
@@ -223,15 +286,6 @@ function testRealI18nTransform(realI18n) {
     'startup skips saved language when force is on',
   );
   assert(!patched.includes("require('./designer-pseudo.generated.json')"), 'no pseudo require');
-  let threw = false;
-  try {
-    lib.transformI18nSource(patched, { locale: 'fr', languages: null, pseudo: null, force: true }, {
-      pseudoRequire: false,
-    });
-  } catch (error) {
-    threw = /already contains/.test(error.message);
-  }
-  assert(threw, 'second transform without revert is refused');
 
   let blocked = false;
   try {
@@ -274,8 +328,20 @@ function testApplyRevert(root, realI18n) {
   const syntax = runNode(['--check', path.join(root, 'locales', 'i18n.js')], root);
   assert(syntax.status === 0, `patched i18n syntax ${syntax.stderr}`);
 
+  const again = runNode(
+    [apply, '--root', root, '--pseudo', 'accented', '--languages', 'en,ja'],
+    root,
+  );
+  assert(again.status === 0, `apply again status ${again.status} ${again.stderr}`);
+  const switched = fs.readFileSync(path.join(root, 'locales', 'i18n.js'), 'utf8');
+  assert(switched.includes('"pseudo": "accented"'), 'second apply replaces the preview');
+  assert(!switched.includes('Run revert-locale.js before applying'), 'no revert-first error');
+
+  const tmp = path.join(root, 'locales', 'i18n.js.designer-tmp');
+  fs.writeFileSync(tmp, 'leftover');
   const reverted = runNode([revert, '--root', root], root);
   assert(reverted.status === 0, `revert status ${reverted.status} ${reverted.stderr}`);
+  assert(!fs.existsSync(tmp), 'revert removes a leftover designer-tmp file');
   assert(
     fs.readFileSync(path.join(root, 'locales', 'i18n.js'), 'utf8') === realI18n,
     'revert restores the original i18n.js bytes',
@@ -309,7 +375,7 @@ function testApplyRevert(root, realI18n) {
   assert(/Missing: 1/.test(checked.stdout), 'cli missing count');
   assert(/Still English: 1/.test(checked.stdout), 'cli still-english count');
   assert(/Too long: 2/.test(checked.stdout), 'cli too-long count');
-  assert(/RTL is off/.test(checked.stdout), 'cli reports RTL off');
+  assert(/aren't supported in the app yet/.test(checked.stdout), 'cli reports RTL once');
   assert(/SUMMARY de perps/.test(checked.stdout), 'summary line');
 }
 
@@ -318,6 +384,7 @@ function main() {
   const { root, realI18n } = makeFixture();
   try {
     testAnalyze(root);
+    testRuntimeKeys();
     testRealI18nTransform(realI18n);
     testApplyRevert(root, realI18n);
   } finally {

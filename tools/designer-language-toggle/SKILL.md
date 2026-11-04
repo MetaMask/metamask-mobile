@@ -16,7 +16,7 @@ metadata:
 
 # Designer language toggle
 
-Designers ask in plain language. You run the scripts and explain the result. They are not expected to know file paths.
+Designers ask in plain language. You run the scripts and explain the result. Lead with what changed on screen and what to do next (reload, or put it back). Leave out file names, Metro, and storage keys unless they ask.
 
 Read `references/how-it-works.md` only when you need to explain why the preview wins over the saved language, or why a regional file is not what the app shows.
 
@@ -26,7 +26,7 @@ Read `references/how-it-works.md` only when you need to explain why the preview 
 - Always offer to revert after you change the preview. Tell them the revert command in the same reply.
 - Never edit `locales/languages/*.json`. Crowdin owns them (`crowdin.yml`). Do not "fix" a translation in those files.
 - Never commit, push, or open a pull request unless the person explicitly asks.
-- RTL is off. Say that when you change language or report a check. Do not try to turn RTL on.
+- Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout. Say that once. Do not try to turn it on.
 
 ## Install
 
@@ -47,28 +47,35 @@ Start a new Agent chat after linking.
 | Both: show Japanese, and only list English and Japanese | `apply-locale.js --locale ja --languages en,ja` |
 | Flag strings in German for Perps | `check-strings.js --lang de --feature perps` |
 | Same for Social, or a namespace | `--feature social` or `--namespace social_leaderboard` |
-| Stress truncation / pseudo / longest translation | `apply-locale.js --pseudo longest` or `--pseudo accented` |
+| Show the longest real translation of every string | `apply-locale.js --pseudo longest` |
+| Find text that can't be translated (hard-coded English) | `apply-locale.js --pseudo accented` |
 | Which strings are on this screen, for a linguist | `screenshot-keys.js --feature perps --lang de` (or `social`) |
+| Only this part of the screen | `screenshot-keys.js --feature perps --match PerpsProPositionCard`. Without it, a designer gets all 996 Perps keys. |
+| Report a translation problem | Fill in `FEEDBACK.md`, then submit it through Laurel's intake form |
 | Put it back / revert | `revert-locale.js` |
 
 Run the scripts from the repo root with `node tools/designer-language-toggle/scripts/<name>.js`.
 
-Shipped languages: de, el, en, es, fr, hi, id, ja, ko, pt, ru, tl, tr, vi, zh. `pt-BR` checks `pt.json` (what the app loads) and also mentions `pt-br.json`. `ja-JP` and `zh-CN` work the same way.
+`--limit` caps how many examples the string check prints (default 15). `--ratio` changes the growth hint (default 1.4). `--match` limits the screenshot list to files whose path contains that text. `--pseudo longest` and `--pseudo accented` can be combined with `--languages en,ja` when the picker should be shorter during the stress test. To switch to another language, just run apply again. You don't need to revert first.
+
+Shipped languages: de, el, en, es, fr, hi, id, ja, ko, pt, ru, tl, tr, vi, zh. Mention regional files only if someone asks about pt-BR, ja-JP, or zh-CN. Those files are not what the app loads. `pt-BR` checks `pt.json` (what the app loads) and also mentions `pt-br.json`. `ja-JP` and `zh-CN` work the same way.
 
 ## Show the app in a language
 
 1. Run `apply-locale.js --locale <language>`.
-2. Tell them to reload the Android preview so Metro picks up `locales/i18n.js`.
-3. Say which language is on, that the choice is local and uncommitted, and that RTL is off.
+2. Tell them to reload the Android preview.
+3. Say which language is on, and that the choice is local and uncommitted. Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.
 4. Offer to revert. Give them:
 
 ```bash
 node tools/designer-language-toggle/scripts/revert-locale.js
 ```
 
-If the preview is a prebuilt APK and does not serve this checkout, say so and point them at Settings > General > Current language. That picker calls `setLocale` and saves `@MetaMask:language` on the device. The script cannot write that device storage from the host.
+If the preview does not pick up the change, point them at Settings > General > Current language.
 
 Do not use `--dry-run` unless they only want to see the plan.
+
+To switch to another language, just run apply again. You don't need to revert first.
 
 ## Limit the language picker
 
@@ -80,9 +87,11 @@ Do not use `--dry-run` unless they only want to see the plan.
 node tools/designer-language-toggle/scripts/check-strings.js --lang de --feature perps
 ```
 
-Reply with the summary counts: missing, still English, over the limit, too long, and check wrapping. Include the hard-limit lines for the Pro buttons and Post to feed when the scope is Perps. Do not dump the whole list unless they ask. Mention regional files in one or two sentences: they are checked, and the app does not import them.
+Lead with strings that are too long and button-sized. Then the focus controls. Then missing and still English.
 
-Too long is for short labels (English is 25 graphemes or fewer) that grew enough to clip. Check wrapping is for longer sentences. Over the limit uses `references/limits.json`. A designer can change those widths without editing the script.
+"Too long" is a hint, since sentences wrap. Missing means there's no translation yet, and still English means the translation matches the English.
+
+Over the limit is a hard failure. The Pro buttons are 10 characters. Post to feed is 20 characters. If a Post to feed translation doesn't fit, it falls back to "Post". A width hint counts CJK as 2 per character and does not decide the limit. Do not dump the whole list unless they ask.
 
 `--strict` includes strings that are English in most languages (product names and tokens). Default skips those.
 
@@ -90,11 +99,13 @@ The check never writes locale JSON. `--format json` prints the same findings as 
 
 ## Pseudo and screenshots
 
-- `accented` makes overflow obvious (bracketed, accented English).
-- `longest` uses the widest shipped translation of each key.
-- After either one, tell them to reload, that RTL is off, and how to revert.
-- Settings shows `ps` for this mode because the screen keeps only the first two letters of the locale code. The strings are still the stress bundle.
-- For linguists, run `screenshot-keys.js --lang <language>`. It lists the English string, the translation, every `{{placeholder}}`, and sibling plural forms. Point at `FEEDBACK.md`. Do not file the JSON edit yourself.
+- accented shows English with accents inside ⟦ ⟧. Text without brackets isn't going through translation, and a missing ⟧ means the string is cut off. Use longest to test length.
+- `longest` shows the longest real translation of every string.
+- After either one, tell them to reload, and how to revert.
+- While a stress test is on, Settings shows the language as 'ps'. That's expected.
+- For linguists, run `screenshot-keys.js --lang <language>`. It lists the English string, the translation, the character count, the limit, every `{{placeholder}}`, and sibling plural forms. Placeholders count toward the limit. `Close {{count}}` is 15 characters. Point at `FEEDBACK.md`. Do not file the JSON edit yourself.
+- The key list can miss strings that are built in code, so compare it with the screenshot.
+- `--format json` uses Laurel's context fields: source, feature, component, description, max_length.
 
 ## If a script fails
 

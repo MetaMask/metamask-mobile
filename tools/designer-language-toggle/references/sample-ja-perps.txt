@@ -3,7 +3,7 @@ File: locales/languages/ja.json
 This is the file locales/i18n.js imports. The Android preview uses this file.
 Scope: perps
 Limits: tools/designer-language-toggle/references/limits.json
-RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.
 
 Keys in scope: 1417
 Missing: 9
@@ -15,20 +15,31 @@ Placeholder mismatches: 0
 Plural forms partly missing: 0
 Skipped as shared names or tokens: 37
 Extra keys not in English: 2
-Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
-
-Hard limits
-  perps.pro_positions_panel.card.close  max 8  ok  "閉じる" (3 graphemes, width 6)
-    Perps Pro position card, Close. Three buttons share one row.
-  perps.pro_positions_panel.card.reverse  max 8  ok  "反転" (2 graphemes, width 4)
-    Perps Pro position card, Reverse. Three buttons share one row.
-  perps.pro_positions_panel.card.share  max 8  ok  "共有" (2 graphemes, width 4)
-    Perps Pro position card, Share. Three buttons share one row.
-  perps.position.card.post_to_feed  max 16  missing  not in this file
-    Post to feed on a position card.
+Length rule: "over the limit" compares character count, including placeholders, with references/limits.json (Pro buttons 10, Post to feed 20). A width hint counts CJK, kana, and hangul as 2 and does not decide the limit. "Too long" is a hint for English of 25 characters or fewer that grew to at least 1.4x and 4 width units. Longer English copy is "check wrapping", because sentences wrap.
 
 Over the limit (0)
   None.
+
+Hard limits
+  perps.pro_positions_panel.card.close  limit 10  ok  "閉じる" (3 characters, width hint 6)
+    Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2).
+  perps.pro_positions_panel.card.reverse  limit 10  ok  "反転" (2 characters, width hint 4)
+    The longest are Russian Реверсировать and Turkish Tersine Çevir, 13 characters each, both over the limit.
+  perps.pro_positions_panel.card.share  limit 10  ok  "共有" (2 characters, width hint 4)
+    Portuguese Compartilhar (12) and Greek Κοινοποίηση (11) are over 10. German Schließen (9) is the longest Close and fits.
+  perps.position.card.post_to_feed  limit 20  missing  not in this file
+    At most 20 characters. If a translation doesn't fit, fall back to "Post". There is no German translation yet.
+
+Too long (204)
+  perps.service_interruption.faq_title  en "Perps FAQs" (10 graphemes, width 10)  →  "パーペチュアルに関するよくある質問" (17 graphemes, width 34, 3.40x)
+  perps.home.social_feed  en "Social" (6 graphemes, width 6)  →  "ソーシャルフィード" (9 graphemes, width 18, 3.00x)
+  perps.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.deposit.estimated_processing_time  en "Est. {{time}}" (5 graphemes, width 5)  →  "推定所要時間: {{time}}" (8 graphemes, width 14, 2.80x)
+  perps.position.list.first_time_title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.home.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.transactions.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.close_position.sheet_title_long  en "Close Long {{asset}}" (11 graphemes, width 11)  →  "{{asset}}のロングポジションをクローズ" (14 graphemes, width 28, 2.55x)
+  … 196 more. Re-run with --limit 204 to see all.
 
 Missing (9)
   perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
@@ -48,17 +59,6 @@ Still English (6)
   perps.search_by_token_symbol  "Search"
   perps.order.limit_price_modal.ask_price  "Ask"
   perps.order.limit_price_modal.bid_price  "Bid"
-
-Too long (204)
-  perps.service_interruption.faq_title  en "Perps FAQs" (10 graphemes, width 10)  →  "パーペチュアルに関するよくある質問" (17 graphemes, width 34, 3.40x)
-  perps.home.social_feed  en "Social" (6 graphemes, width 6)  →  "ソーシャルフィード" (9 graphemes, width 18, 3.00x)
-  perps.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  perps.deposit.estimated_processing_time  en "Est. {{time}}" (5 graphemes, width 5)  →  "推定所要時間: {{time}}" (8 graphemes, width 14, 2.80x)
-  perps.position.list.first_time_title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  perps.home.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  perps.transactions.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  perps.close_position.sheet_title_long  en "Close Long {{asset}}" (11 graphemes, width 11)  →  "{{asset}}のロングポジションをクローズ" (14 graphemes, width 28, 2.55x)
-  … 196 more. Re-run with --limit 204 to see all.
 
 Check wrapping (30)
   perps.stop_loss_prompt.near_liquidation_subtitle  en "Add margin to derisk your position" (34 graphemes, width 34)  →  "ポジションのリスクを回避するために、証拠金を追加してください" (30 graphemes, width 60, 1.76x)

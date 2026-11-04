@@ -13,15 +13,15 @@ Add `--match PerpsProPositionCard` (or another file or folder name) to narrow th
 
 `app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionCard.tsx`
 
-Three `flex-1` buttons in one row. Design review has been using about 114px each. There is no `114` width constant in this component.
+Three buttons share one row. Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2).
 
-| Key | English |
-| --- | --- |
-| `perps.pro_positions_panel.card.close` | Close |
-| `perps.pro_positions_panel.card.reverse` | Reverse |
-| `perps.pro_positions_panel.card.share` | Share |
+| Key | English | Note |
+| --- | --- | --- |
+| `perps.pro_positions_panel.card.close` | Close | Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2). |
+| `perps.pro_positions_panel.card.reverse` | Reverse | The longest are Russian Реверсировать and Turkish Tersine Çevir, 13 characters each, both over the limit. |
+| `perps.pro_positions_panel.card.share` | Share | Portuguese Compartilhar (12) and Greek Κοινοποίηση (11) are over 10. German Schließen (9) is the longest Close and fits. |
 
-Shipped examples that run long: German Close (`Schließen`, 9, over the width-8 limit), Russian Reverse (`Реверсировать`, 13), Portuguese Share in `pt.json` (`Compartilhar`, 12). The app loads `pt.json`. `pt-br.json` is a regional file and is not imported. Change the widths in `references/limits.json` if the layout budget changes. `perps.position.card.post_to_feed` ("Post to feed") is limited to width 16 and is still missing outside English.
+`perps.position.card.post_to_feed` ("Post to feed") is at most 20 characters. If a translation doesn't fit, fall back to "Post". There is no German translation yet. The app loads `pt.json`. `pt-br.json` is a regional file and is not imported. Change the numbers in `references/limits.json` if the agreement changes.
 
 ## Other Perps surfaces
 

@@ -3,7 +3,7 @@ File: locales/languages/ja.json
 This is the file locales/i18n.js imports. The Android preview uses this file.
 Scope: social, social_leaderboard
 Limits: tools/designer-language-toggle/references/limits.json
-RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.
 
 Keys in scope: 525
 Missing: 47
@@ -15,15 +15,26 @@ Placeholder mismatches: 0
 Plural forms partly missing: 0
 Skipped as shared names or tokens: 195
 Extra keys not in English: 8
-Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
+Length rule: "over the limit" compares character count, including placeholders, with references/limits.json (Pro buttons 10, Post to feed 20). A width hint counts CJK, kana, and hangul as 2 and does not decide the limit. "Too long" is a hint for English of 25 characters or fewer that grew to at least 1.4x and 4 width units. Longer English copy is "check wrapping", because sentences wrap.
+
+Over the limit (0)
+  None.
+
+Too long (91)
+  social_leaderboard.feed.action.spot_sold  en "sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
+  social_leaderboard.profile_onboarding.sold  en "sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
+  social_leaderboard.position_sheet.tooltip.sold  en "Sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
+  social_leaderboard.trader_position.action.spot_sold  en "Sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
+  social_leaderboard.type_filter.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  social_leaderboard.feed.action.perps_added  en "added" (5 graphemes, width 5)  →  "追加されました" (7 graphemes, width 14, 2.80x)
+  social_leaderboard.composer.section_perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  social_leaderboard.shell.filters.type.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  … 83 more. Re-run with --limit 91 to see all.
 
 Other focus strings
   social_leaderboard.feed.position_card.copy_trade
     Social feed, Copy trade.
     en "Copy trade" (10 graphemes, width 10)  →  "Copy trade" (10 graphemes, width 10)
-
-Over the limit (0)
-  None.
 
 Missing (47)
   social_leaderboard.account_disabled.title  en "Your account is temporarily disabled"
@@ -38,17 +49,6 @@ Missing (47)
 
 Still English (1)
   social_leaderboard.quick_buy.with  "with"
-
-Too long (91)
-  social_leaderboard.feed.action.spot_sold  en "sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
-  social_leaderboard.profile_onboarding.sold  en "sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
-  social_leaderboard.position_sheet.tooltip.sold  en "Sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
-  social_leaderboard.trader_position.action.spot_sold  en "Sold" (4 graphemes, width 4)  →  "売却しました" (6 graphemes, width 12, 3.00x)
-  social_leaderboard.type_filter.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  social_leaderboard.feed.action.perps_added  en "added" (5 graphemes, width 5)  →  "追加されました" (7 graphemes, width 14, 2.80x)
-  social_leaderboard.composer.section_perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  social_leaderboard.shell.filters.type.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
-  … 83 more. Re-run with --limit 91 to see all.
 
 Check wrapping (3)
   social_leaderboard.mute.on_accessibility_label  en "Notifications on. Tap to mute this trader" (41 graphemes, width 41)  →  "通知がオンです。タップすると、このトレーダーをミュートします。" (31 graphemes, width 62, 1.51x)

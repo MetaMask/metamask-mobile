@@ -9,7 +9,7 @@ const MARKER_START = 'DESIGNER-LOCALE-OVERRIDE:START';
 const MARKER_END = 'DESIGNER-LOCALE-OVERRIDE:END';
 
 const RTL_NOTE =
-  'RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.';
+  "Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.";
 
 /** Locales imported by locales/i18n.js. Regional files are not in this list. */
 const SHIPPED = {
@@ -76,24 +76,24 @@ const FEATURE_DIRS = {
 };
 
 /**
- * Short controls where truncation shows up first.
- * Width is not a fixed 114px in code: the position-card actions are flex-1.
+ * Perps Pro position-card buttons and Post to feed.
+ * Hard limits are character counts. See references/limits.json.
  */
 const FOCUS_KEYS = [
   {
     key: 'perps.pro_positions_panel.card.close',
     namespaces: ['perps'],
-    note: 'Perps position card, Close. Three buttons share one row (flex-1). Designers budget about 114px.',
+    note: 'Each button is about 114px, with about 70px for text. Limit: 10 characters (agreed Nov 2).',
   },
   {
     key: 'perps.pro_positions_panel.card.reverse',
     namespaces: ['perps'],
-    note: 'Perps position card, Reverse. A long shipped example is Russian.',
+    note: 'The longest are Russian Реверсировать and Turkish Tersine Çevir, 13 characters each, both over the limit.',
   },
   {
     key: 'perps.pro_positions_panel.card.share',
     namespaces: ['perps'],
-    note: 'Perps position card, Share. A long shipped example is Portuguese in pt.json (the file the app loads).',
+    note: 'Portuguese Compartilhar (12) and Greek Κοινοποίηση (11) are over 10. German Schließen (9) is the longest Close and fits.',
   },
   {
     key: 'social_leaderboard.feed.position_card.copy_trade',
@@ -126,7 +126,7 @@ const VALUE_DATE_PATTERNS = [
   },
   {
     name: 'english-month-day',
-    re: /\b(?:January|February|March|April|June|July|August|September|October|November|December)\s+\d{1,2}\b/,
+    re: /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}\b/,
   },
 ];
 
@@ -340,6 +340,10 @@ function displayWidth(value) {
   );
 }
 
+function characterCount(value) {
+  return graphemes(String(value)).length;
+}
+
 function charCount(value) {
   return graphemes(comparable(value)).length;
 }
@@ -390,9 +394,13 @@ function loadLimits(filePath) {
   const keys = raw.keys && typeof raw.keys === 'object' ? raw.keys : {};
   Object.keys(keys).forEach((key) => {
     const entry = keys[key];
-    if (!entry || typeof entry.maxWidth !== 'number' || entry.maxWidth < 1) {
+    if (
+      !entry ||
+      typeof entry.maxCharacters !== 'number' ||
+      entry.maxCharacters < 1
+    ) {
       throw new Error(
-        `Hard limit for ${key} in ${filePath} needs a maxWidth of at least 1.`,
+        `Hard limit for ${key} in ${filePath} needs a maxCharacters of at least 1.`,
       );
     }
   });
@@ -540,26 +548,26 @@ function analyzePair(enFlat, targetFlat, options) {
     const enValue = enFlat[key];
     const targetValue = targetFlat[key];
     const present = typeof targetValue === 'string' && targetValue.trim() !== '';
-    const targetWidth = present ? displayWidth(targetValue) : null;
+    const characters = present ? characterCount(targetValue) : null;
     const status = !present
       ? 'missing'
-      : targetWidth > rule.maxWidth
+      : characters > rule.maxCharacters
         ? 'over'
         : 'ok';
     const row = {
       key,
       where: rule.where || '',
-      maxWidth: rule.maxWidth,
+      maxCharacters: rule.maxCharacters,
       en: typeof enValue === 'string' ? enValue : '',
       target: present ? targetValue : '',
-      targetWidth,
-      targetChars: present ? charCount(targetValue) : 0,
+      characters,
+      widthHint: present ? displayWidth(targetValue) : null,
       status,
     };
     limitChecks.push(row);
     if (status === 'over') overLimit.push(row);
   });
-  overLimit.sort((a, b) => (b.targetWidth || 0) - (a.targetWidth || 0));
+  overLimit.sort((a, b) => (b.characters || 0) - (a.characters || 0));
 
   let extra = 0;
   Object.keys(targetFlat).forEach((key) => {
@@ -855,11 +863,6 @@ function renderEarlyReturn() {
 }
 
 function transformI18nSource(source, override, options) {
-  if (source.includes(MARKER_START)) {
-    throw new Error(
-      'locales/i18n.js already contains a designer override. Run revert-locale.js before applying a new one.',
-    );
-  }
   const anchor = 'I18n.translations = supportedTranslations;';
   const anchorAt = source.indexOf(anchor);
   if (anchorAt < 0) {
@@ -917,6 +920,77 @@ function pseudoPath(root) {
   return path.join(root, 'locales', 'designer-pseudo.generated.json');
 }
 
+function screenName(relPath) {
+  const parts = String(relPath).split(/[/\\]/);
+  const views = parts.lastIndexOf('Views');
+  if (
+    views >= 0 &&
+    parts[views + 1] &&
+    parts[views + 1] !== parts[parts.length - 1]
+  ) {
+    return parts[views + 1];
+  }
+  const ui = parts.indexOf('UI');
+  if (ui >= 0 && parts[ui + 1]) return parts[ui + 1];
+  return parts[parts.length - 1];
+}
+
+function expandTemplateKeys(prefix, suffix, enFlat) {
+  const found = [];
+  Object.keys(enFlat).forEach((key) => {
+    if (!key.startsWith(prefix)) return;
+    const rest = key.slice(prefix.length);
+    if (suffix) {
+      if (!rest.endsWith(suffix) || rest.length <= suffix.length) return;
+      const middle = rest.slice(0, rest.length - suffix.length);
+      if (middle.length > 0 && !middle.includes('.')) found.push(key);
+      return;
+    }
+    if (rest.length > 0 && !rest.includes('.')) found.push(key);
+  });
+  return found;
+}
+
+function extractStringKeys(sourceText, enFlat) {
+  const keys = new Set();
+  const direct = /strings\(\s*(['"])([A-Za-z0-9_.]+)\1/g;
+  let match = direct.exec(sourceText);
+  while (match) {
+    keys.add(match[2]);
+    match = direct.exec(sourceText);
+  }
+  const templates = /strings\(\s*`([a-z0-9_.]*)\$\{[^}`]+\}([a-z0-9_.]*)`/g;
+  match = templates.exec(sourceText);
+  while (match) {
+    expandTemplateKeys(match[1], match[2], enFlat || {}).forEach((key) =>
+      keys.add(key),
+    );
+    match = templates.exec(sourceText);
+  }
+  const maps = /const\s+\w*I18N\w*[^=]*=\s*\{([\s\S]*?)\n\};/g;
+  match = maps.exec(sourceText);
+  while (match) {
+    const values = /['"]([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+)['"]/g;
+    let value = values.exec(match[1]);
+    while (value) {
+      keys.add(value[1]);
+      value = values.exec(match[1]);
+    }
+    match = maps.exec(sourceText);
+  }
+  return keys;
+}
+
+function pluralFormsFor(flat, key) {
+  if (!flat) return null;
+  const forms = {};
+  PLURAL_FORMS.forEach((form) => {
+    const child = `${key}.${form}`;
+    if (typeof flat[child] === 'string') forms[form] = flat[child];
+  });
+  return Object.keys(forms).length > 0 ? forms : null;
+}
+
 function quote(value) {
   const flat = String(value).replace(/\s+/g, ' ').trim();
   if (flat.length <= 80) return `"${flat}"`;
@@ -946,11 +1020,15 @@ module.exports = {
   inScope,
   displayWidth,
   charCount,
+  characterCount,
   graphemes,
   placeholderCounts,
   placeholderDiff,
   pluralStem,
   pluralSiblings,
+  pluralFormsFor,
+  screenName,
+  extractStringKeys,
   defaultLimitsPath,
   loadLimits,
   loadShippedFlats,

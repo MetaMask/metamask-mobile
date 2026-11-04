@@ -1,48 +1,48 @@
 String keys for perps
 Translation: de (Deutsch)
-RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+Right-to-left languages like Arabic aren't supported in the app yet, so this preview won't mirror the layout.
 Give a linguist the key, the placeholders, and both sentences. Do not paste a fix into locales/languages. Crowdin owns those files. A blank feedback form is in tools/designer-language-toggle/FEEDBACK.md.
 
 ## PerpsProMarketView
   app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionCard.tsx
-    perps.adjust_margin.title  en "Adjust Margin"
-      de "Margin anpassen"
+    perps.adjust_margin.title  en "Adjust Margin"  (13 characters)
+      de "Margin anpassen"  (15 characters, width hint 15)
       placeholders: none
-    perps.position.card.edit_tpsl  en "Edit TP/SL"
-      de "TP/SL bearbeiten"
+    perps.position.card.edit_tpsl  en "Edit TP/SL"  (10 characters)
+      de "TP/SL bearbeiten"  (16 characters, width hint 16)
       placeholders: none
-    perps.pro_positions_panel.card.close  en "Close"
-      de "Schließen"
+    perps.pro_positions_panel.card.close  en "Close"  (5 characters, limit 10)
+      de "Schließen"  (9 characters, width hint 9)
       placeholders: none
-    perps.pro_positions_panel.card.cross  en "Cross"
-      de "Cross"
+    perps.pro_positions_panel.card.cross  en "Cross"  (5 characters)
+      de "Cross"  (5 characters, width hint 5)
       placeholders: none
-    perps.pro_positions_panel.card.entry_price  en "Entry price"
-      de "Einstiegspreis"
+    perps.pro_positions_panel.card.entry_price  en "Entry price"  (11 characters)
+      de "Einstiegspreis"  (14 characters, width hint 14)
       placeholders: none
-    perps.pro_positions_panel.card.funding  en "Funding"
-      de "Finanzierung"
+    perps.pro_positions_panel.card.funding  en "Funding"  (7 characters)
+      de "Finanzierung"  (12 characters, width hint 12)
       placeholders: none
-    perps.pro_positions_panel.card.isolated  en "Isolated"
-      de "Isoliert"
+    perps.pro_positions_panel.card.isolated  en "Isolated"  (8 characters)
+      de "Isoliert"  (8 characters, width hint 8)
       placeholders: none
-    perps.pro_positions_panel.card.liq_price  en "Liq. price"
-      de "Liquidationspreis"
+    perps.pro_positions_panel.card.liq_price  en "Liq. price"  (10 characters)
+      de "Liquidationspreis"  (17 characters, width hint 17)
       placeholders: none
-    perps.pro_positions_panel.card.mark_price  en "Mark price"
-      de "Preis markieren"
+    perps.pro_positions_panel.card.mark_price  en "Mark price"  (10 characters)
+      de "Preis markieren"  (15 characters, width hint 15)
       placeholders: none
-    perps.pro_positions_panel.card.reverse  en "Reverse"
-      de "Umkehren"
+    perps.pro_positions_panel.card.reverse  en "Reverse"  (7 characters, limit 10)
+      de "Umkehren"  (8 characters, width hint 8)
       placeholders: none
-    perps.pro_positions_panel.card.share  en "Share"
-      de "Teilen"
+    perps.pro_positions_panel.card.share  en "Share"  (5 characters, limit 10)
+      de "Teilen"  (6 characters, width hint 6)
       placeholders: none
-    perps.pro_positions_panel.card.tp_sl  en "TP / SL"
-      de "TP / SL"
+    perps.pro_positions_panel.card.tp_sl  en "TP / SL"  (7 characters)
+      de "TP / SL"  (7 characters, width hint 7)
       placeholders: none
-    perps.pro_positions_panel.view_market_accessibility  en "Switch to the {{symbol}} market"
-      de "Wechseln Sie zum {{symbol}}-Markt"
+    perps.pro_positions_panel.view_market_accessibility  en "Switch to the {{symbol}} market"  (31 characters)
+      de "Wechseln Sie zum {{symbol}}-Markt"  (33 characters, width hint 23)
       placeholders: {{symbol}}
 
 SUMMARY perps screens=1 string_calls=13

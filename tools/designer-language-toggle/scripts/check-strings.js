@@ -147,19 +147,24 @@ function main() {
   console.log(`Skipped as shared names or tokens: ${report.skippedShared.length}`);
   console.log(`Extra keys not in English: ${report.extra}`);
   console.log(
-    `Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of ${report.cutoff} graphemes or fewer can be "too long" (at least ${ratio}x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.`,
+    `Length rule: "over the limit" compares character count, including placeholders, with references/limits.json (Pro buttons 10, Post to feed 20). A width hint counts CJK, kana, and hangul as 2 and does not decide the limit. "Too long" is a hint for English of ${report.cutoff} characters or fewer that grew to at least ${ratio}x and 4 width units. Longer English copy is "check wrapping", because sentences wrap.`,
   );
 
-  printLimitChecks(report.limitChecks);
-  printFocus(enFlat, targetFlat, namespaces, report.limitChecks);
   printList(
     'Over the limit',
     report.overLimit.map(
       (row) =>
-        `${row.key}  max ${row.maxWidth}  ${lib.quote(row.target)} (${row.targetChars} graphemes, width ${row.targetWidth})`,
+        `${row.key}  limit ${row.maxCharacters}  ${lib.quote(row.target)} (${row.characters} characters, width hint ${row.widthHint})`,
     ),
     limit,
   );
+  printLimitChecks(report.limitChecks);
+  printList(
+    'Too long',
+    report.tooLong.map((row) => formatLength(row)),
+    limit,
+  );
+  printFocus(enFlat, targetFlat, namespaces, report.limitChecks);
   printList(
     'Missing',
     report.missing.map((row) => `${row.key}  en ${lib.quote(row.en)}`),
@@ -168,11 +173,6 @@ function main() {
   printList(
     'Still English',
     report.stillEnglish.map((row) => `${row.key}  ${lib.quote(row.value)}`),
-    limit,
-  );
-  printList(
-    'Too long',
-    report.tooLong.map((row) => formatLength(row)),
     limit,
   );
   printList(
@@ -245,6 +245,13 @@ function main() {
     );
   }
 
+  if (code === 'ru') {
+    console.log('');
+    console.log(
+      'Russian plural files only ship one and other. CLDR also defines few and many for Russian. This app uses react-native-i18n with i18n-js 3, whose default pluralizer only looks up zero, one, and other, so few and many are not used.',
+    );
+  }
+
   console.log('');
   console.log(
     `SUMMARY ${code} ${scopeLabel} missing=${report.missing.length} still_english=${report.stillEnglish.length} too_long=${report.tooLong.length} check_wrapping=${report.checkWrapping.length} over_limit=${report.overLimit.length} placeholder_mismatches=${report.placeholderMismatches.length} plural_gaps=${report.pluralGaps.length} date_hints=${dateValues.length + dateSource.hits.length}`,
@@ -266,9 +273,9 @@ function printLimitChecks(rows) {
     const shown =
       row.status === 'missing'
         ? 'not in this file'
-        : `${lib.quote(row.target)} (${row.targetChars} graphemes, width ${row.targetWidth})`;
+        : `${lib.quote(row.target)} (${row.characters} characters, width hint ${row.widthHint})`;
     console.log(
-      `  ${row.key}  max ${row.maxWidth}  ${row.status}  ${shown}`,
+      `  ${row.key}  limit ${row.maxCharacters}  ${row.status}  ${shown}`,
     );
     if (row.where) console.log(`    ${row.where}`);
   });

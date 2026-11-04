@@ -1,26 +1,31 @@
 # Translation feedback
 
-Use one block per string. Do not edit `locales/languages/*.json`. Crowdin owns those files (`crowdin.yml`).
+Collect the details below, then submit them through Laurel Klafehn's i18n intake form: https://app.notion.com/p/consensys/2c7fc61a326e802a85a1fc599e595c32
 
-Keep every `{{placeholder}}`. If the string is a plural, say which form you mean (`one`, `other`, `few`, `many`).
+Do not edit `locales/languages/*.json`. Crowdin owns those files (`crowdin.yml`).
+
+Copy one block per string.
 
 ---
 
 - Date:
-- Language:
-- Screen:
+- Reporter:
+- Language (for example de, ja, pt-BR):
+- Screen (where it shows in the app):
+- Feature (for example Perps or Social):
+- Component (for example "position card button"):
 - String key:
-- Plural form: one / other / few / many / not a plural
-- Placeholders to keep:
 - English:
 - What the app shows:
-- Suggested translation:
-- Hard limit (from `references/limits.json`, or none):
-- Graphemes and width, if you measured them:
-- What you see: missing / still English / over the limit / too long / check wrapping / placeholder mismatch / other
+- What you expected:
+- Problem: missing / still English / too long / wrong meaning / other
+- Fits the layout: yes / no / not sure
+- Max length (characters), if known:
+- Placeholders (for example {{count}}):
+- Plural forms (yes/no):
+- App version or build:
+- Suggested fix (optional):
 - Screenshot:
-- Notes for Crowdin:
+- What it means here (what the user is doing and what the word refers to):
 
 ---
-
-Too long means a short label (English is 25 graphemes or fewer) that may be cut off. Check wrapping means a longer sentence that should wrap instead of clip. Over the limit means it is past the `maxWidth` set for that control.
