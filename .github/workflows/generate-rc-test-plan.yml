@@ -3,14 +3,15 @@
 # Generate RC Test Plan (reusable)
 #
 # Generates the AI test plan for a release PR and uploads it as the `test-plan-<semver>`
-# artifact, which build-rc-auto.yml reads when it posts the RC build comment.
+# artifact. build-rc-auto.yml posts the RC build comment while this runs, then edits the plan
+# into that comment.
 #
 # Dependencies are installed without the Yarn cache, because this job holds the AI provider
-# keys. It only gets a read-only token; posting the comment happens in the caller.
+# keys. It only gets a read-only token; editing the comment happens in the caller.
 #
 # The `status` output is `success`, `failure`, or `skipped` when no AI provider key is set.
-# A failed generation does not fail the run, so the RC build comment is still posted, with a
-# test plan failure section.
+# A failed generation does not fail the run; the RC build comment gets a test plan failure
+# section instead.
 #
 ##############################################################################################
 name: Generate RC Test Plan

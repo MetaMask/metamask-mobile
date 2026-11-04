@@ -1,6 +1,7 @@
-// RC Build Announce - Posts RC build comments to GitHub PRs with build links and AI test plan
+// RC Build Announce - Posts RC build comments to GitHub PRs with build links.
+// The AI test plan is added to the same comment later by add-test-plan.ts.
 
-import { existsSync, readdirSync } from 'fs';
+import { appendFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { Octokit } from '@octokit/rest';
 import {
@@ -10,14 +11,10 @@ import {
   minimizeComment,
   getExistingRcComments,
   postComment,
-  readTestPlan,
   parseBuildInfo,
   parseGitHubContext,
 } from './utils';
-import {
-  buildTestPlanSection,
-  buildTestPlanFailureSection,
-} from './test-plan-section';
+import { buildTestPlanPendingSection } from './test-plan-comment';
 import {
   buildEnvValidationSection,
   buildEnvValidationFailureSection,
@@ -29,7 +26,7 @@ import {
   type WhatsInRcResult,
 } from './cherry-picks-section';
 import { validateEnv } from './validate-env';
-import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
+import type { BuildInfo, EnvValidationResult } from './types';
 
 /**
  * Builds the build links section of the comment
@@ -151,7 +148,6 @@ function performEnvValidation(): {
  */
 function buildCommentBody(
   buildInfo: BuildInfo,
-  testPlan: TestPlanResult | null,
   envValidation: {
     androidResult?: EnvValidationResult;
     iosResult?: EnvValidationResult;
@@ -161,7 +157,6 @@ function buildCommentBody(
     result?: WhatsInRcResult;
     error?: string;
   },
-  testPlanError?: string,
 ): string {
   let body = `${RC_BUILD_COMMENT_MARKER}
 ### :rocket: RC Builds Ready for Testing
@@ -194,15 +189,8 @@ ${buildMoreInfoSection(buildInfo)}
     body += buildWhatsInRcFailureSection(whatsInRc.error);
   }
 
-  // Add test plan section
-  if (testPlan) {
-    body += `---\n\n`;
-    body += buildTestPlanSection(testPlan);
-  } else if (testPlanError) {
-    body += buildTestPlanFailureSection(buildInfo.pipelineUrl, testPlanError);
-  }
-  // If no test plan and no error, we skip the test plan section entirely
-  // (this happens when AI keys are not available)
+  body += `---\n\n`;
+  body += buildTestPlanPendingSection(buildInfo.pipelineUrl);
 
   return body;
 }
@@ -224,26 +212,6 @@ async function main(): Promise<void> {
   console.log(`Android Build: ${buildInfo.androidBuildNumber}`);
 
   const octokit = new Octokit({ auth: token });
-
-  console.log('\n=== AI Test Plan ===\n');
-  const { testPlan, error: testPlanError } = readTestPlan(
-    process.env.TEST_PLAN_PATH || 'release-test-plan.json',
-    process.env.TEST_PLAN_STATUS,
-    buildInfo.semver,
-  );
-
-  if (testPlan) {
-    console.log(`Test plan loaded:`);
-    console.log(`  - Risk Score: ${testPlan.summary.releaseRiskScore}`);
-    console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
-    console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
-    console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
-  } else if (testPlanError) {
-    console.error(`Test plan unavailable: ${testPlanError}`);
-    console.log('Continuing with build links only...');
-  } else {
-    console.log('Test plan generation was skipped (no AI API keys)');
-  }
 
   // Extract environment values from build artifacts
   console.log('\n=== Build Environment ===\n');
@@ -276,7 +244,7 @@ async function main(): Promise<void> {
   }
 
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, whatsInRc, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, envValidation, whatsInRc);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);
@@ -293,8 +261,11 @@ async function main(): Promise<void> {
 
     // Post new comment
     console.log('Creating new comment with RC build URLs...');
-    await postComment(octokit, owner, repo, prNumber, commentBody);
-    console.log('Successfully created new comment');
+    const commentId = await postComment(octokit, owner, repo, prNumber, commentBody);
+    console.log(`Successfully created new comment ${commentId}`);
+    if (process.env.GITHUB_OUTPUT) {
+      appendFileSync(process.env.GITHUB_OUTPUT, `comment-id=${commentId}\n`);
+    }
 
     // Minimize old comments
     if (existingComments.length > 0) {

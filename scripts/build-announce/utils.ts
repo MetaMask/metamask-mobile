@@ -88,7 +88,7 @@ export async function getExistingRcComments(
 }
 
 /**
- * Posts a comment to a PR
+ * Posts a comment to a PR and returns its ID
  */
 export async function postComment(
   octokit: Octokit,
@@ -96,11 +96,30 @@ export async function postComment(
   repo: string,
   prNumber: number,
   body: string,
-): Promise<void> {
-  await octokit.rest.issues.createComment({
+): Promise<number> {
+  const { data } = await octokit.rest.issues.createComment({
     owner,
     repo,
     issue_number: prNumber,
+    body,
+  });
+  return data.id;
+}
+
+/**
+ * Replaces the body of an existing PR comment
+ */
+export async function updateComment(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  commentId: number,
+  body: string,
+): Promise<void> {
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: commentId,
     body,
   });
 }
