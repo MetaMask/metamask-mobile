@@ -12,9 +12,9 @@ import type { Hex } from '@metamask/utils';
 import Engine from '../../Engine';
 import Logger from '../../../../util/Logger';
 import {
-  isPlusChargeRetryable,
-  retryPlusChargeAfterDeposit,
-} from './retry-plus-charge-after-deposit';
+  isSubscriptionChargeRetryable,
+  retrySubscriptionChargeAfterDeposit,
+} from './retry-subscription-charge-after-deposit';
 
 jest.mock('../../Engine', () => ({
   __esModule: true,
@@ -96,13 +96,13 @@ const createCryptoSubscription = (
   ...overrides,
 });
 
-describe('isPlusChargeRetryable', () => {
+describe('isSubscriptionChargeRetryable', () => {
   it('returns true for a paused crypto subscription on the Money Account', () => {
     const subscription = createCryptoSubscription();
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      true,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(true);
   });
 
   it('returns true for past_due with a FAILED invoice', () => {
@@ -114,9 +114,9 @@ describe('isPlusChargeRetryable', () => {
       },
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      true,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(true);
   });
 
   it('returns true for active with a crypto error and a FAILED invoice', () => {
@@ -137,16 +137,19 @@ describe('isPlusChargeRetryable', () => {
       },
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      true,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(true);
   });
 
   it('matches the Money Account payer address case-insensitively', () => {
     const subscription = createCryptoSubscription();
 
     expect(
-      isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS.toUpperCase()),
+      isSubscriptionChargeRetryable(
+        subscription,
+        MONEY_ACCOUNT_ADDRESS.toUpperCase(),
+      ),
     ).toBe(true);
   });
 
@@ -157,9 +160,9 @@ describe('isPlusChargeRetryable', () => {
   ])('returns false for a %s subscription', (status) => {
     const subscription = createCryptoSubscription({ status });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
   });
 
   it('returns false when cancelAtPeriodEnd is set', () => {
@@ -167,9 +170,9 @@ describe('isPlusChargeRetryable', () => {
       cancelAtPeriodEnd: true,
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
   });
 
   it('returns false for a card payment method', () => {
@@ -180,9 +183,9 @@ describe('isPlusChargeRetryable', () => {
       },
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
   });
 
   it('returns false when the payer is not the Money Account', () => {
@@ -197,9 +200,9 @@ describe('isPlusChargeRetryable', () => {
       },
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
   });
 
   it.each([
@@ -214,20 +217,22 @@ describe('isPlusChargeRetryable', () => {
       },
     });
 
-    expect(isPlusChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(subscription, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
   });
 
   it('returns false when subscription or address is missing', () => {
-    expect(isPlusChargeRetryable(undefined, MONEY_ACCOUNT_ADDRESS)).toBe(false);
-    expect(isPlusChargeRetryable(createCryptoSubscription(), undefined)).toBe(
-      false,
-    );
+    expect(
+      isSubscriptionChargeRetryable(undefined, MONEY_ACCOUNT_ADDRESS),
+    ).toBe(false);
+    expect(
+      isSubscriptionChargeRetryable(createCryptoSubscription(), undefined),
+    ).toBe(false);
   });
 });
 
-describe('retryPlusChargeAfterDeposit', () => {
+describe('retrySubscriptionChargeAfterDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckMoneyAccountBalance.mockResolvedValue({
@@ -248,7 +253,10 @@ describe('retryPlusChargeAfterDeposit', () => {
       status: SUBSCRIPTION_STATUSES.provisional,
     });
 
-    await retryPlusChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS);
+    await retrySubscriptionChargeAfterDeposit(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+    );
 
     expect(mockCheckMoneyAccountBalance).not.toHaveBeenCalled();
     expect(mockUpdatePaymentMethod).not.toHaveBeenCalled();
@@ -259,7 +267,10 @@ describe('retryPlusChargeAfterDeposit', () => {
       billingCycles: undefined,
     });
 
-    await retryPlusChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS);
+    await retrySubscriptionChargeAfterDeposit(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+    );
 
     expect(mockCheckMoneyAccountBalance).not.toHaveBeenCalled();
     expect(mockUpdatePaymentMethod).not.toHaveBeenCalled();
@@ -271,7 +282,7 @@ describe('retryPlusChargeAfterDeposit', () => {
     mockFreshTotalBalance('1000');
     const subscription = createCryptoSubscription();
 
-    const pending = retryPlusChargeAfterDeposit(
+    const pending = retrySubscriptionChargeAfterDeposit(
       subscription,
       MONEY_ACCOUNT_ADDRESS,
     );
@@ -305,7 +316,7 @@ describe('retryPlusChargeAfterDeposit', () => {
     });
     const subscription = createCryptoSubscription();
 
-    const pending = retryPlusChargeAfterDeposit(
+    const pending = retrySubscriptionChargeAfterDeposit(
       subscription,
       MONEY_ACCOUNT_ADDRESS,
       16,
@@ -324,7 +335,10 @@ describe('retryPlusChargeAfterDeposit', () => {
   it('sends a credential-less updatePaymentMethod for a retryable subscription', async () => {
     const subscription = createCryptoSubscription();
 
-    await retryPlusChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS);
+    await retrySubscriptionChargeAfterDeposit(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+    );
 
     expect(mockUpdatePaymentMethod).toHaveBeenCalledWith({
       paymentType: PAYMENT_TYPES.byCrypto,
@@ -352,13 +366,13 @@ describe('retryPlusChargeAfterDeposit', () => {
     const subscription = createCryptoSubscription();
 
     await expect(
-      retryPlusChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS),
+      retrySubscriptionChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS),
     ).resolves.toBeUndefined();
 
     expect(Logger.error).toHaveBeenCalledWith(apiError, {
       tags: {
         feature: 'pro-subscription',
-        operation: 'retry_plus_charge_after_deposit',
+        operation: 'retry_subscription_charge_after_deposit',
       },
     });
   });

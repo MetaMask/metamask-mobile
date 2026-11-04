@@ -34,7 +34,7 @@ const sleep = (ms: number) =>
 const LOG_OPTIONS = {
   tags: {
     feature: 'pro-subscription',
-    operation: 'retry_plus_charge_after_deposit',
+    operation: 'retry_subscription_charge_after_deposit',
   },
 } as const;
 
@@ -49,7 +49,7 @@ function hasFailedLastInvoice(subscription: Subscription): boolean {
 }
 
 /**
- * Whether a Money Account Plus subscription can be retried after a deposit,
+ * Whether a crypto subscription charge can be retried after a deposit,
  * matching the subscription API retry gates.
  *
  * Requires crypto payment from the primary Money Account and no period-end
@@ -57,11 +57,11 @@ function hasFailedLastInvoice(subscription: Subscription): boolean {
  * subscriptions, and active ones with a crypto payment error, can retry only
  * when the latest invoice is FAILED.
  *
- * @param subscription - Current Plus subscription, when one exists.
+ * @param subscription - Current subscription, when one exists.
  * @param moneyAccountAddress - Primary Money Account address.
  * @returns Whether a credential-less payment-method retry is allowed.
  */
-export function isPlusChargeRetryable(
+export function isSubscriptionChargeRetryable(
   subscription: Subscription | undefined,
   moneyAccountAddress: string | undefined,
 ): boolean {
@@ -132,7 +132,7 @@ async function bustMoneyBalanceSourceCaches(address: string): Promise<void> {
  * balance. `minBlock` makes an API result that is still behind the confirmed
  * deposit fall back to RPC.
  *
- * @param payerAddress - Money Account that pays the Plus charge.
+ * @param payerAddress - Money Account that pays the subscription charge.
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  * @returns Total balance in mUSD base units.
  */
@@ -153,7 +153,7 @@ async function readFreshMoneyAccountTotalBalance(
 }
 
 /**
- * Whether the Money Account can cover the Plus charge.
+ * Whether the Money Account can cover the subscription charge.
  *
  * Trusts `checkMoneyAccountBalance` when it already reports enough funds.
  * An insufficient result is not final: the confirm event can beat the
@@ -162,13 +162,13 @@ async function readFreshMoneyAccountTotalBalance(
  * is a real shortfall and returns false. A read that keeps failing throws.
  *
  * @param balanceRequest - Product, interval, and payer for the balance check.
- * @param balanceRequest.product - Plus product the charge is for.
+ * @param balanceRequest.product - Subscription product the charge is for.
  * @param balanceRequest.recurringInterval - Billing interval of the subscription.
  * @param balanceRequest.payerAddress - Money Account that pays the charge.
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  * @returns Whether the fresh balance covers the charge.
  */
-async function waitForSufficientPlusBalance(
+async function waitForSufficientSubscriptionBalance(
   balanceRequest: {
     product: typeof PRODUCT_TYPES.MONEY_ACCOUNT_PLUS;
     recurringInterval: Subscription['interval'];
@@ -223,23 +223,23 @@ async function waitForSufficientPlusBalance(
 }
 
 /**
- * Retries the Plus crypto charge after a Money deposit confirms.
+ * Retries a crypto subscription charge after a Money deposit confirms.
  *
  * Sends a credential-less `updatePaymentMethod` so the API reuses the stored
  * delegation. Does nothing when the subscription is not retryable, billing
  * cycles are missing, or the Money Account balance is still insufficient
  * after the post-confirm balance reads. Logs API failures and does not throw.
  *
- * @param subscription - Current Money Account Plus subscription.
+ * @param subscription - Current subscription.
  * @param moneyAccountAddress - Primary Money Account address.
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
-export async function retryPlusChargeAfterDeposit(
+export async function retrySubscriptionChargeAfterDeposit(
   subscription: Subscription,
   moneyAccountAddress: string,
   minBlock?: number,
 ): Promise<void> {
-  if (!isPlusChargeRetryable(subscription, moneyAccountAddress)) {
+  if (!isSubscriptionChargeRetryable(subscription, moneyAccountAddress)) {
     return;
   }
 
@@ -251,7 +251,7 @@ export async function retryPlusChargeAfterDeposit(
   const { payerAddress, chainId, tokenSymbol } = paymentMethod.crypto;
 
   try {
-    const hasSufficientBalance = await waitForSufficientPlusBalance(
+    const hasSufficientBalance = await waitForSufficientSubscriptionBalance(
       {
         product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
         recurringInterval: subscription.interval,
@@ -275,7 +275,7 @@ export async function retryPlusChargeAfterDeposit(
     });
   } catch (error) {
     Logger.error(
-      ensureError(error, 'retryPlusChargeAfterDeposit'),
+      ensureError(error, 'retrySubscriptionChargeAfterDeposit'),
       LOG_OPTIONS,
     );
   }

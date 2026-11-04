@@ -13,12 +13,12 @@ import { selectMoneyAccountPlusSubscription } from '../../../../../selectors/sub
 import { ensureError } from '../../../../../util/errorUtils';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../Engine';
-import { retryPlusChargeAfterDeposit } from '../retry-plus-charge-after-deposit';
+import { retrySubscriptionChargeAfterDeposit } from '../retry-subscription-charge-after-deposit';
 
 const LOG_OPTIONS = {
   tags: {
     feature: 'pro-subscription',
-    operation: 'retry_plus_charge_on_deposit',
+    operation: 'retry_subscription_charge_on_deposit',
   },
 } as const;
 
@@ -43,16 +43,16 @@ function toConfirmedMinBlock(
 }
 
 /**
- * A stuck Plus plan can be funded from either deposit path.
+ * A stuck crypto subscription can be funded from either deposit path.
  * Pro Hub add funds creates a `moneyAccountDeposit`. The checkout shortfall
  * top-up creates a `membershipSubscription`. Either confirmation can land
  * the balance the retry needs. Whether the charge is actually retried is
  * decided later by the subscription status gates.
  *
  * @param transactionMeta - Confirmed transaction from TransactionController.
- * @returns Whether this confirmation can fund a Plus charge retry.
+ * @returns Whether this confirmation can fund a subscription charge retry.
  */
-function isDepositEligibleForPlusRetry(
+function isDepositEligibleForSubscriptionRetry(
   transactionMeta: TransactionMeta,
 ): boolean {
   return (
@@ -94,7 +94,7 @@ function clearLockedDeposit(): void {
  *
  * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
-async function retryCurrentPlusCharge(
+async function retryCurrentSubscriptionCharge(
   minBlock: number | undefined,
 ): Promise<void> {
   if (isRetrying) {
@@ -109,7 +109,7 @@ async function retryCurrentPlusCharge(
     const moneyAccountAddress = selectPrimaryMoneyAccount(state)?.address;
 
     if (subscription && moneyAccountAddress) {
-      await retryPlusChargeAfterDeposit(
+      await retrySubscriptionChargeAfterDeposit(
         subscription,
         moneyAccountAddress,
         minBlock,
@@ -117,7 +117,10 @@ async function retryCurrentPlusCharge(
     }
   } catch (error) {
     Logger.error(
-      ensureError(error, 'handleTransactionConfirmedForPlusChargeRetry'),
+      ensureError(
+        error,
+        'handleTransactionConfirmedForSubscriptionChargeRetry',
+      ),
       LOG_OPTIONS,
     );
   } finally {
@@ -128,7 +131,10 @@ async function retryCurrentPlusCharge(
     await Engine.context.SubscriptionController.getSubscriptions();
   } catch (error) {
     Logger.error(
-      ensureError(error, 'handleTransactionConfirmedForPlusChargeRetry'),
+      ensureError(
+        error,
+        'handleTransactionConfirmedForSubscriptionChargeRetry',
+      ),
       LOG_OPTIONS,
     );
   }
@@ -144,11 +150,11 @@ async function retryCurrentPlusCharge(
 
   const nextMinBlock = pendingLockedDepositMinBlock;
   clearLockedDeposit();
-  await retryCurrentPlusCharge(nextMinBlock);
+  await retryCurrentSubscriptionCharge(nextMinBlock);
 }
 
 /**
- * Retries a stuck Plus crypto charge after a Money deposit or membership
+ * Retries a stuck crypto subscription charge after a Money deposit or membership
  * top-up confirms.
  *
  * Subscribed from Engine for the life of TransactionController. Signed-out
@@ -160,10 +166,10 @@ async function retryCurrentPlusCharge(
  *
  * @param transactionMeta - Confirmed transaction from TransactionController.
  */
-export async function handleTransactionConfirmedForPlusChargeRetry(
+export async function handleTransactionConfirmedForSubscriptionChargeRetry(
   transactionMeta: TransactionMeta,
 ): Promise<void> {
-  if (!isDepositEligibleForPlusRetry(transactionMeta)) {
+  if (!isDepositEligibleForSubscriptionRetry(transactionMeta)) {
     return;
   }
 
@@ -181,7 +187,7 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
     return;
   }
 
-  await retryCurrentPlusCharge(minBlock);
+  await retryCurrentSubscriptionCharge(minBlock);
 }
 
 /**
@@ -189,7 +195,7 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
  * A signed-out session drops the queued deposit so it cannot charge another
  * account. Subscribed from Engine on `KeyringController:unlock`.
  */
-export async function handleUnlockForPlusChargeRetry(): Promise<void> {
+export async function handleUnlockForSubscriptionChargeRetry(): Promise<void> {
   if (!hasPendingLockedDeposit || isRetrying) {
     return;
   }
@@ -204,5 +210,5 @@ export async function handleUnlockForPlusChargeRetry(): Promise<void> {
 
   const minBlock = pendingLockedDepositMinBlock;
   clearLockedDeposit();
-  await retryCurrentPlusCharge(minBlock);
+  await retryCurrentSubscriptionCharge(minBlock);
 }

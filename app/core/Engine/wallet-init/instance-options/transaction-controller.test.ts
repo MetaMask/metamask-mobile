@@ -33,9 +33,9 @@ import {
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
 import {
-  handleTransactionConfirmedForPlusChargeRetry,
-  handleUnlockForPlusChargeRetry,
-} from '../../controllers/transaction-controller/event-handlers/plus-charge-retry';
+  handleTransactionConfirmedForSubscriptionChargeRetry,
+  handleUnlockForSubscriptionChargeRetry,
+} from '../../controllers/transaction-controller/event-handlers/subscription-charge-retry';
 
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('../../../../util/transactions/account-supports-7702');
@@ -51,7 +51,7 @@ jest.mock(
   '../../controllers/transaction-controller/event-handlers/money-account-override',
 );
 jest.mock(
-  '../../controllers/transaction-controller/event-handlers/plus-charge-retry',
+  '../../controllers/transaction-controller/event-handlers/subscription-charge-retry',
 );
 
 const CHAIN_ID_MOCK = '0x1';
@@ -340,17 +340,17 @@ describe('setupTransactionControllerListeners', () => {
       MOCK_TRANSACTION_META,
       expect.anything(),
     );
-    expect(handleTransactionConfirmedForPlusChargeRetry).toHaveBeenCalledWith(
-      MOCK_TRANSACTION_META,
-    );
+    expect(
+      handleTransactionConfirmedForSubscriptionChargeRetry,
+    ).toHaveBeenCalledWith(MOCK_TRANSACTION_META);
   });
 
-  it('retries a queued Plus charge when the keyring unlocks', () => {
+  it('retries a queued subscription charge when the keyring unlocks', () => {
     const { rootMessenger } = setup();
 
     rootMessenger.publish('KeyringController:unlock');
 
-    expect(handleUnlockForPlusChargeRetry).toHaveBeenCalledTimes(1);
+    expect(handleUnlockForSubscriptionChargeRetry).toHaveBeenCalledTimes(1);
   });
 
   it('records finalized metrics on transactionDropped', () => {
