@@ -1,6 +1,10 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from '@tanstack/react-query';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
 import { prefetchVbaVendorDisclaimers } from '../vbaVendorDisclaimersQuery';
@@ -60,6 +64,7 @@ const renderUseKycDisclaimers = () =>
   renderHook(() => useKycDisclaimers(), { wrapper });
 
 afterEach(() => {
+  onlineManager.setOnline(true);
   queryClient.clear();
 });
 
@@ -166,6 +171,21 @@ describe('useKycDisclaimers', () => {
 
     expect(result.current.disclaimers).toBeNull();
     expect(result.current.error).toBe('server error');
+  });
+
+  it('tries while offline so the failure and retry are reachable', async () => {
+    onlineManager.setOnline(false);
+    mockFetchVendorDisclaimers.mockRejectedValue(
+      new Error('Network request failed'),
+    );
+
+    const { result } = renderUseKycDisclaimers();
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.disclaimers).toBeNull();
+    expect(result.current.error).toBe('Network request failed');
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
   });
 
   it('treats an empty response as an error', async () => {

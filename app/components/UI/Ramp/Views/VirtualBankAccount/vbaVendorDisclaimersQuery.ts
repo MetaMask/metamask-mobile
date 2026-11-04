@@ -91,6 +91,10 @@ export const vbaVendorDisclaimersQueryOptions = {
   staleTime: VBA_VENDOR_DISCLAIMERS_STALE_TIME_MS,
   // The screen offers its own retry, so a failure shows straight away.
   retry: false,
+  // NetInfo offline would otherwise pause the query: no request, no error, and
+  // a spinner with no retry. Attempting it lets the timeout turn that into a
+  // visible failure the user can retry.
+  networkMode: 'always',
 } as const;
 
 /**

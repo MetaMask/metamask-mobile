@@ -53,14 +53,14 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
   const [acceptError, setAcceptError] = useState<string | null>(null);
 
   const disclaimers = data?.length ? data : null;
+  const queryFailed = !isFetching && Boolean(queryError);
   // Cached terms stay usable while a background refresh runs.
-  const isLoading = !disclaimers && (isFetching || !queryError);
-  const loadError =
-    !disclaimers && !isFetching && queryError
-      ? queryError instanceof Error
-        ? queryError.message
-        : 'Unknown error'
-      : null;
+  const isLoading = !disclaimers && (isFetching || !queryFailed);
+  let loadError: string | null = null;
+  if (!disclaimers && queryFailed) {
+    loadError =
+      queryError instanceof Error ? queryError.message : 'Unknown error';
+  }
   const error = acceptError ?? loadError;
 
   const retry = useCallback(() => {
