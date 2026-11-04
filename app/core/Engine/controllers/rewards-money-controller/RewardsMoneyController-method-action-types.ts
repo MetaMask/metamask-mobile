@@ -154,6 +154,30 @@ export type RewardsMoneyControllerGetTaxMeAction = {
   handler: RewardsMoneyController['getTaxMe'];
 };
 
+/**
+ * The form-success snapshot for this profile, or null when none is stored.
+ * Claim force-reads `tax/me` while one is set.
+ */
+export type RewardsMoneyControllerGetTaxFormSubmittedAction = {
+  type: `RewardsMoneyController:getTaxFormSubmitted`;
+  handler: RewardsMoneyController['getTaxFormSubmitted'];
+};
+
+/**
+ * Remember a form submission, or clear it when `snapshot` is null.
+ * The caller decides which reads still count as "checking".
+ */
+export type RewardsMoneyControllerNoteTaxFormSubmittedAction = {
+  type: `RewardsMoneyController:noteTaxFormSubmitted`;
+  handler: RewardsMoneyController['noteTaxFormSubmitted'];
+};
+
+/**
+export type RewardsMoneyControllerClearTaxFormSubmittedAction = {
+  type: `RewardsMoneyController:clearTaxFormSubmitted`;
+  handler: RewardsMoneyController['clearTaxFormSubmitted'];
+};
+
 export type RewardsMoneyControllerSubmitTaxAttestationAction = {
   type: `RewardsMoneyController:submitTaxAttestation`;
   handler: RewardsMoneyController['submitTaxAttestation'];
@@ -201,6 +225,9 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetCommissionsAction
   | RewardsMoneyControllerInitiateClaimAction
   | RewardsMoneyControllerGetTaxMeAction
+  | RewardsMoneyControllerGetTaxFormSubmittedAction
+  | RewardsMoneyControllerNoteTaxFormSubmittedAction
+  | RewardsMoneyControllerClearTaxFormSubmittedAction
   | RewardsMoneyControllerSubmitTaxAttestationAction
   | RewardsMoneyControllerSubmitTaxUsActivityAction
   | RewardsMoneyControllerMintTaxFormTokenAction

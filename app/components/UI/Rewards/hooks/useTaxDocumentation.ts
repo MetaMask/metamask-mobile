@@ -16,6 +16,7 @@ import type {
   ReferralLocalizedText,
   ReferralLocalizedTextKey,
   TaxAnswerResultDto,
+  TaxFormSubmittedSnapshot,
   TaxFormTokenDto,
   TaxMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -26,10 +27,15 @@ import Logger from '../../../../util/Logger';
 import {
   holdMintRateLimit,
   holdTaxFormSession,
+  isPreWebhookTaxForm,
   isTaxFlowEnabled,
+  PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
   resolveTaxFormUrl,
+  taxFormSubmissionStillWaiting,
+  taxFormSubmittedSnapshot,
   taxRefusalAction,
   taxSheetFor,
+  taxSheetForClaim,
   withMinutes,
   type TaxDocumentationSheet,
   type TaxQuestion,
@@ -176,8 +182,11 @@ export function useTaxDocumentation(profileId: string) {
   );
 
   const showTaxMe = useCallback(
-    (taxMe: TaxMeDto): boolean => {
-      const sheet = taxSheetFor(taxMe);
+    (
+      taxMe: TaxMeDto,
+      submitted: TaxFormSubmittedSnapshot | null = null,
+    ): boolean => {
+      const sheet = taxSheetForClaim(taxMe, submitted);
       if (sheet.kind === 'none') {
         closeTaxFlow();
         if (taxMe.reason === 'GATE_OFF') {
@@ -189,6 +198,38 @@ export function useTaxDocumentation(profileId: string) {
       return true;
     },
     [closeTaxFlow, openSheet, refreshSummary],
+  );
+
+  const readSubmitted =
+    useCallback(async (): Promise<TaxFormSubmittedSnapshot | null> => {
+      try {
+        return await Engine.controllerMessenger.call(
+          'RewardsMoneyController:getTaxFormSubmitted',
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to read the tax form submission marker',
+        );
+        return null;
+      }
+    }, []);
+
+  const noteSubmitted = useCallback(
+    async (snapshot: TaxFormSubmittedSnapshot | null) => {
+      try {
+        await Engine.controllerMessenger.call(
+          'RewardsMoneyController:noteTaxFormSubmitted',
+          snapshot,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to store the tax form submission marker',
+        );
+      }
+    },
+    [],
   );
 
   const readTaxMe = useCallback((force = false) => {
@@ -454,8 +495,23 @@ export function useTaxDocumentation(profileId: string) {
   const openPendingReview = useCallback(() => {
     openInfo('taxFormPendingTitle', 'taxFormPendingDescription');
     refreshSummary();
-    void readTaxMe(true).catch(() => undefined);
-  }, [openInfo, readTaxMe, refreshSummary]);
+    void (async () => {
+      try {
+        const taxMe = await readTaxMe(true);
+        await noteSubmitted(
+          isPreWebhookTaxForm(taxMe) ? taxFormSubmittedSnapshot(taxMe) : null,
+        );
+        if (!isPreWebhookTaxForm(taxMe)) {
+          showTaxMe(taxMe);
+        }
+      } catch (error) {
+        if (error instanceof RewardsMoneyAuthorizationError) {
+          return;
+        }
+        await noteSubmitted(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
+      }
+    })();
+  }, [noteSubmitted, openInfo, readTaxMe, refreshSummary, showTaxMe]);
 
   const onClaimPress = useCallback(
     async (_summary: EarningsSummaryDto, claim: () => Promise<void>) => {
@@ -468,19 +524,28 @@ export function useTaxDocumentation(profileId: string) {
           await claim();
           return;
         }
+        let submitted = await readSubmitted();
         let taxMe: TaxMeDto | null = null;
         try {
-          taxMe = await readTaxMe();
+          taxMe = await readTaxMe(submitted != null);
         } catch (error) {
           if (!(error instanceof RewardsMoneyAuthorizationError)) {
             showError(copy(localizedText, 'taxErrorToast'));
           }
         }
+        if (
+          taxMe &&
+          submitted &&
+          !taxFormSubmissionStillWaiting(submitted, taxMe)
+        ) {
+          await noteSubmitted(null);
+          submitted = null;
+        }
         if (taxMe?.reason === 'GATE_OFF') {
           refreshSummary();
         }
         if (taxMe) {
-          const sheet = taxSheetFor(taxMe);
+          const sheet = taxSheetForClaim(taxMe, submitted);
           const blocksClaim = sheet.kind !== 'none' && taxMe.cleared === false;
           const renewalNudge =
             taxMe.state === 'RENEWAL_REQUIRED' &&
@@ -497,7 +562,9 @@ export function useTaxDocumentation(profileId: string) {
     },
     [
       localizedText,
+      noteSubmitted,
       openSheet,
+      readSubmitted,
       readTaxMe,
       refreshSummary,
       showError,
@@ -509,11 +576,16 @@ export function useTaxDocumentation(profileId: string) {
     if (!taxFlowEnabled) {
       throw new Error('Tax flow is disabled');
     }
+    let submitted = await readSubmitted();
     const taxMe = await readTaxMe(true);
-    if (!showTaxMe(taxMe)) {
+    if (submitted && !taxFormSubmissionStillWaiting(submitted, taxMe)) {
+      await noteSubmitted(null);
+      submitted = null;
+    }
+    if (!showTaxMe(taxMe, submitted)) {
       throw new Error('Tax determination did not open a sheet');
     }
-  }, [readTaxMe, showTaxMe, taxFlowEnabled]);
+  }, [noteSubmitted, readSubmitted, readTaxMe, showTaxMe, taxFlowEnabled]);
 
   return {
     prefetchTaxMe,

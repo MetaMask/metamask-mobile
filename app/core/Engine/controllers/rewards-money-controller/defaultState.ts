@@ -14,6 +14,7 @@ export const getRewardsMoneyControllerDefaultState =
     commissionsFirstPage: {},
     claimById: {},
     taxMe: {},
+    taxFormSubmitted: {},
     rewardsMoneyEnvUrl: null,
   });
 

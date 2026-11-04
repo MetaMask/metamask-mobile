@@ -9,10 +9,15 @@ import {
   minutesFromRetryAfter,
   mintRateLimitRemainingMs,
   readMintRateLimit,
+  isPreWebhookTaxForm,
   isTaxFlowEnabled,
+  PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
   resolveTaxFormUrl,
+  taxFormSubmissionStillWaiting,
+  taxFormSubmittedSnapshot,
   taxRefusalAction,
   taxSheetFor,
+  taxSheetForClaim,
   withMinutes,
 } from './taxDocumentation';
 
@@ -382,5 +387,47 @@ describe('mint rate limit', () => {
     holdMintRateLimit('profile-a', undefined);
 
     expect(mintRateLimitRemainingMs('profile-a')).toBe(60_000);
+  });
+});
+
+describe('tax form submission snapshot', () => {
+  const openForm = taxMe({
+    next_action: 'OPEN_FORM',
+    reason: 'NO_FORM',
+    can_change_answer: true,
+  });
+
+  it('matches only the pre-webhook open-form read', () => {
+    expect(isPreWebhookTaxForm(openForm)).toBe(true);
+    expect(
+      isPreWebhookTaxForm(
+        taxMe({ next_action: 'OPEN_FORM', reason: 'TIN_NOT_MATCHED' }),
+      ),
+    ).toBe(false);
+    expect(isPreWebhookTaxForm(taxMe({ cleared: true }))).toBe(false);
+  });
+
+  it('keeps the pending sheet only while the snapshot still matches', () => {
+    const submitted = taxFormSubmittedSnapshot(openForm);
+
+    expect(submitted).toEqual(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
+    expect(taxFormSubmissionStillWaiting(submitted, openForm)).toBe(true);
+    expect(taxFormSubmissionStillWaiting(null, openForm)).toBe(false);
+    expect(
+      taxFormSubmissionStillWaiting(
+        submitted,
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'FORM_PENDING',
+        }),
+      ),
+    ).toBe(false);
+    expect(taxSheetForClaim(openForm, submitted)).toEqual({
+      kind: 'info',
+      titleKey: 'taxFormPendingTitle',
+      descriptionKey: 'taxFormPendingDescription',
+    });
+    expect(taxSheetForClaim(openForm, null)).toEqual(taxSheetFor(openForm));
   });
 });

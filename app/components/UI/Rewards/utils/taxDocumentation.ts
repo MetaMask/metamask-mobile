@@ -1,6 +1,7 @@
 import type {
   EarningsSummaryDto,
   ReferralLocalizedTextKey,
+  TaxFormSubmittedSnapshot,
   TaxFormTokenDto,
   TaxMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -216,6 +217,65 @@ export function taxSheetFor(taxMe: TaxMeDto): TaxDocumentationSheet {
   }
 
   return determinationInfo();
+}
+
+/** The snapshot Claim remembers when the form page reports success before a webhook. */
+export const PRE_WEBHOOK_TAX_FORM_SNAPSHOT: TaxFormSubmittedSnapshot = {
+  state: 'ACTION_REQUIRED',
+  next_action: 'OPEN_FORM',
+  reason: 'NO_FORM',
+};
+
+/** True only for the open-form read that exists before Taxbit's status webhook. */
+export function isPreWebhookTaxForm(taxMe: TaxMeDto): boolean {
+  return (
+    taxMe.state === PRE_WEBHOOK_TAX_FORM_SNAPSHOT.state &&
+    taxMe.next_action === PRE_WEBHOOK_TAX_FORM_SNAPSHOT.next_action &&
+    taxMe.reason === PRE_WEBHOOK_TAX_FORM_SNAPSHOT.reason
+  );
+}
+
+export function taxFormSubmittedSnapshot(
+  taxMe: TaxMeDto,
+): TaxFormSubmittedSnapshot {
+  return {
+    state: taxMe.state,
+    next_action: taxMe.next_action,
+    reason: taxMe.reason,
+  };
+}
+
+/**
+ * The form was submitted and `tax/me` has not moved off that snapshot.
+ * A null marker, or any changed field, means Claim follows `taxSheetFor`.
+ */
+export function taxFormSubmissionStillWaiting(
+  submitted: TaxFormSubmittedSnapshot | null,
+  taxMe: TaxMeDto,
+): boolean {
+  if (!submitted) {
+    return false;
+  }
+  const current = taxFormSubmittedSnapshot(taxMe);
+  return (
+    submitted.state === current.state &&
+    submitted.next_action === current.next_action &&
+    submitted.reason === current.reason
+  );
+}
+
+/**
+ * Claim's sheet. While the remembered snapshot still matches, the payee
+ * sees "submitted, checking" instead of the open-form sheet.
+ */
+export function taxSheetForClaim(
+  taxMe: TaxMeDto,
+  submitted: TaxFormSubmittedSnapshot | null,
+): TaxDocumentationSheet {
+  if (taxFormSubmissionStillWaiting(submitted, taxMe)) {
+    return pendingInfo();
+  }
+  return taxSheetFor(taxMe);
 }
 
 /**

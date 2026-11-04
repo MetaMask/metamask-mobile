@@ -40,6 +40,7 @@ import {
   type GetTaxMeDto,
   type TaxAnswerResultDto,
   type TaxFormTokenDto,
+  type TaxFormSubmittedSnapshot,
   type TaxMeDto,
 } from './types';
 
@@ -119,6 +120,12 @@ const metadata: StateMetadata<RewardsMoneyControllerState> = {
     usedInUi: true,
   },
   taxMe: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  taxFormSubmitted: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -240,6 +247,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsRebateQuote',
   'initiateClaim',
   'getTaxMe',
+  'getTaxFormSubmitted',
+  'noteTaxFormSubmitted',
+  'clearTaxFormSubmitted',
   'submitTaxAttestation',
   'submitTaxUsActivity',
   'mintTaxFormToken',
@@ -851,6 +861,46 @@ export class RewardsMoneyController extends BaseController<
       load: () => this.messenger.call('RewardsMoneyDataService:getTaxMe'),
       write: (key, payload) => this.#writeTaxMe(key, payload),
     });
+  }
+
+  /**
+   * The form-success snapshot for this profile, or null when none is stored.
+   * Claim force-reads `tax/me` while one is set.
+   */
+  async getTaxFormSubmitted(): Promise<TaxFormSubmittedSnapshot | null> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    return this.state.taxFormSubmitted?.[profileId] ?? null;
+  }
+
+  /**
+   * Remember a form submission, or clear it when `snapshot` is null.
+   * The caller decides which reads still count as "checking".
+   */
+  async noteTaxFormSubmitted(
+    snapshot: TaxFormSubmittedSnapshot | null,
+  ): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    this.update((draft) => {
+      if (!draft.taxFormSubmitted) {
+        draft.taxFormSubmitted = {};
+      }
+      if (snapshot) {
+        draft.taxFormSubmitted[profileId] = snapshot;
+        return;
+      }
+      delete draft.taxFormSubmitted[profileId];
+    });
+  }
+
+  /** Drop the form-success snapshot after `tax/me` has moved on. */
+  async clearTaxFormSubmitted(): Promise<void> {
+    await this.noteTaxFormSubmitted(null);
   }
 
   async submitTaxAttestation(

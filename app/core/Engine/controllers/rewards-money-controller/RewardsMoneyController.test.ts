@@ -1007,6 +1007,35 @@ describe('RewardsMoneyController', () => {
       expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
 
+    it('remembers a form submission per profile and drops it when cleared', async () => {
+      const snapshot = {
+        state: 'ACTION_REQUIRED' as const,
+        next_action: 'OPEN_FORM' as const,
+        reason: 'NO_FORM' as const,
+      };
+
+      expect(await controller.getTaxFormSubmitted()).toBeNull();
+
+      await controller.noteTaxFormSubmitted(snapshot);
+
+      expect(await controller.getTaxFormSubmitted()).toEqual(snapshot);
+      expect(controller.state.taxFormSubmitted[PROFILE_A]).toEqual(snapshot);
+
+      await controller.clearTaxFormSubmitted();
+
+      expect(await controller.getTaxFormSubmitted()).toBeNull();
+      expect(controller.state.taxFormSubmitted[PROFILE_A]).toBeUndefined();
+    });
+
+    it('keeps a form submission from an older state that omitted the map', async () => {
+      const restored = new RewardsMoneyController({
+        messenger: mockMessenger,
+        state: { referralMe: {} },
+      });
+
+      expect(await restored.getTaxFormSubmitted()).toBeNull();
+    });
+
     it('forceFresh bypasses the tax cache', async () => {
       withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
 

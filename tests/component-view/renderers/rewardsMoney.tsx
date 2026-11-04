@@ -32,6 +32,7 @@ import type {
   LedgerEntryDto,
   ReferralFunnelDto,
   ReferralMeDto,
+  TaxFormSubmittedSnapshot,
 } from '../../../app/core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../app/constants/navigation/Routes';
 import {
@@ -129,6 +130,7 @@ export function installRewardsMoneyEngine({
   handlers = {},
 }: RewardsMoneyEngineOptions = {}): jest.Mock {
   let refused = false;
+  let taxFormSubmitted: TaxFormSubmittedSnapshot | null = null;
 
   const defaults: Record<string, EngineHandler> = {
     'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
@@ -178,6 +180,16 @@ export function installRewardsMoneyEngine({
         cursor: null,
       }),
     'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED_TAX_ME),
+    'RewardsMoneyController:getTaxFormSubmitted': () =>
+      Promise.resolve(taxFormSubmitted),
+    'RewardsMoneyController:noteTaxFormSubmitted': (snapshot: unknown) => {
+      taxFormSubmitted = (snapshot as TaxFormSubmittedSnapshot | null) ?? null;
+      return Promise.resolve(undefined);
+    },
+    'RewardsMoneyController:clearTaxFormSubmitted': () => {
+      taxFormSubmitted = null;
+      return Promise.resolve(undefined);
+    },
     'RewardsMoneyController:initiateClaim': () => {
       if (initiateClaim === 'under_review') {
         refused = true;

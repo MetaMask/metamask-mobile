@@ -293,6 +293,18 @@ export type TaxMeDto = {
   can_change_answer: boolean;
 };
 
+/**
+ * The `GET /tax/me` snapshot remembered when the form page reports success.
+ * Claim keeps showing "submitted, checking" while a later read still matches
+ * it. A webhook that changes the snapshot drops the marker.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxFormSubmittedSnapshot = {
+  state: TaxDocumentationState;
+  next_action: TaxNextAction;
+  reason: TaxDocumentationReason | null;
+};
+
 /** `POST /wr/tax/attestation` and `POST /wr/tax/w8-us-activity`. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TaxAnswerResultDto = {
@@ -909,6 +921,11 @@ export type RewardsMoneyControllerState = {
   claimById: { [scopeKey: string]: CacheEntry<ClaimDto> };
   /** Keyed by Hydra profileId. */
   taxMe: { [profileId: string]: CacheEntry<TaxMeDto> };
+  /**
+   * Keyed by Hydra profileId. Set when the form page reports success and the
+   * stored determination is still the pre-webhook open-form read.
+   */
+  taxFormSubmitted: { [profileId: string]: TaxFormSubmittedSnapshot };
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
 };
