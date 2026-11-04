@@ -392,6 +392,9 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.limit'));
       expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+      ).toHaveTextContent(strings('bridge.tabs.new_badge'));
+      expect(
         getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.recurring'));
 
