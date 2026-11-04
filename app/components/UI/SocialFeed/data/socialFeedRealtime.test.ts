@@ -59,11 +59,17 @@ const buildSocketRow = (event: SocialFeedEvent): SocialFeedRow => {
   return row;
 };
 
-const buildCall = (uid: string): AuthorComment => ({
+const buildCall = (
+  uid: string,
+  engagement: AuthorComment['engagement'] = {
+    reactions: [],
+    userReaction: null,
+  },
+): AuthorComment => ({
   uid,
   text: 'this is alpha',
   timestamp: 1_700_000_000,
-  engagement: { reactions: [], userReaction: null },
+  engagement,
 });
 
 describe('socialFeedRealtime', () => {
@@ -135,6 +141,27 @@ describe('socialFeedRealtime', () => {
       const merged = mergeRealtimeFeedItem(current, event);
 
       expect(merged.authorComment).toEqual(realtimeCall);
+    });
+
+    it('keeps known engagement when realtime carries the same Call', () => {
+      const knownEngagement = {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      };
+      const knownCall = buildCall('call-shared', knownEngagement);
+      const realtimeCall = buildCall('call-shared', {
+        reactions: [],
+        userReaction: null,
+      });
+      const current = mockSpotFeedItem({ authorComment: knownCall });
+      const event = buildEvent({ data: { authorComment: realtimeCall } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toEqual({
+        ...realtimeCall,
+        engagement: knownEngagement,
+      });
     });
   });
 
@@ -304,6 +331,73 @@ describe('socialFeedRealtime', () => {
       expect(folded.revisedRows.get('pos-a')?.core.authorComment).toEqual(
         restCall,
       );
+    });
+
+    it('keeps server engagement when a promoted socket copy carries the same Call', () => {
+      const serverCall = buildCall('call-shared', {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      });
+      const socketCall = buildCall('call-shared', {
+        reactions: [],
+        userReaction: null,
+      });
+      const socketRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: socketCall },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: serverCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(
+        folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
+      ).toEqual(serverCall.engagement);
+    });
+
+    it('refreshes engagement on a newer revised row from the server copy', () => {
+      const staleCall = buildCall('call-shared', {
+        reactions: [],
+        userReaction: null,
+      });
+      const liveCall = buildCall('call-shared', {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      });
+      const revisedRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: staleCall },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: liveCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [],
+        new Map([['pos-a', revisedRow]]),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(
+        folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
+      ).toEqual(liveCall.engagement);
+      expect(folded.changed).toBe(true);
     });
 
     it('forgets revisions the server caught up with or no longer loads', () => {

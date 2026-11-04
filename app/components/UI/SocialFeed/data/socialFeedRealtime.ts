@@ -59,8 +59,21 @@ export const rememberEvictedRevision = (
 const resolveRealtimeAuthorComment = (
   realtime: AuthorComment | null | undefined,
   known: AuthorComment | null | undefined,
-): AuthorComment | null | undefined =>
-  realtime === undefined ? known : realtime;
+): AuthorComment | null | undefined => {
+  if (realtime === undefined) {
+    return known;
+  }
+  if (realtime !== null && known != null && realtime.uid === known.uid) {
+    if (realtime.engagement === known.engagement) {
+      return realtime;
+    }
+    return {
+      ...realtime,
+      engagement: known.engagement,
+    };
+  }
+  return realtime;
+};
 
 /**
  * Full realtime events are normalized by Core and can hydrate a row without
@@ -178,7 +191,19 @@ export const foldRealtimeRows = (
   revisedRows.forEach((row, feedItemId) => {
     const serverRow = serverRowsById.get(feedItemId);
     if (serverRow && isNewerThanServer(row, serverRow)) {
-      nextRevised.set(feedItemId, row);
+      const nextRow = {
+        ...row,
+        core: {
+          ...row.core,
+          authorComment: resolveRealtimeAuthorComment(
+            row.core.authorComment,
+            serverRow.core.authorComment,
+          ),
+        },
+      };
+      nextRevised.set(feedItemId, nextRow);
+      changed =
+        changed || nextRow.core.authorComment !== row.core.authorComment;
     } else {
       changed = true;
     }
