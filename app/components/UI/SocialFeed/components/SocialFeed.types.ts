@@ -56,6 +56,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   testID?: string;
 }
 

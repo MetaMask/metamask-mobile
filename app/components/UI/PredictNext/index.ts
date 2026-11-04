@@ -23,6 +23,17 @@ export {
   type PredictPortfolioValue,
 } from './portfolio';
 export {
+  createLegacyPredictEventRef,
+  openPredict,
+  usePredictEntryActions,
+  type PredictEntryActions,
+  type PredictEntryPoint,
+  type PredictEventRef,
+  type PredictFeedCategory,
+  type PredictIntent,
+} from './navigation/entry';
+export type { PredictAppRouteParamList } from './navigation/appRoutes';
+export {
   PredictHomeSection,
   type PredictHomeSectionProps,
 } from './homeSection';

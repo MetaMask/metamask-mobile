@@ -731,7 +731,7 @@ All HTTP API mocks for component view tests live under `tests/component-view/api
 - A **setup** function (e.g. `setupTrendingApiFetchMock(responseData?, customReply?)`) that uses nock to intercept the endpoint
 - A **clear** function (e.g. `clearTrendingApiMocks()`) to call in `afterEach`
 
-Shared nock lifecycle helpers (`clearAllNockMocks`, `disableNetConnect`, `teardownNock`) are in `api-mocking/nockHelpers.ts`. To **add a new API mock** for another view, add a file `api-mocking/<feature>.ts` following the pattern in `api-mocking/trending.ts` (mock data, `setupXxxApiMock`, `clearXxxApiMocks` using `nockHelpers`), and call setup/clear in the view test's `beforeEach`/`afterEach`.
+Shared nock lifecycle helpers (`clearAllNockMocks`, `disableNetConnect`, `teardownNock`) are in `api-mocking/nockHelpers.ts`. Callers that use global `fetch` (undici) are not always settled by a nock interceptor. Pass the same reply body to `stubFetchPath(origin, path, body)` from `api-mocking/fetchStub.ts` inside `setupXxxApiMock`, and call `restoreFetchPath` from `clearXxxApiMocks`. Do not add a per-feature `globalThis.fetch` spy. To **add a new API mock** for another view, add a file `api-mocking/<feature>.ts` following the pattern in `api-mocking/trending.ts` (mock data, `setupXxxApiMock`, `clearXxxApiMocks` using `nockHelpers`), and call setup/clear in the view test's `beforeEach`/`afterEach`.
 
 **Example (trending):**
 

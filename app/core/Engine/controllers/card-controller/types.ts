@@ -203,6 +203,7 @@ type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
   | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -215,6 +216,7 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent
+  | AuthenticationController.AuthenticationControllerProfileSignInEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent;
 
