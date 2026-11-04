@@ -232,10 +232,11 @@ jobs:
       secrets_json: ${{ steps.config.outputs.secrets_json }}
       build_name: ${{ steps.config.outputs.build_name }}
     steps:
-      - name: Checkout repository
+      - name: Checkout base ref for build config
         uses: actions/checkout@v6
         with:
-          ref: ${{ needs.validate-pr.outputs.commit_sha }}
+          # Read builds.yml from the operator-selected base ref, not the PR commit.
+          ref: ${{ env.BASE_BRANCH_REF }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -470,6 +471,7 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+      trusted_ref: ${{ inputs.base_branch }}
     secrets: inherit
 
   push-update-android:
@@ -505,6 +507,7 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+      trusted_ref: ${{ inputs.base_branch }}
     secrets: inherit
 
   fingerprint-mismatch:
