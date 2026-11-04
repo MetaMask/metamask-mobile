@@ -91,7 +91,7 @@ const openCopiedPost = async (
  * notification.
  *
  * Supported URL format:
- * - https://link.metamask.io/social-post?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
+ * - https://link.metamask.io/social/post?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  */
 export const handleSocialPostUrl = ({
   actionPath,

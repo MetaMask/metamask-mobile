@@ -632,8 +632,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SOCIAL_TRADER;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
-    case ACTIONS.SOCIAL_POST:
-      return DeepLinkRoute.SOCIAL_POST;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
@@ -672,6 +670,8 @@ const mapSocialSegmentsToRoute = (pathSegments: string[]): DeepLinkRoute => {
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case 'trader':
       return DeepLinkRoute.SOCIAL_TRADER;
+    case 'post':
+      return DeepLinkRoute.SOCIAL_POST;
     default:
       return DeepLinkRoute.TOP_TRADERS;
   }
