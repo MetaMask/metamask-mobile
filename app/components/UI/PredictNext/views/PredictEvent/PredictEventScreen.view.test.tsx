@@ -1923,6 +1923,16 @@ describe('PredictEventScreen', () => {
       };
     };
 
+    /** Adding the Positions tab changes the TabsBar tab set, which remounts
+     * every Tab from a later effect. That remount can land while a find
+     * query settles, so press a fresh lookup, never the resolved element. */
+    const pressPositionsTab = async (
+      view: ReturnType<typeof renderPredictEventScreen>,
+    ) => {
+      await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB);
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
+    };
+
     it('renders held Positions for the Event Markets and opens the bounded Cash Out flow', async () => {
       configurePredictNextFeeds({
         details: [createEvent()],
@@ -1946,9 +1956,7 @@ describe('PredictEventScreen', () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch;
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
       expect(
         view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
@@ -2004,9 +2012,7 @@ describe('PredictEventScreen', () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch;
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
       // The held row is on the second Positions page. The tab can paint
       // before that page is appended, so wait for the row itself.
@@ -2154,9 +2160,7 @@ describe('PredictEventScreen', () => {
       observeRealPortfolioReads(trading);
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
       fireEvent.press(
         view.getByTestId(
