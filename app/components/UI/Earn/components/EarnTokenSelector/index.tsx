@@ -48,8 +48,8 @@ const EarnTokenSelector = ({
   // for staking flows we want to display the earn token (e.g. TRX, ETH).
   const tokenToRender = (
     action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
-      ? outputToken || someEarnToken
-      : earnToken || outputToken || someEarnToken
+      ? outputToken ?? someEarnToken
+      : earnToken ?? outputToken ?? someEarnToken
   ) as EarnTokenDetails | TokenI | undefined;
 
   const rawApr =

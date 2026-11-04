@@ -721,7 +721,7 @@ const EarnInputView = () => {
         },
       });
     } else {
-      handleMax();
+      void handleMax();
     }
   }, [handleMax, isStablecoinLendingEnabled, navigation, token.isETH]);
 
@@ -772,7 +772,7 @@ const EarnInputView = () => {
   const onRightActionPress = React.useCallback(() => {
     if (isTronEnabled && isTronNative) {
       lastQuickAmountButtonPressed.current = 'MAX';
-      handleMax();
+      void handleMax();
       return;
     }
     handleMaxPressWithTracking();
