@@ -1194,10 +1194,6 @@
       "description": "आपकी पहचान की जांच पूरी हो गई है।",
       "button": "जारी रखें"
     },
-    "creating_account": {
-      "title": "आपका बैंक अकाउंट बनाना",
-      "awaiting_provider": "MoonPay से आपके अकाउंट को एप्रूवल मिलने का इंतज़ार कर रहे हैं"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

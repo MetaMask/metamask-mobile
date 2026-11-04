@@ -21,7 +21,6 @@ export const VBA_SCREEN_ID = {
   ACCOUNT_CREATE_DETAILS_ERROR: 'account_create_details_error',
   ACCOUNT_CREATE_GENERIC_ERROR: 'account_create_generic_error',
   ONBOARDING_ERROR: 'onboarding_error',
-  ACCOUNT_CREATION: 'account_creation',
   ACCOUNT_DETAILS: 'account_details',
 } as const;
 
@@ -68,10 +67,7 @@ export const VBA_IDENTITY_ROUTE_SCREEN_IDS = {
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
 } as const;
 
-export const VBA_DETAILS_SCREEN_IDS = [
-  VBA_SCREEN_ID.ACCOUNT_CREATION,
-  VBA_SCREEN_ID.ACCOUNT_DETAILS,
-] as const;
+export const VBA_DETAILS_SCREEN_IDS = [VBA_SCREEN_ID.ACCOUNT_DETAILS] as const;
 
 export const VBA_MODAL_SCREEN_IDS = [
   KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,

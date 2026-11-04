@@ -1194,10 +1194,6 @@
       "description": "Η επαλήθευση της ταυτότητάς σας ολοκληρώθηκε.",
       "button": "Συνεχίστε"
     },
-    "creating_account": {
-      "title": "Δημιουργία του τραπεζικού σας λογαριασμού",
-      "awaiting_provider": "Αναμονή έγκρισης του λογαριασμού σας από την MoonPay"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

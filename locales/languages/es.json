@@ -1194,10 +1194,6 @@
       "description": "La verificación de identidad ha finalizado.",
       "button": "Continuar"
     },
-    "creating_account": {
-      "title": "Creando tu cuenta bancaria",
-      "awaiting_provider": "Esperando a que MoonPay apruebe tu cuenta"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

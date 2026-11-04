@@ -11,7 +11,6 @@ import renderWithProvider, {
   type DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
@@ -151,7 +150,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows Creating your bank account, then the details once the BRL autoramp is Approved', async () => {
+  it('shows detail skeletons, then the details once the BRL autoramp is Approved', async () => {
     let releaseCreate: () => void = () => undefined;
     const createGate = new Promise<void>((resolve) => {
       releaseCreate = resolve;
@@ -177,20 +176,16 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       brCode: '00020126',
       instruction: 'Pay with PIX',
     });
-    const { findByTestId, findByText, getByTestId } = render(VbaDetails);
+    const { findByTestId, getByTestId, queryByText } = render(VbaDetails);
 
     fireEvent.press(
       getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(
-      await findByText(strings('virtual_bank_account.creating_account.title')),
+      await findByTestId(VbaDetailsSelectorsIDs.LOADING),
     ).toBeOnTheScreen();
-    expect(
-      await findByText(
-        strings('virtual_bank_account.creating_account.description'),
-      ),
-    ).toBeOnTheScreen();
+    expect(queryByText(/MoonPay/)).toBeNull();
     releaseCreate();
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
@@ -240,7 +235,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       },
     );
     ramps.refreshAutoramp?.mockResolvedValue({ status: 'Created' });
-    const { findByTestId, findByText, getByTestId } = render(VbaDetails, {
+    const { findByTestId, getByTestId } = render(VbaDetails, {
       chooseCurrency: true,
     });
 
@@ -252,7 +247,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
 
     expect(
-      await findByText(strings('virtual_bank_account.creating_account.title')),
+      await findByTestId(VbaDetailsSelectorsIDs.LOADING),
     ).toBeOnTheScreen();
     expect(ramps.createAutoramp).toHaveBeenCalledWith(
       expect.objectContaining({

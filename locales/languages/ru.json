@@ -1194,10 +1194,6 @@
       "description": "Проверка личности завершена.",
       "button": "Продолжить"
     },
-    "creating_account": {
-      "title": "Создаем ваш банковский счет",
-      "awaiting_provider": "Ожидаем, пока MoonPay одобрит ваш счет"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
