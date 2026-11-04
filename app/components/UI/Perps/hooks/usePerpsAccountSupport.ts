@@ -29,7 +29,8 @@ const hasAccountSupport = (
 export type PerpsAccountSupportCheckResult =
   | 'supported'
   | 'unsupported'
-  | 'stale';
+  | 'stale'
+  | 'unmounted';
 
 export interface UsePerpsAccountSupportReturn {
   isAccountUnsupportedModalVisible: boolean;
@@ -96,20 +97,26 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
         requestedRoute ?? ''
       }:${requested.network}`;
       const support = await readAccountSupport(providerId);
-      if (!isMountedRef.current) {
-        return 'stale';
-      }
+      const unmounted = !isMountedRef.current;
       const current = contextRef.current;
       const currentRoute = providerId ?? current.provider;
       const currentContext = `${current.selectedAddress ?? ''}:${
         currentRoute ?? ''
       }:${current.network}`;
+      // A changed account, provider, or network is stale even if the view
+      // also went away. Unmount alone is a separate result so a committed
+      // post-deposit order can still be placed.
       if (currentContext !== requestedContext) {
         return 'stale';
       }
       if (!support.isSupported) {
-        setIsModalVisible(true);
+        if (!unmounted) {
+          setIsModalVisible(true);
+        }
         return 'unsupported';
+      }
+      if (unmounted) {
+        return 'unmounted';
       }
       return 'supported';
     },
