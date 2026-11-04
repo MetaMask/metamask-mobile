@@ -25,6 +25,7 @@ import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { usePredictEntryActions } from '../../../UI/PredictNext';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
@@ -115,6 +116,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -241,7 +243,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-crypto-market-row-item"
             idPrefix="crypto_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(navigation, 'crypto')
+              navigateToExplorePredictionsList(openPredict, 'crypto')
             }
           />
         ),
@@ -261,6 +263,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     refresh,
     perpsNavigation,
     cryptoPredictions,
+    openPredict,
   ]);
 
   return (

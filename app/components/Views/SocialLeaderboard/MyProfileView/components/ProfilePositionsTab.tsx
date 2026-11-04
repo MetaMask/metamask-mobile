@@ -5,9 +5,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -21,7 +18,7 @@ import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeleton
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import {
-  getFilteredPositionSections,
+  filterPositionsByAsset,
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
 } from '../utils/splitPositionsByType';
@@ -37,7 +34,6 @@ export interface ProfilePositionsTabProps {
   error: string | null;
   isClosed: boolean;
   filter: ProfileAssetFilter;
-  onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
   showFlaggedState?: boolean;
@@ -49,66 +45,21 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   error,
   isClosed,
   filter,
-  onFilterChange,
   onPositionPress,
   onRetry,
   showFlaggedState,
 }) => {
-  const { tokens, perps } = useMemo(
-    () => getFilteredPositionSections(positions, filter),
+  const visiblePositions = useMemo(
+    () => filterPositionsByAsset(positions, filter),
     [filter, positions],
   );
-  const showSectionHeaders = filter === 'all';
-  const isEmpty = tokens.length === 0 && perps.length === 0;
+  const isEmpty = visiblePositions.length === 0;
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
 
-  const renderRows = (sectionPositions: Position[]) =>
-    sectionPositions.map((position) => (
-      <PositionRow
-        key={getPositionListKey(position)}
-        position={position}
-        isClosed={isClosed}
-        showTradeDate={isClosed}
-        showFlaggedState={showFlaggedState}
-        onPress={
-          showFlaggedState && getPositionFlagLabelKey(position)
-            ? undefined
-            : onPositionPress
-        }
-      />
-    ));
-
   return (
     <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
-      <FilterButtonGroup
-        value={filter}
-        onChange={(value) => onFilterChange(value as ProfileAssetFilter)}
-        variant={FilterButtonVariant.Primary}
-        twClassName="px-4 pb-3"
-        testID={MyProfileViewSelectorsIDs.ASSET_FILTER}
-      >
-        <FilterButton
-          value="all"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_ALL}
-        >
-          {strings('social_leaderboard.shell.filters.type.all')}
-        </FilterButton>
-        <FilterButton
-          value="tokens"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS}
-        >
-          {strings('social_leaderboard.shell.filters.type.tokens')}
-        </FilterButton>
-        <FilterButton
-          value="perps"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_PERPS}
-        >
-          {strings('social_leaderboard.shell.filters.type.perps')}
-        </FilterButton>
-      </FilterButtonGroup>
-
       {error && isEmpty ? (
         <Box
           alignItems={BoxAlignItems.Center}
@@ -154,36 +105,20 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           </Text>
         </Box>
       ) : (
-        <>
-          {tokens.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.TOKENS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_tokens')}
-                </Text>
-              ) : null}
-              {renderRows(tokens)}
-            </Box>
-          ) : null}
-          {perps.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.PERPS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_perpetuals')}
-                </Text>
-              ) : null}
-              {renderRows(perps)}
-            </Box>
-          ) : null}
-        </>
+        visiblePositions.map((position) => (
+          <PositionRow
+            key={getPositionListKey(position)}
+            position={position}
+            isClosed={isClosed}
+            showTradeDate={isClosed}
+            showFlaggedState={showFlaggedState}
+            onPress={
+              showFlaggedState && getPositionFlagLabelKey(position)
+                ? undefined
+                : onPositionPress
+            }
+          />
+        ))
       )}
     </Box>
   );
