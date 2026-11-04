@@ -1904,13 +1904,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // same lock only after this read, so a second tap in the same turn
       // would otherwise start a parallel placement.
       isSubmittingRef.current = true;
-      let accountSupport: Awaited<ReturnType<typeof checkAccountSupport>> =
-        'stale';
-      try {
-        accountSupport = await checkAccountSupport();
-      } finally {
+      const accountSupport = await checkAccountSupport().finally(() => {
         isSubmittingRef.current = false;
-      }
+      });
       // A user-initiated submit no longer owns the action once its view has
       // closed. Keep the committed post-deposit re-entry running so a
       // confirmed deposit still produces its order. That re-entry runs after

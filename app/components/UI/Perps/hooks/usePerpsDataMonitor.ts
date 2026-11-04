@@ -204,16 +204,18 @@ export function usePerpsDataMonitor(
       const currentPosition = (positions || []).find(
         (position) => position.symbol === asset,
       );
-      setInitialPosition(
-        suppliedInitialPosition !== undefined
-          ? suppliedInitialPosition
-          : currentPosition
-            ? {
-                size: currentPosition.size,
-                entryPrice: currentPosition.entryPrice,
-              }
-            : null,
-      );
+      let positionBaseline: PerpsDataMonitorPositionSnapshot | null;
+      if (suppliedInitialPosition !== undefined) {
+        positionBaseline = suppliedInitialPosition;
+      } else if (currentPosition) {
+        positionBaseline = {
+          size: currentPosition.size,
+          entryPrice: currentPosition.entryPrice,
+        };
+      } else {
+        positionBaseline = null;
+      }
+      setInitialPosition(positionBaseline);
       const currentAssetOrders = (orders || []).filter(
         (order) => order.symbol === asset,
       );
