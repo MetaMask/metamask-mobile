@@ -1,5 +1,9 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
 import Routes from '../../../../constants/navigation/Routes';
 import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PositionSheetData } from './hooks/usePositionSheetData';
@@ -236,6 +240,103 @@ describe('PositionDetailsSheet', () => {
   });
 
   describe('tabs', () => {
+    const swipe = (gestureTestId: string, translationY: number) =>
+      act(() => {
+        fireGestureHandler(getByGestureTestId(gestureTestId), [
+          { translationY: 0 },
+          { translationY },
+        ]);
+      });
+
+    it('opens collapsed so the footer stays in view', () => {
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('toggles the active tab open and closed on tap', () => {
+      render(<PositionDetailsSheet />);
+      const postsTab = screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.POSTS_TAB,
+      );
+
+      fireEvent.press(postsTab);
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(postsTab);
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeNull();
+    });
+
+    it('stays open when switching to the other tab', () => {
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_TAB),
+      );
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens on a swipe up and closes on a swipe down over the tab bar', async () => {
+      render(<PositionDetailsSheet />);
+
+      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -40);
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeOnTheScreen();
+      // GestureDetector swaps in the re-enabled gesture on a microtask.
+      await act(async () => undefined);
+
+      swipe(PositionDetailsSheetSelectorsIDs.TABS_COLLAPSE_GESTURE, 40);
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeNull();
+    });
+
+    it('ignores swipes shorter than the threshold', () => {
+      render(<PositionDetailsSheet />);
+
+      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -10);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeNull();
+    });
+
+    it('closes when the list is pulled down past its top', () => {
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
+
+      fireEvent(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+        'scrollEndDrag',
+        { nativeEvent: { contentOffset: { x: 0, y: -80 } } },
+      );
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeNull();
+    });
+
     it('lists every comment on the position under Posts', () => {
       mockParams = {
         ...mockParams,
@@ -252,6 +353,9 @@ describe('PositionDetailsSheet', () => {
       };
 
       render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
 
       expect(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
@@ -270,6 +374,9 @@ describe('PositionDetailsSheet', () => {
 
     it('shows the empty state when the position has no comments', () => {
       render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
 
       expect(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),

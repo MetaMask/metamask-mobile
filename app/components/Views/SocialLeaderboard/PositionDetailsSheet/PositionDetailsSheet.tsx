@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -36,7 +37,9 @@ import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
 import PositionSheetPriceHeader from './components/PositionSheetPriceHeader';
-import PositionSheetTabs from './components/PositionSheetTabs';
+import PositionSheetTabs, {
+  SWIPE_THRESHOLD,
+} from './components/PositionSheetTabs';
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
@@ -107,6 +110,23 @@ const PositionDetailsSheet = () => {
     addressesMatch(author.address, profile?.linkedAccountAddress);
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
+  const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+
+  // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
+  // footer sits right under the tab bar; scrolling up opens the active tab.
+  const expandGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .withTestId(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE)
+        .runOnJS(true)
+        .enabled(!isTabsExpanded)
+        .activeOffsetY(-6)
+        .failOffsetY(6)
+        .onEnd((event) => {
+          if (event.translationY < -SWIPE_THRESHOLD) setIsTabsExpanded(true);
+        }),
+    [isTabsExpanded],
+  );
 
   const closeThen = useCallback((next: () => void) => {
     if (sheetRef.current) {
@@ -214,28 +234,35 @@ const PositionDetailsSheet = () => {
     : strings('social_leaderboard.position_sheet.today');
 
   const details = (
-    <>
-      <Box twClassName="px-4 py-3" gap={2}>
-        <PositionSheetTradeSummary
+    <GestureDetector gesture={expandGesture}>
+      <View>
+        <Box twClassName="px-4 py-3" gap={2}>
+          <PositionSheetTradeSummary
+            position={position}
+            title={data.summaryTitle}
+            subtitle={data.summarySubtitle}
+            pnlPercentLabel={data.pnlPercentLabel}
+            pnlValueLabel={data.pnlValueLabel}
+            isPnlPositive={data.isPnlPositive}
+            onPress={handleSummaryPress}
+          />
+        </Box>
+        <PositionSheetTabs
           position={position}
-          title={data.summaryTitle}
-          subtitle={data.summarySubtitle}
-          pnlPercentLabel={data.pnlPercentLabel}
-          pnlValueLabel={data.pnlValueLabel}
-          isPnlPositive={data.isPnlPositive}
-          onPress={handleSummaryPress}
+          author={author}
+          isExpanded={isTabsExpanded}
+          onExpandedChange={setIsTabsExpanded}
         />
-      </Box>
-      <PositionSheetTabs position={position} author={author} />
-      <PositionSheetFooter
-        isPerp={data.isPerp}
-        isClosed={data.isClosed}
-        canSell={Boolean(heldBalance)}
-        onCopyTrade={handleCopyTrade}
-        onPerpsOrder={handlePerpsOrder}
-        onSpotTrade={setQuickBuyMode}
-      />
-    </>
+        <PositionSheetFooter
+          isPerp={data.isPerp}
+          isClosed={data.isClosed}
+          canSell={Boolean(heldBalance)}
+          onCopyTrade={handleCopyTrade}
+          onPerpsOrder={handlePerpsOrder}
+          onSpotTrade={setQuickBuyMode}
+        />
+      </View>
+    </GestureDetector>
   );
 
   return (
