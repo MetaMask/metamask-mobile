@@ -10528,6 +10528,8 @@
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
       "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
+      "swap_into_token": "Swap into {{symbol}}",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",
