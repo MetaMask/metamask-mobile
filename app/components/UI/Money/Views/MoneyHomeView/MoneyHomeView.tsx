@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import {
   NativeHeaderBackdrop,
@@ -26,7 +26,6 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
-  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -148,10 +147,8 @@ const MoneyHomeView = () => {
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
   // Pushed over another stack (e.g. a Rewards campaign funding flow) rather
   // than rooted in the tab bar, which is the only case that gets a back
-  // affordance and the title that collapses into the header on scroll.
+  // affordance. The title stays centered in the header bar.
   const isPushed = Boolean(showBackButton);
-  const { titleSectionHeightSv, setTitleSectionHeight } =
-    useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const floatingTabBarInset = useFloatingTabBarInset();
@@ -460,26 +457,11 @@ const MoneyHomeView = () => {
     useHeaderGlassInset(isFloatingHeader, insets.top);
   const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
-  const handleTitleSectionLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      setTitleSectionHeight(event.nativeEvent.layout.height);
-    },
-    [setTitleSectionHeight],
-  );
-
-  // Built as a whole object so each arm matches one side of the header's
-  // props union; spreading a partial would widen both arms to optional.
-  const headerProps: MoneyHeaderProps = isPushed
-    ? {
-        onMenuPress: handleMenuPress,
-        onBack: handleBackPress,
-        scrollY,
-        titleSectionHeight: titleSectionHeightSv,
-      }
-    : {
-        onMenuPress: handleMenuPress,
-        scrollY,
-      };
+  const headerProps: MoneyHeaderProps = {
+    onMenuPress: handleMenuPress,
+    onBack: isPushed ? handleBackPress : undefined,
+    scrollY,
+  };
 
   const handleAddPress = useCallback(
     ({
@@ -1080,13 +1062,7 @@ const MoneyHomeView = () => {
           />
         }
       >
-        {/* Everything above the action buttons is measured as one block: the
-            header's compact title should only appear once the large title has
-            scrolled away, which the banner pushes further down when shown. */}
-        <Box
-          testID={MoneyHomeViewTestIds.TITLE_SECTION}
-          onLayout={isPushed ? handleTitleSectionLayout : undefined}
-        >
+        <Box testID={MoneyHomeViewTestIds.TITLE_SECTION}>
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2 pb-2">
               <BannerAlert
@@ -1106,7 +1082,6 @@ const MoneyHomeView = () => {
             onApyInfoPress={handleApyInfoPress}
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
-            showTitle={isPushed && !isNativeHeader}
           />
         </Box>
         <MoneyActionButtonRow

@@ -138,7 +138,7 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
-import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
@@ -341,11 +341,7 @@ const PerpsHomeView = () => {
     [],
   );
 
-  const {
-    scrollY: headerScrollY,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
+  const { scrollY: headerScrollY } = useHeaderStandardAnimated();
 
   // The banner sits above the header, so whichever of the two is at the top of
   // the screen owns the status-bar inset.
@@ -1260,7 +1256,7 @@ const PerpsHomeView = () => {
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   const header = (
-    <HeaderStandardAnimatedGlass
+    <HeaderStandardGlass
       isGlass={isBrandRefresh}
       onLayout={handleFloatingHeaderLayout}
       includesTopInset={headerIncludesTopInset}
@@ -1268,8 +1264,11 @@ const PerpsHomeView = () => {
       // (HeaderBase defaults to 56px).
       twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
       scrollY={headerScrollY}
-      titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
+      titleProps={{
+        accessibilityRole: 'header',
+        testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+      }}
       onBack={handleBackPress}
       backButtonProps={{
         accessibilityLabel: 'Back',
@@ -1282,6 +1281,7 @@ const PerpsHomeView = () => {
           alignItems={BoxAlignItems.Center}
           gap={2}
         >
+          {titleEndAccessory}
           <ButtonIconGlass
             isCapsule={isBrandRefresh}
             iconName={IconName.Search}
@@ -1320,17 +1320,10 @@ const PerpsHomeView = () => {
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
           isGlass={isGlass}
-          onTitleSectionLayout={(event) =>
-            setTitleSectionHeight(event.nativeEvent.layout.height)
-          }
         >
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={perpsScreenTitle}
-            titleEndAccessory={titleEndAccessory}
-            titleProps={{
-              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-            }}
+            title=""
             amount={
               !isBalanceEmpty ? (
                 <SensitiveText

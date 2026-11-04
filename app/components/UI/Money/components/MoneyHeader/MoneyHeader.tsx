@@ -3,8 +3,7 @@ import type { LayoutChangeEvent } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
-import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 interface MoneyHeaderCommonProps {
@@ -19,34 +18,28 @@ interface MoneyHeaderCommonProps {
   isGlass?: boolean;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
-}
-
-/**
- * The pushed Money screen, which carries a back affordance and a title that
- * collapses into the header as the page scrolls.
- */
-interface MoneyHeaderPushedProps {
-  onBack: () => void;
-  /** Scroll offset of the page's animated ScrollView. */
-  scrollY: SharedValue<number>;
-  /** Measured height of the page's leading section, title included. */
-  titleSectionHeight: SharedValue<number>;
-}
-
-/** The Money tab, which is rooted in the tab bar and has nothing to go back to. */
-interface MoneyHeaderTabProps {
-  onBack?: never;
   /** Scroll offset of the page, which fades the glass backdrop in. */
   scrollY?: SharedValue<number>;
-  titleSectionHeight?: never;
+  /**
+   * Accepted so existing pushed-screen callers keep compiling. The title stays
+   * in the bar, so this no longer drives a collapsing large title.
+   */
+  titleSectionHeight?: SharedValue<number>;
 }
 
-export type MoneyHeaderProps = MoneyHeaderCommonProps &
-  (MoneyHeaderPushedProps | MoneyHeaderTabProps);
+interface MoneyHeaderBackProps {
+  onBack?: () => void;
+}
 
-const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, isGlass = false, onLayout } = props;
+export type MoneyHeaderProps = MoneyHeaderCommonProps & MoneyHeaderBackProps;
 
+const MoneyHeader = ({
+  onMenuPress,
+  isGlass = false,
+  onLayout,
+  scrollY,
+  onBack,
+}: MoneyHeaderProps) => {
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
     onPress: onMenuPress,
@@ -56,41 +49,27 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     twClassName: 'bg-transparent',
   };
 
-  if (props.onBack) {
-    return (
-      <HeaderStandardAnimatedGlass
-        isGlass={isGlass}
-        onLayout={onLayout}
-        includesTopInset={isGlass}
-        testID={MoneyHeaderTestIds.CONTAINER}
-        title={strings('money.title')}
-        titleProps={{
-          testID: MoneyHeaderTestIds.TITLE,
-        }}
-        scrollY={props.scrollY}
-        titleSectionHeight={props.titleSectionHeight}
-        onBack={props.onBack}
-        backButtonProps={{
-          accessibilityLabel: strings('navigation.back'),
-          testID: MoneyHeaderTestIds.BACK_BUTTON,
-        }}
-        endButtonIconProps={[menuButtonProps]}
-      />
-    );
-  }
-
   return (
-    <HeaderRootGlass
+    <HeaderStandardGlass
       isGlass={isGlass}
       onLayout={onLayout}
       includesTopInset={isGlass}
-      scrollY={props.scrollY}
+      scrollY={scrollY}
       testID={MoneyHeaderTestIds.CONTAINER}
-      twClassName="pl-4 pr-3"
       title={strings('money.title')}
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,
+        accessibilityRole: 'header',
       }}
+      onBack={onBack}
+      backButtonProps={
+        onBack
+          ? {
+              accessibilityLabel: strings('navigation.back'),
+              testID: MoneyHeaderTestIds.BACK_BUTTON,
+            }
+          : undefined
+      }
       endButtonIconProps={[menuButtonProps]}
     />
   );

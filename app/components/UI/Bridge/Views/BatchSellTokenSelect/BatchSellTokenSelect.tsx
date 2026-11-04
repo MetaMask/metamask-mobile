@@ -696,7 +696,9 @@ export function BatchSellTokenSelect() {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
-          title=""
+          title={strings('bridge.batch_sell_select_title')}
+          titleProps={{ accessibilityRole: 'header' }}
+          subtitle={strings('bridge.batch_sell_select_subtitle')}
           onBack={handleBackPress}
           includesTopInset
         />
@@ -706,21 +708,6 @@ export function BatchSellTokenSelect() {
           />
         ) : (
           <>
-            <Box twClassName="px-4 pt-2">
-              <Text
-                variant={TextVariant.HeadingLg}
-                color={TextColor.TextDefault}
-              >
-                {strings('bridge.batch_sell_select_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="mt-1"
-              >
-                {strings('bridge.batch_sell_select_subtitle')}
-              </Text>
-            </Box>
             <Box twClassName="py-4 pl-4">
               <ScrollView
                 horizontal

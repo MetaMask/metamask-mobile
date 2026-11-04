@@ -13,16 +13,12 @@ import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  ButtonIconSize,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FilterButton,
-  IconName,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -311,30 +307,18 @@ const MoneyActivityView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyActivityViewTestIds.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Start}
-        paddingVertical={2}
-        twClassName="px-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          accessibilityLabel="Back"
-          testID={MoneyActivityViewTestIds.BACK_BUTTON}
-        />
-      </Box>
-
-      <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
-        <Text
-          variant={TextVariant.HeadingLg}
-          testID={MoneyActivityViewTestIds.TITLE}
-        >
-          {strings('money.activity.title')}
-        </Text>
-      </Box>
+      <HeaderStandard
+        title={strings('money.activity.title')}
+        titleProps={{
+          accessibilityRole: 'header',
+          testID: MoneyActivityViewTestIds.TITLE,
+        }}
+        onBack={handleBackPress}
+        backButtonProps={{
+          accessibilityLabel: 'Back',
+          testID: MoneyActivityViewTestIds.BACK_BUTTON,
+        }}
+      />
 
       <ScrollView
         horizontal

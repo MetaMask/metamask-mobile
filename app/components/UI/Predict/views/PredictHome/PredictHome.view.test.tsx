@@ -144,13 +144,13 @@ describe('PredictHome', () => {
   });
 
   describe('shell composition', () => {
-    it('renders the large "Predictions" title', async () => {
+    it('renders the centered "Predictions" title', async () => {
       const { getByTestId } = renderPredictHomeView();
 
       await waitFor(() => {
-        expect(getByTestId(PredictHomeSelectorsIDs.TITLE)).toHaveTextContent(
-          PREDICTIONS_TITLE,
-        );
+        expect(
+          getByTestId(PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE),
+        ).toHaveTextContent(PREDICTIONS_TITLE);
       });
     });
 
@@ -306,15 +306,10 @@ describe('PredictHome', () => {
   });
 
   describe('stacked header scroll wiring', () => {
-    it('keeps the compact title mounted while measuring the title section and scrolling', async () => {
+    it('keeps the centered title mounted while scrolling', async () => {
       const { findByTestId, getByTestId } = renderPredictHomeView();
 
-      const titleSection = await findByTestId(
-        PredictHomeSelectorsIDs.TITLE_SECTION,
-      );
-      fireEvent(titleSection, 'layout', {
-        nativeEvent: { layout: { height: 120 } },
-      });
+      await findByTestId(PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE);
 
       const scrollView = getByTestId(PredictHomeSelectorsIDs.SCROLL_VIEW);
       fireEvent.scroll(scrollView, {
@@ -350,7 +345,7 @@ describe('PredictHome', () => {
     it('keeps the inline header when the flag is off', async () => {
       const { queryByTestId, findByTestId } = renderPredictHomeView();
 
-      await findByTestId(PredictHomeSelectorsIDs.TITLE);
+      await findByTestId(PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE);
 
       expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
     });

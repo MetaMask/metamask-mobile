@@ -53,35 +53,25 @@ const OnboardingStep = ({
       ? { ...headerHandlers, onBack: onBackPress }
       : headerHandlers;
 
-  const renderHeader = () => {
-    if (headerMode === 'none') {
-      return null;
-    }
-
-    return (
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        includesTopInset
-        twClassName="bg-background-default"
-        {...resolvedHeaderHandlers}
-      />
-    );
-  };
+  const renderHeader = () => (
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
+      includesTopInset
+      title={title}
+      titleProps={{
+        accessibilityRole: 'header',
+        testID: 'onboarding-step-title',
+      }}
+      twClassName="bg-background-default"
+      {...(headerMode === 'none' ? {} : resolvedHeaderHandlers)}
+    />
+  );
 
   const renderContent = () => (
     <>
       {/* Title and Description - prevent from shrinking when keyboard opens */}
       <Box twClassName="gap-4 my-2 shrink-0">
-        {/* Title */}
-        <Text
-          variant={TextVariant.HeadingLg}
-          testID="onboarding-step-title"
-          twClassName="text-default"
-        >
-          {title}
-        </Text>
-
         {description ? (
           <Text
             variant={TextVariant.BodyMd}

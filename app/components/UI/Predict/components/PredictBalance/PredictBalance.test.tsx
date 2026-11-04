@@ -920,12 +920,12 @@ describe('PredictBalance', () => {
       expect(getByText(/Withdraw/i)).toBeOnTheScreen();
     });
 
-    it('displays Predictions title in TitleHub', () => {
-      const { getByText } = renderWithProvider(<PredictBalance />, {
+    it('leaves the Predictions title to the centered page header', () => {
+      const { queryByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
-      expect(getByText(strings('wallet.predict'))).toBeOnTheScreen();
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
     });
 
     it('handles undefined balance gracefully', () => {

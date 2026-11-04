@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -14,8 +13,7 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { Box } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
@@ -68,8 +66,7 @@ const PredictHome: React.FC = () => {
   // rather than bucketing it incorrectly.
   const entryPoint = route.params?.entryPoint;
 
-  const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
-    usePredictStackedHeader();
+  const { scrollY, onScroll } = usePredictStackedHeader();
   const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
   const safeAreaInsets = useSafeAreaInsets();
@@ -137,13 +134,6 @@ const PredictHome: React.FC = () => {
     }
   }, [navigation]);
 
-  const handleTitleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      setTitleSectionHeight(event.nativeEvent.layout.height);
-    },
-    [setTitleSectionHeight],
-  );
-
   const withdrawUnavailableSheetRef =
     useRef<PredictWithdrawUnavailableSheetRef>(null);
   const {
@@ -169,7 +159,6 @@ const PredictHome: React.FC = () => {
         {/* Mounted before the content so assistive tech reads the header first. */}
         <PredictHeaderStacked
           scrollY={scrollY}
-          titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
           onSearchPress={handleShowSearch}
           isGlass={isBrandRefresh}
@@ -193,19 +182,6 @@ const PredictHome: React.FC = () => {
               { paddingTop: floatingHeaderInset },
             ]}
           >
-            <Box
-              testID={PredictHomeSelectorsIDs.TITLE_SECTION}
-              onLayout={handleTitleLayout}
-              twClassName="pt-2 pb-2"
-            >
-              <Text
-                testID={PredictHomeSelectorsIDs.TITLE}
-                variant={TextVariant.HeadingMd}
-              >
-                {strings('wallet.predict')}
-              </Text>
-            </Box>
-
             <Box twClassName="gap-8">
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}

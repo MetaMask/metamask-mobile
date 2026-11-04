@@ -11,7 +11,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
@@ -51,7 +50,10 @@ const CancelStepLayout = ({
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        twClassName="px-4"
+        textProps={{
+          accessibilityRole: 'header',
+          testID: titleTestId,
+        }}
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: onBack,
@@ -59,7 +61,9 @@ const CancelStepLayout = ({
           testID: CancelMembershipTestIds.BACK_BUTTON,
           isDisabled: isSubmitting,
         }}
-      />
+      >
+        {title}
+      </HeaderBaseGlass>
 
       <ScrollView
         style={tw.style('flex-1')}
@@ -67,16 +71,6 @@ const CancelStepLayout = ({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="mb-6"
-          testID={titleTestId}
-        >
-          {title}
-        </Text>
-
         {children}
       </ScrollView>
 

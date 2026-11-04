@@ -14,6 +14,11 @@ export interface NativeHeaderConfig {
   leftItems?: () => NativeStackHeaderItem[];
   /** Must be referentially stable (`useCallback`); a new function re-applies the bar. */
   rightItems?: () => NativeStackHeaderItem[];
+  /**
+   * Centered navigation-bar title. Unset `headerTitleAlign` is left on Android,
+   * so a title always opts into center.
+   */
+  title?: string;
   /** Per-screen gate, e.g. a feature flag, on top of OS support. */
   isEnabled?: boolean;
   /** Turns off UIKit's top scroll edge effect, for screens that draw their own backdrop. */
@@ -49,6 +54,7 @@ export const useIsNativeHeader = (): boolean => {
 export const useNativeHeader = ({
   leftItems,
   rightItems,
+  title = '',
   isEnabled = true,
   hidesScrollEdgeEffect = false,
 }: NativeHeaderConfig = {}): boolean => {
@@ -66,7 +72,9 @@ export const useNativeHeader = ({
       headerShadowVisible: false,
       headerTintColor: colors.icon.default,
       // An empty title stops react-navigation printing the route name.
-      title: '',
+      // Center explicitly: the native default is left on Android when unset.
+      title,
+      headerTitleAlign: 'center',
       unstable_headerLeftItems: leftItems,
       unstable_headerRightItems: rightItems,
       scrollEdgeEffects: hidesScrollEdgeEffect ? { top: 'hidden' } : undefined,
@@ -75,6 +83,7 @@ export const useNativeHeader = ({
     isNativeHeader,
     navigation,
     colors.icon.default,
+    title,
     leftItems,
     rightItems,
     hidesScrollEdgeEffect,

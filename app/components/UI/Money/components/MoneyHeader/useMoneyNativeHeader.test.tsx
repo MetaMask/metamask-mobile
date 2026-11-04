@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import { fireEvent, render, renderHook } from '@testing-library/react-native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
+import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import {
   useMoneyNativeHeader,
@@ -52,16 +53,12 @@ describe('useMoneyNativeHeader', () => {
     ).toBe(true);
   });
 
-  it('shows a plain inline title on the Money tab', () => {
+  it('centers the Money title in the native bar', () => {
     const { leftItems } = renderItems();
+    const config = jest.mocked(useNativeHeader).mock.calls.at(-1)?.[0];
 
-    expect(leftItems).toHaveLength(1);
-    expect(leftItems[0]).toStrictEqual(
-      expect.objectContaining({ type: 'custom', hidesSharedBackground: true }),
-    );
-    expect(
-      renderCustom(leftItems[0]).getByTestId(MoneyHeaderTestIds.TITLE),
-    ).toBeOnTheScreen();
+    expect(leftItems).toHaveLength(0);
+    expect(config?.title).toBe(strings('money.title'));
   });
 
   it('adds a separate back button when pushed over another flow', () => {

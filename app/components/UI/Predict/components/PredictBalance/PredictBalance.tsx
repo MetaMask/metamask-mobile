@@ -209,9 +209,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           onLayout?.(height);
         }}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-          {strings('wallet.predict')}
-        </Text>
         <Box twClassName="items-center gap-2 py-4">
           <Icon
             name={IconName.Warning}
@@ -263,7 +260,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
       <Box twClassName="px-4">
         <TitleHub
           twClassName="w-full"
-          title={strings('wallet.predict')}
+          title=""
           amount={
             <SensitiveText
               variant={TextVariant.AmountDisplayLg}

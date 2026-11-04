@@ -9,7 +9,7 @@ import {
   IconName,
   type ButtonIconProps,
 } from '@metamask/design-system-react-native';
-import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { PredictVenueSelectorButton } from '../../../PredictNext/venueSelection';
 import type { SharedValue } from 'react-native-reanimated';
@@ -23,14 +23,9 @@ import { PREDICT_HEADER_STACKED_TEST_IDS } from './PredictHeaderStacked.testIds'
 export interface PredictHeaderStackedProps {
   /**
    * Scroll offset shared value from the page's Animated.ScrollView.
-   * Drives the compact title transition once it passes the title section.
+   * Fades the glass backdrop. The title stays centered in the bar.
    */
   scrollY: SharedValue<number>;
-  /**
-   * Measured height of the large title section (first scroll child).
-   * The compact title appears once `scrollY >= titleSectionHeight`.
-   */
-  titleSectionHeight: SharedValue<number>;
   /**
    * Title shown both as the large title (by the page) and the compact title.
    * Defaults to the shared "Predictions" string.
@@ -51,18 +46,14 @@ export interface PredictHeaderStackedProps {
 }
 
 /**
- * Predict-specific stacked/collapsing navigation header.
+ * Predict navigation header.
  *
- * Thin wrapper over `HeaderStandardAnimatedGlass`, baking in the
- * Predict back navigation, the venue picker (absent unless more than one
- * Venue is selectable) and the search icon. The large title is rendered by the
- * consuming page as the first scroll child; this component renders the nav bar
- * with the compact title that fades/slides in on scroll (Figma
- * HeaderStackedStandard behavior).
+ * Thin wrapper over `HeaderStandardGlass`, baking in the Predict back
+ * navigation, the venue picker (absent unless more than one Venue is
+ * selectable) and the search icon. The page title stays centered in the bar.
  */
 const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
   scrollY,
-  titleSectionHeight,
   title = strings('wallet.predict'),
   onBack,
   onSearchPress,
@@ -79,15 +70,17 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
   };
 
   return (
-    <HeaderStandardAnimatedGlass
+    <HeaderStandardGlass
       isGlass={isGlass}
       onLayout={onLayout}
       testID={testID}
       includesTopInset
       title={title}
-      titleProps={{ testID: PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE }}
+      titleProps={{
+        accessibilityRole: 'header',
+        testID: PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE,
+      }}
       scrollY={scrollY}
-      titleSectionHeight={titleSectionHeight}
       onBack={onBack}
       backButtonProps={{
         accessibilityLabel: strings('navigation.back'),

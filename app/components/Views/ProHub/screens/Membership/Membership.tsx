@@ -225,30 +225,24 @@ const Membership = () => {
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        twClassName="px-4"
+        textProps={{
+          accessibilityRole: 'header',
+          testID: MembershipTestIds.TITLE,
+        }}
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: handleBack,
           accessibilityLabel: strings('navigation.back'),
           testID: MembershipTestIds.BACK_BUTTON,
         }}
-      />
+      >
+        {strings('pro_hub.membership.title')}
+      </HeaderBaseGlass>
 
       <ScrollView
         contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title */}
-        <Text
-          variant={TextVariant.HeadingMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          testID={MembershipTestIds.TITLE}
-          twClassName="mb-2"
-        >
-          {strings('pro_hub.membership.title')}
-        </Text>
-
         {/* ── Stats ─────────────────────────────────────────────────────── */}
         <Box testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow

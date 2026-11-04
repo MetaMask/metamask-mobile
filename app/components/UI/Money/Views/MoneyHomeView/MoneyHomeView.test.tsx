@@ -1817,8 +1817,8 @@ describe('MoneyHomeView', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        titleSection.getByTestId(MoneyBalanceSummaryTestIds.TITLE),
-      ).toBeOnTheScreen();
+        titleSection.queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides the banner when the balance loads successfully', () => {
@@ -1950,13 +1950,18 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  describe('collapsing title', () => {
-    it('moves the title into the content when the stack was pushed', () => {
+  describe('centered title', () => {
+    it('keeps the title in the header when the stack was pushed', () => {
       mockRouteParams = { showBackButton: true };
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
-      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.TITLE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
     });
 
     it('leaves the title to the native bar when it is on', () => {
@@ -1979,19 +1984,12 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('measures the title section only when the stack was pushed', () => {
+    it('does not measure a collapsing title section', () => {
       mockRouteParams = { showBackButton: true };
       const pushed = renderWithProvider(<MoneyHomeView />);
 
       expect(
         pushed.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
-      ).toEqual(expect.any(Function));
-
-      mockRouteParams = undefined;
-      const tab = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        tab.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
       ).toBeUndefined();
     });
   });

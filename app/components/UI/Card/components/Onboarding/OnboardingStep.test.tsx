@@ -67,7 +67,14 @@ jest.mock('@metamask/design-system-react-native', () => {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
-    HeaderStandard: () => null,
+    HeaderStandard: ({
+      title,
+      titleProps,
+    }: {
+      title?: React.ReactNode;
+      titleProps?: { testID?: string };
+    }) =>
+      ReactActual.createElement(RNText, { testID: titleProps?.testID }, title),
   };
 });
 
@@ -232,8 +239,7 @@ describe('OnboardingStep Component', () => {
 
       const titleElement = getByText('Test Title');
       expect(titleElement).toBeDefined();
-      expect(titleElement.props['data-variant']).toBe('HeadingLg');
-      expect(titleElement.props['data-tw-class']).toContain('text-default');
+      expect(titleElement.props.testID).toBe('onboarding-step-title');
     });
 
     it('displays the description with correct variant and styling', () => {
@@ -459,7 +465,7 @@ describe('OnboardingStep Component', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const titleElement = getByText('Test Title');
-      expect(titleElement.props['data-variant']).toBe('HeadingLg');
+      expect(titleElement.props.testID).toBe('onboarding-step-title');
 
       const descriptionElement = getByText('Test Description');
       expect(descriptionElement.props['data-variant']).toBe('BodyMd');

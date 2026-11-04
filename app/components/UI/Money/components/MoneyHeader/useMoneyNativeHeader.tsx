@@ -4,8 +4,6 @@ import {
   Box,
   ButtonIcon,
   IconName,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
@@ -18,7 +16,7 @@ export interface MoneyNativeHeaderParams {
 }
 
 /**
- * The Money header as a native iOS 26 bar: an inline "Money" title, with the
+ * The Money header as a native iOS 26 bar: a centered "Money" title, with the
  * options menu on the right. Returns whether the native bar is on, so the
  * caller skips the JS `MoneyHeader`.
  */
@@ -28,17 +26,8 @@ export const useMoneyNativeHeader = ({
   isEnabled,
 }: MoneyNativeHeaderParams): boolean => {
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
-    const titleItem: NativeStackHeaderItem = {
-      type: 'custom',
-      hidesSharedBackground: true,
-      element: (
-        <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
-          {strings('money.title')}
-        </Text>
-      ),
-    };
     if (!onBack) {
-      return [titleItem];
+      return [];
     }
     return [
       {
@@ -48,7 +37,6 @@ export const useMoneyNativeHeader = ({
         onPress: onBack,
         sharesBackground: false,
       },
-      titleItem,
     ];
   }, [onBack]);
 
@@ -73,6 +61,7 @@ export const useMoneyNativeHeader = ({
   );
 
   return useNativeHeader({
+    title: strings('money.title'),
     leftItems,
     rightItems,
     isEnabled,

@@ -235,28 +235,17 @@ const ReviewOrder = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={strings('card.review_order.title')}
+        titleProps={{
+          accessibilityRole: 'header',
+          testID: ReviewOrderSelectors.TITLE,
+        }}
+        subtitle={strings('card.review_order.subtitle')}
+        subtitleProps={{ testID: ReviewOrderSelectors.SUBTITLE }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />
       <Box twClassName="flex-1 px-4">
-        <Box twClassName="py-4">
-          <Text
-            variant={TextVariant.HeadingLg}
-            twClassName="text-default"
-            testID={ReviewOrderSelectors.TITLE}
-          >
-            {strings('card.review_order.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative mt-2"
-            fontWeight={FontWeight.Regular}
-            testID={ReviewOrderSelectors.SUBTITLE}
-          >
-            {strings('card.review_order.subtitle')}
-          </Text>
-        </Box>
-
         <Box
           twClassName="bg-background-muted rounded-xl p-4 mt-4"
           testID={ReviewOrderSelectors.SHIPPING_ADDRESS_CARD}

@@ -100,7 +100,29 @@ jest.mock('@metamask/design-system-react-native', () => {
 
     ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
       .ButtonIconSize,
-    HeaderStandard: () => null,
+    HeaderStandard: ({
+      title,
+      titleProps,
+      subtitle,
+      subtitleProps,
+    }: {
+      title?: React.ReactNode;
+      titleProps?: { testID?: string };
+      subtitle?: React.ReactNode;
+      subtitleProps?: { testID?: string };
+    }) =>
+      React.createElement(
+        View,
+        null,
+        React.createElement(RNText, { testID: titleProps?.testID }, title),
+        subtitle
+          ? React.createElement(
+              RNText,
+              { testID: subtitleProps?.testID },
+              subtitle,
+            )
+          : null,
+      ),
     Box: ({
       children,
       ...props

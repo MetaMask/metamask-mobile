@@ -234,7 +234,7 @@ describe('SocialV0View', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId(SocialV0ViewSelectorsIDs.TABS)).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialV0ViewSelectorsIDs.TITLE),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER_TITLE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
@@ -262,11 +262,11 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     expect(
-      screen.getByTestId(SocialV0ViewSelectorsIDs.TITLE),
-    ).toHaveTextContent('homepage.sections.top_traders');
-    expect(
       screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER_TITLE),
     ).toHaveTextContent('homepage.sections.top_traders');
+    expect(
+      screen.queryByTestId(SocialV0ViewSelectorsIDs.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {

@@ -36,7 +36,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       </ReactNative.TouchableOpacity>
     ),
     // Accessories take precedence over the shorthand props, as in HeaderBase.
-    HeaderStandardAnimated: ({
+    HeaderStandard: ({
       title,
       titleProps,
       onBack,
@@ -106,7 +106,6 @@ const renderHeader = (
   render(
     <PredictHeaderStacked
       scrollY={sharedValue(0)}
-      titleSectionHeight={sharedValue(0)}
       onBack={jest.fn()}
       onSearchPress={jest.fn()}
       {...props}

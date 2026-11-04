@@ -7,8 +7,6 @@ import {
   Box,
   ButtonIconSize,
   IconName,
-  Text,
-  TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,10 +17,9 @@ import {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
-import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
-import HeaderRootGlass from '../../../../component-library/components-temp/HeaderRootGlass';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -294,8 +291,7 @@ const RewardsDashboard: React.FC = () => {
   );
 
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
-  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
-    useHeaderStandardAnimated();
+  const { scrollY, onScroll } = useHeaderStandardAnimated();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { top: topInset } = useSafeAreaInsets();
   const { inset: headerInset, onLayout: handleHeaderLayout } =
@@ -422,42 +418,26 @@ const RewardsDashboard: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
-        {isPushedScreen ? (
-          <HeaderStandardAnimatedGlass
-            isGlass={isGlassHeader}
-            onLayout={handleHeaderLayout}
-            includesTopInset={isGlassHeader}
-            title={strings('rewards.main_title')}
-            titleProps={{
-              onPress: handleTitlePress,
-              suppressHighlighting: true,
-              accessibilityRole: 'button',
-            }}
-            scrollY={scrollY}
-            titleSectionHeight={titleSectionHeightSv}
-            onBack={handleBackPress}
-            backButtonProps={{ testID: REWARDS_VIEW_SELECTORS.BACK_BUTTON }}
-            endAccessory={headerEndAccessory}
-          />
-        ) : (
-          <HeaderRootGlass
-            isGlass={isGlassHeader}
-            onLayout={handleHeaderLayout}
-            includesTopInset={isGlassHeader}
-            scrollY={scrollY}
-            endAccessory={headerEndAccessory}
-          >
-            <Pressable
-              accessibilityRole="header"
-              onPress={handleTitlePress}
-              testID={REWARDS_VIEW_SELECTORS.TITLE}
-            >
-              <Text variant={TextVariant.HeadingLg}>
-                {strings('rewards.main_title')}
-              </Text>
-            </Pressable>
-          </HeaderRootGlass>
-        )}
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          includesTopInset={isGlassHeader}
+          title={strings('rewards.main_title')}
+          titleProps={{
+            onPress: handleTitlePress,
+            suppressHighlighting: true,
+            accessibilityRole: 'header',
+            testID: REWARDS_VIEW_SELECTORS.TITLE,
+          }}
+          scrollY={scrollY}
+          onBack={isPushedScreen ? handleBackPress : undefined}
+          backButtonProps={
+            isPushedScreen
+              ? { testID: REWARDS_VIEW_SELECTORS.BACK_BUTTON }
+              : undefined
+          }
+          endAccessory={headerEndAccessory}
+        />
         <Animated.ScrollView
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -468,27 +448,6 @@ const RewardsDashboard: React.FC = () => {
             { paddingTop: headerInset },
           ]}
         >
-          {/* Pushed only: the large title lives in the content and collapses
-              into the header on scroll, as on Activity and the home redesign.
-              As a tab it stays in HeaderRoot, unchanged. */}
-          {isPushedScreen ? (
-            <Box
-              twClassName="px-4 pb-3"
-              onLayout={(event) =>
-                setTitleSectionHeight(event.nativeEvent.layout.height)
-              }
-            >
-              <Pressable
-                accessibilityRole="header"
-                onPress={handleTitlePress}
-                testID={REWARDS_VIEW_SELECTORS.TITLE}
-              >
-                <Text variant={TextVariant.HeadingLg}>
-                  {strings('rewards.main_title')}
-                </Text>
-              </Pressable>
-            </Box>
-          ) : null}
           <Box twClassName="gap-3">
             <CampaignsPreview />
             <EarnRewardsPreview />

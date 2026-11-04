@@ -646,6 +646,8 @@ const CardHome = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
+          title={strings('card.card_home.title')}
+          titleProps={{ accessibilityRole: 'header' }}
           twClassName="bg-background-default"
           {...headerHandlers}
         />
@@ -689,6 +691,8 @@ const CardHome = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={strings('card.card_home.title')}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />
@@ -707,10 +711,6 @@ const CardHome = () => {
           />
         }
       >
-        <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
-          {strings('card.card_home.title')}
-        </Text>
-
         <Box twClassName="mx-4 mt-2">
           <CardAlertSection
             alerts={(data?.alerts ?? []).filter(

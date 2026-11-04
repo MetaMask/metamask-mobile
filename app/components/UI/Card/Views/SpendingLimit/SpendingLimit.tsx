@@ -265,6 +265,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
+          title={strings('card.card_spending_limit.setup_title')}
+          titleProps={{ accessibilityRole: 'header' }}
           twClassName="bg-background-default"
           {...headerHandlers}
         />
@@ -295,6 +297,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
+          title={strings('card.card_spending_limit.setup_title')}
+          titleProps={{ accessibilityRole: 'header' }}
           twClassName="bg-background-default"
           {...headerHandlers}
         />
@@ -346,6 +350,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={strings('card.card_spending_limit.setup_title')}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />
@@ -359,12 +365,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       >
         {/* Header copy */}
         <Box twClassName="mb-6">
-          <Text
-            variant={TextVariant.HeadingLg}
-            twClassName="text-text-default py-4"
-          >
-            {strings('card.card_spending_limit.setup_title')}
-          </Text>
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-text-alternative"

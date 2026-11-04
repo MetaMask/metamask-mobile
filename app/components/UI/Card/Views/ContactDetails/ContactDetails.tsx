@@ -379,9 +379,6 @@ const ContactDetails = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box gap={4} paddingTop={2}>
-            <Text variant={TextVariant.HeadingLg}>
-              {strings('card.contact_details.title')}
-            </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -508,6 +505,8 @@ const ContactDetails = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={strings('card.contact_details.title')}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />

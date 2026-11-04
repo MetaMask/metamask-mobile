@@ -204,6 +204,7 @@ const ProHub = () => {
         isFloating={false}
         testID={ProHubTestIds.HEADER_ROOT}
         twClassName="px-4"
+        textProps={{ accessibilityRole: 'header' }}
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           onPress: handleBack,

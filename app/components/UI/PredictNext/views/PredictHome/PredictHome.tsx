@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,13 +9,11 @@ import {
   BoxFlexDirection,
   ButtonIconSize,
   IconName,
-  Text,
-  TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
-import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
@@ -83,8 +80,7 @@ const PredictHomeView = ({
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const isFocused = useIsFocused();
-  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
-    useHeaderStandardAnimated();
+  const { scrollY, onScroll } = useHeaderStandardAnimated();
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   const { top: topInset } = useSafeAreaInsets();
   const { inset: headerInset, onLayout: handleHeaderLayout } =
@@ -145,13 +141,6 @@ const PredictHomeView = ({
 
   const homeTitle = strings('predict_next.home_title');
 
-  const handleTitleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      setTitleSectionHeight(event.nativeEvent.layout.height);
-    },
-    [setTitleSectionHeight],
-  );
-
   const openPortfolio = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.PORTFOLIO, {
@@ -203,14 +192,16 @@ const PredictHomeView = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimatedGlass
+      <HeaderStandardGlass
         isGlass={isGlassHeader}
         onLayout={handleHeaderLayout}
         includesTopInset
         title={homeTitle}
-        titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
+        titleProps={{
+          accessibilityRole: 'header',
+          testID: PredictHomeTestIds.HEADER_TITLE,
+        }}
         scrollY={scrollY}
-        titleSectionHeight={titleSectionHeightSv}
         endAccessory={
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -253,13 +244,6 @@ const PredictHomeView = ({
         scrollEventThrottle={16}
       >
         <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
-          <Text
-            variant={TextVariant.HeadingLg}
-            testID={PredictHomeTestIds.TITLE_SECTION}
-            onLayout={handleTitleLayout}
-          >
-            {homeTitle}
-          </Text>
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}

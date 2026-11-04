@@ -387,28 +387,23 @@ const ChooseYourCard = () => {
       edges={headerMode === 'none' ? ['top', 'bottom'] : ['bottom']}
       testID={ChooseYourCardSelectors.CONTAINER}
     >
-      {headerMode !== 'none' && (
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-      )}
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset={headerMode !== 'none'}
+        title={
+          isUpgradeFlow
+            ? strings('card.choose_your_card.upgrade_title')
+            : strings('card.choose_your_card.title')
+        }
+        titleProps={{
+          accessibilityRole: 'header',
+          testID: ChooseYourCardSelectors.TITLE,
+        }}
+        twClassName="bg-background-default"
+        {...(headerMode === 'none' ? {} : headerHandlers)}
+      />
       <Box twClassName="flex-1">
-        <Box twClassName="px-4 py-4">
-          <Text
-            variant={TextVariant.HeadingLg}
-            twClassName="text-default"
-            testID={ChooseYourCardSelectors.TITLE}
-          >
-            {isUpgradeFlow
-              ? strings('card.choose_your_card.upgrade_title')
-              : strings('card.choose_your_card.title')}
-          </Text>
-        </Box>
-
         <Box twClassName="mt-4 relative">
           <FlatList
             ref={flatListRef}

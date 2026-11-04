@@ -17,13 +17,13 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  HeaderStandard,
   Text,
   TextVariant,
   IconName,
   Icon,
   IconSize,
 } from '@metamask/design-system-react-native';
-import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
   TabsListRef,
@@ -327,9 +327,10 @@ export const ExploreFeed: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <HeaderRoot
+      <HeaderStandard
         includesTopInset
         title={strings('trending.title')}
+        titleProps={{ accessibilityRole: 'header' }}
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
       />
 

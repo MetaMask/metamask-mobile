@@ -298,6 +298,8 @@ const useDefaultStackScreenOptions = (): NativeStackNavigationOptions => {
   return useMemo(
     () => ({
       headerShown: false,
+      // Unset headerTitleAlign is left on Android if a screen turns the bar on.
+      headerTitleAlign: 'center',
       contentStyle: { backgroundColor: colors.background.default },
     }),
     [colors.background.default],

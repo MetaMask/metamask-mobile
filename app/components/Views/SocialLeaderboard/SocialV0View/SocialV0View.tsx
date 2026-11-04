@@ -2,11 +2,8 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  HeaderStandardAnimated,
+  HeaderStandard,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -26,7 +23,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { LayoutChangeEvent, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -58,7 +55,6 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import Routes from '../../../../constants/navigation/Routes';
 import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -178,20 +174,10 @@ const SocialV0View: React.FC = () => {
     },
   });
 
-  // Height of the large title only: the compact header title crossfades in and
-  // the title slides fully behind the header once scrolled past this distance.
-  // The tabs bar stops there so it stays pinned under the header.
+  // The page title lives in the centered header, so there is no large title
+  // block left to collapse. The range stays 0 and the tabs stay in flow.
   const titleHeightSv = useSharedValue(0);
-  const [titleHeight, setTitleHeight] = useState(0);
-
-  const handleTitleLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      const height = e.nativeEvent.layout.height;
-      titleHeightSv.value = height;
-      setTitleHeight(height);
-    },
-    [titleHeightSv],
-  );
+  const titleHeight = 0;
 
   /**
    * Brings the incoming page's scroll offset into agreement with the outgoing
@@ -440,21 +426,6 @@ const SocialV0View: React.FC = () => {
 
   const titleTabsAndPager = (
     <>
-      {isPushedScreen ? (
-        <Box
-          twClassName="px-4 pt-2 pb-3 bg-default"
-          onLayout={handleTitleLayout}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            testID={SocialV0ViewSelectorsIDs.TITLE}
-          >
-            {title}
-          </Text>
-        </Box>
-      ) : null}
-
       <Box twClassName="bg-default">
         <TabsBar
           tabs={tabs}
@@ -518,36 +489,22 @@ const SocialV0View: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={SocialV0ViewSelectorsIDs.CONTAINER}
     >
-      {isPushedScreen ? (
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={scrollY}
-          titleSectionHeight={titleHeightSv}
-          title={title}
-          titleProps={{
-            testID: SocialV0ViewSelectorsIDs.HEADER_TITLE,
-          }}
-          onBack={handleBack}
-          backButtonProps={{
-            testID: SocialV0ViewSelectorsIDs.BACK_BUTTON,
-          }}
-          endButtonIconProps={[notificationButtonProps]}
-          testID={SocialV0ViewSelectorsIDs.HEADER}
-        />
-      ) : (
-        <HeaderRoot
-          includesTopInset
-          endButtonIconProps={[notificationButtonProps]}
-          testID={SocialV0ViewSelectorsIDs.HEADER}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            testID={SocialV0ViewSelectorsIDs.HEADER_TITLE}
-          >
-            {title}
-          </Text>
-        </HeaderRoot>
-      )}
+      <HeaderStandard
+        includesTopInset
+        title={title}
+        titleProps={{
+          accessibilityRole: 'header',
+          testID: SocialV0ViewSelectorsIDs.HEADER_TITLE,
+        }}
+        onBack={isPushedScreen ? handleBack : undefined}
+        backButtonProps={
+          isPushedScreen
+            ? { testID: SocialV0ViewSelectorsIDs.BACK_BUTTON }
+            : undefined
+        }
+        endButtonIconProps={[notificationButtonProps]}
+        testID={SocialV0ViewSelectorsIDs.HEADER}
+      />
 
       {showNotificationsBanner && (
         <Box twClassName="px-4 pt-2">

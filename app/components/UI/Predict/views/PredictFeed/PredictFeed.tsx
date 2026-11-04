@@ -705,6 +705,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             isGlass={isBrandRefresh}
             isFloating={false}
             includesTopInset
+            title={strings('wallet.predict')}
+            titleProps={{ accessibilityRole: 'header' }}
             onBack={handleBackPress}
             backButtonProps={{
               testID: PredictMarketListSelectorsIDs.BACK_BUTTON,

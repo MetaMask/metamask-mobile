@@ -557,9 +557,6 @@ const EarnSectionListView = () => {
     if (!isMoneyAccountVisible) {
       return (
         <Box>
-          <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
-            {strings('money.potential_earnings.title')}
-          </Text>
           <Box twClassName="px-4 py-2">
             <EarnSectionListSubtitle />
             {errorBanner}
@@ -572,9 +569,6 @@ const EarnSectionListView = () => {
 
     return (
       <>
-        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
-          {strings('money.potential_earnings.title')}
-        </Text>
         <MoneyProjection
           totalAssetsFiat={totalAssetsFiat}
           projectedAmount={projectedAmount}
@@ -669,6 +663,8 @@ const EarnSectionListView = () => {
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
+          title={strings('money.potential_earnings.title')}
+          titleProps={{ accessibilityRole: 'header' }}
           onBack={handleBack}
           backButtonProps={{
             testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,

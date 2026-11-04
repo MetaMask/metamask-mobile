@@ -403,15 +403,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={config.screenTitle ? strings(config.screenTitle) : undefined}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />
       <Box twClassName="flex-1 px-4">
-        {config.screenTitle ? (
-          <Text variant={TextVariant.HeadingLg} twClassName="pt-2 pb-2">
-            {strings(config.screenTitle)}
-          </Text>
-        ) : null}
         {showSetupBanner ? (
           <Box twClassName="pt-4" testID={testIds.FUNDING_WARNING}>
             <CardMessageBox

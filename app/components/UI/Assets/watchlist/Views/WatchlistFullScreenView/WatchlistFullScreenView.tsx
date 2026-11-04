@@ -232,6 +232,11 @@ const WatchlistFullScreenView = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
+          title={strings('token_watchlist.fullscreen_title')}
+          titleProps={{
+            accessibilityRole: 'header',
+            testID: WatchlistFullScreenViewSelectorsIDs.TITLE,
+          }}
           onBack={isEditMode ? undefined : handleBack}
           backButtonProps={
             isEditMode
@@ -250,16 +255,6 @@ const WatchlistFullScreenView = () => {
         <WatchlistSearchContent onDismiss={handleDismissSearch} />
       ) : (
         <>
-          <View style={styles.titleContainer}>
-            <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Bold}
-              testID={WatchlistFullScreenViewSelectorsIDs.TITLE}
-            >
-              {strings('token_watchlist.fullscreen_title')}
-            </Text>
-          </View>
-
           <View style={styles.tabContainer}>
             <Button
               variant={ButtonVariant.Primary}

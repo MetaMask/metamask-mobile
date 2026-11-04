@@ -90,14 +90,13 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
         isGlass={isGlassHeader}
         isFloating={false}
         includesTopInset
+        title={title}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...resolvedHeaderHandlers}
       />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="gap-2 mt-2">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-            {title}
-          </Text>
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-text-alternative"

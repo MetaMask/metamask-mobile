@@ -14,7 +14,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
@@ -181,15 +180,13 @@ const CardReportTransaction = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        title=""
         includesTopInset
+        title={strings('card.transactions.report_title')}
+        titleProps={{ accessibilityRole: 'header' }}
         twClassName="bg-background-default"
         {...headerHandlers}
       />
       <Box twClassName="flex-1 gap-4 px-4 pt-2">
-        <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-          {strings('card.transactions.report_title')}
-        </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('card.transactions.report_body_merchant')}
         </Text>

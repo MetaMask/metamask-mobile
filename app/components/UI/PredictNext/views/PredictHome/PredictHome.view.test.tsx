@@ -65,20 +65,13 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the scroll-linked compact header title', async () => {
+  it('renders the centered header title', async () => {
     const view = renderPredictNext();
 
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-    fireEvent(view.getByTestId(PredictHomeTestIds.TITLE_SECTION), 'layout', {
-      nativeEvent: { layout: { height: 48 } },
-    });
-
     expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
-    expect(
-      view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
-    ).toBeOnTheScreen();
-    expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+    expect(view.getAllByText('Predictions')).toHaveLength(1);
   });
 
   it('floats the header over the content when the Predict brand refresh is on', async () => {

@@ -1135,6 +1135,8 @@ const AppFlow = () => {
       initialRouteName={Routes.FOX_LOADER}
       screenOptions={{
         headerShown: false,
+        // Unset headerTitleAlign is left on Android if a screen turns the bar on.
+        headerTitleAlign: 'center',
         animation: 'none',
         presentation: 'transparentModal',
       }}

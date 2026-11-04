@@ -18,10 +18,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandardAnimated,
-  Text,
+  HeaderStandard,
   // TextFieldSearch, // TODO(activity-redesign): restore with the unified list + filtering
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -332,26 +330,18 @@ const ActivityScreen = () => {
 
   const activityListHeader = useMemo(
     () => (
-      <Box>
-        <Box twClassName="px-4" onLayout={handleTitleLayout}>
-          <Box twClassName="pb-4">
-            <Text variant={TextVariant.HeadingLg}>
-              {strings('activity_view.title')}
-            </Text>
-          </Box>
-
-          {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-          <Box twClassName="pb-4">
-            <TextFieldSearch
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={strings('activity_view.search_placeholder')}
-              onPressClearButton={handleClearSearch}
-              testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
-            />
-          </Box>
-          */}
+      <Box onLayout={handleTitleLayout}>
+        {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
+        <Box twClassName="pb-4">
+          <TextFieldSearch
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={strings('activity_view.search_placeholder')}
+            onPressClearButton={handleClearSearch}
+            testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
+          />
         </Box>
+        */}
 
         <AssetListControlBar
           typeChip={typeChip}
@@ -371,17 +361,15 @@ const ActivityScreen = () => {
         testID={ActivityScreenSelectorsIDs.SAFE_AREA_VIEW}
       >
         <Box twClassName="flex-1 bg-default">
-          <HeaderStandardAnimated
+          <HeaderStandard
             testID={ActivityScreenSelectorsIDs.HEADER}
             includesTopInset
             title={strings('activity_view.title')}
             titleProps={{
               onPress: handleHeaderTitlePress,
               suppressHighlighting: true,
-              accessibilityRole: 'button',
+              accessibilityRole: 'header',
             }}
-            scrollY={scrollY}
-            titleSectionHeight={titleSectionHeight}
             onBack={handleBackPress}
             backButtonProps={{ testID: ActivityScreenSelectorsIDs.BACK_BUTTON }}
           />

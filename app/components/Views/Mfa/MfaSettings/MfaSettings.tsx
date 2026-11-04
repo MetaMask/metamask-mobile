@@ -144,13 +144,12 @@ const MfaSettings = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
+        title={strings('mfa.settings.title')}
+        titleProps={{ accessibilityRole: 'header' }}
         onBack={() => navigation.goBack()}
         includesTopInset
       />
       <ScrollView contentContainerStyle={tw.style('pb-4')}>
-        <Text variant={TextVariant.HeadingLg} twClassName="px-4 pb-2">
-          {strings('mfa.settings.title')}
-        </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
