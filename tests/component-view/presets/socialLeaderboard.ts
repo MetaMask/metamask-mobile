@@ -35,11 +35,25 @@ export interface SocialLeaderboardPresetOptions {
    * Default: true.
    */
   notificationsEnabled?: boolean;
+  /**
+   * Seeds an onboarding-linked social profile. Social V1 copy-trade / Follow
+   * gates need this. Leave off for homepage and V0 so the viewer is not a
+   * leaderboard trader and notification prefs stay on the old path.
+   * Default: false.
+   */
+  linkedSocialProfile?: boolean;
 }
 
 function makeVersionFlag(enabled: boolean) {
   return { enabled, minimumVersion: '0.0.1' };
 }
+
+/**
+ * Linked EVM wallet for Social V1 copy-trade / Follow gates. Distinct from
+ * `withMinimalAccounts()` and the fixture traders (`0x…0001`–`0003`) so the
+ * homepage carousel does not treat the viewer as alpha.eth.
+ */
+const CV_SOCIAL_LINKED_ADDRESS = '0x00000000000000000000000000000000000000aa';
 
 /**
  * Returns a `StateFixtureBuilder` configured for Social Leaderboard CV tests.
@@ -55,6 +69,7 @@ export function initialStateSocialLeaderboard(
     followingProfileIds = [],
     showAccountOnLeaderboard = true,
     notificationsEnabled = true,
+    linkedSocialProfile = false,
   } = options;
 
   return createStateFixture()
@@ -91,6 +106,26 @@ export function initialStateSocialLeaderboard(
           // SocialController.followingProfileIds drives isFollowing() in
           // useFollowToggleMany without any additional API calls.
           SocialController: { followingProfileIds },
+          ...(linkedSocialProfile
+            ? {
+                ProfileController: {
+                  profile: {
+                    profileId: 'cv-social-profile',
+                    username: 'cv_trader',
+                    displayName: 'cv_trader',
+                    bio: '',
+                    linkedAddresses: [
+                      `eip155:1:${CV_SOCIAL_LINKED_ADDRESS}` as const,
+                    ],
+                    avatarUrl: '',
+                    tradingPrivacy: 'public' as const,
+                    connectedToX: false,
+                    createdAt: '',
+                    updatedAt: '',
+                  },
+                },
+              }
+            : {}),
         },
       },
       settings: {
