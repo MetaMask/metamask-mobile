@@ -6,6 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useIsFocused } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 import React from 'react';
 import { FlatList, RefreshControl, Text } from 'react-native';
 import {
@@ -96,8 +97,14 @@ jest.mock('./SocialFeedPostShell', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
-      <MockText>{post.id}</MockText>
+    default: ({
+      post,
+      onPositionPress,
+    }: {
+      post: { id: string };
+      onPositionPress?: (post: { id: string }) => void;
+    }) => (
+      <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
     ),
   };
 });
@@ -190,9 +197,13 @@ const feedState = (
   ...overrides,
 });
 
-const realtimeState = (pendingNewCount = 0) => ({
+const realtimeState = (
+  pendingNewCount = 0,
+  hasPendingUpdate: (feedItemId: string) => boolean = () => false,
+) => ({
   pendingNewCount,
   revealPending: jest.fn(),
+  hasPendingUpdate,
   entrances: createSocialFeedEntrances(),
 });
 
@@ -546,6 +557,35 @@ describe('SocialFeedVirtualized', () => {
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0']);
+  });
+
+  describe('position press', () => {
+    const positionPost = {
+      ...post('post-1'),
+      position: { positionId: 'position-1' } as Position,
+    };
+
+    it.each([
+      ['the feed is live and the card is current', realtimeState(), true],
+      [
+        'an update to the card is held back',
+        realtimeState(0, (id) => id === 'position-1'),
+        false,
+      ],
+      ['the feed is not live', undefined, false],
+    ])('reports isSnapshotLive when %s', (_label, realtime, isSnapshotLive) => {
+      const onPositionPress = jest.fn();
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [positionPost], realtime }),
+      );
+
+      renderFeed({ realtime: true, onPositionPress });
+      fireEvent.press(screen.getByText('post-1'));
+
+      expect(onPositionPress).toHaveBeenCalledWith(positionPost, {
+        isSnapshotLive,
+      });
+    });
   });
 
   it('hides the pill without held posts', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -280,7 +281,10 @@ const createMockSelectorImpl =
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
     if (selector === selectIsExploreEarnSectionVisible)
       return earnSectionVisible;
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   };
 
 const arrangeMocks = () => {

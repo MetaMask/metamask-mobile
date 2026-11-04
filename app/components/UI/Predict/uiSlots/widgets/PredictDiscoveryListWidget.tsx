@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useMemo } from 'react';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
-import HomepagePredictDiscovery from '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery';
+import HomepagePredictDiscovery from '../../homeSection/components/HomepagePredictDiscovery';
 import {
   HOMEPAGE_PREDICT_MARKET_SLOTS,
   type HomepagePredictMarketSlot,
-} from '../../../../Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots';
-import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sections/Predictions/hooks';
-import { useTreatmentDiscoveryFeedsLoading } from '../../../../Views/Homepage/Sections/Predictions/hooks/useTreatmentDiscoveryFeedsLoading';
+} from '../../homeSection/constants/homepagePredictMarketSlots';
+import { useHomepagePredictMarketSlots } from '../../homeSection/hooks';
+import { useTreatmentDiscoveryFeedsLoading } from '../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading';
 import {
   isPredictHomepageMarketSlotReference,
   type PredictHomepageMarketSlotReference,

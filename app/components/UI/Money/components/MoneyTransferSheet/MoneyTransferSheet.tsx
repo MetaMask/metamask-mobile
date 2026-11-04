@@ -22,6 +22,7 @@ import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
+import { usePredictEntryActions } from '../../../PredictNext';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -50,6 +51,10 @@ const MoneyTransferSheetContent = () => {
     useMoneyPredictDeposit();
   const isPerpsEligible = useSelector(selectPerpsEligibility);
   const { isEligible: isPredictEligible } = usePredictEligibility();
+  // The Predictions account transfer is a legacy Polymarket deposit. It is
+  // offered only while the Active Venue supports Predict funding.
+  const { canOpenPredict } = usePredictEntryActions();
+  const isPredictFundingSupported = canOpenPredict({ type: 'addFunds' });
 
   // External mUSD send is available only for a settled balance containing
   // liquid mUSD and no vmUSD-backed balance. Loading/error/missing values and
@@ -204,7 +209,7 @@ const MoneyTransferSheetContent = () => {
           },
         ]
       : []),
-    ...(isPredictEligible
+    ...(isPredictEligible && isPredictFundingSupported
       ? [
           {
             label: strings('money.transfer_sheet.predictions_account'),

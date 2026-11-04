@@ -57,8 +57,8 @@ export const useVenueSelection = (): VenueSelection => {
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
       });
-      // The root route remounts on the chosen Venue's home. B3 (PRED-1383)
-      // hooks cross-Venue lifecycle handling onto this change.
+      // The root route remounts on the chosen Venue's home. Order handling
+      // reacts to the resolved Active Venue, not to this call (PRED-1383).
       Engine.controllerMessenger.call(
         'PredictVenueController:setVenueSelectionPreference',
         venue,

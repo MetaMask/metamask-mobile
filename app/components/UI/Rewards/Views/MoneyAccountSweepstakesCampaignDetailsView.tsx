@@ -11,7 +11,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
@@ -100,6 +102,7 @@ const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
 
 const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const conflictToastShownRef = useRef(false);
 
@@ -237,7 +240,9 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.CONTAINER
         }
       >
-        <HeaderCompactStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={displayCampaign?.name ?? ''}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}

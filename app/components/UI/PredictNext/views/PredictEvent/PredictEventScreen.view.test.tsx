@@ -1923,6 +1923,16 @@ describe('PredictEventScreen', () => {
       };
     };
 
+    /** Adding the Positions tab changes the TabsBar tab set, which remounts
+     * every Tab from a later effect. That remount can land while a find
+     * query settles, so press a fresh lookup, never the resolved element. */
+    const pressPositionsTab = async (
+      view: ReturnType<typeof renderPredictEventScreen>,
+    ) => {
+      await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB);
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
+    };
+
     it('renders held Positions for the Event Markets and opens the bounded Cash Out flow', async () => {
       configurePredictNextFeeds({
         details: [createEvent()],
@@ -1946,9 +1956,7 @@ describe('PredictEventScreen', () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch;
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
       expect(
         view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
@@ -2004,18 +2012,35 @@ describe('PredictEventScreen', () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch;
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
-      expect(
-        view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
-      ).toBeOnTheScreen();
-      expect(
-        view.getByTestId(
-          EventMarketListTestIds.positionCashOut('market-1', 'yes'),
-        ),
-      ).toBeOnTheScreen();
+      // The Positions tab is list-header UI. It can paint once page 1
+      // exists while the held row still waits on the page-2 read and the
+      // list item mount. findBy's default 1000ms budget expired on CI
+      // after that wait was added, so wait until the walked page is
+      // requested and both the row and its Cash Out control are on screen.
+      await waitFor(
+        () => {
+          expect(
+            messengerCall.mock.calls.some(
+              ([action, , , cursor]) =>
+                action === 'PredictPortfolioService:getPositions' &&
+                cursor === 'cursor-page-2',
+            ),
+          ).toBe(true);
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionRow('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('stops walking venue-wide Positions pages at the screen bound', async () => {
@@ -2151,13 +2176,15 @@ describe('PredictEventScreen', () => {
       observeRealPortfolioReads(trading);
 
       const view = renderPredictEventScreen(routeParams);
-      fireEvent.press(
-        await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
-      );
+      await pressPositionsTab(view);
 
+      // Header tab and row item mount separately. Press the Cash Out
+      // control only after that row's button is on screen.
       fireEvent.press(
-        view.getByTestId(
+        await view.findByTestId(
           EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+          {},
+          { timeout: 5000 },
         ),
       );
       await view.findByTestId(PredictOrderFlowTestIds.SHEET);

@@ -49,6 +49,8 @@ export interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  /** The card's title when the client can't name it, such as a Player. */
+  label?: string;
 }
 
 /** One level of a Market's Event screen placement. Keys are opaque IDs. */
