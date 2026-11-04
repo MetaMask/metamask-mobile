@@ -47,8 +47,9 @@
 # Both platforms pin source_branch to github.sha so they build the same commit.
 #
 # The RC build comment is posted as soon as both platform builds succeed, so testers do not wait
-# on the AI test plan. generate-rc-test-plan.yml runs at the same time, and add-rc-test-plan edits
-# the plan (inline with collapsible sections) into that comment when it is ready.
+# on the AI test plan. generate-rc-test-plan.yml runs at the same time, from main and with the
+# AI provider keys, and add-rc-test-plan appends the plan (inline with collapsible sections) to
+# that comment when it is ready.
 #
 # Freezing auto RC builds:
 #   Add the 'rc-freeze' label to the release PR to stop auto RC builds.
@@ -528,7 +529,6 @@ jobs:
       pull-requests: read
     uses: ./.github/workflows/generate-rc-test-plan.yml
     with:
-      source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
       semver: ${{ needs.validate-and-find-pr.outputs.semver }}
     secrets:
@@ -599,11 +599,9 @@ jobs:
       - validate-and-find-pr
       - post-rc-build-comment
       - generate-rc-test-plan
-    # Runs even when the test plan job failed or the run was cancelled (usually by a newer push
-    # to the release branch), so the comment never keeps the pending note. Cancellation skips
-    # steps whose condition is the default success(), so every step uses !failure() instead.
+    # Also runs when the test plan job failed, so the comment gets the failure section as before.
     if: >-
-      always() &&
+      !cancelled() &&
       needs.post-rc-build-comment.result == 'success' &&
       needs.post-rc-build-comment.outputs.comment-id != ''
     permissions:
@@ -611,22 +609,19 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
-        if: ${{ !failure() }}
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-node@v6
-        if: ${{ !failure() }}
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
       - name: Install dependencies
-        if: ${{ !failure() }}
         run: yarn install --immutable
 
       - name: Download test plan artifact
-        if: ${{ !failure() && needs.generate-rc-test-plan.outputs.status == 'success' }}
+        if: needs.generate-rc-test-plan.outputs.status == 'success'
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
@@ -634,7 +629,6 @@ jobs:
           path: test-plan-artifact
 
       - name: Add Test Plan to RC Build Comment
-        if: ${{ !failure() }}
         run: node -r esbuild-register scripts/build-announce/add-test-plan.ts
         timeout-minutes: 3
         env:
@@ -644,9 +638,8 @@ jobs:
           SEMVER: ${{ needs.validate-and-find-pr.outputs.semver }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RC_COMMENT_ID: ${{ needs.post-rc-build-comment.outputs.comment-id }}
-          # A cancelled job can still report a `failure` status, so its result wins. Otherwise falls
-          # back to the result when the test plan workflow failed before reporting a status.
-          TEST_PLAN_STATUS: ${{ needs.generate-rc-test-plan.result == 'cancelled' && 'cancelled' || needs.generate-rc-test-plan.outputs.status || needs.generate-rc-test-plan.result }}
+          # Falls back to the job result when the test plan workflow failed before reporting a status.
+          TEST_PLAN_STATUS: ${{ needs.generate-rc-test-plan.outputs.status || needs.generate-rc-test-plan.result }}
           TEST_PLAN_PATH: test-plan-artifact/release-test-plan.json
 
   slack-notification:

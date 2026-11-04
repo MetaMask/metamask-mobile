@@ -1,20 +1,27 @@
 import {
-  TEST_PLAN_PENDING_MARKER,
-  applyTestPlanSection,
   buildCommentWithTestPlan,
-  buildTestPlanPendingSection,
   isNewestRcComment,
-  removePendingTestPlanSection,
 } from './test-plan-comment';
+import {
+  buildTestPlanFailureSection,
+  buildTestPlanSection,
+} from './test-plan-section';
 import type { TestPlanResult } from './types';
 
 const PIPELINE_URL = 'https://github.com/MetaMask/metamask-mobile/actions/runs/1';
+const FAILURE = 'Test plan generation failed - check logs for details';
 
-const pendingComment = `Build links
+const buildComment = `<!-- metamask-bot-rc-build-announce -->
+### :rocket: RC Builds Ready for Testing
+
+Build links
 
 ---
 
-${buildTestPlanPendingSection(PIPELINE_URL)}`;
+## What's in this RC
+
+Cherry-picks
+`;
 
 const testPlan: TestPlanResult = {
   prNumber: 123,
@@ -33,20 +40,6 @@ const testPlan: TestPlanResult = {
   signOffs: { signedOff: [], needsAttention: [] },
 };
 
-describe('buildTestPlanPendingSection', () => {
-  it('includes the pending marker, the heading and the workflow run link', () => {
-    const section = buildTestPlanPendingSection(PIPELINE_URL);
-
-    expect(section).toContain(TEST_PLAN_PENDING_MARKER);
-    expect(section).toContain('## AI Test Plan');
-    expect(section).toContain(`[Workflow run](${PIPELINE_URL})`);
-  });
-
-  it('omits the workflow run link when there is no pipeline URL', () => {
-    expect(buildTestPlanPendingSection()).not.toContain('Workflow run');
-  });
-});
-
 describe('isNewestRcComment', () => {
   it('returns true when the comment is the newest RC comment', () => {
     expect(isNewestRcComment([{ id: 10 }, { id: 11 }], 11)).toBe(true);
@@ -61,84 +54,46 @@ describe('isNewestRcComment', () => {
   });
 });
 
-describe('applyTestPlanSection', () => {
-  it('replaces the pending block and keeps the build links', () => {
-    const updated = applyTestPlanSection(
-      pendingComment,
-      '## AI Test Plan\n\nReady\n',
-    );
-
-    expect(updated).toBe('Build links\n\n---\n\n## AI Test Plan\n\nReady\n');
-  });
-
-  it('replaces a test plan from an earlier attempt', () => {
-    const first = applyTestPlanSection(
-      pendingComment,
-      '## AI Test Plan\n\nFirst\n',
-    );
-
-    const second = applyTestPlanSection(first, '## AI Test Plan\n\nSecond\n');
-
-    expect(second).toBe('Build links\n\n---\n\n## AI Test Plan\n\nSecond\n');
-  });
-
-  it('appends the section when the comment has no test plan block', () => {
-    expect(applyTestPlanSection('Build links\n', '## AI Test Plan\n')).toBe(
-      'Build links\n\n## AI Test Plan\n',
-    );
-  });
-});
-
-describe('removePendingTestPlanSection', () => {
-  it('removes the pending block and its separator', () => {
-    expect(removePendingTestPlanSection(pendingComment)).toBe('Build links\n');
-  });
-
-  it('leaves a comment without a pending block unchanged', () => {
-    expect(removePendingTestPlanSection('Build links\n')).toBe('Build links\n');
-  });
-});
-
 describe('buildCommentWithTestPlan', () => {
-  it('replaces the pending block with the test plan', () => {
-    const body = buildCommentWithTestPlan(pendingComment, { testPlan });
+  it('appends the test plan the same way the single-step comment did', () => {
+    const body = buildCommentWithTestPlan(buildComment, { testPlan });
 
-    expect(body).toContain('Build links');
-    expect(body).toContain('## AI Test Plan');
-    expect(body).toContain('test-model');
-    expect(body).not.toContain(TEST_PLAN_PENDING_MARKER);
+    expect(body).toBe(`${buildComment}---\n\n${buildTestPlanSection(testPlan)}`);
   });
 
-  it('replaces the pending block with a failure section', () => {
+  it('appends the failure section the same way the single-step comment did', () => {
     const body = buildCommentWithTestPlan(
-      pendingComment,
-      {
-        testPlan: null,
-        error: 'Test plan generation failed - check logs for details',
-      },
+      buildComment,
+      { testPlan: null, error: FAILURE },
       PIPELINE_URL,
     );
 
-    expect(body).toContain('Test plan generation failed');
-    expect(body).not.toContain(TEST_PLAN_PENDING_MARKER);
+    expect(body).toBe(
+      `${buildComment}${buildTestPlanFailureSection(PIPELINE_URL, FAILURE)}`,
+    );
   });
 
-  it('replaces the pending block with a cancelled section that links to the run', () => {
-    const body = buildCommentWithTestPlan(
-      pendingComment,
-      { testPlan: null, cancelled: true },
+  it('leaves the comment unchanged when generation was skipped', () => {
+    expect(buildCommentWithTestPlan(buildComment, { testPlan: null })).toBe(
+      buildComment,
+    );
+  });
+
+  it('does not add a second test plan when the job is re-run', () => {
+    const once = buildCommentWithTestPlan(buildComment, { testPlan });
+
+    expect(buildCommentWithTestPlan(once, { testPlan })).toBe(once);
+  });
+
+  it('replaces a failure section with the test plan on a successful re-run', () => {
+    const failed = buildCommentWithTestPlan(
+      buildComment,
+      { testPlan: null, error: FAILURE },
       PIPELINE_URL,
     );
 
-    expect(body).toContain('Test plan generation was cancelled');
-    expect(body).toContain(`[workflow run](${PIPELINE_URL})`);
-    expect(body).not.toContain(TEST_PLAN_PENDING_MARKER);
-    expect(body).not.toContain('is generating');
-  });
-
-  it('removes the pending block when generation was skipped', () => {
-    expect(buildCommentWithTestPlan(pendingComment, { testPlan: null })).toBe(
-      'Build links\n',
+    expect(buildCommentWithTestPlan(failed, { testPlan })).toBe(
+      `${buildComment}---\n\n${buildTestPlanSection(testPlan)}`,
     );
   });
 });

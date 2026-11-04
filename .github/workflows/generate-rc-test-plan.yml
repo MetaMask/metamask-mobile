@@ -3,11 +3,13 @@
 # Generate RC Test Plan (reusable)
 #
 # Generates the AI test plan for a release PR and uploads it as the `test-plan-<semver>`
-# artifact. build-rc-auto.yml posts the RC build comment while this runs, then edits the plan
-# into that comment.
+# artifact. build-rc-auto.yml posts the RC build comment while this runs, then adds the plan
+# to that comment.
 #
-# Dependencies are installed without the Yarn cache, because this job holds the AI provider
-# keys. It only gets a read-only token; editing the comment happens in the caller.
+# This is the only job that receives the AI provider keys, so it runs the analyzer from main,
+# never from the release branch. The analyzer reads the release PR through the GitHub API, so
+# it does not need the release branch checked out. Dependencies are installed without the
+# Yarn cache, the keys are only set on the steps that use them, and the token is read-only.
 #
 # The `status` output is `success`, `failure`, or `skipped` when no AI provider key is set.
 # A failed generation does not fail the run; the RC build comment gets a test plan failure
@@ -19,10 +21,6 @@ name: Generate RC Test Plan
 on:
   workflow_call:
     inputs:
-      source_branch:
-        description: 'Release branch to check out (e.g. release/7.71.0)'
-        required: true
-        type: string
       pr_number:
         description: 'Release PR number to generate the test plan for'
         required: true
@@ -54,13 +52,13 @@ jobs:
     environment: release-ci
     outputs:
       status: ${{ steps.keys.outputs.available != 'true' && 'skipped' || steps.generate.outcome == 'success' && 'success' || 'failure' }}
-    env:
-      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
-      E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
-      E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
     steps:
       - name: Check for AI provider keys
         id: keys
+        env:
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+          E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
         run: |
           if [[ -n "${E2E_CLAUDE_API_KEY}${E2E_OPENAI_API_KEY}${E2E_GEMINI_API_KEY}" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
@@ -72,7 +70,7 @@ jobs:
       - uses: actions/checkout@v6
         if: steps.keys.outputs.available == 'true'
         with:
-          ref: ${{ inputs.source_branch }}
+          ref: main
           fetch-depth: 1
           persist-credentials: false
 
@@ -102,6 +100,9 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           SEMVER: ${{ inputs.semver }}
           GENERATE_FILES: 'true'
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+          E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
 
       - name: Upload test plan JSON artifact
         if: steps.generate.outcome == 'success'

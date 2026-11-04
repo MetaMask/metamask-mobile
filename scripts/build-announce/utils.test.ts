@@ -60,20 +60,17 @@ describe('readTestPlan', () => {
     },
   );
 
-  it('returns a failure error when the status is "failure"', () => {
-    const result = readTestPlan(filePath, 'failure', '7.71.0');
+  it.each(['failure', 'cancelled'])(
+    'returns a failure error when the status is %p',
+    (status) => {
+      const result = readTestPlan(filePath, status, '7.71.0');
 
-    expect(result).toEqual({
-      testPlan: null,
-      error: 'Test plan generation failed - check logs for details',
-    });
-  });
-
-  it('reports a cancelled run when the status is "cancelled"', () => {
-    const result = readTestPlan(filePath, 'cancelled', '7.71.0');
-
-    expect(result).toEqual({ testPlan: null, cancelled: true });
-  });
+      expect(result).toEqual({
+        testPlan: null,
+        error: 'Test plan generation failed - check logs for details',
+      });
+    },
+  );
 
   it('returns an error when generation succeeded but the file is missing', () => {
     const result = readTestPlan(filePath, 'success', '7.71.0');

@@ -34,7 +34,7 @@ async function main(): Promise<void> {
     process.env.TEST_PLAN_STATUS,
     buildInfo.semver,
   );
-  const { testPlan, error, cancelled } = result;
+  const { testPlan, error } = result;
 
   if (testPlan) {
     console.log(`Test plan loaded:`);
@@ -42,8 +42,6 @@ async function main(): Promise<void> {
     console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
     console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
     console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
-  } else if (cancelled) {
-    console.log('Test plan generation was cancelled');
   } else if (error) {
     console.error(`Test plan unavailable: ${error}`);
   } else {

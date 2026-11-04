@@ -14,7 +14,6 @@ import {
   parseBuildInfo,
   parseGitHubContext,
 } from './utils';
-import { buildTestPlanPendingSection } from './test-plan-comment';
 import {
   buildEnvValidationSection,
   buildEnvValidationFailureSection,
@@ -188,9 +187,6 @@ ${buildMoreInfoSection(buildInfo)}
     body += `---\n\n`;
     body += buildWhatsInRcFailureSection(whatsInRc.error);
   }
-
-  body += `---\n\n`;
-  body += buildTestPlanPendingSection(buildInfo.pipelineUrl);
 
   return body;
 }
