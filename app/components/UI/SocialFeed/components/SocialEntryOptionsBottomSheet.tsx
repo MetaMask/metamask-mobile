@@ -28,12 +28,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 import { strings } from '../../../../../locales/i18n';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
 import { useSocialBlockLists } from '../hooks/useSocialBlockLists';
 import {
   type SocialModerationTarget,
   useSocialModerationActions,
 } from '../hooks/useSocialModerationActions';
+import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
 import {
   getSocialEntryReportReasonTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
@@ -60,6 +62,8 @@ export interface SocialEntryOptionsBottomSheetProps {
   onClose: () => void;
   /** Whether the post can be reported: only a post with a comment can. */
   canReport?: boolean;
+  /** Whether the post author can be blocked. */
+  canBlockUser?: boolean;
   onReport?: (reason: SocialEntryReportReason) => void;
   onHidePost?: () => void;
   onBlockUser?: () => void;
@@ -78,7 +82,14 @@ const SocialEntryOptionsContext =
  */
 const SocialEntryOptionsBottomSheetInner: React.FC<
   Omit<SocialEntryOptionsBottomSheetProps, 'isOpen'>
-> = ({ onClose, onReport, onHidePost, onBlockUser, canReport = true }) => {
+> = ({
+  onClose,
+  onReport,
+  onHidePost,
+  onBlockUser,
+  canReport = true,
+  canBlockUser = true,
+}) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const [showReportReasons, setShowReportReasons] = useState(false);
@@ -229,12 +240,18 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                   onPress={handleHidePost}
                   testID={SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST}
                 />
-                <ActionListItem
-                  iconName={IconName.UserCircle}
-                  label={strings('social_leaderboard.entry_options.block_user')}
-                  onPress={handleBlockUser}
-                  testID={SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER}
-                />
+                {canBlockUser ? (
+                  <ActionListItem
+                    iconName={IconName.UserCircle}
+                    label={strings(
+                      'social_leaderboard.entry_options.block_user',
+                    )}
+                    onPress={handleBlockUser}
+                    testID={
+                      SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER
+                    }
+                  />
+                ) : null}
               </Box>
             )}
           </BottomSheetDialog>
@@ -289,6 +306,7 @@ const SocialEntryOptionsHost: React.FC<{
 }> = ({ children }) => {
   const { hidePost, blockUser, report } = useSocialModerationActions();
   const { blockedProfileIds, blockedCommentIds } = useSocialBlockLists();
+  const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
   const [target, setTarget] = useState<SocialEntryOptionsTarget | null>(null);
   // Hidden at once on the viewer's action, before the block lists refetch.
   const [hiddenPostIds, setHiddenPostIds] = useState<Set<string>>(
@@ -339,6 +357,11 @@ const SocialEntryOptionsHost: React.FC<{
     },
     [hidePostLocally, report, target],
   );
+  const canModerateAuthor = Boolean(
+    target &&
+      !isViewerProfileLoading &&
+      !isViewerSocialAuthor(target.authorId, profileId),
+  );
   const value = useMemo(() => ({ open, isEntryHidden }), [isEntryHidden, open]);
 
   return (
@@ -347,7 +370,8 @@ const SocialEntryOptionsHost: React.FC<{
       <SocialEntryOptionsBottomSheet
         isOpen={target !== null}
         onClose={onClose}
-        canReport={Boolean(target?.commentId)}
+        canReport={Boolean(target?.commentId) && canModerateAuthor}
+        canBlockUser={canModerateAuthor}
         onHidePost={handleHidePost}
         onBlockUser={handleBlockUser}
         onReport={handleReport}
@@ -389,6 +413,7 @@ export const useSocialEntryOptions = (
 } => {
   const hosted = useContext(SocialEntryOptionsContext);
   const { hidePost, blockUser, report } = useSocialModerationActions();
+  const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
   const [localOpen, setLocalOpen] = useState(false);
   const [isLocallyHidden, setIsLocallyHidden] = useState(false);
   const openLocal = useCallback(() => setLocalOpen(true), []);
@@ -409,6 +434,10 @@ export const useSocialEntryOptions = (
     };
   }
 
+  const canModerateAuthor =
+    !isViewerProfileLoading &&
+    !isViewerSocialAuthor(target.authorId, profileId);
+
   return {
     open: openLocal,
     isHidden: isLocallyHidden,
@@ -416,7 +445,8 @@ export const useSocialEntryOptions = (
       <SocialEntryOptionsBottomSheet
         isOpen={localOpen}
         onClose={closeLocal}
-        canReport={Boolean(target.commentId)}
+        canReport={Boolean(target.commentId) && canModerateAuthor}
+        canBlockUser={canModerateAuthor}
         onHidePost={() => hidePost(target, hideLocally)}
         onBlockUser={() => blockUser(target, hideLocally)}
         onReport={(reason) => report(target, reason, hideLocally)}

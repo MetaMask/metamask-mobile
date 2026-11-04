@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Money Accountは[Entity] ([regulated status, to confirm]) により提供されています。Reaisは入金された時点でmUSDに交換されます。",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "銀行振込による入金",
