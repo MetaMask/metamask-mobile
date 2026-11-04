@@ -10,6 +10,7 @@ import type {
 } from '@metamask/account-tree-controller';
 import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
 import type {
+  KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
@@ -124,6 +125,10 @@ export interface CardLinkWriteBody {
   status: CardLinkWriteStatus;
   providerCardholderId?: string;
   linkedAccountRef?: string;
+  walletProof?: {
+    message: string;
+    signature: string;
+  };
 }
 
 export interface CardClientInfo {
@@ -203,7 +208,9 @@ type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
   | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | RemoteFeatureFlagControllerGetStateAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
@@ -215,6 +222,7 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent
+  | AuthenticationController.AuthenticationControllerProfileSignInEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent;
 
