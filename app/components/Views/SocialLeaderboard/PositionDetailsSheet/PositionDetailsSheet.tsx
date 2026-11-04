@@ -15,7 +15,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
@@ -207,35 +206,6 @@ const PositionDetailsSheet = () => {
     setQuickBuyMode('buy');
   }, [data.isPerp, data.perpDirection, data.leverage, handlePerpsOrder]);
 
-  const handleSummaryPress = useCallback(() => {
-    closeThen(() => {
-      if (position) {
-        navigation.navigate(Routes.SOCIAL.POSITION, {
-          traderId: author.id,
-          tokenSymbol: position.tokenSymbol,
-          position,
-          positionId,
-          traderName: author.username,
-          traderImageUrl: author.avatarUri ?? undefined,
-          traderAddress: author.address,
-          source: 'trader_feed',
-          originalEntryPoint: 'trader_feed',
-          isClosed: data.isClosed,
-          isSocialV1: true,
-        });
-        return;
-      }
-      navigation.navigate(Routes.SOCIAL.POSITION, {
-        positionId,
-        traderId: author.id,
-        traderAddress: author.address,
-        source: 'trader_feed',
-        originalEntryPoint: 'trader_feed',
-        isSocialV1: true,
-      });
-    });
-  }, [closeThen, navigation, position, positionId, author, data.isClosed]);
-
   const firstPrice = data.prices[0]?.[1];
   const headerValue = scrubPoint ? scrubPoint[1] : data.currentPrice;
   const scrubChangePercent =
@@ -271,7 +241,6 @@ const PositionDetailsSheet = () => {
             pnlPercentLabel={data.pnlPercentLabel}
             pnlValueLabel={data.pnlValueLabel}
             isPnlPositive={data.isPnlPositive}
-            onPress={handleSummaryPress}
           />
         </Box>
         <PositionSheetTabs

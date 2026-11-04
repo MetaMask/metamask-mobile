@@ -10,7 +10,6 @@ import {
   fireGestureHandler,
   getByGestureTestId,
 } from 'react-native-gesture-handler/jest-utils';
-import Routes from '../../../../constants/navigation/Routes';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PositionSheetData } from './hooks/usePositionSheetData';
@@ -565,25 +564,16 @@ describe('PositionDetailsSheet', () => {
     });
   });
 
-  it('opens the trade details from the summary', () => {
-    const position = buildPosition();
-    mockParams = { ...mockParams, position };
-
+  it('shows the trade summary without navigating away on tap', () => {
     render(<PositionDetailsSheet />);
-    fireEvent.press(
-      screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY),
+    const summary = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY,
     );
 
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.POSITION,
-      expect.objectContaining({
-        position,
-        positionId: 'position-1',
-        traderId: 'trader-1',
-        source: 'trader_feed',
-        isSocialV1: true,
-      }),
-    );
+    fireEvent.press(summary);
+
+    expect(summary).toHaveTextContent(/2 PEPE/);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

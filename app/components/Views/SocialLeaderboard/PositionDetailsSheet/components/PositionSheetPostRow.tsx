@@ -35,7 +35,7 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      gap={3}
+      gap={4}
       twClassName="px-4 py-3"
       testID={`${PositionDetailsSheetSelectorsIDs.POST_ROW}-${post.uid}`}
     >
