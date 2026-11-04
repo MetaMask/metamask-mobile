@@ -1197,11 +1197,6 @@
       "description": "Your identity check is complete.",
       "button": "Continue"
     },
-    "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
-      "awaiting_provider": "Waiting for MoonPay to approve your account"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then contact support.",

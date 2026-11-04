@@ -19,7 +19,6 @@ import {
   getCachedDepositInstructions,
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
-import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { trackVbaEvent } from './vbaAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -958,7 +957,7 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('stays on the creating state when refreshing the autoramp fails', async () => {
+  it('keeps the detail skeletons when refreshing the autoramp fails', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
 
@@ -967,15 +966,13 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(Logger.error).toHaveBeenCalled();
     });
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows the account creation design until the autoramp is Approved', async () => {
+  it('shows the details page with skeleton rows until the autoramp is Approved', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
@@ -983,26 +980,18 @@ describe('VbaDetails', () => {
       status: 'Authorized',
     });
 
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.ILLUSTRATION),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.creating_account.title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.creating_account.description')),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
-    expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
 
-    fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
@@ -1013,23 +1002,13 @@ describe('VbaDetails', () => {
       kycStatus: 'approved',
     });
 
-    const { getByTestId, getByText, queryByText, queryByTestId } =
-      renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByText } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
     });
-    expect(
-      getByText(
-        strings('virtual_bank_account.creating_account.awaiting_provider'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      queryByText(strings('virtual_bank_account.creating_account.description')),
-    ).toBeNull();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByText(/MoonPay/)).toBeNull();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
   });
@@ -1039,9 +1018,7 @@ describe('VbaDetails', () => {
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     });
@@ -1537,9 +1514,7 @@ describe('VbaDetails', () => {
       const { getByTestId } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
-        expect(
-          getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-        ).toBeOnTheScreen();
+        expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
       });
       expect(detailsViewedCalls()).toHaveLength(0);
     });

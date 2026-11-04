@@ -1194,10 +1194,6 @@
       "description": "Pemeriksaan identitas Anda telah selesai.",
       "button": "Lanjutkan"
     },
-    "creating_account": {
-      "title": "Membuat rekening bank Anda",
-      "awaiting_provider": "Menunggu MoonPay menyetujui akun Anda"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

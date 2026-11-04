@@ -1194,10 +1194,6 @@
       "description": "Kumpleto na ang pagsusuri sa iyong pagkakakilanlan.",
       "button": "Magpatuloy"
     },
-    "creating_account": {
-      "title": "Ginagawa ang iyong bank account",
-      "awaiting_provider": "Naghihintay na aprubahan ng MoonPay ang iyong account"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

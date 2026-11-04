@@ -1194,10 +1194,6 @@
       "description": "本人確認が完了しました。",
       "button": "続行"
     },
-    "creating_account": {
-      "title": "銀行口座を作成しています",
-      "awaiting_provider": "MoonPayによる口座の承認を待っています"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

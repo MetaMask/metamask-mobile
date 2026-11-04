@@ -1194,10 +1194,6 @@
       "description": "Quá trình xác minh danh tính của bạn đã hoàn tất.",
       "button": "Tiếp tục"
     },
-    "creating_account": {
-      "title": "Đang tạo tài khoản ngân hàng của bạn",
-      "awaiting_provider": "Đang chờ MoonPay chấp thuận tài khoản của bạn"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

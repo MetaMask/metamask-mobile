@@ -1194,10 +1194,6 @@
       "description": "Kimlik kontrolünüz tamamlandı.",
       "button": "Devam Et"
     },
-    "creating_account": {
-      "title": "Banka hesabınız oluşturuluyor",
-      "awaiting_provider": "MoonPay'in hesabınızı onaylaması bekleniyor"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

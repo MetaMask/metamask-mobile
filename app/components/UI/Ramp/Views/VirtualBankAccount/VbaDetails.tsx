@@ -69,7 +69,6 @@ import {
   logAccountCreateFailure,
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
-import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -228,7 +227,8 @@ const buildDetailRows = (
  * wallet and creates the autoramp, in the fiat mapped from the effective
  * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
  * IP country).
- * Until the autoramp is Approved it shows the creating state. Polling stops
+ * Until the autoramp is Approved and its details load, the detail rows show
+ * as skeletons; there is no separate creating screen. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
@@ -286,8 +286,6 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [awaitingProviderApproval, setAwaitingProviderApproval] =
-    useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
@@ -413,7 +411,6 @@ const VbaDetails = () => {
           sourceCurrency,
         );
         if (!autoramp) {
-          setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setAutorampId(null);
           setAutorampStatus(null);
           setInstructions(null);
@@ -423,7 +420,6 @@ const VbaDetails = () => {
       if (!stillCurrent()) {
         return;
       }
-      setAwaitingProviderApproval(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -574,7 +570,6 @@ const VbaDetails = () => {
     transactionsFetchedForRef.current = null;
     setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
-    setAwaitingProviderApproval(false);
     setAutorampId(null);
     setAutorampStatus(
       walletAddress
@@ -800,18 +795,15 @@ const VbaDetails = () => {
     : sourceCurrency === 'BRL';
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
-  const errorMessage = loadError
-    ? strings('virtual_bank_account.vba_details.load_error')
-    : null;
-
-  if (!isApproved) {
-    return (
-      <VbaCreatingAccount
-        onBack={handleBack}
-        awaitingProviderApproval={awaitingProviderApproval}
-      />
-    );
-  }
+  // While the account is still being created, failures retry silently behind
+  // the skeletons; the error only shows once details should be loadable.
+  const errorMessage =
+    loadError && isApproved
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
+  const skeletonRowIds = isBankTransfer
+    ? ['account-holder', 'routing-number', 'account-number', 'bank-name']
+    : ['pix-key', 'copia-cola'];
 
   return (
     <SafeAreaView
@@ -909,7 +901,7 @@ const VbaDetails = () => {
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
-            {['pix-key', 'copia-cola'].map((id) => (
+            {skeletonRowIds.map((id) => (
               <ListItem
                 key={id}
                 title={

@@ -1194,10 +1194,6 @@
       "description": "신원 확인이 완료되었습니다.",
       "button": "계속"
     },
-    "creating_account": {
-      "title": "은행 계정 생성 중",
-      "awaiting_provider": "MoonPay의 계정 승인을 기다리는 중"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

@@ -1194,10 +1194,6 @@
       "description": "Ihre Identitätsprüfung ist abgeschlossen.",
       "button": "Fortfahren"
     },
-    "creating_account": {
-      "title": "Eröffnung Ihres Bankkontos",
-      "awaiting_provider": "Warten auf die Freischaltung Ihres Kontos durch MoonPay"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",

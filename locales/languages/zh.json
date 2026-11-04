@@ -1194,10 +1194,6 @@
       "description": "您的身份验证已完成。",
       "button": "继续"
     },
-    "creating_account": {
-      "title": "正在创建您的银行账户",
-      "awaiting_provider": "正在等待 MoonPay 批准您的账户"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
