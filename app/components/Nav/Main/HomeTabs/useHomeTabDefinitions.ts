@@ -4,6 +4,12 @@ import type { NativeBottomTabNavigationProp } from '@react-navigation/bottom-tab
 import type { ParamListBase } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  enterExploreSection,
+  enterMoneySection,
+  exitContextualSection,
+  getContextualNavState,
+} from '../contextualNav/contextualSection';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { buildBottomNavClickedProperties } from '../../../../core/Analytics/events/navigation';
@@ -30,6 +36,13 @@ export interface UseHomeTabDefinitionsParams {
 }
 
 type NativeTabNavigation = NativeBottomTabNavigationProp<ParamListBase>;
+
+const exitHomeFooterSection = (): void => {
+  const section = getContextualNavState().section;
+  if (section === 'money' || section === 'explore') {
+    exitContextualSection();
+  }
+};
 
 interface NativeTabListeners {
   tabPress: () => void;
@@ -80,6 +93,7 @@ export const useHomeTabDefinitions = ({
       rootScreenName: Routes.WALLET_VIEW,
       nativeIcon: NATIVE_TAB_ICONS.home,
       onPress: () => {
+        exitHomeFooterSection();
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
             .addProperties({
@@ -102,6 +116,7 @@ export const useHomeTabDefinitions = ({
         rootScreenName === Routes.TRENDING_VIEW ||
         rootScreenName === Routes.BROWSER.HOME,
       onPress: () => {
+        enterExploreSection();
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
         TrendingFeedSessionManager.getInstance().startSession('tab_press');
       },
@@ -139,7 +154,10 @@ export const useHomeTabDefinitions = ({
       iconKey: TabBarIconKey.Money,
       rootScreenName: Routes.MONEY.HOME,
       nativeIcon: NATIVE_TAB_ICONS.money,
-      onPress: trackMoneyTabPress,
+      onPress: () => {
+        enterMoneySection();
+        trackMoneyTabPress();
+      },
     };
 
     const rewards: HomeTabDefinition = {
@@ -202,6 +220,9 @@ export const useHomeTabDefinitions = ({
           playImpact(ImpactMoment.TabChange);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
+          if (tab.key !== 'money' && tab.key !== 'explore') {
+            exitHomeFooterSection();
+          }
           // UIKit already selected the tab; this mirrors the JS bars' nested navigation.
           switch (tab.rootScreenName) {
             case Routes.WALLET_VIEW:
@@ -227,7 +248,20 @@ export const useHomeTabDefinitions = ({
               break;
           }
         },
-        ...(tab.onLeave ? { blur: tab.onLeave } : null),
+        ...(tab.onLeave || tab.key === 'money' || tab.key === 'explore'
+          ? {
+              blur: () => {
+                tab.onLeave?.();
+                const section = getContextualNavState().section;
+                if (
+                  (tab.key === 'money' && section === 'money') ||
+                  (tab.key === 'explore' && section === 'explore')
+                ) {
+                  exitContextualSection();
+                }
+              },
+            }
+          : null),
       }),
     [navigateToMoneyHome, trackBottomNavPress],
   );

@@ -10,6 +10,10 @@ import initialRootState from '../../../../util/test/initial-root-state';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  exitContextualSection,
+  getContextualNavState,
+} from '../contextualNav/contextualSection';
 import { useHomeTabDefinitions } from './useHomeTabDefinitions';
 
 jest.mock('../../../../util/haptics');
@@ -255,6 +259,8 @@ describe('useHomeTabDefinitions', () => {
 
       expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(getContextualNavState().section).toBe('money');
+      exitContextualSection();
     });
 
     it('selects the Social tab through the onboarding-aware tab helper', () => {
@@ -293,6 +299,18 @@ describe('useHomeTabDefinitions', () => {
 
       expect(mockSessionManager.endSession).toHaveBeenCalledTimes(1);
       expect(rewardsListeners.blur).toBeUndefined();
+    });
+
+    it('records the Explore section from the native tab press', () => {
+      const { result } = renderDefinitions();
+      const explore = result.current.tabs[1];
+
+      result.current
+        .getNativeTabListeners(explore)({ navigation: mockNavigation })
+        .tabPress?.();
+
+      expect(getContextualNavState().section).toBe('explore');
+      exitContextualSection();
     });
   });
 });

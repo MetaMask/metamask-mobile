@@ -126,6 +126,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingTabBarInsetContext } from '../../../component-library/components/Navigation/TabBarFloating';
 import ContextualHomeFooter from './contextualNav/ContextualHomeFooter';
 import ContextualHomeSectionOverlay from './contextualNav/ContextualHomeSectionOverlay';
+import ContextualNativeHomeChrome from './contextualNav/ContextualNativeHomeChrome';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
@@ -139,6 +140,7 @@ import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import {
+  TAB_BAR_HIDDEN_STYLE,
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
   toNativeTabOptions,
@@ -962,20 +964,32 @@ const HomeTabs = () => {
     />
   );
 
-  const renderNativeTabScreen = (tab: HomeTabDefinition) => (
-    <NativeTab.Screen
-      key={tab.name}
-      name={tab.name}
-      options={
-        tab.hidesTabBarFor
-          ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route, colors.success.default)
-          : toNativeTabOptions(tab, undefined, colors.success.default)
-      }
-      listeners={getNativeTabListeners(tab)}
-      component={tabComponentFor(tab)}
-    />
-  );
+  const renderNativeTabScreen = (tab: HomeTabDefinition) => {
+    const baseOptions = tab.hidesTabBarFor
+      ? ({ route }: { route: HomeTabRoute }) =>
+          toNativeTabOptions(tab, route, colors.success.default)
+      : toNativeTabOptions(tab, undefined, colors.success.default);
+    // Money and Explore replace the system bar with the contextual pill.
+    const hidesSystemBar = tab.key === 'money' || tab.key === 'explore';
+    const options = hidesSystemBar
+      ? typeof baseOptions === 'function'
+        ? ({ route }: { route: HomeTabRoute }) => ({
+            ...baseOptions({ route }),
+            tabBarStyle: TAB_BAR_HIDDEN_STYLE,
+          })
+        : { ...baseOptions, tabBarStyle: TAB_BAR_HIDDEN_STYLE }
+      : baseOptions;
+
+    return (
+      <NativeTab.Screen
+        key={tab.name}
+        name={tab.name}
+        options={options}
+        listeners={getNativeTabListeners(tab)}
+        component={tabComponentFor(tab)}
+      />
+    );
+  };
 
   if (isNativeTabBar) {
     return (
@@ -984,28 +998,31 @@ const HomeTabs = () => {
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <NativeTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            screenOptions={{
-              headerShown: false,
-              // Mount on first visit like the JS navigator; the native
-              // default renders every tab at launch and never freezes them.
-              lazy: true,
-              // UIKit picks the inactive colour.
-              tabBarActiveTintColor: colors.icon.default,
-              tabBarMinimizeBehavior: 'onScrollDown',
-              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-              overrideScrollViewContentInsetAdjustmentBehavior: false,
-            }}
-          >
-            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-            <NativeTab.Screen
-              name={systemSlotTab.name}
-              options={systemSlotTab.options}
-              listeners={systemSlotTab.listeners}
-              component={systemSlotTab.component}
-            />
-          </NativeTab.Navigator>
+          <View style={HOME_TABS_FRAME}>
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                tabBarMinimizeBehavior: 'onScrollDown',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+            <ContextualNativeHomeChrome />
+          </View>
         </FloatingTabBarInsetContext.Provider>
       </HomeTabSheetHosts>
     );

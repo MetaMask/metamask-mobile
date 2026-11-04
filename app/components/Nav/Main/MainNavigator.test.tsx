@@ -492,6 +492,17 @@ describe('MainNavigator', () => {
       ]);
     });
 
+    it('hides the system tab bar on Explore so the contextual pill can replace it', () => {
+      const { root } = renderHomeTabs();
+      const exploreScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.TRENDING_VIEW,
+      );
+
+      expect(exploreScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
+    });
+
     it('gives every tab a title, an icon and press listeners', () => {
       const { root } = renderHomeTabs();
       const homeScreen = findNativeScreens(root).find(

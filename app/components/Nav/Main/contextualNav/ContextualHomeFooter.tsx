@@ -37,7 +37,14 @@ const ContextualHomeFooter = ({
   const { section } = useContextualNavState();
   const hardware = getHardwareTier();
   const network = useNetworkTier();
-  const mode = getHomeFooterMode(state.routes[state.index]?.name);
+  const routeName = state.routes[state.index]?.name;
+  const routeMode = getHomeFooterMode(routeName);
+  const routeModeRef = useRef(routeMode);
+  // The section wins so a tab press can swap the pill before the route
+  // commits, and so the native bar (which never mounts this component) is
+  // not the only place the section is visible.
+  const mode =
+    section === 'money' || section === 'explore' ? section : routeMode;
   const fadeIn = shouldFadeHomeFooter(hardware, network);
   const modeRef = useRef(mode);
   modeRef.current = mode;
@@ -45,22 +52,30 @@ const ContextualHomeFooter = ({
   onHeightChangeRef.current = onHeightChange;
 
   useLayoutEffect(() => {
-    if (mode === 'money') {
+    const previousRouteMode = routeModeRef.current;
+    routeModeRef.current = routeMode;
+
+    if (routeMode === 'money') {
       if (section !== 'money' && !isPlusMenuSection(section)) {
         enterMoneySection();
       }
       return;
     }
-    if (mode === 'explore') {
+    if (routeMode === 'explore') {
       if (section !== 'explore' && !isPlusMenuSection(section)) {
         enterExploreSection();
       }
       return;
     }
-    if (section === 'money' || section === 'explore') {
+    // Only leave when the tab route itself returned Home. A press records the
+    // section one frame before that route updates, and must not be cleared.
+    if (
+      previousRouteMode !== 'home' &&
+      (section === 'money' || section === 'explore')
+    ) {
       exitContextualSection();
     }
-  }, [mode, section]);
+  }, [routeMode, section]);
 
   useEffect(
     () => () => {
