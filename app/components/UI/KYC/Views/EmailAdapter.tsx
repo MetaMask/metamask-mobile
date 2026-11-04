@@ -107,9 +107,6 @@ const VbaEmailAdapter = () => {
           methods: ['email_otp'],
           verifyWith: 'email_otp',
           reason: {
-            // Analytics report MFA flows under this prefix's feature. A
-            // feature reusing this screen must pass its own, or its flows are
-            // counted as VBA's.
             operation: 'vba.verifyEmail',
             presentation: 'card',
           },

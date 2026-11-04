@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
   MfaFlowState,
   MfaFlowStep,
+  MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import CodeStep from './CodeStep';
@@ -23,7 +24,7 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
   }),
 }));
 
-const reason = { operation: 'qa.test' };
+const reason: MfaReason = { operation: 'qa.test' };
 
 const buildState = <Step extends MfaFlowStep>(
   step: Step,
