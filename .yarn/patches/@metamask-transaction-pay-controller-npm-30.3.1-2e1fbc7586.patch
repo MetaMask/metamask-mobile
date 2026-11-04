@@ -1,0 +1,16 @@
+diff --git a/dist/strategy/relay/relay-validation.js b/dist/strategy/relay/relay-validation.js
+index 91c35fe3dc10625853ab7347557173cf01db04f9..edf1a8fafac3768069456f26ff1f989413afd7b2 100644
+--- a/dist/strategy/relay/relay-validation.js
++++ b/dist/strategy/relay/relay-validation.js
+@@ -44,6 +44,11 @@ export async function validateRelayQuotes(request) {
+ }
+ function shouldSkipValidation(quote, transaction) {
+     const { request } = quote;
++    // Test build only: skip the quote simulation when the Money account pays,
++    // so 2-step verification is asked once, at submit (CONF-2225).
++    if (request.paymentOverride === 'moneyAccount') {
++        return true;
++    }
+     if (request.isHyperliquidSource) {
+         log('Skipping quote validation: Hyperliquid source', {
+             from: request.from,

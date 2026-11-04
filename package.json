@@ -481,7 +481,7 @@
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^72.3.0",
-    "@metamask/transaction-pay-controller": "^30.3.1",
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A30.3.1#~/.yarn/patches/@metamask-transaction-pay-controller-npm-30.3.1-2e1fbc7586.patch",
     "@metamask/tron-wallet-snap": "^4.3.0",
     "@metamask/utils": "^12.0.0",
     "@metamask/wallet": "^18.0.0",
