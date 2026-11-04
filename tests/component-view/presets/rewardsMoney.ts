@@ -465,6 +465,11 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
+  /**
+   * `empty` is a finished read with no payload, which is the dashboard retry
+   * banner. `omit` leaves no entry, so the Rewards tab waits on the fetch.
+   */
+  referralCache?: 'empty' | 'omit';
 }
 
 /**
@@ -477,12 +482,23 @@ export function rewardsMoneyViewState({
   claimReady = false,
   claimGates,
   referralMe: referralMeOverride,
+  referralCache,
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
+  const referralMeState =
+    referralCache === 'omit'
+      ? {}
+      : {
+          [profileId]: {
+            loading: false,
+            error: false,
+            data: referralCache === 'empty' ? null : referralMe,
+          },
+        };
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -518,9 +534,7 @@ export function rewardsMoneyViewState({
       },
       rewardsMoney: {
         ...rewardsMoneyInitialState,
-        referralMe: {
-          [profileId]: { loading: false, error: false, data: referralMe },
-        },
+        referralMe: referralMeState,
         earningsSummary: {
           [profileId]: {
             loading: false,

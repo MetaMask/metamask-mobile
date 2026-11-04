@@ -1,13 +1,18 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
+import renderWithProvider from '../../../app/util/test/renderWithProvider';
+import { RewardsHome } from '../../../app/components/Nav/Main/MainNavigator';
+import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
+import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
@@ -24,6 +29,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import {
   createRouteParamsProbe,
   getRouteProbeTestId,
+  QueryClientBoundary,
   renderScreenWithRoutes,
 } from '../render';
 import {
@@ -47,7 +53,8 @@ type EngineHandler = (...args: unknown[]) => unknown;
 export type InitiateClaimMode = 'hang' | 'under_review';
 
 export interface RewardsMoneyEngineOptions {
-  referralMe?: ReferralMeDto;
+  /** `'pending'` never resolves. `'reject'` fails the read. */
+  referralMe?: ReferralMeDto | 'pending' | 'reject';
   summary?: EarningsSummaryDto;
   /** Returned by the unwindowed summary read after an under-review refusal. */
   summaryAfterRefusal?: EarningsSummaryDto;
@@ -57,6 +64,14 @@ export interface RewardsMoneyEngineOptions {
   commissions?: CommissionEntryView[];
   claims?: ClaimDto[];
   initiateClaim?: InitiateClaimMode;
+  registerReferee?: () => Promise<void>;
+  /**
+   * `{ success: false }` is the server rejecting the code.
+   * A function stands in for a thrown validation error.
+   */
+  validateReferralCode?:
+    | { success: boolean }
+    | (() => Promise<{ success: boolean }>);
   handlers?: Record<string, EngineHandler>;
 }
 
@@ -103,12 +118,28 @@ export function installRewardsMoneyEngine({
   commissions = COMMISSIONS_FIXTURE,
   claims = [],
   initiateClaim,
+  registerReferee,
+  validateReferralCode = { success: true },
   handlers = {},
 }: RewardsMoneyEngineOptions = {}): jest.Mock {
   let refused = false;
 
   const defaults: Record<string, EngineHandler> = {
-    'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
+    'RewardsMoneyController:getReferralMe': () => {
+      if (referralMe === 'pending') {
+        return pendingPage();
+      }
+      if (referralMe === 'reject') {
+        return Promise.reject(new Error('referral me failed'));
+      }
+      return Promise.resolve(referralMe);
+    },
+    'RewardsMoneyController:validateReferralCode': () =>
+      typeof validateReferralCode === 'function'
+        ? validateReferralCode()
+        : Promise.resolve(validateReferralCode),
+    'RewardsMoneyController:registerReferee': () =>
+      registerReferee ? registerReferee() : Promise.resolve(undefined),
     'RewardsMoneyController:getEarningsSummary': (...args) => {
       const params = summaryParams(args);
       const current =
@@ -385,4 +416,150 @@ export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
     Routes.REWARDS_EARNINGS_HISTORY_VIEW,
     options,
   );
+}
+
+const REWARDS_HOME_ENGINE_HANDLERS: Record<string, EngineHandler> = {
+  'AuthenticationController:getSessionProfile': () =>
+    Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+  'RewardsController:getCandidateSubscriptionId': () => Promise.resolve(null),
+  'RewardsController:getClientVersionRequirements': () =>
+    Promise.resolve({ minimumMobileVersion: null }),
+  'RewardsController:getCampaigns': () => Promise.resolve([]),
+  'RewardsController:getBenefits': () =>
+    Promise.resolve({ benefits: [], limit: 0, lastFetched: 0 }),
+  'RewardsController:getReferralDetails': () => Promise.resolve(null),
+  'RewardsController:getSeasonMetadata': () => Promise.resolve(null),
+  'RewardsController:isOptInSupported': () => true,
+  'RewardsController:getOptInStatus': () =>
+    Promise.resolve({ ois: [], sids: [] }),
+};
+
+export interface RenderRewardsHomeOptions extends RewardsMoneyViewStateOptions {
+  /**
+   * Engine payload for the tab's referral-me fetch. Omitted reads the cached
+   * persona fixture. `'pending'` holds the skeleton. `'reject'` fails the read.
+   */
+  referralMeFetch?: ReferralMeDto | 'pending' | 'reject';
+}
+
+/**
+ * The Rewards tab gate. Money persona, points, and onboarding are chosen from
+ * the referral-me fetch rather than by mounting one screen directly.
+ */
+export function renderRewardsHome(options: RenderRewardsHomeOptions = {}) {
+  const persona = options.persona ?? 'plain';
+  const { referralMeFetch, ...stateOptions } = options;
+  const engine = installRewardsMoneyEngine({
+    referralMe:
+      referralMeFetch ?? options.referralMe ?? referralMeFixture(persona),
+    summary: options.summary ?? undefined,
+    handlers: REWARDS_HOME_ENGINE_HANDLERS,
+  });
+  const state = rewardsMoneyViewState({
+    ...stateOptions,
+    persona,
+    moneyControllerEnabled: options.moneyControllerEnabled ?? true,
+  });
+
+  return {
+    ...renderScreenWithRoutes(
+      RewardsHome,
+      { name: Routes.REWARDS_VIEW },
+      [
+        ...rewardsFlowRoutes(),
+        { name: Routes.MODAL.REWARDS_MONEY_TERMS_SHEET },
+        { name: Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL },
+      ],
+      { state },
+    ),
+    engine,
+  };
+}
+
+/** Parent route under the invite sheet so `goBack` has somewhere to land. */
+export const REWARDS_MONEY_INVITE_UNDERLAY_TEST_ID =
+  'rewards-money-invite-underlay';
+
+function RewardsMoneyInviteUnderlay() {
+  return (
+    <Text testID={REWARDS_MONEY_INVITE_UNDERLAY_TEST_ID}>
+      RewardsMoneyInviteUnderlay
+    </Text>
+  );
+}
+
+const InviteStack = createNativeStackNavigator();
+
+export interface RenderAcceptInviteOptions {
+  /** Returned by the read after register. Omitted repeats the sheet's cache. */
+  referralMeFetch?: ReferralMeDto;
+  registerReferee?: () => Promise<void>;
+  validateReferralCode?: RewardsMoneyEngineOptions['validateReferralCode'];
+}
+
+/**
+ * Invite sheet above an underlay, with the splash and Rewards tab registered.
+ *
+ * A stack's initial state holds only its first route, so registering a parent
+ * screen is not enough for `goBack`. The container state starts on the sheet
+ * with the underlay already underneath it. Accept's splash resets onto
+ * `REWARDS_VIEW`, which is the real tab gate.
+ */
+export function renderAcceptInviteSheet(
+  referralMe: ReferralMeDto,
+  options: RenderAcceptInviteOptions = {},
+) {
+  const engine = installRewardsMoneyEngine({
+    referralMe: options.referralMeFetch ?? referralMe,
+    registerReferee: options.registerReferee,
+    validateReferralCode: options.validateReferralCode,
+    handlers: REWARDS_HOME_ENGINE_HANDLERS,
+  });
+  const state = rewardsMoneyViewState({
+    persona: 'plain',
+    referralMe,
+    moneyControllerEnabled: true,
+  });
+
+  return {
+    ...renderWithProvider(
+      <QueryClientBoundary>
+        <NavigationContainer
+          initialState={{
+            index: 1,
+            routes: [
+              { name: 'RewardsMoneyInviteUnderlay' },
+              {
+                name: Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+                params: { referralCode: 'KOL1' },
+              },
+            ],
+          }}
+        >
+          <InviteStack.Navigator>
+            <InviteStack.Screen
+              name="RewardsMoneyInviteUnderlay"
+              component={RewardsMoneyInviteUnderlay}
+            />
+            <InviteStack.Screen
+              name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
+              component={AcceptInviteSheet}
+              initialParams={{ referralCode: 'KOL1' }}
+            />
+            <InviteStack.Screen
+              name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
+              component={RewardsMoneyReferralAcceptedSplashView}
+            />
+            <InviteStack.Screen
+              name={Routes.REWARDS_VIEW}
+              component={RewardsHome}
+            />
+          </InviteStack.Navigator>
+        </NavigationContainer>
+      </QueryClientBoundary>,
+      { state },
+      false,
+    ),
+    engine,
+  };
 }
