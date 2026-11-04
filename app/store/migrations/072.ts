@@ -45,7 +45,7 @@ const migration = (state: unknown): unknown => {
       // when `getDefaultNetworkConfigurationsByChainId()` has some breaking changes in the future.
       const megaethTestnet = BuiltInNetworkName.MegaETHTestnet;
       const megaethTestnetChainId = ChainId[megaethTestnet];
-      const megaethTestnetConfiguration: NetworkConfiguration = {
+      const megaethTestnetConfiguration = {
         blockExplorerUrls: [BlockExplorerUrl[megaethTestnet]],
         chainId: megaethTestnetChainId,
         defaultRpcEndpointIndex: 0,
@@ -60,7 +60,10 @@ const migration = (state: unknown): unknown => {
             url: BUILT_IN_CUSTOM_NETWORKS_RPC.MEGAETH_TESTNET,
           },
         ],
-      };
+        // Legacy `failoverUrls` is no longer part of the `NetworkController` types
+        // (removed by migration 161), but is kept here so this migration's output
+        // is unchanged.
+      } as unknown as NetworkConfiguration;
 
       // Regardless if the network already exists, we will overwrite it with our default MegaETH configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
