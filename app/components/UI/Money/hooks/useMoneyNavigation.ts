@@ -33,6 +33,17 @@ export type TrackMoneyEntry = (
   decision: Pick<MoneyEntryDecision, 'redirect_target' | 'button_intent'>,
 ) => void;
 
+interface NavigateToMoneyDepositOptions extends InitiateDepositOptions {
+  /**
+   * Continues a deposit immediately after onboarding, before persisted
+   * onboarding state is reflected by the selector.
+   */
+  isPostOnboardingContinuation?: boolean;
+  track?: TrackMoneyEntry;
+}
+
+export type MoneyDepositNavigationOutcome = 'depositStarted' | 'redirected';
+
 export const useMoneyNavigation = () => {
   const entryContext = useSelector(selectMoneyEntryContext);
 
@@ -92,10 +103,16 @@ export const useMoneyDepositNavigation = () => {
 
   const navigateToMoneyDeposit = useCallback(
     async ({
+      isPostOnboardingContinuation = false,
       track,
       ...options
-    }: InitiateDepositOptions & { track?: TrackMoneyEntry } = {}) => {
-      const decision = getMoneyEntryDecision('deposit', entryContext);
+    }: NavigateToMoneyDepositOptions = {}): Promise<MoneyDepositNavigationOutcome> => {
+      const decision = getMoneyEntryDecision('deposit', {
+        ...entryContext,
+        isOnboardingRedirectNeeded:
+          !isPostOnboardingContinuation &&
+          entryContext.isOnboardingRedirectNeeded,
+      });
 
       track?.({
         redirect_target: decision.redirect_target,
@@ -109,14 +126,14 @@ export const useMoneyDepositNavigation = () => {
             'money.deeplink_modal.money_account_disabled.description',
           ),
         });
-        return;
+        return 'redirected';
       }
 
       if (decision.destination === 'geoBlockSheet') {
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
           screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
         });
-        return;
+        return 'redirected';
       }
 
       if (decision.destination === 'onboarding') {
@@ -130,10 +147,11 @@ export const useMoneyDepositNavigation = () => {
             intent,
           },
         });
-        return;
+        return 'redirected';
       }
 
       await initiateDeposit(options);
+      return 'depositStarted';
     },
     [entryContext, initiateDeposit, navigation],
   );
