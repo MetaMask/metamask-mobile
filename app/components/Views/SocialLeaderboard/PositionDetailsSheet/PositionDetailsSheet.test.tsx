@@ -15,6 +15,7 @@ import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useO
 import type { PositionSheetData } from './hooks/usePositionSheetData';
 import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import {
   DAY_MS,
@@ -90,6 +91,8 @@ jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
     ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
   }),
 }));
+
+jest.mock('../../../../util/haptics');
 
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
@@ -614,6 +617,17 @@ describe('PositionDetailsSheet', () => {
         asset: 'BTC',
         leverage: undefined,
       });
+    });
+
+    it('plays a primary haptic when Buy is pressed', () => {
+      mockSheetData = buildSheetData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('offers only Buy on a closed spot position the viewer does not hold', () => {
