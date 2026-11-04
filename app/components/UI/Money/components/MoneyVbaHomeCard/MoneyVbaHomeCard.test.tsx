@@ -186,7 +186,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
-  it.each(VARIANTS.filter((variant) => variant !== 'kyc_pending'))(
+  it.each(ONBOARDING_VARIANTS.filter((variant) => variant !== 'kyc_pending'))(
     'hydrates on the card and opens the resolved destination for %s',
     async (variant) => {
       const expectations = VARIANT_EXPECTATIONS[variant];
@@ -413,19 +413,6 @@ describe('MoneyVbaHomeCard', () => {
         fromMoney: true,
       },
     });
-  });
-
-  it('ignores a repeat Learn more tap while the first is still presenting', () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_decision" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CTA_BUTTON,
-    );
-
-    fireEvent.press(cta);
-    fireEvent.press(cta);
-
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
-    expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
   });
 
   it('hides the kyc_decision card when Dismiss is pressed', () => {

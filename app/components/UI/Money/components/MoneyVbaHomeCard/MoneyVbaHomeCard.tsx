@@ -32,6 +32,7 @@ import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import {
@@ -66,13 +67,6 @@ const styles = StyleSheet.create({
 const HERO_GRADIENT_COLORS = [brandColor.purple300, brandColor.indigo200];
 const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
-
-/**
- * Blocks repeat CTA taps until the destination has had time to present. A
- * second onboarding open in that window would remount the loading route and
- * start a second hydrate.
- */
-const CTA_REENTRY_WINDOW_MS = 1000;
 
 /**
  * VBA identity-status card on Money home. Renders every card variant
