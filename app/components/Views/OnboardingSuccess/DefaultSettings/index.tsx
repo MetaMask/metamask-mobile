@@ -23,6 +23,7 @@ import { useHeaderGlassInset } from '../../../../component-library/components-te
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+import Logger from '../../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -41,7 +42,14 @@ const DefaultSettings = () => {
   );
 
   const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
+    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES).catch(
+      (error: Error) => {
+        Logger.error(
+          error,
+          'DefaultSettings: failed to open privacy best practices',
+        );
+      },
+    );
   };
 
   const chevron = (

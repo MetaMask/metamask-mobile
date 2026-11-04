@@ -229,7 +229,9 @@ const ImportPrivateKey = () => {
               style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
               onChangeText={setPrivateKey}
               testID={ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX}
-              blurOnSubmit
+              // Multiline inputs default to inserting a newline. blurAndSubmit
+              // keeps the previous blurOnSubmit behavior: Return blurs and submits.
+              submitBehavior="blurAndSubmit"
               onSubmitEditing={() => goNext()}
               returnKeyType={'next'}
               placeholder={strings('import_private_key.subtitle')}
