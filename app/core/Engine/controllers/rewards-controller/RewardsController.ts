@@ -239,7 +239,7 @@ const MAX_POINTS_ESTIMATE_HISTORY_ENTRIES = 50;
 /**
  * State metadata for the RewardsController
  */
-export const metadata: StateMetadata<RewardsControllerState> = {
+const metadata: StateMetadata<RewardsControllerState> = {
   activeAccount: {
     includeInStateLogs: true,
     persist: true,

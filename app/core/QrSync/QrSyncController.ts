@@ -93,7 +93,7 @@ async function computeWalletPayloadId(
   return toWalletPayloadId(await toEntropySourceId('mnemonic', seed));
 }
 
-export const metadata: StateMetadata<QrSyncControllerState> = {
+const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
     persist: false,
     includeInDebugSnapshot: true,

@@ -53,7 +53,7 @@ interface ActiveRequest {
   promise: Promise<UiSlotsLoadOutcome>;
 }
 
-export const metadata: StateMetadata<UiSlotsControllerState> = {
+const metadata: StateMetadata<UiSlotsControllerState> = {
   enabled: {
     persist: false,
     includeInDebugSnapshot: true,
