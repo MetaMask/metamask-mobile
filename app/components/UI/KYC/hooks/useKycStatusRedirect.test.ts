@@ -76,15 +76,19 @@ const setSessionStatus = (sessionStatus: MockSessionStatus | null) => {
     engine: {
       backgroundState: {
         KycController: {
-          sessionStatus: sessionStatus
-            ? {
-                id: 'session-1',
-                externalUserId: 'user-1',
-                vendor: 'sumsub',
-                vendorStatus: 'pending',
-                ...sessionStatus,
-              }
-            : null,
+          sessions: {
+            iron: {
+              sessionStatus: sessionStatus
+                ? {
+                    id: 'session-1',
+                    externalUserId: 'user-1',
+                    vendor: 'sumsub',
+                    vendorStatus: 'pending',
+                    ...sessionStatus,
+                  }
+                : null,
+            },
+          },
         },
       },
     },

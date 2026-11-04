@@ -5,36 +5,20 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockFetchVendorDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
-const mockGetState = jest.fn();
-const mockSaveVbaVendorTermsAcceptance = jest.fn();
+const mockAcceptVendorDisclaimers = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       fetchVendorDisclaimers: (...args: unknown[]) =>
         mockFetchVendorDisclaimers(...args),
+      acceptVendorDisclaimers: (...args: unknown[]) =>
+        mockAcceptVendorDisclaimers(...args),
     },
     KycService: {
       getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
     },
   },
-}));
-
-jest.mock('../../../../../../core/redux', () => ({
-  store: {
-    getState: () => mockGetState(),
-  },
-}));
-
-jest.mock('../../../../../../selectors/rampsController', () => ({
-  selectSelectedVbaWalletAddress: jest.fn(
-    (state: { address?: string }) => state.address ?? null,
-  ),
-}));
-
-jest.mock('../vbaVendorTermsStorage', () => ({
-  saveVbaVendorTermsAcceptance: (...args: unknown[]) =>
-    mockSaveVbaVendorTermsAcceptance(...args),
 }));
 
 const disclaimers = [{ id: '1', url: 'https://t.c', display_name: 'T&C' }];
@@ -44,8 +28,6 @@ describe('useKycDisclaimers', () => {
     jest.clearAllMocks();
     mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
     mockGetGeoCountry.mockResolvedValue('BRA');
-    mockGetState.mockReturnValue({ address: '0xabc' });
-    mockSaveVbaVendorTermsAcceptance.mockResolvedValue(undefined);
   });
 
   it('loads vendor disclaimers through KycController', async () => {
@@ -135,7 +117,7 @@ describe('useKycDisclaimers', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('stores every displayed vendor disclaimer locally for the selected wallet', async () => {
+  it('stores every displayed vendor disclaimer on the KYC controller', async () => {
     const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -144,17 +126,19 @@ describe('useKycDisclaimers', () => {
       accepted = await result.current.acceptDisclaimers();
     });
 
-    expect(mockSaveVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc', [
-      '1',
-    ]);
+    expect(mockAcceptVendorDisclaimers).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      country: 'BRA',
+      disclaimerIds: ['1'],
+    });
     expect(accepted).toBe(true);
     expect(result.current.error).toBeNull();
   });
 
   it('returns false and surfaces an error when storing acceptance fails', async () => {
-    mockSaveVbaVendorTermsAcceptance.mockRejectedValue(
-      new Error('Consent storage failed'),
-    );
+    mockAcceptVendorDisclaimers.mockImplementation(() => {
+      throw new Error('Consent storage failed');
+    });
     const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 

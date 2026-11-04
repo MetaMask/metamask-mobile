@@ -79,20 +79,27 @@ describe('kycControllerInit', () => {
 
   it('hydrates state from persistedState', () => {
     const persistedKycState: Partial<KycControllerState> = {
-      email: 'user@example.com',
-      vendor: 'iron',
-      geoCountry: 'BRA',
-      sessionStatus: {
-        id: 'session-1',
-        finalStatus: 'pending',
-        externalUserId: 'user-1',
-        kycStatus: 'pending',
-        vendor: 'iron',
-        vendorStatus: 'pending',
-      },
-      vendorDisclaimersAccepted: {
-        moonpay: { termsAcceptedAt: '2025-01-01T00:00:00Z' },
-        iron: { disclaimerIds: ['disclaimer-1'] },
+      sessions: {
+        iron: {
+          sessionStatus: {
+            id: 'session-1',
+            finalStatus: 'pending',
+            externalUserId: 'user-1',
+            kycStatus: 'pending',
+            vendor: 'iron',
+            vendorStatus: 'pending',
+          },
+          providerFlowStatus: 'not_started',
+          residenceCountry: 'BRA',
+          vendorDisclaimersAccepted: {
+            disclaimerIds: ['disclaimer-1'],
+            acceptedAt: null,
+            submitted: true,
+          },
+          providerDisclaimersAccepted: null,
+          idosDisclaimersAccepted: null,
+          credentialReusabilityConsentGiven: null,
+        },
       },
     };
     const persistedState = {

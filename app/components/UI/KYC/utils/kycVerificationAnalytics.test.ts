@@ -57,10 +57,12 @@ describe('kycVerificationAnalytics', () => {
     mockGetState.mockReturnValue(stateWithLocation('BR'));
     mockEngine.context.KycController = {
       state: {
-        vendor: 'iron',
-        providerFlowStatus: 'not_started',
-        sessionStatus: { id: 'session-secret', finalStatus: 'new' },
-        email: 'user@example.com',
+        sessions: {
+          iron: {
+            providerFlowStatus: 'not_started',
+            sessionStatus: { id: 'session-secret', finalStatus: 'new' },
+          },
+        },
       },
     };
     mockGetKycAnalyticsStatus.mockReturnValue('new');

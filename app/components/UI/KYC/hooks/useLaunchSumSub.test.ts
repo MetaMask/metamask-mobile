@@ -61,6 +61,7 @@ describe('useLaunchSumSub analytics', () => {
 
     await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
     expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+      vendor: 'iron',
       locale: 'pt-BR',
     });
     expect(mockTrack).toHaveBeenCalledWith({ status: 'started' });
