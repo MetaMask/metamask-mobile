@@ -919,19 +919,23 @@ const getTokensControllerAllTokens = makeDirect([
     var _a, _b;
     const result = {};
     // Merge assetsBalance and customAssets: accountId -> assetId[]
-    const allAssets = Object.fromEntries([
-        ...new Set([
-            ...Object.keys(assetsBalance),
-            ...Object.keys(customAssets),
-        ]),
-    ].map((accountId) => {
-        const fromBalance = Object.keys(assetsBalance[accountId] ?? {});
-        const fromCustom = customAssets[accountId] ?? [];
-        return [
-            accountId,
-            [...new Set([...fromBalance, ...fromCustom])],
-        ];
-    }));
+    // (single pass; preserves first-occurrence order of the previous
+    // fromEntries/Set version without the intermediate allocations)
+    const allAssets = {};
+    for (const accountId of Object.keys(assetsBalance)) {
+        allAssets[accountId] = Object.keys(assetsBalance[accountId]);
+    }
+    for (const accountId of Object.keys(customAssets)) {
+        const seen = new Set(allAssets[accountId] ?? (allAssets[accountId] = []));
+        const fromCustom = customAssets[accountId];
+        for (let i = 0; i < fromCustom.length; i++) {
+            const assetId = fromCustom[i];
+            if (!seen.has(assetId)) {
+                seen.add(assetId);
+                allAssets[accountId].push(assetId);
+            }
+        }
+    }
     for (const [accountId, assetIds] of Object.entries(allAssets)) {
         const internalAccount = internalAccountsById[accountId];
         if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
@@ -1084,19 +1088,23 @@ const getMultiChainAssetsControllerAccountsAssets = makeDirect([
 ], (assetsBalance, customAssets, internalAccountsById) => {
     const result = {};
     // Merge assetsBalance and customAssets: accountId -> assetId[]
-    const allAssets = Object.fromEntries([
-        ...new Set([
-            ...Object.keys(assetsBalance),
-            ...Object.keys(customAssets),
-        ]),
-    ].map((accountId) => {
-        const fromBalance = Object.keys(assetsBalance[accountId] ?? {});
-        const fromCustom = customAssets[accountId] ?? [];
-        return [
-            accountId,
-            [...new Set([...fromBalance, ...fromCustom])],
-        ];
-    }));
+    // (single pass; preserves first-occurrence order of the previous
+    // fromEntries/Set version without the intermediate allocations)
+    const allAssets = {};
+    for (const accountId of Object.keys(assetsBalance)) {
+        allAssets[accountId] = Object.keys(assetsBalance[accountId]);
+    }
+    for (const accountId of Object.keys(customAssets)) {
+        const seen = new Set(allAssets[accountId] ?? (allAssets[accountId] = []));
+        const fromCustom = customAssets[accountId];
+        for (let i = 0; i < fromCustom.length; i++) {
+            const assetId = fromCustom[i];
+            if (!seen.has(assetId)) {
+                seen.add(assetId);
+                allAssets[accountId].push(assetId);
+            }
+        }
+    }
     for (const [accountId, assetIds] of Object.entries(allAssets)) {
         const internalAccount = internalAccountsById[accountId];
         if (!internalAccount || isEvmAccountType(internalAccount.type)) {
