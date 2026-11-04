@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 
 import Engine from '../../../../core/Engine';
@@ -32,7 +32,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -44,6 +43,8 @@ import { createStyles } from './GeneralSettings.styles';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { AvatarTypeSelector } from './AvatarTypeSelector';
 import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
@@ -153,6 +154,7 @@ const Settings = ({
   hapticsEnabled,
   setHapticsEnabled,
 }: Props) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [currentLanguage, setCurrentLanguage] = useState(
@@ -220,7 +222,9 @@ const Settings = ({
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.general_title')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}

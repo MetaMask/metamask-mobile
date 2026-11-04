@@ -1,8 +1,5 @@
 import React, { ReactElement } from 'react';
-import {
-  HelpText,
-  HelpTextSeverity,
-} from '@metamask/design-system-react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 
 export interface AlertMessageProps {
   content?: ReactElement;
@@ -21,12 +18,12 @@ export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
   }
 
   return (
-    <HelpText
-      severity={HelpTextSeverity.Danger}
+    <Text
+      color={TextColor.ErrorDefault}
       twClassName="text-center"
       testID="alert-message-banner"
     >
       {alertMessage}
-    </HelpText>
+    </Text>
   );
 });

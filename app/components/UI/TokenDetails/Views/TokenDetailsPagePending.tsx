@@ -10,18 +10,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
-import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-
-export const TOKEN_DETAILS_PAGE_PENDING_TEST_ID = 'token-details-page-pending';
+import { TokenDetailsIds } from '../testIds';
 
 /**
  * Shown while `/v2/assets` is still deciding the new page versus the legacy
- * page. The header and Swap / Buy footer use the route token so a fast tap
- * does not wait on that request.
+ * page. The header uses the route token so it is visible immediately. The
+ * sticky footer is intentionally omitted here: the final page holds its footer
+ * back until the trader position settles, so showing one now would make it
+ * appear, disappear on the page swap, then reappear.
  */
 const TokenDetailsPagePending = ({
   token,
@@ -51,7 +50,7 @@ const TokenDetailsPagePending = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       twClassName="flex-1"
-      testID={TOKEN_DETAILS_PAGE_PENDING_TEST_ID}
+      testID={TokenDetailsIds.pending}
     >
       <TokenDetailsInlineHeader
         token={token}
@@ -64,12 +63,6 @@ const TokenDetailsPagePending = ({
         <Skeleton height={20} width="70%" twClassName="rounded-md" />
         <Skeleton height={20} width="45%" twClassName="rounded-md" />
       </Box>
-      <TokenDetailsStickyFooter
-        token={token}
-        sourcePage="TokenDetailsView"
-        swapTestID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
-        buyTestID={TokenOverviewSelectorsIDs.BUY_BUTTON}
-      />
     </Box>
   );
 };

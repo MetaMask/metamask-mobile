@@ -57,7 +57,7 @@ const QuickBuyToolbar: React.FC = () => {
 
   return (
     <Box
-      twClassName="px-4 pt-4 pb-3"
+      twClassName="px-4 pt-1 pb-3"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
