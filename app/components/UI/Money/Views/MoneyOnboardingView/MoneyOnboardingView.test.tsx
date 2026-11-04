@@ -268,7 +268,6 @@ describe('MoneyOnboardingView', () => {
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       });
-      return 'depositStarted';
     });
     mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
@@ -505,9 +504,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('completes fallback continuation once when the adapter callback identity changes', () => {
-      const replacementNavigateToMoneyDeposit = jest
-        .fn()
-        .mockResolvedValue('depositStarted');
+      const replacementNavigateToMoneyDeposit = jest.fn();
       mockIsE2EOrPerformanceTest = true;
       mockRouteParams = {
         postOnboardingRedirect: {
@@ -815,7 +812,6 @@ describe('MoneyOnboardingView', () => {
           redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
           button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         });
-        return 'redirected';
       });
       renderMoneyOnboardingView();
 
@@ -904,7 +900,6 @@ describe('MoneyOnboardingView', () => {
           redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
           button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         });
-        return 'redirected';
       });
       renderMoneyOnboardingView();
       advanceStep();

@@ -179,7 +179,6 @@ describe('MoneyPotentialEarningsView', () => {
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       });
-      return 'depositStarted';
     });
     mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
@@ -451,7 +450,6 @@ describe('MoneyPotentialEarningsView', () => {
         redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       });
-      return 'redirected';
     });
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 

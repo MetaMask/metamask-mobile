@@ -35,14 +35,11 @@ export type TrackMoneyEntry = (
 
 interface NavigateToMoneyDepositOptions extends InitiateDepositOptions {
   /**
-   * Continues a deposit immediately after onboarding, before persisted
-   * onboarding state is reflected by the selector.
+   * Skips the onboarding redirect when continuing a deposit after onboarding.
    */
   isPostOnboardingContinuation?: boolean;
   track?: TrackMoneyEntry;
 }
-
-export type MoneyDepositNavigationOutcome = 'depositStarted' | 'redirected';
 
 export const useMoneyNavigation = () => {
   const entryContext = useSelector(selectMoneyEntryContext);
@@ -106,7 +103,7 @@ export const useMoneyDepositNavigation = () => {
       isPostOnboardingContinuation = false,
       track,
       ...options
-    }: NavigateToMoneyDepositOptions = {}): Promise<MoneyDepositNavigationOutcome> => {
+    }: NavigateToMoneyDepositOptions = {}) => {
       const decision = getMoneyEntryDecision('deposit', {
         ...entryContext,
         isOnboardingRedirectNeeded:
@@ -126,14 +123,14 @@ export const useMoneyDepositNavigation = () => {
             'money.deeplink_modal.money_account_disabled.description',
           ),
         });
-        return 'redirected';
+        return;
       }
 
       if (decision.destination === 'geoBlockSheet') {
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
           screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
         });
-        return 'redirected';
+        return;
       }
 
       if (decision.destination === 'onboarding') {
@@ -147,11 +144,10 @@ export const useMoneyDepositNavigation = () => {
             intent,
           },
         });
-        return 'redirected';
+        return;
       }
 
       await initiateDeposit(options);
-      return 'depositStarted';
     },
     [entryContext, initiateDeposit, navigation],
   );
