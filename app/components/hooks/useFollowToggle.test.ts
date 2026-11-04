@@ -413,6 +413,51 @@ describe('useFollowToggleMany', () => {
     expect(result.current.isFollowing('trader-2')).toBe(false);
   });
 
+  it('reports a known-followed trader as followed when followingProfileIds is stale', () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    expect(result.current.isFollowing('trader-1', true)).toBe(true);
+  });
+
+  it('unfollows a known-followed trader on the first toggle when followingProfileIds is stale', async () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      await result.current.toggleFollow('trader-1', undefined, true);
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'SocialController:unfollowTrader',
+      { targets: ['trader-1'] },
+    );
+  });
+
+  it('keeps an in-flight unfollow override after followingProfileIds already agrees', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+    selectorState.followingProfileIds = ['trader-1'];
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      result.current.toggleFollow('trader-1', undefined, true);
+    });
+    selectorState.followingProfileIds = [];
+    rerender(undefined);
+    await act(async () => undefined);
+
+    expect(result.current.isFollowing('trader-1', true)).toBe(false);
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
   it('allows concurrent toggles for different traders', async () => {
     let resolveCount = 0;
     const pending: ((value: unknown) => void)[] = [];
