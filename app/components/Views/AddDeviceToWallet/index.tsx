@@ -31,12 +31,27 @@ import {
   QRTabSwitcherScreens,
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
+import AccountsImported from './AccountsImported';
 import DeviceAdded from './DeviceAdded';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { RouteMessengerInstance } from './messenger';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
+import {
+  leaveQrSyncSession,
+  releaseQrSyncAccountsReviewHold,
+  useQrSyncInstructionsHold,
+} from '../../../core/QrSync/qrSyncAccountsReview';
+import {
+  selectQrSyncAccountsReview,
+  selectQrSyncIsBusy,
+  selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
+  selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import {
   QrSyncOperations,
@@ -45,14 +60,6 @@ import {
   reportQrSyncFailure,
 } from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import {
-  selectQrSyncIsBusy,
-  selectQrSyncIsSessionActive,
-  selectQrSyncNeedsProvisioning,
-  selectQrSyncPresentation,
-  selectQrSyncShouldNavigateToImport,
-  selectQrSyncShouldShowOtpSheet,
-} from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const SettingsPathDescription = () => (
@@ -114,20 +121,47 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const review = useSelector(selectQrSyncAccountsReview);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
   );
   const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
-  // Import and existing-user Phase C pop this screen while they still read
-  // pending secrets and provisioning metadata.
+  const holdInstructions = useQrSyncInstructionsHold();
+  // Import and existing-user Phase C remove this screen while they still read
+  // pending secrets and provisioning metadata. A user back press still resets.
   const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
+
+  useEffect(() => {
+    if (presentation === 'instructions') {
+      releaseQrSyncAccountsReviewHold();
+    }
+  }, [presentation]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (event?.data?.action?.type === 'GO_BACK') {
+        if (review) {
+          void leaveQrSyncSession(async () => {
+            try {
+              await messenger.call('QrSyncController:clearAccountsReview');
+            } catch {
+              // Review clear is best-effort when the action is unavailable.
+            }
+            await messenger.call('QrSyncController:resetState');
+          });
+          return;
+        }
+
+        Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+          () => undefined,
+        );
+        return;
+      }
+
       if (shouldKeepQrSyncState) {
         return;
       }
@@ -138,7 +172,7 @@ const AddDeviceToWallet = () => {
     });
 
     return unsubscribe;
-  }, [messenger, navigation, shouldKeepQrSyncState]);
+  }, [messenger, navigation, review, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -203,7 +237,11 @@ const AddDeviceToWallet = () => {
     });
   }, [submitManualQrPayload]);
 
-  if (presentation === 'device-linked' && !isScannerOpen) {
+  if (!holdInstructions && review && !isScannerOpen) {
+    return <AccountsImported />;
+  }
+
+  if (!holdInstructions && presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 

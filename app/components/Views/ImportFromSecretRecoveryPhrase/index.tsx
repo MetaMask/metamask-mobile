@@ -57,6 +57,7 @@ import FooterGlass from '../../../component-library/components-temp/FooterGlass'
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { leaveQrSyncSession } from '../../../core/QrSync/qrSyncAccountsReview';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import {
   Box,
@@ -432,13 +433,48 @@ const ImportFromSecretRecoveryPhrase = () => {
     [currentStep, slideAnim],
   );
 
+  const leaveQrSyncImport = useCallback(() => {
+    void leaveQrSyncSession(async () => {
+      try {
+        await messenger.call('QrSyncController:clearAccountsReview');
+      } catch {
+        // Review clear is best-effort when the action is unavailable.
+      }
+      await messenger.call('QrSyncController:resetState');
+    });
+  }, [messenger]);
+
+  const returnToAddDeviceFromQrSync = useCallback(() => {
+    leaveQrSyncImport();
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET, undefined, {
+      pop: true,
+    });
+  }, [leaveQrSyncImport, navigation]);
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (event) => {
+        if (event.data.action.type !== 'GO_BACK') {
+          return;
+        }
+        if (!isQrSyncImport || currentStep !== 1) {
+          return;
+        }
+        // A plain pop lands on the scanner. Match the header and return to
+        // Add this device.
+        event.preventDefault();
+        returnToAddDeviceFromQrSync();
+      }),
+    [currentStep, isQrSyncImport, navigation, returnToAddDeviceFromQrSync],
+  );
+
   const onBackPress = () => {
-    if (isQrSyncImport) {
-      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-        () => undefined,
-      );
+    if (isQrSyncImport && currentStep === 1) {
+      returnToAddDeviceFromQrSync();
+      return;
     }
-    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
+
+    if (currentStep === 0) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);

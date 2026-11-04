@@ -95,6 +95,11 @@ export const selectQrSyncShouldShowOtpSheet = createSelector(
   (phase) => phase === QrSyncPhases.DISPLAYING_OTP,
 );
 
+export const selectQrSyncAccountsReview = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) => qrSyncState?.accountsReview ?? null,
+);
+
 export const selectQrSyncShouldNavigateToImport = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>

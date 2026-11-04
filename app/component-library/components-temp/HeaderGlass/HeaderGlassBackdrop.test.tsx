@@ -44,6 +44,18 @@ describe('HeaderGlassBackdrop', () => {
     expect(getByTestId('backdrop')).toHaveStyle({ height: '90%' });
   });
 
+  it('fades upward when the opaque edge is the bottom', () => {
+    const { getByTestId } = render(
+      <HeaderGlassBackdrop testID="backdrop" edge="bottom" />,
+    );
+
+    expect(getByTestId('backdrop').props.colors).toEqual(
+      backgroundAt([0, 0.65, 0.92, 1]),
+    );
+    expect(getByTestId('backdrop')).toHaveStyle({ height: '90%', bottom: 0 });
+    expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(1);
+  });
+
   it.each([
     ['iOS 26', 'isGlassEnabled'],
     ['iOS < 26', 'isBlurEnabled'],

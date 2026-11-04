@@ -61,6 +61,8 @@ export function finalizeOnboardingCompletion({
     return;
   }
 
+  Engine.context.QrSyncController?.clearAccountsReview?.();
+
   if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
     // BFT cohort enrollment is gated by the same first-time onboarding
     // eligibility check above so SETTINGS_BACKUP / REMINDER_BACKUP do not

@@ -9,7 +9,8 @@ import {
 
 /**
  * Runs Phase C (extension layout metadata) for the existing-user QR sync path.
- * Non-blocking — callers navigate Home without awaiting, matching new-user
+ * Non-blocking — callers show the imported-accounts screen without awaiting.
+ * Done on that screen navigates home, matching new-user
  * `finalizeOnboardingCompletion` behavior.
  *
  * Preconditions are asserted inside `provisionFromMetadata`.

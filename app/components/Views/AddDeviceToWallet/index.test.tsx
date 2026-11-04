@@ -10,6 +10,8 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
+import { AccountsImportedTestIds } from './AccountsImported.testIds';
+import { clearQrSyncAccountsReview } from '../../../core/QrSync/qrSyncAccountsReview';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -20,7 +22,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  context: {},
+  context: {
+    QrSyncProvisioningService: {
+      provisionFromMetadata: jest.fn().mockResolvedValue(undefined),
+    },
+  },
 }));
 
 const mockNavigate = jest.fn();
@@ -62,6 +68,7 @@ import { createMockRouteMessenger } from '../../../util/test/mock-route-messenge
 
 const mockHandleScannedQrPayload = jest.fn();
 const mockResetState = jest.fn();
+const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
 
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
@@ -72,9 +79,11 @@ const renderComponent = (
       'QrSyncController:resetState': mockResetState,
       'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:importRemainingSecrets': jest.fn(),
-      'QrSyncController:hasPendingSecretImports': jest
+      'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
+      'QrSyncController:prepareAccountsReview': jest
         .fn()
-        .mockResolvedValue(false),
+        .mockResolvedValue(undefined),
+      'QrSyncController:clearAccountsReview': jest.fn(),
       'KeyringController:getAccounts': jest.fn().mockResolvedValue([]),
     }),
     state: {
@@ -97,6 +106,8 @@ describe('AddDeviceToWallet', () => {
     jest.clearAllMocks();
     mockBeforeRemoveListeners.clear();
     mockIsQrTabSwitcherOpen = false;
+    clearQrSyncAccountsReview();
+    mockHasPendingSecretImports.mockResolvedValue(false);
   });
 
   describe('initial render', () => {
@@ -330,6 +341,23 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
+    const accountsReview = {
+      mode: 'new-user' as const,
+      sections: [
+        {
+          id: 'wallet:test',
+          walletName: 'Wallet 1',
+          accounts: [
+            {
+              id: 'wallet:test/0',
+              name: 'Account 1',
+              address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+            },
+          ],
+        },
+      ],
+    };
+
     const pendingSecretImports = {
       version: 1 as const,
       wallets: [
@@ -349,41 +377,77 @@ describe('AddDeviceToWallet', () => {
       ],
     };
 
-    it('navigates to import when awaiting password with pending secrets', async () => {
-      renderComponent({
+    it('shows imported accounts and continues to create a password', async () => {
+      const { findByText, getByTestId } = renderComponent({
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
+        accountsReview,
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          {
-            initialStep: 1,
-            qrSyncImport: true,
-          },
-          { pop: true },
-        );
-      });
+      expect(
+        await findByText(
+          strings('app_settings.add_device.accounts_imported_title_one', {
+            accountCount: 1,
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(await findByText('Account 1')).toBeOnTheScreen();
+      expect(await findByText('Wallet 1')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(AccountsImportedTestIds.CONTINUE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          initialStep: 1,
+          qrSyncImport: true,
+        },
+      );
     });
 
-    it('navigates to import after sync completes while secrets are still pending', async () => {
-      renderComponent({
+    it('returns to add-device instructions from the imported accounts screen', async () => {
+      const { findByTestId, getByText, queryByText } = renderComponent({
         phase: QrSyncPhases.COMPLETED,
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
+        accountsReview,
       });
 
+      fireEvent.press(await findByTestId(AccountsImportedTestIds.BACK));
+
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          {
-            initialStep: 1,
-            qrSyncImport: true,
-          },
-          { pop: true },
-        );
+        expect(mockResetState).toHaveBeenCalled();
       });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(
+        getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('app_settings.add_device.waiting_for_extension')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows imported accounts after an existing-user import and goes home on Done', async () => {
+      mockHasPendingSecretImports.mockResolvedValue(true);
+
+      const { findByText, getByTestId } = renderComponent(
+        {
+          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+          pendingSecretImports,
+          accountsReview: { ...accountsReview, mode: 'existing-user' },
+        },
+        true,
+      );
+
+      expect(
+        await findByText(strings('app_settings.add_device.done')),
+      ).toBeOnTheScreen();
+      expect(await findByText('Account 1')).toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+
+      fireEvent.press(getByTestId(AccountsImportedTestIds.CONTINUE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('keeps QR sync secrets when the screen is removed for import', () => {

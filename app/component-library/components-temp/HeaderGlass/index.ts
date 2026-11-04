@@ -8,5 +8,8 @@ export {
   default as HeaderGlassBackdrop,
   DEFAULT_FADE_IN_DISTANCE,
 } from './HeaderGlassBackdrop';
-export type { HeaderGlassBackdropProps } from './HeaderGlassBackdrop';
+export type {
+  HeaderGlassBackdropProps,
+  HeaderGlassEdge,
+} from './HeaderGlassBackdrop';
 export { useHeaderGlassInset } from './useHeaderGlassInset';

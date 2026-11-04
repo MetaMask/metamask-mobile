@@ -15,6 +15,7 @@ import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
+  type QrSyncAccountsReview,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
 } from './controller-types';
@@ -41,6 +42,10 @@ import {
   QrSyncSyncFlows,
   RELAY_URL,
 } from './constants';
+import {
+  buildImportedAccountSections,
+  importedAccountSectionsAreComplete,
+} from './buildImportedAccountSections';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
 import { hasTestOverrides } from '../../util/test/utils';
 import {
@@ -142,6 +147,12 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
+  accountsReview: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultQrSyncControllerState: QrSyncControllerState = {
@@ -153,6 +164,7 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
   provisioningStatus: null,
   otp: null,
   error: null,
+  accountsReview: null,
 };
 
 /**
@@ -260,6 +272,36 @@ export class QrSyncController extends BaseController<
    */
   public hasPendingSecretImports(): boolean {
     return this.state.pendingSecretImports !== null;
+  }
+
+  /**
+   * Derives review rows inside the controller so the UI never reads the SRP.
+   * Throws when no account address can be shown.
+   */
+  public async prepareAccountsReview(
+    mode: QrSyncAccountsReview['mode'],
+  ): Promise<void> {
+    const sections = await buildImportedAccountSections(
+      this.state.provisioningMetadata,
+      this.state.pendingSecretImports,
+    );
+    if (!importedAccountSectionsAreComplete(sections)) {
+      throw new Error('QR sync account review has no addresses');
+    }
+    this.update((state) => ({
+      ...state,
+      accountsReview: { mode, sections },
+    }));
+  }
+
+  public clearAccountsReview(): void {
+    if (!this.state.accountsReview) {
+      return;
+    }
+    this.update((state) => ({
+      ...state,
+      accountsReview: null,
+    }));
   }
 
   /**
@@ -428,9 +470,11 @@ export class QrSyncController extends BaseController<
    * Marks metadata provisioning complete and clears persisted metadata.
    */
   public completeProvisioning(): void {
+    const { accountsReview } = this.state;
     this.update(() => ({
       ...defaultQrSyncControllerState,
       provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
+      accountsReview,
     }));
   }
 

@@ -5,8 +5,23 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRScanner from '../QRScanner';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import AccountsImported from '../AddDeviceToWallet/AccountsImported';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DeviceAdded from '../AddDeviceToWallet/DeviceAdded';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import {
+  leaveQrSyncSession,
+  releaseQrSyncAccountsReviewHold,
+  useQrSyncInstructionsHold,
+} from '../../../core/QrSync/qrSyncAccountsReview';
+import {
+  selectQrSyncAccountsReview,
+  selectQrSyncError,
+  selectQrSyncIsSessionActive,
+  selectQrSyncPhase,
+  selectQrSyncPresentation,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -30,13 +45,6 @@ import {
 import { useMessenger } from '../../../hooks/useMessenger';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { RouteMessengerInstance } from './messenger';
-import {
-  selectQrSyncError,
-  selectQrSyncIsSessionActive,
-  selectQrSyncPhase,
-  selectQrSyncPresentation,
-  selectQrSyncShouldShowOtpSheet,
-} from '../../../selectors/qrSyncController';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 
@@ -160,8 +168,43 @@ const QRTabSwitcher = () => {
 
   useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
+  const review = useSelector(selectQrSyncAccountsReview);
+  const holdInstructions = useQrSyncInstructionsHold();
+
+  useEffect(() => {
+    if (!isAddDeviceOrigin || presentation !== 'instructions') {
+      return;
+    }
+    releaseQrSyncAccountsReviewHold();
+  }, [isAddDeviceOrigin, presentation]);
+
+  useEffect(() => {
+    if (
+      !isAddDeviceOrigin ||
+      !review ||
+      typeof navigation.addListener !== 'function'
+    ) {
+      return undefined;
+    }
+
+    return navigation.addListener('beforeRemove', (event) => {
+      if (event.data.action.type !== 'GO_BACK') {
+        return;
+      }
+      void leaveQrSyncSession(async () => {
+        try {
+          await messenger.call('QrSyncController:clearAccountsReview');
+        } catch {
+          // Review clear is best-effort when the action is unavailable.
+        }
+        await messenger.call('QrSyncController:resetState');
+      });
+    });
+  }, [isAddDeviceOrigin, messenger, navigation, review]);
+
   const showDeviceAddedLoader =
     isAddDeviceOrigin &&
+    !holdInstructions &&
     (presentation === 'device-linked' ||
       keepWaitingScreenAfterCancelRef.current);
 
@@ -267,6 +310,14 @@ const QRTabSwitcher = () => {
       }
     }
   };
+
+  if (isAddDeviceOrigin && holdInstructions) {
+    return null;
+  }
+
+  if (isAddDeviceOrigin && review) {
+    return <AccountsImported returnFromScanner />;
+  }
 
   if (showDeviceAddedLoader) {
     return <DeviceAdded />;

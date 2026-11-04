@@ -9,9 +9,8 @@ import type { AppNavigationProp } from '../NavigationService/types';
 import { useMessenger } from '../../hooks/useMessenger';
 import { QrSyncSyncFlows } from './constants';
 import type { RouteMessengerInstance } from './route-messenger';
-import { navigateToQrSyncImport } from './navigateToQrSyncImport';
-import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
+import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 import Logger from '../../util/Logger';
 import {
@@ -43,13 +42,13 @@ let inFlightImportNavigation: Promise<void> | null = null;
  * `provisioningMetadata` payload — even when Phase B imported no new secrets
  * (the common case: primary-only payload, names/groups changed on extension).
  *
- * Account count before vs. after Phase B determines whether to show the
- * "already synced" sheet after navigation (Phase C always runs either way).
+ * A successful import returns `review` so the accounts screen can show before
+ * home. Import failure with no new accounts still sends the user home.
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
   messenger: RouteMessengerInstance,
-): Promise<void> => {
+): Promise<'review' | 'failed'> => {
   const accountsBefore = await messenger.call('KeyringController:getAccounts');
   let importFailed = false;
 
@@ -72,7 +71,7 @@ const finishExistingUserSyncWithoutMnemonic = async (
     await messenger.call('QrSyncController:resetState');
     navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
-    return;
+    return 'failed';
   }
 
   // Phase C: non-blocking, matches new-user finalizeOnboardingCompletion pattern.
@@ -82,17 +81,15 @@ const finishExistingUserSyncWithoutMnemonic = async (
   startExistingUserQrMetadataProvisioning(
     QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
   );
-  navigation.navigate(Routes.WALLET_VIEW);
-
-  // Show "already synced" sheet after navigation when no new wallets were imported.
-  if (!addedNewAccounts) {
-    showAlreadySyncedSheet(navigation);
-  }
+  return 'review';
 };
 
 /**
  * Drives vault import / onboarding navigation after QR sync Phase A
  * (SYNC_READY → awaiting_password with pending secrets).
+ *
+ * The account review is built inside the controller before secrets are cleared.
+ * An incomplete review is reported and not shown. Existing users still import.
  */
 export const useQrSyncImportNavigation = ({
   enabled,
@@ -118,56 +115,84 @@ export const useQrSyncImportNavigation = ({
       return;
     }
 
-    if (completedOnboarding) {
-      hasHandledImportNavigationRef.current = true;
-
-      inFlightImportNavigation = (async () => {
-        let hasPendingSecretImports: boolean;
-        try {
-          // Live controller check — Redux can lag/strip ephemeral secrets.
-          hasPendingSecretImports = await messenger.call(
-            'QrSyncController:hasPendingSecretImports',
-          );
-        } catch (error: unknown) {
-          hasHandledImportNavigationRef.current = false;
-          reportQrSyncFailure(error, {
-            surface: QrSyncSurfaces.IMPORT,
-            operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
-            source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
-            syncFlow: QrSyncSyncFlows.EXISTING_USER,
-          });
-          return;
-        }
-
-        if (!hasPendingSecretImports) {
-          Logger.log(
-            'QR sync existing-user import: no pending secrets in sync data',
-          );
-          await messenger.call('QrSyncController:resetState');
-          navigation.navigate(Routes.WALLET_VIEW);
-          return;
-        }
-
-        try {
-          await finishExistingUserSyncWithoutMnemonic(navigation, messenger);
-        } catch (error: unknown) {
-          hasHandledImportNavigationRef.current = false;
-          await messenger.call('QrSyncController:resetState');
-          reportQrSyncFailure(error, {
-            surface: QrSyncSurfaces.IMPORT,
-            operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
-            source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
-            syncFlow: QrSyncSyncFlows.EXISTING_USER,
-          });
-        }
-      })().finally(() => {
-        inFlightImportNavigation = null;
-      });
-      return;
-    }
-
     hasHandledImportNavigationRef.current = true;
-    navigateToQrSyncImport(navigation);
+
+    inFlightImportNavigation = (async () => {
+      const reviewMode = completedOnboarding ? 'existing-user' : 'new-user';
+      let reviewReady = false;
+      try {
+        await messenger.call(
+          'QrSyncController:prepareAccountsReview',
+          reviewMode,
+        );
+        reviewReady = true;
+      } catch (error: unknown) {
+        reportQrSyncFailure(error, {
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.BUILD_IMPORTED_ACCOUNT_SECTIONS,
+          source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+          ...(completedOnboarding
+            ? { syncFlow: QrSyncSyncFlows.EXISTING_USER }
+            : {}),
+        });
+      }
+
+      if (!completedOnboarding) {
+        // A missing review must not trap the user on the waiting screen.
+        // The password step still imports the pending secrets.
+        if (!reviewReady) {
+          navigateToQrSyncImport(navigation);
+        }
+        return;
+      }
+
+      let hasPendingSecretImports: boolean;
+      try {
+        // Live controller check — Redux can lag/strip ephemeral secrets.
+        hasPendingSecretImports = await messenger.call(
+          'QrSyncController:hasPendingSecretImports',
+        );
+      } catch (error: unknown) {
+        hasHandledImportNavigationRef.current = false;
+        reportQrSyncFailure(error, {
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+          source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+          syncFlow: QrSyncSyncFlows.EXISTING_USER,
+        });
+        return;
+      }
+
+      if (!hasPendingSecretImports) {
+        Logger.log(
+          'QR sync existing-user import: no pending secrets in sync data',
+        );
+        await messenger.call('QrSyncController:resetState');
+        navigation.navigate(Routes.WALLET_VIEW);
+        return;
+      }
+
+      try {
+        const result = await finishExistingUserSyncWithoutMnemonic(
+          navigation,
+          messenger,
+        );
+        if (result === 'review' && !reviewReady) {
+          navigation.navigate(Routes.WALLET_VIEW);
+        }
+      } catch (error: unknown) {
+        hasHandledImportNavigationRef.current = false;
+        await messenger.call('QrSyncController:resetState');
+        reportQrSyncFailure(error, {
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+          source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+          syncFlow: QrSyncSyncFlows.EXISTING_USER,
+        });
+      }
+    })().finally(() => {
+      inFlightImportNavigation = null;
+    });
   }, [
     completedOnboarding,
     enabled,

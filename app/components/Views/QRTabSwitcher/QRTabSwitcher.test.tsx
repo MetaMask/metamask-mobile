@@ -14,6 +14,9 @@ import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
 import { RouteMessengerContext } from '../../../contexts/route-messenger';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { AccountsImportedTestIds } from '../AddDeviceToWallet/AccountsImported.testIds';
+import { clearQrSyncAccountsReview } from '../../../core/QrSync/qrSyncAccountsReview';
 
 const { ButtonIcon } = jest.requireActual(
   '@metamask/design-system-react-native',
@@ -124,6 +127,10 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
       'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
       'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
+      'QrSyncController:prepareAccountsReview': jest
+        .fn()
+        .mockResolvedValue(undefined),
+      'QrSyncController:clearAccountsReview': jest.fn(),
       'KeyringController:getAccounts': mockGetAccounts,
     })}
   >
@@ -168,6 +175,7 @@ const renderWithQrSyncState = (
         onboarding: {
           completedOnboarding,
         },
+        settings: {},
       } as RootState),
   );
 
@@ -194,6 +202,7 @@ describe('QRTabSwitcher', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockHasPendingSecretImports.mockResolvedValue(false);
+    clearQrSyncAccountsReview();
   });
 
   afterEach(() => {
@@ -345,10 +354,26 @@ describe('QRTabSwitcher', () => {
     });
   });
 
-  it('navigates to import when awaiting password with pending secrets for new users', async () => {
-    renderAddDeviceFlow(
+  it('shows imported accounts then continues to create a password for new users', async () => {
+    const { findByText, getByTestId } = renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        accountsReview: {
+          mode: 'new-user',
+          sections: [
+            {
+              id: 'wallet:test',
+              walletName: 'Wallet 1',
+              accounts: [
+                {
+                  id: 'wallet:test/0',
+                  name: 'Account 1',
+                  address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+                },
+              ],
+            },
+          ],
+        },
         pendingSecretImports: {
           version: 1 as const,
           wallets: [
@@ -375,27 +400,50 @@ describe('QRTabSwitcher', () => {
       false,
     );
 
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        {
-          initialStep: 1,
-          qrSyncImport: true,
-        },
-        { pop: true },
-      );
-    });
+    expect(
+      await findByText(
+        strings('app_settings.add_device.accounts_imported_title_one', {
+          accountCount: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(AccountsImportedTestIds.CONTINUE));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      {
+        initialStep: 1,
+        qrSyncImport: true,
+      },
+    );
   });
 
-  it('imports remaining secrets and navigates home for existing users', async () => {
+  it('imports remaining secrets then goes home when Done is pressed', async () => {
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
       .mockResolvedValueOnce(['0xold', '0xnew']);
 
-    renderAddDeviceFlow(
+    const { findByText, getByTestId } = renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        accountsReview: {
+          mode: 'existing-user',
+          sections: [
+            {
+              id: 'wallet:test',
+              walletName: 'Wallet 1',
+              accounts: [
+                {
+                  id: 'wallet:test/0',
+                  name: 'Account 1',
+                  address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+                },
+              ],
+            },
+          ],
+        },
         pendingSecretImports: {
           version: 1 as const,
           wallets: [
@@ -427,8 +475,14 @@ describe('QRTabSwitcher', () => {
       expect(mockStartExistingUserQrMetadataProvisioning).toHaveBeenCalledTimes(
         1,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+
+    expect(
+      await findByText(strings('app_settings.add_device.done')),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(AccountsImportedTestIds.CONTINUE));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,

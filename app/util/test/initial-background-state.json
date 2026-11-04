@@ -966,7 +966,8 @@
     "provisioningMetadata": null,
     "provisioningStatus": null,
     "otp": null,
-    "error": null
+    "error": null,
+    "accountsReview": null
   },
   "AiDigestController": {},
   "RampsController": {

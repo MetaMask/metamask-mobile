@@ -18,8 +18,16 @@ import type {
   QrSyncProvisioningStatus,
 } from './types';
 import type { QrSyncSyncFlow } from './constants';
+import type { ImportedAccountSection } from './buildImportedAccountSections';
 
 export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
+
+/** Addresses and names for the accounts-imported screen. No secret material. */
+export interface QrSyncAccountsReview {
+  [key: string]: 'new-user' | 'existing-user' | ImportedAccountSection[];
+  mode: 'new-user' | 'existing-user';
+  sections: ImportedAccountSection[];
+}
 
 /** Serializable UI-safe state owned by the QR sync controller. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -34,6 +42,8 @@ export type QrSyncControllerState = {
   provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;
+  /** Derived account list for the review screen. Cleared with the sync session. */
+  accountsReview: QrSyncAccountsReview | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -72,6 +82,16 @@ export type QrSyncControllerHasPendingSecretImportsAction = {
   handler: () => boolean;
 };
 
+export interface QrSyncControllerPrepareAccountsReviewAction {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:prepareAccountsReview`;
+  handler: (mode: QrSyncAccountsReview['mode']) => Promise<void>;
+}
+
+export interface QrSyncControllerClearAccountsReviewAction {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:clearAccountsReview`;
+  handler: () => void;
+}
+
 export type QrSyncControllerGetStateAction = ControllerGetStateAction<
   typeof QR_SYNC_CONTROLLER_NAME,
   QrSyncControllerState
@@ -85,7 +105,9 @@ export type QrSyncControllerActions =
   | QrSyncControllerCompleteProvisioningAction
   | QrSyncControllerResetStateAction
   | QrSyncControllerHandleScannedQrPayloadAction
-  | QrSyncControllerHasPendingSecretImportsAction;
+  | QrSyncControllerHasPendingSecretImportsAction
+  | QrSyncControllerPrepareAccountsReviewAction
+  | QrSyncControllerClearAccountsReviewAction;
 
 /** Controller-local events emitted by the QR sync controller namespace. */
 export type QrSyncControllerEvents = ControllerStateChangeEvent<

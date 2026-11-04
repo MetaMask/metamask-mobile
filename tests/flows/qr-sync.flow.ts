@@ -9,6 +9,7 @@ import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
+import AccountsImportedView from '../page-objects/Onboarding/AccountsImportedView';
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
@@ -85,8 +86,8 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → social import sheet → Import from MetaMask extension
- * → inject sync-ready → create password → MetaMetrics → wallet home.
+ * New-user path: onboarding → Import from MetaMask extension → inject sync-ready
+ * → accounts imported → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
   mnemonic = IDENTITY_TEAM_SEED_PHRASE,
@@ -120,6 +121,9 @@ export const completeNewUserQrSyncSrp = async ({
     accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
     commandQueueServer,
   });
+
+  await AccountsImportedView.expectScreenVisible();
+  await AccountsImportedView.tapContinue();
 
   await Assertions.expectElementToBeVisible(
     CreatePasswordView.newPasswordInput,
@@ -158,7 +162,7 @@ export const completeNewUserQrSyncSrp = async ({
 
 /**
  * Existing-user path: login → Add Wallet → Link extension → inject sync-ready
- * → wallet home with one additional SRP imported.
+ * → accounts imported → Done → wallet home with one additional SRP imported.
  *
  */
 export const completeExistingUserQrSyncSrp = async ({
@@ -184,6 +188,9 @@ export const completeExistingUserQrSyncSrp = async ({
     accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
     commandQueueServer,
   });
+
+  await AccountsImportedView.expectScreenVisible();
+  await AccountsImportedView.tapContinue();
 
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
