@@ -742,6 +742,19 @@ function BuildQuote() {
       })
     : strings('fiat_on_ramp.no_quotes_available');
 
+  // Same line box as "Powered by …". An empty string collapses, which
+  // shortens the action section and shifts the centered amount.
+  const actionMessagePlaceholder = (
+    <Text
+      accessible={false}
+      testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
+      variant={TextVariant.BodySm}
+      style={styles.poweredByText}
+    >
+      {'\u00a0'}
+    </Text>
+  );
+
   const actionSectionMessage = (() => {
     if (rampsError) {
       return (
@@ -791,15 +804,7 @@ function BuildQuote() {
         </Text>
       );
     }
-    return (
-      <Text
-        testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
-        variant={TextVariant.BodySm}
-        style={styles.poweredByText}
-      >
-        {''}
-      </Text>
-    );
+    return actionMessagePlaceholder;
   })();
 
   return (
@@ -918,15 +923,16 @@ function BuildQuote() {
                   </Button>
                 )}
               </>
-            ) : (
-              quickAmounts.length > 0 && (
+            ) : quickAmounts.length > 0 ? (
+              <>
+                {actionMessagePlaceholder}
                 <QuickAmounts
                   amounts={quickAmounts}
                   currency={currency}
                   onAmountPress={handleQuickAmountPress}
                 />
-              )
-            )}
+              </>
+            ) : null}
           </View>
           <Keypad
             currency={currency}

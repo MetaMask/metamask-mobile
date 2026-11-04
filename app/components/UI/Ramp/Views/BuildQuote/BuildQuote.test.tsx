@@ -588,6 +588,27 @@ describe('BuildQuote', () => {
   });
 
   describe('handleQuickAmountPress', () => {
+    it('keeps the attribution row mounted when the amount is cleared', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-empty'));
+      });
+
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER),
+      ).toBeOnTheScreen();
+      expect(getByTestId('mock-quick-amounts')).toBeOnTheScreen();
+      expect(
+        queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('tracks RAMPS_QUICK_AMOUNT_CLICKED when quick amount pressed', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
