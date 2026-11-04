@@ -3821,7 +3821,7 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
-        it('includes tx_hash from bridge history when the submit result has none', async () => {
+        it('omits tx_hash when an intent history item has no chain hash', async () => {
           mockSuccessfulSubmit();
           (
             Engine.context.BridgeStatusController.submitTx as jest.Mock
@@ -3845,9 +3845,43 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success' }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
+          );
+        });
+
+        it('includes tx_hash from bridge history when the submit result has none', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-stx' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<
+                  string,
+                  { status?: { srcChain?: { txHash?: string } } }
+                >;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'tx-stx': { status: { srcChain: { txHash: '0xsrc' } } },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({
               status: 'success',
-              tx_hash: 'order-uid-1',
+              tx_hash: '0xsrc',
             }),
           );
         });

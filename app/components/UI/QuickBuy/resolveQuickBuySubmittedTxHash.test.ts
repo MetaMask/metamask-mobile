@@ -45,7 +45,7 @@ describe('resolveQuickBuySubmittedTxHash', () => {
     ).toBe('0xsrc');
   });
 
-  it('uses the intent order id when the submit result has no chain hash', () => {
+  it('omits tx_hash when an intent has no on-chain hash yet', () => {
     const history: QuickBuyBridgeHistoryItem = {
       originalTransactionId: 'synthetic-1',
       status: { srcChain: {} },
@@ -56,7 +56,7 @@ describe('resolveQuickBuySubmittedTxHash', () => {
         { id: 'synthetic-1' },
         { historyEntries: [['order-uid-1', history]] },
       ),
-    ).toBe('order-uid-1');
+    ).toBeUndefined();
   });
 
   it('uses the transaction controller hash for a hardware-wallet submit', () => {

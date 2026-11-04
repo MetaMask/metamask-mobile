@@ -1,9 +1,9 @@
 /**
- * Hash of a Quick Buy that the bridge controller has accepted.
+ * On-chain hash of a Quick Buy the bridge controller has accepted.
  * Intent, smart-transaction, and hardware-wallet submits often return a
  * transaction meta whose `hash` is still empty. The chain hash then lives on
- * the bridge history item or the TransactionController meta. An intent with
- * no chain hash yet is identified by its order id, which is the history key.
+ * the receipt, the bridge history item, or the TransactionController meta.
+ * An intent order id is not a chain hash, so it is never used here.
  */
 export interface QuickBuySubmittedTx {
   id?: string;
@@ -41,21 +41,9 @@ const hashFromTransaction = (
 
 const hashFromHistory = (
   item: QuickBuyBridgeHistoryItem | undefined,
-  historyKey: string | undefined,
-  transactionId: string,
-): string | undefined => {
-  const chainHash =
-    nonEmptyString(item?.reportedSubmittedTxHash) ??
-    nonEmptyString(item?.status?.srcChain?.txHash);
-  if (chainHash) {
-    return chainHash;
-  }
-  // Intent orders are stored under the order id, not the synthetic tx id.
-  if (historyKey && historyKey !== transactionId) {
-    return nonEmptyString(historyKey);
-  }
-  return undefined;
-};
+): string | undefined =>
+  nonEmptyString(item?.reportedSubmittedTxHash) ??
+  nonEmptyString(item?.status?.srcChain?.txHash);
 
 export const resolveQuickBuySubmittedTxHash = (
   submitResult: QuickBuySubmittedTx | null | undefined,
@@ -75,11 +63,7 @@ export const resolveQuickBuySubmittedTxHash = (
     return undefined;
   }
 
-  const keyedHash = hashFromHistory(
-    getHistoryItem?.(transactionId),
-    transactionId,
-    transactionId,
-  );
+  const keyedHash = hashFromHistory(getHistoryItem?.(transactionId));
   if (keyedHash) {
     return keyedHash;
   }
@@ -93,7 +77,7 @@ export const resolveQuickBuySubmittedTxHash = (
       if (!matches) {
         continue;
       }
-      const historyHash = hashFromHistory(item, historyKey, transactionId);
+      const historyHash = hashFromHistory(item);
       if (historyHash) {
         return historyHash;
       }
