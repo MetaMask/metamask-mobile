@@ -11,7 +11,7 @@ description: >
 compatibility: Node.js 18+ in a MetaMask Mobile checkout. Replit Agent or any agent that reads Agent Skills.
 metadata:
   author: MetaMask Mobile design
-  version: "0"
+  version: "0.1"
 ---
 
 # Designer language toggle
@@ -48,7 +48,7 @@ Start a new Agent chat after linking.
 | Flag strings in German for Perps | `check-strings.js --lang de --feature perps` |
 | Same for Social, or a namespace | `--feature social` or `--namespace social_leaderboard` |
 | Stress truncation / pseudo / longest translation | `apply-locale.js --pseudo longest` or `--pseudo accented` |
-| Which strings are on this screen, for a linguist | `screenshot-keys.js --feature perps` (or `social`) |
+| Which strings are on this screen, for a linguist | `screenshot-keys.js --feature perps --lang de` (or `social`) |
 | Put it back / revert | `revert-locale.js` |
 
 Run the scripts from the repo root with `node tools/designer-language-toggle/scripts/<name>.js`.
@@ -80,11 +80,13 @@ Do not use `--dry-run` unless they only want to see the plan.
 node tools/designer-language-toggle/scripts/check-strings.js --lang de --feature perps
 ```
 
-Reply with the summary counts (missing, still English, too long), the focus controls, and a few examples. Do not dump the whole list unless they ask. Mention regional files in one or two sentences: they are checked, and the app does not import them.
+Reply with the summary counts: missing, still English, over the limit, too long, and check wrapping. Include the hard-limit lines for the Pro buttons and Post to feed when the scope is Perps. Do not dump the whole list unless they ask. Mention regional files in one or two sentences: they are checked, and the app does not import them.
+
+Too long is for short labels (English is 25 graphemes or fewer) that grew enough to clip. Check wrapping is for longer sentences. Over the limit uses `references/limits.json`. A designer can change those widths without editing the script.
 
 `--strict` includes strings that are English in most languages (product names and tokens). Default skips those.
 
-The check never writes locale JSON.
+The check never writes locale JSON. `--format json` prints the same findings as JSON when a tool needs them.
 
 ## Pseudo and screenshots
 
@@ -92,7 +94,7 @@ The check never writes locale JSON.
 - `longest` uses the widest shipped translation of each key.
 - After either one, tell them to reload, that RTL is off, and how to revert.
 - Settings shows `ps` for this mode because the screen keeps only the first two letters of the locale code. The strings are still the stress bundle.
-- For linguists, run `screenshot-keys.js` and point at `FEEDBACK.md`. Do not file the JSON edit yourself.
+- For linguists, run `screenshot-keys.js --lang <language>`. It lists the English string, the translation, every `{{placeholder}}`, and sibling plural forms. Point at `FEEDBACK.md`. Do not file the JSON edit yourself.
 
 ## If a script fails
 

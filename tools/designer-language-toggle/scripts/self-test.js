@@ -81,10 +81,13 @@ function makeFixture() {
 
 function testWidthAndAccent() {
   assert(lib.displayWidth('Close') === 5, 'Close width');
-  assert(lib.charCount('Schließen') === 9, 'Schließen chars');
+  assert(lib.charCount('Schließen') === 9, 'Schließen graphemes');
   assert(lib.displayWidth('閉じる') === 6, 'Japanese close width');
-  assert(lib.charCount('Реверсировать') === 13, 'Russian reverse chars');
-  assert(lib.charCount('Compartilhar') === 12, 'Portuguese share chars');
+  assert(lib.charCount('Реверсировать') === 13, 'Russian reverse graphemes');
+  assert(lib.charCount('Compartilhar') === 12, 'Portuguese share graphemes');
+  assert(lib.charCount('कि') === 1, 'Hindi grapheme is one cluster');
+  assert(lib.displayWidth('कि') === 1, 'Hindi grapheme width is 1');
+  assert([...('कि')].length === 2, 'Hindi cluster is two code points');
   const accented = lib.accentString('Hello {{name}}');
   assert(accented.includes('{{name}}'), 'placeholders survive accenting');
   assert(accented.startsWith('⟦') && accented.endsWith('⟧'), 'accent brackets');
@@ -125,6 +128,70 @@ function testAnalyze(root) {
     'long reverse is too long',
   );
   assert(!longKeys.includes('perps.card.share'), 'Teilen is not over the delta');
+  const ruled = lib.analyzePair(
+    {
+      'perps.card.close': 'Close',
+      'perps.blurb': 'This sentence is definitely longer than twenty five.',
+      'perps.hello': 'Hello {{name}}',
+      'perps.orders.one': '{{count}} order',
+      'perps.orders.other': '{{count}} orders',
+    },
+    {
+      'perps.card.close': 'Schließen',
+      'perps.blurb':
+        'Dieser Satz ist absichtlich viel länger als das englische Original und soll umbrechen.',
+      'perps.hello': 'Hallo',
+      'perps.orders.other': '{{count}} Bestellungen',
+    },
+    {
+      namespaces: ['perps'],
+      sharedFlats: { en: {}, de: {} },
+      strict: true,
+      ratio: 1.4,
+      minDelta: 4,
+      minEnWidth: 4,
+      limits: {
+        shortStringMaxGraphemes: 25,
+        ratio: 1.4,
+        minDelta: 4,
+        minEnglishWidth: 4,
+        keys: {
+          'perps.card.close': { maxWidth: 8, where: 'fixture button' },
+          'perps.position.card.post_to_feed': { maxWidth: 16, where: 'missing' },
+        },
+      },
+    },
+  );
+  assert(
+    ruled.overLimit.some((row) => row.key === 'perps.card.close'),
+    'Schließen is over the hard limit of 8',
+  );
+  assert(
+    ruled.limitChecks.some(
+      (row) => row.key === 'perps.position.card.post_to_feed' && row.status === 'missing',
+    ),
+    'missing hard-limit key is reported missing, not over',
+  );
+  assert(
+    ruled.checkWrapping.some((row) => row.key === 'perps.blurb'),
+    'long English copy goes to check wrapping',
+  );
+  assert(
+    !ruled.tooLong.some((row) => row.key === 'perps.blurb'),
+    'long English copy is not also too long',
+  );
+  assert(
+    ruled.placeholderMismatches.some(
+      (row) => row.key === 'perps.hello' && row.missing.includes('name'),
+    ),
+    'dropped placeholder is reported',
+  );
+  assert(
+    ruled.pluralGaps.some(
+      (row) => row.stem === 'perps.orders' && row.missingForms.includes('one'),
+    ),
+    'partial plural gap is reported',
+  );
   const dates = lib.scanDateValues(deFlat, ['perps']);
   assert(
     dates.some((row) => row.key === 'perps.date_hint'),

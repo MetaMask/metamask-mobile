@@ -1,0 +1,97 @@
+Language: hi (हिन्दी)
+File: locales/languages/hi.json
+This is the file locales/i18n.js imports. The Android preview uses this file.
+Scope: perps
+Limits: tools/designer-language-toggle/references/limits.json
+RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+
+Keys in scope: 1417
+Missing: 9
+Still English: 7
+Over the limit: 0
+Too long: 21
+Check wrapping: 0
+Placeholder mismatches: 0
+Plural forms partly missing: 0
+Skipped as shared names or tokens: 40
+Extra keys not in English: 2
+Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
+
+Hard limits
+  perps.pro_positions_panel.card.close  max 8  ok  "बंद करें" (5 graphemes, width 5)
+    Perps Pro position card, Close. Three buttons share one row.
+  perps.pro_positions_panel.card.reverse  max 8  ok  "रिवर्स करें" (6 graphemes, width 6)
+    Perps Pro position card, Reverse. Three buttons share one row.
+  perps.pro_positions_panel.card.share  max 8  ok  "साझा करें" (5 graphemes, width 5)
+    Perps Pro position card, Share. Three buttons share one row.
+  perps.position.card.post_to_feed  max 16  missing  not in this file
+    Post to feed on a position card.
+
+Over the limit (0)
+  None.
+
+Missing (9)
+  perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_with_bridge  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{br…"
+  perps.trade_sheet.includes_fee_after_promo_discounted  en "Includes {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_discounted_with_bridge  en "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee"
+  perps.trade_sheet.includes_fee_after_promo_a11y  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%"
+  perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, …"
+  perps.order.fees_taker_maker  en "Taker {{taker}}% / Maker {{maker}}%"
+  perps.position.card.post_to_feed  en "Post to feed"
+  … 1 more. Re-run with --limit 9 to see all.
+
+Still English (7)
+  perps.home.tabs.pre_ipo  "Pre-IPO"
+  perps.market.badge.pre-ipo  "PRE-IPO"
+  perps.pro_order_form.tpsl  "TP / SL"
+  perps.pro_positions_panel.card.tp_sl  "TP / SL"
+  perps.pro_positions_panel.order_card.tp_sl  "TP / SL"
+  perps.market.badge.index  "INDEX"
+  perps.home.tabs.etf  "ETFs"
+
+Too long (21)
+  perps.sort.sort_by  en "Sort by" (7 graphemes, width 7)  →  "इसके अनुसार क्रमबद्ध करें" (16 graphemes, width 16, 2.29x)
+  perps.errors.unknown.retry  en "Retry" (5 graphemes, width 5)  →  "फिर से प्रयास करें" (11 graphemes, width 11, 2.20x)
+  perps.connection.websocket_retry  en "Retry" (5 graphemes, width 5)  →  "फिर से प्रयास करें" (11 graphemes, width 11, 2.20x)
+  perps.testnet  en "Testnet" (7 graphemes, width 7)  →  "टैस्टनेट (testnet)" (14 graphemes, width 14, 2.00x)
+  perps.tap_to_retry  en "Tap to retry" (12 graphemes, width 12)  →  "फिर से प्रयास करने के लिए टैप करें" (23 graphemes, width 23, 1.92x)
+  perps.deposit.slippage  en "Slippage" (8 graphemes, width 8)  →  "स्लिपेज (slippage)" (14 graphemes, width 14, 1.75x)
+  perps.slippage.slippage  en "Slippage" (8 graphemes, width 8)  →  "स्लिपेज (slippage)" (14 graphemes, width 14, 1.75x)
+  perps.deposit.quote_expired_modal.title  en "Quote expired" (13 graphemes, width 13)  →  "कोटेशन की समय सीमा समाप्त हो गई" (22 graphemes, width 22, 1.69x)
+  … 13 more. Re-run with --limit 21 to see all.
+
+Check wrapping (0)
+  None.
+
+Placeholder mismatches (0)
+  None.
+
+Plural forms partly missing (0)
+  None.
+
+Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
+
+Date hints in this locale file (0)
+  None.
+
+Date hints in screen code (app/components/UI/Perps) (36)
+  app/components/UI/Perps/utils/formatUtils.ts:1419  [english-month-list]  English month abbreviations (Jan, Feb, …)
+  app/components/UI/Perps/utils/formatUtils.ts:1393  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1413  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1385  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1390  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1406  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1410  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1490  [hard-coded-en-US-date]  const month = getIntlDateTimeFormatter('en-US', {
+  … 28 more. Re-run with --limit 36 to see all.
+
+Regional files (not imported by locales/i18n.js)
+  locales/languages/hi-in.json: 1339 strings. The preview does not load this file.
+    In scope (perps): keys=1417 missing=1417 still_english=0 too_long=0 check_wrapping=0 over_limit=0
+    This regional file has none of the scoped English strings. It looks like an older bundle.
+
+Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
+
+SUMMARY hi perps missing=9 still_english=7 too_long=21 check_wrapping=0 over_limit=0 placeholder_mismatches=0 plural_gaps=0 date_hints=36
+No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

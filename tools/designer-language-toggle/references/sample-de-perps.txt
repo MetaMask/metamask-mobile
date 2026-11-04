@@ -2,27 +2,33 @@ Language: de (Deutsch)
 File: locales/languages/de.json
 This is the file locales/i18n.js imports. The Android preview uses this file.
 Scope: perps
+Limits: tools/designer-language-toggle/references/limits.json
 RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
 
 Keys in scope: 1417
 Missing: 9
 Still English: 73
-Too long: 374
-Too long, short English (12 width or less, the button-sized ones): 160
+Over the limit: 1
+Too long: 263
+Check wrapping: 111
+Placeholder mismatches: 0
+Plural forms partly missing: 0
 Skipped as shared names or tokens: 38
 Extra keys not in English: 2
-Too-long rule: display width >= English x 1.4, and at least 4 width units longer, and English is at least 4 wide. Placeholders are ignored. CJK, kana, and hangul count as 2.
+Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
 
-Focus controls
-  perps.pro_positions_panel.card.close
-    Perps position card, Close. Three buttons share one row (flex-1). Designers budget about 114px.
-    en "Close" (5 chars, width 5)  →  "Schließen" (9 chars, width 9)
-  perps.pro_positions_panel.card.reverse
-    Perps position card, Reverse. A long shipped example is Russian.
-    en "Reverse" (7 chars, width 7)  →  "Umkehren" (8 chars, width 8)
-  perps.pro_positions_panel.card.share
-    Perps position card, Share. A long shipped example is Portuguese in pt.json (the file the app loads).
-    en "Share" (5 chars, width 5)  →  "Teilen" (6 chars, width 6)
+Hard limits
+  perps.pro_positions_panel.card.close  max 8  over  "Schließen" (9 graphemes, width 9)
+    Perps Pro position card, Close. Three buttons share one row.
+  perps.pro_positions_panel.card.reverse  max 8  ok  "Umkehren" (8 graphemes, width 8)
+    Perps Pro position card, Reverse. Three buttons share one row.
+  perps.pro_positions_panel.card.share  max 8  ok  "Teilen" (6 graphemes, width 6)
+    Perps Pro position card, Share. Three buttons share one row.
+  perps.position.card.post_to_feed  max 16  missing  not in this file
+    Post to feed on a position card.
+
+Over the limit (1)
+  perps.pro_positions_panel.card.close  max 8  "Schließen" (9 graphemes, width 9)
 
 Missing (9)
   perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
@@ -33,7 +39,7 @@ Missing (9)
   perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, …"
   perps.order.fees_taker_maker  en "Taker {{taker}}% / Maker {{maker}}%"
   perps.position.card.post_to_feed  en "Post to feed"
-  perps.tooltips.fees.original_fee_value  en "was {{fee}}"
+  … 1 more. Re-run with --limit 9 to see all.
 
 Still English (73)
   perps.pro_positions_panel.orders_with_count  "Orders ({{count}})"
@@ -44,26 +50,35 @@ Still English (73)
   perps.pro_order_form.scale.start_price  "Start (USD)"
   perps.home.tabs.memecoin  "Memecoins"
   perps.home.watchlist  "Watchlist"
-  perps.market.countdown  "Countdown"
-  perps.sort.favorites  "Watchlist"
-  perps.watchlist.filter_badge_label  "Watchlist"
-  perps.deposit.slippage  "Slippage"
-  … 61 more. Re-run with --limit 73 to see all.
+  … 65 more. Re-run with --limit 73 to see all.
 
-Too long (374)
-  perps.errors.unknown.retry  en "Retry" (5 chars, width 5)  →  "Erneut versuchen" (16 chars, width 16, 3.20x)
-  perps.connection.websocket_retry  en "Retry" (5 chars, width 5)  →  "Erneut versuchen" (16 chars, width 16, 3.20x)
-  perps.tutorial.skip  en "Skip" (4 chars, width 4)  →  "Überspringen" (12 chars, width 12, 3.00x)
-  perps.slippage.custom  en "Custom" (6 chars, width 6)  →  "Benutzerdefiniert" (17 chars, width 17, 2.83x)
-  perps.deposit.slippage_auto  en "Auto" (4 chars, width 4)  →  "Automatisch" (11 chars, width 11, 2.75x)
-  perps.transactions.funding.rate  en "Rate" (4 chars, width 4)  →  "Wechselkurs" (11 chars, width 11, 2.75x)
-  perps.auto_close.edit_button  en "Edit" (4 chars, width 4)  →  "Bearbeiten" (10 chars, width 10, 2.50x)
-  perps.pro_positions_panel.order_card.edit  en "Edit" (4 chars, width 4)  →  "Bearbeiten" (10 chars, width 10, 2.50x)
-  perps.order_book.asks  en "Asks" (4 chars, width 4)  →  "Briefkurse" (10 chars, width 10, 2.50x)
-  perps.tap_to_retry  en "Tap to retry" (12 chars, width 12)  →  "Antippen zum erneuten Versuch" (29 chars, width 29, 2.42x)
-  perps.order_details.limit_buy  en "Limit Long" (10 chars, width 10)  →  "Long-Position limitieren" (24 chars, width 24, 2.40x)
-  perps.sort.reset  en "Reset" (5 chars, width 5)  →  "Zurücksetzen" (12 chars, width 12, 2.40x)
-  … 362 more. Re-run with --limit 374 to see all.
+Too long (263)
+  perps.errors.unknown.retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
+  perps.connection.websocket_retry  en "Retry" (5 graphemes, width 5)  →  "Erneut versuchen" (16 graphemes, width 16, 3.20x)
+  perps.tutorial.skip  en "Skip" (4 graphemes, width 4)  →  "Überspringen" (12 graphemes, width 12, 3.00x)
+  perps.slippage.custom  en "Custom" (6 graphemes, width 6)  →  "Benutzerdefiniert" (17 graphemes, width 17, 2.83x)
+  perps.deposit.slippage_auto  en "Auto" (4 graphemes, width 4)  →  "Automatisch" (11 graphemes, width 11, 2.75x)
+  perps.transactions.funding.rate  en "Rate" (4 graphemes, width 4)  →  "Wechselkurs" (11 graphemes, width 11, 2.75x)
+  perps.auto_close.edit_button  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
+  perps.pro_positions_panel.order_card.edit  en "Edit" (4 graphemes, width 4)  →  "Bearbeiten" (10 graphemes, width 10, 2.50x)
+  … 255 more. Re-run with --limit 263 to see all.
+
+Check wrapping (111)
+  perps.stop_loss_prompt.near_liquidation_subtitle  en "Add margin to derisk your position" (34 graphemes, width 34)  →  "Um das Risiko Ihrer Position zu minimieren, fügen Sie eine Margin hinzu" (71 graphemes, width 71, 2.09x)
+  perps.market.add_funds_to_start_trading_perps  en "Add funds to start trading perps" (32 graphemes, width 32)  →  "Fügen Sie Gelder hinzu, um mit dem Trading von Perps zu beginnen" (64 graphemes, width 64, 2.00x)
+  perps.position.margin.add_success  en "Added ${{amount}} margin to {{asset}} position" (27 graphemes, width 27)  →  "Der Position {{asset}} wurde eine Margin von ${{amount}} hinzugefügt" (49 graphemes, width 49, 1.81x)
+  perps.errors.exchangeInvalidNonce  en "Something went wrong. Try again." (32 graphemes, width 32)  →  "Hoppla! Etwas ist schiefgelaufen! Versuchen Sie es erneut." (58 graphemes, width 58, 1.81x)
+  perps.close_position.already_in_progress_subtitle  en "Wait for it to finish before closing again" (42 graphemes, width 42)  →  "Warten Sie das Ende des Vorgangs ab, bevor Sie das Fenster erneut schließen" (75 graphemes, width 75, 1.79x)
+  perps.market.trading_24_7  en "This asset may be traded 24/7" (29 graphemes, width 29)  →  "Dieses Asset kann rund um die Uhr gehandelt werden" (50 graphemes, width 50, 1.72x)
+  perps.outreach_details.subtitle  en "Your volume earned you a seat at the table. Tell the Perps team what to build…" (105 graphemes, width 105)  →  "Dank Ihres Umsatzvolumens haben Sie sich einen Platz am Tisch gesichert. Teil…" (181 graphemes, width 181, 1.72x)
+  perps.errors.marginAdjustmentFailed  en "Unable to adjust margin. Try again." (35 graphemes, width 35)  →  "Margin kann nicht angepasst werden. Versuchen Sie es erneut." (60 graphemes, width 60, 1.71x)
+  … 103 more. Re-run with --limit 111 to see all.
+
+Placeholder mismatches (0)
+  None.
+
+Plural forms partly missing (0)
+  None.
 
 Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
 
@@ -79,16 +94,12 @@ Date hints in screen code (app/components/UI/Perps) (36)
   app/components/UI/Perps/utils/formatUtils.ts:1406  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
   app/components/UI/Perps/utils/formatUtils.ts:1410  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
   app/components/UI/Perps/utils/formatUtils.ts:1490  [hard-coded-en-US-date]  const month = getIntlDateTimeFormatter('en-US', {
-  app/components/UI/Perps/utils/formatUtils.ts:1493  [hard-coded-en-US-date]  const day = getIntlDateTimeFormatter('en-US', {
-  app/components/UI/Perps/utils/marketHours.ts:20  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
-  app/components/UI/Perps/utils/marketHours.ts:43  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
-  app/components/UI/Perps/components/TradingViewChart/TradingViewChartTemplate.tsx:65  [hard-coded-en-US-date]  const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
-  … 24 more. Re-run with --limit 36 to see all.
+  … 28 more. Re-run with --limit 36 to see all.
 
 Regional files (not imported by locales/i18n.js)
   None for de.json.
 
 Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
 
-SUMMARY de perps missing=9 still_english=73 too_long=374 too_long_short=160 date_hints=36
+SUMMARY de perps missing=9 still_english=73 too_long=263 check_wrapping=111 over_limit=1 placeholder_mismatches=0 plural_gaps=0 date_hints=36
 No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

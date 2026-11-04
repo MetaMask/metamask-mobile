@@ -21,7 +21,7 @@ Three `flex-1` buttons in one row. Design review has been using about 114px each
 | `perps.pro_positions_panel.card.reverse` | Reverse |
 | `perps.pro_positions_panel.card.share` | Share |
 
-Shipped examples that run long: German Close (`Schließen`, 9), Russian Reverse (`Реверсировать`, 13), Portuguese Share in `pt.json` (`Compartilhar`, 12). The app loads `pt.json`. `pt-br.json` is a regional file and is not imported.
+Shipped examples that run long: German Close (`Schließen`, 9, over the width-8 limit), Russian Reverse (`Реверсировать`, 13), Portuguese Share in `pt.json` (`Compartilhar`, 12). The app loads `pt.json`. `pt-br.json` is a regional file and is not imported. Change the widths in `references/limits.json` if the layout budget changes. `perps.position.card.post_to_feed` ("Post to feed") is limited to width 16 and is still missing outside English.
 
 ## Other Perps surfaces
 

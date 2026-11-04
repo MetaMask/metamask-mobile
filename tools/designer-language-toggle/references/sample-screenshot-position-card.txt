@@ -1,21 +1,48 @@
 String keys for perps
+Translation: de (Deutsch)
 RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
-Give a linguist the key plus the English sentence. Do not paste a fix into locales/languages. Crowdin owns those files. A blank feedback form is in tools/designer-language-toggle/FEEDBACK.md.
+Give a linguist the key, the placeholders, and both sentences. Do not paste a fix into locales/languages. Crowdin owns those files. A blank feedback form is in tools/designer-language-toggle/FEEDBACK.md.
 
 ## PerpsProMarketView
   app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionCard.tsx
-    perps.adjust_margin.title  "Adjust Margin"
-    perps.position.card.edit_tpsl  "Edit TP/SL"
-    perps.pro_positions_panel.card.close  "Close"
-    perps.pro_positions_panel.card.cross  "Cross"
-    perps.pro_positions_panel.card.entry_price  "Entry price"
-    perps.pro_positions_panel.card.funding  "Funding"
-    perps.pro_positions_panel.card.isolated  "Isolated"
-    perps.pro_positions_panel.card.liq_price  "Liq. price"
-    perps.pro_positions_panel.card.mark_price  "Mark price"
-    perps.pro_positions_panel.card.reverse  "Reverse"
-    perps.pro_positions_panel.card.share  "Share"
-    perps.pro_positions_panel.card.tp_sl  "TP / SL"
-    perps.pro_positions_panel.view_market_accessibility  "Switch to the {{symbol}} market"
+    perps.adjust_margin.title  en "Adjust Margin"
+      de "Margin anpassen"
+      placeholders: none
+    perps.position.card.edit_tpsl  en "Edit TP/SL"
+      de "TP/SL bearbeiten"
+      placeholders: none
+    perps.pro_positions_panel.card.close  en "Close"
+      de "Schließen"
+      placeholders: none
+    perps.pro_positions_panel.card.cross  en "Cross"
+      de "Cross"
+      placeholders: none
+    perps.pro_positions_panel.card.entry_price  en "Entry price"
+      de "Einstiegspreis"
+      placeholders: none
+    perps.pro_positions_panel.card.funding  en "Funding"
+      de "Finanzierung"
+      placeholders: none
+    perps.pro_positions_panel.card.isolated  en "Isolated"
+      de "Isoliert"
+      placeholders: none
+    perps.pro_positions_panel.card.liq_price  en "Liq. price"
+      de "Liquidationspreis"
+      placeholders: none
+    perps.pro_positions_panel.card.mark_price  en "Mark price"
+      de "Preis markieren"
+      placeholders: none
+    perps.pro_positions_panel.card.reverse  en "Reverse"
+      de "Umkehren"
+      placeholders: none
+    perps.pro_positions_panel.card.share  en "Share"
+      de "Teilen"
+      placeholders: none
+    perps.pro_positions_panel.card.tp_sl  en "TP / SL"
+      de "TP / SL"
+      placeholders: none
+    perps.pro_positions_panel.view_market_accessibility  en "Switch to the {{symbol}} market"
+      de "Wechseln Sie zum {{symbol}}-Markt"
+      placeholders: {{symbol}}
 
 SUMMARY perps screens=1 string_calls=13

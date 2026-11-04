@@ -1,22 +1,26 @@
 # Translation feedback
 
-Laurel (localization) is not on this workflow yet. Use this note when a screenshot needs a human decision. Do not edit `locales/languages/*.json`. Crowdin owns those files (`crowdin.yml`).
+Use one block per string. Do not edit `locales/languages/*.json`. Crowdin owns those files (`crowdin.yml`).
 
-Copy one block per string.
+Keep every `{{placeholder}}`. If the string is a plural, say which form you mean (`one`, `other`, `few`, `many`).
 
 ---
 
 - Date:
-- Reporter:
-- Language (for example de, ja, pt):
-- Screen (where it shows in the app):
+- Language:
+- Screen:
 - String key:
+- Plural form: one / other / few / many / not a plural
+- Placeholders to keep:
 - English:
 - What the app shows:
-- What you expected:
-- Problem: missing / still English / too long / wrong meaning / other
-- Fits the layout: yes / no / not sure
+- Suggested translation:
+- Hard limit (from `references/limits.json`, or none):
+- Graphemes and width, if you measured them:
+- What you see: missing / still English / over the limit / too long / check wrapping / placeholder mismatch / other
 - Screenshot:
 - Notes for Crowdin:
 
 ---
+
+Too long means a short label (English is 25 graphemes or fewer) that may be cut off. Check wrapping means a longer sentence that should wrap instead of clip. Over the limit means it is past the `maxWidth` set for that control.

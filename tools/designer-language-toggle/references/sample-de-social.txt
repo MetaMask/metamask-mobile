@@ -1,0 +1,94 @@
+Language: de (Deutsch)
+File: locales/languages/de.json
+This is the file locales/i18n.js imports. The Android preview uses this file.
+Scope: social, social_leaderboard
+Limits: tools/designer-language-toggle/references/limits.json
+RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+
+Keys in scope: 525
+Missing: 47
+Still English: 18
+Over the limit: 0
+Too long: 74
+Check wrapping: 25
+Placeholder mismatches: 0
+Plural forms partly missing: 0
+Skipped as shared names or tokens: 197
+Extra keys not in English: 8
+Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
+
+Other focus strings
+  social_leaderboard.feed.position_card.copy_trade
+    Social feed, Copy trade.
+    en "Copy trade" (10 graphemes, width 10)  →  "Copy trade" (10 graphemes, width 10)
+
+Over the limit (0)
+  None.
+
+Missing (47)
+  social_leaderboard.account_disabled.title  en "Your account is temporarily disabled"
+  social_leaderboard.account_disabled.reason  en "Reason: {{reason}}"
+  social_leaderboard.account_disabled.contact_support_description  en "Contact support at {{email}} or in the app for help."
+  social_leaderboard.account_disabled.contact_support  en "Contact support"
+  social_leaderboard.position_flags.insider  en "Insider allocation - excluded"
+  social_leaderboard.position_flags.developer  en "Contract creator - excluded"
+  social_leaderboard.position_flags.excluded  en "Excluded from PnL"
+  social_leaderboard.position_flags.short.insider  en "Insider"
+  … 39 more. Re-run with --limit 47 to see all.
+
+Still English (18)
+  social_leaderboard.trader_profile.stats_sheet_performance  "Performance"
+  social_leaderboard.my_profile.section_perpetuals  "Perpetuals"
+  social_leaderboard.composer.chip_position  "Position"
+  social_leaderboard.quick_buy.slippage  "Slippage"
+  social_leaderboard.trader_position.position  "Position"
+  social_leaderboard.my_profile.section_tokens  "Tokens"
+  social_leaderboard.composer.section_perps  "Perps"
+  social_leaderboard.feed.trade  "Trade"
+  … 10 more. Re-run with --limit 18 to see all.
+
+Too long (74)
+  social_leaderboard.trader_profile.hold_time  en "Avg. hold" (9 graphemes, width 9)  →  "Durchschnittliches Halten" (25 graphemes, width 25, 2.78x)
+  social_leaderboard.quick_buy.rate  en "Rate" (4 graphemes, width 4)  →  "Wechselkurs" (11 graphemes, width 11, 2.75x)
+  social_leaderboard.shell.filters.reset  en "Reset" (5 graphemes, width 5)  →  "Zurücksetzen" (12 graphemes, width 12, 2.40x)
+  social_leaderboard.feed_sort.title  en "Sort" (4 graphemes, width 4)  →  "Sortieren" (9 graphemes, width 9, 2.25x)
+  social_leaderboard.feed.position_card.sell  en "Sell" (4 graphemes, width 4)  →  "Verkaufen" (9 graphemes, width 9, 2.25x)
+  social_leaderboard.manage_profile.save  en "Save" (4 graphemes, width 4)  →  "Speichern" (9 graphemes, width 9, 2.25x)
+  social_leaderboard.trader_position.sell  en "Sell" (4 graphemes, width 4)  →  "Verkaufen" (9 graphemes, width 9, 2.25x)
+  social_leaderboard.feed.action.perps_added  en "added" (5 graphemes, width 5)  →  "hinzugefügt" (11 graphemes, width 11, 2.20x)
+  … 66 more. Re-run with --limit 74 to see all.
+
+Check wrapping (25)
+  social_leaderboard.profile_onboarding.connect_x_error  en "Couldn't connect X. Check your connection and try again." (56 graphemes, width 56)  →  "Die Verbindung zu X konnte nicht hergestellt werden. Überprüfen Sie Ihre Inte…" (120 graphemes, width 120, 2.14x)
+  social_leaderboard.mute.on_accessibility_label_named  en "Notifications on for {{traderName}}. Tap to mute" (34 graphemes, width 34)  →  "Benachrichtigungen für {{traderName}} eingeschaltet. Tippen Sie zum Stummscha…" (68 graphemes, width 68, 2.00x)
+  social_leaderboard.entry_options.action_failed  en "Something went wrong. Try again." (32 graphemes, width 32)  →  "Hoppla! Etwas ist schiefgelaufen! Versuchen Sie es erneut." (58 graphemes, width 58, 1.81x)
+  social_leaderboard.mute.muted_accessibility_label  en "Muted. Tap to turn notifications back on" (40 graphemes, width 40)  →  "Stummgeschaltet. Tippen Sie, um Benachrichtigungen wieder einzuschalten." (72 graphemes, width 72, 1.80x)
+  social_leaderboard.profile_onboarding.username_check_error  en "Couldn't check that username. Check your connection and try again." (66 graphemes, width 66)  →  "Dieser Benutzername konnte nicht überprüft werden. Überprüfen Sie Ihre Intern…" (118 graphemes, width 118, 1.79x)
+  social_leaderboard.settings.show_account_on_leaderboard_description  en "Appear on top traders leaderboard when your weekly earnings rank." (65 graphemes, width 65)  →  "Erscheinen Sie auf der Rangliste der besten Trader, wenn Ihre wöchentlichen G…" (116 graphemes, width 116, 1.78x)
+  social_leaderboard.mute.muted_accessibility_label_named  en "{{traderName}} muted. Tap to turn notifications back on" (41 graphemes, width 41)  →  "{{traderName}} stummgeschaltet. Tippen Sie, um Benachrichtigungen wieder einz…" (73 graphemes, width 73, 1.78x)
+  social_leaderboard.manage_profile.save_error  en "Couldn't save changes. Check your connection and try again." (59 graphemes, width 59)  →  "Änderungen konnten nicht gespeichert werden. Überprüfen Sie Ihre Verbindung u…" (104 graphemes, width 104, 1.76x)
+  … 17 more. Re-run with --limit 25 to see all.
+
+Placeholder mismatches (0)
+  None.
+
+Plural forms partly missing (0)
+  None.
+
+Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
+
+Date hints in this locale file (0)
+  None.
+
+Date hints in screen code (app/components/UI/SocialFeed, app/components/UI/QuickBuy) (3)
+  app/components/UI/SocialFeed/utils/formatters.ts:12  [yyyymmdd-helper]  import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
+  app/components/UI/SocialFeed/utils/formatters.ts:288  [format-literal]  * Stable per-day key (local `YYYY-MM-DD`) for grouping trades into day sections.
+  app/components/UI/SocialFeed/utils/formatters.ts:292  [yyyymmdd-helper]  return formatTimestampToYYYYMMDD(tradeTimestampToMs(timestamp));
+
+Regional files (not imported by locales/i18n.js)
+  None for de.json.
+
+Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
+
+SUMMARY de social, social_leaderboard missing=47 still_english=18 too_long=74 check_wrapping=25 over_limit=0 placeholder_mismatches=0 plural_gaps=0 date_hints=3
+No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

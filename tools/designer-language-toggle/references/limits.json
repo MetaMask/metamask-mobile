@@ -1,0 +1,24 @@
+{
+  "shortStringMaxGraphemes": 25,
+  "ratio": 1.4,
+  "minDelta": 4,
+  "minEnglishWidth": 4,
+  "keys": {
+    "perps.pro_positions_panel.card.close": {
+      "maxWidth": 8,
+      "where": "Perps Pro position card, Close. Three buttons share one row."
+    },
+    "perps.pro_positions_panel.card.reverse": {
+      "maxWidth": 8,
+      "where": "Perps Pro position card, Reverse. Three buttons share one row."
+    },
+    "perps.pro_positions_panel.card.share": {
+      "maxWidth": 8,
+      "where": "Perps Pro position card, Share. Three buttons share one row."
+    },
+    "perps.position.card.post_to_feed": {
+      "maxWidth": 16,
+      "where": "Post to feed on a position card."
+    }
+  }
+}

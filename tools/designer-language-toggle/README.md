@@ -53,7 +53,8 @@ node tools/designer-language-toggle/scripts/revert-locale.js
 
 node tools/designer-language-toggle/scripts/check-strings.js --lang de --feature perps
 node tools/designer-language-toggle/scripts/check-strings.js --lang ja --feature social
-node tools/designer-language-toggle/scripts/screenshot-keys.js --feature perps
+node tools/designer-language-toggle/scripts/check-strings.js --lang de --feature perps --format json
+node tools/designer-language-toggle/scripts/screenshot-keys.js --feature perps --lang de
 node tools/designer-language-toggle/scripts/self-test.js
 ```
 
@@ -71,7 +72,9 @@ After apply or revert, reload the Android preview. If that preview is a prebuilt
 - `SKILL.md` — instructions the agent follows
 - `references/how-it-works.md` — why startup patching beats the saved language
 - `references/screens.md` — Perps and Social screenshot notes
-- `references/sample-de-perps.txt` and `references/sample-ja-perps.txt` — a real Perps check from this repo
+- `references/limits.json` — hard widths for the Pro buttons and Post to feed, plus the 25-grapheme cutoff
+- `references/sample-de-perps.txt`, `references/sample-ja-perps.txt`, and `references/sample-hi-perps.txt` — Perps checks from this repo
+- `references/sample-de-social.txt` and `references/sample-ja-social.txt` — Social checks
 - `references/sample-screenshot-position-card.txt` — string keys on the Perps position card
 - `CHANGELOG.md` — v0
 - `FEEDBACK.md` — for the translation team, later

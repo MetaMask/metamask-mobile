@@ -18,12 +18,17 @@ Options
   --lang de            Language code or name (de, german, ja-JP, pt-BR, …)
   --feature perps      perps, or social (social + social_leaderboard)
   --namespace perps    One or more top-level locale namespaces, comma-separated
-  --ratio 1.4          Too-long when width is at least this times English
+  --ratio 1.4          Growth rule for too-long and check-wrapping. Defaults to references/limits.json
+  --limits <file>      Hard limits JSON. Defaults to references/limits.json
   --limit 15           How many examples to print per list
   --strict             Also list strings that match English in most languages
+  --format json        Print one JSON object instead of the text report
   --root <path>        Repo root. Defaults to the current checkout.
 
 The script only reads locale files. It does not edit them.
+Short labels (25 graphemes or fewer in English) can be "too long".
+Longer English copy goes to "check wrapping" instead.
+Hard limits in references/limits.json are reported as "over the limit".
 Regional files such as ja-jp.json are reported separately. The app does not import them.
 `;
 
@@ -47,13 +52,20 @@ function main() {
 
   const root = lib.findRepoRoot(args.root);
   const namespaces = lib.resolveNamespaces(args);
-  const ratio = args.ratio ? Number(args.ratio) : 1.4;
+  const limitsPath = args.limits
+    ? path.resolve(String(args.limits))
+    : lib.defaultLimitsPath();
+  const limits = lib.loadLimits(limitsPath);
+  const ratio = args.ratio ? Number(args.ratio) : limits.ratio;
   if (!Number.isFinite(ratio) || ratio <= 1) {
     throw new Error('--ratio must be a number greater than 1, for example 1.4.');
   }
   const limit = args.limit ? Number(args.limit) : 15;
   if (!Number.isInteger(limit) || limit < 1) {
     throw new Error('--limit must be a positive integer.');
+  }
+  if (args.format && args.format !== 'json') {
+    throw new Error('--format only supports json.');
   }
 
   const meta = lib.SHIPPED[code];
@@ -68,38 +80,86 @@ function main() {
     sharedFlats,
     strict: Boolean(args.strict),
     ratio,
-    minDelta: 4,
-    minEnWidth: 4,
+    minDelta: limits.minDelta,
+    minEnWidth: limits.minEnglishWidth,
+    limits,
   });
   const dateValues = lib.scanDateValues(targetFlat, namespaces);
   const dateSource = lib.scanDateSource(root, namespaces);
-
   const scopeLabel = namespaces ? namespaces.join(', ') : 'all strings';
+
+  if (args.format === 'json') {
+    console.log(
+      JSON.stringify(
+        {
+          language: code,
+          label: meta.label,
+          file: `locales/languages/${meta.file}`,
+          scope: scopeLabel,
+          rtl: false,
+          limits: limitsPath,
+          counts: {
+            keys: report.inScopeCount,
+            missing: report.missing.length,
+            stillEnglish: report.stillEnglish.length,
+            tooLong: report.tooLong.length,
+            checkWrapping: report.checkWrapping.length,
+            overLimit: report.overLimit.length,
+            placeholderMismatches: report.placeholderMismatches.length,
+            pluralGaps: report.pluralGaps.length,
+            dateHints: dateValues.length + dateSource.hits.length,
+          },
+          limitChecks: report.limitChecks,
+          missing: report.missing,
+          stillEnglish: report.stillEnglish,
+          tooLong: report.tooLong,
+          checkWrapping: report.checkWrapping,
+          overLimit: report.overLimit,
+          placeholderMismatches: report.placeholderMismatches,
+          pluralGaps: report.pluralGaps,
+          dateValues,
+          dateSource: dateSource.hits,
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
   console.log(`Language: ${code} (${meta.label})`);
   console.log(`File: locales/languages/${meta.file}`);
   console.log(
     'This is the file locales/i18n.js imports. The Android preview uses this file.',
   );
   console.log(`Scope: ${scopeLabel}`);
+  console.log(`Limits: ${path.relative(root, limitsPath) || limitsPath}`);
   console.log(lib.RTL_NOTE);
   console.log('');
   console.log(`Keys in scope: ${report.inScopeCount}`);
   console.log(`Missing: ${report.missing.length}`);
   console.log(`Still English: ${report.stillEnglish.length}`);
-  const shortTooLong = report.tooLong.filter((row) => row.enWidth <= 12);
+  console.log(`Over the limit: ${report.overLimit.length}`);
   console.log(`Too long: ${report.tooLong.length}`);
-  console.log(
-    `Too long, short English (12 width or less, the button-sized ones): ${shortTooLong.length}`,
-  );
-  console.log(
-    `Skipped as shared names or tokens: ${report.skippedShared.length}`,
-  );
+  console.log(`Check wrapping: ${report.checkWrapping.length}`);
+  console.log(`Placeholder mismatches: ${report.placeholderMismatches.length}`);
+  console.log(`Plural forms partly missing: ${report.pluralGaps.length}`);
+  console.log(`Skipped as shared names or tokens: ${report.skippedShared.length}`);
   console.log(`Extra keys not in English: ${report.extra}`);
   console.log(
-    `Too-long rule: display width >= English x ${ratio}, and at least 4 width units longer, and English is at least 4 wide. Placeholders are ignored. CJK, kana, and hangul count as 2.`,
+    `Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of ${report.cutoff} graphemes or fewer can be "too long" (at least ${ratio}x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.`,
   );
 
-  printFocus(enFlat, targetFlat, namespaces);
+  printLimitChecks(report.limitChecks);
+  printFocus(enFlat, targetFlat, namespaces, report.limitChecks);
+  printList(
+    'Over the limit',
+    report.overLimit.map(
+      (row) =>
+        `${row.key}  max ${row.maxWidth}  ${lib.quote(row.target)} (${row.targetChars} graphemes, width ${row.targetWidth})`,
+    ),
+    limit,
+  );
   printList(
     'Missing',
     report.missing.map((row) => `${row.key}  en ${lib.quote(row.en)}`),
@@ -112,9 +172,27 @@ function main() {
   );
   printList(
     'Too long',
-    report.tooLong.map(
+    report.tooLong.map((row) => formatLength(row)),
+    limit,
+  );
+  printList(
+    'Check wrapping',
+    report.checkWrapping.map((row) => formatLength(row)),
+    limit,
+  );
+  printList(
+    'Placeholder mismatches',
+    report.placeholderMismatches.map(
       (row) =>
-        `${row.key}  en ${lib.quote(row.en)} (${row.enChars} chars, width ${row.enWidth})  →  ${lib.quote(row.target)} (${row.targetChars} chars, width ${row.targetWidth}, ${row.ratio.toFixed(2)}x)`,
+        `${row.key}  missing ${row.missing.join(', ') || 'none'}  extra ${row.extra.join(', ') || 'none'}`,
+    ),
+    limit,
+  );
+  printList(
+    'Plural forms partly missing',
+    report.pluralGaps.map(
+      (row) =>
+        `${row.stem}  has ${row.forms.join(', ')} in English, missing ${row.missingForms.join(', ')}`,
     ),
     limit,
   );
@@ -155,6 +233,9 @@ function main() {
   printRegional(root, meta, namespaces, enFlat, sharedFlats, {
     strict: Boolean(args.strict),
     ratio,
+    minDelta: limits.minDelta,
+    minEnWidth: limits.minEnglishWidth,
+    limits,
   });
 
   if (!args.strict && report.skippedShared.length > 0) {
@@ -166,21 +247,44 @@ function main() {
 
   console.log('');
   console.log(
-    `SUMMARY ${code} ${scopeLabel} missing=${report.missing.length} still_english=${report.stillEnglish.length} too_long=${report.tooLong.length} too_long_short=${shortTooLong.length} date_hints=${dateValues.length + dateSource.hits.length}`,
+    `SUMMARY ${code} ${scopeLabel} missing=${report.missing.length} still_english=${report.stillEnglish.length} too_long=${report.tooLong.length} check_wrapping=${report.checkWrapping.length} over_limit=${report.overLimit.length} placeholder_mismatches=${report.placeholderMismatches.length} plural_gaps=${report.pluralGaps.length} date_hints=${dateValues.length + dateSource.hits.length}`,
   );
   console.log(
     'No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.',
   );
 }
 
-function printFocus(enFlat, targetFlat, namespaces) {
-  const rows = lib.FOCUS_KEYS.filter((item) => {
-    if (!namespaces) return true;
-    return item.namespaces.some((name) => namespaces.includes(name));
-  }).filter((item) => Object.prototype.hasOwnProperty.call(enFlat, item.key));
+function formatLength(row) {
+  return `${row.key}  en ${lib.quote(row.en)} (${row.enChars} graphemes, width ${row.enWidth})  →  ${lib.quote(row.target)} (${row.targetChars} graphemes, width ${row.targetWidth}, ${row.ratio.toFixed(2)}x)`;
+}
+
+function printLimitChecks(rows) {
+  if (!rows || rows.length === 0) return;
+  console.log('');
+  console.log('Hard limits');
+  rows.forEach((row) => {
+    const shown =
+      row.status === 'missing'
+        ? 'not in this file'
+        : `${lib.quote(row.target)} (${row.targetChars} graphemes, width ${row.targetWidth})`;
+    console.log(
+      `  ${row.key}  max ${row.maxWidth}  ${row.status}  ${shown}`,
+    );
+    if (row.where) console.log(`    ${row.where}`);
+  });
+}
+
+function printFocus(enFlat, targetFlat, namespaces, limitChecks) {
+  const limited = new Set((limitChecks || []).map((row) => row.key));
+  const rows = lib.FOCUS_KEYS.filter((item) => !limited.has(item.key))
+    .filter((item) => {
+      if (!namespaces) return true;
+      return item.namespaces.some((name) => namespaces.includes(name));
+    })
+    .filter((item) => Object.prototype.hasOwnProperty.call(enFlat, item.key));
   if (rows.length === 0) return;
   console.log('');
-  console.log('Focus controls');
+  console.log('Other focus strings');
   rows.forEach((item) => {
     const enValue = enFlat[item.key];
     const targetValue = targetFlat[item.key];
@@ -193,7 +297,7 @@ function printFocus(enFlat, targetFlat, namespaces) {
     console.log(`  ${item.key}`);
     console.log(`    ${item.note}`);
     console.log(
-      `    en ${lib.quote(enValue)} (${lib.charCount(enValue)} chars, width ${lib.displayWidth(enValue)})  →  ${targetText} (${targetChars} chars, width ${targetWidth})`,
+      `    en ${lib.quote(enValue)} (${lib.charCount(enValue)} graphemes, width ${lib.displayWidth(enValue)})  →  ${targetText} (${targetChars} graphemes, width ${targetWidth})`,
     );
   });
 }
@@ -238,12 +342,13 @@ function printRegional(root, meta, namespaces, enFlat, sharedFlats, options) {
       sharedFlats,
       strict: options.strict,
       ratio: options.ratio,
-      minDelta: 4,
-      minEnWidth: 4,
+      minDelta: options.minDelta,
+      minEnWidth: options.minEnWidth,
+      limits: options.limits,
     });
     const scopeLabel = namespaces ? namespaces.join(', ') : 'all strings';
     console.log(
-      `    In scope (${scopeLabel}): keys=${scoped.inScopeCount} missing=${scoped.missing.length} still_english=${scoped.stillEnglish.length} too_long=${scoped.tooLong.length}`,
+      `    In scope (${scopeLabel}): keys=${scoped.inScopeCount} missing=${scoped.missing.length} still_english=${scoped.stillEnglish.length} too_long=${scoped.tooLong.length} check_wrapping=${scoped.checkWrapping.length} over_limit=${scoped.overLimit.length}`,
     );
     if (namespaces && scoped.inScopeCount > 0 && scoped.missing.length === scoped.inScopeCount) {
       console.log(

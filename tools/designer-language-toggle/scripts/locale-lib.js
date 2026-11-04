@@ -299,6 +299,12 @@ function comparable(value) {
   return String(value).replace(/\{\{[^}]*\}\}/g, '');
 }
 
+const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, {
+  granularity: 'grapheme',
+});
+
+const PLURAL_FORMS = ['zero', 'one', 'two', 'few', 'many', 'other'];
+
 function isWideCodePoint(code) {
   return (
     (code >= 0x1100 && code <= 0x115f) ||
@@ -313,18 +319,90 @@ function isWideCodePoint(code) {
   );
 }
 
-function displayWidth(value) {
-  const text = comparable(value);
-  let width = 0;
-  for (const char of text) {
-    const code = char.codePointAt(0);
-    width += isWideCodePoint(code) ? 2 : 1;
+function graphemes(value) {
+  return [...GRAPHEME_SEGMENTER.segment(String(value))].map(
+    (part) => part.segment,
+  );
+}
+
+function graphemeWidth(grapheme) {
+  let wide = false;
+  for (const char of grapheme) {
+    if (isWideCodePoint(char.codePointAt(0))) wide = true;
   }
-  return width;
+  return wide ? 2 : 1;
+}
+
+function displayWidth(value) {
+  return graphemes(comparable(value)).reduce(
+    (sum, grapheme) => sum + graphemeWidth(grapheme),
+    0,
+  );
 }
 
 function charCount(value) {
-  return [...comparable(value)].length;
+  return graphemes(comparable(value)).length;
+}
+
+function placeholderCounts(value) {
+  const counts = {};
+  const pattern = /\{\{\s*([^{}]+?)\s*\}\}/g;
+  let match = pattern.exec(String(value));
+  while (match) {
+    const name = match[1];
+    counts[name] = (counts[name] || 0) + 1;
+    match = pattern.exec(String(value));
+  }
+  return counts;
+}
+
+function placeholderDiff(enValue, targetValue) {
+  const enCounts = placeholderCounts(enValue);
+  const targetCounts = placeholderCounts(targetValue);
+  const names = new Set([
+    ...Object.keys(enCounts),
+    ...Object.keys(targetCounts),
+  ]);
+  const missing = [];
+  const extra = [];
+  names.forEach((name) => {
+    const enCount = enCounts[name] || 0;
+    const targetCount = targetCounts[name] || 0;
+    if (targetCount < enCount) missing.push(name);
+    if (targetCount > enCount) extra.push(name);
+  });
+  return { missing, extra };
+}
+
+function pluralStem(key) {
+  const parts = key.split('.');
+  const form = parts[parts.length - 1];
+  if (!PLURAL_FORMS.includes(form) || parts.length < 2) return null;
+  return { stem: parts.slice(0, -1).join('.'), form };
+}
+
+function defaultLimitsPath() {
+  return path.join(__dirname, '..', 'references', 'limits.json');
+}
+
+function loadLimits(filePath) {
+  const raw = readJson(filePath);
+  const keys = raw.keys && typeof raw.keys === 'object' ? raw.keys : {};
+  Object.keys(keys).forEach((key) => {
+    const entry = keys[key];
+    if (!entry || typeof entry.maxWidth !== 'number' || entry.maxWidth < 1) {
+      throw new Error(
+        `Hard limit for ${key} in ${filePath} needs a maxWidth of at least 1.`,
+      );
+    }
+  });
+  return {
+    shortStringMaxGraphemes: raw.shortStringMaxGraphemes ?? 25,
+    ratio: raw.ratio ?? 1.4,
+    minDelta: raw.minDelta ?? 4,
+    minEnglishWidth: raw.minEnglishWidth ?? 4,
+    keys,
+  };
 }
 
 function hasLetter(value) {
@@ -366,14 +444,39 @@ function skipStillEnglish(key, enValue, sharedFlats, strict) {
   return null;
 }
 
+function lengthRow(key, enValue, targetValue) {
+  const enWidth = displayWidth(enValue);
+  const targetWidth = displayWidth(targetValue);
+  return {
+    key,
+    en: enValue,
+    target: targetValue,
+    enWidth,
+    targetWidth,
+    enChars: charCount(enValue),
+    targetChars: charCount(targetValue),
+    ratio: enWidth === 0 ? 0 : targetWidth / enWidth,
+  };
+}
+
 function analyzePair(enFlat, targetFlat, options) {
   const namespaces = options.namespaces;
-  const ratioLimit = options.ratio;
-  const minDelta = options.minDelta;
-  const minEnWidth = options.minEnWidth;
+  const limits = options.limits || {
+    shortStringMaxGraphemes: 25,
+    ratio: options.ratio,
+    minDelta: options.minDelta,
+    minEnglishWidth: options.minEnWidth,
+    keys: {},
+  };
+  const ratioLimit = options.ratio ?? limits.ratio;
+  const minDelta = options.minDelta ?? limits.minDelta;
+  const minEnWidth = options.minEnWidth ?? limits.minEnglishWidth;
+  const cutoff = limits.shortStringMaxGraphemes;
   const missing = [];
   const stillEnglish = [];
   const tooLong = [];
+  const checkWrapping = [];
+  const placeholderMismatches = [];
   const skippedShared = [];
   let inScopeCount = 0;
 
@@ -386,6 +489,16 @@ function analyzePair(enFlat, targetFlat, options) {
     if (typeof targetValue !== 'string' || targetValue.trim() === '') {
       missing.push({ key, en: enValue });
       return;
+    }
+    const diff = placeholderDiff(enValue, targetValue);
+    if (diff.missing.length > 0 || diff.extra.length > 0) {
+      placeholderMismatches.push({
+        key,
+        en: enValue,
+        target: targetValue,
+        missing: diff.missing,
+        extra: diff.extra,
+      });
     }
     if (targetValue === enValue) {
       const reason = skipStillEnglish(
@@ -401,29 +514,52 @@ function analyzePair(enFlat, targetFlat, options) {
       stillEnglish.push({ key, value: enValue });
       return;
     }
-    const enWidth = displayWidth(enValue);
-    const targetWidth = displayWidth(targetValue);
-    const delta = targetWidth - enWidth;
-    if (
-      enWidth >= minEnWidth &&
+    const row = lengthRow(key, enValue, targetValue);
+    const delta = row.targetWidth - row.enWidth;
+    const grew =
+      row.enWidth >= minEnWidth &&
       delta >= minDelta &&
-      targetWidth >= enWidth * ratioLimit
-    ) {
-      tooLong.push({
-        key,
-        en: enValue,
-        target: targetValue,
-        enWidth,
-        targetWidth,
-        enChars: charCount(enValue),
-        targetChars: charCount(targetValue),
-        ratio: enWidth === 0 ? 0 : targetWidth / enWidth,
-      });
-    }
+      row.targetWidth >= row.enWidth * ratioLimit;
+    if (!grew) return;
+    if (row.enChars > cutoff) checkWrapping.push(row);
+    else tooLong.push(row);
   });
 
-  tooLong.sort((a, b) => b.ratio - a.ratio || b.targetWidth - a.targetWidth);
-  stillEnglish.sort((a, b) => b.value.length - a.value.length || a.key.localeCompare(b.key));
+  const byRatio = (a, b) => b.ratio - a.ratio || b.targetWidth - a.targetWidth;
+  tooLong.sort(byRatio);
+  checkWrapping.sort(byRatio);
+  stillEnglish.sort(
+    (a, b) => b.value.length - a.value.length || a.key.localeCompare(b.key),
+  );
+
+  const limitChecks = [];
+  const overLimit = [];
+  Object.keys(limits.keys).forEach((key) => {
+    if (!inScope(key, namespaces)) return;
+    const rule = limits.keys[key];
+    const enValue = enFlat[key];
+    const targetValue = targetFlat[key];
+    const present = typeof targetValue === 'string' && targetValue.trim() !== '';
+    const targetWidth = present ? displayWidth(targetValue) : null;
+    const status = !present
+      ? 'missing'
+      : targetWidth > rule.maxWidth
+        ? 'over'
+        : 'ok';
+    const row = {
+      key,
+      where: rule.where || '',
+      maxWidth: rule.maxWidth,
+      en: typeof enValue === 'string' ? enValue : '',
+      target: present ? targetValue : '',
+      targetWidth,
+      targetChars: present ? charCount(targetValue) : 0,
+      status,
+    };
+    limitChecks.push(row);
+    if (status === 'over') overLimit.push(row);
+  });
+  overLimit.sort((a, b) => (b.targetWidth || 0) - (a.targetWidth || 0));
 
   let extra = 0;
   Object.keys(targetFlat).forEach((key) => {
@@ -436,9 +572,46 @@ function analyzePair(enFlat, targetFlat, options) {
     missing,
     stillEnglish,
     tooLong,
+    checkWrapping,
+    overLimit,
+    limitChecks,
+    placeholderMismatches,
+    pluralGaps: pluralGaps(enFlat, targetFlat, namespaces),
     skippedShared,
     extra,
+    cutoff,
   };
+}
+
+function pluralGaps(enFlat, targetFlat, namespaces) {
+  const formsByStem = new Map();
+  Object.keys(enFlat).forEach((key) => {
+    if (!inScope(key, namespaces)) return;
+    const info = pluralStem(key);
+    if (!info) return;
+    if (!formsByStem.has(info.stem)) formsByStem.set(info.stem, []);
+    formsByStem.get(info.stem).push(info.form);
+  });
+  const gaps = [];
+  formsByStem.forEach((forms, stem) => {
+    const missingForms = forms.filter((form) => {
+      const value = targetFlat[`${stem}.${form}`];
+      return typeof value !== 'string' || value.trim() === '';
+    });
+    if (missingForms.length > 0 && missingForms.length < forms.length) {
+      gaps.push({ stem, forms, missingForms });
+    }
+  });
+  gaps.sort((a, b) => a.stem.localeCompare(b.stem));
+  return gaps;
+}
+
+function pluralSiblings(key, enFlat) {
+  const info = pluralStem(key);
+  if (!info) return [];
+  return PLURAL_FORMS.filter((form) => form !== info.form)
+    .map((form) => `${info.stem}.${form}`)
+    .filter((sibling) => Object.prototype.hasOwnProperty.call(enFlat, sibling));
 }
 
 function dateHitsInValue(value) {
@@ -773,6 +946,13 @@ module.exports = {
   inScope,
   displayWidth,
   charCount,
+  graphemes,
+  placeholderCounts,
+  placeholderDiff,
+  pluralStem,
+  pluralSiblings,
+  defaultLimitsPath,
+  loadLimits,
   loadShippedFlats,
   analyzePair,
   scanDateValues,

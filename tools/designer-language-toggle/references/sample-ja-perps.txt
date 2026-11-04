@@ -2,27 +2,33 @@ Language: ja (日本語)
 File: locales/languages/ja.json
 This is the file locales/i18n.js imports. The Android preview uses this file.
 Scope: perps
+Limits: tools/designer-language-toggle/references/limits.json
 RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
 
 Keys in scope: 1417
 Missing: 9
 Still English: 6
-Too long: 234
-Too long, short English (12 width or less, the button-sized ones): 109
+Over the limit: 0
+Too long: 204
+Check wrapping: 30
+Placeholder mismatches: 0
+Plural forms partly missing: 0
 Skipped as shared names or tokens: 37
 Extra keys not in English: 2
-Too-long rule: display width >= English x 1.4, and at least 4 width units longer, and English is at least 4 wide. Placeholders are ignored. CJK, kana, and hangul count as 2.
+Length rule: grapheme width, not code points. CJK, kana, and hangul count as 2. Placeholders are ignored. English of 25 graphemes or fewer can be "too long" (at least 1.4x and 4 width units over English). Longer English copy is "check wrapping" instead. Named controls use the hard maxWidth in the limits file.
 
-Focus controls
-  perps.pro_positions_panel.card.close
-    Perps position card, Close. Three buttons share one row (flex-1). Designers budget about 114px.
-    en "Close" (5 chars, width 5)  →  "閉じる" (3 chars, width 6)
-  perps.pro_positions_panel.card.reverse
-    Perps position card, Reverse. A long shipped example is Russian.
-    en "Reverse" (7 chars, width 7)  →  "反転" (2 chars, width 4)
-  perps.pro_positions_panel.card.share
-    Perps position card, Share. A long shipped example is Portuguese in pt.json (the file the app loads).
-    en "Share" (5 chars, width 5)  →  "共有" (2 chars, width 4)
+Hard limits
+  perps.pro_positions_panel.card.close  max 8  ok  "閉じる" (3 graphemes, width 6)
+    Perps Pro position card, Close. Three buttons share one row.
+  perps.pro_positions_panel.card.reverse  max 8  ok  "反転" (2 graphemes, width 4)
+    Perps Pro position card, Reverse. Three buttons share one row.
+  perps.pro_positions_panel.card.share  max 8  ok  "共有" (2 graphemes, width 4)
+    Perps Pro position card, Share. Three buttons share one row.
+  perps.position.card.post_to_feed  max 16  missing  not in this file
+    Post to feed on a position card.
+
+Over the limit (0)
+  None.
 
 Missing (9)
   perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
@@ -33,7 +39,7 @@ Missing (9)
   perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, …"
   perps.order.fees_taker_maker  en "Taker {{taker}}% / Maker {{maker}}%"
   perps.position.card.post_to_feed  en "Post to feed"
-  perps.tooltips.fees.original_fee_value  en "was {{fee}}"
+  … 1 more. Re-run with --limit 9 to see all.
 
 Still English (6)
   perps.pro_order_form.tpsl  "TP / SL"
@@ -43,20 +49,33 @@ Still English (6)
   perps.order.limit_price_modal.ask_price  "Ask"
   perps.order.limit_price_modal.bid_price  "Bid"
 
-Too long (234)
-  perps.service_interruption.faq_title  en "Perps FAQs" (10 chars, width 10)  →  "パーペチュアルに関するよくある質問" (17 chars, width 34, 3.40x)
-  perps.home.social_feed  en "Social" (6 chars, width 6)  →  "ソーシャルフィード" (9 chars, width 18, 3.00x)
-  perps.title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
-  perps.deposit.estimated_processing_time  en "Est. {{time}}" (5 chars, width 5)  →  "推定所要時間: {{time}}" (8 chars, width 14, 2.80x)
-  perps.position.list.first_time_title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
-  perps.home.perps  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
-  perps.transactions.title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
-  perps.close_position.sheet_title_long  en "Close Long {{asset}}" (11 chars, width 11)  →  "{{asset}}のロングポジションをクローズ" (14 chars, width 28, 2.55x)
-  perps.close_position.sheet_title_short  en "Close Short {{asset}}" (12 chars, width 12)  →  "{{asset}}のショートポジションをクローズ" (15 chars, width 30, 2.50x)
-  perps.market_details.perp_pair  en "{{ticker}}-{{collateral}} perp" (6 chars, width 6)  →  "{{ticker}}-{{collateral}}パーペチュアル" (8 chars, width 15, 2.50x)
-  perps.chart.candle_period_selector.show_more  en "More" (4 chars, width 4)  →  "さらに表示" (5 chars, width 10, 2.50x)
-  perps.withdrawal.try_again  en "Try again" (9 chars, width 9)  →  "もう一度お試しください" (11 chars, width 22, 2.44x)
-  … 222 more. Re-run with --limit 234 to see all.
+Too long (204)
+  perps.service_interruption.faq_title  en "Perps FAQs" (10 graphemes, width 10)  →  "パーペチュアルに関するよくある質問" (17 graphemes, width 34, 3.40x)
+  perps.home.social_feed  en "Social" (6 graphemes, width 6)  →  "ソーシャルフィード" (9 graphemes, width 18, 3.00x)
+  perps.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.deposit.estimated_processing_time  en "Est. {{time}}" (5 graphemes, width 5)  →  "推定所要時間: {{time}}" (8 graphemes, width 14, 2.80x)
+  perps.position.list.first_time_title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.home.perps  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.transactions.title  en "Perps" (5 graphemes, width 5)  →  "パーペチュアル" (7 graphemes, width 14, 2.80x)
+  perps.close_position.sheet_title_long  en "Close Long {{asset}}" (11 graphemes, width 11)  →  "{{asset}}のロングポジションをクローズ" (14 graphemes, width 28, 2.55x)
+  … 196 more. Re-run with --limit 204 to see all.
+
+Check wrapping (30)
+  perps.stop_loss_prompt.near_liquidation_subtitle  en "Add margin to derisk your position" (34 graphemes, width 34)  →  "ポジションのリスクを回避するために、証拠金を追加してください" (30 graphemes, width 60, 1.76x)
+  perps.pro_order_form.scale.validation.prices_required  en "Enter both Scale range prices" (29 graphemes, width 29)  →  "分割注文の価格範囲の上限と下限を入力してください" (24 graphemes, width 48, 1.66x)
+  perps.tpsl.take_profit_invalid_price  en "Take profit must be {{direction}} {{priceType}} price" (27 graphemes, width 27)  →  "利益確定は{{priceType}}価格よりも{{direction}}に設定する必要があります" (22 graphemes, width 44, 1.63x)
+  perps.outreach_details.features.support.subtitle  en "Real humans, no bots, no tickets" (32 graphemes, width 32)  →  "ボットやチケットシステムではなく、実際の担当者が対応" (26 graphemes, width 52, 1.63x)
+  perps.position.details.error_message  en "Position data not found. Go back and try again." (47 graphemes, width 47)  →  "ポジションのデータが見つかりません。前の画面に戻り、もう一度お試しください。" (38 graphemes, width 76, 1.62x)
+  perps.errors.marginAdjustmentFailed  en "Unable to adjust margin. Try again." (35 graphemes, width 35)  →  "証拠金を調整できませんでした。もう一度お試しください。" (27 graphemes, width 54, 1.54x)
+  perps.errors.networkToggleFailed  en "Failed to toggle network: {{error}}" (26 graphemes, width 26)  →  "ネットワークを切り替えられませんでした: {{error}}" (21 graphemes, width 40, 1.54x)
+  perps.pro_order_form.scale.validation.invalid_skew  en "Size skew must be greater than 0" (32 graphemes, width 32)  →  "数量の配分は0よりも大きな数値である必要があります" (25 graphemes, width 49, 1.53x)
+  … 22 more. Re-run with --limit 30 to see all.
+
+Placeholder mismatches (0)
+  None.
+
+Plural forms partly missing (0)
+  None.
 
 Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
 
@@ -72,18 +91,14 @@ Date hints in screen code (app/components/UI/Perps) (36)
   app/components/UI/Perps/utils/formatUtils.ts:1406  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
   app/components/UI/Perps/utils/formatUtils.ts:1410  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
   app/components/UI/Perps/utils/formatUtils.ts:1490  [hard-coded-en-US-date]  const month = getIntlDateTimeFormatter('en-US', {
-  app/components/UI/Perps/utils/formatUtils.ts:1493  [hard-coded-en-US-date]  const day = getIntlDateTimeFormatter('en-US', {
-  app/components/UI/Perps/utils/marketHours.ts:20  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
-  app/components/UI/Perps/utils/marketHours.ts:43  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
-  app/components/UI/Perps/components/TradingViewChart/TradingViewChartTemplate.tsx:65  [hard-coded-en-US-date]  const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
-  … 24 more. Re-run with --limit 36 to see all.
+  … 28 more. Re-run with --limit 36 to see all.
 
 Regional files (not imported by locales/i18n.js)
   locales/languages/ja-jp.json: 1339 strings. The preview does not load this file.
-    In scope (perps): keys=1417 missing=1417 still_english=0 too_long=0
+    In scope (perps): keys=1417 missing=1417 still_english=0 too_long=0 check_wrapping=0 over_limit=0
     This regional file has none of the scoped English strings. It looks like an older bundle.
 
 Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
 
-SUMMARY ja perps missing=9 still_english=6 too_long=234 too_long_short=109 date_hints=36
+SUMMARY ja perps missing=9 still_english=6 too_long=204 check_wrapping=30 over_limit=0 placeholder_mismatches=0 plural_gaps=0 date_hints=36
 No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.
