@@ -43,6 +43,14 @@ on:
         required: false
         type: string
         default: ''
+      perf_session:
+        description: >-
+          Compile in the perf session sampler (MM_PERF_SESSION_ENABLED). workflow_call only:
+          nightly-build.yml sets it for the scheduled Friday Android main-exp build. Ignored
+          for any other build name or attribution, and Gradle refuses it outside nightly main-exp.
+        required: false
+        type: boolean
+        default: false
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -627,6 +635,9 @@ jobs:
           # Deliberately absent from builds.yml: build.sh's loadBuildConfig re-evals the
           # builds.yml exports, so a name defined there would overwrite this value.
           METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
+          # Perf session sampler: only the scheduled Friday nightly main-exp build. Also kept
+          # out of builds.yml so build.sh's re-eval of its exports can't set or clear it.
+          MM_PERF_SESSION_ENABLED: ${{ inputs.perf_session == true && inputs.build_name == 'main-exp' && inputs.build_attribution == 'nightly' && 'true' || '' }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
           # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-

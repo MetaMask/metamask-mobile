@@ -191,21 +191,30 @@ def reactNativeArchitectures() {
  * ship in the APK and are public by design; the collector treats every client as
  * untrusted. Fails the build if they are malformed or set for a store build.
  */
+/**
+ * Perf session sampler (nativeModules/PerfSession). Off unless the build sets
+ * MM_PERF_SESSION_ENABLED=true, which only the scheduled Friday nightly main-exp
+ * Android build does (.github/workflows/nightly-build.yml → build.yml `perf_session`).
+ * The URL and key in builds.yml are inert without it: the native module isn't registered.
+ */
 def perfSessionConfig() {
-    def url = System.getenv('MM_PERF_SESSION_URL') ?: ''
-    def key = System.getenv('MM_PERF_SESSION_KEY') ?: ''
+    def enabled = System.getenv('MM_PERF_SESSION_ENABLED') == 'true'
     def environment = System.getenv('METAMASK_ENVIRONMENT') ?: 'dev'
     def buildType = System.getenv('METAMASK_BUILD_TYPE') ?: 'main'
-    if (url) {
-        if (!(environment in ['dev', 'exp', 'rc'])) {
-            throw new GradleException("MM_PERF_SESSION_URL is only allowed for dev, exp and rc builds, not '${environment}'")
-        }
-        if (!(url ==~ /^https:\/\/[A-Za-z0-9.-]+(:\d+)?\/?$/)) {
-            throw new GradleException('MM_PERF_SESSION_URL must be an https:// origin with no path')
-        }
-        if (!(key ==~ /^[A-Za-z0-9_-]{24,128}$/)) {
-            throw new GradleException('MM_PERF_SESSION_KEY must be 24-128 characters of [A-Za-z0-9_-]')
-        }
+    def attribution = System.getenv('METAMASK_BUILD_ATTRIBUTION') ?: ''
+    if (!enabled) {
+        return [url: '', key: '', env: "${buildType}-${environment}"]
+    }
+    if (environment != 'exp' || buildType != 'main' || attribution != 'nightly') {
+        throw new GradleException("MM_PERF_SESSION_ENABLED is only allowed for nightly main-exp builds, not ${buildType}-${environment} (attribution '${attribution}')")
+    }
+    def url = System.getenv('MM_PERF_SESSION_URL') ?: ''
+    def key = System.getenv('MM_PERF_SESSION_KEY') ?: ''
+    if (!(url ==~ /^https:\/\/[A-Za-z0-9.-]+(:\d+)?\/?$/)) {
+        throw new GradleException('MM_PERF_SESSION_URL must be an https:// origin with no path')
+    }
+    if (!(key ==~ /^[A-Za-z0-9_-]{24,128}$/)) {
+        throw new GradleException('MM_PERF_SESSION_KEY must be 24-128 characters of [A-Za-z0-9_-]')
     }
     return [url: url, key: key, env: "${buildType}-${environment}"]
 }

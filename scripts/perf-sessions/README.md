@@ -1,6 +1,6 @@
 # Perf sessions (POC)
 
-Find performance problems while people use **internal test builds** normally, with Flashlight-style metrics (CPU per thread, FPS, RAM) and no extra steps for the tester.
+Find performance problems while people use **Friday's nightly main-exp build** normally, with Flashlight-style metrics (CPU per thread, FPS, RAM) and no extra steps for the tester.
 
 There are two modes:
 
@@ -62,15 +62,14 @@ The app calls `GET /status?env=<env>` at launch, on resume and every few minutes
 
 ### Which builds have it
 
-Gradle bakes `MM_PERF_SESSION_URL`, `MM_PERF_SESSION_KEY` and the env (`<METAMASK_BUILD_TYPE>-<METAMASK_ENVIRONMENT>`) into `BuildConfig`. They come from the `*perf_session` anchor in `builds.yml`, which only `main-exp` merges today. To add RC, change one line in its `env`:
+Only the **scheduled Friday nightly Android main-exp build**. Every other build, including other nightlies, manual `main-exp` builds, RC and production, compiles without it: the native module isn't registered and the JS side is a no-op.
 
-```yaml
-  main-rc:
-    env:
-      <<: [*public_envs, *perf_session]
-```
+- `.github/workflows/nightly-build.yml` runs a `perf-session-day` job: when the run was triggered by the schedule and the UTC day is Friday, it passes `perf_session: true` to the Android `main-exp` build.
+- `.github/workflows/build.yml` turns that into `MM_PERF_SESSION_ENABLED=true` for the Gradle build. The input only exists for `workflow_call`, not for manual dispatch, and is ignored unless the build is `main-exp` with `build_attribution: nightly`.
+- `android/app/build.gradle` compiles the sampler in only with `MM_PERF_SESSION_ENABLED=true`, and fails the build if the flag is set on anything other than a nightly `main-exp` build. With the flag, the URL must be an `https://` origin and the key 24–128 characters of `[A-Za-z0-9_-]`.
+- `MM_PERF_SESSION_URL` and `MM_PERF_SESSION_KEY` come from the `*perf_session` anchor in `builds.yml` (merged into `main-exp`). On their own they do nothing.
 
-`android/app/build.gradle` fails the build if the URL is set for anything other than dev, exp or rc builds, if it isn't an `https://` origin, or if the key isn't 24–128 characters of `[A-Za-z0-9_-]`. Builds without the anchor don't register the native module at all.
+So the collector only needs to run while testers use a Friday nightly build. Builds from previous Fridays keep recording whenever the collector is on, because the collector is still the on/off switch.
 
 **The URL and key are public by design.** They are committed here and ship inside the APK. Security comes from the collector: it validates every batch strictly, rate-limits, caps storage, and only exposes the upload and status endpoints. Dashboards stay on localhost.
 

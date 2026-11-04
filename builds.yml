@@ -123,11 +123,12 @@ _main_dev_env: &main_dev_env
   PROFILE: 'development'
   DEV_OAUTH_CONFIG: 'true'
 
-# Always-on perf sampler (android/.../nativeModules/PerfSession). Merge into a build's
-# env to turn it on, e.g. `<<: [*public_envs, *perf_session]`; Gradle only allows dev,
-# exp and rc. Both values ship in the APK and are public by design: the collector
-# treats every client as untrusted and decides per env whether devices record.
-# See scripts/perf-sessions/README.md.
+# Perf session sampler (android/.../nativeModules/PerfSession): where it reports to.
+# These values alone don't turn it on. It is compiled in only when the build sets
+# MM_PERF_SESSION_ENABLED=true, which only the scheduled Friday nightly Android
+# main-exp build does (nightly-build.yml → build.yml `perf_session`); Gradle refuses
+# the flag in any other build. Both values are public by design: the collector
+# treats every client as untrusted. See scripts/perf-sessions/README.md.
 _perf_session: &perf_session
   MM_PERF_SESSION_URL: 'https://superserviceable-stacia-nonindulgently.ngrok-free.dev'
   MM_PERF_SESSION_KEY: 'RPHLuCRSaAhZKf_brgroIpVAdqRrmwyr'
