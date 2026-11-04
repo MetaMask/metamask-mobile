@@ -4,9 +4,11 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
+import { isMatchingPayToken } from '../../../Views/confirmations/utils/transaction-pay';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -18,8 +20,12 @@ import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { selectTransactionPaymentTokenByTransactionId } from '../../../../selectors/transactionPayController';
+import Logger from '../../../../util/Logger';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { calcTokenValue } from '../../../../util/transactions';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -284,11 +290,90 @@ export async function updateMoneyAccountDepositTokenAmount(
 }
 
 /**
+ * Picks who the nested mUSD transfer of a withdrawal pays. Same-chain mUSD is
+ * not quoted, so it pays the recipient. Any other receive token is quoted from
+ * the money account (`txParams.from`), so the mUSD stays there and Pay sends
+ * the output to the recipient.
+ */
+export function getMoneyAccountWithdrawTransferTarget({
+  paymentToken,
+  recipient,
+  transactionMeta,
+}: {
+  paymentToken?: { address: string; chainId: string };
+  recipient: Hex;
+  transactionMeta: TransactionMeta;
+}): Hex {
+  if (!paymentToken) {
+    return recipient;
+  }
+
+  const musdAddress = transactionMeta.nestedTransactions?.[1]?.to;
+  const isDirect = isMatchingPayToken(
+    paymentToken,
+    musdAddress
+      ? { address: musdAddress, chainId: transactionMeta.chainId }
+      : undefined,
+  );
+
+  return isDirect ? recipient : (transactionMeta.txParams.from as Hex);
+}
+
+/**
+ * Re-points the funded mUSD transfer of a withdrawal after its receive token
+ * or recipient changes, keeping the amount. Leaves the zero-amount
+ * placeholder alone, since the amount commit encodes the target.
+ */
+export function syncMoneyAccountWithdrawTransfer(
+  transactionMeta: TransactionMeta | undefined,
+  recipientOverride?: Hex,
+  paymentToken?: { address: string; chainId: string },
+): void {
+  if (
+    !transactionMeta ||
+    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return;
+  }
+
+  const transfer = decodeErc20Transfer(
+    transactionMeta.nestedTransactions?.[1]?.data,
+    TransactionType.tokenMethodTransfer,
+  );
+  const recipient =
+    recipientOverride ??
+    selectEvmAddress(ReduxService.store.getState() as RootState);
+
+  if (!transfer || transfer.amount === '0' || !recipient) {
+    return;
+  }
+
+  const target = getMoneyAccountWithdrawTransferTarget({
+    paymentToken,
+    recipient: recipient as Hex,
+    transactionMeta,
+  });
+
+  if (transfer.recipient === target.toLowerCase()) {
+    return;
+  }
+
+  updateAtomicBatchData({
+    transactionId: transactionMeta.id,
+    transactionIndex: 1,
+    transactionData: buildErc20TransferData(target, BigInt(transfer.amount)),
+  }).catch((error) => {
+    Logger.error(error, 'Failed to update Money Account withdraw transfer');
+  });
+}
+
+/**
  * Returns the per-nested-call data updates required when the user changes
  * the withdrawal amount on a Money Account withdraw confirmation.
  *
- * Reads vault config, primary money account, and recipient from Redux, then
- * re-encodes the withdraw + ERC-20 transfer nested calls at the new amount.
+ * Reads vault config, primary money account, recipient, and receive token
+ * from Redux, then re-encodes the withdraw + ERC-20 transfer nested calls at
+ * the new amount.
  */
 export async function updateMoneyAccountWithdrawTokenAmount(
   transactionMeta: TransactionMeta,
@@ -317,7 +402,14 @@ export async function updateMoneyAccountWithdrawTokenAmount(
     tellerAddress: vaultConfig.tellerAddress as Hex,
     accountantAddress: vaultConfig.accountantAddress as Hex,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
-    recipient: recipient as Hex,
+    recipient: getMoneyAccountWithdrawTransferTarget({
+      paymentToken: selectTransactionPaymentTokenByTransactionId(
+        state,
+        transactionMeta.id,
+      ),
+      recipient: recipient as Hex,
+      transactionMeta,
+    }),
     provider,
   });
 
@@ -469,7 +561,7 @@ export type MoneyAccountWithdrawBatchResult = MoneyAccountBatchResult<
  * 1. Calls `getRate` on the accountant contract to get the current vault rate.
  * 2. Converts the asset amount to vault shares.
  * 3. Encodes `withdraw(mUSD, shareAmount, minimumAssets, moneyAccountAddress)` on the teller contract — USDC lands on the money account.
- * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to the user's selected EVM account.
+ * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to `recipient`.
  *
  * When `amount === 0n` the rate fetch is skipped: the caller is encoding a
  * placeholder batch that MM Pay will re-encode via
@@ -490,7 +582,7 @@ export async function buildMoneyAccountWithdrawBatch({
   accountantAddress: Hex;
   /** Address of the money account — vault sends USDC here first. */
   moneyAccountAddress: Hex;
-  /** Address of the user's selected EVM account — receives the USDC transfer. */
+  /** Receives the USDC transfer (see `getMoneyAccountWithdrawTransferTarget`). */
   recipient: Hex;
   provider: ethers.providers.Provider;
 }): Promise<MoneyAccountWithdrawBatchResult> {

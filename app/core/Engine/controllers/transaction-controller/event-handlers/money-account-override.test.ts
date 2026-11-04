@@ -241,38 +241,33 @@ describe('money-account-override', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
-    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
+    it('does not rewrite nested calls for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
       );
 
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions: undefined,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
-    it('calls replaceAccountInNestedTransactions for a batch containing a nested moneyAccountWithdraw', () => {
-      const nestedTransactions = [
-        { type: TransactionType.tokenMethodApprove },
-        { type: TransactionType.moneyAccountWithdraw },
-      ];
-
+    it('sets the selected account only as the recipient for a batch containing a nested moneyAccountWithdraw', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({
           type: TransactionType.batch,
-          nestedTransactions,
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountWithdraw },
+            { type: TransactionType.tokenMethodTransfer },
+          ],
         } as never),
       );
 
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+        {};
+      callback(config as never);
+
+      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.isQuoteRequired).toBeUndefined();
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
     it('does not call replaceAccountInNestedTransactions for a moneyAccountDeposit transaction', () => {

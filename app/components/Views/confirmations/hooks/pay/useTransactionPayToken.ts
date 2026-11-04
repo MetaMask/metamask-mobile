@@ -14,6 +14,8 @@ import EngineService from '../../../../../core/EngineService';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
@@ -25,6 +27,7 @@ export function useTransactionPayToken(): {
 } {
   const transactionMeta = useTransactionMetadataRequest();
   const { id: transactionId } = transactionMeta || { id: '' };
+  const accountOverride = useTransactionAccountOverride();
 
   const payToken = useSelector((state: RootState) =>
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
@@ -57,6 +60,12 @@ export function useTransactionPayToken(): {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
+
+        syncMoneyAccountWithdrawTransfer(
+          transactionMeta,
+          accountOverride,
+          newPayToken,
+        );
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
       }
@@ -89,6 +98,7 @@ export function useTransactionPayToken(): {
       EngineService.flushState();
     },
     [
+      accountOverride,
       transactionId,
       transactionMeta,
       primaryRequiredToken?.chainId,

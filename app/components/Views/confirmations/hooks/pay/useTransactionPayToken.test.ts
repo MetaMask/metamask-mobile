@@ -14,9 +14,15 @@ import {
   TransactionPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
+
+jest.mock('../../../../UI/Money/utils/moneyAccountTransactions', () => ({
+  syncMoneyAccountWithdrawTransfer: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -64,11 +70,16 @@ const REQUIRED_TOKEN_MOCK = {
   skipIfBalance: false,
 } as unknown as TransactionPayRequiredToken;
 
+const ACCOUNT_OVERRIDE_MOCK =
+  '0x4444444444444444444444444444444444444444' as Hex;
+
 function runHook({
+  accountOverride,
   payToken,
   type,
   requiredTokens,
 }: {
+  accountOverride?: Hex;
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
@@ -78,6 +89,7 @@ function runHook({
   mockState.engine.backgroundState.TransactionPayController = {
     transactionData: {
       [TRANSACTION_ID_MOCK]: {
+        accountOverride,
         isLoading: false,
         paymentToken: payToken,
         tokens: requiredTokens ?? [],
@@ -106,6 +118,10 @@ describe('useTransactionPayToken', () => {
 
   const fetchGasFeeEstimatesMock = jest.mocked(
     Engine.context.GasFeeController.fetchGasFeeEstimates,
+  );
+
+  const syncMoneyAccountWithdrawTransferMock = jest.mocked(
+    syncMoneyAccountWithdrawTransfer,
   );
 
   beforeEach(() => {
@@ -146,6 +162,39 @@ describe('useTransactionPayToken', () => {
       tokenAddress: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId,
     });
+  });
+
+  it('syncs a money account withdrawal transfer with the new token and recipient', async () => {
+    const { result } = runHook({ accountOverride: ACCOUNT_OVERRIDE_MOCK });
+
+    result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    await flushPromises();
+
+    expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
+      expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
+      ACCOUNT_OVERRIDE_MOCK,
+      { address: PAY_TOKEN_MOCK.address, chainId: PAY_TOKEN_MOCK.chainId },
+    );
+  });
+
+  it('does not sync the withdrawal transfer when the payment token update fails', async () => {
+    updatePaymentTokenMock.mockImplementation(() => {
+      throw new Error('Update failed');
+    });
+    const { result } = runHook({ accountOverride: ACCOUNT_OVERRIDE_MOCK });
+
+    result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    await flushPromises();
+
+    expect(syncMoneyAccountWithdrawTransferMock).not.toHaveBeenCalled();
   });
 
   it('returns isNative true when pay token is native address', () => {

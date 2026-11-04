@@ -9,12 +9,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import { isHardwareAccount } from '../../../../../util/address';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import PayAccountSelector from './PayAccountSelector';
 
+jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../utils/transaction-pay', () => ({
@@ -22,6 +25,9 @@ jest.mock('../../utils/transaction-pay', () => ({
 }));
 jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
+}));
+jest.mock('../../../../UI/Money/utils/moneyAccountTransactions', () => ({
+  syncMoneyAccountWithdrawTransfer: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -95,8 +101,16 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+const syncMoneyAccountWithdrawTransferMock = jest.mocked(
+  syncMoneyAccountWithdrawTransfer,
+);
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
+const PAY_TOKEN_MOCK = {
+  address: '0x3333333333333333333333333333333333333333',
+  chainId: '0x1',
+};
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
@@ -125,6 +139,10 @@ describe('PayAccountSelector', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     isHardwareAccountMock.mockReturnValue(false);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: jest.fn(),
+    } as never);
   });
 
   it('returns null for non-money-account transactions', () => {
@@ -275,6 +293,32 @@ describe('PayAccountSelector', () => {
     expect(config.isPostQuote).toBeUndefined();
   });
 
+  it('keeps nested calls on the money account and only re-points the transfer for withdraw transactions', async () => {
+    const transactionMeta = {
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0xMoneyAccount' },
+      nestedTransactions: [{ data: '0xabcd' }],
+    };
+    useTransactionMetadataRequestMock.mockReturnValue(transactionMeta as never);
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xOverrideAddress' as Hex,
+    );
+
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
+      transactionMeta,
+      '0xSelectedAddress',
+      PAY_TOKEN_MOCK,
+    );
+  });
+
   it('does not set isPostQuote for deposit transactions', async () => {
     const { getByTestId } = render();
 
@@ -330,6 +374,7 @@ describe('PayAccountSelector', () => {
       oldAddress: '0xOverrideAddress',
       newAddress: '0xSelectedAddress',
     });
+    expect(syncMoneyAccountWithdrawTransferMock).not.toHaveBeenCalled();
   });
 
   it('rewrites nested transactions using txParams.from when no accountOverride is set', async () => {

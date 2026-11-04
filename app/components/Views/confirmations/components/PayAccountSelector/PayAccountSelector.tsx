@@ -12,6 +12,8 @@ import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { isHardwareAccount } from '../../../../../util/address';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -32,6 +34,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
   const accountOverride = useTransactionAccountOverride();
+  const { payToken } = useTransactionPayToken();
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -74,12 +77,20 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         return;
       }
 
-      replaceAccountInNestedTransactions({
-        transactionId,
-        nestedTransactions: transactionMeta?.nestedTransactions,
-        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-        newAddress: address,
-      });
+      if (isMoneyAccountWithdraw) {
+        syncMoneyAccountWithdrawTransfer(
+          transactionMeta,
+          address as Hex,
+          payToken,
+        );
+      } else {
+        replaceAccountInNestedTransactions({
+          transactionId,
+          nestedTransactions: transactionMeta?.nestedTransactions,
+          oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+          newAddress: address,
+        });
+      }
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
@@ -88,7 +99,13 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         },
       );
     },
-    [accountOverride, transactionId, transactionMeta],
+    [
+      accountOverride,
+      isMoneyAccountWithdraw,
+      payToken,
+      transactionId,
+      transactionMeta,
+    ],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {
