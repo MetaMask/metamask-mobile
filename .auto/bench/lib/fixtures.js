@@ -209,11 +209,15 @@ function buildState(scale) {
   assetPreferences[STAKED_IDS[0]] = { hidden: true };
 
   // --- network configurations (some chains missing -> 'NATIVE' default) ---
+  // nativeCurrency matches the native asset symbols above so currencyRates /
+  // marketData result construction is exercised (a mismatch would make every
+  // marketData entry skip and hide bugs). Chains i%5===4 stay missing.
   var networkConfigurationsByChainId = {};
   for (i = 0; i < EVM_CHAIN_REFS.length; i++) {
     if (i % 5 === 4) { continue; }
-    networkConfigurationsByChainId['0x' + BigInt(EVM_CHAIN_REFS[i]).toString(16)] = {
-      nativeCurrency: 'NC' + i,
+    var nref = EVM_CHAIN_REFS[i];
+    networkConfigurationsByChainId['0x' + BigInt(nref).toString(16)] = {
+      nativeCurrency: nref === '1' ? 'ETH' : 'N' + nref,
     };
   }
 
