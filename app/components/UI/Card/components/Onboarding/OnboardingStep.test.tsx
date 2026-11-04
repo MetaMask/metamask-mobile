@@ -4,6 +4,11 @@ import { Text, View, TouchableOpacity } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
@@ -15,6 +20,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text: RNText } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({
       children,
       testID,

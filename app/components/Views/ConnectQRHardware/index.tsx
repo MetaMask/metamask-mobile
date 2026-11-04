@@ -37,7 +37,9 @@ import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/Hardwar
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 import Routes from '../../../constants/navigation/Routes';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -81,6 +83,7 @@ const createStyles = (colors: ThemeColors) =>
   });
 
 const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { setTargetWalletType, setQrScanRetryHandler } = useHardwareWallet();
@@ -355,7 +358,9 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
         edges={safeAreaEdges}
         testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           testID={ConnectQRHardwareSelectorsIDs.HEADER}
           twClassName="px-4"
