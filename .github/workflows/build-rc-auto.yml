@@ -537,6 +537,9 @@ jobs:
       E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
       E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
 
+  # TODO: Check out scripts/build-announce from a pinned commit on main in post-rc-build-comment
+  # and add-rc-test-plan, and pass github.sha as HEAD_REF, so neither job runs release-branch
+  # code with a write token. The pinned commit must already contain add-test-plan.ts.
   post-rc-build-comment:
     name: Post RC Build Comment
     runs-on: ubuntu-latest
