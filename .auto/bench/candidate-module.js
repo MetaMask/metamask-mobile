@@ -346,6 +346,11 @@ const getMultiChainAssetsControllerAccountsAssets = makeDirect([
         }
         result[accountId] = [];
         for (const assetId of assetIds) {
+            // Fast path: eip155 ids are the bulk of real state; the namespace
+            // of any id with this prefix is eip155.
+            if (assetId.startsWith('eip155:')) {
+                continue;
+            }
             const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
                 continue;
@@ -362,6 +367,10 @@ const getMultiChainAssetsControllerAssetsMetadata = makeDirect([
 ], (assetsInfo) => {
     const result = {};
     for (const [assetId, metadata] of Object.entries(assetsInfo)) {
+        // Fast path: skip eip155 ids before parsing (see accountsAssets).
+        if (assetId.startsWith('eip155:')) {
+            continue;
+        }
         const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
             continue;
@@ -397,6 +406,10 @@ const getMultiChainAssetsControllerAllIgnoredAssets = makeDirect([
         result[accountId] = [];
         for (const [assetId, { hidden }] of Object.entries(assetPreferences)) {
             if (!hidden) {
+                continue;
+            }
+            // Fast path: skip eip155 ids before parsing (see accountsAssets).
+            if (assetId.startsWith('eip155:')) {
                 continue;
             }
             const assetType = parseCaipAssetTypeCached(assetId);
