@@ -98,9 +98,6 @@ def common_target_logic
   # use_frameworks!
   pod 'GzipSwift'
 
-  # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
-  pod 'OpenSSL-Universal', :modular_headers => true
-
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

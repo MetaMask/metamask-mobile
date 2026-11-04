@@ -12,10 +12,11 @@ const styles = StyleSheet.create({
 const CONTENT_MOCK = <Text testID="custom-content">Custom content</Text>;
 
 describe('AlertMessage', () => {
-  it('renders the message as danger help text', () => {
+  it('renders the message in the error color', () => {
     const { getByText, getByTestId } = render(
       <AlertMessage alertMessage={MESSAGE_MOCK} />,
     );
+
     expect(getByText(MESSAGE_MOCK)).toBeDefined();
     expect(getByTestId('alert-message-banner')).toBeDefined();
   });

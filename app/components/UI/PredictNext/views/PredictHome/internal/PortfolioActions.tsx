@@ -16,7 +16,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 
 interface PortfolioActionProps {
-  disabled?: boolean;
   iconName: IconName;
   label: string;
   onPress: () => void;
@@ -24,7 +23,6 @@ interface PortfolioActionProps {
 }
 
 const PortfolioAction = ({
-  disabled = false,
   iconName,
   label,
   onPress,
@@ -36,14 +34,11 @@ const PortfolioAction = ({
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) =>
         tw.style(
           'flex-1 min-h-[74px] rounded-lg bg-muted items-center justify-center p-3',
           pressed && 'opacity-80',
-          disabled && 'opacity-50',
         )
       }
       testID={testID}
@@ -53,7 +48,7 @@ const PortfolioAction = ({
           accessible={false}
           iconName={iconName}
           iconProps={{
-            color: disabled ? IconColor.IconMuted : IconColor.IconAlternative,
+            color: IconColor.IconAlternative,
             size: IconSize.Md,
           }}
           importantForAccessibility="no"
@@ -62,7 +57,7 @@ const PortfolioAction = ({
         />
         <Text
           fontWeight={FontWeight.Medium}
-          twClassName={disabled ? 'text-muted' : 'text-default'}
+          twClassName="text-default"
           variant={TextVariant.BodySm}
         >
           {label}
@@ -74,14 +69,14 @@ const PortfolioAction = ({
 
 interface PortfolioActionsProps {
   onPositionsPress: () => void;
-  onAddFundsPress: () => void;
-  onWithdrawPress: () => void;
 }
 
+/**
+ * Home's portfolio entry points. Only working actions appear: funding is
+ * added when it has a real implementation and the Venue supports it.
+ */
 export const PortfolioActions = ({
   onPositionsPress,
-  onAddFundsPress,
-  onWithdrawPress,
 }: PortfolioActionsProps) => (
   <Box twClassName="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
     <PortfolioAction
@@ -89,20 +84,6 @@ export const PortfolioActions = ({
       label={strings('predict_next.portfolio.positions')}
       onPress={onPositionsPress}
       testID={PredictHomeTestIds.POSITIONS}
-    />
-    <PortfolioAction
-      disabled
-      iconName={IconName.Add}
-      label={strings('predict_next.portfolio.add_funds')}
-      onPress={onAddFundsPress}
-      testID={PredictHomeTestIds.ADD_FUNDS}
-    />
-    <PortfolioAction
-      disabled
-      iconName={IconName.Arrow2Down}
-      label={strings('predict_next.portfolio.withdraw')}
-      onPress={onWithdrawPress}
-      testID={PredictHomeTestIds.WITHDRAW}
     />
   </Box>
 );

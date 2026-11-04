@@ -81,6 +81,9 @@ const renderTree = (
         <RootStack.Screen name={Routes.HOME_TABS}>
           {() => <Probe label="home" />}
         </RootStack.Screen>
+        <RootStack.Screen name={Routes.NFT_DETAILS}>
+          {() => <Probe label="nft-details" />}
+        </RootStack.Screen>
         <RootStack.Screen
           name="StakeScreens"
           component={StakeScreensNavigator}
@@ -212,6 +215,40 @@ describe('navigateToActivityAfterConfirmation', () => {
     fireEvent.press(getByTestId('redirect-trigger'));
 
     // The whole Send flow stack (Amount/Recipient/confirmation) is replaced.
+    expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
+    expect(rootRouteNames(ref)).toEqual([
+      Routes.HOME_TABS,
+      Routes.TRANSACTIONS_VIEW,
+    ]);
+
+    act(() => {
+      ref.goBack();
+    });
+    expect(focusedRouteName(ref)).toBe(Routes.HOME_TABS);
+  });
+
+  it('flow 4 (NFT send): removes NFT details before replacing Send with Activity', () => {
+    const ref = createNavigationContainerRef();
+    const { getByTestId } = renderTree(
+      {
+        routes: [
+          { name: Routes.HOME_TABS },
+          { name: Routes.NFT_DETAILS },
+          {
+            name: Routes.SEND.DEFAULT,
+            state: {
+              index: 1,
+              routes: [{ name: Routes.SEND.RECIPIENT }, { name: REDESIGNED }],
+            },
+          },
+        ],
+        index: 2,
+      } as PartialState<NavigationState>,
+      ref,
+    );
+
+    fireEvent.press(getByTestId('redirect-trigger'));
+
     expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
     expect(rootRouteNames(ref)).toEqual([
       Routes.HOME_TABS,

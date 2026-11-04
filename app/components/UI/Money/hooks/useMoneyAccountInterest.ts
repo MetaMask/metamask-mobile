@@ -26,7 +26,19 @@ interface UseMoneyAccountInterestResult {
   refetchInterest: () => Promise<void>;
 }
 
-const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
+interface BaseVaultInterestTarget {
+  address: string | undefined;
+  vaultAddress: string | undefined;
+  isEnabled: boolean;
+  interestOptions: Omit<InterestOptions, 'window'> | undefined;
+}
+
+/**
+ * Address and base-vault coordinates shared by the Money interest queries.
+ *
+ * @returns The account address, vault address, and query options.
+ */
+const useBaseVaultInterestTarget = (): BaseVaultInterestTarget => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const address = primaryMoneyAccount?.address;
@@ -38,8 +50,7 @@ const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
       chainId !== undefined &&
       Number.isSafeInteger(chainId),
   );
-
-  const commonOptions = useMemo<Omit<InterestOptions, 'window'> | undefined>(
+  const interestOptions = useMemo<Omit<InterestOptions, 'window'> | undefined>(
     () =>
       vaultAddress && chainId !== undefined && Number.isSafeInteger(chainId)
         ? { vaultAddress, chainId }
@@ -47,25 +58,59 @@ const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
     [chainId, vaultAddress],
   );
 
+  return { address, vaultAddress, isEnabled, interestOptions };
+};
+
+/**
+ * Since-inception interest for the base Money vault.
+ *
+ * This is the lifetime amount Money Home shows. Pro Hub reads it on its own
+ * so opening that screen does not also fetch the 30-day window.
+ *
+ * @returns The since-inception interest query.
+ */
+export const useMoneyAccountSinceInceptionInterest =
+  (): UseQueryResult<InterestResponse> => {
+    const { address, isEnabled, interestOptions } =
+      useBaseVaultInterestTarget();
+
+    const sinceInceptionQuery = useQuery({
+      queryKey: [
+        MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
+        address as string,
+        {
+          ...interestOptions,
+          window: SINCE_INCEPTION_WINDOW,
+        },
+      ],
+      enabled: isEnabled,
+    }) as UseQueryResult<InterestResponse>;
+
+    useEffect(() => {
+      if (!sinceInceptionQuery.isError) {
+        clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW);
+        return;
+      }
+      reportMoneyInterestError(
+        SINCE_INCEPTION_WINDOW,
+        sinceInceptionQuery.error,
+      );
+    }, [sinceInceptionQuery.error, sinceInceptionQuery.isError]);
+
+    return sinceInceptionQuery;
+  };
+
+const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
+  const { address, vaultAddress, isEnabled, interestOptions } =
+    useBaseVaultInterestTarget();
+
   const last30DaysQuery = useQuery({
     queryKey: [
       MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
       address as string,
       {
-        ...commonOptions,
+        ...interestOptions,
         window: LAST_30_DAYS_WINDOW,
-      },
-    ],
-    enabled: isEnabled,
-  }) as UseQueryResult<InterestResponse>;
-
-  const sinceInceptionQuery = useQuery({
-    queryKey: [
-      MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
-      address as string,
-      {
-        ...commonOptions,
-        window: SINCE_INCEPTION_WINDOW,
       },
     ],
     enabled: isEnabled,
@@ -79,13 +124,7 @@ const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
     reportMoneyInterestError(LAST_30_DAYS_WINDOW, last30DaysQuery.error);
   }, [last30DaysQuery.error, last30DaysQuery.isError]);
 
-  useEffect(() => {
-    if (!sinceInceptionQuery.isError) {
-      clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW);
-      return;
-    }
-    reportMoneyInterestError(SINCE_INCEPTION_WINDOW, sinceInceptionQuery.error);
-  }, [sinceInceptionQuery.error, sinceInceptionQuery.isError]);
+  const sinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
 
   const refetchInterest = useCallback(async () => {
     if (!isEnabled || !address || !vaultAddress) {

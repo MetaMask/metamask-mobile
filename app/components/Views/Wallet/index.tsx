@@ -50,9 +50,13 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyDepositBrazeCampaignEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
+import MoneyDepositBrazeCampaignObserver from '../../UI/Money/components/MoneyDepositBrazeCampaignObserver/MoneyDepositBrazeCampaignObserver';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderAccountPickerRow from './components/WalletHeader/WalletHeaderAccountPickerRow';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
@@ -114,7 +118,11 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
+import {
+  selectShouldShowWalletHomeOnboardingSteps,
+  selectWalletHomeOnboardingSteps,
+} from '../../../selectors/onboarding';
+import { selectIsAccountGroupFunded } from '../../../selectors/assets/balances';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
@@ -366,6 +374,10 @@ const Wallet = ({
     selectShouldShowWalletHomeOnboardingSteps,
   );
 
+  const walletHomeOnboardingStepIndex =
+    useSelector(selectWalletHomeOnboardingSteps).stepIndex ?? 0;
+  const isAccountGroupFunded = useSelector(selectIsAccountGroupFunded);
+
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
@@ -419,6 +431,9 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyDepositBrazeCampaignEnabled = useSelector(
+    selectIsMoneyDepositBrazeCampaignEnabledFlag,
+  );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
     isMoneyAccountEnabled && !inWalletHomePostOnboardingFlow;
@@ -1256,9 +1271,15 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  // The fund step can outlast incoming funds, so check both (TMCU-1264).
+  const hideGrowthBannerForChecklist =
+    inWalletHomePostOnboardingFlow &&
+    (walletHomeOnboardingStepIndex === 0 || !isAccountGroupFunded);
+
   // Hide growth banners when money account is enabled but user is geo-blocked.
   const growthBanner =
-    !isMoneyAccountEnabled || isMoneyAccountVisible
+    !hideGrowthBannerForChecklist &&
+    (!isMoneyAccountEnabled || isMoneyAccountVisible)
       ? homeGrowthBannerContent
       : null;
 
@@ -1383,6 +1404,9 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
+              {isMoneyAccountVisible && isMoneyDepositBrazeCampaignEnabled && (
+                <MoneyDepositBrazeCampaignObserver />
+              )}
               {isNativeHeader ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}

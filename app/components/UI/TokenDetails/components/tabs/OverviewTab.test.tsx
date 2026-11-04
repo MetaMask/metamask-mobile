@@ -22,14 +22,17 @@ import {
 } from '../../constants/constants';
 import {
   OVERVIEW_TAB_ACTIVITY_TEST_ID,
-  OVERVIEW_TAB_BALANCE_TEST_ID,
-  OVERVIEW_TAB_DESCRIPTION_TEST_ID,
-  OVERVIEW_SECTION_RULE_TEST_ID,
-  OVERVIEW_TAB_TEST_ID,
-  OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
   default as OverviewTab,
 } from './OverviewTab';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../sections/PerformanceSection';
+import { TokenDetailsIds } from '../../testIds';
+
+const OVERVIEW_TAB_TEST_ID = TokenDetailsIds.overview.container;
+const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
+const OVERVIEW_TAB_BALANCE_TEST_ID = TokenDetailsIds.overview.balance;
+const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
+  TokenDetailsIds.overview.tokenDetails;
+const OVERVIEW_SECTION_RULE_TEST_ID = TokenDetailsIds.overview.sectionRule;
+const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 jest.mock('react-redux', () => ({
@@ -429,7 +432,6 @@ describe('OverviewTab', () => {
 
     expect(mockUseTokenPerformance).toHaveBeenCalledWith({
       marketData: null,
-      assetMarketData: null,
     });
     expect(
       getByTestId('token-details-overview-tab-performance-value-1h'),

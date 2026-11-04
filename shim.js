@@ -1,4 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
+// Must stay the first import: pins tslib 2's helpers before tslib 1 can overwrite them.
+import './app/core/installTslibHelpers';
 import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
@@ -36,6 +38,7 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   hasTestOverrides,
+  isPerformanceTest,
   isTestEnvironment,
   enableApiCallLogs,
   testConfig,
@@ -101,7 +104,9 @@ if (hasTestOverrides) {
   );
 }
 
-// In a testing environment, configure server ports for fixture and command queue servers.
+// In a testing environment, or any build with test overrides (e.g. an rc build
+// pointed at a local fixture server), configure server ports for fixture and
+// command queue servers.
 //
 // We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
 // library behavior differs by platform:
@@ -113,7 +118,7 @@ if (hasTestOverrides) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTestEnvironment) {
+if (isTestEnvironment || hasTestOverrides) {
   const raw = LaunchArguments.value();
 
   // Priority: LaunchArgs (E2E) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
@@ -267,34 +272,41 @@ if (typeof localStorage !== 'undefined') {
 }
 
 if (enableApiCallLogs || isTestEnvironment) {
-  (async () => {
-    const raw = LaunchArguments.value();
-    const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
-    const { fetch: originalFetch } = global;
+  const raw = LaunchArguments.value();
+  const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
+  const { fetch: originalFetch } = global;
 
-    // eslint-disable-next-line no-console
-    console.log(
-      `[E2E SHIM] Platform: ${Platform.OS}, mockServerPort: ${mockServerPort}`,
-    );
+  // eslint-disable-next-line no-console
+  console.log(
+    `[E2E SHIM] Platform: ${Platform.OS}, mockServerPort: ${mockServerPort}`,
+  );
 
-    // Try multiple hosts to find available mock server
-    // Priority order:
-    // 1. localhost (works on iOS, works on Android with adb reverse)
-    // 2. 10.0.2.2 (Android emulator host - direct access without adb reverse!)
-    const hosts = ['localhost'];
-    if (Platform.OS === 'android') {
-      hosts.push('10.0.2.2');
-    }
+  // Try multiple hosts to find available mock server
+  // Priority order:
+  // 1. localhost (works on iOS, works on Android with adb reverse)
+  // 2. 10.0.2.2 (Android emulator host - direct access without adb reverse!)
+  const hosts = ['localhost'];
+  if (Platform.OS === 'android') {
+    hosts.push('10.0.2.2');
+  }
 
-    let MOCKTTP_URL = '';
-    let isMockServerAvailable = false;
+  // Bounds how long requests waiting on `mockReady` can be held when a host
+  // never answers (e.g. 10.0.2.2 from a physical Android device).
+  const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
+  // Resolves to the mock server's URL, or '' when none answered. The fetch
+  // and expo/fetch wrappers below are installed synchronously and await it,
+  // so a request issued before the health check settles is still routed
+  // through the mock server instead of going straight to the network.
+  const mockReady = (async () => {
     for (const host of hosts) {
       const testUrl = `http://${host}:${mockServerPort}`;
       // eslint-disable-next-line no-console
       console.log(`[E2E SHIM] Trying mock server at: ${testUrl}`);
 
-      const available = await originalFetch(`${testUrl}/health-check`)
+      const available = await originalFetch(`${testUrl}/health-check`, {
+        signal: global.AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
+      })
         .then((res) => {
           // eslint-disable-next-line no-console
           console.log(`[E2E SHIM] ${host} health check: ${res.ok}`);
@@ -307,76 +319,89 @@ if (enableApiCallLogs || isTestEnvironment) {
         });
 
       if (available) {
-        MOCKTTP_URL = testUrl;
-        isMockServerAvailable = true;
         // eslint-disable-next-line no-console
         console.log(`[E2E SHIM] Mock server connected via ${host}`);
-        break;
+        return testUrl;
       }
     }
+    return '';
+  })();
 
-    // Capture the fetch installed by NitroFetchSetup. This shim's synchronous
-    // import (index.js) runs before NitroFetchSetup, so `originalFetch` above
-    // was captured as RN's pre-nitro fetch. By the time this async IIFE resumes
-    // (after the health-check await), NitroFetchSetup has replaced global.fetch
-    // with nitro-fetch AND global.Headers with nitro's Headers. Routing app
-    // requests through nitro-fetch is required: RN's pre-nitro fetch cannot read
-    // a NitroHeaders instance and silently drops headers like Content-Type,
-    // which makes HyperLiquid reject perps orders/candles with a 415.
-    const installedFetch = global.fetch;
+  // The mock server's own URLs, the health check included.
+  const isMockServerUrl = (url) =>
+    hosts.some((host) => url.startsWith(`http://${host}:${mockServerPort}/`));
 
-    // Performance builds only: let SeedlessOnboardingController hit live UAT
-    // TOPRF / auth-service. E2E CI keeps these hosts on Mockttp (TOPRF mocked).
-    // IS_PERFORMANCE_TEST is inlined at build time via babel.
-    const isPerformanceTestBuild = process.env.IS_PERFORMANCE_TEST === 'true';
-    const PROXY_BYPASS_PATTERNS = [
-      '.node.web3auth.io',
-      '.uat-node.web3auth.io',
-      'auth-service.uat-api.cx.metamask.io',
-    ];
+  // The fetch app requests are sent with. Starts as the fetch this shim found;
+  // see the NitroFetchSetup note where `mockReady` settles below.
+  let installedFetch = originalFetch;
 
-    const shouldBypassProxy = (targetUrl) => {
-      if (!isPerformanceTestBuild) {
-        return false;
-      }
-      try {
-        const hostname = new URL(targetUrl).hostname;
-        return PROXY_BYPASS_PATTERNS.some(
-          (p) => hostname === p || hostname.endsWith(p),
-        );
-      } catch {
-        return false;
-      }
-    };
+  // Performance builds only: let SeedlessOnboardingController hit live UAT
+  // TOPRF / auth-service. E2E CI keeps these hosts on Mockttp (TOPRF mocked).
+  const PROXY_BYPASS_PATTERNS = [
+    '.node.web3auth.io',
+    '.uat-node.web3auth.io',
+    'auth-service.uat-api.cx.metamask.io',
+  ];
 
-    // if mockServer is off we route to original destination
-    global.fetch = async (url, options) => {
-      // Extract URL string from Request or URL objects
-      let urlString;
-      if (typeof url === 'string') {
-        urlString = url;
-      } else if (url instanceof URL) {
-        urlString = url.href;
-      } else if (url && typeof url === 'object' && url.url) {
-        // Request object has a 'url' property
-        urlString = url.url;
-      } else {
-        urlString = String(url);
-      }
-
-      if (!isMockServerAvailable || shouldBypassProxy(urlString)) {
-        return installedFetch(url, options);
-      }
-
-      // No direct retry on failure: a request the mock server cannot serve
-      // must fail, not silently reach the live backend.
-      return installedFetch(
-        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
-        options,
+  const shouldBypassProxy = (targetUrl) => {
+    if (!isPerformanceTest) {
+      return false;
+    }
+    try {
+      const hostname = new URL(targetUrl).hostname;
+      return PROXY_BYPASS_PATTERNS.some(
+        (p) => hostname === p || hostname.endsWith(p),
       );
-    };
+    } catch {
+      return false;
+    }
+  };
 
-    if (isMockServerAvailable) {
+  // if mockServer is off we route to original destination
+  const proxiedFetch = async (url, options) => {
+    // Extract URL string from Request or URL objects
+    let urlString;
+    if (typeof url === 'string') {
+      urlString = url;
+    } else if (url instanceof URL) {
+      urlString = url.href;
+    } else if (url && typeof url === 'object' && url.url) {
+      // Request object has a 'url' property
+      urlString = url.url;
+    } else {
+      urlString = String(url);
+    }
+
+    const MOCKTTP_URL = await mockReady;
+    if (!MOCKTTP_URL || shouldBypassProxy(urlString)) {
+      return installedFetch(url, options);
+    }
+
+    // No direct retry on failure: a request the mock server cannot serve
+    // must fail, not silently reach the live backend.
+    return installedFetch(
+      `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
+      options,
+    );
+  };
+  global.fetch = proxiedFetch;
+
+  mockReady.then((MOCKTTP_URL) => {
+    // NitroFetchSetup runs right after this shim (index.js) and, unless
+    // hasTestOverrides, replaces global.fetch with nitro-fetch AND
+    // global.Headers with nitro's Headers, dropping the wrapper above.
+    // Re-install it on top of nitro-fetch: RN's pre-nitro fetch cannot read a
+    // NitroHeaders instance and silently drops headers like Content-Type,
+    // which makes HyperLiquid reject perps orders/candles with a 415.
+    // Until then, requests in those builds bypass the mock server.
+    if (!hasTestOverrides && global.fetch !== proxiedFetch) {
+      installedFetch = global.fetch;
+      global.fetch = proxiedFetch;
+    }
+
+    // XHR and WebSocket are synchronous APIs, so they are patched only once
+    // the health check settles; requests they open earlier are not proxied.
+    if (MOCKTTP_URL) {
       // Patch XMLHttpRequest for Axios and other libraries
       const OriginalXHR = global.XMLHttpRequest;
 
@@ -498,151 +523,155 @@ if (enableApiCallLogs || isTestEnvironment) {
           `[WS Patch] Routes: ${JSON.stringify(wsRoutes)}; generic fallback → ws://${mockServerHost}:${mockServerPort}/proxy-ws?url=<original>`,
         );
       }
-
-      // Patch expo/fetch so its native networking routes through the mock
-      // proxy. Bridge-controller's SSE `getQuoteStream` (and any other expo
-      // fetch consumer) MUST hit the mock or the swap/bridge E2E quote
-      // mocks never fire and tests time out waiting for "Rate" /
-      // "Network fee".
-      //
-      // Defence-in-depth: we patch THREE places because we cannot rely on
-      // any single one surviving Metro/Babel transpilation in `expo@54`:
-      //
-      //   1. The native module prototype `ExpoFetchModule.NativeRequest
-      //      .prototype.start(url, init, body)`. This is the lowest layer
-      //      that EVERY expo fetch ultimately calls, regardless of how
-      //      `import { fetch } from 'expo/fetch'` was bundled or which
-      //      module captured the reference. Bulletproof.
-      //   2. The re-exporter `expo/src/winter/fetch/index` (what
-      //      `expo/fetch` resolves to). Catches consumers that destructure
-      //      the binding from the re-exporter at module load time.
-      //   3. The source module `expo/src/winter/fetch/fetch`. Catches
-      //      consumers that read through the live `export *` getter.
-      //
-      // If we miss the JS-level patches but get the native one, requests
-      // still get redirected — they just won't show the [E2E SHIM] log
-      // line at the JS layer.
-      const buildProxyUrl = (url) =>
-        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
-      const shouldProxy = (url) => {
-        if (typeof url !== 'string') return false;
-        if (!url.startsWith('http://') && !url.startsWith('https://'))
-          return false;
-        if (url.startsWith(MOCKTTP_URL)) return false;
-        return true;
-      };
-
-      // (1) Native prototype — bulletproof
-      try {
-        const {
-          ExpoFetchModule,
-        } = require('expo/src/winter/fetch/ExpoFetchModule');
-        const NativeRequest = ExpoFetchModule?.NativeRequest;
-        const proto = NativeRequest?.prototype;
-        if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
-          const originalStart = proto.start;
-          proto.start = function patchedStart(url, init, body) {
-            const targetUrl = (() => {
-              if (typeof url !== 'string') {
-                return url;
-              }
-              if (shouldBypassProxy(url)) {
-                return url;
-              }
-              return shouldProxy(url) ? buildProxyUrl(url) : url;
-            })();
-            if (targetUrl !== url) {
-              // eslint-disable-next-line no-console
-              console.log(
-                `[E2E SHIM] expo/fetch (native): ${url} → ${targetUrl}`,
-              );
-            }
-            return originalStart.call(this, targetUrl, init, body);
-          };
-          proto.__e2ePatched = true;
-          // eslint-disable-next-line no-console
-          console.log(
-            '[E2E SHIM] Patched ExpoFetchModule.NativeRequest.prototype.start',
-          );
-        } else if (proto?.__e2ePatched) {
-          // eslint-disable-next-line no-console
-          console.log('[E2E SHIM] NativeRequest.start already patched');
-        } else {
-          // eslint-disable-next-line no-console
-          console.warn(
-            '[E2E SHIM] ExpoFetchModule.NativeRequest.prototype.start not patchable',
-          );
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '[E2E SHIM] Failed to patch ExpoFetchModule native prototype:',
-          e.message,
-        );
-      }
-
-      // (2) + (3) JS-level patches for log visibility and as a fallback.
-      // NOTE: each `require(...)` call MUST use a string literal — Metro
-      // statically analyses requires and rejects variable paths.
-      const patchExpoFetchModuleObject = (mod, label) => {
-        try {
-          const originalExpoFetch = mod.fetch;
-          if (typeof originalExpoFetch !== 'function') {
-            // eslint-disable-next-line no-console
-            console.warn(`[E2E SHIM] ${label}: no fetch export to patch`);
-            return;
-          }
-          const patchedExpoFetch = (url, options) => {
-            const urlStr = String(url);
-            if (shouldBypassProxy(urlStr)) {
-              return originalExpoFetch(url, options);
-            }
-            if (!shouldProxy(url)) {
-              return originalExpoFetch(url, options);
-            }
-            const proxyUrl = buildProxyUrl(url);
-            // eslint-disable-next-line no-console
-            console.log(`[E2E SHIM] ${label}: ${url} → ${proxyUrl}`);
-            return originalExpoFetch(proxyUrl, options);
-          };
-          Object.defineProperty(mod, 'fetch', {
-            configurable: true,
-            enumerable: true,
-            writable: true,
-            value: patchedExpoFetch,
-          });
-          const installed = mod.fetch === patchedExpoFetch;
-          // eslint-disable-next-line no-console
-          console.log(`[E2E SHIM] Patched ${label} (installed=${installed})`);
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.warn(`[E2E SHIM] Failed to patch ${label}:`, e.message);
-        }
-      };
-      try {
-        patchExpoFetchModuleObject(
-          require('expo/src/winter/fetch/fetch'),
-          'expo/fetch source',
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '[E2E SHIM] Failed to require expo/fetch source:',
-          e.message,
-        );
-      }
-      try {
-        patchExpoFetchModuleObject(
-          require('expo/src/winter/fetch/index'),
-          'expo/fetch re-exporter',
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '[E2E SHIM] Failed to require expo/fetch re-exporter:',
-          e.message,
-        );
-      }
     }
-  })();
+  });
+
+  // Patch expo/fetch so its native networking routes through the mock
+  // proxy. Bridge-controller's SSE `getQuoteStream` (and any other expo
+  // fetch consumer) MUST hit the mock or the swap/bridge E2E quote
+  // mocks never fire and tests time out waiting for "Rate" /
+  // "Network fee".
+  //
+  // Defence-in-depth: we patch THREE places because we cannot rely on
+  // any single one surviving Metro/Babel transpilation in `expo@54`:
+  //
+  //   1. The native module prototype `ExpoFetchModule.NativeRequest
+  //      .prototype.start(url, init, body)`. This is the lowest layer
+  //      that EVERY expo fetch ultimately calls, regardless of how
+  //      `import { fetch } from 'expo/fetch'` was bundled or which
+  //      module captured the reference. Bulletproof.
+  //   2. The re-exporter `expo/src/winter/fetch/index` (what
+  //      `expo/fetch` resolves to). Catches consumers that destructure
+  //      the binding from the re-exporter at module load time.
+  //   3. The source module `expo/src/winter/fetch/fetch`. Catches
+  //      consumers that read through the live `export *` getter.
+  //
+  // If we miss the JS-level patches but get the native one, requests
+  // still get redirected — they just won't show the [E2E SHIM] log
+  // line at the JS layer.
+  //
+  // All three are installed now and await `mockReady`; they pass URLs
+  // through unchanged when no mock server answered.
+  const buildProxyUrl = (MOCKTTP_URL, url) =>
+    `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+  const shouldProxy = (url, MOCKTTP_URL) => {
+    if (typeof url !== 'string') return false;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) return false;
+    if (url.startsWith(MOCKTTP_URL)) return false;
+    return true;
+  };
+
+  // (1) Native prototype — bulletproof
+  try {
+    const {
+      ExpoFetchModule,
+    } = require('expo/src/winter/fetch/ExpoFetchModule');
+    const NativeRequest = ExpoFetchModule?.NativeRequest;
+    const proto = NativeRequest?.prototype;
+    if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
+      const originalStart = proto.start;
+      proto.start = function patchedStart(url, init, body) {
+        // The health check itself may come through here (when the global
+        // fetch is expo's), so the mock server's own URLs never wait.
+        if (typeof url !== 'string' || isMockServerUrl(url)) {
+          return originalStart.call(this, url, init, body);
+        }
+        return mockReady.then((MOCKTTP_URL) => {
+          const targetUrl =
+            MOCKTTP_URL &&
+            !shouldBypassProxy(url) &&
+            shouldProxy(url, MOCKTTP_URL)
+              ? buildProxyUrl(MOCKTTP_URL, url)
+              : url;
+          if (targetUrl !== url) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `[E2E SHIM] expo/fetch (native): ${url} → ${targetUrl}`,
+            );
+          }
+          return originalStart.call(this, targetUrl, init, body);
+        });
+      };
+      proto.__e2ePatched = true;
+      // eslint-disable-next-line no-console
+      console.log(
+        '[E2E SHIM] Patched ExpoFetchModule.NativeRequest.prototype.start',
+      );
+    } else if (proto?.__e2ePatched) {
+      // eslint-disable-next-line no-console
+      console.log('[E2E SHIM] NativeRequest.start already patched');
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[E2E SHIM] ExpoFetchModule.NativeRequest.prototype.start not patchable',
+      );
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[E2E SHIM] Failed to patch ExpoFetchModule native prototype:',
+      e.message,
+    );
+  }
+
+  // (2) + (3) JS-level patches for log visibility and as a fallback.
+  // NOTE: each `require(...)` call MUST use a string literal — Metro
+  // statically analyses requires and rejects variable paths.
+  const patchExpoFetchModuleObject = (mod, label) => {
+    try {
+      const originalExpoFetch = mod.fetch;
+      if (typeof originalExpoFetch !== 'function') {
+        // eslint-disable-next-line no-console
+        console.warn(`[E2E SHIM] ${label}: no fetch export to patch`);
+        return;
+      }
+      const patchedExpoFetch = async (url, options) => {
+        const MOCKTTP_URL = await mockReady;
+        const urlStr = String(url);
+        if (!MOCKTTP_URL || shouldBypassProxy(urlStr)) {
+          return originalExpoFetch(url, options);
+        }
+        if (!shouldProxy(url, MOCKTTP_URL)) {
+          return originalExpoFetch(url, options);
+        }
+        const proxyUrl = buildProxyUrl(MOCKTTP_URL, url);
+        // eslint-disable-next-line no-console
+        console.log(`[E2E SHIM] ${label}: ${url} → ${proxyUrl}`);
+        return originalExpoFetch(proxyUrl, options);
+      };
+      Object.defineProperty(mod, 'fetch', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: patchedExpoFetch,
+      });
+      const installed = mod.fetch === patchedExpoFetch;
+      // eslint-disable-next-line no-console
+      console.log(`[E2E SHIM] Patched ${label} (installed=${installed})`);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`[E2E SHIM] Failed to patch ${label}:`, e.message);
+    }
+  };
+  try {
+    patchExpoFetchModuleObject(
+      require('expo/src/winter/fetch/fetch'),
+      'expo/fetch source',
+    );
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[E2E SHIM] Failed to require expo/fetch source:', e.message);
+  }
+  try {
+    patchExpoFetchModuleObject(
+      require('expo/src/winter/fetch/index'),
+      'expo/fetch re-exporter',
+    );
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[E2E SHIM] Failed to require expo/fetch re-exporter:',
+      e.message,
+    );
+  }
 }

@@ -27,6 +27,18 @@ interface HomepageBalanceBreakdownHeroProps {
   hero: HeroData;
 }
 
+/**
+ * Keeps the aggregate muted only while another balance slice is unresolved.
+ * Settled slice errors are incomplete data, but no longer a loading state.
+ *
+ * @param isPartiallyLoaded - Whether an eligible slice is still loading.
+ * @returns The semantic color for the aggregate balance.
+ */
+export const getHomepageBalanceColor = (
+  isPartiallyLoaded: boolean | undefined,
+): TextColor =>
+  isPartiallyLoaded ? TextColor.TextMuted : TextColor.TextDefault;
+
 const HomepageBalanceBreakdownHero = ({
   hero,
 }: HomepageBalanceBreakdownHeroProps) => {
@@ -71,11 +83,7 @@ const HomepageBalanceBreakdownHero = ({
       <Animated.View style={animatedBalanceStyle}>
         {privacyMode ? (
           <SensitiveText
-            color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
-            }
+            color={getHomepageBalanceColor(hero.isPartiallyLoaded)}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
@@ -87,11 +95,7 @@ const HomepageBalanceBreakdownHero = ({
         ) : (
           <AnimatedBalanceText
             accessible={false}
-            color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
-            }
+            color={getHomepageBalanceColor(hero.isPartiallyLoaded)}
             isLoading={isLoading}
             loadingValue={zeroBalance}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}

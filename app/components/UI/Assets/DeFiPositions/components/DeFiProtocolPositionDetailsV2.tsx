@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -26,6 +25,8 @@ import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
@@ -41,6 +42,7 @@ interface DeFiProtocolPositionDetailsV2Params {
  * (no separate fetch).
  */
 const DeFiProtocolPositionDetailsV2: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation<AppStackNavigationProp>();
   const { protocolPositionGroup, networkIconAvatar } =
@@ -64,7 +66,9 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
       style={styles.protocolPositionDetailsWrapper}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         onBack={handleBack}
         includesTopInset

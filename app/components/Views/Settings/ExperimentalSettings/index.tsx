@@ -8,7 +8,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   FontWeight,
   Text,
   TextColor,
@@ -33,11 +32,14 @@ import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation }: Props) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const isDaimoDemo = useSelector(selectIsDaimoDemo);
@@ -185,7 +187,9 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   );
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.experimental_title')}
         onBack={handleBack}
         backButtonProps={{

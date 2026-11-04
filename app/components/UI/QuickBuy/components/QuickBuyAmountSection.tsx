@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -25,6 +25,7 @@ import {
   formatCurrency,
   getCurrencySymbol,
 } from '../../Bridge/utils/currencyUtils';
+import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
@@ -95,11 +96,7 @@ export function formatAmountDigitsForDisplay(
   amount: string,
   decimalSeparator: string | null | undefined,
 ): string {
-  const digits = amount || '0';
-  if (!decimalSeparator || decimalSeparator === '.' || !digits.includes('.')) {
-    return digits;
-  }
-  return digits.replace('.', decimalSeparator);
+  return formatAmountWithLocaleSeparators(amount || '0', decimalSeparator);
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
@@ -120,11 +117,14 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const hardwareTier = getHardwareTier();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
   const networkTier = useNetworkTier();
-  // Glyph motion is local. LOW hardware skips it. An unknown network stays on
-  // the product default and is not treated as offline.
-  const animateAmount = hardwareTier !== 'LOW' || networkTier === null;
+  // Glyph motion is local. The UX matrix only reduces it for LOW hardware on
+  // a known slow cellular link. Unknown hardware or network stays on the
+  // product default and is not treated as low-end or offline.
+  const animateAmount = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
   // Same currency → decimal mapping as QuickBuyKeypad so the headline separator
   // matches what the keypad is typing.
   const { decimalSeparator } = useCurrency(
@@ -183,6 +183,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       }
     }
   }
+  const visibleAmountLabel = `${amountPrefix}${amountValue}${amountSuffix}`;
   const amountFontSize = getFontSizeForInputLength(
     amountPrefix.length +
       amountValue.length +
@@ -210,7 +211,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA}
     >
       <AnimatedAmountDisplay
-        amountTestID="quick-buy-amount-value"
+        accessible={!onAmountAreaPress}
+        accessibilityLabel={visibleAmountLabel}
+        amountTestID={QuickBuySheetSelectorsIDs.AMOUNT_LABEL}
         animated={animateAmount}
         color={amountColor}
         containerStyle={AMOUNT_ROW_STYLE}
@@ -219,7 +222,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             ? {
                 animated: animateAmount,
                 style: cursorStyle,
-                testID: 'quick-buy-amount-cursor',
+                testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
               }
             : false
         }
@@ -281,6 +284,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     return (
       <TouchableOpacity
         activeOpacity={1}
+        accessibilityLabel={visibleAmountLabel}
         onPress={onAmountAreaPress}
         accessibilityRole="button"
         testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA_PRESSABLE}

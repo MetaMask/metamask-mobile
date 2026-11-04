@@ -10,7 +10,6 @@ import {
   Box,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconColor,
   IconName,
   TabEmptyState,
@@ -23,6 +22,9 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import TradingActivityListSkeleton from './TradingActivityListSkeleton';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
 import { strings } from '../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const TRADING_ACTIVITY_LIST_EMPTY_TEST_ID =
   'trading-activity-list-empty';
@@ -50,6 +52,8 @@ interface TradingActivityListViewProps<T extends { id: string }> {
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
   emptyActionLabel?: string;
   emptyOnAction?: () => void;
+  /** Sits above the list, the empty state, and the loading skeleton. */
+  header?: React.ReactElement | null;
 }
 
 /**
@@ -72,7 +76,9 @@ function TradingActivityListView<T extends { id: string }>({
   emptyDescription,
   emptyActionLabel,
   emptyOnAction,
+  header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const {
@@ -191,13 +197,16 @@ function TradingActivityListView<T extends { id: string }>({
         style={tw.style('flex-1 bg-default')}
         testID={testIDs.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={title}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
         <Box twClassName="flex-1 px-4 pb-8 pt-2">
+          {header ? <Box twClassName="mb-4">{header}</Box> : null}
           {isInitialLoadPending && !error ? (
             <Box
               collapsable={false}

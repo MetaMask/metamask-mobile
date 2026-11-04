@@ -358,7 +358,6 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   };
 
   const buttonSize = isSmallScreen ? ButtonSize.Md : ButtonSize.Lg;
-  const footerBottomClass = Platform.OS === 'ios' ? 'mb-4' : 'mb-6';
 
   return (
     <SafeAreaView
@@ -423,7 +422,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       </ScrollView>
 
       <FooterGlass
-        twClassName={footerBottomClass}
+        twClassName="py-2"
         primaryButtonProps={{
           children:
             type === 'found'

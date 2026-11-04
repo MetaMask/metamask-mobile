@@ -36,6 +36,9 @@ permissions:
   contents: read
   pull-requests: read
 
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
+
 jobs:
   generate-build-version:
     name: Generate build version

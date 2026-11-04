@@ -6,6 +6,7 @@
  * eagerly loading URL configuration and its AppConstants dependencies.
  */
 export * from './moneyButtonEvents';
+export * from './moneyCampaignEvents';
 export * from './moneyEventLocations';
 export * from './moneyOnboardingEvents';
 export * from './moneyTooltipEvents';

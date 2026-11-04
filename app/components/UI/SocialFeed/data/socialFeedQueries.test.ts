@@ -78,10 +78,7 @@ describe('socialFeedQueries', () => {
     });
 
     it('sends the global feed a mutable copy of its chain list', async () => {
-      const request = toSocialFeedRequest({
-        kind: 'all',
-        audience: 'following',
-      });
+      const request = toSocialFeedRequest({ scope: 'following' });
       if (!request) {
         throw new Error('expected a request');
       }

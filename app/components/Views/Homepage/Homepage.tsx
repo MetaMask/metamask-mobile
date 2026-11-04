@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
-import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
@@ -23,7 +22,10 @@ import { SectionRefreshHandle, type HomepageDeviceCapability } from './types';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  PredictHomeSection,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -47,11 +49,7 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import { HomepageEarnSection } from './Sections/EarnSection';
 import {
-  HOMEPAGE_EARN_SECTION_AB_KEY,
-  HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
-  HOMEPAGE_EARN_SECTION_VARIANTS,
   PERPS_SECTION_PRIORITY_AB_KEY,
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
@@ -60,7 +58,6 @@ import {
   SOCIAL_V1_AB_KEY,
   SOCIAL_V1_VARIANTS,
 } from '../../../constants/socialV1';
-import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -76,7 +73,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ balanceBreakdownSectionProps }, ref) => {
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
-    const earnSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
@@ -132,27 +128,12 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       hasMountedOptionalSections || canMountOptionalSections;
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-    const isHomepageEarnSectionVisible = useSelector(
-      selectIsHomepageEarnSectionVisible,
-    );
-    const { variant: earnSectionVariant } = useABTest(
-      HOMEPAGE_EARN_SECTION_AB_KEY,
-      HOMEPAGE_EARN_SECTION_VARIANTS,
-      {
-        ...HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
-        trackExposure: isHomepageEarnSectionVisible,
-      },
-    );
-    const shouldRenderEarnSection =
-      shouldMountOptionalSections &&
-      isHomepageEarnSectionVisible &&
-      earnSectionVariant.showEarnSection;
 
     const { variant: perpsSectionPriorityVariant } = useABTest(
       PERPS_SECTION_PRIORITY_AB_KEY,
@@ -251,7 +232,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 { name: HomeSectionNames.TOKENS, enabled: true },
                 { name: HomeSectionNames.PERPS, enabled: shouldRenderPerps },
               ]),
-          { name: HomeSectionNames.EARN, enabled: shouldRenderEarnSection },
           {
             name: HomeSectionNames.PREDICT,
             enabled: isPredictEnabled && shouldMountOptionalSections,
@@ -278,7 +258,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         shouldMountOptionalSections,
         showPerpsAboveTokens,
         showTopTradersAboveAllocation,
-        shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
@@ -300,7 +279,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
-        earnSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -346,7 +324,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               accessible={false}
             >
               {balanceBreakdownSectionProps ? (
-                <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+                <BalanceBreakdownSection
+                  {...balanceBreakdownSectionProps}
+                  deviceCapability={homepageDeviceCapability}
+                />
               ) : null}
               {showTopTradersAboveAllocation && (
                 <TopTradersSection
@@ -367,16 +348,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                   {perpsSection}
                 </>
               )}
-              {shouldRenderEarnSection && (
-                <HomepageEarnSection
-                  ref={earnSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                  showDividers
-                />
-              )}
               {shouldMountOptionalSections && (
-                <PredictionsSection
+                <PredictHomeSection
                   ref={predictionsSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
                   totalSectionsLoaded={totalSectionsLoaded}

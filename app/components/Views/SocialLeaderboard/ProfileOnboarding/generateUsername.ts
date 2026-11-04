@@ -1,4 +1,5 @@
-export const MAX_USERNAME_LENGTH = 20;
+/** Server rule: 3–16 characters. */
+export const MAX_USERNAME_LENGTH = 16;
 
 // 50 x 50 x 50 = 125,000 combinations
 
@@ -173,7 +174,7 @@ const pick = <T>(arr: readonly T[]): T =>
   arr[Math.floor(Math.random() * arr.length)];
 
 /**
- * Onboarding handles are at most 20 characters, so a long combo is treated
+ * Onboarding handles are at most 16 characters, so a long combo is treated
  * like a blocklisted one and rolled again.
  */
 const isAllowed = (name: string) =>
@@ -181,24 +182,31 @@ const isAllowed = (name: string) =>
   !BLOCKLIST.some((pattern) => pattern.test(name));
 
 const buildName = (): string =>
-  `${pick(PREFIXES)}-${pick(MIDDLES)}-${pick(SUFFIXES)}`;
+  `${pick(PREFIXES)}_${pick(MIDDLES)}_${pick(SUFFIXES)}`;
+
+const ROLL_ATTEMPTS = 40;
 
 export function generateUsername(): string {
-  // Retry a few times in case a blocklisted or over-long combo comes up.
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < ROLL_ATTEMPTS; i++) {
     const name = buildName();
     if (isAllowed(name)) return name;
   }
-  const fallback = buildName();
-  return isAllowed(fallback) ? fallback : 'wen-turbo-queen';
+  return 'gm_zen_wolf';
 }
 
 /** Fallback for when the server says the name is taken repeatedly. */
 export function generateUsernameWithNumber(): string {
   const n = Math.floor(Math.random() * 900) + 100;
-  for (let i = 0; i < 8; i++) {
-    const name = `${generateUsername()}-${n}`;
-    if (isAllowed(name)) return name;
+  const suffix = `_${n}`;
+  const maxBaseLength = MAX_USERNAME_LENGTH - suffix.length;
+  for (let i = 0; i < ROLL_ATTEMPTS; i++) {
+    const name = buildName();
+    if (
+      name.length <= maxBaseLength &&
+      !BLOCKLIST.some((pattern) => pattern.test(name))
+    ) {
+      return `${name}${suffix}`;
+    }
   }
-  return `wen-moon-${n}`;
+  return `wen_moon${suffix}`;
 }

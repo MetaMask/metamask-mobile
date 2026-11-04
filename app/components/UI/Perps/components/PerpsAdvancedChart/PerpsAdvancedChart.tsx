@@ -629,6 +629,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       priceDecimals={priceDecimals}
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
+      skeletonVariant="candles"
       positionLines={positionLines}
       positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}

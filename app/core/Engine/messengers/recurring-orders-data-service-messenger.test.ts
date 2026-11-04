@@ -77,8 +77,9 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
     await rootMessenger.call(
       'RecurringOrdersDataService:cancelRecurringOrder',
       'order-id',
+      'eip155:1:0x1234',
     );
 
-    expect(handler).toHaveBeenCalledWith('order-id');
+    expect(handler).toHaveBeenCalledWith('order-id', 'eip155:1:0x1234');
   });
 });

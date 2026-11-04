@@ -212,7 +212,7 @@ describe('tempo-tx-utils', () => {
     it('return params for Tempo Mainnet', () => {
       expect(getTempoExtraOptionsForChain('0x1079')).toEqual({
         excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
+        gasFeeToken: '0x20c0000000000000000000006a37da5c996874be',
       });
     });
     it('return an empty object for Tempo Moderato Testnet', () => {
@@ -287,7 +287,7 @@ describe('tempo-tx-utils', () => {
         }),
       ).toEqual({
         excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
+        gasFeeToken: '0x20c0000000000000000000006a37da5c996874be',
       });
       expect(accountSupports7702).toHaveBeenCalledTimes(1);
     });

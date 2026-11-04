@@ -117,18 +117,6 @@ jest.mock('./PreviousSeasonLevel', () => {
   return PreviousSeasonLevel;
 });
 
-jest.mock('./PreviousSeasonReferralDetails', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  const PreviousSeasonReferralDetails = () =>
-    ReactActual.createElement(
-      View,
-      { testID: 'previous-season-referral-details' },
-      ReactActual.createElement(Text, null, 'Referral Details'),
-    );
-  return PreviousSeasonReferralDetails;
-});
-
 jest.mock('./PreviousSeasonUnlockedRewards', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -303,7 +291,6 @@ describe('PreviousSeasonSummary', () => {
 
       expect(getByTestId('previous-season-balance')).toBeOnTheScreen();
       expect(getByTestId('previous-season-level')).toBeOnTheScreen();
-      expect(getByTestId('previous-season-referral-details')).toBeOnTheScreen();
       expect(getByTestId('previous-season-unlocked-rewards')).toBeOnTheScreen();
     });
 

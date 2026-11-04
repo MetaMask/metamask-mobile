@@ -6,13 +6,14 @@ import {
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 import Engine from '../Engine';
-import { openAuthSessionAsync } from 'expo-web-browser';
+import { dismissAuthSession, openAuthSessionAsync } from 'expo-web-browser';
 import { Linking } from 'react-native';
 import type { XProfile } from '@metamask/profile-controller';
 
 jest.mock('expo-web-browser', () => ({
   __esModule: true,
   openAuthSessionAsync: jest.fn(),
+  dismissAuthSession: jest.fn(),
 }));
 
 jest.mock('react-native', () => ({
@@ -300,6 +301,60 @@ describe('XAuthService (app-relay flow)', () => {
       expect(ProfileController.connectX).not.toHaveBeenCalled();
     });
 
+    it('cancels before opening the browser when aborted during getXAuthorizationUrl', async () => {
+      let resolveUrl: (session: {
+        authorizationUrl: string;
+        state: string;
+      }) => void = () => undefined;
+      jest.mocked(ProfileController.getXAuthorizationUrl).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveUrl = resolve;
+          }),
+      );
+      const controller = new AbortController();
+      const promise = connectX({ signal: controller.signal });
+
+      controller.abort();
+      resolveUrl({
+        authorizationUrl: AUTHORIZATION_URL,
+        state: SESSION_STATE,
+      });
+
+      await expect(promise).rejects.toMatchObject({
+        type: XAuthErrorType.UserCancelled,
+      });
+      expect(dismissAuthSession).toHaveBeenCalledTimes(1);
+      expect(openAuthSessionAsync).not.toHaveBeenCalled();
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
+    it('skips linking X when aborted while the browser session is open', async () => {
+      let resolveOpen: (result: { type: string; url: string }) => void = () =>
+        undefined;
+      (openAuthSessionAsync as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveOpen = resolve;
+          }),
+      );
+      const controller = new AbortController();
+      const promise = connectX({ signal: controller.signal });
+      await flushPromises();
+      expect(openAuthSessionAsync).toHaveBeenCalledTimes(1);
+
+      controller.abort();
+      resolveOpen({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
+      });
+
+      await expect(promise).rejects.toMatchObject({
+        type: XAuthErrorType.UserCancelled,
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
     it('throws a backend error when the backend fails to issue the authorization URL', async () => {
       jest
         .mocked(ProfileController.getXAuthorizationUrl)
@@ -346,14 +401,19 @@ describe('XAuthService (app-relay flow)', () => {
       });
     });
 
-    it('throws NotSignedIn before contacting the backend when no profile id exists', async () => {
+    it('requests an authorization URL when the controller has no profile id yet', async () => {
       ProfileController.state.profile.profileId = '';
-
-      await expect(connectX()).rejects.toMatchObject({
-        type: XAuthErrorType.NotSignedIn,
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
       });
-      expect(ProfileController.getXAuthorizationUrl).not.toHaveBeenCalled();
-      expect(openAuthSessionAsync).not.toHaveBeenCalled();
+
+      await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+      expect(ProfileController.getXAuthorizationUrl).toHaveBeenCalledTimes(1);
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'auth-code-1',
+        state: SESSION_STATE,
+      });
     });
   });
 

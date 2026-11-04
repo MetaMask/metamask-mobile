@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -20,6 +19,7 @@ import {
 } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -1440,7 +1440,6 @@ describe('PredictBuyPreview', () => {
           totalFeePercentage: 6,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       };
@@ -2344,6 +2343,33 @@ describe('PredictBuyPreview', () => {
       );
     });
 
+    it('tracks outcome version v2 for a Protocol V2 outcome', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: { ...mockRoute.params.outcome, version: 'v2' },
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const trackPredictOrderEvent =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackPredictOrderEvent;
+
+      expect(trackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            outcomeVersion: PredictEventValues.OUTCOME_VERSION.V2,
+          }),
+        }),
+      );
+    });
+
     it('handles undefined entryPoint with fallback', () => {
       const routeWithoutEntryPoint = {
         ...mockRoute,
@@ -2679,11 +2705,11 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      const key0 = screen.getByText('0');
+      const key0 = screen.getByTestId(KeypadTestIds.KEY_0);
       fireEvent.press(key0);
-      const dot = screen.getByText('.');
+      const dot = screen.getByTestId(KeypadTestIds.KEY_DOT);
       fireEvent.press(dot);
-      const key5 = screen.getByText('5');
+      const key5 = screen.getByTestId(KeypadTestIds.KEY_5);
       fireEvent.press(key5);
 
       expect(screen.getByText(/Minimum amount/)).toBeOnTheScreen();
