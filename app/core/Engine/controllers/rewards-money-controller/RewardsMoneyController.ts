@@ -898,7 +898,9 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
-  /** Drop the form-success snapshot after `tax/me` has moved on. */
+  /**
+   * Drop the form-success snapshot after `tax/me` has moved on.
+   */
   async clearTaxFormSubmitted(): Promise<void> {
     await this.noteTaxFormSubmitted(null);
   }

@@ -173,6 +173,8 @@ export type RewardsMoneyControllerNoteTaxFormSubmittedAction = {
 };
 
 /**
+ * Drop the form-success snapshot after `tax/me` has moved on.
+ */
 export type RewardsMoneyControllerClearTaxFormSubmittedAction = {
   type: `RewardsMoneyController:clearTaxFormSubmitted`;
   handler: RewardsMoneyController['clearTaxFormSubmitted'];
