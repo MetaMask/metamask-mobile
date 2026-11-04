@@ -23,21 +23,29 @@ let navigationInitSpan: Span | undefined;
 let hasFinished = false;
 let navigationReadyBeforeBegin = false;
 let isListeningForRunApplication = false;
+let beginRanWithoutRecordingSpan = false;
 
 /**
  * Keeps standalone App Start open after `Sentry.init` and starts the child
  * span that later trims App Start to NavigationContainer `onReady`.
  *
  * `extendAppStart` is a no-op when the SDK already captured the standalone
- * transaction for this run, in which case `getExtendedAppStartSpan` hands back
- * a non-recording span. Bail without marking the work done so a later
- * `Sentry.init` (consent opt-in re-initialises the client) can still extend.
+ * transaction for this run, or when tracing is disabled. `getExtendedAppStartSpan`
+ * then hands back a non-recording span. Bail without marking the work done so a
+ * later `Sentry.init` can still extend, unless navigation is already ready. A
+ * consent opt-in after `onReady` would end App Start at opt-in time and count
+ * onboarding as a cold start, so that call is dropped.
  *
- * If `onReady` already ran, the child is ended immediately so the extension
- * does not hang until the SDK deadline.
+ * If `onReady` already ran before the first recording begin, the child is ended
+ * immediately so the extension does not hang until the SDK deadline.
  */
 export function beginNavigationInitializationAppStart(): void {
   if (navigationInitSpan || hasFinished) {
+    return;
+  }
+
+  if (navigationReadyBeforeBegin && beginRanWithoutRecordingSpan) {
+    hasFinished = true;
     return;
   }
 
@@ -45,6 +53,7 @@ export function beginNavigationInitializationAppStart(): void {
 
   const extendedAppStartSpan = getExtendedAppStartSpan();
   if (!spanIsSampled(extendedAppStartSpan)) {
+    beginRanWithoutRecordingSpan = true;
     return;
   }
 
@@ -121,4 +130,5 @@ export function resetNavigationInitializationAppStartForTesting(): void {
   hasFinished = false;
   navigationReadyBeforeBegin = false;
   isListeningForRunApplication = false;
+  beginRanWithoutRecordingSpan = false;
 }

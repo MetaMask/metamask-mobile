@@ -120,6 +120,19 @@ describe('navigationInitializationAppStart', () => {
     expect(mockedStartInactiveSpan).toHaveBeenCalledTimes(1);
   });
 
+  it('drops App Start when opt-in follows navigation ready', () => {
+    mockedSpanIsSampled.mockReturnValue(false);
+    beginNavigationInitializationAppStart();
+    endNavigationInitializationAppStart();
+
+    mockedSpanIsSampled.mockReturnValue(true);
+    beginNavigationInitializationAppStart();
+
+    expect(mockedExtendAppStart).toHaveBeenCalledTimes(1);
+    expect(mockedStartInactiveSpan).not.toHaveBeenCalled();
+    expect(mockedFinishExtendedAppStart).not.toHaveBeenCalled();
+  });
+
   it('re-extends App Start when runApplication discards the extension', () => {
     const triggerRunApplication = mockAppRegistryIntegration();
     beginNavigationInitializationAppStart();
