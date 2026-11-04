@@ -24,6 +24,7 @@ export const PositionDetailsSheetSelectorsIDs = {
   TRANSACTIONS_LIST: 'position-details-sheet-transactions-list',
   POSTS_EMPTY: 'position-details-sheet-posts-empty',
   POST_ROW: 'position-details-sheet-post-row',
+  POST_GIF: 'position-details-sheet-post-gif',
   COPY_TRADE_BUTTON: 'position-details-sheet-copy-trade-button',
   LONG_BUTTON: 'position-details-sheet-long-button',
   SHORT_BUTTON: 'position-details-sheet-short-button',

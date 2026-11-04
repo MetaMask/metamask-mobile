@@ -11,6 +11,7 @@ import {
   getByGestureTestId,
 } from 'react-native-gesture-handler/jest-utils';
 import Routes from '../../../../constants/navigation/Routes';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PositionSheetData } from './hooks/usePositionSheetData';
 import PositionDetailsSheet from './PositionDetailsSheet';
@@ -395,6 +396,49 @@ describe('PositionDetailsSheet', () => {
           `${PositionDetailsSheetSelectorsIDs.POST_ROW}-comment-2`,
         ),
       ).toHaveTextContent(/Adding more/);
+    });
+
+    it('renders a post’s Klipy link as a GIF instead of text', () => {
+      mockParams = {
+        ...mockParams,
+        position: buildPosition({
+          trades: [
+            buildTrade({
+              comments: [
+                buildComment({
+                  uid: 'with-caption',
+                  text: `Adding more\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+                }),
+                buildComment({
+                  uid: 'gif-only',
+                  text: KLIPY_STATIC_GIF_EXAMPLE,
+                }),
+              ],
+            }),
+          ],
+        }),
+      };
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
+
+      const captioned = screen.getByTestId(
+        `${PositionDetailsSheetSelectorsIDs.POST_ROW}-with-caption`,
+      );
+      expect(captioned).toHaveTextContent(/Adding more/);
+      expect(captioned).not.toHaveTextContent(/klipy/);
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.POST_GIF}-with-caption`,
+        ),
+      ).toHaveProp('source', { uri: KLIPY_STATIC_GIF_EXAMPLE });
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.POST_GIF}-gif-only`,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('shows the empty state when the position has no comments', () => {
