@@ -19,6 +19,7 @@ import { getTabBarFloatingBottomPadding } from '../../../../component-library/co
 import AnimatedFooterShell from './AnimatedFooterShell';
 import ContextualCollectiblesTabBar from './ContextualCollectiblesTabBar';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
+import { setActiveHomeTab } from './footerPresence';
 import TradeHubFooter from './TradeHubFooter';
 import {
   enterCollectiblesSection,
@@ -133,6 +134,7 @@ const ContextualFooter = ({
   const setId = getFooterSetId(section);
 
   const goHome = useCallback(() => {
+    setActiveHomeTab(Routes.WALLET.HOME);
     exitContextualSection();
     NavigationService.navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.WALLET.HOME,
@@ -160,6 +162,7 @@ const ContextualFooter = ({
 
   const pressDefault = useCallback(
     (item: DefaultTab) => {
+      setActiveHomeTab(item.route);
       if (item.route === Routes.TRADE_DASHBOARD) {
         enterTradeDashboard();
         NavigationService.navigation.navigate(Routes.HOME_TABS, {

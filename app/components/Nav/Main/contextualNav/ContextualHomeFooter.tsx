@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { useFooterHostActive } from './footerHostState';
 import ContextualFooter from './ContextualFooter';
 
 export interface ContextualHomeFooterProps {
@@ -15,17 +14,13 @@ export interface ContextualHomeFooterProps {
 }
 
 /**
- * JS tab bar slot. When the root host is mounted it owns the pill, so this
- * returns null and the same pill can survive a push onto Swap or Collectibles.
+ * JS tab bar. Always draws the pill. The native path uses
+ * `ContextualNativeHomeChrome` inside the Home screen instead.
  */
 const ContextualHomeFooter = ({
   state,
   onHeightChange,
 }: ContextualHomeFooterProps) => {
-  const hostActive = useFooterHostActive();
-  if (hostActive) {
-    return null;
-  }
   const homeRouteName = state.routes[state.index]?.name;
   return (
     <ContextualFooter

@@ -14,6 +14,8 @@ import HeaderRootGlass from '../../../component-library/components-temp/HeaderRo
 import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectMoneyBrandRefreshEnabled } from '../../../selectors/featureFlagController/moneyBrandRefresh';
+import Routes from '../../../constants/navigation/Routes';
+import ContextualFooter from '../../Nav/Main/contextualNav/ContextualFooter';
 import {
   exitContextualSection,
   getContextualNavState,
@@ -94,8 +96,8 @@ const CollectiblesView = () => {
 };
 
 /**
- * Collectibles opened from Trade. The shared footer host draws Popular,
- * Packs, Collection, and Market over this screen.
+ * Collectibles opened from Trade. The pill is drawn in this screen so it
+ * stays above the pushed page.
  */
 const CollectiblesSectionScreen = () => {
   const [isSection] = useState(
@@ -114,6 +116,9 @@ const CollectiblesSectionScreen = () => {
   return (
     <View style={PAGE_STYLE}>
       <CollectiblesView />
+      {isSection ? (
+        <ContextualFooter rootRouteName={Routes.COLLECTIBLES_VIEW} />
+      ) : null}
     </View>
   );
 };

@@ -1,26 +1,28 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 
-import { useFooterHostActive } from './footerHostState';
 import ContextualFooter from './ContextualFooter';
 import ContextualHomeSectionOverlay from './ContextualHomeSectionOverlay';
-import { useContextualNavState } from './contextualSection';
+import { setInScreenFooterMounted, useActiveHomeTab } from './footerPresence';
 
 /**
- * Footer drawn inside Home while the root host is not active. Tests render
- * this directly. On device the host owns the pill so this stays empty.
+ * Pill drawn inside the Home screen, above the tab content. On iOS 26 the
+ * system tab bar is a native view the root stack cannot cover reliably, so
+ * this overlay — not a sibling of the stack — is what the user sees.
  */
 const ContextualNativeHomeChrome = () => {
-  const hostActive = useFooterHostActive();
-  const { section } = useContextualNavState();
+  const homeRouteName = useActiveHomeTab();
 
-  if (hostActive || (section !== 'money' && section !== 'trading')) {
-    return null;
-  }
+  useLayoutEffect(() => {
+    setInScreenFooterMounted(true);
+    return () => {
+      setInScreenFooterMounted(false);
+    };
+  }, []);
 
   return (
     <>
       <ContextualHomeSectionOverlay />
-      <ContextualFooter />
+      <ContextualFooter homeRouteName={homeRouteName} rootRouteName="Home" />
     </>
   );
 };

@@ -491,6 +491,24 @@ describe('MainNavigator', () => {
       ]);
     });
 
+    it('draws the JS pill on the initial Home route while the system bar is hidden', () => {
+      const { getByTestId, root } = renderHomeTabs();
+
+      expect(getByTestId('contextual-footer')).toBeOnTheScreen();
+      expect(getByTestId('footer-tab-home')).toBeOnTheScreen();
+      expect(
+        getByTestId('footer-tab-home').props.accessibilityState,
+      ).toEqual({ selected: true });
+      expect(getByTestId('footer-tab-trade')).toBeOnTheScreen();
+
+      const homeScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.WALLET.HOME,
+      );
+      expect(homeScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
+    });
+
     it('hides the system tab bar on Money so the contextual pill can replace it', () => {
       const { root } = renderHomeTabs();
       const moneyScreen = findNativeScreens(root).find(

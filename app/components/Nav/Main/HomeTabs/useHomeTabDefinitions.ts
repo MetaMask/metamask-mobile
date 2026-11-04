@@ -10,6 +10,7 @@ import {
   exitContextualSection,
   getContextualNavState,
 } from '../contextualNav/contextualSection';
+import { setActiveHomeTab } from '../contextualNav/footerPresence';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { buildBottomNavClickedProperties } from '../../../../core/Analytics/events/navigation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -208,6 +209,7 @@ export const useHomeTabDefinitions = ({
       }): NativeTabListeners => ({
         tabPress: () => {
           playImpact(ImpactMoment.TabChange);
+          setActiveHomeTab(tab.name);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
           if (tab.key !== 'money' && tab.key !== 'trade') {
@@ -254,6 +256,7 @@ export const useHomeTabDefinitions = ({
               // UIKit can select the tab without a JS tabPress. Focus still
               // records the section so the overlay footer updates on device.
               focus: () => {
+                setActiveHomeTab(tab.name);
                 if (tab.key === 'money') {
                   enterMoneySection();
                   return;

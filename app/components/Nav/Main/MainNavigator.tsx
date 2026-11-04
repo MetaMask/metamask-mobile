@@ -125,8 +125,7 @@ import TabBar from '../../../component-library/components/Navigation/TabBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingTabBarInsetContext } from '../../../component-library/components/Navigation/TabBarFloating';
 import ContextualHomeFooter from './contextualNav/ContextualHomeFooter';
-import ContextualFooterHost from './contextualNav/ContextualFooterHost';
-import { useFooterHostActive } from './contextualNav/footerHostState';
+import { useInScreenFooterMounted } from './contextualNav/footerPresence';
 import ContextualHomeSectionOverlay from './contextualNav/ContextualHomeSectionOverlay';
 import ContextualNativeHomeChrome from './contextualNav/ContextualNativeHomeChrome';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
@@ -823,7 +822,7 @@ const HomeTabs = () => {
   const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
   const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
   const isNativeTabBar = useIsNativeTabBar();
-  const footerHostActive = useFooterHostActive();
+  const inScreenFooterMounted = useInScreenFooterMounted();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
     getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
@@ -907,10 +906,6 @@ const HomeTabs = () => {
       return null;
     }
 
-    if (isFloatingTabBar && footerHostActive) {
-      return null;
-    }
-
     if (isKeyboardHidden) {
       // Screens here are registered with `ExtendedBottomTabNavigationOptions`
       // (see `toJsTabOptions`), which the navigator still types as the base
@@ -957,9 +952,9 @@ const HomeTabs = () => {
       ? ({ route }: { route: HomeTabRoute }) =>
           toNativeTabOptions(tab, route, colors.success.default)
       : toNativeTabOptions(tab, undefined, colors.success.default);
-    // The JS footer host draws every set, including the default one, so the
-    // system bar stays hidden and the pill can animate on iOS 26.
-    const hidesSystemBar = true;
+    // Hide the system bar only after the in-screen pill has mounted. If that
+    // overlay is missing, the native bar stays so Home is not left with no footer.
+    const hidesSystemBar = inScreenFooterMounted;
     const options = hidesSystemBar
       ? typeof baseOptions === 'function'
         ? ({ route }: { route: HomeTabRoute }) => ({
@@ -1736,7 +1731,6 @@ const MainNavigator = () => {
           options={transparentModalStackOptions}
         />
       </NativeStack.Navigator>
-      <ContextualFooterHost />
     </View>
   );
 };

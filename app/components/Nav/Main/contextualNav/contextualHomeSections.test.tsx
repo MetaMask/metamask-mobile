@@ -208,17 +208,17 @@ describe('contextual home and Money footers', () => {
   });
 
   it('draws the Money pill over the native tab bar after that section is entered', () => {
-    const { queryByTestId, getByTestId, getByRole } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ContextualNativeHomeChrome />,
     );
 
-    expect(queryByTestId('contextual-footer')).toBeNull();
+    expect(getByTestId('contextual-footer')).toBeOnTheScreen();
+    expect(getByTestId('footer-tab-home')).toBeOnTheScreen();
 
     act(() => {
       enterMoneySection();
     });
 
-    expect(getByTestId('contextual-footer')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-account')).toBeOnTheScreen();
     expect(
       getByTestId('contextual-money-tab-account').props.accessibilityState,
