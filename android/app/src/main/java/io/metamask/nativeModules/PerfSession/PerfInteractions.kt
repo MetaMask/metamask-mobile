@@ -3,6 +3,7 @@ package io.metamask.nativeModules.PerfSession
 import android.app.Activity
 import android.graphics.Rect
 import android.os.Build
+import android.os.SystemClock
 import android.view.KeyboardShortcutGroup
 import android.view.Menu
 import android.view.MotionEvent
@@ -13,7 +14,8 @@ import android.view.Window
 import androidx.annotation.RequiresApi
 
 /**
- * Taps and scrolls for the `interactions` feature. Observes touches through a
+ * Taps and scrolls for the `interactions` feature, and the time of the last touch
+ * for `renderLoops` (recorded whenever the wrapper is attached). Observes touches through a
  * Window.Callback wrapper (main thread only) without consuming or changing them,
  * and names the touched view by its React Native testID (falling back to the
  * accessibility label). Hit-testing runs once per gesture.
@@ -22,6 +24,18 @@ internal object PerfInteractions {
     /** Set from the sampler thread; read on the main thread for every touch. */
     @Volatile
     var enabled = false
+
+    /** testID (or accessibility label) of [view] or its nearest named ancestor. Main thread. */
+    fun nameOf(view: View): String? {
+        var current: View? = view
+        while (current != null) {
+            val testId = current.getTag(com.facebook.react.R.id.react_test_id) as? String
+            val name = PerfSanitize.text(testId, 100) ?: PerfSanitize.text(current.contentDescription?.toString(), 100)
+            if (name != null) return name
+            current = current.parent as? View
+        }
+        return null
+    }
 
     /** Main thread only. Idempotent per window. */
     fun attach(activity: Activity) {
@@ -42,6 +56,7 @@ internal object PerfInteractions {
         private var scrollTarget: String? = null
 
         override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+            PerfRenderLoops.lastTouchAt = SystemClock.uptimeMillis()
             if (enabled) runCatching { observe(event) }
             return delegate.dispatchTouchEvent(event)
         }
@@ -85,16 +100,7 @@ internal object PerfInteractions {
         }
 
         /** testID (or accessibility label) of the deepest named view under the point. */
-        private fun nameAt(x: Float, y: Float): String? {
-            var view: View? = deepestViewAt(window.decorView, x.toInt(), y.toInt())
-            while (view != null) {
-                val testId = view.getTag(com.facebook.react.R.id.react_test_id) as? String
-                val name = PerfSanitize.text(testId, 100) ?: PerfSanitize.text(view.contentDescription?.toString(), 100)
-                if (name != null) return name
-                view = view.parent as? View
-            }
-            return null
-        }
+        private fun nameAt(x: Float, y: Float): String? = deepestViewAt(window.decorView, x.toInt(), y.toInt())?.let(::nameOf)
 
         private val rect = Rect()
 

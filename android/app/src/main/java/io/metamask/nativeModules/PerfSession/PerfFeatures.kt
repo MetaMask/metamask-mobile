@@ -14,6 +14,7 @@ internal data class PerfFeatures(
     val jsLag: Boolean = false,
     val uiStalls: Boolean = false,
     val profiles: Boolean = false,
+    val renderLoops: Boolean = false,
     val maxProfilesPerHour: Int = DEFAULT_MAX_PROFILES_PER_HOUR,
 ) {
     fun names(): List<String> = listOfNotNull(
@@ -24,6 +25,7 @@ internal data class PerfFeatures(
         "jsLag".takeIf { jsLag },
         "uiStalls".takeIf { uiStalls },
         "profiles".takeIf { profiles },
+        "renderLoops".takeIf { renderLoops },
     )
 
     /** The features JS has to act on (see app/core/Performance/perfSession.ts). */
@@ -56,6 +58,7 @@ internal data class PerfFeatures(
                 jsLag = json.optBoolean("jsLag", false),
                 uiStalls = json.optBoolean("uiStalls", false),
                 profiles = profilesEnabled,
+                renderLoops = json.optBoolean("renderLoops", false),
                 maxProfilesPerHour = maxPerHour.coerceIn(0, 120),
             )
         }

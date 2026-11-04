@@ -57,6 +57,7 @@ object PerfSession {
     // The contract's limit. Stalls never force a flush: a screen that stalls every
     // second would otherwise upload every few seconds. Extra stalls are dropped.
     private const val MAX_STALLS_PER_BATCH = 20
+    private const val MAX_RENDER_LOOPS_PER_BATCH = 5
     private const val MAX_UNCONFIRMED_SAMPLES = 60
     private const val MAX_BATCH_CHARS = 240_000
     private const val FROZEN_FRAME_NS = 700_000_000L
@@ -122,6 +123,7 @@ object PerfSession {
     private var events = JSONArray()
     private var spans = JSONArray()
     private var stalls = JSONArray()
+    private var renderLoops = JSONArray()
     private val batchFeatures = LinkedHashSet<String>()
 
     // Frame stats for the current window (sampler thread; FrameMetrics callbacks run on [handler]).
@@ -257,7 +259,7 @@ object PerfSession {
         override fun onActivityResumed(activity: Activity) {
             // Window.Callback must be wrapped on the main thread; the wrapper is inert
             // until the collector enables interactions.
-            if (features.interactions) PerfInteractions.attach(activity)
+            if (features.interactions || features.renderLoops) PerfInteractions.attach(activity)
             handler.post {
                 resumedActivity = activity
                 windowRefreshRate = displayRefreshRate(activity)
@@ -306,6 +308,7 @@ object PerfSession {
                 if (events.length() >= MAX_EVENTS_PER_BATCH) events = JSONArray()
                 if (spans.length() >= MAX_SPANS_PER_BATCH) spans = JSONArray()
                 if (stalls.length() >= MAX_STALLS_PER_BATCH) stalls = JSONArray()
+                if (renderLoops.length() >= MAX_RENDER_LOOPS_PER_BATCH) renderLoops = JSONArray()
             }
             if (foreground && System.currentTimeMillis() - lastStatusCheckAt >= statusIntervalMs) checkStatus()
         } catch (e: Exception) {
@@ -346,6 +349,7 @@ object PerfSession {
             events = JSONArray()
             spans = JSONArray()
             stalls = JSONArray()
+            renderLoops = JSONArray()
             batchFeatures.clear()
         }
         updateFeatureWorkers()
@@ -357,8 +361,9 @@ object PerfSession {
         val active = foreground && recording != Recording.OFF
         PerfInteractions.enabled = active && features.interactions
         resumedActivity?.let { activity ->
-            if (PerfInteractions.enabled) activity.runOnUiThread { PerfInteractions.attach(activity) }
+            if (active && (features.interactions || features.renderLoops)) activity.runOnUiThread { PerfInteractions.attach(activity) }
         }
+        if (!(active && features.renderLoops)) PerfRenderLoops.reset()
         PerfStallWatchdog.setActive(active && features.uiStalls)
         PerfProfiles.tick(foreground && recording == Recording.ON && features.profiles)
     }
@@ -429,6 +434,12 @@ object PerfSession {
         }
         samples.put(sample)
         PerfProfiles.onWindow(frozenFrames, frames, jankyFrames, jsCpu, if (jsLagMaxMs >= 0) jsLagMaxMs else null)
+        if (features.renderLoops && recording == Recording.ON) {
+            PerfRenderLoops.onWindow(
+                resumedActivity, screen, frames, windowRefreshRate, elapsedSec,
+                cpuByName["RenderThread"] ?: 0.0, now, mono,
+            )
+        }
 
         previousTicks = ticks
         previousSampleAt = now
@@ -525,6 +536,15 @@ object PerfSession {
         }
     }
 
+    /** Called by [PerfRenderLoops] from the main thread. */
+    internal fun onRenderLoop(loop: JSONObject) {
+        handler.post {
+            if (recording != Recording.ON || !features.renderLoops) return@post
+            batchFeatures.add("renderLoops")
+            if (renderLoops.length() < MAX_RENDER_LOOPS_PER_BATCH) renderLoops.put(loop)
+        }
+    }
+
     /** Called by [PerfInteractions] from the main thread. */
     internal fun onInteraction(type: String, value: String?, t: Long, mono: Long) {
         handler.post {
@@ -580,7 +600,9 @@ object PerfSession {
     /** Writes the pending batch to the disk queue once the collector has said to record. */
     private fun flush() {
         if (recording != Recording.ON) return
-        if (samples.length() == 0 && events.length() == 0 && spans.length() == 0 && stalls.length() == 0) return
+        if (samples.length() == 0 && events.length() == 0 && spans.length() == 0 && stalls.length() == 0 &&
+            renderLoops.length() == 0
+        ) return
         val batch = JSONObject()
             .put("v", 3)
             .put("env", env)
@@ -597,10 +619,12 @@ object PerfSession {
         if (batchStalls.length() > 0) {
             batch.put("stacks", shareStacks(batchStalls)).put("stalls", batchStalls)
         }
+        if (renderLoops.length() > 0) batch.put("renderLoops", renderLoops)
         samples = JSONArray()
         events = JSONArray()
         spans = JSONArray()
         stalls = JSONArray()
+        renderLoops = JSONArray()
         batchFeatures.clear()
         var body = batch.toString()
         if (body.length > MAX_BATCH_CHARS) {
