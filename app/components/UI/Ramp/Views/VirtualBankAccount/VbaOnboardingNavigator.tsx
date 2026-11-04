@@ -11,6 +11,7 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaAccountCreateErrorAdapter from './modules/AccountCreateErrorAdapter';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
+import VbaKycVendorTermsAdapter from './modules/VbaKycVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
@@ -71,6 +72,10 @@ const VbaOnboardingNavigator = () => (
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
       component={VbaVendorTermsAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.KYC_VENDOR_TERMS}
+      component={VbaKycVendorTermsAdapter}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.LOADING}

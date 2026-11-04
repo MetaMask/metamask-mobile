@@ -7,6 +7,7 @@ import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceC
 
 export const VbaOnboardingRoutes = {
   VENDOR_TERMS: 'VbaVendorTerms',
+  KYC_VENDOR_TERMS: 'VbaKycVendorTerms',
   LOADING: 'VbaOnboardingLoading',
   EMAIL: 'VbaEmail',
   IDENTITY_VERIFICATION: 'VbaIdentityVerification',
@@ -23,6 +24,7 @@ export const VbaOnboardingRoutes = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaOnboardingParamList = {
   VbaVendorTerms: undefined;
+  VbaKycVendorTerms: undefined;
   VbaOnboardingLoading: { source?: string } | undefined;
   VbaEmail: undefined;
   VbaIdentityVerification: {
