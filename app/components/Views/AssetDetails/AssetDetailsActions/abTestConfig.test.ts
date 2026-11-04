@@ -10,7 +10,7 @@ import {
 describe('wallet home header actions abTestConfig', () => {
   it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
     expect(WALLET_HOME_HEADER_ACTIONS_AB_KEY).toBe(
-      'homeTMCU0AbtestHeaderActionsBuySell',
+      'homeTMCU1764AbtestHeaderActionsBuySell',
     );
     expect(WALLET_HOME_HEADER_ACTIONS_AB_KEY).toMatch(
       /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,

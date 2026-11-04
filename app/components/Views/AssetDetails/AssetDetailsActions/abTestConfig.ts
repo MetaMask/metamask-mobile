@@ -2,18 +2,14 @@ import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
 /**
- * LaunchDarkly flag for the wallet home header action row.
- * Pattern: `{team}{TICKET}Abtest{Name}`.
- *
- * No product ticket was attached to this change. `TMCU0` is a placeholder so
- * the key matches the repo naming rule. Point the real LaunchDarkly flag at
- * this constant before the experiment is created.
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1764).
  *
  * Missing, invalid, or unresolved values fall back to `control` (Buy, Swap,
  * Send, Receive). `treatment` renders Buy, Sell, Send, Receive.
  */
 export const WALLET_HOME_HEADER_ACTIONS_AB_KEY =
-  'homeTMCU0AbtestHeaderActionsBuySell';
+  'homeTMCU1764AbtestHeaderActionsBuySell';
 
 export enum WalletHomeHeaderActionsVariant {
   Control = 'control',
