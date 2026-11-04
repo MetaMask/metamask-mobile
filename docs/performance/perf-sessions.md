@@ -2,6 +2,75 @@
 
 Find performance problems while people use **Friday's nightly main-exp build** normally, unplugged, with Flashlight-style metrics (CPU per thread, FPS, RAM). Testers install the build and use it; there is nothing to set up, tap or send. An in-app sampler (`PerfSession.kt`) records while the app is in the foreground and uploads over HTTPS to the perf collector, a separate project.
 
+## Data flow
+
+Everything the phone sends, where it comes from, and where it can be downloaded. The phone only talks to three collector endpoints. Every request carries the env name and the build's key.
+
+```mermaid
+flowchart LR
+  subgraph phone["Phone: MetaMask main-exp (Friday nightly)"]
+    direction TB
+    subgraph native["Native sampler: mm-perf-* threads"]
+      proc["/proc/self/task, statm<br/>CPU per thread, RSS"]
+      heap["Runtime<br/>Java heap"]
+      fm["FrameMetrics + Display<br/>frames, janky, frozen,<br/>refresh rate, frame phases"]
+      touch["Window.Callback<br/>tap, scrollStart, scrollEnd<br/>(testID / a11y label)"]
+      wd["Main-looper watchdog<br/>UI stalls ≥ 100 ms + Java stack"]
+      views["View tree, 2 snapshots<br/>render loops: animating views"]
+      life["Activity lifecycle<br/>launch, firstFrame,<br/>foreground, background"]
+      hermes["Hermes sampling profiler<br/>JS CPU profile, 10 s segments"]
+    end
+    subgraph js["JS: perfSession.ts"]
+      nav["React Navigation<br/>screen name"]
+      spans["trace() / endTrace()<br/>span name, duration, status"]
+      redux["Redux middleware<br/>actions per second, top types"]
+      lag["100 ms timer<br/>JS event-loop lag"]
+    end
+    queue[("On-disk queue<br/>≤ 500 batches, ≤ 20 MB profiles")]
+  end
+
+  subgraph collector["Perf collector (laptop + ngrok)"]
+    status["GET /status<br/>record on/off, features"]
+    ingest["POST /ingest<br/>batch v3: meta, clock, samples,<br/>events, spans, stalls + stacks,<br/>render loops"]
+    profile["POST /profile<br/>gzip Hermes trace +<br/>X-Perf-Profile metadata"]
+    store[("data/&lt;env&gt;/<br/>batches (ndjson), profiles (gz)<br/>+ source maps per versionCode")]
+  end
+
+  subgraph out["Downloads (dashboard, localhost only)"]
+    ai["Download report for AI<br/>ai-report.md"]
+    rep["report.json / report.md"]
+    trace["Device trace.json<br/>(Perfetto / Chrome tracing)"]
+    fl["Device flashlight.json<br/>(Flashlight web reporter)"]
+    pv["Profile view<br/>(symbolicated functions, flame graph)"]
+  end
+
+  proc & heap & fm & touch & wd & views & life --> queue
+  nav & spans & redux & lag -->|"bridge, once a second"| queue
+  hermes -->|"only segments around a problem,<br/>≤ 12 per hour, unmetered networks only"| queue
+  status -.->|"features to collect"| phone
+  queue --> ingest
+  queue --> profile
+  ingest --> store
+  profile --> store
+  store --> ai & rep & trace & fl & pv
+```
+
+| Data                                     | ai-report.md                | report.json / .md            | trace.json              | flashlight.json | Profile view |
+| ---------------------------------------- | --------------------------- | ---------------------------- | ----------------------- | --------------- | ------------ |
+| CPU per thread, FPS, janky/frozen, RAM   | ±5 s around each problem    | per screen                   | ✓                       | ✓               |              |
+| Frame phases, slowest frame              | ±5 s around each problem    | per screen                   | ✓                       |                 |              |
+| Java heap                                |                             | ✓                            | ✓                       |                 |              |
+| JS lag                                   | ✓                           | ✓                            | ✓                       | ✓               |              |
+| Redux actions                            | ✓                           | ✓                            |                         |                 |              |
+| Screens, taps, scrolls, lifecycle events | 10 s before each problem    | last tap before each problem | ✓                       |                 |              |
+| Spans                                    | overlapping each problem    | per screen                   | ✓                       |                 |              |
+| UI stalls and stacks                     | ✓                           | per screen                   | ✓                       |                 |              |
+| Render loops                             | ✓                           | per screen                   | ✓                       |                 |              |
+| Hermes profiles                          | top functions, hottest path |                              | samples on the timeline |                 | ✓            |
+| Sampler overhead (selfCpu, features on)  | fixed note only             | ✓ (per feature set)          | ✓                       | ✓               |              |
+
+What isn't in any download today: the **raw Hermes profile** (`.cpuprofile`, for Chrome DevTools or speedscope), and **one file with all data** for a time window. The AI report covers the worst 30 problems, and `trace.json` covers one device.
+
 ## What's measured
 
 Every second while MetaMask is in the foreground, tagged with the focused screen:
