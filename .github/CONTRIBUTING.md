@@ -51,7 +51,30 @@ The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-te
 
 The scheduled arm64 E2E APK build (`build-android-arm64-scheduled.yml`) previously stayed on Cirrus for artifact-store parity, but now uses `inherit`. When resolved to Namespace, it dual-uploads the release APK to both GitHub Actions and Namespace artifact stores; on a `current` rollback it uploads to GitHub only. That keeps the local-repro `gh run download` path working while the build itself runs on Namespace. Appium jobs and fixture validation already follow the same resolution chain as the PR build jobs (converted in #35002).
 
-A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, and `cleanup-ci-js-deps`.
+A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, `cleanup-ci-js-deps`, plus light CI gates that do not need Namespace cache volumes (`check-diff`, `dedupe`, `git-safe-dependencies`, `check-workflows`, `lint` aggregate, `report-fixture-validation`, `sonar-cloud-quality-gate-status`, `check-all-jobs-pass`, `log-merge-group-failure`, and the non-`lint:tsc` legs of the `scripts` matrix).
+
+#### Namespace Linux capacity
+
+The org Namespace Linux pool is capped (about 2,000 vCPUs). Android Appium and Gradle jobs are the heaviest consumers (`android-e2e` / `android-build`, typically 16 vCPU each). Mitigations already in workflows:
+
+| Control                         | Where                                                                  | Value                                                        |
+| ------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Appium Android shard cap        | `run-appium-smoke-tests-android.yml`                                   | `max-parallel: 8` (of up to 25 `ALL` shards)                 |
+| Unit-test shards                | `ci.yml` `unit-tests`                                                  | `max-parallel: 5`                                            |
+| Component-view shards           | `ci.yml` `component-view-tests`                                        | `max-parallel: 3`                                            |
+| Lint shards                     | `ci.yml` `lint-shards`                                                 | `max-parallel: 2`                                            |
+| Scripts matrix                  | `ci.yml` `scripts`                                                     | `max-parallel: 4`; light legs on `ubuntu-latest`             |
+| Scheduled Android serialization | `run-performance-e2e-manual.yml` + `build-android-arm64-scheduled.yml` | shared concurrency group `namespace-linux-android-scheduled` |
+| Schedule offsets                | performance E2E `30 1,7,13,19`; arm64 `0 9`; Expo weekly `0 5 * * 1`   | avoid stacking on `ci.yml`'s even-hour cron                  |
+
+**How to measure before/after a capacity change**
+
+1. Namespace console: Linux vCPU utilization and queue wait for profiles `metamask-ci-linux*`, `metamask-android-e2e`, and `metamask-android-build`, especially weekdays 06:00–12:00 UTC.
+2. GitHub Actions: for a representative PR with Android E2E enabled, compare wall-clock from `appium-android-smoke` matrix start to last shard finish, and count how many shards were `queued` vs `in_progress` at once (should not exceed `max-parallel`).
+3. Workflow dispatch: run `run-appium-smoke-tests-android.yml` with `selected_tags: '["ALL"]'` and confirm at most eight Android e2e jobs are active concurrently.
+4. Keep a one-week baseline and a one-week post-change window; raise or lower `max-parallel` only from that telemetry, not from a single quiet day.
+
+Docs-only PRs still start `ci.yml` (required checks must report). Prefer the existing `get-requirements` / `skip_everything` path over workflow-level `paths-ignore`, which would leave required checks pending.
 
 #### Rolling back
 

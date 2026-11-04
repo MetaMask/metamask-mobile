@@ -589,6 +589,9 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+      # Forward so a dispatch/caller override reaches both build legs and the
+      # upload job (which already honors inputs.runner_provider).
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-without-srp:
@@ -610,6 +613,7 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-to-browserstack:
