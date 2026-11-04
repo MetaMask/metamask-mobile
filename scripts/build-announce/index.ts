@@ -1,7 +1,7 @@
 // RC Build Announce - Posts RC build comments to GitHub PRs with build links and AI test plan
 
-import { existsSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync, readdirSync } from 'fs';
+import { join, resolve } from 'path';
 import { Octokit } from '@octokit/rest';
 import {
   RC_BUILD_COMMENT_MARKER,
@@ -207,6 +207,20 @@ ${buildMoreInfoSection(buildInfo)}
   return body;
 }
 
+function readExistingTestPlan(): TestPlanResult | null {
+  const outputFile = resolve(__dirname, '../../release-test-plan.json');
+  if (!existsSync(outputFile)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(readFileSync(outputFile, 'utf8')) as TestPlanResult;
+  } catch (error) {
+    console.error('Could not read release-test-plan.json', error);
+    return null;
+  }
+}
+
 /**
  * Main entry point
  */
@@ -224,6 +238,10 @@ async function main(): Promise<void> {
   console.log(`Android Build: ${buildInfo.androidBuildNumber}`);
 
   const octokit = new Octokit({ auth: token });
+
+  // `plan` only writes the test plan. `comment` only posts, using a plan file
+  // produced by the other job. Default keeps the single-process local path.
+  const phase = process.env.ANNOUNCE_PHASE ?? 'all';
 
   // Check if we have AI API keys for test plan generation
   const hasAiKeys =
@@ -268,6 +286,19 @@ async function main(): Promise<void> {
     }
   } else {
     console.log('\nNo AI API keys found, skipping test plan generation');
+  }
+
+  if (phase === 'plan') {
+    if (!testPlan) {
+      console.error('ANNOUNCE_PHASE=plan finished without a test plan');
+      process.exit(1);
+    }
+    console.log('\n=== Test plan ready; comment is posted by a separate job ===\n');
+    return;
+  }
+
+  if (phase === 'comment' && !testPlan) {
+    testPlan = readExistingTestPlan();
   }
 
   // Extract environment values from build artifacts
