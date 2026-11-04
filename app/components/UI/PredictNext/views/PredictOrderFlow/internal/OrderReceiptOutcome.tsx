@@ -115,6 +115,9 @@ interface OrderReceiptOutcomeProps {
    * not-filled copy. */
   quotedPrice: string;
   isRechecking: boolean;
+  /** The sheet is stale: re-quote and keep-checking are disabled. The
+   * service keeps observing the operation either way. */
+  areActionsDisabled?: boolean;
   onKeepChecking: () => void;
   onRequote: () => void;
   onDone: () => void;
@@ -142,6 +145,7 @@ export const OrderReceiptOutcome = ({
   outcomeLabel,
   quotedPrice,
   isRechecking,
+  areActionsDisabled = false,
   onKeepChecking,
   onRequote,
   onDone,
@@ -260,6 +264,7 @@ export const OrderReceiptOutcome = ({
             size={ButtonSize.Lg}
             isFullWidth
             onPress={onRequote}
+            isDisabled={areActionsDisabled}
             testID={PredictOrderFlowTestIds.REQUOTE}
           >
             {strings('predict_next.order_receipt.requote')}
@@ -296,6 +301,7 @@ export const OrderReceiptOutcome = ({
             size={ButtonSize.Lg}
             isFullWidth
             onPress={onRequote}
+            isDisabled={areActionsDisabled}
             testID={PredictOrderFlowTestIds.REQUOTE}
           >
             {strings('predict_next.order_receipt.requote')}
@@ -331,6 +337,7 @@ export const OrderReceiptOutcome = ({
             isFullWidth
             isLoading={isRechecking}
             onPress={onKeepChecking}
+            isDisabled={areActionsDisabled}
             testID={PredictOrderFlowTestIds.KEEP_CHECKING}
           >
             {strings('predict_next.order_receipt.keep_checking')}
