@@ -1274,7 +1274,11 @@ const getTokenRatesControllerMarketData = makeDirect([
         ?.networkConfigurationsByChainId ?? {},
 ], (assetsPrice, assetsInfo, currencyRates, networkConfigurationsByChainId) => {
     const result = {};
-    for (const [assetId, price] of Object.entries(assetsPrice)) {
+    const convertToNativeCurrency = (amount, rate) => amount === undefined ? undefined : amount / rate;
+    const priceIds = Object.keys(assetsPrice);
+    for (let pi = 0; pi < priceIds.length; pi++) {
+        const assetId = priceIds[pi];
+        const price = assetsPrice[assetId];
         const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
@@ -1292,19 +1296,18 @@ const getTokenRatesControllerMarketData = makeDirect([
         if (!nativeCurrencyRate) {
             continue;
         }
-        const convertToNativeCurrency = (amount) => amount === undefined ? undefined : amount / nativeCurrencyRate;
         result[hexChainId] ?? (result[hexChainId] = {});
         result[hexChainId][assetAddress] = {
             id: price.id,
-            price: convertToNativeCurrency(price.price),
-            marketCap: convertToNativeCurrency(price.marketCap),
-            allTimeHigh: convertToNativeCurrency(price.allTimeHigh),
-            allTimeLow: convertToNativeCurrency(price.allTimeLow),
-            totalVolume: convertToNativeCurrency(price.totalVolume),
-            high1d: convertToNativeCurrency(price.high1d),
-            low1d: convertToNativeCurrency(price.low1d),
+            price: convertToNativeCurrency(price.price, nativeCurrencyRate),
+            marketCap: convertToNativeCurrency(price.marketCap, nativeCurrencyRate),
+            allTimeHigh: convertToNativeCurrency(price.allTimeHigh, nativeCurrencyRate),
+            allTimeLow: convertToNativeCurrency(price.allTimeLow, nativeCurrencyRate),
+            totalVolume: convertToNativeCurrency(price.totalVolume, nativeCurrencyRate),
+            high1d: convertToNativeCurrency(price.high1d, nativeCurrencyRate),
+            low1d: convertToNativeCurrency(price.low1d, nativeCurrencyRate),
             circulatingSupply: price.circulatingSupply,
-            dilutedMarketCap: convertToNativeCurrency(price.dilutedMarketCap),
+            dilutedMarketCap: convertToNativeCurrency(price.dilutedMarketCap, nativeCurrencyRate),
             marketCapPercentChange1d: price.marketCapPercentChange1d,
             priceChange1d: price.priceChange1d,
             pricePercentChange1h: price.pricePercentChange1h,
