@@ -38,7 +38,7 @@ tests/component-view/
 ### API mocking (external HTTP) {#api-mocking}
 
 - **Directory:** [api-mocking/](api-mocking/)
-- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`.
+- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`. When the client uses global `fetch`, register that same response with `stubFetchPath` in `fetchStub.ts` instead of a per-feature fetch spy.
 - **Usage:** In view tests that need an API mock, import `setupXxxApiMock` and `clearXxxApiMocks` from `tests/component-view/api-mocking/<feature>`, call setup in `beforeEach` and clear in `afterEach`. To add a new API mock, copy the pattern from `api-mocking/trending.ts` and use `nockHelpers.ts`; see also navigation-mocking.md (External Service / API Mocking).
 
 ### Mocks {#framework-mocks}

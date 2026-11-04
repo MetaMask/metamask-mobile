@@ -1,5 +1,4 @@
 import type { ImageSourcePropType } from 'react-native';
-import { IconName } from '@metamask/design-system-react-native';
 import type { VbaHomeCard } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import {
   COMPONENT_NAMES,
@@ -24,7 +23,7 @@ interface MoneyVbaHomeCardHeroArt {
 interface MoneyVbaHomeCardConfig {
   /** `component_name` on the card-shown and CTA-tap events. */
   componentName: COMPONENT_NAMES;
-  /** Telemetry source forwarded to the onboarding loading screen. */
+  /** Telemetry source forwarded to onboarding hydration. */
   source: string;
   /** Card reads `${i18nPrefix}.title`, `.description` and `.cta`. */
   i18nPrefix: string;
@@ -36,8 +35,6 @@ interface MoneyVbaHomeCardConfig {
   ctaClassName: string;
   /** Tailwind classes for the CTA button text. */
   ctaTextClassName: string;
-  /** Optional leading icon on the CTA (e.g. the KYC_PENDING spinner). */
-  ctaStartIconName?: IconName;
   /**
    * Shows a Dismiss button beside the CTA. Dismissing hides the card until the
    * home screen remounts.
@@ -95,7 +92,6 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     heroArt: IDENTITY_HERO_ART,
     ctaClassName: 'bg-muted-pressed',
     ctaTextClassName: 'text-default',
-    ctaStartIconName: IconName.Loading,
   },
   finish_verification: {
     componentName: COMPONENT_NAMES.MONEY_VBA_FINISH_VERIFICATION_CARD,

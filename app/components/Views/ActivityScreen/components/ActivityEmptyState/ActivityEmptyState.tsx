@@ -30,6 +30,7 @@ import {
 } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeTabKey } from '../../../../UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { getDefaultTokenPairForChains } from '../../../../UI/Bridge/utils/tokenUtils';
+import { usePredictEntryActions } from '../../../../UI/PredictNext';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
@@ -53,6 +54,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
+  const { openPredict } = usePredictEntryActions();
 
   const Icon =
     designSystemTheme === Theme.Dark
@@ -92,9 +94,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
         goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
         return;
       case ActivityEmptyStateAction.MakePrediction:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-        });
+        openPredict({ type: 'home' });
         return;
       case ActivityEmptyStateAction.BrowsePerpsMarkets:
         navigation.navigate(Routes.PERPS.ROOT, {
@@ -108,7 +108,14 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy, goToSwaps, networkFilter]);
+  }, [
+    emptyState.action,
+    navigation,
+    goToBuy,
+    goToSwaps,
+    networkFilter,
+    openPredict,
+  ]);
 
   return (
     <Box

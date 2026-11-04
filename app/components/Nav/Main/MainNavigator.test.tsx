@@ -159,6 +159,13 @@ jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
   default: () => 'PredictRoot',
 }));
 
+// On the legacy lane Predict availability is the legacy flag.
+jest.mock('../../UI/PredictNext', () => ({
+  ...jest.requireActual('../../UI/PredictNext'),
+  selectPredictAvailability: (state: unknown) =>
+    mockSelectPredictEnabledFlag(state),
+}));
+
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
   return {

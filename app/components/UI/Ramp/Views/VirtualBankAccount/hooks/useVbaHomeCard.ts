@@ -101,8 +101,8 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
  * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
  * exists and Identity verified when it does not, and details creates it.
  *
- * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
- * (relay approval counts while the vendor `finalStatus` is still pending).
+ * Only provider-final approval (`finalStatus === 'approved'`) completes KYC.
+ * Relay approval alone stays pending while the provider makes its decision.
  *
  * A usable autoramp renders `account_is_ready` right after rule 1, ahead of
  * every session rule, whatever the eligibility gate says.
@@ -152,9 +152,7 @@ export function getVbaHomeCard({
     return { type: 'get_started' };
   }
 
-  const isApproved =
-    sessionStatus?.finalStatus === 'approved' ||
-    sessionStatus?.kycStatus === 'approved';
+  const isApproved = sessionStatus?.finalStatus === 'approved';
 
   // 3. KYC approved. Identity is no longer being verified, so show
   // account_is_ready with or without a usable autoramp. Its CTA opens
@@ -173,13 +171,15 @@ export function getVbaHomeCard({
     return { type: 'kyc_decision' };
   }
 
-  // 5. Genuinely in review: the relay decision is pending, or the provider
-  // flow was submitted. `finalStatus === 'pending'` alone does NOT mean
-  // review — an abandoned flow keeps `finalStatus: 'pending'` with
-  // `kycStatus: 'new'` (observed on device), and must fall through to rule 6
-  // so the user finishes verification instead of seeing a spinner.
+  // 5. Genuinely in review: the relay decision is pending or approved while
+  // the provider has not finalized, or the provider flow was submitted.
+  // `finalStatus === 'pending'` alone does NOT mean review — an abandoned flow
+  // keeps `finalStatus: 'pending'` with `kycStatus: 'new'` (observed on
+  // device), and must fall through to rule 6 so the user finishes verification
+  // instead of seeing a spinner.
   if (
     sessionStatus?.kycStatus === 'pending' ||
+    sessionStatus?.kycStatus === 'approved' ||
     providerFlowStatus === 'submitted'
   ) {
     return { type: 'kyc_pending' };

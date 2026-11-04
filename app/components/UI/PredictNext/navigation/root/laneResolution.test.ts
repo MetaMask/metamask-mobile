@@ -56,6 +56,21 @@ describe('temporary Predict lane resolution', () => {
     expect(result).toBe('polymarket');
   });
 
+  it.each([
+    'PredictNextHome',
+    'PredictNextFeed',
+    'PredictNextEvent',
+    'PredictNextPortfolio',
+    'PredictNextSearch',
+  ] as const)(
+    'leaves the PredictNext route %s to the Active Venue',
+    (screen) => {
+      const result = resolvePinnedVenue({ screen });
+
+      expect(result).toBeUndefined();
+    },
+  );
+
   it.each([undefined, {}, { screen: 'PredictMarketList' as const }])(
     'leaves a generic root entry to the Active Venue',
     (route) => {

@@ -78,6 +78,7 @@ import {
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
@@ -118,6 +119,131 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 
+const linkedAddressesMatch = (
+  traderAddress: string | null | undefined,
+  linkedAccountAddress: string | null | undefined,
+): boolean =>
+  Boolean(
+    linkedAccountAddress &&
+      traderAddress?.toLowerCase() === linkedAccountAddress.toLowerCase(),
+  );
+
+const profilePositionTab = ({
+  activeTab,
+  openPositions,
+  closedPositions,
+  isLoadingOpen,
+  isLoadingClosed,
+  openError,
+  closedError,
+}: {
+  activeTab: ProfileContentTab;
+  openPositions: Position[];
+  closedPositions: Position[];
+  isLoadingOpen: boolean;
+  isLoadingClosed: boolean;
+  openError: string | null;
+  closedError: string | null;
+}) => {
+  if (activeTab === 'closed') {
+    return {
+      positions: closedPositions,
+      isLoading: isLoadingClosed,
+      error: closedError,
+      isClosed: true,
+    };
+  }
+  return {
+    positions: openPositions,
+    isLoading: isLoadingOpen,
+    error: openError,
+    isClosed: false,
+  };
+};
+
+const filteredPostsEmptyKey = (assetFilter: ProfileAssetFilter): string =>
+  assetFilter === 'tokens'
+    ? 'social_leaderboard.feed.empty_type.tokens.title'
+    : 'social_leaderboard.feed.empty_type.perps.title';
+
+interface ProfilePostsContentProps {
+  showInitialPostSkeletons: boolean;
+  showPostsEmptyState: boolean;
+  postsEmptyMessage?: string;
+  postsError: string | null;
+  visiblePosts: SocialV1FeedPost[];
+  onRetry: () => void;
+  showCopyTrade: boolean;
+}
+
+const ProfilePostsContent = ({
+  showInitialPostSkeletons,
+  showPostsEmptyState,
+  postsEmptyMessage,
+  postsError,
+  visiblePosts,
+  onRetry,
+  showCopyTrade,
+}: ProfilePostsContentProps) => {
+  if (showInitialPostSkeletons) {
+    return <ProfilePostsLoadingState />;
+  }
+  if (showPostsEmptyState) {
+    return <ProfilePostsEmptyState message={postsEmptyMessage} />;
+  }
+  if (postsError && visiblePosts.length === 0) {
+    return (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="w-full px-4 py-16 gap-3"
+        testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
+      >
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          twClassName="text-center"
+        >
+          {strings('social_leaderboard.feed.error.title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('social_leaderboard.feed.error.description')}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          onPress={onRetry}
+          twClassName="self-center"
+          testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
+        >
+          {strings('social_leaderboard.feed.error.retry')}
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
+      <SocialV1FeedPostList
+        posts={visiblePosts}
+        dividerKeyPrefix="my-profile"
+        renderPost={(post) => (
+          <SocialFeedPostShell
+            post={post}
+            requireSocialTerms
+            showCopyTrade={showCopyTrade}
+          />
+        )}
+      />
+    </Box>
+  );
+};
+
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
@@ -148,12 +274,7 @@ const MyProfileView: React.FC = () => {
   const isOwner =
     !traderId ||
     traderId === myProfile?.profileId ||
-    Boolean(
-      traderAddress &&
-        myProfile?.linkedAccountAddress &&
-        traderAddress.toLowerCase() ===
-          myProfile.linkedAccountAddress.toLowerCase(),
-    );
+    linkedAddressesMatch(traderAddress, myProfile?.linkedAccountAddress);
   const { traders: following } = useFollowedTraders();
   const ownerAddressOrId = useMyProfileAddress(myProfile);
   const addressOrId = isOwner ? ownerAddressOrId : (traderId ?? traderAddress);
@@ -165,6 +286,7 @@ const MyProfileView: React.FC = () => {
   } = liveProfile;
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile: true,
   });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const displayProfile = useMemo((): MySocialProfile | null => {
@@ -533,12 +655,17 @@ const MyProfileView: React.FC = () => {
   }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
   const postsEmptyMessage =
     posts.length > 0 && assetFilter !== 'all'
-      ? strings(
-          assetFilter === 'tokens'
-            ? 'social_leaderboard.feed.empty_type.tokens.title'
-            : 'social_leaderboard.feed.empty_type.perps.title',
-        )
+      ? strings(filteredPostsEmptyKey(assetFilter))
       : undefined;
+  const positionTab = profilePositionTab({
+    activeTab,
+    openPositions,
+    closedPositions,
+    isLoadingOpen,
+    isLoadingClosed,
+    openError: openPositionsError,
+    closedError: closedPositionsError,
+  });
 
   return (
     <SocialFeedSurfaceProvider
@@ -864,73 +991,26 @@ const MyProfileView: React.FC = () => {
 
                 {activeTab !== 'posts' ? (
                   <ProfilePositionsTab
-                    positions={
-                      activeTab === 'open' ? openPositions : closedPositions
-                    }
-                    isLoading={
-                      activeTab === 'open' ? isLoadingOpen : isLoadingClosed
-                    }
-                    error={
-                      activeTab === 'open'
-                        ? openPositionsError
-                        : closedPositionsError
-                    }
-                    isClosed={activeTab === 'closed'}
+                    positions={positionTab.positions}
+                    isLoading={positionTab.isLoading}
+                    error={positionTab.error}
+                    isClosed={positionTab.isClosed}
                     filter={assetFilter}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
                     onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
-                ) : showInitialPostSkeletons ? (
-                  <ProfilePostsLoadingState />
-                ) : showPostsEmptyState ? (
-                  <ProfilePostsEmptyState message={postsEmptyMessage} />
-                ) : postsError && visiblePosts.length === 0 ? (
-                  <Box
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    twClassName="w-full px-4 py-16 gap-3"
-                    testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
-                  >
-                    <Text
-                      variant={TextVariant.HeadingSm}
-                      fontWeight={FontWeight.Bold}
-                      color={TextColor.TextDefault}
-                      twClassName="text-center"
-                    >
-                      {strings('social_leaderboard.feed.error.title')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                      twClassName="text-center"
-                    >
-                      {strings('social_leaderboard.feed.error.description')}
-                    </Text>
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      size={ButtonSize.Sm}
-                      onPress={refreshPosts}
-                      twClassName="self-center"
-                      testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
-                    >
-                      {strings('social_leaderboard.feed.error.retry')}
-                    </Button>
-                  </Box>
                 ) : (
-                  <Box
-                    paddingTop={4}
-                    testID={MyProfileViewSelectorsIDs.POSTS_LIST}
-                  >
-                    <SocialV1FeedPostList
-                      posts={visiblePosts}
-                      dividerKeyPrefix="my-profile"
-                      renderPost={(post) => (
-                        <SocialFeedPostShell post={post} requireSocialTerms />
-                      )}
-                    />
-                  </Box>
+                  <ProfilePostsContent
+                    showInitialPostSkeletons={showInitialPostSkeletons}
+                    showPostsEmptyState={showPostsEmptyState}
+                    postsEmptyMessage={postsEmptyMessage}
+                    postsError={postsError}
+                    visiblePosts={visiblePosts}
+                    onRetry={refreshPosts}
+                    showCopyTrade={!isOwner}
+                  />
                 )}
                 {activeTab === 'posts' &&
                 isFetchingNextPage &&
