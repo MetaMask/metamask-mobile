@@ -100,12 +100,16 @@ jest.mock('../../../UI/QuickBuy', () => {
     default: ({
       isVisible,
       initialTradeMode,
+      onClose,
     }: {
       isVisible: boolean;
       initialTradeMode?: string;
+      onClose: () => void;
     }) =>
       isVisible ? (
-        <Text testID="quick-buy-sheet">{initialTradeMode}</Text>
+        <Text testID="quick-buy-sheet" onPress={onClose}>
+          {initialTradeMode}
+        </Text>
       ) : null,
     positionToQuickBuyTarget: () => ({ tokenAddress: '0xpepe' }),
   };
@@ -504,7 +508,7 @@ describe('PositionDetailsSheet', () => {
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');
     });
 
-    it('copies an open spot position through QuickBuy', () => {
+    it('dismisses the sheet and copies an open spot position through QuickBuy', () => {
       render(<PositionDetailsSheet />);
 
       fireEvent.press(
@@ -512,6 +516,21 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('buy');
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('leaves the route once QuickBuy closes', () => {
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+
+      fireEvent.press(screen.getByTestId('quick-buy-sheet'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
     it('offers Long and Short on a closed perp', () => {
@@ -561,6 +580,9 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('sell');
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
   });
 
