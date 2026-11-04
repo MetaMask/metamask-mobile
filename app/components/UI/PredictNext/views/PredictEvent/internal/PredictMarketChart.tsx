@@ -42,6 +42,8 @@ const LABEL_VALUE_BASELINE_OFFSET = 24;
 const SCRUB_TIME_BOTTOM_INSET = 4;
 const SCRUB_RIGHT_OPACITY = 0.3;
 const EDGE_FADE_RATIO = 0.14;
+/** End label of a series with a live value that has none right now. */
+const NO_END_VALUE = '–';
 
 const styles = StyleSheet.create({
   container: { width: '100%', overflow: 'hidden' },
@@ -97,6 +99,9 @@ export const PredictMarketChart = ({
     fontScale,
     labels: series.map((entry) => entry.label),
     values: series.flatMap((entry) => {
+      if (entry.endValue === null) {
+        return [NO_END_VALUE];
+      }
       const value = entry.endValue ?? entry.data.at(-1)?.value;
       return value === undefined ? [] : [formatValue(value)];
     }),
@@ -178,12 +183,12 @@ export const PredictMarketChart = ({
 
   const handleLayout = (event: LayoutChangeEvent) =>
     setWidth(event.nativeEvent.layout.width);
-  const getShownValue = (entry: PreparedChartSeries) =>
-    formatValue(
-      !scrub && entry.endValue !== undefined
-        ? entry.endValue
-        : entry.endpoint.value,
-    );
+  const getShownValue = (entry: PreparedChartSeries) => {
+    if (scrub || entry.endValue === undefined) {
+      return formatValue(entry.endpoint.value);
+    }
+    return entry.endValue === null ? NO_END_VALUE : formatValue(entry.endValue);
+  };
   const accessibilityValues =
     model?.displayedSeries
       .map((entry) => `${entry.label} ${getShownValue(entry)}`)

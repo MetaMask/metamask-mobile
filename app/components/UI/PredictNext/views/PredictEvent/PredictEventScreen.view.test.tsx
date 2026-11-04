@@ -463,6 +463,8 @@ describe('PredictEventScreen', () => {
       expect(
         view.getByTestId(PredictMarketHistoryTestIds.legendItem('ella')),
       ).toBeOnTheScreen();
+      // The line end agrees with the legend, not the last plotted price.
+      expect(view.getByLabelText(/Ella Langley –/)).toBeOnTheScreen();
     });
 
     it('moves a line end to the last trade on the ALL range', async () => {

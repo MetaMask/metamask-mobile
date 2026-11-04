@@ -89,7 +89,8 @@ interface MarketHistorySeries {
   label: string;
   color: string;
   points: readonly PredictMarketChartPoint[];
-  endValue?: number;
+  /** See `ChartSeries.endValue`; `null` shows a dash. */
+  endValue?: number | null;
 }
 
 const toChartPoints = (
@@ -418,7 +419,7 @@ const TopMarketsLegend = ({
           variant={TextVariant.BodySm}
           testID={PredictMarketHistoryTestIds.legendValue(entry.id)}
         >
-          {entry.endValue === undefined
+          {entry.endValue === undefined || entry.endValue === null
             ? '–'
             : formatChartValue(entry.endValue)}
         </Text>
@@ -475,7 +476,8 @@ export const PredictTopMarketsHistory = ({
           market,
           'yes',
         ),
-        endValue: getYesAskProbability(market),
+        // No ask: a dash, as in the legend, not the last plotted value.
+        endValue: getYesAskProbability(market) ?? null,
       };
     },
   );

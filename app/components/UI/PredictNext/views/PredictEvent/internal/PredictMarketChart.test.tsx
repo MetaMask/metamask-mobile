@@ -501,4 +501,20 @@ describe('PredictMarketChart', () => {
       ),
     ).toBeOnTheScreen();
   });
+
+  it('labels a line end with a dash when its end value is gone', () => {
+    const view = render(
+      <PredictMarketChart
+        series={[{ ...testSeries[0], endValue: null }]}
+        testID="market-chart"
+      />,
+    );
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+
+    expect(
+      view.getByLabelText('Market probability history. Vikings –'),
+    ).toBeOnTheScreen();
+  });
 });
