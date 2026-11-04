@@ -275,12 +275,14 @@ describe('AgenticCliApproval', () => {
 
     expect(HeaderStandardGlass).toHaveBeenCalledWith(
       expect.objectContaining({
-        includesTopInset: true,
         isGlass: false,
         isFloating: false,
       }),
       undefined,
     );
+    expect(
+      jest.mocked(HeaderStandardGlass).mock.lastCall?.[0].includesTopInset,
+    ).toBeUndefined();
     expect(getByTestId('agentic-cli-approval-error-title').props.children).toBe(
       'Something went wrong',
     );

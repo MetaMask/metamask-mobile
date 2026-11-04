@@ -117,7 +117,6 @@ const AgenticCliApproval: React.FC = () => {
       isFloating={false}
       title={title}
       onBack={handleClose}
-      includesTopInset
       endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
     />
   );
