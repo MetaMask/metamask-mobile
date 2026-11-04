@@ -21,20 +21,25 @@ async function disconnect({
     DevLogger.log(
       `Connection::disconnect() context=${context} id=${instance.channelId} terminate=${terminate} sending terminate`,
     );
-    terminated = await instance.remote.sendMessage({
-      type: MessageType.TERMINATE,
-    });
+    try {
+      terminated = await instance.remote.sendMessage({
+        type: MessageType.TERMINATE,
+      });
+    } catch (error) {
+      DevLogger.log(
+        `Connection::disconnect() context=${context} id=${instance.channelId} terminate send failed`,
+        error,
+      );
+    }
     DevLogger.log(
       `Connection::disconnect() context=${context} id=${instance.channelId} terminate=${terminate} sent terminate=${terminated}`,
     );
-  }
-  if (terminated) {
+    // The user asked to end the session. Close the socket and drop the origin
+    // stamp even when the remote does not ack, so the channel cannot keep its
+    // authority for a later reconnect.
     instance.remote.disconnect();
-    // The connection is permanently closed: drop the provenance stamped in
-    // setupBridge (mirrors WalletConnect2Session.removeListeners and
-    // RPCBridgeAdapter.dispose). Non-terminal disconnects keep the stamp
-    // because the connection can resume.
     removeOriginProvenance(instance.channelId);
+    return true;
   }
   return terminated;
 }
