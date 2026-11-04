@@ -192,12 +192,19 @@ export const getMoneyVaultState = ({
   positionsUnavailable = false,
 }: GetMoneyVaultStateParams): MoneyVaultState => {
   if (positionsUnavailable || positions === undefined) {
-    return {
-      status: isEntitled ? MoneyVaultStatus.Premium : MoneyVaultStatus.Base,
-      currentVault: isEntitled ? MoneyVaultKind.Premium : MoneyVaultKind.Base,
-      effectiveApyDecimal: isEntitled ? premiumApyDecimal : baseApyDecimal,
-      usesBaseApy: !isEntitled,
-    };
+    return isEntitled
+      ? {
+          status: MoneyVaultStatus.Premium,
+          currentVault: MoneyVaultKind.Premium,
+          effectiveApyDecimal: premiumApyDecimal,
+          usesBaseApy: false,
+        }
+      : {
+          status: MoneyVaultStatus.Base,
+          currentVault: MoneyVaultKind.Base,
+          effectiveApyDecimal: baseApyDecimal,
+          usesBaseApy: true,
+        };
   }
 
   const { baseUsd, premiumUsd } = getVaultBalances({
