@@ -1,21 +1,12 @@
 /* eslint-disable react/prop-types */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { LayoutChangeEvent, View, type ViewStyle } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
-  Icon,
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -35,20 +26,15 @@ import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
 import TabBarFloatingTradeButton from './TabBarFloatingTradeButton';
 import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
-import { getHardwareTier } from '../../../../util/deviceCapability';
-import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_GAP,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_HORIZONTAL_INSET,
-  TAB_BAR_FLOATING_ICON_SIZE,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from './TabBarFloating.utils';
-import SocialFooterMorph, { type SocialFooterTab } from './SocialFooterMorph';
-import { getSocialFooterDurations } from './socialFooterMotion';
 
 /** What the circular button beside the pill does. */
 export type TabBarFloatingTrailingAction = 'search' | 'trade';
@@ -107,27 +93,6 @@ const TabBarFloating = ({
   useEffect(() => () => onHeightChange?.(0), [onHeightChange]);
 
   const { isBlurAvailable, colorScheme } = useBlurMaterial();
-  const reducedMotion = useReducedMotion();
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
-  const socialDurations = useMemo(
-    () => getSocialFooterDurations(hardwareTier, networkTier, reducedMotion),
-    [hardwareTier, networkTier, reducedMotion],
-  );
-  const [socialFooter, setSocialFooter] = useState(false);
-  const [socialCircleIsHome, setSocialCircleIsHome] = useState(false);
-  const [socialTab, setSocialTab] = useState<SocialFooterTab>('trending');
-
-  useEffect(() => {
-    if (!socialFooter) {
-      setSocialCircleIsHome(false);
-      return undefined;
-    }
-    const delay =
-      socialDurations.collapse + socialDurations.hold + socialDurations.expand;
-    const timeoutId = setTimeout(() => setSocialCircleIsHome(true), delay);
-    return () => clearTimeout(timeoutId);
-  }, [socialFooter, socialDurations]);
 
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
@@ -188,8 +153,6 @@ const TabBarFloating = ({
             navigateToMoneyHome();
             break;
           case Routes.SOCIAL.TAB:
-            setSocialTab('trending');
-            setSocialFooter(true);
             navigateToSocialTab(navigation.navigate, {
               source: 'nav_tab',
             });
@@ -227,26 +190,6 @@ const TabBarFloating = ({
     ],
   );
 
-  const handleSocialTabPress = useCallback(
-    (tab: SocialFooterTab) => {
-      playImpact(ImpactMoment.TabChange);
-      setSocialTab(tab);
-      navigation.navigate(Routes.SOCIAL.TAB, {
-        initialTab: tab,
-        source: 'nav_tab',
-      });
-    },
-    [navigation],
-  );
-
-  const handleExitSocial = useCallback(() => {
-    playImpact(ImpactMoment.TabChange);
-    setSocialFooter(false);
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET_VIEW,
-    });
-  }, [navigation]);
-
   const homeTabs = state.routes.flatMap(
     (route: TabBarFloatingRoute, index: number) => {
       const node = renderTabBarItem(route, index);
@@ -274,13 +217,7 @@ const TabBarFloating = ({
           style={{ height: TAB_BAR_FLOATING_HEIGHT }}
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
         >
-          <SocialFooterMorph
-            homeTabs={homeTabs}
-            active={socialFooter}
-            activeTab={socialTab}
-            durations={socialDurations}
-            onTabPress={handleSocialTabPress}
-          />
+          {homeTabs.map((tab) => tab.node)}
         </TabBarFloatingSurface>
         <TabBarFloatingSurface
           isBlurAvailable={isBlurAvailable}
@@ -291,24 +228,7 @@ const TabBarFloating = ({
             width: TAB_BAR_FLOATING_HEIGHT,
           }}
         >
-          {socialCircleIsHome ? (
-            <ButtonAnimated
-              onPress={handleExitSocial}
-              style={tw.style(
-                'h-full w-full items-center justify-center rounded-full bg-transparent',
-              )}
-              accessibilityLabel={strings('bottom_nav.home')}
-              accessibilityRole="button"
-              accessible
-              testID={TAB_BAR_FLOATING_TEST_IDS.SOCIAL_HOME_BUTTON}
-            >
-              <Icon
-                name={IconName.Home}
-                size={TAB_BAR_FLOATING_ICON_SIZE}
-                color={IconColor.IconDefault}
-              />
-            </ButtonAnimated>
-          ) : trailingAction === 'trade' ? (
+          {trailingAction === 'trade' ? (
             <TabBarFloatingTradeButton
               testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
             />

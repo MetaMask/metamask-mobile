@@ -548,13 +548,16 @@ describe('PredictFeed', () => {
       expect(queryByTestId('capsule')).toBeNull();
     });
 
-    it('renders back and search in glass capsules when the brand refresh is on', () => {
+    it('renders back in a glass capsule when the brand refresh is on', () => {
       mockIsPredictBrandRefreshEnabled = true;
 
-      const { getAllByTestId, getByTestId } = render(<PredictFeed />);
+      const { getAllByTestId, getByTestId, queryByTestId } = render(
+        <PredictFeed />,
+      );
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
-      expect(getAllByTestId('capsule')).toHaveLength(2);
+      expect(getAllByTestId('capsule')).toHaveLength(1);
+      expect(queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON)).toBeNull();
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
   });
@@ -740,11 +743,19 @@ describe('PredictFeed', () => {
   });
 
   describe('search debounce behavior', () => {
+    beforeEach(() => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'homepage_new_prediction',
+          openSearch: true,
+        },
+      });
+    });
+
     it('passes debounced search query to usePredictSearchMarketData', () => {
       mockUseDebouncedValue.mockReturnValue('debounced-query');
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+      const { getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
       const searchInput = getByPlaceholderText('Search prediction markets');
       fireEvent.changeText(searchInput, 'bitcoin');
 
@@ -763,7 +774,6 @@ describe('PredictFeed', () => {
       });
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
       const searchInput = getByPlaceholderText('Search prediction markets');
       fireEvent.changeText(searchInput, 'bitcoin');
 
@@ -773,9 +783,8 @@ describe('PredictFeed', () => {
     });
 
     it('invokes useDebouncedValue with 200ms delay', () => {
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+      const { getByPlaceholderText } = render(<PredictFeed />);
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
       const searchInput = getByPlaceholderText('Search prediction markets');
       fireEvent.changeText(searchInput, 'test');
 

@@ -54,10 +54,6 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.SEARCH_BAR);
   }
 
-  get homeSearchToggle() {
-    return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE);
-  }
-
   get searchClearButton() {
     return Matchers.getElementByID(
       PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
@@ -141,10 +137,13 @@ class PerpsMarketListView {
   }
 
   async openMarketListFromHomeSearch(): Promise<void> {
-    await Gestures.waitAndTap(this.homeSearchToggle, {
-      elemDescription: 'Perps home search button',
-      timeout: 15000,
-    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID('contextual-perps-tab-search'),
+      {
+        elemDescription: 'Perps footer search',
+        timeout: 15000,
+      },
+    );
     await Assertions.expectElementToBeVisible(this.searchBar, {
       description: 'Perps market search bar is visible',
       timeout: 15000,

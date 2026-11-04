@@ -5,12 +5,17 @@ import React, {
   useRef,
   useCallback,
 } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { Keyboard, Platform, View, type ViewStyle } from 'react-native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import {
@@ -203,6 +208,12 @@ import {
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import ContextualPredictRoot from './contextualNav/ContextualPredictRoot';
+import ContextualRewardsTabBar from './contextualNav/ContextualRewardsTabBar';
+import CollectiblesSectionScreen from '../../Views/Collectibles/CollectiblesView';
+import {
+  exitContextualSection,
+  getContextualNavState,
+} from './contextualNav/contextualSection';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -530,6 +541,47 @@ const RewardsHome = () => {
         options={slideFromRightNativeOptions}
       />
     </NativeStack.Navigator>
+  );
+};
+
+const REWARDS_PAGE_STYLE: ViewStyle = { flex: 1 };
+
+/**
+ * Rewards opened from the + menu. The footer rides in with this screen.
+ * Other entries leave the section unset and keep the plain rewards home.
+ */
+const RewardsSectionScreen = () => {
+  const navigation = useNavigation();
+  const [isSection] = useState(
+    () => getContextualNavState().section === 'rewards',
+  );
+  const handleHomePress = useCallback(() => {
+    navigation.dispatch(
+      StackActions.popTo(Routes.HOME_TABS, {
+        screen: Routes.WALLET.HOME,
+        params: { screen: Routes.WALLET_VIEW },
+      }),
+    );
+  }, [navigation]);
+
+  useEffect(() => {
+    if (!isSection) {
+      return undefined;
+    }
+    return () => {
+      exitContextualSection();
+    };
+  }, [isSection]);
+
+  if (!isSection) {
+    return <RewardsHome />;
+  }
+
+  return (
+    <View style={REWARDS_PAGE_STYLE}>
+      <RewardsHome />
+      <ContextualRewardsTabBar onHomePress={handleHomePress} />
+    </View>
   );
 };
 
@@ -1104,7 +1156,16 @@ const MainNavigator = () => {
        * reached. Registered unconditionally so the route always resolves
        * regardless of how the arms are configured.
        */}
-      <NativeStack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+      <NativeStack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsSectionScreen}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.COLLECTIBLES_VIEW}
+        component={CollectiblesSectionScreen}
+        options={slideFromRightNativeOptions}
+      />
       {/*
        * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
        * is its own native stack pushed onto the root native stack; nesting a native

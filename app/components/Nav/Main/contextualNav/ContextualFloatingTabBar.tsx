@@ -4,9 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   ButtonAnimated,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
@@ -18,21 +22,26 @@ import {
   TAB_BAR_FLOATING_GAP,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_HORIZONTAL_INSET,
+  TAB_BAR_FLOATING_ICON_DIMENSION,
   TAB_BAR_FLOATING_ICON_SIZE,
+  TAB_BAR_FLOATING_LABEL_FONT_SIZE,
+  TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
 } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import type { ContextualTab } from './contextualSection';
 
-export interface ContextualFloatingTab {
-  id: ContextualTab;
+export interface ContextualFloatingTab<T extends string = ContextualTab> {
+  id: T;
   label: string;
   iconName: IconName;
 }
 
-export interface ContextualFloatingTabBarProps {
-  tabs: ContextualFloatingTab[];
-  activeTab: ContextualTab;
-  onTabPress: (tab: ContextualTab) => void;
+export interface ContextualFloatingTabBarProps<
+  T extends string = ContextualTab,
+> {
+  tabs: ContextualFloatingTab<T>[];
+  activeTab: T;
+  onTabPress: (tab: T) => void;
   onHomePress: () => void;
   testIDPrefix: string;
 }
@@ -58,13 +67,13 @@ const CIRCLE_STYLE: ViewStyle = {
 /**
  * Section footer. Same surface, item, and circle as the home floating bar.
  */
-const ContextualFloatingTabBar = ({
+const ContextualFloatingTabBar = <T extends string>({
   tabs,
   activeTab,
   onTabPress,
   onHomePress,
   testIDPrefix,
-}: ContextualFloatingTabBarProps) => {
+}: ContextualFloatingTabBarProps<T>) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { isBlurAvailable, colorScheme } = useBlurMaterial();
@@ -87,7 +96,7 @@ const ContextualFloatingTabBar = ({
   }, []);
 
   const handleTabPress = useCallback(
-    (nextTab: ContextualTab) => {
+    (nextTab: T) => {
       playImpact(ImpactMoment.TabChange);
       onTabPress(nextTab);
     },
@@ -133,6 +142,7 @@ const ContextualFloatingTabBar = ({
               iconName={item.iconName}
               label={item.label}
               isActive={activeTab === item.id}
+              fullContrast
               onPress={() => handleTabPress(item.id)}
             />
           ))}
@@ -157,7 +167,25 @@ const ContextualFloatingTabBar = ({
               name={IconName.Home}
               size={TAB_BAR_FLOATING_ICON_SIZE}
               color={IconColor.IconDefault}
+              style={{
+                width: TAB_BAR_FLOATING_ICON_DIMENSION,
+                height: TAB_BAR_FLOATING_ICON_DIMENSION,
+              }}
             />
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              twClassName="mt-0.5 text-center"
+              style={{
+                fontSize: TAB_BAR_FLOATING_LABEL_FONT_SIZE,
+                lineHeight: TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
+              }}
+              maxFontSizeMultiplier={1}
+            >
+              {strings('bottom_nav.home')}
+            </Text>
           </ButtonAnimated>
         </TabBarFloatingSurface>
       </View>

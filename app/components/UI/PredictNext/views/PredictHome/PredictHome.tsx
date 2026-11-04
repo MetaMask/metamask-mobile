@@ -4,12 +4,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
   HeaderStandardAnimated,
-  IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
@@ -26,7 +21,6 @@ import {
 import {
   PREDICT_SURFACE_FEED_KEYS,
   canPerformVenueAction,
-  isVenueSearchSupported,
   resolveSurfaceFeeds,
   useVenueCapabilities,
   type PredictVenueCapabilities,
@@ -151,13 +145,6 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  const openSearch = useCallback(
-    () =>
-      navigation.navigate(PredictNextRoutes.SEARCH, {
-        venueId,
-      }),
-    [navigation, venueId],
-  );
   const openFeedScreen = useCallback(
     (feedScreenId: FeedScreenId) =>
       navigation.navigate(PredictNextRoutes.FEED, {
@@ -201,25 +188,7 @@ const PredictHomeView = ({
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <PredictVenueSelectorButton variant="standard" />
-            {isVenueSearchSupported(capabilities) ? (
-              <ButtonIcon
-                size={ButtonIconSize.Md}
-                iconName={IconName.Search}
-                onPress={openSearch}
-                testID={PredictHomeTestIds.SEARCH}
-                accessibilityLabel={strings('predict_next.search.placeholder')}
-                accessibilityRole="button"
-              />
-            ) : null}
-          </Box>
-        }
+        endAccessory={<PredictVenueSelectorButton variant="standard" />}
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),

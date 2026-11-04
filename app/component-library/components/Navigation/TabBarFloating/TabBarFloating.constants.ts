@@ -63,14 +63,18 @@ export const TAB_BAR_FLOATING_GAP = 8;
 export const TAB_BAR_FLOATING_HORIZONTAL_INSET = 21;
 
 /**
- * UIKit draws 28pt tab glyphs. `Xl` (32) is equally close but overruns the
- * 62pt bar once the label is stacked under it, so `Lg` is the usable match.
+ * Home tab glyphs are 28pt. `Lg` is 24 and `Xl` is 32, so the drawn size is
+ * set directly and `Lg` only satisfies the icon `size` prop.
  */
 export const TAB_BAR_FLOATING_ICON_SIZE = IconSize.Lg;
+export const TAB_BAR_FLOATING_ICON_DIMENSION = 28;
 
-/** UIKit's iOS 26 label size; the smallest design-system variant (12/20) overruns the bar. */
-export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 12;
-export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
+/**
+ * System tab bar label size. BodyXs is 12/20, which reads larger than the
+ * home bar's 10pt labels.
+ */
+export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 10;
+export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 12;
 
 /** Shared with the trade tray so every blurred surface reads as one material. */
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
@@ -89,7 +93,6 @@ export const TAB_BAR_FLOATING_TEST_IDS = {
 
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
-  SOCIAL_HOME_BUTTON: 'tab-bar-floating-social-home-button',
   TRADE_BUTTON: 'tab-bar-floating-trade-button',
   SOCIAL_NEW_BADGE: 'tab-bar-floating-social-new-badge',
 } as const;

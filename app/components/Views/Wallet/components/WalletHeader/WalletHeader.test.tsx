@@ -336,14 +336,13 @@ describe('WalletHeader', () => {
       ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
     });
 
-    it('uses the Social glass header with Profile, account and Rewards actions', () => {
+    it('uses the Social glass header with Profile and account actions', () => {
       const handleProfilePress = jest.fn();
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader
           {...interimProps}
           isSocialLayout
           handleProfilePress={handleProfilePress}
-          handleRewardsPress={jest.fn()}
         />,
       );
 
@@ -361,8 +360,8 @@ describe('WalletHeader', () => {
 
       expect(handleProfilePress).toHaveBeenCalledTimes(1);
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
-      ).toBeOnTheScreen();
+        queryByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+      ).toBeNull();
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
       ).toBeOnTheScreen();
@@ -388,7 +387,6 @@ describe('WalletHeader', () => {
           {...interimProps}
           isSocialLayout
           handleProfilePress={jest.fn()}
-          handleRewardsPress={jest.fn()}
         />,
       );
 
@@ -396,19 +394,10 @@ describe('WalletHeader', () => {
         getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
         'pressIn',
       );
-      fireEvent(
-        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
-        'pressIn',
-      );
 
       expect(
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON).props.style,
-        ).backgroundColor,
-      ).toBe('transparent');
-      expect(
-        StyleSheet.flatten(
-          getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON).props.style,
         ).backgroundColor,
       ).toBe('transparent');
     });
@@ -420,7 +409,6 @@ describe('WalletHeader', () => {
           displayName="Test Main Account a really long name"
           isSocialLayout
           handleProfilePress={jest.fn()}
-          handleRewardsPress={jest.fn()}
         />,
       );
 

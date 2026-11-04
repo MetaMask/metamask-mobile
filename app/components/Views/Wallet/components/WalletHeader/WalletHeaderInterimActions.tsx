@@ -72,17 +72,15 @@ export interface WalletHeaderInterimActionsProps
   isMoneyAccountVisible: boolean;
   handleActivityPress: () => void;
   handleSearchPress: () => void;
-  handleRewardsPress?: () => void;
   isSocialLayout?: boolean;
   twClassName?: string;
 }
 
-/** Search, Activity/Rewards and Menu, in one tight row. */
+/** Search, Activity, and Menu, in one tight row. */
 const WalletHeaderInterimActions = ({
   isMoneyAccountVisible,
   handleActivityPress,
   handleSearchPress,
-  handleRewardsPress,
   handleHamburgerPress,
   touchAreaSlop,
   isSocialLayout = false,
@@ -90,20 +88,7 @@ const WalletHeaderInterimActions = ({
 }: WalletHeaderInterimActionsProps) => {
   let secondaryAction: React.ReactNode = null;
 
-  if (isSocialLayout) {
-    secondaryAction = (
-      <ButtonIcon
-        iconProps={{ color: MMDSIconColor.IconDefault }}
-        onPress={handleRewardsPress}
-        iconName={MMDSIconName.Gift}
-        size={ButtonIconSize.Md}
-        testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
-        accessibilityLabel={strings('wallet.rewards_accessibility_label')}
-        hitSlop={touchAreaSlop}
-        twClassName={HEADER_ICON_BUTTON_CLASS}
-      />
-    );
-  } else if (isMoneyAccountVisible) {
+  if (!isSocialLayout && isMoneyAccountVisible) {
     secondaryAction = (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}

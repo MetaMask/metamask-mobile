@@ -1,8 +1,23 @@
 import { useSyncExternalStore } from 'react';
 
-export type ContextualSection = 'perps' | 'predict';
+export type ContextualSection =
+  | 'perps'
+  | 'predict'
+  | 'rewards'
+  | 'collectibles';
 
-export type ContextualTab = 'explore' | 'live' | 'search' | 'portfolio';
+export type ContextualTab =
+  | 'explore'
+  | 'live'
+  | 'search'
+  | 'portfolio'
+  | 'earn'
+  | 'claim'
+  | 'performance'
+  | 'popular'
+  | 'packs'
+  | 'collection'
+  | 'market';
 
 export interface ContextualNavState {
   section: ContextualSection | null;
@@ -39,6 +54,18 @@ export const enterPerpsSection = (): void => {
 /** Predictions section: the same footer, with Predict destinations. */
 export const enterPredictSection = (): void => {
   state = { section: 'predict', tab: 'explore' };
+  emit();
+};
+
+/** Rewards section: footer becomes Earn, Claim, Performance, and Settings. */
+export const enterRewardsSection = (): void => {
+  state = { section: 'rewards', tab: 'earn' };
+  emit();
+};
+
+/** Collectibles section: footer becomes Popular, Packs, Collection, Market. */
+export const enterCollectiblesSection = (): void => {
+  state = { section: 'collectibles', tab: 'popular' };
   emit();
 };
 

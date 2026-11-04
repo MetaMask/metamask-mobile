@@ -2,6 +2,10 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  exitContextualSection,
+  getContextualNavState,
+} from '../../Nav/Main/contextualNav/contextualSection';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -1632,6 +1636,66 @@ describe('TradeWalletActions', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
       });
+    });
+
+    it('opens Collectibles from the menu between Perps and Predictions', async () => {
+      (
+        selectPerpsEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectPredictAvailability as jest.MockedFunction<
+          typeof selectPredictAvailability
+        >
+      ).mockReturnValue(true);
+
+      const { getByTestId, getByText, toJSON } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      const rendered = JSON.stringify(toJSON());
+      const perpsIndex = rendered.indexOf('"Perps"');
+      const collectiblesIndex = rendered.indexOf('"Collectibles"');
+      const predictionsIndex = rendered.indexOf('"Predictions"');
+      expect(perpsIndex).toBeGreaterThanOrEqual(0);
+      expect(collectiblesIndex).toBeGreaterThan(perpsIndex);
+      expect(predictionsIndex).toBeGreaterThan(collectiblesIndex);
+      expect(getByText('Explore packs and cards')).toBeOnTheScreen();
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.COLLECTIBLES_VIEW);
+      expect(getContextualNavState()).toEqual({
+        section: 'collectibles',
+        tab: 'popular',
+      });
+      exitContextualSection();
+    });
+
+    it('slides in Rewards from the menu between Predictions and Earn', async () => {
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.REWARDS_BUTTON,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+      expect(getContextualNavState()).toEqual({
+        section: 'rewards',
+        tab: 'earn',
+      });
+      exitContextualSection();
     });
 
     it('calls navigation goBack when parent navigator cannot go back', async () => {

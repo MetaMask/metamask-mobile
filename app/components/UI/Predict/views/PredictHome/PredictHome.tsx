@@ -201,7 +201,6 @@ const PredictHome: React.FC = () => {
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
-          onSearchPress={handleShowSearch}
           isGlass={isBrandRefresh}
           onLayout={isBrandRefresh ? handleFloatingHeaderLayout : undefined}
         />

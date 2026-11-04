@@ -80,7 +80,6 @@ export interface WalletHeaderProps {
   handleActivityPress: () => void;
   handleCardPress: () => void;
   handleHamburgerPress: () => void;
-  handleRewardsPress?: () => void;
   handleProfilePress?: () => void;
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
@@ -100,7 +99,6 @@ const WalletHeader = ({
   handleActivityPress,
   handleCardPress,
   handleHamburgerPress,
-  handleRewardsPress,
   handleProfilePress,
   touchAreaSlop,
   displayName,
@@ -284,7 +282,6 @@ const WalletHeader = ({
           isMoneyAccountVisible={isMoneyAccountVisible}
           handleActivityPress={handleActivityPress}
           handleSearchPress={handleSearchPress}
-          handleRewardsPress={handleRewardsPress}
           isSocialLayout
           handleHamburgerPress={handleHamburgerPress}
           touchAreaSlop={touchAreaSlop}

@@ -1,6 +1,8 @@
 import {
+  enterCollectiblesSection,
   enterPerpsSection,
   enterPredictSection,
+  enterRewardsSection,
   exitContextualSection,
   getContextualNavState,
   setContextualTab,
@@ -33,6 +35,24 @@ describe('contextualSection', () => {
     expect(getContextualNavState()).toEqual({
       section: 'predict',
       tab: 'explore',
+    });
+  });
+
+  it('enters Rewards on Earn', () => {
+    enterRewardsSection();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'rewards',
+      tab: 'earn',
+    });
+  });
+
+  it('enters Collectibles on Popular', () => {
+    enterCollectiblesSection();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'collectibles',
+      tab: 'popular',
     });
   });
 

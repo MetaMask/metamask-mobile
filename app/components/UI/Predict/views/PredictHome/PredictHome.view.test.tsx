@@ -15,10 +15,10 @@ import {
   renderPredictMarketListRoute,
 } from '../../../../../../tests/component-view/renderers/predictHome';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
+import { openPredictHeaderSearch } from '../../hooks/predictHeaderSearch';
 import {
   PredictHomeSelectorsIDs,
   PredictMarketListSelectorsIDs,
-  PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
@@ -190,17 +190,17 @@ describe('PredictHome', () => {
 
   describe('search interaction', () => {
     it('opens the shared search overlay when the user presses the search icon', async () => {
-      const { getByTestId, findByPlaceholderText } = renderPredictHomeView();
+      const { findByPlaceholderText } = renderPredictHomeView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });
 
     it('tracks the search opened event when the user presses the search icon', async () => {
-      const { getByTestId } = renderPredictHomeView();
+      renderPredictHomeView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       expect(
         Engine.context.PredictController.trackSearchInteracted,
@@ -212,9 +212,9 @@ describe('PredictHome', () => {
     it('does not attribute the opened event to predict_feed when no entry point was provided', async () => {
       // The redesigned home is rendered without an `entryPoint` route param, so
       // the event must not fall back to the legacy `predict_feed` surface.
-      const { getByTestId } = renderPredictHomeView();
+      renderPredictHomeView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       const trackSearchInteracted = Engine.context.PredictController
         .trackSearchInteracted as jest.Mock;
@@ -335,14 +335,15 @@ describe('PredictHome', () => {
 
   describe('brand refresh', () => {
     it('floats the header on the scroll edge fade and still opens search', async () => {
-      const { findByTestId, getByTestId, findByPlaceholderText } =
-        renderPredictHomeView({ overrides: brandRefreshOverrides });
+      const { findByTestId, findByPlaceholderText } = renderPredictHomeView({
+        overrides: brandRefreshOverrides,
+      });
 
       expect(
         await findByTestId(FLOATING_HEADER_FADE_TEST_ID),
       ).toBeOnTheScreen();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });

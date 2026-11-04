@@ -17,7 +17,6 @@ const defaultProps: WalletHeaderCompactProps = {
   avatarAccountType:
     'JazzIcon' as WalletHeaderCompactProps['avatarAccountType'],
   displayName: 'Account 1',
-  handleRewardsPress: jest.fn(),
   handleAccountHubPress: jest.fn(),
   useSearchHeaderLayout: false,
   showSearchPastePill: false,
@@ -33,14 +32,14 @@ describe('WalletHeaderCompact', () => {
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
   });
 
-  it('renders the rewards button without a search button by default', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+  it('does not render a rewards button or a search button by default', () => {
+    const { queryByTestId } = renderWithProvider(
       <WalletHeaderCompact {...defaultProps} />,
     );
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
-    ).toBeOnTheScreen();
+      queryByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
     ).not.toBeOnTheScreen();

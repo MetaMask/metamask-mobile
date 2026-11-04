@@ -39,8 +39,6 @@ const createMarket = (id: string, title: string): PredictMarket => ({
   ],
 });
 
-const SEARCH_PLACEHOLDER = 'Search prediction markets';
-
 describe('PredictFeedView (component view)', () => {
   afterEach(() => {
     cleanup();
@@ -196,26 +194,12 @@ describe('PredictFeedView (component view)', () => {
     listMarketsSpy.mockRestore();
   });
 
-  it('opens search and tracks search opened from the header', async () => {
-    const trackSearchSpy = jest.spyOn(
-      Engine.context.PredictController,
-      'trackSearchInteracted',
-    );
-
-    const { getByTestId, findByPlaceholderText } = renderPredictFeedView({
+  it('does not show a search button in the header', () => {
+    const { queryByTestId } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
     });
 
-    fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-
-    expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
-    expect(trackSearchSpy).toHaveBeenCalledWith({
-      interactionType: 'opened',
-      predictFeedTab: 'all',
-      entryPoint: 'home_section',
-    });
-
-    trackSearchSpy.mockRestore();
+    expect(queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON)).toBeNull();
   });
 
   it('tracks feed viewed on focus with feed, tab, filter, and entry point', async () => {

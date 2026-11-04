@@ -21,6 +21,7 @@ import TabBarFloating, {
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_HEIGHT,
+  TAB_BAR_FLOATING_ICON_DIMENSION,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
@@ -28,9 +29,6 @@ import {
   TabBarIconKey,
   ExtendedBottomTabDescriptor,
 } from '../TabBar/TabBar.types';
-
-/** `IconSize.Lg` in points, the dimension the design system renders it at. */
-const TAB_BAR_FLOATING_ICON_DIMENSION = 24;
 
 jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
   trackExploreSearchOpened: jest.fn(),
@@ -78,6 +76,7 @@ const navigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   emit: jest.fn(),
+  addListener: jest.fn(() => jest.fn()),
 } as unknown as NavigationHelpers<ParamListBase>;
 
 const mockInitialState = { engine: { backgroundState } };
@@ -208,9 +207,7 @@ describe('TabBarFloating', () => {
     expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
   });
 
-  // The native iOS 26 bar draws 28pt glyphs, so the fallback has to reach for
-  // the largest design-system size the 62pt bar can hold.
-  it('draws tab glyphs at the size the native bar uses', () => {
+  it('draws tab glyphs at the 28pt size the home bar uses', () => {
     const { UNSAFE_getAllByProps } = renderBar();
 
     const [glyph] = UNSAFE_getAllByProps({ fill: 'currentColor' });

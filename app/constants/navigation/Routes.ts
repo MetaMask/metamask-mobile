@@ -114,6 +114,7 @@ const Routes = {
   // Activity details screen. Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
+  COLLECTIBLES_VIEW: 'CollectiblesView',
   REWARDS_FLOW: 'RewardsFlow',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',

@@ -474,10 +474,6 @@ const SocialV1ViewContent: React.FC = () => {
     openComposer();
   }, [openComposer]);
 
-  const handleOpenRewards = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_VIEW);
-  }, [navigation]);
-
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
   // appears on that hand-off, never on normal tab visits.
@@ -691,17 +687,6 @@ const SocialV1ViewContent: React.FC = () => {
           }
           endAccessory={
             <SocialHeaderGlassSurface twClassName="gap-2 px-2">
-              <ButtonIcon
-                iconName={IconName.Gift}
-                iconProps={{ color: IconColor.IconDefault }}
-                size={ButtonIconSize.Md}
-                onPress={handleOpenRewards}
-                accessibilityLabel={strings(
-                  'wallet.rewards_accessibility_label',
-                )}
-                testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
-                twClassName="bg-transparent"
-              />
               <ButtonIcon
                 iconName={IconName.Edit}
                 iconProps={{ color: IconColor.IconDefault }}

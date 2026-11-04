@@ -17,11 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -43,7 +38,6 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   PredictMarketListSelectorsIDs,
-  PredictSearchSelectorsIDs,
   PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
   getPredictFeedSelector,
@@ -89,7 +83,6 @@ import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
-import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
@@ -740,31 +733,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
             }}
             endAccessory={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <PredictVenueSelectorButton
-                  variant={isBrandRefresh ? 'glass' : 'standard'}
-                />
-                {isBrandRefresh ? (
-                  <ButtonIconGlass
-                    isCapsule
-                    size={ButtonIconSize.Md}
-                    iconName={IconName.Search}
-                    onPress={handleShowSearch}
-                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
-                  />
-                ) : (
-                  <ButtonIcon
-                    size={ButtonIconSize.Md}
-                    iconName={IconName.Search}
-                    onPress={handleShowSearch}
-                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
-                  />
-                )}
-              </Box>
+              <PredictVenueSelectorButton
+                variant={isBrandRefresh ? 'glass' : 'standard'}
+              />
             }
           />
         </Box>

@@ -10,8 +10,6 @@ import {
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
@@ -43,7 +41,6 @@ export interface WalletHeaderCompactProps {
   accountAddress: string;
   avatarAccountType: AccountAvatarVariant;
   displayName: string;
-  handleRewardsPress: () => void;
   handleAccountHubPress: () => void;
   touchAreaSlop: TouchAreaSlop;
   scrollY: SharedValue<number>;
@@ -64,7 +61,6 @@ const WalletHeaderCompact = ({
   accountAddress,
   avatarAccountType,
   displayName,
-  handleRewardsPress,
   handleAccountHubPress,
   touchAreaSlop,
   scrollY,
@@ -158,36 +154,19 @@ const WalletHeaderCompact = ({
         </ButtonAnimated>
       }
       endAccessory={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-        >
+        !useSearchHeaderLayout && handleSearchPress ? (
           <ButtonIcon
             iconProps={{
               color: MMDSIconColor.IconDefault,
             }}
-            onPress={handleRewardsPress}
-            iconName={MMDSIconName.Gift}
+            onPress={handleSearchPress}
+            iconName={MMDSIconName.Search}
             size={ButtonIconSize.Md}
-            testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
-            accessibilityLabel={strings('wallet.rewards_accessibility_label')}
+            testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+            accessibilityLabel={strings('wallet.search_accessibility_label')}
             hitSlop={touchAreaSlop}
           />
-          {!useSearchHeaderLayout && handleSearchPress ? (
-            <ButtonIcon
-              iconProps={{
-                color: MMDSIconColor.IconDefault,
-              }}
-              onPress={handleSearchPress}
-              iconName={MMDSIconName.Search}
-              size={ButtonIconSize.Md}
-              testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-              accessibilityLabel={strings('wallet.search_accessibility_label')}
-              hitSlop={touchAreaSlop}
-            />
-          ) : null}
-        </Box>
+        ) : undefined
       }
       twClassName="pl-4 pr-3"
     />
