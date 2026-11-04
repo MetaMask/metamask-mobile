@@ -35,21 +35,22 @@ export const getFooterMotion = (
   return 'morph';
 };
 
-export const FOOTER_COLLAPSE_MS = 220;
-export const FOOTER_EXPAND_MS = 280;
+export const FOOTER_COLLAPSE_MS = 260;
+export const FOOTER_EXPAND_MS = 320;
 export const FOOTER_CROSSFADE_MS = 140;
 export const FOOTER_REST_TRANSLATE = -8;
 
-/** Identity of a footer destination. Changes when Swap, Perps, Predictions, or Collectibles is entered or left. */
+/**
+ * Identity of the footer set. Swap, Perps, Predictions, and the Trade
+ * dashboard share one footer, so selecting them does not change this.
+ * It changes only when the set itself changes.
+ */
 export const getFooterTransitionId = (
   section: string | null,
-  tab: string | null,
+  _tab?: string | null,
 ): string => {
   if (section === 'trading') {
-    if (tab === 'swap' || tab === 'perps' || tab === 'predictions') {
-      return `trade-${tab}`;
-    }
-    return 'trade-dashboard';
+    return 'trade';
   }
   if (section === 'collectibles') {
     return 'collectibles';

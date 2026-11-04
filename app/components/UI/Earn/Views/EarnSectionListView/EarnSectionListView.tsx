@@ -83,6 +83,10 @@ import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
+import {
+  showEarnListBackButton,
+  useIsEarnEmbedded,
+} from '../../EarnEmbeddedContext';
 import DottedUnderline from '../../../DottedUnderline';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -240,6 +244,8 @@ const MoneyProjection = ({
  */
 const EarnSectionListView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const earnEmbedded = useIsEarnEmbedded();
+  const showBackButton = showEarnListBackButton(earnEmbedded);
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<EarnScreensStackParamList, 'EarnSearchList'>>();
@@ -666,14 +672,16 @@ const EarnSectionListView = () => {
         style={{ paddingTop: insets.top }}
         testID={EARN_SECTION_LIST_TEST_IDS.HEADER}
       >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          onBack={handleBack}
-          backButtonProps={{
-            testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,
-          }}
-        />
+        {showBackButton ? (
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
+            onBack={handleBack}
+            backButtonProps={{
+              testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,
+            }}
+          />
+        ) : null}
       </Box>
       <FlashList
         data={

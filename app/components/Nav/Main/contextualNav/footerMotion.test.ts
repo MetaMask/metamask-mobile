@@ -18,37 +18,27 @@ describe('getFooterMotion', () => {
   });
 
   it('uses a shorter collapse than the expand', () => {
-    expect(FOOTER_COLLAPSE_MS).toBe(220);
-    expect(FOOTER_EXPAND_MS).toBe(280);
+    expect(FOOTER_COLLAPSE_MS).toBe(260);
+    expect(FOOTER_EXPAND_MS).toBe(320);
     expect(FOOTER_COLLAPSE_MS).toBeLessThan(FOOTER_EXPAND_MS);
   });
 
-  it('changes identity when entering or leaving Swap, Perps, Predictions, and Collectibles', () => {
+  it('keeps one identity across Swap, Perps, and Predictions, and changes it when the footer set changes', () => {
     expect(getFooterTransitionId(null, null)).toBe('default');
-    expect(getFooterTransitionId('trading', 'dashboard')).toBe(
-      'trade-dashboard',
-    );
-    expect(getFooterTransitionId('trading', 'swap')).toBe('trade-swap');
-    expect(getFooterTransitionId('trading', 'perps')).toBe('trade-perps');
-    expect(getFooterTransitionId('trading', 'predictions')).toBe(
-      'trade-predictions',
-    );
+    expect(getFooterTransitionId('trading', 'dashboard')).toBe('trade');
+    expect(getFooterTransitionId('trading', 'swap')).toBe('trade');
+    expect(getFooterTransitionId('trading', 'perps')).toBe('trade');
+    expect(getFooterTransitionId('trading', 'predictions')).toBe('trade');
     expect(getFooterTransitionId('collectibles', 'popular')).toBe(
       'collectibles',
     );
     expect(getFooterTransitionId('collectibles', 'packs')).toBe('collectibles');
+    expect(getFooterTransitionId('money', 'account')).toBe('money');
 
-    const entered = [
-      getFooterTransitionId('trading', 'swap'),
-      getFooterTransitionId('trading', 'perps'),
-      getFooterTransitionId('trading', 'predictions'),
-      getFooterTransitionId('collectibles', 'popular'),
-    ];
-    entered.forEach((id) => {
-      expect(id).not.toBe('default');
-      expect(id).not.toBe('trade-dashboard');
-    });
-    expect(getFooterTransitionId(null, null)).not.toBe(entered[0]);
+    expect(getFooterTransitionId('trading', 'swap')).not.toBe('default');
+    expect(getFooterTransitionId('trading', 'perps')).not.toBe('collectibles');
+    expect(getFooterTransitionId('collectibles', 'popular')).not.toBe('trade');
+    expect(getFooterTransitionId('money', 'account')).not.toBe('trade');
   });
 });
 

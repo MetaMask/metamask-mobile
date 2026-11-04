@@ -9,6 +9,7 @@ import {
   exitContextualSection,
   getContextualCircleAction,
   getContextualNavState,
+  isTradingHub,
   setContextualTab,
 } from './contextualSection';
 
@@ -105,6 +106,8 @@ describe('contextualSection', () => {
       section: 'trading',
       tab: 'perps',
     });
+    expect(isTradingHub(getContextualNavState(), 'perps')).toBe(true);
+    expect(isTradingHub(getContextualNavState(), 'swap')).toBe(false);
 
     enterTradingHub('perps');
 

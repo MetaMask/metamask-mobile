@@ -28,6 +28,7 @@ import {
 import { useNextVenueId } from '../../implementation';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useIsTradingHub } from '../../../../Nav/Main/contextualNav/contextualSection';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import type {
@@ -72,6 +73,7 @@ const PredictHomeView = ({
 }: PredictHomeViewProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const openedFromTradeFooter = useIsTradingHub('predictions');
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -189,7 +191,7 @@ const PredictHomeView = ({
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
         endAccessory={<PredictVenueSelectorButton variant="standard" />}
-        {...(navigation.canGoBack()
+        {...(!openedFromTradeFooter && navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
               backButtonProps: { testID: PredictHomeTestIds.BACK },

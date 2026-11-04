@@ -54,9 +54,12 @@ describe('trade navigation', () => {
   });
 
   it('renders a blank Trade dashboard with a header and no hub links', () => {
-    const { getByRole, queryByTestId } = renderWithProvider(<TradeDashboard />);
+    const { getByRole, getByText, queryByTestId } = renderWithProvider(
+      <TradeDashboard />,
+    );
 
     expect(getByRole('header')).toHaveTextContent('Trade');
+    expect(getByText('Placeholder for trading overview')).toBeOnTheScreen();
     expect(queryByTestId('trade-dashboard-swap')).toBeNull();
     expect(queryByTestId('trade-dashboard-perps')).toBeNull();
     expect(queryByTestId('trade-dashboard-collectibles')).toBeNull();

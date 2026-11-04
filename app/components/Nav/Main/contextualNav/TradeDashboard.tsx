@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { BridgeScreenStack } from '../../../UI/Bridge/routes';
@@ -22,15 +23,16 @@ const TradeDashboard = () => {
   const { section, tab } = useContextualNavState();
   const availability = useTradingHubAvailability();
   const tabBarInset = useFloatingTabBarInset();
+  const { top: topInset } = useSafeAreaInsets();
   const dashboardStyle = useMemo(
-    () => ({ paddingBottom: tabBarInset }),
-    [tabBarInset],
+    () => ({ paddingTop: topInset, paddingBottom: tabBarInset }),
+    [tabBarInset, topInset],
   );
 
   if (section === 'collectibles') {
     return (
       <View style={PAGE} testID="trade-inplace-collectibles">
-        <CollectiblesView />
+        <CollectiblesView embedded />
       </View>
     );
   }
@@ -77,6 +79,11 @@ const TradeDashboard = () => {
       <Text variant={TextVariant.HeadingLg} accessibilityRole="header">
         Trade
       </Text>
+      <Box twClassName="flex-1 items-center justify-center">
+        <Text testID="trade-dashboard-placeholder">
+          Placeholder for trading overview
+        </Text>
+      </Box>
     </Box>
   );
 };

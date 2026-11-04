@@ -120,6 +120,12 @@ export const enterTradingHub = (tab: TradingHubTab): void => {
   emit();
 };
 
+/** True while Swap, Perps, or Predictions is the open trade footer destination. */
+export const isTradingHub = (
+  nav: ContextualNavState,
+  hub: TradingHubTab,
+): boolean => nav.section === 'trading' && nav.tab === hub;
+
 /** Explore section: footer becomes Explore, News, Browser, and Search. */
 export const enterExploreSection = (): void => {
   state = { section: 'explore', tab: 'explore' };
@@ -163,3 +169,6 @@ export const useContextualNavState = (): ContextualNavState =>
     getContextualNavState,
     getContextualNavState,
   );
+
+export const useIsTradingHub = (hub: TradingHubTab): boolean =>
+  isTradingHub(useContextualNavState(), hub);

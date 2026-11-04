@@ -63,10 +63,9 @@ const TabBarFloatingItem = ({
       onPress={onPress}
       style={tw.style(
         'flex-1 items-center justify-center self-stretch rounded-full py-1',
-        // Solid platter, not the translucent muted wash. The wash lightens
-        // over a black page and darkens over a bright one, so the same
-        // selection read as two different capsules.
-        isActive ? 'bg-alternative' : 'bg-transparent',
+        // The system tab bar's selection is a light translucent wash, not a
+        // near-black platter. Muted is that wash in both themes.
+        isActive ? 'bg-muted' : 'bg-transparent',
       )}
       testID={testID}
       accessibilityLabel={label}

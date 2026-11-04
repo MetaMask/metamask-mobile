@@ -14,6 +14,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useIsTradingHub } from '../../../../Nav/Main/contextualNav/contextualSection';
 
 import {
   BottomSheetRef,
@@ -161,6 +162,7 @@ const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
+  const openedFromTradeFooter = useIsTradingHub('perps');
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -1225,11 +1227,15 @@ const PerpsHomeView = () => {
       scrollY={headerScrollY}
       titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
-      onBack={handleBackPress}
-      backButtonProps={{
-        accessibilityLabel: 'Back',
-        testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-      }}
+      {...(openedFromTradeFooter
+        ? {}
+        : {
+            onBack: handleBackPress,
+            backButtonProps: {
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            },
+          })}
       endAccessory={
         isPerpsProModeEnabled ? (
           <PerpsModeToggle

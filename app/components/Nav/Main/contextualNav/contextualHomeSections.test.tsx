@@ -29,6 +29,28 @@ jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
   default: { navigation: { navigate: jest.fn() } },
 }));
+jest.mock(
+  '../../../UI/Earn/Views/EarnSectionListView/EarnSectionListView',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="embedded-earn-view" />,
+    };
+  },
+);
+jest.mock('../../../UI/Card/Views/CardHome/CardHome', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="embedded-card-home" />,
+  };
+});
+jest.mock('../../../UI/Card/sdk', () => ({
+  CardSDKProvider: ({ children }: { children?: React.ReactNode }) => children,
+}));
 
 const homeFooter = (navigate = jest.fn()) => (
   <ContextualHomeFooter
@@ -145,16 +167,24 @@ describe('contextual home and Money footers', () => {
     expect(onHomePress).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a Card placeholder with a header', () => {
+  it('shows the Card screen in place without pushing it', () => {
     enterMoneySection();
     setContextualTab('card');
 
-    const { getByTestId, getByRole } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualHomeSectionOverlay />,
     );
 
-    expect(getByTestId('contextual-section-placeholder')).toBeOnTheScreen();
-    expect(getByRole('header')).toHaveTextContent('Card');
+    expect(getByTestId('contextual-card-screen')).toBeOnTheScreen();
+    expect(getByTestId('embedded-card-home')).toBeOnTheScreen();
+    expect(queryByTestId('contextual-section-placeholder')).toBeNull();
+    expect(NavigationService.navigation.navigate).not.toHaveBeenCalledWith(
+      Routes.CARD.ROOT,
+      expect.anything(),
+    );
+    expect(NavigationService.navigation.navigate).not.toHaveBeenCalledWith(
+      Routes.CARD.ROOT,
+    );
   });
 
   it('leaves the Money account screen uncovered', () => {
@@ -208,9 +238,7 @@ describe('contextual home and Money footers', () => {
   });
 
   it('draws the Money pill over the native tab bar after that section is entered', () => {
-    const { getByTestId } = renderWithProvider(
-      <ContextualNativeHomeChrome />,
-    );
+    const { getByTestId } = renderWithProvider(<ContextualNativeHomeChrome />);
 
     expect(getByTestId('contextual-footer')).toBeOnTheScreen();
     expect(getByTestId('footer-tab-home')).toBeOnTheScreen();
@@ -236,16 +264,22 @@ describe('contextual home and Money footers', () => {
     );
   });
 
-  it('covers the native Money screen with an Earn placeholder', () => {
+  it('shows the Earn view in place without pushing it', () => {
     enterMoneySection();
 
-    const { getByRole, getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualNativeHomeChrome />,
     );
 
     fireEvent.press(getByTestId('contextual-money-tab-earn'));
 
     expect(getContextualNavState().tab).toBe('earn');
-    expect(getByRole('header')).toHaveTextContent('Earn');
+    expect(getByTestId('contextual-earn-screen')).toBeOnTheScreen();
+    expect(getByTestId('embedded-earn-view')).toBeOnTheScreen();
+    expect(queryByTestId('contextual-section-placeholder')).toBeNull();
+    expect(NavigationService.navigation.navigate).not.toHaveBeenCalledWith(
+      Routes.EARN.ROOT,
+      expect.anything(),
+    );
   });
 });

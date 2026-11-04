@@ -24,7 +24,7 @@ import { TAB_BAR_FLOATING_HEIGHT } from '../../../../component-library/component
 import { footerAnimator, type FooterMotion } from './footerMotion';
 
 export interface AnimatedFooterShellProps {
-  /** Changes when the footer destination changes, including Swap, Perps, Predictions, and Collectibles. */
+  /** Changes when the footer set changes. Selecting Swap, Perps, or Predictions does not. */
   transitionId: string;
   /** Home stays mounted here so it never joins the shrink. */
   home: React.ReactNode;

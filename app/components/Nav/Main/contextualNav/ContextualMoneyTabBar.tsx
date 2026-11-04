@@ -30,8 +30,8 @@ const TABS: TradeTab<MoneyFooterTab>[] = [
 const MONEY_TABS: readonly ContextualTab[] = ['account', 'card', 'earn'];
 
 /**
- * Money footer. Account is the existing Money screen. Card and Earn are
- * placeholders. Home is the first tab and returns to the default footer.
+ * Money footer. Account is the existing Money screen. Card and Earn open
+ * their screens in place. Home returns to the default footer.
  */
 const ContextualMoneyTabBar = ({
   onHomePress,

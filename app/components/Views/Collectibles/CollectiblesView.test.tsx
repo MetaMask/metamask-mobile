@@ -1,6 +1,8 @@
 import React from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import CollectiblesSectionScreen from './CollectiblesView';
+import CollectiblesSectionScreen, {
+  CollectiblesView,
+} from './CollectiblesView';
 import {
   enterCollectiblesSection,
   exitContextualSection,
@@ -11,7 +13,7 @@ jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
 }));
 
 jest.mock('../../../selectors/featureFlagController/moneyBrandRefresh', () => ({
-  selectMoneyBrandRefreshEnabled: () => false,
+  selectMoneyBrandRefreshEnabled: jest.fn(() => false),
 }));
 
 describe('CollectiblesView', () => {
@@ -24,6 +26,19 @@ describe('CollectiblesView', () => {
 
     const { getByText } = renderScreen(
       CollectiblesSectionScreen,
+      { name: 'CollectiblesView' },
+      { state: {} },
+    );
+
+    expect(getByText('Collectibles')).toBeOnTheScreen();
+    expect(getByText('Placeholder')).toBeOnTheScreen();
+  });
+
+  it('renders the centered Collectibles header when embedded in Trade', () => {
+    const EmbeddedCollectibles = () => <CollectiblesView embedded />;
+
+    const { getByText } = renderScreen(
+      EmbeddedCollectibles,
       { name: 'CollectiblesView' },
       { state: {} },
     );

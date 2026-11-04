@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AnimatedFooterShell from './AnimatedFooterShell';
-import { footerAnimator } from './footerMotion';
+import { footerAnimator, getFooterTransitionId } from './footerMotion';
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => 'WIFI',
@@ -34,13 +34,50 @@ describe('footer morph for hub destinations', () => {
   });
 
   it.each([
-    ['trade-dashboard', 'trade-swap'],
-    ['trade-dashboard', 'trade-perps'],
-    ['trade-dashboard', 'trade-predictions'],
-    ['trade-swap', 'collectibles'],
-    ['trade-perps', 'default'],
-    ['trade-predictions', 'default'],
+    ['swap', 'perps'],
+    ['perps', 'predictions'],
+    ['predictions', 'swap'],
+    ['dashboard', 'swap'],
+    ['swap', 'dashboard'],
+  ] as const)(
+    'does not morph when the trade footer stays put from %s to %s',
+    (fromTab, toTab) => {
+      const from = getFooterTransitionId('trading', fromTab);
+      const to = getFooterTransitionId('trading', toTab);
+      expect(from).toBe(to);
+
+      const view = render(
+        <AnimatedFooterShell
+          runMotion
+          transitionId={from}
+          home={<Text>Home</Text>}
+          rest={<Text>{fromTab}</Text>}
+        />,
+      );
+
+      fireEvent(view.getByTestId(`footer-set-${from}`), 'layout', layout);
+
+      view.rerender(
+        <AnimatedFooterShell
+          runMotion
+          transitionId={to}
+          home={<Text>Home</Text>}
+          rest={<Text>{toTab}</Text>}
+        />,
+      );
+
+      expect(animate).not.toHaveBeenCalled();
+      expect(view.getByText(toTab)).toBeOnTheScreen();
+    },
+  );
+
+  it.each([
+    ['trade', 'collectibles'],
+    ['trade', 'default'],
+    ['trade', 'money'],
     ['collectibles', 'default'],
+    ['default', 'trade'],
+    ['money', 'trade'],
   ])('runs the morph from %s to %s', (from, to) => {
     const view = render(
       <AnimatedFooterShell
