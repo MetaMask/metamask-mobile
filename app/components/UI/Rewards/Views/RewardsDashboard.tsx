@@ -25,7 +25,6 @@ import {
   selectHasAcceptedVipInvite,
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
-  selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import {
@@ -58,6 +57,7 @@ import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import { Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
@@ -107,9 +107,6 @@ const RewardsDashboard: React.FC = () => {
   useGeoRewardsMetadata({});
   useReferralDetails();
 
-  const hideUnlinkedAccountsBanner = useSelector(
-    selectHideUnlinkedAccountsBanner,
-  );
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -126,19 +123,10 @@ const RewardsDashboard: React.FC = () => {
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
 
   // Use the reward dashboard modals hook
-  const {
-    showUnlinkedAccountsModal,
-    showNotOptedInModal,
-    showNotSupportedModal,
-    hasShownModal,
-  } = useRewardDashboardModals();
+  const { showNotSupportedModal, hasShownModal } = useRewardDashboardModals();
 
-  // Use the opt-in summary hook to check for unlinked accounts
   const {
-    byWallet: optInByWallet,
-    bySelectedAccountGroup: optInBySelectedAccountGroup,
     currentAccountGroupPartiallySupported,
-    currentAccountGroupOptedInStatus,
     refresh: refreshOptInSummary,
   } = useRewardOptinSummary();
   const refreshOptInSummaryRef = useRef(refreshOptInSummary);
@@ -150,25 +138,6 @@ const RewardsDashboard: React.FC = () => {
 
   // Quietly finish incomplete Money Account Sweepstakes series opt-ins
   useResumePendingMasSeriesOptIn();
-
-  const totalOptedInAccountsSelectedGroup = useMemo(
-    () => optInBySelectedAccountGroup?.optedInAccounts?.length,
-    [optInBySelectedAccountGroup],
-  );
-
-  const totalAccountGroupsWithOptedOutAccounts = useMemo(
-    () =>
-      optInByWallet.reduce(
-        (accWallet, wallet) =>
-          accWallet +
-          wallet.groups.reduce(
-            (accGroup, group) => accGroup + group.optedOutAccounts.length,
-            0,
-          ),
-        0,
-      ),
-    [optInByWallet],
-  );
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
   // This handles the case where the app was closed during a bulk opt-in process.
@@ -205,52 +174,21 @@ const RewardsDashboard: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       if (
-        (totalOptedInAccountsSelectedGroup === 0 ||
-          currentAccountGroupPartiallySupported === false) &&
+        currentAccountGroupPartiallySupported === false &&
         !hideCurrentAccountNotOptedInBanner &&
         selectedAccountGroup?.id
       ) {
-        if (currentAccountGroupPartiallySupported === false) {
-          // Account group entirely not not supported (e.g. hardware wallet account group)
-          if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-            showNotSupportedModal();
-          }
-        } else if (
-          !hasShownModal('not-opted-in' as RewardsDashboardModalType)
-        ) {
-          // Account can be opted in but hasn't been yet
-          showNotOptedInModal();
-        }
-        return; // Don't check for unlinked accounts if current account has issues
-      }
-
-      // Priority 2: Check for unlinked accounts (only if current account is good)
-      if (
-        subscriptionId &&
-        (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
-          currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
-          hideCurrentAccountNotOptedInBanner) &&
-        totalAccountGroupsWithOptedOutAccounts > 0 &&
-        !hideUnlinkedAccountsBanner
-      ) {
-        // User has other accounts that could be earning rewards
-        if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
-          showUnlinkedAccountsModal();
+        // Account group entirely not supported (e.g. hardware wallet account group)
+        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
+          showNotSupportedModal();
         }
       }
     }, [
-      totalOptedInAccountsSelectedGroup,
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
       selectedAccountGroup?.id,
-      subscriptionId,
-      currentAccountGroupOptedInStatus,
-      totalAccountGroupsWithOptedOutAccounts,
-      hideUnlinkedAccountsBanner,
       hasShownModal,
       showNotSupportedModal,
-      showNotOptedInModal,
-      showUnlinkedAccountsModal,
     ]),
   );
 
@@ -455,9 +393,25 @@ const RewardsDashboard: React.FC = () => {
             </Box>
           ) : null}
           <Box twClassName="gap-3">
-            <CampaignsPreview />
+            {subscriptionId ? (
+              <CampaignsPreview />
+            ) : (
+              <RewardsOptInSection
+                showDivider={false}
+                localizedText={{
+                  invitedOptInDescription:
+                    referralMe?.localized_text.invitedOptInDescription ||
+                    strings('rewards.onboarding.description'),
+                  invitedOptInAction:
+                    referralMe?.localized_text.invitedOptInAction ||
+                    strings('rewards.campaign.opt_in'),
+                  invitedOptInLegal:
+                    referralMe?.localized_text.invitedOptInLegal,
+                }}
+              />
+            )}
             <EarnRewardsPreview />
-            <BenefitsPreview />
+            {subscriptionId ? <BenefitsPreview /> : null}
           </Box>
         </Animated.ScrollView>
       </SafeAreaView>
