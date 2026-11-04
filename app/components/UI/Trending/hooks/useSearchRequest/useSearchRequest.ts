@@ -176,7 +176,7 @@ export const useSearchRequest = (options: {
 
   // Automatically trigger search when debounced query changes
   useEffect(() => {
-    searchTokensRequest();
+    void searchTokensRequest();
   }, [searchTokensRequest]);
 
   // Track whether debouncedQuery has been processed by the effect yet.
