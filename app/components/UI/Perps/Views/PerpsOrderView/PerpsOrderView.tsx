@@ -1955,14 +1955,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
       // A user-initiated submit no longer owns the action once its view has
       // closed. Keep the committed post-deposit re-entry running so a
-      // confirmed deposit still produces its order.
+      // confirmed deposit still produces its order. That re-entry runs after
+      // this view unmounts, so an unmounted support read is not a reason to
+      // drop it. A changed account context still is.
       if (!forceTrade && isDismissedRef.current) {
         return;
       }
       if (accountSupport === 'unsupported') {
         return 'accountUnsupported' as const;
       }
-      if (accountSupport === 'stale') return;
+      if (
+        accountSupport === 'stale' ||
+        (accountSupport === 'unmounted' && !forceTrade)
+      ) {
+        return;
+      }
 
       if (liquidityError) {
         showToast(
