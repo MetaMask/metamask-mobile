@@ -1,119 +1,90 @@
+import QuickCrypto from 'react-native-quick-crypto';
+import type { Messenger } from '@metamask/messenger';
 import type {
-  Identifier,
+  RecoveryApproval,
   RecoveryAuthProvider,
 } from '@metamask/mfa-recovery-controller';
-import { DEFAULT_TOKEN_API_HOST, TOKEN_API_KEY_HEADER } from './constants';
-import { MfaRecoveryControllerError } from './errors';
-import { getJwtSubject, hashIdentifiers } from './identifiers';
+import type {
+  AuthenticationControllerRefreshCanonicalProfileIdAction,
+  AuthenticationControllerRequestMfaApprovalAction,
+} from '@metamask/profile-sync-controller/auth';
+import { bytesToHex } from '@metamask/utils';
+import { CUBIST_AUTH_AUDIENCE } from './constants';
+import type { CubistSessionTokenProvider } from './cubist-escrow-provider';
 
-interface MpcTokenRecoveryAuthProviderOptions {
-  getBearerToken: () => Promise<string>;
-  apiKey: string;
-  apiHost?: string;
+export type AuthenticationRecoveryAuthProviderMessenger = Messenger<
+  'AuthApiRecoveryAuthProvider',
+  | AuthenticationControllerRefreshCanonicalProfileIdAction
+  | AuthenticationControllerRequestMfaApprovalAction
+>;
+
+export interface AuthenticationRecoveryAuthProviderOptions {
+  messenger: AuthenticationRecoveryAuthProviderMessenger;
 }
 
 /**
- * Mints request-bound recovery tokens through the MPC token service.
- *
- * The bearer token is resolved for every operation so the provider can live
- * with the Engine across authentication refreshes and account changes.
+ * Requests recovery approvals directly through `AuthenticationController`.
+ * A missing or stale MFA verification rejects with its `StepUpRequiredError`.
  */
-export class MpcTokenRecoveryAuthProvider implements RecoveryAuthProvider {
-  readonly #getBearerToken: () => Promise<string>;
+export class AuthenticationRecoveryAuthProvider
+  implements RecoveryAuthProvider
+{
+  readonly #messenger: AuthenticationRecoveryAuthProviderMessenger;
 
-  readonly #apiKey: string;
-
-  readonly #apiHost: string;
-
-  constructor({
-    getBearerToken,
-    apiKey,
-    apiHost = DEFAULT_TOKEN_API_HOST,
-  }: MpcTokenRecoveryAuthProviderOptions) {
-    this.#getBearerToken = getBearerToken;
-    this.#apiKey = apiKey;
-    this.#apiHost = apiHost;
+  constructor({ messenger }: AuthenticationRecoveryAuthProviderOptions) {
+    this.#messenger = messenger;
   }
 
-  async getAccessToken(): Promise<string> {
-    return await this.#mintToken();
-  }
-
+  /**
+   * Resolves the canonical profile id from the server, since the cached one
+   * can be stale after pairing on another device.
+   *
+   * @returns The canonical profile id, which approvals use as `sub`.
+   */
   async getAuthenticatedProfileId(): Promise<string> {
-    return getJwtSubject(await this.#getBearerToken());
-  }
-
-  async authorizeRecoveryRequest(params: {
-    requestHash: string;
-    audiences: string[];
-    requireTwoFactor?: boolean;
-    identifiers?: Identifier[];
-  }): Promise<string> {
-    const identifiersHash =
-      params.identifiers === undefined
-        ? undefined
-        : await hashIdentifiers(params.identifiers);
-
-    return await this.#mintToken(
-      {
-        request_hash: params.requestHash,
-        ...(params.requireTwoFactor ? { aal: 2 } : {}),
-        ...(identifiersHash === undefined
-          ? {}
-          : { identifiers_hash: identifiersHash }),
-      },
-      params.audiences,
+    return await this.#messenger.call(
+      'AuthenticationController:refreshCanonicalProfileId',
     );
   }
 
-  async #mintToken(
-    ext?: Record<string, unknown>,
-    audiences?: string[],
-  ): Promise<string> {
-    if (!this.#apiKey.trim()) {
-      throw new MfaRecoveryControllerError(
-        'MFA_RECOVERY_DEV_API_KEY is not configured',
-        'missing_configuration',
-      );
-    }
-
-    const bearerToken = await this.#getBearerToken();
-    const profileId = getJwtSubject(bearerToken);
-    const response = await fetch(
-      new URL('/token', `${this.#apiHost}/`).toString(),
+  /**
+   * @param params - Request hash, audiences, and MFA requirement.
+   * @returns The approval and current recovery identifiers.
+   */
+  async authorizeRecoveryRequest(
+    params: Parameters<RecoveryAuthProvider['authorizeRecoveryRequest']>[0],
+  ): Promise<RecoveryApproval> {
+    const { approval, identifiers = [] } = await this.#messenger.call(
+      'AuthenticationController:requestMfaApproval',
       {
-        method: 'POST',
-        headers: {
-          [TOKEN_API_KEY_HEADER]: this.#apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user: profileId,
-          ...(audiences === undefined ? {} : { aud: audiences }),
-          ...(ext === undefined ? {} : { ext }),
-        }),
+        requestHash: params.requestHash,
+        audiences: params.audiences,
+        requireVerification: params.requireTwoFactor === true,
+        reason: { operation: 'mfa_recovery' },
       },
     );
-
-    if (!response.ok) {
-      throw new MfaRecoveryControllerError(
-        `Failed to mint access token: HTTP ${response.status}`,
-        'token_request_failed',
-      );
-    }
-
-    const body: unknown = await response.json();
-    if (!isRecord(body) || typeof body.token !== 'string') {
-      throw new MfaRecoveryControllerError(
-        'Token API returned an invalid access token response',
-        'token_response_invalid',
-      );
-    }
-
-    return body.token;
+    return { approval, identifiers };
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+/**
+ * Builds the Cubist session token source from the same approval flow as
+ * recovery requests. The Cubist approval is requested with a fresh random
+ * request hash and requires a live verification session.
+ */
+export function createCubistSessionTokenProvider(
+  authProvider: RecoveryAuthProvider,
+): CubistSessionTokenProvider {
+  return {
+    getAuthenticatedProfileId: async () =>
+      await authProvider.getAuthenticatedProfileId(),
+    getAccessToken: async () => {
+      const { approval } = await authProvider.authorizeRecoveryRequest({
+        requestHash: bytesToHex(new Uint8Array(QuickCrypto.randomBytes(32))),
+        audiences: [CUBIST_AUTH_AUDIENCE],
+        requireTwoFactor: true,
+      });
+      return approval;
+    },
+  };
 }

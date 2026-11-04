@@ -1,4 +1,5 @@
 import {
+  CubistEscrowProvider,
   MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
 } from '@metamask/mfa-recovery-controller';
@@ -8,9 +9,20 @@ const mockController = {
   getPhase: jest.fn(),
 };
 
+const WRAP_PUBLIC_KEY = new Uint8Array(32).fill(1);
+const RECEIPT_PUBLIC_KEY = new Uint8Array(32).fill(2);
+
 jest.mock('@metamask/mfa-recovery-controller', () => ({
   MfaRecoveryController: jest.fn(),
-  CubistEscrowProvider: jest.fn(),
+  CubistEscrowProvider: jest.fn(() => ({ id: 'cubist' })),
+}));
+
+jest.mock('./config', () => ({
+  ...jest.requireActual('./config'),
+  tryGetCubistKeys: jest.fn(() => ({
+    wrapPublicKey: new Uint8Array(32).fill(1),
+    receiptPublicKey: new Uint8Array(32).fill(2),
+  })),
 }));
 
 jest.mock('@cubist-labs/cubesigner-sdk', () => ({
@@ -23,6 +35,7 @@ jest.mock('@cubist-labs/cubesigner-sdk', () => ({
 
 describe('createMfaRecoveryController', () => {
   const mockMfaRecoveryController = jest.mocked(MfaRecoveryController);
+  const mockCubistEscrowProvider = jest.mocked(CubistEscrowProvider);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,31 +48,36 @@ describe('createMfaRecoveryController', () => {
       decrypt: jest.fn(),
     };
     const messenger = {} as MfaRecoveryControllerMessenger;
-    const getBearerToken = jest.fn();
+    const authProvider = {
+      getAuthenticatedProfileId: jest.fn(),
+      authorizeRecoveryRequest: jest.fn(),
+    };
     const getAddress = jest.fn().mockReturnValue('0xabc');
     const signPersonalMessage = jest.fn();
-    const exportEncryptionKey = jest.fn();
 
     const result = createMfaRecoveryController({
       messenger,
       state: { pendingOperation: null },
-      getBearerToken,
+      authProvider,
       getAddress,
       signPersonalMessage,
-      exportEncryptionKey,
       pendingOperationEncryptor,
       isEnabled: () => true,
     });
 
+    expect(mockCubistEscrowProvider).toHaveBeenCalledWith({
+      getClient: expect.any(Function),
+      authAudience: 'cubist',
+      wrapPublicKey: WRAP_PUBLIC_KEY,
+      receiptPublicKey: RECEIPT_PUBLIC_KEY,
+    });
     expect(MfaRecoveryController).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger,
         state: { pendingOperation: null },
         pendingOperationEncryptor,
         escrows: [expect.objectContaining({ id: 'cubist' })],
-        authProvider: expect.objectContaining({
-          getAuthenticatedProfileId: expect.any(Function),
-        }),
+        authProvider,
         identifierAuthProvider: result.identifierRouter,
       }),
     );

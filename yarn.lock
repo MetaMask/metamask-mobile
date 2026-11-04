@@ -9532,23 +9532,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/auth-network-utils@npm:^0.3.0":
-  version: 0.3.1
-  resolution: "@metamask/auth-network-utils@npm:0.3.1"
-  dependencies:
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.7.1"
-    "@toruslabs/bs58": "npm:^1.0.0"
-    "@toruslabs/constants": "npm:^15.0.0"
-    "@toruslabs/eccrypto": "npm:^6.1.0"
-    bn.js: "npm:^5.2.1"
-    elliptic: "npm:^6.6.1"
-    json-stable-stringify-without-jsonify: "npm:^1.0.1"
-    loglevel: "npm:^1.9.2"
-  checksum: 10/6b4f105b03e5231ae3ed448e8423cd6681e49db1be7ebe20232e0b5eee8bce08e3565dbe890837abc9158b417c65d06279b676f226c52ffc81ef5f50f6d87428
-  languageName: node
-  linkType: hard
-
 "@metamask/auth-network-utils@npm:^0.4.0":
   version: 0.4.0
   resolution: "@metamask/auth-network-utils@npm:0.4.0"
@@ -11011,18 +10994,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
+"@metamask/mfa-recovery-controller@file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=1eb2b2&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-recovery-controller@file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz#/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz::hash=99321d&locator=metamask%40workspace%3A."
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^1.9.2"
-    "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/742a48d84613b937138b7a320ad7b69ca792556d21c36e4963e80e54303ecd9b90bc3b5ff387289a20577496ad5e49d40c71a7748b3de337d381d214d3a59eff
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.1"
+    json-stable-stringify: "npm:^1.3.0"
+  checksum: 10/f119a7966cce8c22721a20a0b7e331246abbe6fdb9c81eb59632ad90528d31d5db61753239d9b39743876ab8626ba339fad9850e43193c1b4eb2d5e0ae921efa
   languageName: node
   linkType: hard
 
@@ -12030,23 +12014,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:12.0.0":
+"@metamask/seedless-onboarding-controller@file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 12.0.0
-  resolution: "@metamask/seedless-onboarding-controller@npm:12.0.0"
+  resolution: "@metamask/seedless-onboarding-controller@file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz#/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz::hash=16c4cc&locator=metamask%40workspace%3A."
   dependencies:
-    "@metamask/analytics-controller": "npm:^4.0.0"
-    "@metamask/auth-network-utils": "npm:^0.3.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/analytics-controller": "npm:^4.1.0"
+    "@metamask/auth-network-utils": "npm:^0.4.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/toprf-secure-backup": "npm:^1.1.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@noble/ciphers": "npm:^1.3.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/290517239aa8ab2063335aa08337466dc7f01c7f6711980f4bc456f10cce8b8c24e6667811cecc536b3c1cb9e1eb9b350dace24b51ffb6e0ff42b5565852e880
+  checksum: 10/a794bc40c2b4f22cdc1458a7fdc8522c073d0641711040c409099f246be385c6fbeea8c633669f955a8ebe749b267f6af620efe6a44fda862e4337ac66f3d9da
   languageName: node
   linkType: hard
 
@@ -12579,9 +12563,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/toprf-secure-backup@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/toprf-secure-backup@npm:1.1.0"
+"@metamask/toprf-secure-backup@portal:../toprf-secure-backup/packages/toprf-secure-backup::locator=metamask%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@metamask/toprf-secure-backup@portal:../toprf-secure-backup/packages/toprf-secure-backup::locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@noble/ciphers": "npm:^1.2.1"
@@ -12593,9 +12577,8 @@ __metadata:
     "@toruslabs/fetch-node-details": "npm:^15.0.0"
     "@toruslabs/http-helpers": "npm:^8.1.1"
     bn.js: "npm:^5.2.2"
-  checksum: 10/2714a70eae53a1f46d293980c71a1ed2f59708247019444154e71fc15328e78ec95287ffc2d954a29f903224a1a9fe4d69fb17724e9039bcefd240752f1df26c
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@metamask/transaction-controller@npm:72.3.0":
   version: 72.3.0
@@ -20034,7 +20017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@toruslabs/eccrypto@npm:^6.1.0, @toruslabs/eccrypto@npm:^6.2.0":
+"@toruslabs/eccrypto@npm:^6.2.0":
   version: 6.2.0
   resolution: "@toruslabs/eccrypto@npm:6.2.0"
   dependencies:
@@ -36579,7 +36562,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-stable-stringify@npm:^1.1.1":
+"json-stable-stringify@npm:^1.1.1, json-stable-stringify@npm:^1.3.0":
   version: 1.3.0
   resolution: "json-stable-stringify@npm:1.3.0"
   dependencies:
@@ -38472,7 +38455,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
-    "@metamask/mfa-recovery-controller": ./metamask-mfa-recovery-controller-0.0.0.tgz
+    "@metamask/mfa-recovery-controller": "file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
@@ -38516,7 +38499,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:12.0.0"
+    "@metamask/seedless-onboarding-controller": "file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz"
     "@metamask/selected-network-controller": "npm:^27.0.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.0.4"

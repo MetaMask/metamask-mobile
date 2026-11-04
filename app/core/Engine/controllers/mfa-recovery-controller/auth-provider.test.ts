@@ -1,108 +1,118 @@
-import { MpcTokenRecoveryAuthProvider } from './auth-provider';
+import {
+  AuthenticationRecoveryAuthProvider,
+  createCubistSessionTokenProvider,
+} from './auth-provider';
 
-const fetchMock = jest.fn();
+jest.mock('react-native-quick-crypto', () => ({
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn(() => new Uint8Array(32).fill(0xab)),
+  },
+}));
 
-global.fetch = fetchMock as unknown as typeof fetch;
-
-describe('MpcTokenRecoveryAuthProvider', () => {
-  beforeEach(() => {
-    fetchMock.mockReset();
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => ({ token: 'minted-token' }),
+describe('AuthenticationRecoveryAuthProvider', () => {
+  it('resolves the canonical profile id through AuthenticationController', async () => {
+    const call = jest.fn().mockResolvedValue('canonical-profile');
+    const provider = new AuthenticationRecoveryAuthProvider({
+      messenger: { call } as never,
     });
+
+    await expect(provider.getAuthenticatedProfileId()).resolves.toBe(
+      'canonical-profile',
+    );
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:refreshCanonicalProfileId',
+    );
   });
 
-  it('reads the bearer token lazily for the profile and minted token', async () => {
-    const getBearerToken = jest
+  it('requests an MFA approval with verification when two-factor is required', async () => {
+    const identifiers = [{ type: 'email' }];
+    const call = jest
       .fn()
-      .mockResolvedValue('header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature');
-    const provider = new MpcTokenRecoveryAuthProvider({
-      getBearerToken,
-      apiKey: 'api-key',
+      .mockResolvedValue({ approval: 'approval-jwt', identifiers });
+    const provider = new AuthenticationRecoveryAuthProvider({
+      messenger: { call } as never,
     });
+
+    const result = await provider.authorizeRecoveryRequest({
+      requestHash: '0x' + 'a'.repeat(64),
+      audiences: ['escrow-audience'],
+      requireTwoFactor: true,
+    });
+
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:requestMfaApproval',
+      {
+        requestHash: '0x' + 'a'.repeat(64),
+        audiences: ['escrow-audience'],
+        requireVerification: true,
+        reason: { operation: 'mfa_recovery' },
+      },
+    );
+    expect(result).toEqual({ approval: 'approval-jwt', identifiers });
+  });
+
+  it('does not require verification and defaults identifiers to empty', async () => {
+    const call = jest.fn().mockResolvedValue({ approval: 'approval-jwt' });
+    const provider = new AuthenticationRecoveryAuthProvider({
+      messenger: { call } as never,
+    });
+
+    const result = await provider.authorizeRecoveryRequest({
+      requestHash: '0x' + 'b'.repeat(64),
+      audiences: ['escrow-audience'],
+    });
+
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:requestMfaApproval',
+      expect.objectContaining({ requireVerification: false }),
+    );
+    expect(result).toEqual({ approval: 'approval-jwt', identifiers: [] });
+  });
+});
+
+describe('createCubistSessionTokenProvider', () => {
+  it('uses the canonical profile id from the auth provider', async () => {
+    const authProvider = {
+      getAuthenticatedProfileId: jest.fn().mockResolvedValue('profile-1'),
+      authorizeRecoveryRequest: jest.fn(),
+    };
+    const provider = createCubistSessionTokenProvider(authProvider);
 
     await expect(provider.getAuthenticatedProfileId()).resolves.toBe(
       'profile-1',
     );
-    await expect(
-      provider.authorizeRecoveryRequest({
-        requestHash: '0xrequest',
-        audiences: ['cubist'],
-        requireTwoFactor: true,
-      }),
-    ).resolves.toBe('minted-token');
-
-    expect(getBearerToken).toHaveBeenCalledTimes(2);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://mpc-service-non-enclave.dev-api.cx.metamask.io/token',
-      expect.objectContaining({
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'api-key',
-        },
-      }),
-    );
   });
 
-  it('includes identifier binding in request-bound token claims', async () => {
-    const provider = new MpcTokenRecoveryAuthProvider({
-      getBearerToken: jest
-        .fn()
-        .mockResolvedValue('header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature'),
-      apiKey: 'api-key',
-    });
-    const identifier = {
-      type: 'siwe',
-      namespace: 'metamask.io:1',
-      value: '0xabc',
-      verifier: { domain: 'metamask.io', chainId: 1 },
+  it('returns the requestMfaApproval token bound to the Cubist audience with verification', async () => {
+    const authProvider = {
+      getAuthenticatedProfileId: jest.fn(),
+      authorizeRecoveryRequest: jest.fn().mockResolvedValue({
+        approval: 'cubist-approval-jwt',
+        identifiers: [],
+      }),
     };
+    const provider = createCubistSessionTokenProvider(authProvider);
 
-    await provider.authorizeRecoveryRequest({
-      requestHash: '0xrequest',
+    await expect(provider.getAccessToken()).resolves.toBe(
+      'cubist-approval-jwt',
+    );
+    expect(authProvider.authorizeRecoveryRequest).toHaveBeenCalledWith({
+      requestHash: `0x${'ab'.repeat(32)}`,
       audiences: ['cubist'],
-      identifiers: [identifier],
+      requireTwoFactor: true,
     });
-
-    const requestBody = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body);
-    expect(requestBody).toEqual(
-      expect.objectContaining({
-        user: 'profile-1',
-        aud: ['cubist'],
-        ext: expect.objectContaining({
-          request_hash: '0xrequest',
-          identifiers_hash: expect.any(String),
-        }),
-      }),
-    );
   });
 
-  it('rejects a missing bearer token subject', async () => {
-    const provider = new MpcTokenRecoveryAuthProvider({
-      getBearerToken: jest.fn().mockResolvedValue('not-a-jwt'),
-      apiKey: 'api-key',
-    });
-
-    await expect(provider.getAuthenticatedProfileId()).rejects.toThrow(
-      'Authentication bearer token',
-    );
-  });
-
-  it('rejects token API failures without exposing the API key', async () => {
-    fetchMock.mockResolvedValueOnce({ ok: false, status: 401 });
-    const provider = new MpcTokenRecoveryAuthProvider({
-      getBearerToken: jest
+  it('propagates approval failures', async () => {
+    const authProvider = {
+      getAuthenticatedProfileId: jest.fn(),
+      authorizeRecoveryRequest: jest
         .fn()
-        .mockResolvedValue('header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature'),
-      apiKey: 'secret-api-key',
-    });
+        .mockRejectedValue(new Error('aal2_required')),
+    };
+    const provider = createCubistSessionTokenProvider(authProvider);
 
-    const error = await provider
-      .getAccessToken()
-      .catch((caughtError: unknown) => caughtError);
-    expect(error).toMatchObject({ code: 'token_request_failed' });
-    expect(String(error)).not.toContain('secret-api-key');
+    await expect(provider.getAccessToken()).rejects.toThrow('aal2_required');
   });
 });

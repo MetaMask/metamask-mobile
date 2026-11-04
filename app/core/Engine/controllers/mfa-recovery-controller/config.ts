@@ -1,4 +1,5 @@
 import type { Environment, Scope } from '@cubist-labs/cubesigner-sdk';
+import { hexToBytes, isStrictHexString } from '@metamask/utils';
 import { DEFAULT_REGISTRATION_URL } from './constants';
 import { MfaRecoveryControllerError } from './errors';
 import { getMfaConfig } from './mfa-config';
@@ -6,14 +7,11 @@ import { getMfaConfig } from './mfa-config';
 export interface CubistConfig {
   environment: Environment;
   orgId: string;
-  wrapPublicKey: string;
-  receiptPublicKey: string;
+  wrapPublicKey: Uint8Array;
+  receiptPublicKey: Uint8Array;
   scopes: Scope[];
   registrationUrl: string;
-  mpcApiKey: string;
 }
-
-type EnvironmentVariableName = 'MFA_RECOVERY_DEV_API_KEY';
 
 /** Returns the Cubist configuration used by the recovery service. */
 export function getCubistConfig(): CubistConfig {
@@ -32,20 +30,44 @@ export function getCubistConfig(): CubistConfig {
   const config: CubistConfig = {
     environment,
     orgId: getRequiredMfaConfig(mfaConfig.orgId, 'MFA_CONFIG.orgId'),
-    wrapPublicKey: getRequiredMfaConfig(
-      mfaConfig.wrapPublicKey,
+    wrapPublicKey: parseRawPublicKey(
+      getRequiredMfaConfig(mfaConfig.wrapPublicKey, 'MFA_CONFIG.wrapPublicKey'),
       'MFA_CONFIG.wrapPublicKey',
     ),
-    receiptPublicKey: getRequiredMfaConfig(
-      mfaConfig.receiptPublicKey,
+    receiptPublicKey: parseRawPublicKey(
+      getRequiredMfaConfig(
+        mfaConfig.receiptPublicKey,
+        'MFA_CONFIG.receiptPublicKey',
+      ),
       'MFA_CONFIG.receiptPublicKey',
     ),
     scopes: parseScopes(mfaConfig.sessionScopes),
     registrationUrl: mfaConfig.registrationUrl || DEFAULT_REGISTRATION_URL,
-    mpcApiKey: getRequiredConfig('MFA_RECOVERY_DEV_API_KEY'),
   };
 
   return config;
+}
+
+export type CubistKeys = Pick<
+  CubistConfig,
+  'wrapPublicKey' | 'receiptPublicKey'
+>;
+
+/**
+ * Returns the pinned Cubist escrow keys, or empty keys when the configuration
+ * is missing or invalid. Empty keys are never used: recovery is disabled
+ * whenever {@link isMfaRecoveryConfigured} is false.
+ */
+export function tryGetCubistKeys(): CubistKeys {
+  try {
+    const { wrapPublicKey, receiptPublicKey } = getCubistConfig();
+    return { wrapPublicKey, receiptPublicKey };
+  } catch {
+    return {
+      wrapPublicKey: new Uint8Array(),
+      receiptPublicKey: new Uint8Array(),
+    };
+  }
 }
 
 /** Returns whether all values required for a live recovery request exist. */
@@ -55,35 +77,6 @@ export function isMfaRecoveryConfigured(): boolean {
     return true;
   } catch {
     return false;
-  }
-}
-
-/**
- * Reads an environment variable.
- *
- * The computed lookup keeps unit tests and the standalone Node runner
- * runtime-configurable. The static fallback is retained for React Native
- * builds, where Babel inlines the values supplied by the build environment.
- */
-export function readEnvironmentVariable(
-  name: EnvironmentVariableName,
-): string | undefined {
-  const runtimeValue = process.env[name];
-  if (
-    process.env.NODE_ENV === 'test' ||
-    process.env.JEST_WORKER_ID !== undefined
-  ) {
-    return runtimeValue;
-  }
-  if (runtimeValue !== undefined) {
-    return runtimeValue;
-  }
-
-  switch (name) {
-    case 'MFA_RECOVERY_DEV_API_KEY':
-      return process.env.MFA_RECOVERY_DEV_API_KEY;
-    default:
-      return undefined;
   }
 }
 
@@ -98,15 +91,18 @@ function getRequiredMfaConfig(value: string, name: string): string {
   return trimmedValue;
 }
 
-function getRequiredConfig(name: EnvironmentVariableName): string {
-  const value = readEnvironmentVariable(name)?.trim();
-  if (!value) {
+const RAW_PUBLIC_KEY_LENGTH = 32;
+
+/** Parses a 0x-prefixed hex encoding of a raw 32-byte X25519/Ed25519 key. */
+function parseRawPublicKey(value: string, name: string): Uint8Array {
+  const bytes = isStrictHexString(value) ? hexToBytes(value) : undefined;
+  if (bytes?.length !== RAW_PUBLIC_KEY_LENGTH) {
     throw new MfaRecoveryControllerError(
-      `${name} is not configured`,
-      'missing_configuration',
+      `${name} must be a 0x-prefixed raw ${RAW_PUBLIC_KEY_LENGTH}-byte public key`,
+      'invalid_configuration',
     );
   }
-  return value;
+  return bytes;
 }
 
 function parseScopes(value: string): Scope[] {

@@ -43,14 +43,17 @@ export class SiweIdentifierAuthProvider
 
   async getKeyBoundIdentifierToken(params: {
     identifier: Identifier;
-    proofPublicKey: string;
+    proofPublicKey: Uint8Array;
     requestHash: string;
   }): Promise<KeyBoundIdentifierToken> {
     const address = this.#getAddress();
     const nonce = bytesToHex(
       await sha256(
         stringToBytes(
-          JSON.stringify([params.proofPublicKey, params.requestHash]),
+          JSON.stringify([
+            bytesToHex(params.proofPublicKey),
+            params.requestHash,
+          ]),
         ),
       ),
     );
@@ -105,7 +108,7 @@ export class RecoveryIdentifierRouter
 
   async getKeyBoundIdentifierToken(params: {
     identifier: Identifier;
-    proofPublicKey: string;
+    proofPublicKey: Uint8Array;
     requestHash: string;
   }): Promise<KeyBoundIdentifierToken> {
     const provider = this.#providers.get(params.identifier.type);

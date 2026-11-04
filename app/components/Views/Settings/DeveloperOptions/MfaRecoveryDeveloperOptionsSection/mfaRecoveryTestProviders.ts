@@ -1,4 +1,4 @@
-import { sha256, stringToBytes } from '@metamask/utils';
+import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
 import type {
   Identifier,
   RecoveryIdentifierAuthProvider,
@@ -40,7 +40,7 @@ export class PasskeyIdentifierAuthProvider
 
   async getKeyBoundIdentifierToken(params: {
     identifier: Identifier;
-    proofPublicKey: string;
+    proofPublicKey: Uint8Array;
     requestHash: string;
   }): Promise<KeyBoundIdentifierToken> {
     const passkey = this.#passkeys.get(params.identifier.value);
@@ -51,7 +51,10 @@ export class PasskeyIdentifierAuthProvider
     const challenge = base64Url(
       await sha256(
         stringToBytes(
-          JSON.stringify([params.proofPublicKey, params.requestHash]),
+          JSON.stringify([
+            bytesToHex(params.proofPublicKey),
+            params.requestHash,
+          ]),
         ),
       ),
     );

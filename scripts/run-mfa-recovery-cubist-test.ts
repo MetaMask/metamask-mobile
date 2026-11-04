@@ -22,6 +22,7 @@ import {
 } from '../app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest';
 import { MfaRecoveryControllerError } from '../app/core/Engine/controllers/mfa-recovery-controller/errors';
 import { createMfaRecoveryController } from '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller';
+import { getJwtSubject } from '../app/core/Engine/controllers/mfa-recovery-controller/identifiers';
 import {
   MOCK_ANY_NAMESPACE,
   Messenger,
@@ -33,6 +34,7 @@ import type {
   MfaRecoveryControllerMessenger,
   PendingOperation,
   PendingOperationEncryptor,
+  RecoveryAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 
 interface TestAuthOptions {
@@ -278,6 +280,25 @@ const inMemoryPendingOperationEncryptor: PendingOperationEncryptor = {
   },
 };
 
+/**
+ * Recovery approvals come from AuthenticationController after an interactive
+ * MFA verification, which this standalone process cannot perform.
+ */
+function createStandaloneAuthProvider(
+  getBearerToken: () => Promise<string>,
+): RecoveryAuthProvider {
+  return {
+    getAuthenticatedProfileId: async () =>
+      getJwtSubject(await getBearerToken()),
+    authorizeRecoveryRequest: async () => {
+      throw new MfaRecoveryControllerError(
+        'Recovery approvals need an AuthenticationController MFA verification; run this flow from Developer Options',
+        'mfa_approval_unavailable',
+      );
+    },
+  };
+}
+
 function getControllerMessenger(): MfaRecoveryControllerMessenger {
   const rootMessenger: RootMessenger = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
@@ -320,10 +341,12 @@ export async function main(): Promise<void> {
         logAuthApiToken: process.env.MM_MFA_RECOVERY_LOG_AUTH_TOKEN === 'true',
       },
     );
+    const getBearerToken = async () =>
+      (await wallet.getAuthSession()).accessToken;
     const { controller, identifierRouter } = createMfaRecoveryController({
       messenger: getControllerMessenger(),
-      getBearerToken: async () =>
-        (await wallet.getAuthSession()).accessToken,
+      authProvider: createStandaloneAuthProvider(getBearerToken),
+      getBearerToken,
       getAddress: () => wallet.address,
       signPersonalMessage: wallet.signPersonalMessage,
       pendingOperationEncryptor: inMemoryPendingOperationEncryptor,
@@ -339,6 +362,7 @@ export async function main(): Promise<void> {
         identifierRouter,
         address: wallet.address,
         randomBytes: wallet.randomBytes,
+        verifyMfa: async () => undefined,
       },
       (nextStep) => {
       step = nextStep;

@@ -34,9 +34,12 @@ export interface MfaRecoveryTestDependencies {
   identifierRouter: RecoveryIdentifierRouter;
   address: string;
   randomBytes: (length: number) => Uint8Array;
+  /** Starts the verification session recovery approvals require. */
+  verifyMfa: () => Promise<void>;
 }
 
 export type MfaRecoveryTestStep =
+  | 'verifying_mfa'
   | 'resuming_pending_operation'
   | 'signing_in'
   | 'requesting_oidc_token'
@@ -167,7 +170,7 @@ export async function runMfaRecoveryCubistRecover(
   };
 }
 
-async function prepareRecoveryRun(
+export async function prepareRecoveryRun(
   dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void,
 ): Promise<{
@@ -181,6 +184,8 @@ async function prepareRecoveryRun(
       'primary_account_unavailable',
     );
   }
+  onStep('verifying_mfa');
+  await dependencies.verifyMfa();
   if ((await controller.getPhase()) !== 'idle') {
     onStep('resuming_pending_operation');
     await controller.resume();

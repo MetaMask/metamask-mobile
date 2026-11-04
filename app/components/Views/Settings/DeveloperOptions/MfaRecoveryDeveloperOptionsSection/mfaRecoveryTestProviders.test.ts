@@ -1,6 +1,8 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
 import { PasskeyIdentifierAuthProvider } from './mfaRecoveryTestProviders';
 
+const PROOF_PUBLIC_KEY = new Uint8Array(32).fill(7);
+
 describe('developer recovery test providers', () => {
   it('creates and signs a passkey identifier', async () => {
     const provider = new PasskeyIdentifierAuthProvider();
@@ -9,7 +11,7 @@ describe('developer recovery test providers', () => {
     await expect(
       provider.getKeyBoundIdentifierToken({
         identifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
       }),
     ).resolves.toEqual(
@@ -29,7 +31,7 @@ describe('developer recovery test providers', () => {
 
     const result = await provider.getKeyBoundIdentifierToken({
       identifier: previousIdentifier,
-      proofPublicKey: '{"kty":"EC"}',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: '0xrequest',
     });
 

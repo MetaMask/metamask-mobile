@@ -22,6 +22,8 @@ describe('MFA recovery controller messengers', () => {
     expect(delegate).toHaveBeenCalledWith({
       actions: [
         'AuthenticationController:getBearerToken',
+        'AuthenticationController:refreshCanonicalProfileId',
+        'AuthenticationController:requestMfaApproval',
         'KeyringController:signPersonalMessage',
         'KeyringController:exportEncryptionKey',
         'KeyringController:getState',

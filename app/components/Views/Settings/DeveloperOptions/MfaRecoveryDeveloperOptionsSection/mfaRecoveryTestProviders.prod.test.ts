@@ -1,5 +1,7 @@
 import { PasskeyIdentifierAuthProvider } from './mfaRecoveryTestProviders';
 
+const PROOF_PUBLIC_KEY = new Uint8Array(32).fill(7);
+
 describe('PasskeyIdentifierAuthProvider', () => {
   it('creates a passkey identifier and signs key-bound assertions', async () => {
     const provider = new PasskeyIdentifierAuthProvider();
@@ -8,13 +10,13 @@ describe('PasskeyIdentifierAuthProvider', () => {
     await expect(
       provider.getKeyBoundIdentifierToken({
         identifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
       }),
     ).resolves.toEqual(
       expect.objectContaining({
         identifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
         providerAssertion: expect.objectContaining({
           id: identifier.value,
@@ -36,7 +38,7 @@ describe('PasskeyIdentifierAuthProvider', () => {
     await expect(
       provider.getKeyBoundIdentifierToken({
         identifier: previousIdentifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
       }),
     ).resolves.toEqual(
@@ -45,7 +47,7 @@ describe('PasskeyIdentifierAuthProvider', () => {
     await expect(
       provider.getKeyBoundIdentifierToken({
         identifier: replacementIdentifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
       }),
     ).resolves.toEqual(

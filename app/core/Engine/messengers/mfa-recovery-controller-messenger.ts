@@ -29,6 +29,8 @@ export function getMfaRecoveryControllerMessenger(
 
 type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
+  | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerExportEncryptionKeyAction
   | KeyringControllerGetStateAction
@@ -56,6 +58,8 @@ export function getMfaRecoveryControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
+      'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
       'KeyringController:signPersonalMessage',
       'KeyringController:exportEncryptionKey',
       'KeyringController:getState',

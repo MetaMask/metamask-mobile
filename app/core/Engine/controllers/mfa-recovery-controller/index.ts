@@ -1,9 +1,14 @@
+import { Messenger } from '@metamask/messenger';
 import type {
   MfaRecoveryController,
   MfaRecoveryControllerState,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaRecoveryConfigured } from './config';
+import {
+  AuthenticationRecoveryAuthProvider,
+  type AuthenticationRecoveryAuthProviderMessenger,
+} from './auth-provider';
 import { MfaRecoveryControllerError } from './errors';
 import {
   createMfaRecoveryController,
@@ -43,8 +48,6 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   };
   const signPersonalMessage: SignPersonalMessage = async (params) =>
     await initMessenger.call('KeyringController:signPersonalMessage', params);
-  const getBearerToken = async () =>
-    await initMessenger.call('AuthenticationController:getBearerToken');
   const exportEncryptionKey = async () =>
     await initMessenger.call('KeyringController:exportEncryptionKey');
   const isEnabled = () =>
@@ -53,12 +56,27 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         .remoteFeatureFlags,
     ) && isMfaRecoveryConfigured();
 
+  const authProviderMessenger: AuthenticationRecoveryAuthProviderMessenger =
+    new Messenger({
+      namespace: 'AuthApiRecoveryAuthProvider',
+      parent: initMessenger,
+    });
+  initMessenger.delegate({
+    actions: [
+      'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
+    ],
+    messenger: authProviderMessenger,
+  });
+
   const result = createMfaRecoveryController({
     messenger: controllerMessenger,
     state: persistedState.MfaRecoveryController as
       | Partial<MfaRecoveryControllerState>
       | undefined,
-    getBearerToken,
+    authProvider: new AuthenticationRecoveryAuthProvider({
+      messenger: authProviderMessenger,
+    }),
     getAddress,
     signPersonalMessage,
     exportEncryptionKey,

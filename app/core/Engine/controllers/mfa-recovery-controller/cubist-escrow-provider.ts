@@ -1,24 +1,16 @@
 import { CubeSignerClient, envs } from '@cubist-labs/cubesigner-sdk';
-import {
-  CubistEscrowProvider,
-  type AuthControllerToken,
-  type EcPublicJwk,
-  type IdentifierAuthorization,
-  type Mutation,
-  type MutationPayload,
-  type MutationReceipt,
-  type RecoveryAuthProvider,
-  type RecoveryEscrowProvider,
-} from '@metamask/mfa-recovery-controller';
 import { DEFAULT_REGISTRATION_URL } from './constants';
 import { getCubistConfig, type CubistConfig } from './config';
 import { MfaRecoveryControllerError } from './errors';
-import { getMfaConfig } from './mfa-config';
 
-interface LazyCubistEscrowProviderOptions {
-  authProvider: RecoveryAuthProvider & {
-    getAccessToken: () => Promise<string>;
-  };
+/** Source of the registration-service access token used to open a session. */
+export interface CubistSessionTokenProvider {
+  getAccessToken: () => Promise<string>;
+  getAuthenticatedProfileId: () => Promise<string>;
+}
+
+interface CreateCubistClientGetterOptions {
+  tokenProvider: CubistSessionTokenProvider;
   isEnabled: () => boolean;
   getConfig?: () => CubistConfig;
 }
@@ -28,118 +20,40 @@ interface OidcTokenResponse {
   expiresAt: number;
 }
 
-type GetRecoverySecretResponse = Awaited<
-  ReturnType<RecoveryEscrowProvider['getSecret']>
->;
-type PoPChallenge = Awaited<
-  ReturnType<RecoveryEscrowProvider['generateChallenge']>
->;
-
 /**
- * Creates a CubeSigner session only when the recovery feature is used.
+ * Returns a getter that creates a CubeSigner session only when the recovery
+ * feature is used, and reuses it for the same profile until it expires.
  */
-export class LazyCubistEscrowProvider implements RecoveryEscrowProvider {
-  readonly id = 'cubist';
+export function createCubistClientGetter({
+  tokenProvider,
+  isEnabled,
+  getConfig = getCubistConfig,
+}: CreateCubistClientGetterOptions): () => Promise<CubeSignerClient> {
+  let client: CubeSignerClient | undefined;
+  let clientProfileId: string | undefined;
+  let expiresAt = 0;
 
-  readonly authAudience = 'cubist';
-
-  #wrapPublicKey = getMfaConfig().wrapPublicKey.trim();
-
-  #provider: CubistEscrowProvider | undefined;
-
-  #profileId: string | undefined;
-
-  #expiresAt = 0;
-
-  readonly #authProvider: LazyCubistEscrowProviderOptions['authProvider'];
-
-  readonly #isEnabled: () => boolean;
-
-  readonly #getConfig: () => CubistConfig;
-
-  constructor({
-    authProvider,
-    isEnabled,
-    getConfig = getCubistConfig,
-  }: LazyCubistEscrowProviderOptions) {
-    this.#authProvider = authProvider;
-    this.#isEnabled = isEnabled;
-    this.#getConfig = getConfig;
-  }
-
-  get wrapPublicKey(): string {
-    return this.#wrapPublicKey;
-  }
-
-  async isAvailable(): Promise<boolean> {
-    return await (await this.#getProvider()).isAvailable();
-  }
-
-  async generateChallenge(): Promise<PoPChallenge> {
-    return await (await this.#getProvider()).generateChallenge();
-  }
-
-  async getSecret(
-    authorization: IdentifierAuthorization,
-    requestId: string,
-    pkE: EcPublicJwk,
-  ): Promise<GetRecoverySecretResponse> {
-    return await (
-      await this.#getProvider()
-    ).getSecret(authorization, requestId, pkE);
-  }
-
-  async applyMutation(
-    mutation: Mutation,
-    authControllerToken: AuthControllerToken,
-    identifierAuthorization: IdentifierAuthorization | null,
-    payload: MutationPayload,
-  ): Promise<MutationReceipt> {
-    return await (
-      await this.#getProvider()
-    ).applyMutation(
-      mutation,
-      authControllerToken,
-      identifierAuthorization,
-      payload,
-    );
-  }
-
-  verifyReceipt(
-    receipt: MutationReceipt,
-    mutation: Mutation,
-    expectedEscrowId: string,
-  ): boolean {
-    if (!this.#provider) {
-      throw new MfaRecoveryControllerError(
-        'Cubist escrow session has not been created',
-        'escrow_session_unavailable',
-      );
-    }
-    return this.#provider.verifyReceipt(receipt, mutation, expectedEscrowId);
-  }
-
-  async #getProvider(): Promise<CubistEscrowProvider> {
-    if (!this.#isEnabled()) {
+  return async () => {
+    if (!isEnabled()) {
       throw new MfaRecoveryControllerError(
         'MFA recovery is disabled',
         'feature_disabled',
       );
     }
 
-    const config = this.#getConfig();
-    const profileId = await this.#authProvider.getAuthenticatedProfileId();
+    const config = getConfig();
+    const profileId = await tokenProvider.getAuthenticatedProfileId();
     if (
-      this.#provider &&
-      this.#profileId === profileId &&
-      this.#expiresAt > Math.floor(Date.now() / 1000)
+      client &&
+      clientProfileId === profileId &&
+      expiresAt > Math.floor(Date.now() / 1000)
     ) {
-      return this.#provider;
+      return client;
     }
 
     const oidcToken = await requestOidcToken(
       config,
-      await this.#authProvider.getAccessToken(),
+      await tokenProvider.getAccessToken(),
     );
     const sessionResponse = await CubeSignerClient.createOidcSession(
       envs[config.environment],
@@ -147,18 +61,11 @@ export class LazyCubistEscrowProvider implements RecoveryEscrowProvider {
       oidcToken.idToken,
       config.scopes,
     );
-    const client = await CubeSignerClient.create(sessionResponse.data());
-
-    this.#wrapPublicKey = config.wrapPublicKey;
-    this.#provider = new CubistEscrowProvider({
-      client,
-      wrapPublicKey: config.wrapPublicKey,
-      receiptPublicKey: config.receiptPublicKey,
-    });
-    this.#profileId = profileId;
-    this.#expiresAt = oidcToken.expiresAt;
-    return this.#provider;
-  }
+    client = await CubeSignerClient.create(sessionResponse.data());
+    clientProfileId = profileId;
+    expiresAt = oidcToken.expiresAt;
+    return client;
+  };
 }
 
 /** Requests an OIDC token authorized by the MPC token service. */

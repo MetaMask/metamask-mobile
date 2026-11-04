@@ -9,6 +9,8 @@ import {
   type MfaRecoveryTestDependencies,
 } from './runMfaRecoveryCubistTest';
 
+const PROOF_PUBLIC_KEY = new Uint8Array(32).fill(7);
+
 describe('runMfaRecoveryCubistTest', () => {
   it('runs the shared flow with the Engine controller and registered passkey provider', async () => {
     const signPersonalMessage = jest.fn().mockResolvedValue('0xsignature');
@@ -56,6 +58,7 @@ describe('runMfaRecoveryCubistTest', () => {
       identifierRouter,
       address: '0xabc',
       randomBytes: jest.fn((length: number) => new Uint8Array(length).fill(42)),
+      verifyMfa: jest.fn().mockResolvedValue(undefined),
     };
     const steps: string[] = [];
 
@@ -72,6 +75,8 @@ describe('runMfaRecoveryCubistTest', () => {
       ]),
     );
     expect(controller.updateIdentifiers).toHaveBeenCalled();
+    expect(dependencies.verifyMfa).toHaveBeenCalledTimes(1);
+    expect(steps[0]).toBe('verifying_mfa');
     expect(steps).toContain('completed');
     expect(dependencies.randomBytes).toHaveBeenCalledWith(32);
 
@@ -79,7 +84,7 @@ describe('runMfaRecoveryCubistTest', () => {
     await expect(
       identifierRouter.getKeyBoundIdentifierToken({
         identifier: siweIdentifier,
-        proofPublicKey: '{"kty":"EC"}',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: '0xrequest',
       }),
     ).resolves.toEqual(expect.objectContaining({ identifier: siweIdentifier }));

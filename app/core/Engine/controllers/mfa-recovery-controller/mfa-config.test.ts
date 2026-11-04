@@ -26,7 +26,7 @@ describe('MFA configuration selection', () => {
       cubistEnvironment: 'gamma',
       orgId: 'Org#5eade91b-cd05-4af6-a974-77f63cc344f6',
       wrapPublicKey:
-        '{"kty":"EC","crv":"P-256","x":"foxf_AOcFNGsgnoxVHOEJhKj2cJ8nSOc2k0nMhlg2Jg","y":"yPOdEM3E-xpMuz0vaB9yjWoSixzDfTIrrmuTkmr4ePg"}',
+        '0xe5500f33b004c89ef80903913fa7bf07b86dc30e0f6b9df75b565d3ab31a8225',
       receiptPublicKey:
         '{"kty":"EC","crv":"P-256","x":"t9qe4__2l7ypZGjcQFBW29TaIU_04JXDvOzK9fNBsmM","y":"j-jWICPw4zUbiJaR9AO_PwmhN-mzYICgfPi-TxLhZS8"}',
       sessionScopes: 'manage:policy:get,manage:policy:invoke',

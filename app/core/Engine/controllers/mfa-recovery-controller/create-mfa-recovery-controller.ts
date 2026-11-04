@@ -1,12 +1,15 @@
 import {
+  CubistEscrowProvider,
   MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
   type MfaRecoveryControllerState,
   type PendingOperationEncryptor,
+  type RecoveryAuthProvider,
 } from '@metamask/mfa-recovery-controller';
-import { MpcTokenRecoveryAuthProvider } from './auth-provider';
-import { LazyCubistEscrowProvider } from './cubist-escrow-provider';
-import { readEnvironmentVariable } from './config';
+import { createCubistSessionTokenProvider } from './auth-provider';
+import { CUBIST_AUTH_AUDIENCE } from './constants';
+import { createCubistClientGetter } from './cubist-escrow-provider';
+import { tryGetCubistKeys } from './config';
 import { MfaRecoveryControllerError } from './errors';
 import { RecoveryIdentifierRouter } from './identifier-auth-provider';
 import type { SignPersonalMessage } from './identifiers';
@@ -15,7 +18,7 @@ import { createKeyringPendingOperationEncryptor } from './pending-operation-encr
 export interface CreateMfaRecoveryControllerOptions {
   messenger: MfaRecoveryControllerMessenger;
   state?: Partial<MfaRecoveryControllerState>;
-  getBearerToken: () => Promise<string>;
+  authProvider: RecoveryAuthProvider;
   getAddress: () => string;
   signPersonalMessage: SignPersonalMessage;
   exportEncryptionKey?: () => Promise<string>;
@@ -30,24 +33,22 @@ export interface CreateMfaRecoveryControllerOptions {
 export function createMfaRecoveryController({
   messenger,
   state,
-  getBearerToken,
+  authProvider,
   getAddress,
   signPersonalMessage,
   exportEncryptionKey,
   pendingOperationEncryptor,
   isEnabled = () => true,
 }: CreateMfaRecoveryControllerOptions) {
-  const authProvider = new MpcTokenRecoveryAuthProvider({
-    getBearerToken,
-    apiKey: readEnvironmentVariable('MFA_RECOVERY_DEV_API_KEY') ?? '',
-  });
+  const tokenProvider = createCubistSessionTokenProvider(authProvider);
   const identifierRouter = new RecoveryIdentifierRouter({
     getAddress,
     signPersonalMessage,
   });
-  const escrow = new LazyCubistEscrowProvider({
-    authProvider,
-    isEnabled,
+  const escrow = new CubistEscrowProvider({
+    getClient: createCubistClientGetter({ tokenProvider, isEnabled }),
+    authAudience: CUBIST_AUTH_AUDIENCE,
+    ...tryGetCubistKeys(),
   });
   const encryptor =
     pendingOperationEncryptor ??

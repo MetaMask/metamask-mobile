@@ -24,9 +24,9 @@ export const MFA_CONFIG: Record<MfaConfigKey, MfaConfig> = {
     cubistEnvironment: 'gamma',
     orgId: 'Org#5eade91b-cd05-4af6-a974-77f63cc344f6',
     wrapPublicKey:
-      '{"kty":"EC","crv":"P-256","x":"foxf_AOcFNGsgnoxVHOEJhKj2cJ8nSOc2k0nMhlg2Jg","y":"yPOdEM3E-xpMuz0vaB9yjWoSixzDfTIrrmuTkmr4ePg"}',
+      '0x91b234f1b63c64a951eebde8d4e514db4ee9e10078958032dca6f0bb3567190a',
     receiptPublicKey:
-      '{"kty":"EC","crv":"P-256","x":"t9qe4__2l7ypZGjcQFBW29TaIU_04JXDvOzK9fNBsmM","y":"j-jWICPw4zUbiJaR9AO_PwmhN-mzYICgfPi-TxLhZS8"}',
+      '0xd320d2865dd4c70b6c532f2fc23e4c3b3381f431dc5a73967f4bbbc3c32272d8',
     sessionScopes: 'manage:policy:get,manage:policy:invoke',
     registrationUrl: 'https://recovery-registration.dev-api.cx.metamask.io',
   },

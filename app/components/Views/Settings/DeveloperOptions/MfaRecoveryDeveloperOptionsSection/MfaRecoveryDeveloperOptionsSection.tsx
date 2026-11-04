@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import QuickCrypto from 'react-native-quick-crypto';
 import { useSelector } from 'react-redux';
+import { bytesToHex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import {
   Button,
@@ -18,7 +19,10 @@ import {
   getMfaRecoveryIdentifierRouter,
   isMfaRecoveryConfigured,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller';
+import { TOPRF_AAL2_AUDIENCE } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
+import { useMfa } from '../../../../../util/identity/mfa/useMfa';
+import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/clear-pending-operation';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
@@ -26,34 +30,76 @@ import {
   runMfaRecoveryCubistTest,
   type MfaRecoveryRecoverResult,
   type MfaRecoveryTestResult,
-  type MfaRecoveryTestStep,
-  type MfaRecoveryTestDependencies,
 } from './runMfaRecoveryCubistTest';
+import {
+  runMfaRecoverySetup,
+  type MfaRecoverySetupDependencies,
+  type MfaRecoverySetupResult,
+  type MfaRecoverySetupStep,
+} from './runMfaRecoverySetup';
+import {
+  runToprfRecoverySecretTest,
+  type ToprfRecoverySecretTestResult,
+  type ToprfRecoverySecretTestStep,
+} from './runToprfRecoverySecretTest';
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
 const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
+const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
+const TOPRF_TEST_BUTTON_TEST_ID =
+  'mfa-recovery-dev-toprf-recovery-secret-button';
+const RESET_PENDING_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-pending-button';
 const RESUME_BUTTON_TEST_ID = 'mfa-recovery-dev-resume-button';
 const ABORT_BUTTON_TEST_ID = 'mfa-recovery-dev-abort-button';
+const AAL2_APPROVAL_OPERATION = 'mfaRecovery.devOptions';
+const AAL2_APPROVAL_AUDIENCES = [TOPRF_AAL2_AUDIENCE];
 
-type MfaRecoveryRunResult = MfaRecoveryTestResult | MfaRecoveryRecoverResult;
+type MfaRecoveryStep = MfaRecoverySetupStep | ToprfRecoverySecretTestStep;
+type MfaRecoveryRunResult =
+  | MfaRecoveryTestResult
+  | MfaRecoveryRecoverResult
+  | MfaRecoverySetupResult
+  | ToprfRecoverySecretTestResult;
 type MfaRecoveryRunner = (
-  dependencies: MfaRecoveryTestDependencies,
-  onStep: (step: MfaRecoveryTestStep) => void,
+  dependencies: MfaRecoverySetupDependencies,
+  onStep: (step: MfaRecoveryStep) => void,
 ) => Promise<MfaRecoveryRunResult>;
 type MfaRecoveryResultFormatter = (result: MfaRecoveryRunResult) => string;
 
 const MfaRecoveryDeveloperOptionsSection = () => {
   const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
   const isMfaRecoveryConfiguredForEnvironment = isMfaRecoveryConfigured();
-  const isMfaRecoveryAvailable =
-    isMfaRecoveryEnabled && isMfaRecoveryConfiguredForEnvironment;
+  const isMfaRecoveryAvailable = isMfaRecoveryConfiguredForEnvironment;
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const [isRunning, setIsRunning] = useState(false);
-  const [step, setStep] = useState<MfaRecoveryTestStep | null>(null);
+  const [step, setStep] = useState<MfaRecoveryStep | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<string | null>(null);
+  const { verifyOrEnroll } = useMfa();
+
+  // requestMfaApproval with requireVerification needs a live verification
+  // session, otherwise it throws aal2_required without calling the server.
+  const verifyMfa = useCallback(async () => {
+    await verifyOrEnroll({
+      methods: ['totp'],
+      verifyWith: 'totp',
+      reason: { operation: AAL2_APPROVAL_OPERATION },
+    });
+  }, [verifyOrEnroll]);
+
+  const mintAal2Token = useCallback(async () => {
+    const { approval } =
+      await Engine.context.AuthenticationController.requestMfaApproval({
+        requestHash: bytesToHex(new Uint8Array(QuickCrypto.randomBytes(32))),
+        audiences: AAL2_APPROVAL_AUDIENCES,
+        requireVerification: true,
+        includeIdentifiers: false,
+        reason: { operation: AAL2_APPROVAL_OPERATION },
+      });
+    return approval;
+  }, []);
 
   const refreshPhase = useCallback(async () => {
     try {
@@ -81,7 +127,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       setResult(null);
       setError(null);
 
-      let currentStep: MfaRecoveryTestStep | null = null;
+      let currentStep: MfaRecoveryStep | null = null;
 
       try {
         const recoveryResult = await runner(
@@ -93,6 +139,9 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             identifierRouter: getMfaRecoveryIdentifierRouter(),
             randomBytes: (length) =>
               new Uint8Array(QuickCrypto.randomBytes(length)),
+            verifyMfa,
+            mintAal2Token,
+            seedless: Engine.context.SeedlessOnboardingController,
           },
           (nextStep) => {
             currentStep = nextStep;
@@ -118,7 +167,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         refreshPhase();
       }
     },
-    [isRunning, refreshPhase],
+    [isRunning, mintAal2Token, refreshPhase, verifyMfa],
   );
 
   const handlePendingOperation = useCallback(
@@ -148,9 +197,15 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     [isRunning, refreshPhase],
   );
 
+  const handleResetPendingOperation = useCallback(async () => {
+    setError(null);
+    clearPendingOperationForDev(Engine.context.MfaRecoveryController);
+    await refreshPhase();
+  }, [refreshPhase]);
+
   const handleRunCubistTest = useCallback(() => {
     handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
-      if ('fingerprint' in recoveryResult) {
+      if ('fingerprint' in recoveryResult || 'after' in recoveryResult) {
         throw new Error('Unexpected recovery result');
       }
       return strings('app_settings.developer_options.mfa_recovery.success', {
@@ -160,9 +215,55 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     });
   }, [handleRun]);
 
+  const handleSetupRecovery = useCallback(() => {
+    handleRun(runMfaRecoverySetup, (recoveryResult) => {
+      if (!('after' in recoveryResult) || 'fingerprint' in recoveryResult) {
+        throw new Error('Unexpected recovery result');
+      }
+      return strings(
+        'app_settings.developer_options.mfa_recovery.setup_success',
+        { before: recoveryResult.before, after: recoveryResult.after },
+      );
+    });
+  }, [handleRun]);
+
+  const handleToprfRecoverySecretTest = useCallback(() => {
+    handleRun(
+      (dependencies, onStep) =>
+        runToprfRecoverySecretTest(
+          {
+            address: dependencies.address,
+            signPersonalMessage: (params) =>
+              Engine.context.KeyringController.signPersonalMessage(params),
+            seedless: dependencies.seedless,
+            mintAal2Token: async () => {
+              await dependencies.verifyMfa();
+              return await dependencies.mintAal2Token();
+            },
+          },
+          onStep,
+        ),
+      (recoveryResult) => {
+        if (!('shareExisted' in recoveryResult)) {
+          throw new Error('Unexpected recovery result');
+        }
+        return strings(
+          'app_settings.developer_options.mfa_recovery.toprf_test_success',
+          {
+            before: recoveryResult.before,
+            after: recoveryResult.after,
+            shareExisted: recoveryResult.shareExisted ? 'yes' : 'no',
+            liveKeyMatches: recoveryResult.liveKeyMatches ? 'yes' : 'no',
+            fingerprint: recoveryResult.fingerprint,
+          },
+        );
+      },
+    );
+  }, [handleRun]);
+
   const handleRecoverSecret = useCallback(() => {
     handleRun(runMfaRecoveryCubistRecover, (recoveryResult) => {
-      if (!('fingerprint' in recoveryResult)) {
+      if (!('fingerprint' in recoveryResult) || !('epoch' in recoveryResult)) {
         throw new Error('Unexpected recovery result');
       }
       if (recoveryResult.matches === undefined) {
@@ -235,6 +336,45 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       >
         {strings(
           'app_settings.developer_options.mfa_recovery.recover_secret_button',
+        )}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleSetupRecovery}
+        isDisabled={isRunning || !isMfaRecoveryAvailable}
+        isFullWidth
+        style={styles.accessory}
+        testID={SETUP_BUTTON_TEST_ID}
+      >
+        {strings(
+          'app_settings.developer_options.mfa_recovery.setup_recovery_button',
+        )}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleToprfRecoverySecretTest}
+        isDisabled={isRunning || !__DEV__}
+        isFullWidth
+        style={styles.accessory}
+        testID={TOPRF_TEST_BUTTON_TEST_ID}
+      >
+        {strings(
+          'app_settings.developer_options.mfa_recovery.toprf_test_button',
+        )}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleResetPendingOperation}
+        isDisabled={isRunning || !__DEV__}
+        isFullWidth
+        style={styles.accessory}
+        testID={RESET_PENDING_BUTTON_TEST_ID}
+      >
+        {strings(
+          'app_settings.developer_options.mfa_recovery.reset_pending_button',
         )}
       </Button>
       {phase !== null && phase !== 'idle' && (

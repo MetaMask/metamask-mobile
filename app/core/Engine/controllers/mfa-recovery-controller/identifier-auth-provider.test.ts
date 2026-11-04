@@ -5,6 +5,9 @@ import {
   RecoveryIdentifierRouter,
   SiweIdentifierAuthProvider,
 } from './identifier-auth-provider';
+
+const PROOF_PUBLIC_KEY = new Uint8Array(32).fill(1);
+
 describe('SiweIdentifierAuthProvider', () => {
   it('signs an identifier proof with the current primary account', async () => {
     const signPersonalMessage = jest.fn().mockResolvedValue('0xsignature');
@@ -21,7 +24,7 @@ describe('SiweIdentifierAuthProvider', () => {
 
     const result = await provider.getKeyBoundIdentifierToken({
       identifier,
-      proofPublicKey: '{"kty":"EC"}',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: '0xrequest',
     });
 
@@ -31,7 +34,7 @@ describe('SiweIdentifierAuthProvider', () => {
     });
     expect(result).toEqual({
       identifier,
-      proofPublicKey: '{"kty":"EC"}',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: '0xrequest',
       providerAssertion: {
         message: expect.stringMatching(
@@ -60,7 +63,7 @@ describe('RecoveryIdentifierRouter', () => {
 
     await router.getKeyBoundIdentifierToken({
       identifier,
-      proofPublicKey: '{"kty":"EC"}',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: '0xrequest',
     });
 
@@ -71,7 +74,7 @@ describe('RecoveryIdentifierRouter', () => {
     const provider = {
       getKeyBoundIdentifierToken: jest.fn().mockResolvedValue({
         identifier: { type: 'passkey' },
-        proofPublicKey: 'public-key',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: 'request-hash',
         providerAssertion: {},
       }),
@@ -89,7 +92,7 @@ describe('RecoveryIdentifierRouter', () => {
         value: 'credential',
         verifier: { rpId: PASSKEY_RP_ID, origins: [PASSKEY_ORIGIN] },
       },
-      proofPublicKey: 'public-key',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: 'request-hash',
     });
     expect(provider.getKeyBoundIdentifierToken).toHaveBeenCalledTimes(1);
@@ -103,7 +106,7 @@ describe('RecoveryIdentifierRouter', () => {
           value: 'credential',
           verifier: {},
         },
-        proofPublicKey: 'public-key',
+        proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: 'request-hash',
       }),
     ).rejects.toMatchObject({ code: 'unsupported_identifier_type' });
@@ -125,13 +128,15 @@ describe('SIWE nonce', () => {
         value: '0xabc',
         verifier: {},
       },
-      proofPublicKey: '{"kty":"EC"}',
+      proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: '0xrequest',
     });
 
     const expectedNonce = bytesToHex(
       await sha256(
-        stringToBytes(JSON.stringify(['{"kty":"EC"}', '0xrequest'])),
+        stringToBytes(
+          JSON.stringify([bytesToHex(PROOF_PUBLIC_KEY), '0xrequest']),
+        ),
       ),
     );
     expect(result.providerAssertion).toEqual(

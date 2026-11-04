@@ -1,5 +1,6 @@
 import { getRootExtendedMessenger } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { AuthenticationRecoveryAuthProvider } from './auth-provider';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 import {
   getMfaRecoveryIdentifierRouter,
@@ -59,7 +60,8 @@ describe('mfaRecoveryControllerInit', () => {
       }
     });
     const subscribe = jest.fn();
-    request.initMessenger = { call, subscribe } as never;
+    const delegate = jest.fn();
+    request.initMessenger = { call, subscribe, delegate } as never;
     request.persistedState = {
       MfaRecoveryController: { pendingOperation: 'encrypted-operation' },
     };
@@ -70,13 +72,19 @@ describe('mfaRecoveryControllerInit', () => {
     expect(mockCreateMfaRecoveryController).toHaveBeenCalledWith(
       expect.objectContaining({
         state: { pendingOperation: 'encrypted-operation' },
-        getBearerToken: expect.any(Function),
+        authProvider: expect.any(AuthenticationRecoveryAuthProvider),
         getAddress: expect.any(Function),
         signPersonalMessage: expect.any(Function),
-        exportEncryptionKey: expect.any(Function),
         isEnabled: expect.any(Function),
       }),
     );
+    expect(delegate).toHaveBeenCalledWith({
+      actions: [
+        'AuthenticationController:refreshCanonicalProfileId',
+        'AuthenticationController:requestMfaApproval',
+      ],
+      messenger: expect.anything(),
+    });
     expect(subscribe).toHaveBeenCalledWith(
       'KeyringController:unlock',
       expect.any(Function),

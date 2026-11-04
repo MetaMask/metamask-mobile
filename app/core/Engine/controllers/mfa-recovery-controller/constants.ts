@@ -20,9 +20,12 @@ export const DEFAULT_REGISTRATION_URL =
 /** Default session scopes used when Cubist scopes are not configured. */
 export const DEFAULT_SESSION_SCOPES = ['manage:*'] as const;
 
-/** MPC token service endpoint. */
-export const DEFAULT_TOKEN_API_HOST =
-  'https://mpc-service-non-enclave.dev-api.cx.metamask.io';
+/** Dev TOPRF recovery sub-verifier ID used for the aal2 recovery session. */
+export const TOPRF_RECOVERY_AUTH_CONNECTION_ID = 'mm-recovery-dev-aal2-common';
 
-/** Header used to authenticate requests to the MPC token service. */
-export const TOKEN_API_KEY_HEADER = 'x-api-key';
+/** Dev TOPRF recovery aggregate verifier ID used for the aal2 recovery session. */
+export const TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID = 'mm-recovery-aal2-dev';
+
+/** Audience of the aal2 token accepted by the dev TOPRF nodes. */
+export const TOPRF_AAL2_AUDIENCE = 'dev-node.web3auth.io';
+export const CUBIST_AUTH_AUDIENCE = 'cubist';
