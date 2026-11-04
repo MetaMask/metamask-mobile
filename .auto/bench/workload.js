@@ -822,7 +822,25 @@ function parseBalanceWithDecimals(balanceString, decimals) {
   })();
 
   var CAND = (function () {
-    // Bounded value-keyed memo for parseCaipAssetType: it is pure (regex parse of
+    // Bounded value-keyed memo for decimalToPrefixedHex: pure map of the chain
+// reference string to its hex chain id; the same few chain references are
+// re-derived for every asset on every state change.
+const hexChainIdCache = new Map();
+const HEX_CHAIN_CACHE_LIMIT = 512;
+function decimalToPrefixedHexCached(value) {
+    const cached = hexChainIdCache.get(value);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const converted = decimalToPrefixedHex(value);
+    if (hexChainIdCache.size >= HEX_CHAIN_CACHE_LIMIT) {
+        hexChainIdCache.clear();
+    }
+    hexChainIdCache.set(value, converted);
+    return converted;
+}
+
+// Bounded value-keyed memo for parseCaipAssetType: it is pure (regex parse of
 // the raw id) and every selector re-parses the same recurring asset ids on
 // every state change. Invalid ids are not cached (parse throws each time,
 // matching uncached behavior). Mirrors the value-keyed memoization
@@ -879,7 +897,7 @@ const getAccountTrackerControllerAccountsByChainId = makeDirect([
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
-            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
             const amount = balanceData?.amount ?? '0';
             if (metadata?.type === 'native') {
                 result[hexChainId] ?? (result[hexChainId] = {});
@@ -950,7 +968,7 @@ const getTokensControllerAllTokens = makeDirect([
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
-            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
             const assetAddress = toChecksumHexAddress(assetType.assetReference);
             if (isStakedTokenAssetId(assetId)) {
                 continue;
@@ -985,7 +1003,7 @@ const getTokensControllerAllIgnoredTokens = makeDirect([
         if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
         }
-        const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+        const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
         // The asset is hidden for all EVM accounts
         for (const internalAccount of Object.values(internalAccountsById)) {
             if (!isEvmAccountType(internalAccount.type)) {
@@ -1028,7 +1046,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
-            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
             const assetAddress = toChecksumHexAddress(metadata.type === 'native'
                 ? // TokenBalancesController always uses zero address for native tokens
                     '0x0000000000000000000000000000000000000000'
@@ -1065,7 +1083,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
-            const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+            const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
             const assetAddress = toChecksumHexAddress(assetType.assetReference);
             if (isStakedTokenAssetId(assetId)) {
                 continue;
@@ -1254,7 +1272,7 @@ const getTokenRatesControllerMarketData = makeDirect([
         if (!metadata) {
             continue;
         }
-        const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
+        const hexChainId = decimalToPrefixedHexCached(assetType.chain.reference);
         const nativeAssetSymbol = networkConfigurationsByChainId[hexChainId]?.nativeCurrency ?? 'NATIVE';
         const assetAddress = toChecksumHexAddress(metadata.type === 'native'
             ? getNativeTokenAddress(hexChainId)
