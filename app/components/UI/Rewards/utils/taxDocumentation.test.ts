@@ -9,6 +9,7 @@ import {
   minutesFromRetryAfter,
   mintRateLimitRemainingMs,
   readMintRateLimit,
+  isOpenFormTaxMe,
   isPreWebhookTaxForm,
   isTaxFlowEnabled,
   PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
@@ -446,5 +447,70 @@ describe('tax form submission snapshot', () => {
       descriptionKey: 'taxFormPendingDescription',
     });
     expect(taxSheetForClaim(openForm, null)).toEqual(taxSheetFor(openForm));
+  });
+
+  it('treats every open-form read as a form the payee can submit', () => {
+    expect(isOpenFormTaxMe(openForm)).toBe(true);
+    expect(
+      isOpenFormTaxMe(
+        taxMe({ next_action: 'OPEN_FORM', reason: 'TIN_NOT_MATCHED' }),
+      ),
+    ).toBe(true);
+    expect(
+      isOpenFormTaxMe(
+        taxMe({ next_action: 'OPEN_FORM', reason: 'FORM_INVALID' }),
+      ),
+    ).toBe(true);
+    expect(
+      isOpenFormTaxMe(
+        taxMe({
+          state: 'RENEWAL_REQUIRED',
+          next_action: 'OPEN_FORM',
+          reason: 'FORM_EXPIRED',
+          cleared: false,
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isOpenFormTaxMe(
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'TIN_NOT_MATCHED',
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('keeps pending review for a correction until that open-form read changes', () => {
+    const mismatch = taxMe({
+      next_action: 'OPEN_FORM',
+      reason: 'TIN_NOT_MATCHED',
+    });
+    const submitted = taxFormSubmittedSnapshot(mismatch);
+
+    expect(taxSheetForClaim(mismatch, submitted)).toEqual({
+      kind: 'info',
+      titleKey: 'taxFormPendingTitle',
+      descriptionKey: 'taxFormPendingDescription',
+    });
+    expect(
+      taxSheetForClaim(
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'FORM_PENDING',
+        }),
+        submitted,
+      ),
+    ).toEqual(
+      taxSheetFor(
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'FORM_PENDING',
+        }),
+      ),
+    );
   });
 });

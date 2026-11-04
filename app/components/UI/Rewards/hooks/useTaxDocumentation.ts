@@ -27,7 +27,7 @@ import Logger from '../../../../util/Logger';
 import {
   holdMintRateLimit,
   holdTaxFormSession,
-  isPreWebhookTaxForm,
+  isOpenFormTaxMe,
   isTaxFlowEnabled,
   PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
   resolveTaxFormUrl,
@@ -498,17 +498,30 @@ export function useTaxDocumentation(profileId: string) {
     void (async () => {
       try {
         const taxMe = await readTaxMe(true);
+        const stillOpenForm = isOpenFormTaxMe(taxMe);
         await noteSubmitted(
-          isPreWebhookTaxForm(taxMe) ? taxFormSubmittedSnapshot(taxMe) : null,
+          stillOpenForm ? taxFormSubmittedSnapshot(taxMe) : null,
         );
-        if (!isPreWebhookTaxForm(taxMe)) {
+        if (!stillOpenForm) {
           showTaxMe(taxMe);
         }
       } catch (error) {
         if (error instanceof RewardsMoneyAuthorizationError) {
           return;
         }
-        await noteSubmitted(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
+        try {
+          const cached = await readTaxMe(false);
+          await noteSubmitted(
+            isOpenFormTaxMe(cached)
+              ? taxFormSubmittedSnapshot(cached)
+              : PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
+          );
+        } catch (cacheError) {
+          if (cacheError instanceof RewardsMoneyAuthorizationError) {
+            return;
+          }
+          await noteSubmitted(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
+        }
       }
     })();
   }, [noteSubmitted, openInfo, readTaxMe, refreshSummary, showTaxMe]);

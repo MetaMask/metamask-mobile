@@ -219,7 +219,10 @@ export function taxSheetFor(taxMe: TaxMeDto): TaxDocumentationSheet {
   return determinationInfo();
 }
 
-/** The snapshot Claim remembers when the form page reports success before a webhook. */
+/**
+ * The snapshot used when a submit's status read fails and no open-form
+ * read is cached. The first form, before any webhook, is this read.
+ */
 export const PRE_WEBHOOK_TAX_FORM_SNAPSHOT: TaxFormSubmittedSnapshot = {
   state: 'ACTION_REQUIRED',
   next_action: 'OPEN_FORM',
@@ -235,6 +238,14 @@ export function isPreWebhookTaxForm(taxMe: TaxMeDto): boolean {
   );
 }
 
+/**
+ * True when this read still tells the payee to open the form: the first
+ * form, a correction, a TIN mismatch, or an expired or renewal form.
+ */
+export function isOpenFormTaxMe(taxMe: TaxMeDto): boolean {
+  return taxSheetFor(taxMe).kind === 'open_form';
+}
+
 export function taxFormSubmittedSnapshot(
   taxMe: TaxMeDto,
 ): TaxFormSubmittedSnapshot {
@@ -247,7 +258,8 @@ export function taxFormSubmittedSnapshot(
 
 /**
  * The form was submitted and `tax/me` has not moved off that snapshot.
- * A null marker, or any changed field, means Claim follows `taxSheetFor`.
+ * The snapshot is whatever open-form read was current at submit. A null
+ * marker, or any changed field, means Claim follows `taxSheetFor`.
  */
 export function taxFormSubmissionStillWaiting(
   submitted: TaxFormSubmittedSnapshot | null,
@@ -265,8 +277,8 @@ export function taxFormSubmissionStillWaiting(
 }
 
 /**
- * Claim's sheet. While the remembered snapshot still matches, the payee
- * sees "submitted, checking" instead of the open-form sheet.
+ * Claim's sheet. While the remembered open-form snapshot still matches,
+ * the payee sees "submitted, checking" instead of the form again.
  */
 export function taxSheetForClaim(
   taxMe: TaxMeDto,

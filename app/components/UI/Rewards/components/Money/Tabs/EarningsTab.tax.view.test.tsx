@@ -66,6 +66,10 @@ const OPEN_FORM = taxMe({
   reason: 'NO_FORM',
   can_change_answer: true,
 });
+const TIN_MISMATCH = taxMe({
+  next_action: 'OPEN_FORM',
+  reason: 'TIN_NOT_MATCHED',
+});
 const CLEARED = taxMe({
   state: 'COMPLETE_OR_VERIFIED',
   next_action: 'NONE',
@@ -495,6 +499,41 @@ describe('EarningsTab tax documentation', () => {
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
+    fireEvent.press(
+      await findByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
+    );
+    pageMessage(
+      await findByTestId(REWARDS_TAX_FORM_VIEW_TEST_IDS.WEBVIEW),
+      'tax-form:success',
+    );
+    fireEvent.press(
+      await findByTestId(REWARDS_INFO_SHEET_MODAL_TEST_IDS.GOT_IT),
+    );
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(await findByText(COPY.taxFormPendingTitle)).toBeOnTheScreen();
+    expect(
+      queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the pending sheet after resubmitting a TIN mismatch', async () => {
+    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(TIN_MISMATCH),
+        'RewardsMoneyController:mintTaxFormToken': () =>
+          Promise.resolve({ token: TOKEN, expires_at: '2026-12-01T00:00:00Z' }),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+    expect(await findByText(COPY.taxTinMismatchDescription)).toBeOnTheScreen();
     fireEvent.press(
       await findByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
     );
