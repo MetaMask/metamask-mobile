@@ -2,6 +2,7 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { mobileMfaControllerAdapter } from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
+import type { MfaReason } from './engine/types';
 import Logger from '../../Logger';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
@@ -53,7 +54,10 @@ describe('useMfa', () => {
   });
 
   it('starts a verifyOrEnroll flow on mobile with the feature reason', async () => {
-    const reason = { operation: 'vba.activate', enrollDescription: 'Why' };
+    const reason: MfaReason = {
+      operation: 'vba.activate',
+      enrollDescription: 'Why',
+    };
 
     await renderUseMfa().verifyOrEnroll({
       reason,
@@ -77,7 +81,7 @@ describe('useMfa', () => {
   });
 
   it('starts an enroll flow with the caller reason', async () => {
-    const reason = { operation: 'settings.addEmail' };
+    const reason: MfaReason = { operation: 'settings.addEmail' };
 
     await renderUseMfa().enroll({ method: 'email_otp', reason });
 

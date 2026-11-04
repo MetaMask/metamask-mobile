@@ -431,7 +431,7 @@ describe('MfaFlowHost', () => {
     await act(async () => {
       startMfaFlow({
         request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
-        reason: { operation: 'next', enrollDescription: 'Next reason' },
+        reason: { operation: 'qa.next', enrollDescription: 'Next reason' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);
@@ -467,7 +467,7 @@ describe('MfaFlowHost', () => {
       });
       startMfaFlow({
         request: { kind: 'enroll', method: 'email_otp' },
-        reason: { operation: 'next' },
+        reason: { operation: 'qa.next' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);
