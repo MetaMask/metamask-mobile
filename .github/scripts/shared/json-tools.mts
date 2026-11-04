@@ -9,7 +9,7 @@
  *  - Inline `// ...` comments (outside quoted strings)
  *  - Trailing commas before `]` or `}`
  *
- * Does NOT support `/* ... */` block comments.
+ * Does NOT support block comments (slash-star / star-slash).
  */
 
 /**

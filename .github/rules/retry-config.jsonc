@@ -74,7 +74,9 @@
     "optional": {
       "patterns": [
         "^Check all jobs pass",
-        "^ci-status-gate"
+        "^ci-status-gate",
+        // Advisory dependency check. Its failure should not drive a retry.
+        "^Run `@lavamoat/git-safe-dependencies`"
       ]
     }
   },
@@ -184,7 +186,10 @@
 
   // Patterns that indicate deterministic failures — errors that will never
   // self-heal on retry (code errors, policy mismatches, snapshot drift).
-  // Checked against annotations + log tail when no transient pattern matched.
+  // Checked against annotations + log tail BEFORE transient patterns, so a
+  // deterministic match wins even if a transient pattern also appears. Summary
+  // lines such as "Build failed" and "Test Suites: N failed" are broad and can
+  // mark infrastructure failures non-retryable (see the Phase 1 tradeoff).
   "deterministicErrorPatterns": [
     // === Lint/Format errors ===
     "✖ \\d+ problems? \\(",
