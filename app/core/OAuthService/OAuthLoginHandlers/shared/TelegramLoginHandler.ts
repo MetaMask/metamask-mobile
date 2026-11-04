@@ -180,8 +180,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * 4. Backend 302s to app_redirect_uri?code_challenge=<challenge>
    * 5. App intercepts deep link — promptAsync resolves with success
    *
-   * When a caller nonce is set (MFA recovery), it is also sent as `nonce` so the
-   * Telegram ID token is bound to the recovery proof key.
+   * When a caller nonce is set (MFA recovery), it is sent only as `nonce` so the
+   * Telegram ID token is bound to the recovery proof key. CSRF `state` stays
+   * a fresh random value and must not reuse the derivable caller nonce.
    *
    * @returns LoginHandlerCodeResult with codeVerifier for the verify step
    */
@@ -191,10 +192,13 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       `${this.#getAuthenticationServerUrl()}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
     );
 
-    initiateUrl.searchParams.set('state', this.nonce);
+    // CSRF `state` must stay random. When MFA recovery supplies a bound nonce,
+    // `this.nonce` is derivable from (proofPublicKey, requestHash) — never reuse
+    // it as `state`. Send the caller nonce only as OIDC `nonce`.
+    const csrfState = this.hasCallerNonce ? this.generateNonce() : this.nonce;
+    initiateUrl.searchParams.set('state', csrfState);
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
-    // Recovery binds the PoP key into the ID token; normal login keeps state only.
     if (this.hasCallerNonce) {
       initiateUrl.searchParams.set('nonce', this.nonce);
     }

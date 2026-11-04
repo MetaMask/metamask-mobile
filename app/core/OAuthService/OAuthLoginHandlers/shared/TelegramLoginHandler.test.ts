@@ -235,7 +235,7 @@ describe('TelegramLoginHandler', () => {
       ).toBeTruthy();
     });
 
-    it('sends the caller nonce on initiate for MFA recovery', async () => {
+    it('keeps state random and sends the caller nonce only as nonce for MFA recovery', async () => {
       const recoveryNonce = `0x${'ab'.repeat(32)}`;
       handler = new TelegramLoginHandler({
         ...baseOptions,
@@ -252,9 +252,9 @@ describe('TelegramLoginHandler', () => {
       const [authorizationUrl] = (openAuthSessionAsync as jest.Mock).mock
         .calls[0];
       const parsedAuthorizationUrl = new URL(authorizationUrl);
-      expect(parsedAuthorizationUrl.searchParams.get('state')).toBe(
-        recoveryNonce,
-      );
+      const state = parsedAuthorizationUrl.searchParams.get('state');
+      expect(state).toBeTruthy();
+      expect(state).not.toBe(recoveryNonce);
       expect(parsedAuthorizationUrl.searchParams.get('nonce')).toBe(
         recoveryNonce,
       );

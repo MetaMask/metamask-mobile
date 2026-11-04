@@ -32,7 +32,8 @@ export interface SeedlessAuthData {
   accessToken: string;
   metadataAccessToken: string;
   refreshToken: string;
-  revokeToken?: string;
+  /** Required — matches OAuthService.handleSeedlessAuthenticate. */
+  revokeToken: string;
   authConnection: SeedlessAuthConnection;
   authConnectionId: string;
   groupedAuthConnectionId?: string;
