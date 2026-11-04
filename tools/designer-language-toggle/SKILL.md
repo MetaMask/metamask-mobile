@@ -50,7 +50,7 @@ Start a new Agent chat after linking.
 | Show the longest real translation of every string | `apply-locale.js --pseudo longest` |
 | Find text that can't be translated (hard-coded English) | `apply-locale.js --pseudo accented` |
 | Which strings are on this screen, for a linguist | `screenshot-keys.js --feature perps --lang de` (or `social`) |
-| Only this part of the screen | `screenshot-keys.js --feature perps --match PerpsProPositionCard`. Without it, a designer gets all 996 Perps keys. |
+| Only this part of the screen | `screenshot-keys.js --feature perps --match PerpsProPositionCard`. Without it, a designer gets all 1234 Perps keys. |
 | Report a translation problem | Fill in `FEEDBACK.md`, then submit it through Laurel's intake form |
 | Put it back / revert | `revert-locale.js` |
 
