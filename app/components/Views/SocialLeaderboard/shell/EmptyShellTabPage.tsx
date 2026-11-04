@@ -21,7 +21,6 @@ import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialSer
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import { useMyProfile } from '../MyProfileView/hooks';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
@@ -121,9 +120,8 @@ export interface EmptyShellTabPageProps {
 }
 
 /**
- * Social Bundle V1 Trending / Following page: mocked position cards until the
- * API supplies post/comment fields. Following also pins the viewer's own new
- * posts until the feed returns them.
+ * Social Bundle V1 Trending / Following page. A just-written post appears
+ * here only once the feed API returns it.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
@@ -141,7 +139,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   onQuickBuy,
 }) => {
   const tw = useTailwind();
-  const { profile: myProfile } = useMyProfile();
   const {
     onAuthorPress: handleAuthorPress,
     onPositionPress: handlePositionPress,
@@ -159,7 +156,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     refresh,
     dataUpdatedAt,
   } = useSocialV1Feed(tab, {
-    ownerProfileId: myProfile?.profileId,
     isActive,
   });
   const { isEntryHidden } = useSocialEntryModeration();
@@ -368,8 +364,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   );
 
   const showInitialFeedSkeletons = isLoading && posts.length === 0;
-  // Posting opens Following, often before its first page has loaded: the
-  // viewer's pinned post stays on screen above the skeletons meanwhile.
   const showPinnedPostsWhileLoading =
     showInitialFeedSkeletons && visiblePinnedPosts.length > 0;
   // The tab feed itself came back empty. Hidden posts can also leave the list

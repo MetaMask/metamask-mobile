@@ -1071,12 +1071,17 @@ describe('SocialFeedPositionCard', () => {
         store.publish('perp:BTC', 101_000);
       });
 
-      expect(
-        within(screen.getByLabelText('+$3K')).getByText('K'),
-      ).toBeOnTheScreen();
-      expect(
-        within(screen.getByLabelText('+30.00%')).getByText('3'),
-      ).toBeOnTheScreen();
+      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
+      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
+        '3',
+      );
+
+      expect(pnlValue).toBeOnTheScreen();
+      expect(pnlPercent).toBeOnTheScreen();
+      // The glyph row defaults to the condensed hero face. These numbers stay
+      // on Inter so a live card matches the static one.
+      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
+      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
     });
   });
 
