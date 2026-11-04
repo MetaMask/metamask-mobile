@@ -2398,13 +2398,16 @@ describe('PerpsOrderView', () => {
 
   describe('when the Trade sheet closes while account support is pending', () => {
     const arrangePendingAccountSupport = async () => {
-      let resolveAccountSupport: (result: 'supported') => void = () =>
-        undefined;
+      let resolveAccountSupport: (
+        result: 'supported' | 'unsupported' | 'stale' | 'unmounted',
+      ) => void = () => undefined;
       mockCheckAccountSupport.mockImplementationOnce(
         () =>
-          new Promise<'supported'>((resolve) => {
-            resolveAccountSupport = resolve;
-          }),
+          new Promise<'supported' | 'unsupported' | 'stale' | 'unmounted'>(
+            (resolve) => {
+              resolveAccountSupport = resolve;
+            },
+          ),
       );
       const placeOrder = jest.fn().mockResolvedValue({ success: true });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -2422,9 +2425,15 @@ describe('PerpsOrderView', () => {
       });
       expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
 
-      const settleAccountSupport = () =>
+      const settleAccountSupport = (
+        result:
+          | 'supported'
+          | 'unsupported'
+          | 'stale'
+          | 'unmounted' = 'supported',
+      ) =>
         act(async () => {
-          resolveAccountSupport('supported');
+          resolveAccountSupport(result);
           await submission;
         });
 
@@ -2450,6 +2459,15 @@ describe('PerpsOrderView', () => {
 
       unmount();
       await settleAccountSupport();
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not place an order when the support check resolves unmounted', async () => {
+      const { placeOrder, settleAccountSupport } =
+        await arrangePendingAccountSupport();
+
+      await settleAccountSupport('unmounted');
 
       expect(placeOrder).not.toHaveBeenCalled();
     });
@@ -2757,6 +2775,28 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(placeOrder).not.toHaveBeenCalled();
 
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+    });
+
+    // The support hook reports unmounted once this view is gone. Funds
+    // arriving later still re-enter `handlePlaceOrder(true)` and must place.
+    it('places the order when support resolves unmounted after the deposit view is gone', async () => {
+      mockCheckAccountSupport
+        .mockResolvedValueOnce('supported')
+        .mockResolvedValueOnce('unmounted');
+      const {
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+        unmount,
+      } = arrangeDepositFlow();
+
+      await submit();
+      await settleConfirm();
+      unmount();
       await confirmDepositOnChain();
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
