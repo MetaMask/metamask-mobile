@@ -38,20 +38,12 @@ interface ChoiceRow {
   yes: PredictOutcome;
 }
 
-/** Rows in the group's display order, then response order. */
+/** Rows in the order received; the layout projection already sorted them. */
 const toRows = (markets: readonly PredictMarket[]): ChoiceRow[] =>
-  markets
-    .map((market, index) => ({
-      market,
-      yes: market.outcomes.find((outcome) => outcome.side === 'yes'),
-      order: market.group?.displayOrder ?? index,
-    }))
-    .filter(
-      (row): row is typeof row & { yes: PredictOutcome } =>
-        row.yes !== undefined,
-    )
-    .sort((left, right) => left.order - right.order)
-    .map(({ market, yes }) => ({ market, yes }));
+  markets.flatMap((market) => {
+    const yes = market.outcomes.find((outcome) => outcome.side === 'yes');
+    return yes ? [{ market, yes }] : [];
+  });
 
 /**
  * A card of rows, one per Market of a `choice` group, each priced by its yes

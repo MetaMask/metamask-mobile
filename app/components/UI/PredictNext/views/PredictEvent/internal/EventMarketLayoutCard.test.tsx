@@ -158,6 +158,60 @@ describe('EventMarketLayoutCard', () => {
     );
   });
 
+  it('reads the label from any row, not only the first', () => {
+    renderCard({
+      ...henry,
+      markets: [
+        createMarket('henry-20', { key: 'henry', groupType: 'choice' }, 'away'),
+        ...henry.markets,
+      ],
+    });
+
+    expect(
+      screen.getByTestId(ChoiceMarketGroupCardTestIds.title('henry')),
+    ).toHaveTextContent('Derrick Henry');
+  });
+
+  // A Player the backend couldn't name: every row backs the same Team.
+  it('renders unlabelled rows that back one Team as an untitled choice card with their own labels', () => {
+    const unnamed: MarketLayoutCard = {
+      type: 'choice',
+      key: 'unnamed',
+      markets: ['40+ yards', '60+ yards'].map((id) =>
+        createMarket(id, { key: 'unnamed', groupType: 'choice' }, 'away'),
+      ),
+    };
+    renderCard(unnamed);
+
+    expect(
+      screen.queryByTestId(MoneylineMarketGroupCardTestIds.card('unnamed')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ChoiceMarketGroupCardTestIds.title('unnamed')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        ChoiceMarketGroupCardTestIds.row('unnamed', '40+ yards'),
+      ),
+    ).toHaveTextContent(/40\+ yards/);
+    expect(
+      screen.getByTestId(
+        ChoiceMarketGroupCardTestIds.row('unnamed', '60+ yards'),
+      ),
+    ).toHaveTextContent(/60\+ yards/);
+  });
+
+  it('renders a single unlabelled row as a choice card, not a moneyline', () => {
+    renderCard({ ...moneyline, markets: moneyline.markets.slice(0, 1) });
+
+    expect(
+      screen.queryByTestId(MoneylineMarketGroupCardTestIds.card('moneyline')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(ChoiceMarketGroupCardTestIds.row('moneyline', 'away')),
+    ).toHaveTextContent(/away/);
+  });
+
   it('colors a labelled choice card neutrally without a Game', () => {
     renderCard(henry, { withGame: false });
 

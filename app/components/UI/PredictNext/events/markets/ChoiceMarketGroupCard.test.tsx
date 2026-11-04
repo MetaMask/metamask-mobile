@@ -66,7 +66,8 @@ const describeRow = (
 });
 
 describe('ChoiceMarketGroupCard', () => {
-  it('shows the title and one row per Market in display order', () => {
+  // The layout projection sorts by displayOrder; the card doesn't sort again.
+  it('shows the title and one row per Market in the order received', () => {
     render(
       <ChoiceMarketGroupCard
         groupKey={GROUP}
@@ -83,7 +84,7 @@ describe('ChoiceMarketGroupCard', () => {
       screen
         .getAllByTestId(new RegExp(`^${TestIds.row(GROUP, '')}henry-\\d+$`))
         .map((row) => row.props.testID),
-    ).toEqual([TestIds.row(GROUP, 'henry-40'), TestIds.row(GROUP, 'henry-60')]);
+    ).toEqual([TestIds.row(GROUP, 'henry-60'), TestIds.row(GROUP, 'henry-40')]);
     expect(
       screen.getByTestId(TestIds.row(GROUP, 'henry-40')),
     ).toHaveTextContent(/40\+ yards.*40¢/);
