@@ -12,6 +12,8 @@ import AgenticService, {
   type ReactDevToolsHook,
 } from './AgenticService';
 import Engine from '../../core/Engine';
+import ReactQueryService from '../../core/ReactQueryService';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../components/UI/Money/queryKeys';
 import { emitStepHud } from './AgentStepHud';
 import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-react-native';
 import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
@@ -860,6 +862,33 @@ describe('AgenticService.install', () => {
 
   it('getState returns navigation state', () => {
     expect(bridge().getState()).toEqual({});
+  });
+
+  it('seedMoneyBalance writes the Money balance query cache', () => {
+    const setQueryData = jest.spyOn(
+      ReactQueryService.queryClient,
+      'setQueryData',
+    );
+
+    const result = bridge().seedMoneyBalance({
+      address: '0x0000000000000000000000000000000000000001',
+      totalBalance: '1234560000',
+    });
+
+    expect(setQueryData).toHaveBeenCalledWith(
+      [
+        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+        '0x0000000000000000000000000000000000000001',
+      ],
+      {
+        totalBalance: '1234560000',
+        musdBalance: '1234560000',
+        vmusdValueInMusd: '0',
+        source: 'api',
+        usedFallback: false,
+      },
+    );
+    expect(result.ok).toBe(true);
   });
 
   it('reads detached Perps observations without controller or stream operations', () => {
