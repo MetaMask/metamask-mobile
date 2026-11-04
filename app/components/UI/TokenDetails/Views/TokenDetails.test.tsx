@@ -34,7 +34,6 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -55,6 +54,30 @@ const getSelectedAccountByScopeStub = (scope: string) =>
   scope.startsWith('eip155:')
     ? { address: '0x1234567890123456789012345678901234567890' }
     : { address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61' };
+
+// Shared default useSelector implementation used by the beforeEach and reused by
+// helpers that only need to override a single flag. Keeping a single source of
+// truth guarantees factory selectors (e.g. selectSelectedInternalAccountByScope
+// returns a function) and the bridge/deposit selectors stay handled everywhere.
+const defaultSelectorImpl = (selector: unknown): unknown => {
+  if (selector === selectNetworkConfigurationByChainId)
+    return { name: 'Ethereum' };
+  if (selector === selectNetworkConfigurations)
+    return { '0x1': { nativeCurrency: 'ETH' } };
+  if (selector === selectCurrencyRates)
+    // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+    return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+  if (selector === getRampNetworks) return [];
+  if (selector === selectDepositActiveFlag) return false;
+  if (selector === selectDepositMinimumVersionFlag) return null;
+  if (selector === selectSelectedInternalAccountByScope)
+    return getSelectedAccountByScopeStub;
+  if (selector === selectBridgeLimitOrderFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  if (selector === selectBridgeRecurringBuyFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  return undefined;
+};
 
 jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: () => 'HIGH',
@@ -595,25 +618,7 @@ describe('TokenDetails', () => {
       tokenFormattedBalance: '1.5 ETH',
     });
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkConfigurationByChainId)
-        return { name: 'Ethereum' };
-      if (selector === selectNetworkConfigurations)
-        return { '0x1': { nativeCurrency: 'ETH' } };
-      if (selector === selectCurrencyRates)
-        // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === getRampNetworks) return [];
-      if (selector === selectDepositActiveFlag) return false;
-      if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectSelectedInternalAccountByScope)
-        return getSelectedAccountByScopeStub;
-      if (selector === selectBridgeLimitOrderFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      if (selector === selectBridgeRecurringBuyFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      return undefined;
-    });
+    mockUseSelector.mockImplementation(defaultSelectorImpl);
   });
 
   it('loads the most recent order for the current asset', () => {
@@ -639,19 +644,14 @@ describe('TokenDetails', () => {
 
   describe('trader position P&L footer', () => {
     const applySelectorsWithMemeFlag = (flagEnabled: boolean) => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsMemecoinTdpV1Enabled) return flagEnabled;
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectNetworkConfigurations)
-          return { '0x1': { nativeCurrency: 'ETH' } };
-        if (selector === selectCurrencyRates)
-          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-        if (selector === getRampNetworks) return [];
-        if (selector === selectSelectedInternalAccountFormattedAddress)
-          return '0x1234567890123456789012345678901234567890';
-        return undefined;
-      });
+      // Delegate to the default selector impl so factory selectors (e.g.
+      // selectSelectedInternalAccountByScope returns a function) and the
+      // bridge/deposit selectors stay handled; only override the meme flag.
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectAssetsMemecoinTdpV1Enabled
+          ? flagEnabled
+          : defaultSelectorImpl(selector),
+      );
     };
 
     it('never mounts the position hook when the flag is off', () => {
