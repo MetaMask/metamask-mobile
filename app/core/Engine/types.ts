@@ -13,6 +13,7 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
+  NftDetectionControllerDetectNftsAction,
   TokenListService,
   TokensController,
   TokensControllerActions,
@@ -516,10 +517,12 @@ import {
   ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
-type NftDetectionControllerActions = ControllerGetStateAction<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+type NftDetectionControllerActions =
+  | ControllerGetStateAction<
+      'NftDetectionController',
+      NftDetectionController['state']
+    >
+  | NftDetectionControllerDetectNftsAction;
 
 type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
