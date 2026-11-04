@@ -14,6 +14,10 @@ import type {
 import { initialState as pointsRewardsInitialState } from '../../../app/reducers/rewards';
 import { initialState as rewardsMoneyInitialState } from '../../../app/reducers/rewardsMoney';
 import type { MoneyDashboardPersona } from '../../../app/reducers/rewardsMoney/selectors';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/constants/socialV1';
 import { createStateFixture } from '../stateFixture';
 
 export const REWARDS_MONEY_PROFILE_ID = 'profile-a';
@@ -463,6 +467,12 @@ export interface RewardsMoneyViewStateOptions {
   /** Remote `glassHeaders`: the header floats over the content on glass. */
   glassHeaders?: boolean;
   /**
+   * Social V1 on: the leaderboard flag and the A/B treatment that gate trading
+   * commissions on the hero cards, the Earnings breakdown and the Performance
+   * tab. Defaults on, so the Money screens show commissions as they always did.
+   */
+  socialV1?: boolean;
+  /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
    */
@@ -488,6 +498,7 @@ export function rewardsMoneyViewState({
   geoLocation = null,
   moneyControllerEnabled = false,
   glassHeaders = false,
+  socialV1 = true,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
@@ -515,6 +526,13 @@ export function rewardsMoneyViewState({
       enabled: true,
       minimumVersion: '1.0.0',
     };
+  }
+  if (socialV1) {
+    remoteFeatureFlags.aiSocialLeaderboardEnabled = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+    remoteFeatureFlags[SOCIAL_V1_AB_KEY] = SocialV1Variant.Treatment;
   }
 
   return createStateFixture()

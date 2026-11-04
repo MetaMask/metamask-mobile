@@ -81,11 +81,13 @@ describe('EarningsTab', () => {
   });
 
   it('does not offer Claim to a referrer who has exactly $1 of cashback', async () => {
+    // Social V1 off: a referrer's claimable amount row stays hidden.
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,
       initiateClaim: 'hang',
+      socialV1: false,
     });
 
     expect(
