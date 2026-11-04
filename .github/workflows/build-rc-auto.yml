@@ -539,7 +539,9 @@ jobs:
 
   # TODO: Check out scripts/build-announce from a pinned commit on main in post-rc-build-comment
   # and add-rc-test-plan, and pass github.sha as HEAD_REF, so neither job runs release-branch
-  # code with a write token. The pinned commit must already contain add-test-plan.ts.
+  # code with a write token. Call generate-rc-test-plan.yml at that same commit
+  # (MetaMask/metamask-mobile/.github/workflows/generate-rc-test-plan.yml@<sha>), since `./`
+  # loads it from the release branch. The pinned commit must already contain add-test-plan.ts.
   post-rc-build-comment:
     name: Post RC Build Comment
     runs-on: ubuntu-latest
