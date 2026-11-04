@@ -160,6 +160,9 @@ export const useHomeTabDefinitions = ({
       nativeIcon: NATIVE_TAB_ICONS.social,
       freezeOnBlur: false,
       showNewBadge: showSocialTabNewBadge,
+      // UIKit selects a native tab before `tabPress`. Social V1 has to refuse
+      // that selection so the profile gate can open onboarding instead.
+      ...(isSocialV1Enabled ? { tabBarSelectionEnabled: false } : null),
     };
 
     if (isSocialV1Enabled) {
@@ -202,7 +205,8 @@ export const useHomeTabDefinitions = ({
           playImpact(ImpactMoment.TabChange);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
-          // UIKit already selected the tab; this mirrors the JS bars' nested navigation.
+          // User taps on a selectable tab have already selected it. Social V1
+          // opts out, so this listener is what selects that tab after the gate.
           switch (tab.rootScreenName) {
             case Routes.WALLET_VIEW:
               navigation.navigate(Routes.WALLET.HOME, {

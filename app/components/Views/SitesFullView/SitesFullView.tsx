@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
@@ -22,10 +22,11 @@ import {
 import {
   HeaderSearch,
   HeaderSearchVariant,
-  HeaderStandard,
   IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
 
 type SitesFullViewParams = { mode?: 'favorites' } | undefined;
 
@@ -47,6 +48,7 @@ const createStyles = (theme: Theme) =>
   });
 
 const SitesFullView: React.FC = () => {
+  const isGlassHeader = useSelector(selectExploreBrandRefreshEnabled) === true;
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
@@ -160,7 +162,9 @@ const SitesFullView: React.FC = () => {
             twClassName="mr-0 mb-0"
           />
         ) : (
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={title}
             onBack={handleBackPress}
             backButtonProps={{

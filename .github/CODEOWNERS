@@ -278,6 +278,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
+app/components/Views/SocialLeaderboard/ManageProfileView         @MetaMask/accounts-engineers
 
 # Predict Team
 app/components/UI/Predict/                                              @MetaMask/predict
@@ -292,7 +293,6 @@ app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMas
 app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
-app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict
 
 # Assets Team
 app/*/assets/** @MetaMask/metamask-assets

@@ -24,6 +24,13 @@ import {
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: 'viewer-profile-id',
+    isLoading: false,
+  }),
+}));
+
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
   getApplicationName: () => Promise.resolve('applicationName'),
@@ -114,12 +121,14 @@ jest.mock('./SocialFeedPositionCard', () => {
     PositionCardBody: ({
       item,
       onCopyTrade,
+      showCopyTrade = true,
     }: {
       item: { id: string };
       onCopyTrade?: () => void;
+      showCopyTrade?: boolean;
     }) => (
       <MockView testID={`social-feed-position-card-${item.id}`}>
-        {onCopyTrade ? (
+        {showCopyTrade && onCopyTrade ? (
           <Pressable
             testID={`social-feed-position-card-copy-trade-${item.id}`}
             onPress={onCopyTrade}
@@ -149,6 +158,8 @@ const renderShell = (
     onAuthorPress?: (post: SocialV1FeedPost) => void;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
+    requireSocialProfile?: boolean;
+    showCopyTrade?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Turns on `aiSocialCommentTranslation` for this render. */
@@ -164,9 +175,11 @@ const renderShell = (
     <SocialFeedPostShell
       post={post}
       requireSocialTerms
+      requireSocialProfile={options?.requireSocialProfile}
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}
+      showCopyTrade={options?.showCopyTrade}
     />
   );
   return renderWithProvider(
@@ -787,6 +800,74 @@ describe('SocialFeedPostShell', () => {
         );
       });
       expect(onCopyTrade).not.toHaveBeenCalled();
+    });
+
+    it('navigates to profile onboarding instead of copying without a linked wallet', () => {
+      mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+        mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        return false;
+      });
+
+      renderShell(basePost(), { requireSocialProfile: true });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.MODALS.ROOT,
+        expect.anything(),
+      );
+    });
+
+    it('copies a trade without a linked wallet when the profile gate is off', async () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+
+      renderShell(basePost());
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+          }),
+        );
+      });
+    });
+
+    it('forwards a spot copy only after the linked wallet gate passes', () => {
+      mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+        mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        return false;
+      });
+      const onCopyTrade = jest.fn();
+      const item = mockOpenSpotFeedItem({ id: 'item-spot' });
+
+      renderShell(basePost({ item }), {
+        onCopyTrade,
+        requireSocialProfile: true,
+      });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
+      );
+
+      expect(onCopyTrade).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+    });
+
+    it('hides copy trade when the profile opts out', () => {
+      renderShell(basePost(), { showCopyTrade: false });
+
+      expect(
+        screen.queryByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).toBeNull();
     });
 
     it('does not wire copy trade for a closed position', () => {

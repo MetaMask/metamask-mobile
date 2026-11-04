@@ -347,4 +347,158 @@ describe('ManageProfileTextEditorView', () => {
       ),
     ).toBeOnTheScreen();
   });
+
+  // The cap must match the API's `@MaxLength(160)` bio rule: an over-long bio
+  // comes back as the same 400 as refused content, and the copy below says
+  // "isn't allowed", which would be the wrong reason.
+  it("caps the bio at the API's 160 characters", () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT).props
+        .maxLength,
+    ).toBe(160);
+  });
+
+  it('names refused content when the server rejects a display name', async () => {
+    const updateProfile = jest.fn().mockRejectedValue(
+      Object.assign(new Error('failed to update profile: 400'), {
+        httpStatus: 400,
+      }),
+    );
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      'something the server refuses',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.display_name_unavailable'),
+      ),
+    ).toBeOnTheScreen();
+    // Neither the connection copy nor the bio's copy would explain a name.
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.save_error'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.bio_prohibited'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('names refused content when the server rejects a bio', async () => {
+    const updateProfile = jest.fn().mockRejectedValue(
+      Object.assign(new Error('failed to update profile: 400'), {
+        httpStatus: 400,
+      }),
+    );
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+      'something the server refuses',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+      );
+    });
+
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.bio_prohibited'),
+      ),
+    ).toBeOnTheScreen();
+    // The connection copy would send the user back to the same content.
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.save_error'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('keeps the connection copy when the save fails for any other reason', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('Network request failed'));
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+      'a bio that never reaches the server',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+      );
+    });
+
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.bio_prohibited'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
 });

@@ -33,7 +33,9 @@ import { EnsureAccessRestricted } from '../../../UI/Compliance/contexts/AccessRe
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import { useOpenPerpsOrder } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
+import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { useTraderPosition } from '../TraderPositionView/hooks/useTraderPosition';
 import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetFooter from './components/PositionSheetFooter';
@@ -97,6 +99,8 @@ const PositionDetailsSheet = () => {
   });
 
   const { profile } = useMyProfile();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
@@ -159,12 +163,22 @@ const PositionDetailsSheet = () => {
   );
 
   const handleCopyTrade = useCallback(() => {
+    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
+      return;
+    }
     if (data.isPerp) {
       handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
       return;
     }
     setQuickBuyMode('buy');
-  }, [data.isPerp, data.perpDirection, data.leverage, handlePerpsOrder]);
+  }, [
+    data.isPerp,
+    data.perpDirection,
+    data.leverage,
+    ensureSocialProfileOnboarding,
+    ensureSocialTermsAccepted,
+    handlePerpsOrder,
+  ]);
 
   const handleSummaryPress = useCallback(() => {
     closeThen(() => {

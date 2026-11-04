@@ -9,7 +9,9 @@ import TokenDetailsHoldersTab, {
   TokenDetailsHoldersTabSelectorsIDs,
 } from './HoldersTab';
 import { TOKEN_HOLDERS_FIXTURE } from './holders/tokenHolders.fixture';
-import { TokenHolderRowSelectorsIDs } from './holders/TokenHolderRow';
+import { TokenDetailsIds } from '../../testIds';
+
+const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 import {
   useTokenHolders,
   type TokenHoldersState,
