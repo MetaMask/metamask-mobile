@@ -54,6 +54,13 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));

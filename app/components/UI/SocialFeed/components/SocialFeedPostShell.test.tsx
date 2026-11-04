@@ -24,6 +24,13 @@ import {
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: 'viewer-profile-id',
+    isLoading: false,
+  }),
+}));
+
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
   getApplicationName: () => Promise.resolve('applicationName'),
@@ -114,12 +121,14 @@ jest.mock('./SocialFeedPositionCard', () => {
     PositionCardBody: ({
       item,
       onCopyTrade,
+      showCopyTrade = true,
     }: {
       item: { id: string };
       onCopyTrade?: () => void;
+      showCopyTrade?: boolean;
     }) => (
       <MockView testID={`social-feed-position-card-${item.id}`}>
-        {onCopyTrade ? (
+        {showCopyTrade && onCopyTrade ? (
           <Pressable
             testID={`social-feed-position-card-copy-trade-${item.id}`}
             onPress={onCopyTrade}
@@ -150,6 +159,7 @@ const renderShell = (
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
     requireSocialProfile?: boolean;
+    showCopyTrade?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Turns on `aiSocialCommentTranslation` for this render. */
@@ -169,6 +179,7 @@ const renderShell = (
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}
+      showCopyTrade={options?.showCopyTrade}
     />
   );
   return renderWithProvider(
@@ -849,6 +860,14 @@ describe('SocialFeedPostShell', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SOCIAL.PROFILE_ONBOARDING,
       );
+    });
+
+    it('hides copy trade when the profile opts out', () => {
+      renderShell(basePost(), { showCopyTrade: false });
+
+      expect(
+        screen.queryByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).toBeNull();
     });
 
     it('does not wire copy trade for a closed position', () => {
