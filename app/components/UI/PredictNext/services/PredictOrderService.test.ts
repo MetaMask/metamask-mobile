@@ -153,6 +153,7 @@ const serviceWith = (
       PredictOrderServiceOptions,
       | 'backgroundObservationDelaysMs'
       | 'backgroundObservationWindowMs'
+      | 'maxBackgroundObservations'
       | 'ambiguousCommitGraceMs'
     >
   > = {},
@@ -1034,6 +1035,25 @@ describe('PredictOrderService', () => {
       await jest.advanceTimersByTimeAsync(60_000);
       expect(trading.commitOrder).toHaveBeenCalledTimes(5);
       expect(orderResolved).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops background observation at the call cap, inside the window', async () => {
+      trading.commitOrder.mockResolvedValue(receiptWith({ status: 'pending' }));
+      const orderService = await quote(
+        serviceWith(0, {
+          backgroundObservationDelaysMs: [1_000],
+          maxBackgroundObservations: 2,
+        }),
+      );
+
+      await settleWithFakeTimers(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', commitSigning),
+      );
+      expect(trading.commitOrder).toHaveBeenCalledTimes(4);
+
+      await jest.advanceTimersByTimeAsync(60_000);
+
+      expect(trading.commitOrder).toHaveBeenCalledTimes(6);
     });
 
     it('keeps observing a reconciliation_required operation', async () => {

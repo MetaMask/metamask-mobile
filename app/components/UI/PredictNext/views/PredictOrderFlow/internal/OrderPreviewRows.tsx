@@ -27,6 +27,20 @@ const FEE_SOURCE_LABELS: Record<PredictOrderPreviewFeeSource, string> = {
 
 const QuoteRow = OrderDataRow;
 
+/** Whole cents of a `0.00` dollar string from the invariant display. */
+const displayCents = (dollars: string): bigint => {
+  const [whole = '0', fraction = ''] = dollars.split('.');
+  return BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0').slice(0, 2));
+};
+
+const centsToDollars = (cents: bigint): string => {
+  const sign = cents < 0n ? '-' : '';
+  const magnitude = cents < 0n ? -cents : cents;
+  return `${sign}${magnitude / 100n}.${(magnitude % 100n)
+    .toString()
+    .padStart(2, '0')}`;
+};
+
 /** The emphasized Total row shared by both actions: Total Debit for a buy,
  * its Net Proceeds mirror for a sell. */
 const EmphasizedTotalRow = ({
@@ -52,11 +66,27 @@ const EmphasizedTotalRow = ({
   </Box>
 );
 
-/** Server-quoted buy Preview rows: distinct canonical values, verbatim. */
-const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+/**
+ * Buy Preview rows. The payout, profit and total come from the invariant
+ * display, the worst case the signature allows. Prices and fees are the
+ * server's quote.
+ */
+const BuyPreviewRows = ({
+  preview,
+  display,
+}: {
+  preview: PredictOrderPreview;
+  display?: InvariantDisplay;
+}) => {
   if (preview.action !== 'buy') {
     return null;
   }
+  const payout = display?.payout ?? preview.potentialPayout;
+  const profit = display
+    ? centsToDollars(
+        displayCents(display.payout) - displayCents(display.maxCost),
+      )
+    : preview.potentialProfit;
   return (
     <>
       <QuoteRow
@@ -71,16 +101,16 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
       />
       <QuoteRow
         label={strings('predict_next.order_preview.potential_payout')}
-        value={formatUsd(preview.potentialPayout)}
+        value={formatUsd(payout)}
         testID={PredictOrderFlowTestIds.POTENTIAL_PAYOUT}
         valueColor={TextColor.SuccessDefault}
       />
       <QuoteRow
         label={strings('predict_next.order_preview.potential_profit')}
-        value={formatUsd(preview.potentialProfit)}
+        value={formatUsd(profit)}
         testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
         valueColor={
-          preview.potentialProfit.startsWith('-')
+          profit.startsWith('-')
             ? TextColor.ErrorDefault
             : TextColor.SuccessDefault
         }
@@ -103,17 +133,27 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
         ))}
       </Box>
       <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.total_debit')}
-        value={formatUsd(preview.totalDebit)}
+        label={strings(
+          display
+            ? 'predict_next.order_preview.max_cost'
+            : 'predict_next.order_preview.total_debit',
+        )}
+        value={formatUsd(display?.maxCost ?? preview.totalDebit)}
         testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
       />
     </>
   );
 };
 
-/** Server-quoted sell Preview rows: the Cash Out mirror of the buy rows,
- * with Net Proceeds — the sell counterpart of Total Debit — emphasized. */
-const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+/** Sell Preview rows: the Cash Out mirror of the buy rows. The emphasized
+ * total is the invariant's minimum proceeds when there is a display. */
+const SellPreviewRows = ({
+  preview,
+  display,
+}: {
+  preview: PredictOrderPreview;
+  display?: InvariantDisplay;
+}) => {
   if (preview.action !== 'sell') {
     return null;
   }
@@ -158,16 +198,20 @@ const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
         ))}
       </Box>
       <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.net_proceeds')}
-        value={formatUsd(preview.estimatedNetProceeds)}
+        label={strings(
+          display
+            ? 'predict_next.order_preview.min_proceeds'
+            : 'predict_next.order_preview.net_proceeds',
+        )}
+        value={formatUsd(display?.minProceeds ?? preview.estimatedNetProceeds)}
         testID={PredictOrderFlowTestIds.NET_PROCEEDS}
       />
     </>
   );
 };
 
-/** Server-quoted preview rows: distinct canonical values, verbatim, for the
- * quoted Order Action. */
+/** Preview rows for the quoted Order Action. Totals come from the signing
+ * invariant's display when there is one (ADR-0004). */
 export const OrderPreviewRows = ({
   preview,
   display,
@@ -177,24 +221,7 @@ export const OrderPreviewRows = ({
   display?: InvariantDisplay;
 }) => (
   <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
-    <BuyPreviewRows preview={preview} />
-    <SellPreviewRows preview={preview} />
-    {display ? (
-      <QuoteRow
-        label={strings(
-          preview.action === 'sell'
-            ? 'predict_next.order_preview.min_proceeds'
-            : 'predict_next.order_preview.max_cost',
-        )}
-        value={formatUsd(
-          preview.action === 'sell' ? display.minProceeds : display.maxCost,
-        )}
-        testID={
-          preview.action === 'sell'
-            ? PredictOrderFlowTestIds.MIN_PROCEEDS
-            : PredictOrderFlowTestIds.MAX_COST
-        }
-      />
-    ) : null}
+    <BuyPreviewRows preview={preview} display={display} />
+    <SellPreviewRows preview={preview} display={display} />
   </Box>
 );

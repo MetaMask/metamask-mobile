@@ -17,6 +17,8 @@ export enum PredictErrorCode {
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
   INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
   POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
+  /** The user has no enabled venue account yet. Onboarding resolves it. */
+  VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -126,6 +128,11 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.POSITION_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'Your position is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED]: {
+    category: 'unavailable',
+    message: 'Finish setting up your account to continue.',
     recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {

@@ -463,6 +463,7 @@ export class PredictPortfolioService extends BaseDataService<
    * @returns Nothing.
    */
   async clearAccountData(): Promise<void> {
+    this.#portfolio.clearAccountState?.();
     await this.cancelQueries();
     this.#queryCache.clear();
     this.#cachedReads.clear();

@@ -37,6 +37,8 @@ export interface VenuePortfolioAdapter {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<PredictActivityPage>;
+  /** Drops state the adapter holds for the current Predict User. */
+  clearAccountState?(): void;
 }
 
 /** Trading is a write-adjacent capability: requests are never cached and

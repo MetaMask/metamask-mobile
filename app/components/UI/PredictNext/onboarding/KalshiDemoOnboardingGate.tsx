@@ -28,6 +28,7 @@ import {
   useKalshiDemoOnboarding,
   type KalshiOnboardingApi,
 } from './internal/useKalshiDemoOnboarding';
+import { useVenueAccountNotEnabled } from './internal/useVenueAccountNotEnabled';
 
 const POLL_INTERVAL_MS = 2_000;
 /** Slow or absent links poll less. Unknown (`null`) keeps the default. */
@@ -125,13 +126,16 @@ export const KalshiDemoOnboardingGate = ({
     subscribeKalshiRelink,
     getKalshiRelinkNonce,
   );
+  // A read that finds no enabled account remounts the flow, which reads
+  // status again and opens onboarding.
+  const accountNotEnabled = useVenueAccountNotEnabled(KALSHI_VENUE_ID);
 
   return (
     <>
       {children}
       {client ? (
         <KalshiDemoOnboardingFlow
-          key={relinkNonce}
+          key={`${relinkNonce}:${accountNotEnabled}`}
           client={client}
           walletAddress={walletAddress}
           relink={relinkNonce > 0}

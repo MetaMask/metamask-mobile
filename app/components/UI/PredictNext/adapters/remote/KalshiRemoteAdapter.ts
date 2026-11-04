@@ -90,8 +90,9 @@ const mapError = (error: unknown): never => {
     if (error.bodyCode === 'venue_authorization_invalid') {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
     }
+    // The onboarding gate watches for this code and reopens onboarding.
     if (error.bodyCode === 'venue_account_not_enabled') {
-      throw PredictError.from(PredictErrorCode.BALANCE_UNAVAILABLE, {
+      throw PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED, {
         metadata,
       });
     }
@@ -226,6 +227,7 @@ export class KalshiRemoteAdapter {
     };
 
     this.portfolio = {
+      clearAccountState: () => client.clearAccountState?.(),
       fetchBalance: async (options) => {
         try {
           const value = await client.fetchBalance(this.venueId, options);

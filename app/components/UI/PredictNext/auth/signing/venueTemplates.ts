@@ -160,7 +160,10 @@ export interface InvariantDisplay {
   readonly maxCost: string;
   /** Contract count from the rendered body. */
   readonly contracts: string;
-  /** Worst sell proceeds, in dollars, rounded down to the cent. */
+  /** What the contracts pay if the outcome wins, in dollars. */
+  readonly payout: string;
+  /** Worst sell proceeds after the fee ceiling, in dollars, rounded down to
+   * the cent. */
   readonly minProceeds: string;
 }
 
@@ -180,7 +183,8 @@ export type TemplateRule =
   | 'max_bytes'
   | 'idempotency_key'
   | 'invariant'
-  | 'confirmation';
+  | 'confirmation'
+  | 'max_signatures';
 
 /** A request cannot be rendered. Nothing is signed or relayed. */
 export class TemplateError extends Error {
@@ -247,10 +251,18 @@ const checkShape = (
         fail('is not an allowed decimal');
         return;
       }
-      const min =
-        shape.min === undefined ? undefined : scaled(shape.min, shape.scale);
-      const max =
-        shape.max === undefined ? undefined : scaled(shape.max, shape.scale);
+      const bound = (text: string | undefined): bigint | undefined => {
+        if (text === undefined) {
+          return undefined;
+        }
+        const parsedBound = scaled(text, shape.scale);
+        if (parsedBound === undefined) {
+          throw new TemplateError('shape', `${rule} has a malformed bound`);
+        }
+        return parsedBound;
+      };
+      const min = bound(shape.min);
+      const max = bound(shape.max);
       if (
         (min !== undefined && parsed < min) ||
         (max !== undefined && parsed > max)
@@ -371,12 +383,20 @@ const isScalar = (value: unknown): value is Scalar =>
   typeof value === 'number' ||
   typeof value === 'boolean';
 
-/** RFC 3986 unreserved characters stay as they are. */
-const encode = (text: string): string =>
-  encodeURIComponent(text).replace(
+/** RFC 3986 unreserved characters stay as they are. A lone surrogate has no
+ * UTF-8 encoding and is refused. */
+const encode = (text: string, rule: 'path' | 'query'): string => {
+  let encoded: string;
+  try {
+    encoded = encodeURIComponent(text);
+  } catch {
+    throw new TemplateError(rule, 'not encodable');
+  }
+  return encoded.replace(
     /[!'()*]/gu,
     (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
   );
+};
 
 const renderPath = (
   template: RequestTemplate,
@@ -395,7 +415,12 @@ const renderPath = (
       if (!isScalar(value)) {
         throw new TemplateError('path', `${name} is not a scalar`);
       }
-      return encode(String(value));
+      const text = String(value);
+      // Dot segments would move the request to another path once resolved.
+      if (text === '' || text === '.' || text === '..') {
+        throw new TemplateError('path', `${name} is not a path segment`);
+      }
+      return encode(text, 'path');
     },
   );
   if (used.size !== Object.keys(params).length) {
@@ -428,7 +453,9 @@ const renderQuery = (
     if (!isScalar(value)) {
       throw new TemplateError('query', `${entry.key} is not a scalar`);
     }
-    pairs.push(`${encode(entry.key)}=${encode(String(value))}`);
+    pairs.push(
+      `${encode(entry.key, 'query')}=${encode(String(value), 'query')}`,
+    );
   }
   return pairs.join('&');
 };
@@ -440,7 +467,7 @@ const renderBody = (
   if (template.body === undefined || template.body === 'empty') {
     return '';
   }
-  const object: Record<string, unknown> = {};
+  const object: Record<string, unknown> = Object.create(null);
   for (const field of template.body.json) {
     if (has(object, field.key)) {
       throw new TemplateError('body', `duplicate key ${field.key}`);
@@ -550,7 +577,7 @@ const checkBinaryLimitOrder = (
     }
   }
   const fee = BigInt(feeCeilingCentsPerContract) * 100n;
-  const proceeds = count * outcomeLimit;
+  const proceeds = outcomeLimit > fee ? count * (outcomeLimit - fee) : 0n;
   const cost = count * (outcomeLimit + fee);
   if (action === 'buy') {
     const amount = context.inputs[amountInput];
@@ -577,6 +604,8 @@ const checkBinaryLimitOrder = (
   return {
     maxCost: dollarsFromCents((cost + 9_999n) / 10_000n),
     contracts: bodyField(body, countField, implementation),
+    // `count` is in hundredths of a contract, and a contract pays one dollar.
+    payout: dollarsFromCents(count),
     minProceeds: dollarsFromCents(proceeds / 10_000n),
   };
 };
@@ -629,7 +658,15 @@ const renderRequest = (
   if (template.idempotencyKey === undefined) {
     throw new TemplateError('idempotency_key', name);
   }
-  const key = resolve(template.idempotencyKey, context);
+  let key: unknown;
+  try {
+    key = resolve(template.idempotencyKey, context);
+  } catch (error) {
+    if (error instanceof TemplateError && error.rule === 'shape') {
+      throw new TemplateError('idempotency_key', name);
+    }
+    throw error;
+  }
   if (typeof key !== 'string' || key.length === 0 || key.length > 128) {
     throw new TemplateError('idempotency_key', name);
   }

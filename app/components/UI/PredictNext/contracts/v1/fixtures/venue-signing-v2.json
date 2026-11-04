@@ -248,7 +248,10 @@
         "path": "/trade-api/v2/isv/enrollment/intents",
         "body": "empty",
         "idempotencyKey": {
-          "input": "idempotencyKey"
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
         }
       },
       "link": {
@@ -272,7 +275,10 @@
           "maxBytes": 512
         },
         "idempotencyKey": {
-          "input": "idempotencyKey"
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
         }
       },
       "link_verify": {
@@ -295,7 +301,10 @@
           "maxBytes": 128
         },
         "idempotencyKey": {
-          "input": "idempotencyKey"
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
         }
       },
       "wallet_register": {
@@ -328,7 +337,10 @@
           "maxBytes": 512
         },
         "idempotencyKey": {
-          "input": "idempotencyKey"
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
         }
       },
       "position": {
@@ -342,7 +354,7 @@
               "input": "marketId",
               "shape": {
                 "kind": "opaque",
-                "maxLength": 128
+                "maxLength": 256
               }
             }
           },
@@ -371,7 +383,7 @@
               "input": "marketId",
               "shape": {
                 "kind": "opaque",
-                "maxLength": 128
+                "maxLength": 256
               }
             }
           }
@@ -389,7 +401,7 @@
                 "input": "marketId",
                 "shape": {
                   "kind": "opaque",
-                  "maxLength": 128
+                  "maxLength": 256
                 }
               }
             },
@@ -501,7 +513,7 @@
               "input": "marketId",
               "shape": {
                 "kind": "opaque",
-                "maxLength": 128
+                "maxLength": 256
               }
             }
           },

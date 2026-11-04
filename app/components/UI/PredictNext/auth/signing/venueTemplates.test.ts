@@ -499,3 +499,152 @@ describe('renderStep refusals', () => {
     ).toBe('transform');
   });
 });
+
+describe('renderStep generic refusals', () => {
+  /** One read whose path segment and query value come straight from inputs. */
+  const passthrough: TemplateProfile = {
+    operations: {
+      op: { class: 'read', steps: { default: [{ request: 'r' }] } },
+    },
+    requests: {
+      r: {
+        class: 'read',
+        method: 'GET',
+        path: '/items/{id}',
+        pathParams: { id: { input: 'id' } },
+        query: [{ key: 'q', value: { input: 'q' } }],
+      },
+    },
+  };
+  const read = (inputs: TemplateInputs) =>
+    ruleOf(() => render('op', 'default', inputs, {}, passthrough));
+
+  it('refuses dot segments and an empty path parameter', () => {
+    expect(read({ id: 'abc', q: 'x' })).toBeUndefined();
+    expect(read({ id: '.', q: 'x' })).toBe('path');
+    expect(read({ id: '..', q: 'x' })).toBe('path');
+    expect(read({ id: '', q: 'x' })).toBe('path');
+  });
+
+  it('refuses a lone surrogate as a template error', () => {
+    expect(read({ id: '\uD800', q: 'x' })).toBe('path');
+    expect(read({ id: 'abc', q: '\uDFFF' })).toBe('query');
+  });
+
+  it('refuses a decimal shape with a malformed bound instead of skipping it', () => {
+    const profile: TemplateProfile = {
+      ...synthetic,
+      requests: {
+        ...synthetic.requests,
+        create: {
+          ...(synthetic.requests.create as object),
+          body: {
+            json: [
+              {
+                key: 'price',
+                value: {
+                  value: 'price',
+                  shape: { kind: 'decimal', scale: 4, max: 'not-a-number' },
+                },
+              },
+            ],
+            maxBytes: 400,
+          },
+        } as never,
+      },
+    };
+
+    expect(
+      ruleOf(() =>
+        render(
+          'orders.commit',
+          'submit',
+          order,
+          { count: '1.00', price: '0.5000' },
+          profile,
+        ),
+      ),
+    ).toBe('shape');
+  });
+
+  it('reports a misshaped idempotency key as an idempotency key refusal', () => {
+    const profile: TemplateProfile = {
+      ...synthetic,
+      requests: {
+        ...synthetic.requests,
+        create: {
+          ...(synthetic.requests.create as object),
+          idempotencyKey: {
+            input: 'idempotencyKey',
+            shape: { kind: 'uuid-v4' },
+          },
+        } as never,
+      },
+    };
+
+    expect(
+      ruleOf(() =>
+        render(
+          'orders.commit',
+          'submit',
+          { ...order, idempotencyKey: 'not-a-uuid' },
+          { count: '1.00', price: '0.5000' },
+          profile,
+        ),
+      ),
+    ).toBe('idempotency_key');
+  });
+
+  it('does not let a body key reach the object prototype', () => {
+    const profile: TemplateProfile = {
+      operations: {
+        op: { class: 'mutation', steps: { default: [{ request: 'w' }] } },
+      },
+      requests: {
+        w: {
+          class: 'mutation',
+          method: 'POST',
+          path: '/w',
+          idempotencyKey: { input: 'idempotencyKey' },
+          body: {
+            json: [{ key: '__proto__', value: { const: 'x' } }],
+            maxBytes: 64,
+          },
+        },
+      },
+    };
+
+    expect(
+      render('op', 'default', { idempotencyKey: KEY }, {}, profile)[0]?.body,
+    ).toBe('{"__proto__":"x"}');
+  });
+});
+
+describe('binary-limit-order-v1 display', () => {
+  const kalshiSell = (price: string, count: string, contracts: string) =>
+    renderStep(kalshi, 'orders.commit', 'submit', {
+      inputs: {
+        action: 'sell',
+        outcome: 'yes',
+        marketId: 'MKT',
+        idempotencyKey: KEY,
+        contracts,
+      },
+      values: { price, count },
+      nowMs: NOW,
+    }).find((request) => request.display)?.display;
+
+  it('takes the fee ceiling off the minimum sell proceeds', () => {
+    // 6 contracts at 40¢, less the 2¢ fee ceiling: 6 × 38¢.
+    expect(kalshiSell('0.4000', '6.00', '6')).toEqual({
+      maxCost: '2.52',
+      contracts: '6.00',
+      payout: '6.00',
+      minProceeds: '2.28',
+    });
+  });
+
+  it('floors the minimum sell proceeds at zero when the fee exceeds the price', () => {
+    expect(kalshiSell('0.0100', '6.00', '6')?.minProceeds).toBe('0.00');
+  });
+});

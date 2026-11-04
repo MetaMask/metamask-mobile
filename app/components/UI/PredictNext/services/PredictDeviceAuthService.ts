@@ -208,16 +208,6 @@ export class PredictDeviceAuthService {
   }
 
   /**
-   * Renders the operation's requests from the bundled signing profile of the
-   * active authentication profile, the caller's inputs and the server values,
-   * then signs them and returns the `Venue-Authorization` header (ADR-0004).
-   * The authority, lifetime and covered components come from the profile and
-   * the device, never from predict-api. Throws `TemplateError` and signs
-   * nothing when the profile does not allow the request. Returns undefined
-   * when signing is not available (disabled, locked, signed out, no signing
-   * profile, or no A2T).
-   */
-  /**
    * Renders the operation from the active signing profile exactly as
    * `signOperation` would, and returns the worst-case figures its invariant
    * computed, for the confirmation sheet. Nothing is signed and nothing leaves
@@ -249,6 +239,17 @@ export class PredictDeviceAuthService {
     return requests.find((request) => request.display !== undefined)?.display;
   }
 
+  /**
+   * Renders the operation's requests from the bundled signing profile of the
+   * active authentication profile, the caller's inputs and the server values,
+   * then signs them and returns the `Venue-Authorization` header (ADR-0004).
+   * The authority, lifetime and covered components come from the profile and
+   * the device, never from predict-api. Throws `TemplateError` and signs
+   * nothing when the profile does not allow the request, including a step
+   * that renders more requests than `maxSignatures`. Returns undefined when
+   * signing is not available (disabled, locked, signed out, no signing
+   * profile, or no A2T).
+   */
   async signOperation(
     operation: VenueOperationName,
     input: SignOperationInput = {},
@@ -271,7 +272,7 @@ export class PredictDeviceAuthService {
     });
     const { maxSignatures } = profile.implementation.params;
     if (requests.length > maxSignatures) {
-      return undefined;
+      throw new TemplateError('max_signatures', operation);
     }
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
     if (this.#stoppedDuringKeyLoad(binding, key) || !key) {

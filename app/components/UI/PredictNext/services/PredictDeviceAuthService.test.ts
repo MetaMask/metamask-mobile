@@ -172,7 +172,12 @@ describe('PredictDeviceAuthService', () => {
           { action: 'buy', outcome: 'yes', amountCents: 52 },
           { count: '1.00', price: '0.5000' },
         ),
-      ).toEqual({ maxCost: '0.52', contracts: '1.00', minProceeds: '0.50' });
+      ).toEqual({
+        maxCost: '0.52',
+        contracts: '1.00',
+        payout: '1.00',
+        minProceeds: '0.48',
+      });
     });
 
     it('refuses a buy one cent under the cap', () => {
@@ -197,10 +202,10 @@ describe('PredictDeviceAuthService', () => {
       );
 
       expect(display?.maxCost).toBe('0.42');
-      expect(display?.minProceeds).toBe('0.40');
+      expect(display?.minProceeds).toBe('0.38');
     });
 
-    it('rounds sell proceeds down and requires the typed contract count', () => {
+    it('takes the fee ceiling off sell proceeds and requires the typed contract count', () => {
       const { service } = createService();
       const quote = { count: '75.00', price: '0.4000' };
 
@@ -210,7 +215,7 @@ describe('PredictDeviceAuthService', () => {
           { action: 'sell', outcome: 'yes', contracts: '75' },
           quote,
         )?.minProceeds,
-      ).toBe('30.00');
+      ).toBe('28.50');
       expect(() =>
         preview(
           service,
@@ -315,6 +320,29 @@ describe('PredictDeviceAuthService', () => {
       await expect(
         service.signOperation('portfolio.balance', { step: 'scan' }),
       ).rejects.toBeInstanceOf(TemplateError);
+
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+      expect(mockGetA2t).not.toHaveBeenCalled();
+    });
+
+    it('throws max_signatures and signs nothing when a step renders more requests than the envelope holds', async () => {
+      const replaced = jest.replaceProperty(
+        KALSHI_DEMO_SIGNING_PROFILE.implementation.params,
+        'maxSignatures',
+        1,
+      );
+      const { service } = createService();
+
+      try {
+        await expect(
+          service.signOperation('onboarding.status'),
+        ).rejects.toMatchObject({
+          name: 'TemplateError',
+          rule: 'max_signatures',
+        });
+      } finally {
+        replaced.restore();
+      }
 
       expect(mockSignDeviceBytes).not.toHaveBeenCalled();
       expect(mockGetA2t).not.toHaveBeenCalled();

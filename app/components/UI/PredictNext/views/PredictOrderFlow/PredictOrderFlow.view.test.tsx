@@ -44,27 +44,6 @@ import {
 } from './PredictOrderFlowProvider';
 import { type PredictDecimal, type PredictEntityId } from '../../types';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
-import { renderStep } from '../../auth/signing/venueTemplates';
-import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
-import {
-  KALSHI_DEMO_SIGNING_PROFILE,
-  type VenueOperationName,
-} from '../../auth/venueSigningProfiles';
-
-/**
- * The sheet asks PredictDeviceAuthService whether Confirm is allowed. The
- * component-view Engine has no signing service, so this stands in with the
- * bundled demo profile and the real renderer.
- */
-const previewFromDemoProfile = (
-  operation: VenueOperationName,
-  input: SignOperationInput = {},
-) =>
-  renderStep(KALSHI_DEMO_SIGNING_PROFILE, operation, input.step ?? 'default', {
-    inputs: input.inputs,
-    values: input.values,
-    nowMs: Date.now(),
-  }).find((request) => request.display !== undefined)?.display;
 
 // The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the shared composer binds the
@@ -298,9 +277,6 @@ describe('PredictOrderFlow', () => {
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     (Engine.context as Record<string, unknown>).PredictOrderService =
       composeOrderService();
-    (Engine.context as Record<string, unknown>).PredictDeviceAuthService = {
-      previewOperation: previewFromDemoProfile,
-    };
   });
 
   afterEach(() => {
@@ -443,8 +419,10 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
+    // The total is the signed worst case: 1 contract at 1¢ plus the 2¢ fee
+    // ceiling, not the server's estimate.
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$20.86',
+      '$0.03',
     );
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
@@ -735,7 +713,10 @@ describe('PredictOrderFlow', () => {
     ).toHaveTextContent('43');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toHaveTextContent('$20.86');
+    ).toHaveTextContent('$0.03');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
+    ).toHaveTextContent('$1.00');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
@@ -1526,9 +1507,10 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PROCEEDS),
       ).toHaveTextContent('$33.60');
+      // 75 contracts at 40¢ less the 2¢ fee ceiling, the signed worst case.
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
-      ).toHaveTextContent('$33.26');
+      ).toHaveTextContent('$28.50');
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
       ).toBeNull();

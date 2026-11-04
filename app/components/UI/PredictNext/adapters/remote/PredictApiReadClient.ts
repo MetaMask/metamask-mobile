@@ -30,6 +30,8 @@ interface SigningIntent {
 }
 
 export interface PredictApiReadTransport {
+  /** Drops per-account client state, such as next-page signing values. */
+  clearAccountState?(): void;
   fetchVenueStatus(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
@@ -87,12 +89,17 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
 }
 
+/** Signed calls one paged read may make, continuations and re-signs included. */
+const MAX_SIGNED_PAGE_CALLS = 25;
+
+/** Next-page signing values kept per client. The oldest is dropped first. */
+const MAX_REMEMBERED_CURSORS = 32;
+
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
     range?: PredictMarketHistoryRange;
     status?: string;
     sort?: FetchPositionsParams['sort'];
-    continuation?: string;
   };
 
 const continuationOf = (
@@ -206,6 +213,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     this.#getBearerToken = getBearerToken;
     this.#signOperation = signOperation;
     this.#invalidateSigningSession = invalidateSigningSession;
+  }
+
+  /** Forgets the next-page signing values. A Predict User change calls this. */
+  clearAccountState(): void {
+    this.#nextSigning.clear();
   }
 
   fetchVenueStatus(
@@ -400,8 +412,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   /**
    * One signed venue read per call. A body without the page is a partial
-   * result: its continuation is signed and sent until the page is present.
-   * A finished page can also name the values the next cursor must sign.
+   * result: the phone signs that continuation's step and values, and posts
+   * its opaque token, until the page is present. A finished page can also
+   * name the values the next cursor must sign. The token itself is not signed.
    */
   async #getSignedPaged(
     operation: VenueOperationName,
@@ -411,20 +424,30 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     ready: (body: Record<string, unknown>) => boolean,
   ): Promise<unknown> {
     const cursor = params?.cursor;
+    const signingKey = (forCursor: string) =>
+      JSON.stringify([operation, segments, forCursor]);
     const remembered =
-      typeof cursor === 'string' ? this.#nextSigning.get(cursor) : undefined;
+      typeof cursor === 'string'
+        ? this.#nextSigning.get(signingKey(cursor))
+        : undefined;
     // A first page names no step. The signing profile starts the operation at
     // its first declared one.
     let step: string | undefined = remembered?.step;
     let values = remembered?.values;
     let continuation: string | undefined;
-    for (let guard = 0; guard < 200; guard += 1) {
+    // ADR-0004: a moved step is re-rendered and re-signed once.
+    let stepChangeRetried = false;
+    // A rejected continuation token is dropped once. That read starts again
+    // as its first GET, and the same token is not sent again.
+    let readRestarted = false;
+    for (let calls = 0; calls < MAX_SIGNED_PAGE_CALLS; calls += 1) {
       try {
         const body = await this.#get(
           segments,
-          { ...params, continuation },
+          params,
           options,
           { operation, input: { step, values } },
+          continuation,
         );
         if (typeof body !== 'object' || body === null) {
           return body;
@@ -433,7 +456,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         const next = continuationOf(record.continuation);
         const nextCursor = record.nextCursor;
         if (typeof nextCursor === 'string' && next) {
-          this.#nextSigning.set(nextCursor, {
+          this.#rememberNextSigning(signingKey(nextCursor), {
             step: next.step,
             values: next.values,
           });
@@ -446,13 +469,30 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         values = next.values;
       } catch (error) {
         if (
+          !stepChangeRetried &&
           error instanceof PredictHttpError &&
           error.status === 409 &&
           error.bodyCode === 'venue_step_changed' &&
           error.next
         ) {
+          stepChangeRetried = true;
           step = error.next.step;
           values = error.next.values;
+          continue;
+        }
+        if (
+          continuation !== undefined &&
+          !readRestarted &&
+          error instanceof PredictHttpError &&
+          error.status === 400 &&
+          error.bodyCode === 'invalid_request'
+        ) {
+          readRestarted = true;
+          continuation = undefined;
+          step = remembered?.step;
+          values = remembered?.values;
+          // The restarted GET is a new first call of this read.
+          stepChangeRetried = false;
           continue;
         }
         throw error;
@@ -461,17 +501,37 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     throw new PredictHttpError(503);
   }
 
+  #rememberNextSigning(
+    key: string,
+    signing: { step: string; values: TemplateValues },
+  ): void {
+    this.#nextSigning.delete(key);
+    this.#nextSigning.set(key, signing);
+    while (this.#nextSigning.size > MAX_REMEMBERED_CURSORS) {
+      const oldest = this.#nextSigning.keys().next().value;
+      if (oldest === undefined) {
+        return;
+      }
+      this.#nextSigning.delete(oldest);
+    }
+  }
+
   /**
    * `signing` marks a read that acts as the user on the venue. The phone
    * renders and signs it before the call, so the signed call is the first
    * call (ADR-0004). A response that says the signature or the A2T is stale
    * is signed again and sent once more.
+   *
+   * `continuationToken` is opaque. When it is present the same path is
+   * posted as `{ continuation }` and the page parameters stay on the query
+   * string. The token is not decoded, logged, or passed to `signing`.
    */
   async #get(
     segments: readonly string[],
     params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
     signing?: SigningIntent,
+    continuationToken?: string,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
 
@@ -486,19 +546,27 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       }
     }
 
+    const continuationBody =
+      continuationToken === undefined
+        ? undefined
+        : JSON.stringify({ continuation: continuationToken });
     const send = (deviceAuth?: {
       name: string;
       value: string;
     }): Promise<Response> =>
       this.#fetch(url.toString(), {
-        method: 'GET',
+        method: continuationBody === undefined ? 'GET' : 'POST',
         headers: {
           Accept: 'application/json',
+          ...(continuationBody === undefined
+            ? {}
+            : { 'Content-Type': 'application/json' }),
           'x-metamask-clientproduct': 'metamask-mobile',
           'x-metamask-clientversion': this.#clientVersion,
           Authorization: `Bearer ${bearerToken}`,
           ...(deviceAuth ? { [deviceAuth.name]: deviceAuth.value } : {}),
         },
+        ...(continuationBody === undefined ? {} : { body: continuationBody }),
         signal: options?.signal,
       });
 

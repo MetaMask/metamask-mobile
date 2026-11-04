@@ -138,7 +138,8 @@ Rendering follows these rules:
 
 - The query is `key=value` pairs in template order, percent-encoded to RFC 3986 unreserved characters. An optional key with no value is left out.
 - The body is JSON with the template's keys in template order and the source's JSON type. It is serialized without whitespace and must be at most `maxBytes`.
-- Path parameters are percent-encoded segments.
+- Path parameters are percent-encoded segments. An empty, `.` or `..` value is refused, and so is any value with a lone surrogate.
+- A step that renders more requests than `maxSignatures` is refused with the rule `max_signatures`.
 
 Both renderers follow these rules and are tested against the shared fixture.
 
@@ -159,7 +160,7 @@ It enforces, in integer ten-thousandths:
 - **Buy:** `count × (outcomeLimit + feeCeiling) ≤ amount`.
 - **Sell:** `count` equals the user's contracts, and `outcomeLimit` is at or above the user's floor when one is set.
 
-It returns the max cost, the contract count and the minimum proceeds. Nothing in it is Kalshi-specific apart from its parameters.
+It returns the max cost, the contract count, the payout, and the minimum proceeds (`count × (outcomeLimit − feeCeiling)`, floored at zero). Nothing in it is Kalshi-specific apart from its parameters.
 
 ### Confirmation
 
@@ -353,7 +354,7 @@ The `order_create` template, in order:
 
 The template also sets `maxBytes: 1024` and has the invariant `binary-limit-order-v1`. The phone renders and checks it as soon as the preview arrives, and enables Confirm only if the check passes. The sheet renders from the invariant's `display`. The phone signs at Confirm. The preview stores the same `client_order_id`, `price` and `count`, so the commit renders the same bytes.
 
-Order observation is stepped. Each call performs one step, and the receipt names the next one. A third verified absence re-arms the intent, and the next call submits. The phone stops after `MAX_COMMIT_OBSERVATIONS` (8) calls.
+Order observation is stepped. Each call performs one step, and the receipt names the next one. A third verified absence re-arms the intent, and the next call submits. After the Commit call, the phone sends at most `MAX_COMMIT_OBSERVATIONS` (3) more calls while the sheet waits. It then observes in the background for at most `MAX_BACKGROUND_OBSERVATIONS` (12) calls within 5 minutes of the first dispatch. Each call re-signs at most once.
 
 | Stored state                                 | Step this call                                                                  | After this call                                                  |
 | -------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
@@ -433,5 +434,5 @@ What remains uncovered is the same as in ADR-0003: a forged catalog mapping, and
 - Both repos test their profile constant against the shared fixture `venue-signing-v2.json`. The fixture also holds one real device signature vector, which must verify on the server.
 - Endpoints changed in place, with no version bump. There is no compatibility path for the `428` exchange.
 - A Kalshi wire change is a profile change. While profiles are bundled, that means an app release.
-- Multi-step operations take one call per step. The phone's observation loop stops at `MAX_COMMIT_OBSERVATIONS` (8).
+- Multi-step operations take one call per step. The phone's observation stops after `MAX_COMMIT_OBSERVATIONS` (3) foreground calls and `MAX_BACKGROUND_OBSERVATIONS` (12) background calls, within 5 minutes.
 - The `api-key` venue auth variant and the admin-key reads of user accounts are gone. `KALSHI_HARDCODED_USER` and `KALSHI_DEVICE_AUTHORITY` are gone. The authority is the profile's `implementation.params.authority`. The ISV admin key remains for the market-data WebSocket, demo KYC, deposit indication, and enrollment lookup by external id. REST market data and the historical cutoff are unsigned.

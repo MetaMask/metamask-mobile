@@ -475,6 +475,18 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
+  it('maps venue_account_not_enabled to the onboarding code, not a region block', async () => {
+    client.fetchBalance.mockRejectedValue(
+      new PredictHttpError(403, 'venue_account_not_enabled'),
+    );
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({
+        code: PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
+      }),
+    );
+  });
+
   it('maps Balance HTTP 451 to GEO_BLOCKED', async () => {
     client.fetchBalance.mockRejectedValue(new PredictHttpError(451));
 

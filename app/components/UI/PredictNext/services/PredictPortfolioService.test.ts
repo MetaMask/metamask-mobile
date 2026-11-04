@@ -551,6 +551,18 @@ describe('PredictPortfolioService', () => {
   });
 
   describe('clearAccountData', () => {
+    it('drops the adapter state held for the previous Predict User', async () => {
+      const clearAccountState = jest.fn();
+      const service = buildService({
+        ...createPortfolio(),
+        clearAccountState,
+      });
+
+      await service.clearAccountData();
+
+      expect(clearAccountState).toHaveBeenCalledTimes(1);
+    });
+
     it('aborts in-flight reads and never caches their late response', async () => {
       const portfolio = createPortfolio();
       let release: () => void = () => undefined;

@@ -55,6 +55,10 @@ const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
  * Positions and Activity reads. */
 const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
 
+/** Most background observations of one operation. Each one is a signed
+ * Commit call, so this bounds re-signing even if the window is never hit. */
+const MAX_BACKGROUND_OBSERVATIONS = 12;
+
 /**
  * How long after a Preview's expiry the background waits before it re-POSTs
  * a Commit that never returned a Receipt. The backend looks up an existing
@@ -244,6 +248,8 @@ export interface PredictOrderServiceOptions {
   backgroundObservationDelaysMs?: readonly number[];
   /** Injectable background observation window for tests. */
   backgroundObservationWindowMs?: number;
+  /** Injectable background observation cap for tests. */
+  maxBackgroundObservations?: number;
   /** Injectable post-expiry grace for tests. */
   ambiguousCommitGraceMs?: number;
 }
@@ -289,6 +295,7 @@ export class PredictOrderService {
   readonly #observationDelayMs: number;
   readonly #backgroundObservationDelaysMs: readonly number[];
   readonly #backgroundObservationWindowMs: number;
+  readonly #maxBackgroundObservations: number;
   readonly #ambiguousCommitGraceMs: number;
   readonly #operations = new Map<string, OrderOperation>();
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
@@ -305,6 +312,7 @@ export class PredictOrderService {
     observationDelayMs = COMMIT_OBSERVATION_DELAY_MS,
     backgroundObservationDelaysMs = BACKGROUND_OBSERVATION_DELAYS_MS,
     backgroundObservationWindowMs = BACKGROUND_OBSERVATION_WINDOW_MS,
+    maxBackgroundObservations = MAX_BACKGROUND_OBSERVATIONS,
     ambiguousCommitGraceMs = AMBIGUOUS_COMMIT_GRACE_MS,
   }: PredictOrderServiceOptions) {
     this.#messenger = messenger;
@@ -313,6 +321,7 @@ export class PredictOrderService {
     this.#observationDelayMs = observationDelayMs;
     this.#backgroundObservationDelaysMs = backgroundObservationDelaysMs;
     this.#backgroundObservationWindowMs = backgroundObservationWindowMs;
+    this.#maxBackgroundObservations = maxBackgroundObservations;
     this.#ambiguousCommitGraceMs = ambiguousCommitGraceMs;
 
     messenger.registerActionHandler(
@@ -746,11 +755,13 @@ export class PredictOrderService {
     });
   }
 
-  /** Keeps observing a dispatched, unresolved operation, bounded in time. */
+  /** Keeps observing a dispatched, unresolved operation, bounded in time and
+   * in the number of calls. */
   #scheduleBackgroundObservation(operation: OrderOperation): void {
     if (
       operation.state !== 'dispatched' ||
       operation.backgroundTimer !== undefined ||
+      operation.backgroundObservations >= this.#maxBackgroundObservations ||
       this.#operations.get(operation.previewId) !== operation
     ) {
       return;

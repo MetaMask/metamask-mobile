@@ -4,7 +4,7 @@ import {
   coveredComponents,
   type VenueSigningProfile,
 } from '../venueSigningProfiles';
-import type { RenderedRequest } from './venueTemplates';
+import { TemplateError, type RenderedRequest } from './venueTemplates';
 
 /** One entry of `signatures` in the `Venue-Authorization` envelope. */
 export interface DeviceSignature {
@@ -64,23 +64,29 @@ export const deviceSigningBase = (input: {
 }): string => {
   const { profile, request, context } = input;
   const { authority, headers, tokenScheme } = profile.implementation.params;
-  const lines = [
-    `"@method": ${request.method}`,
-    `"@authority": ${authority}`,
-    `"@path": ${request.path}`,
-    `"@query": ?${request.query}`,
-    `"authorization": ${tokenScheme} ${context.a2t}`,
-    `"${headers.requestId}": ${input.requestId}`,
-    `"${headers.key}": ${context.deviceKey}`,
-    `"${headers.salt}": ${context.salt}`,
-  ];
-  if (request.method !== 'GET') {
-    lines.push(
-      `"content-digest": ${contentDigest(request.body)}`,
-      '"content-type": application/json',
-      `"idempotency-key": ${request.idempotencyKey ?? ''}`,
-    );
+  const values = new Map<string, string>([
+    ['@method', request.method],
+    ['@authority', authority],
+    ['@path', request.path],
+    ['@query', `?${request.query}`],
+    ['authorization', `${tokenScheme} ${context.a2t}`],
+    [headers.requestId, input.requestId],
+    [headers.key, context.deviceKey],
+    [headers.salt, context.salt],
+    ['content-digest', contentDigest(request.body)],
+    // Template bodies are JSON or empty.
+    ['content-type', 'application/json'],
+  ]);
+  if (request.idempotencyKey !== undefined) {
+    values.set('idempotency-key', request.idempotencyKey);
   }
+  const lines = coveredComponents(profile, request.method).map((component) => {
+    const value = values.get(component);
+    if (value === undefined) {
+      throw new TemplateError('template', `no value for ${component}`);
+    }
+    return `"${component}": ${value}`;
+  });
   lines.push(`"@signature-params": ${input.signatureParams}`);
   return lines.join('\n');
 };

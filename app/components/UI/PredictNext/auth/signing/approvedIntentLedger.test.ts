@@ -110,6 +110,54 @@ describe('approved intent ledger', () => {
     ).rejects.toBeInstanceOf(TemplateError);
   });
 
+  it('lets only the sign limit of concurrent claims through', async () => {
+    await claimIntentSignature(claim);
+
+    const results = await Promise.allSettled(
+      Array.from({ length: 4 }, () =>
+        claimIntentSignature({ ...claim, confirmed: false }),
+      ),
+    );
+
+    expect(results.map((result) => result.status)).toEqual([
+      'fulfilled',
+      'fulfilled',
+      'rejected',
+      'rejected',
+    ]);
+  });
+
+  it('refuses a claim in flight when a clear lands, and keeps the ledger empty', async () => {
+    let releaseRead: () => void = () => undefined;
+    const read = new Promise<null>((resolve) => {
+      releaseRead = () => resolve(null);
+    });
+    (SecureKeychain.getSecureItem as jest.Mock).mockImplementationOnce(
+      () => read,
+    );
+
+    const pending = claimIntentSignature(claim);
+    // Let the claim reach its keychain read before the clear lands.
+    await new Promise((resolve) => setImmediate(resolve));
+    const cleared = clearApprovedIntents();
+    releaseRead();
+
+    await expect(pending).rejects.toBeInstanceOf(TemplateError);
+    await cleared;
+    expect(saved).toBeNull();
+    await expect(
+      claimIntentSignature({ ...claim, confirmed: false }),
+    ).rejects.toBeInstanceOf(TemplateError);
+  });
+
+  it('allows a new confirmation after a clear', async () => {
+    await claimIntentSignature(claim);
+    await clearApprovedIntents();
+
+    await claimIntentSignature(claim);
+    await claimIntentSignature({ ...claim, confirmed: false });
+  });
+
   it('drops an expired pin and everything on clear', async () => {
     await claimIntentSignature(claim);
 

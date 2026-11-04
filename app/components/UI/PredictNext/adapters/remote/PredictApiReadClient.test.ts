@@ -233,6 +233,17 @@ describe('PredictApiReadClient', () => {
   });
 
   it('follows a Positions continuation until the page is present', async () => {
+    const signOperation = jest.fn().mockResolvedValue({
+      name: 'Venue-Authorization',
+      value: 'envelope',
+    });
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signOperation,
+    });
     fetchMock
       .mockResolvedValueOnce(
         createResponse({
@@ -258,11 +269,28 @@ describe('PredictApiReadClient', () => {
       venueId: 'kalshi',
       positions: [],
     });
+
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock).toHaveBeenLastCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/positions?limit=20&continuation=step-2',
-      expect.anything(),
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=20',
+      expect.objectContaining({ method: 'GET' }),
     );
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=20',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({ continuation: 'step-2' }),
+      }),
+    );
+    expect(String(fetchMock.mock.calls[1][0])).not.toContain('continuation');
+    expect(signOperation).toHaveBeenNthCalledWith(2, 'portfolio.positions', {
+      step: 'settlements',
+      values: { tickers: ['KXTEST'] },
+    });
   });
 
   it('signs the next Activity page with the values the previous page returned', async () => {
@@ -304,6 +332,287 @@ describe('PredictApiReadClient', () => {
     expect(signOperation).toHaveBeenLastCalledWith('portfolio.activity', {
       step: 'settlements',
       values: { max_ts: 1700000000 },
+    });
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/activity?limit=20&cursor=page-2',
+      expect.objectContaining({ method: 'GET' }),
+    );
+    expect(
+      (fetchMock.mock.calls.at(-1)?.[1] as RequestInit).body,
+    ).toBeUndefined();
+    expect(String(fetchMock.mock.calls.at(-1)?.[0])).not.toContain(
+      'continuation',
+    );
+  });
+
+  describe('paged signed reads', () => {
+    const stepChanged = () => {
+      const moved = {
+        code: 'venue_step_changed',
+        next: { step: 'settlements', values: { max_ts: 1700000000 } },
+      };
+      const response = createResponse({ status: 409, json: moved });
+      (response as unknown as { clone: () => Response }).clone = () =>
+        createResponse({ status: 409, json: moved });
+      return response;
+    };
+    const invalidRequest = () => {
+      const rejected = { code: 'invalid_request' };
+      const response = createResponse({ status: 400, json: rejected });
+      (response as unknown as { clone: () => Response }).clone = () =>
+        createResponse({ status: 400, json: rejected });
+      return response;
+    };
+    const partialPositions = () =>
+      createResponse({
+        json: {
+          venueId: 'kalshi',
+          continuation: {
+            token: 'step-2',
+            step: 'holdings',
+            values: { tickers: ['KXTEST'] },
+          },
+        },
+      });
+    const finishedPage = (nextCursor?: string) =>
+      createResponse({
+        json: {
+          venueId: 'kalshi',
+          activity: [],
+          ...(nextCursor
+            ? {
+                nextCursor,
+                continuation: {
+                  token: 'unused',
+                  step: 'archive',
+                  values: { cursor: nextCursor },
+                },
+              }
+            : {}),
+        },
+      });
+    let signOperation: jest.Mock;
+
+    beforeEach(() => {
+      signOperation = jest.fn().mockResolvedValue({
+        name: 'Venue-Authorization',
+        value: 'envelope',
+      });
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signOperation,
+      });
+    });
+
+    it('posts the same continuation token when the venue step changes', async () => {
+      fetchMock
+        .mockResolvedValueOnce(partialPositions())
+        .mockResolvedValueOnce(stepChanged())
+        .mockResolvedValueOnce(
+          createResponse({ json: { venueId: 'kalshi', positions: [] } }),
+        );
+
+      await client.fetchPositions(venueId, {
+        limit: 3,
+        cursor: 'next page',
+        status: ['open', 'claimable'],
+        sort: 'value',
+      });
+
+      const pageUrl =
+        'https://predict.example/api/v1/venues/kalshi/positions?limit=3&cursor=next+page&sort=value&status=open%2Cclaimable';
+      const continuationBody = JSON.stringify({ continuation: 'step-2' });
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        pageUrl,
+        expect.objectContaining({ method: 'POST', body: continuationBody }),
+      );
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        3,
+        pageUrl,
+        expect.objectContaining({ method: 'POST', body: continuationBody }),
+      );
+      expect(String(fetchMock.mock.calls[1][0])).not.toContain('continuation');
+      expect(signOperation).toHaveBeenNthCalledWith(3, 'portfolio.positions', {
+        step: 'settlements',
+        values: { max_ts: 1700000000 },
+      });
+    });
+
+    it('drops a rejected continuation token and starts the read again as a GET', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({
+            json: {
+              venueId: 'kalshi',
+              activity: [],
+              nextCursor: 'page-2',
+              continuation: {
+                token: 'page-token',
+                step: 'settlements',
+                values: { max_ts: 1700000000 },
+              },
+            },
+          }),
+        )
+        .mockResolvedValueOnce(
+          createResponse({
+            json: {
+              venueId: 'kalshi',
+              continuation: {
+                token: 'step-2',
+                step: 'holdings',
+                values: { tickers: ['KXTEST'] },
+              },
+            },
+          }),
+        )
+        .mockResolvedValueOnce(invalidRequest())
+        .mockResolvedValueOnce(
+          createResponse({ json: { venueId: 'kalshi', activity: [] } }),
+        );
+
+      await client.fetchActivity(venueId, { limit: 20 });
+      await expect(
+        client.fetchActivity(venueId, { limit: 20, cursor: 'page-2' }),
+      ).resolves.toEqual({ venueId: 'kalshi', activity: [] });
+
+      const pageUrl =
+        'https://predict.example/api/v1/venues/kalshi/activity?limit=20&cursor=page-2';
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        pageUrl,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        3,
+        pageUrl,
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ continuation: 'step-2' }),
+        }),
+      );
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        4,
+        pageUrl,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect((fetchMock.mock.calls[3][1] as RequestInit).body).toBeUndefined();
+      expect(String(fetchMock.mock.calls[3][0])).not.toContain('step-2');
+      expect(signOperation.mock.calls.map((call) => call[1])).toEqual([
+        { step: undefined, values: undefined },
+        { step: 'settlements', values: { max_ts: 1700000000 } },
+        { step: 'holdings', values: { tickers: ['KXTEST'] } },
+        { step: 'settlements', values: { max_ts: 1700000000 } },
+      ]);
+    });
+
+    it('surfaces the error when the restarted read fails', async () => {
+      const failedRestart = createResponse({ status: 503, json: {} });
+      (failedRestart as unknown as { clone: () => Response }).clone = () =>
+        createResponse({ status: 503, json: {} });
+      fetchMock
+        .mockResolvedValueOnce(partialPositions())
+        .mockResolvedValueOnce(invalidRequest())
+        .mockResolvedValueOnce(failedRestart);
+
+      await expect(
+        client.fetchPositions(venueId, { limit: 20 }),
+      ).rejects.toMatchObject({ status: 503 });
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect((fetchMock.mock.calls[2][1] as RequestInit).method).toBe('GET');
+      expect((fetchMock.mock.calls[2][1] as RequestInit).body).toBeUndefined();
+    });
+
+    it('surfaces invalid_request on the first GET', async () => {
+      fetchMock.mockResolvedValueOnce(invalidRequest());
+
+      await expect(
+        client.fetchPositions(venueId, { limit: 20 }),
+      ).rejects.toMatchObject({
+        status: 400,
+        bodyCode: 'invalid_request',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-renders a moved step once, then surfaces the second move', async () => {
+      fetchMock
+        .mockResolvedValueOnce(stepChanged())
+        .mockResolvedValueOnce(stepChanged())
+        .mockResolvedValueOnce(finishedPage());
+
+      await expect(
+        client.fetchActivity(venueId, { limit: 20 }),
+      ).rejects.toMatchObject({ status: 409, bodyCode: 'venue_step_changed' });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(signOperation).toHaveBeenNthCalledWith(2, 'portfolio.activity', {
+        step: 'settlements',
+        values: { max_ts: 1700000000 },
+      });
+    });
+
+    it('stops following continuations at the signed call cap', async () => {
+      fetchMock.mockImplementation(async () =>
+        createResponse({
+          json: {
+            venueId: 'kalshi',
+            continuation: {
+              token: 'again',
+              step: 'settlements',
+              values: { tickers: [] },
+            },
+          },
+        }),
+      );
+
+      await expect(
+        client.fetchPositions(venueId, { limit: 20 }),
+      ).rejects.toMatchObject({ status: 503 });
+      expect(fetchMock).toHaveBeenCalledTimes(25);
+      expect(fetchMock.mock.calls[1][0]).toBe(
+        'https://predict.example/api/v1/venues/kalshi/positions?limit=20',
+      );
+      expect((fetchMock.mock.calls[1][1] as RequestInit).method).toBe('POST');
+      expect((fetchMock.mock.calls[1][1] as RequestInit).body).toBe(
+        JSON.stringify({ continuation: 'again' }),
+      );
+    });
+
+    it('keys remembered next-page values by operation, not by cursor alone', async () => {
+      fetchMock
+        .mockResolvedValueOnce(finishedPage('page-2'))
+        .mockResolvedValue(
+          createResponse({ json: { venueId: 'kalshi', positions: [] } }),
+        );
+
+      await client.fetchActivity(venueId, { limit: 20 });
+      await client.fetchPositions(venueId, { limit: 20, cursor: 'page-2' });
+
+      expect(signOperation).toHaveBeenLastCalledWith('portfolio.positions', {
+        step: undefined,
+        values: undefined,
+      });
+    });
+
+    it('forgets remembered next-page values on clearAccountState', async () => {
+      fetchMock
+        .mockResolvedValueOnce(finishedPage('page-2'))
+        .mockResolvedValue(finishedPage());
+
+      await client.fetchActivity(venueId, { limit: 20 });
+      client.clearAccountState();
+      await client.fetchActivity(venueId, { limit: 20, cursor: 'page-2' });
+
+      expect(signOperation).toHaveBeenLastCalledWith('portfolio.activity', {
+        step: undefined,
+        values: undefined,
+      });
     });
   });
 

@@ -64,7 +64,6 @@ import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
-import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -685,17 +684,22 @@ export const PredictOrderFlowSheet = ({
   const displayedPrice = isQuoting
     ? contextPrice
     : (preview?.averagePrice ?? contextPrice);
+  // Totals and payout come from the invariant display, the worst case the
+  // signature allows (ADR-0004). The server quote is the fallback only while
+  // there is no display, and then Review stays disabled.
   const toWinLabel = formatUsd(
-    preview?.action === 'buy' ? preview.potentialPayout : '0.00',
+    preview?.action === 'buy'
+      ? (orderCheck?.payout ?? preview.potentialPayout)
+      : '0.00',
   );
   const netProceedsLabel = formatUsd(
     preview?.action === 'sell' && !isQuoting
-      ? preview.estimatedNetProceeds
+      ? (orderCheck?.minProceeds ?? preview.estimatedNetProceeds)
       : '0.00',
   );
   const totalLabel =
     preview && !isQuoting && preview.action === 'buy'
-      ? formatUsd(preview.totalDebit)
+      ? formatUsd(orderCheck?.maxCost ?? preview.totalDebit)
       : formatUsd(Number(amount || '0').toFixed(2));
   const balanceLabel = balanceQuery.data
     ? Number(balanceQuery.data.available).toFixed(2)
@@ -1059,6 +1063,7 @@ export const PredictOrderFlowSheet = ({
             <OrderBreakdownSheet
               ref={breakdownSheetRef}
               preview={preview}
+              display={orderCheck}
               onClose={handleBreakdownClose}
             />
           )}

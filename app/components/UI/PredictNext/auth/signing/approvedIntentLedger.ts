@@ -56,19 +56,43 @@ const isPinnedIntent = (value: unknown): value is PinnedIntent => {
   );
 };
 
+const emptyEntries = (): Record<string, PinnedIntent> => Object.create(null);
+
+/**
+ * Claims and clears run one at a time, so two claims cannot both pass the
+ * sign limit and a clear cannot interleave with a claim's read and write.
+ */
+let ledgerQueue: Promise<unknown> = Promise.resolve();
+
+const serialized = <T>(task: () => Promise<T>): Promise<T> => {
+  const run = ledgerQueue.then(task, task);
+  ledgerQueue = run.catch(() => undefined);
+  return run;
+};
+
+/**
+ * Bumped synchronously by every clear. A claim that started before a clear
+ * never writes after it, even when the claim was queued first.
+ */
+let ledgerGeneration = 0;
+
 const readLedger = async (
   nowMs: number,
 ): Promise<Record<string, PinnedIntent>> => {
   const item = await SecureKeychain.getSecureItem(LEDGER_SCOPE);
   if (!item?.value) {
-    return {};
+    return emptyEntries();
   }
   try {
     const parsed = JSON.parse(item.value) as LedgerFile;
-    if (parsed?.v !== LEDGER_VERSION || typeof parsed.entries !== 'object') {
-      return {};
+    if (
+      parsed?.v !== LEDGER_VERSION ||
+      typeof parsed.entries !== 'object' ||
+      parsed.entries === null
+    ) {
+      return emptyEntries();
     }
-    const live: Record<string, PinnedIntent> = {};
+    const live = emptyEntries();
     for (const [key, entry] of Object.entries(parsed.entries)) {
       if (
         isPinnedIntent(entry) &&
@@ -79,7 +103,7 @@ const readLedger = async (
     }
     return live;
   } catch {
-    return {};
+    return emptyEntries();
   }
 };
 
@@ -96,16 +120,22 @@ const writeLedger = async (
   }
 };
 
-/** Drops every pinned intent. Lock, wallet reset, and SRP change call this. */
-export const clearApprovedIntents = async (): Promise<void> => {
-  try {
-    await SecureKeychain.clearSecureScope(LEDGER_SCOPE);
-  } catch (error) {
-    Logger.error(
-      ensureError(error, 'clearApprovedIntents'),
-      'PredictNext: failed to clear approved intents',
-    );
-  }
+/**
+ * Drops every pinned intent. Lock, wallet reset, and SRP change call this.
+ * A claim already in flight is refused rather than written after the clear.
+ */
+export const clearApprovedIntents = (): Promise<void> => {
+  ledgerGeneration += 1;
+  return serialized(async () => {
+    try {
+      await SecureKeychain.clearSecureScope(LEDGER_SCOPE);
+    } catch (error) {
+      Logger.error(
+        ensureError(error, 'clearApprovedIntents'),
+        'PredictNext: failed to clear approved intents',
+      );
+    }
+  });
 };
 
 const timesFitPin = (
@@ -119,15 +149,18 @@ const timesFitPin = (
   );
 };
 
-/**
- * Allows one signature of a per-intent operation. The first signature needs
- * `confirmed`. A later one needs no new confirmation only when it signs the
- * same body, the sign count is under the limit, and the pin has not expired.
- */
-export const claimIntentSignature = async (
+const claimInOrder = async (
   claim: IntentSignatureClaim,
+  generation: number,
 ): Promise<void> => {
+  const refuseIfCleared = (): void => {
+    if (generation !== ledgerGeneration) {
+      throw new TemplateError('confirmation', claim.operation);
+    }
+  };
+  refuseIfCleared();
   const entries = await readLedger(claim.nowMs);
+  refuseIfCleared();
   const current = entries[claim.idempotencyKey];
   const live =
     current !== undefined &&
@@ -162,4 +195,16 @@ export const claimIntentSignature = async (
     pinnedAt: claim.nowMs,
   };
   await writeLedger(entries);
+};
+
+/**
+ * Allows one signature of a per-intent operation. The first signature needs
+ * `confirmed`. A later one needs no new confirmation only when it signs the
+ * same body, the sign count is under the limit, and the pin has not expired.
+ */
+export const claimIntentSignature = (
+  claim: IntentSignatureClaim,
+): Promise<void> => {
+  const generation = ledgerGeneration;
+  return serialized(() => claimInOrder(claim, generation));
 };

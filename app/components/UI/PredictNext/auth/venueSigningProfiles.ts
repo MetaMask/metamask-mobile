@@ -66,7 +66,6 @@ const TICKERS = {
     maxItems: 4,
   },
 } as const;
-const IDEMPOTENCY_KEY = { input: 'idempotencyKey' } as const;
 const IDEMPOTENCY_UUID = {
   input: 'idempotencyKey',
   shape: { kind: 'uuid-v4' },
@@ -75,7 +74,7 @@ const IDEMPOTENCY_UUID = {
 const ORDER_FEE_CEILING_CENTS = 2;
 const MARKET_ID = {
   input: 'marketId',
-  shape: { kind: 'opaque', maxLength: 128 },
+  shape: { kind: 'opaque', maxLength: 256 },
 } as const;
 const WHEN_BUY = { input: 'action', equals: 'buy' } as const;
 const WHEN_SELL = { input: 'action', equals: 'sell' } as const;
@@ -199,7 +198,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       method: 'POST',
       path: `${TRADE_API}/isv/enrollment/intents`,
       body: 'empty',
-      idempotencyKey: IDEMPOTENCY_KEY,
+      idempotencyKey: IDEMPOTENCY_UUID,
     },
     link: {
       class: 'mutation',
@@ -218,7 +217,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
         ],
         maxBytes: 512,
       },
-      idempotencyKey: IDEMPOTENCY_KEY,
+      idempotencyKey: IDEMPOTENCY_UUID,
     },
     link_verify: {
       class: 'mutation',
@@ -233,7 +232,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
         ],
         maxBytes: 128,
       },
-      idempotencyKey: IDEMPOTENCY_KEY,
+      idempotencyKey: IDEMPOTENCY_UUID,
     },
     wallet_register: {
       class: 'mutation',
@@ -258,7 +257,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
         ],
         maxBytes: 512,
       },
-      idempotencyKey: IDEMPOTENCY_KEY,
+      idempotencyKey: IDEMPOTENCY_UUID,
     },
     position: {
       class: 'read',
