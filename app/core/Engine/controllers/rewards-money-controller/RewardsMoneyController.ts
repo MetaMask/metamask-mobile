@@ -59,7 +59,7 @@ export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
 
-const metadata: StateMetadata<RewardsMoneyControllerState> = {
+export const metadata: StateMetadata<RewardsMoneyControllerState> = {
   referralMe: {
     includeInStateLogs: false,
     persist: true,
