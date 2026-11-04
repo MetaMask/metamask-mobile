@@ -1,13 +1,14 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import Engine from '../../../../../../core/Engine';
-import { VBA_KYC_VENDOR } from '../constants';
-import { useKycDisclaimers } from './useKycDisclaimers';
+import Engine from '../../../../core/Engine';
+import { useVendorDisclaimers } from './useVendorDisclaimers';
+
+const VENDOR = 'iron' as const;
 
 const mockFetchVendorDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
 const mockAcceptVendorDisclaimers = jest.fn();
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
       fetchVendorDisclaimers: (...args: unknown[]) =>
@@ -23,7 +24,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 const disclaimers = [{ id: '1', url: 'https://t.c', display_name: 'T&C' }];
 
-describe('useKycDisclaimers', () => {
+describe('useVendorDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
@@ -31,13 +32,13 @@ describe('useKycDisclaimers', () => {
   });
 
   it('loads vendor disclaimers through KycController', async () => {
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(mockGetGeoCountry).toHaveBeenCalled();
     expect(mockFetchVendorDisclaimers).toHaveBeenCalledWith({
-      vendor: VBA_KYC_VENDOR,
+      vendor: VENDOR,
       country: 'BRA',
     });
     expect(result.current.disclaimers).toStrictEqual(disclaimers);
@@ -50,7 +51,7 @@ describe('useKycDisclaimers', () => {
       undefined;
 
     try {
-      const { result } = renderHook(() => useKycDisclaimers());
+      const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -65,7 +66,7 @@ describe('useKycDisclaimers', () => {
   it('surfaces errors returned by KycController', async () => {
     mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
 
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -76,7 +77,7 @@ describe('useKycDisclaimers', () => {
   it('treats an empty response as an error', async () => {
     mockFetchVendorDisclaimers.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -89,7 +90,7 @@ describe('useKycDisclaimers', () => {
     try {
       mockFetchVendorDisclaimers.mockReturnValue(new Promise(() => undefined));
 
-      const { result } = renderHook(() => useKycDisclaimers());
+      const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -106,7 +107,7 @@ describe('useKycDisclaimers', () => {
     mockFetchVendorDisclaimers
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(disclaimers);
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
     await waitFor(() => expect(result.current.error).toBe('server error'));
 
     act(() => result.current.retry());
@@ -118,7 +119,7 @@ describe('useKycDisclaimers', () => {
   });
 
   it('stores every displayed vendor disclaimer on the KYC controller', async () => {
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = false;
@@ -127,7 +128,7 @@ describe('useKycDisclaimers', () => {
     });
 
     expect(mockAcceptVendorDisclaimers).toHaveBeenCalledWith({
-      vendor: VBA_KYC_VENDOR,
+      vendor: VENDOR,
       country: 'BRA',
       disclaimerIds: ['1'],
     });
@@ -139,7 +140,7 @@ describe('useKycDisclaimers', () => {
     mockAcceptVendorDisclaimers.mockImplementation(() => {
       throw new Error('Consent storage failed');
     });
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = true;
