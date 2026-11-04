@@ -1877,7 +1877,7 @@ describe('CardController card links', () => {
         .mockImplementationOnce(async (providerId, body) =>
           link({
             provider: providerId,
-            status: body.status,
+            status: body.status as CardLink['status'],
           }),
         );
 
