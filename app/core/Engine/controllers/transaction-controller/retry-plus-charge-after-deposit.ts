@@ -1,3 +1,5 @@
+import { MoneyAccountApiDataService } from '@metamask/money-account-api-data-service';
+import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
 import {
   INVOICE_PAYMENT_STATUSES,
   PAYMENT_TYPES,
@@ -8,14 +10,14 @@ import {
   type SubscriptionPaymentMethod,
 } from '@metamask/subscription-controller';
 import type { Hex } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import {
-  MoneyAccountApiDataServiceQueryKeys,
-  MoneyAccountBalanceServiceQueryKeys,
-} from '../../../UI/Money/queryKeys';
+import Engine from '../../Engine';
 import { ensureError } from '../../../../util/errorUtils';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 import Logger from '../../../../util/Logger';
+
+// shortcut: suffixes must match app/components/UI/Money/queryKeys.ts, move those constants out of UI if they change.
+const MONEY_ACCOUNT_BALANCE_QUERY_KEY = `${MoneyAccountBalanceService.name}:getMoneyAccountBalance`;
+const MONEY_ACCOUNT_POSITIONS_QUERY_KEY = `${MoneyAccountApiDataService.name}:fetchPositions`;
 
 /**
  * Same budget as the post-confirm Money balance refresh. The first read can
@@ -113,19 +115,13 @@ async function bustMoneyBalanceSourceCaches(address: string): Promise<void> {
     Engine.controllerMessenger.call(
       'MoneyAccountBalanceService:invalidateQueries',
       {
-        queryKey: [
-          MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-          address,
-        ],
+        queryKey: [MONEY_ACCOUNT_BALANCE_QUERY_KEY, address],
       },
     ),
     Engine.controllerMessenger.call(
       'MoneyAccountApiDataService:invalidateQueries',
       {
-        queryKey: [
-          MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
-          address.toLowerCase(),
-        ],
+        queryKey: [MONEY_ACCOUNT_POSITIONS_QUERY_KEY, address.toLowerCase()],
       },
     ),
   ]);

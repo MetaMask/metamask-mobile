@@ -9,14 +9,14 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import type { Hex } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
+import Engine from '../../Engine';
 import Logger from '../../../../util/Logger';
 import {
   isPlusChargeRetryable,
   retryPlusChargeAfterDeposit,
-} from './retryPlusChargeAfterDeposit';
+} from './retry-plus-charge-after-deposit';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../Engine', () => ({
   __esModule: true,
   default: {
     context: {
