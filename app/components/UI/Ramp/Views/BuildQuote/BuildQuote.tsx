@@ -807,6 +807,18 @@ function BuildQuote() {
     return actionMessagePlaceholder;
   })();
 
+  const quickAmountsContent =
+    quickAmounts.length > 0 ? (
+      <>
+        {actionMessagePlaceholder}
+        <QuickAmounts
+          amounts={quickAmounts}
+          currency={currency}
+          onAmountPress={handleQuickAmountPress}
+        />
+      </>
+    ) : null;
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -923,16 +935,9 @@ function BuildQuote() {
                   </Button>
                 )}
               </>
-            ) : quickAmounts.length > 0 ? (
-              <>
-                {actionMessagePlaceholder}
-                <QuickAmounts
-                  amounts={quickAmounts}
-                  currency={currency}
-                  onAmountPress={handleQuickAmountPress}
-                />
-              </>
-            ) : null}
+            ) : (
+              quickAmountsContent
+            )}
           </View>
           <Keypad
             currency={currency}
