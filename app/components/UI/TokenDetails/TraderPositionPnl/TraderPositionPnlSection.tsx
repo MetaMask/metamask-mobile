@@ -9,9 +9,7 @@ import {
   SOCIAL_V1_VARIANTS,
 } from '../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
-import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
-import { useTokenBalance } from '../hooks/useTokenBalance';
+import TokenDetailsActionFooter from '../components/TokenDetailsActionFooter';
 import { toComposerPosition } from './composerPosition';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 
@@ -26,10 +24,12 @@ interface TraderPositionPnlSectionProps {
 }
 
 /**
- * Renders the trader position header and its temporary expanded details sheet.
+ * Launchpad position header above the shared token-details action bar.
  *
  * The header reads this wallet's open position in this token. A missing
- * position shows the wallet value and hides PnL.
+ * position shows the wallet value and hides PnL. The Buy, Sell, and Swap
+ * buttons are the same bar the legacy page uses; this section only adds the
+ * position.
  */
 const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
@@ -38,12 +38,6 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   onFooterLayout,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
-    token,
-    source: 'asset_details',
-  });
-  const { balance } = useTokenBalance(token);
-  const hasTokenBalance = balance !== undefined && Number(balance) > 0;
   const header = useOpenPositionHeader(token);
   const { openComposer } = useOpenSocialPostComposer();
   const isSocialLeaderboardEnabled = useSelector(
@@ -96,22 +90,13 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
       : undefined;
 
   return (
-    <>
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        isTokenDetailsV1
-        tdpVersion="v3"
-        currentTokenBalance={balance}
-        hasTokenBalance={hasTokenBalance}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyEntrypointLayout="buy_sell"
-        onOpenQuickBuy={openQuickBuy}
-        traderPositionPnl={traderPositionPnl}
-        onFooterLayout={onFooterLayout}
-      />
-      {quickBuySheet}
-    </>
+    <TokenDetailsActionFooter
+      token={token}
+      securityData={securityData}
+      tdpVersion="v3"
+      traderPositionPnl={traderPositionPnl}
+      onFooterLayout={onFooterLayout}
+    />
   );
 };
 

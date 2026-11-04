@@ -45,24 +45,15 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
-import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
-import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
-import {
-  SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
-  SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
-  SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
-} from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import TokenDetailsActionFooter from '../components/TokenDetailsActionFooter';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
@@ -254,24 +245,11 @@ const TokenDetails: React.FC<{
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
-  const { variant: quickBuyEntrypointVariant } = useABTest(
-    SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
-    SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
-    SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
-  );
-  const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
-    token,
-    source: 'asset_details',
-  });
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-  const { variant: moneyFooterCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
@@ -509,10 +487,6 @@ const TokenDetails: React.FC<{
     balanceFiatUsd,
     hasBalance: hasBalanceValue,
   });
-  const isMoneyFooterCtaActive =
-    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
-    (moneyAssetOverviewCtas.isFooterCtaLoading ||
-      moneyAssetOverviewCtas.isFooterCtaVisible);
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -611,23 +585,6 @@ const TokenDetails: React.FC<{
       />
     ),
     [caip19AssetId, isNativeToken, hasBalanceValue],
-  );
-
-  const moneyDepositCta = useMemo(
-    () =>
-      isMoneyFooterCtaActive
-        ? {
-            isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
-            label: moneyAssetOverviewCtas.footerLabelLocalized,
-            onPress: moneyAssetOverviewCtas.onFooterPress,
-          }
-        : undefined,
-    [
-      isMoneyFooterCtaActive,
-      moneyAssetOverviewCtas.isFooterCtaLoading,
-      moneyAssetOverviewCtas.footerLabelLocalized,
-      moneyAssetOverviewCtas.onFooterPress,
-    ],
   );
 
   const {
@@ -784,23 +741,14 @@ const TokenDetails: React.FC<{
         )}
       </View>
       {/* Outside the isolated content, so its sheets open above the glass header. */}
-      <TokenDetailsStickyFooter
+      <TokenDetailsActionFooter
         token={token}
         securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
         networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyDepositCta={moneyDepositCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
+        tdpVersion="v2"
         onSwapPress={onCtaClicked}
         onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
-        onOpenQuickBuy={openQuickBuy}
+        onStickyButtonsResolved={onStickyButtonsResolved}
       />
 
       {shareUrl && (
@@ -816,7 +764,6 @@ const TokenDetails: React.FC<{
           networkName={networkName}
         />
       )}
-      {quickBuySheet}
     </View>
   );
 };

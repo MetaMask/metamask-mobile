@@ -10,17 +10,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
-import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import TokenDetailsActionFooter from '../components/TokenDetailsActionFooter';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { TokenDetailsIds } from '../testIds';
 
 /**
- * Shown while `/v2/assets` is still deciding the new page versus the legacy
- * page. The header and Swap / Buy footer use the route token so a fast tap
- * does not wait on that request.
+ * Shown while `/v2/assets` is still deciding the meme page versus the legacy
+ * page. The header uses the route token. The action bar is the same one both
+ * pages use, so a tap can land before that decision and the buttons do not
+ * change when it does. Position PnL waits for the launchpad page.
  */
 const TokenDetailsPagePending = ({
   token,
@@ -63,12 +63,7 @@ const TokenDetailsPagePending = ({
         <Skeleton height={20} width="70%" twClassName="rounded-md" />
         <Skeleton height={20} width="45%" twClassName="rounded-md" />
       </Box>
-      <TokenDetailsStickyFooter
-        token={token}
-        sourcePage="TokenDetailsView"
-        swapTestID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
-        buyTestID={TokenOverviewSelectorsIDs.BUY_BUTTON}
-      />
+      <TokenDetailsActionFooter token={token} />
     </Box>
   );
 };
