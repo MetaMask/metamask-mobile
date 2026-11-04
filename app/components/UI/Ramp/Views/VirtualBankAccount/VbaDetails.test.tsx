@@ -36,6 +36,7 @@ import {
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON } from './vbaCufTags';
 import { AVENIA_URL } from './constants';
+import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -63,6 +64,13 @@ jest.mock('./vbaAnalytics', () => ({
   ...jest.requireActual('./vbaAnalytics'),
   trackVbaEvent: jest.fn(),
 }));
+
+jest.mock('./vbaAccountDetailsViewedStorage', () => ({
+  markVbaAccountDetailsViewed: jest.fn(),
+}));
+const mockMarkVbaAccountDetailsViewed = jest.mocked(
+  markVbaAccountDetailsViewed,
+);
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -279,6 +287,7 @@ describe('VbaDetails', () => {
     });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();
+    mockMarkVbaAccountDetailsViewed.mockResolvedValue(undefined);
   });
 
   it('renders the details screen', async () => {
@@ -1507,6 +1516,69 @@ describe('VbaDetails', () => {
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+  });
+
+  describe('account details viewed flag', () => {
+    it('records the wallet once when deposit details are shown', async () => {
+      mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(mockMarkVbaAccountDetailsViewed).toHaveBeenCalledWith('0xabc');
+      });
+      expect(mockMarkVbaAccountDetailsViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('records the wallet straight away for cached details', () => {
+      setCachedDepositInstructions('ar-1', pixInstructions);
+
+      renderWithProvider(<VbaDetails />);
+
+      expect(mockMarkVbaAccountDetailsViewed).toHaveBeenCalledWith('0xabc');
+    });
+
+    it('does not record anything while details are loading or failed to load', async () => {
+      mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
+        ).toBeOnTheScreen();
+      });
+      expect(mockMarkVbaAccountDetailsViewed).not.toHaveBeenCalled();
+    });
+
+    it('does not record anything while the account is still being created', async () => {
+      setAutoramps([{ ...approvedAutoramp, status: 'Created' }]);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockMarkVbaAccountDetailsViewed).not.toHaveBeenCalled();
+    });
+
+    it('logs when recording fails', async () => {
+      mockMarkVbaAccountDetailsViewed.mockRejectedValue(new Error('disk'));
+      setCachedDepositInstructions('ar-1', pixInstructions);
+
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+          message: 'VbaDetails: failed to record that details were viewed',
+        });
+      });
     });
   });
 
