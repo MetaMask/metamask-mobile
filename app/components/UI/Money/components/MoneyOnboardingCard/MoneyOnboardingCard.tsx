@@ -104,8 +104,8 @@ const MoneyOnboardingCard = ({ isGlass = false }: MoneyOnboardingCardProps) => {
     (isCardholder ||
       (isCardAuthenticated && isCardVerified && !isCardLinkedToMoneyAccount));
 
-  const handleRedirectToCryptoDeposit = useCallback(async () => {
-    await initiateDeposit().catch(() => undefined);
+  const handleRedirectToCryptoDeposit = useCallback(() => {
+    initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
 
   const handleCardCtaPress = useCallback(

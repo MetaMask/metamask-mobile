@@ -54,12 +54,14 @@ const MoneyApyInfoSheet = () => {
   }, []);
 
   const isPremiumCopy = vaultStatus === MoneyVaultStatus.Premium;
+  const downgradingCopyKey =
+    vaultStatus === MoneyVaultStatus.Downgrading
+      ? 'money.apy_tooltip.migration_downgrading'
+      : undefined;
   const migrationCopyKey =
     vaultStatus === MoneyVaultStatus.Upgrading
       ? 'money.apy_tooltip.migration_upgrading'
-      : vaultStatus === MoneyVaultStatus.Downgrading
-        ? 'money.apy_tooltip.migration_downgrading'
-        : undefined;
+      : downgradingCopyKey;
 
   const body =
     variant === 'deposit' ? (

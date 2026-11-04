@@ -85,9 +85,9 @@ const useMoneyVaultApy = ({
   // Override always wins when set; otherwise use live service value; then use
   // fallback only when the APY query is settled/error and no live APY exists.
   const baseApyDecimal =
-    vaultApyOverride !== undefined
-      ? vaultApyOverride
-      : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
+    vaultApyOverride ??
+    serviceApy ??
+    (shouldUseFallback ? vaultApyFallback : undefined);
 
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: enabled && isEntitled,
