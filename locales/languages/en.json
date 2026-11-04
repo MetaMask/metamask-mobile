@@ -130,6 +130,9 @@
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
     },
+    "money_account_no_funds": {
+      "message": "You don't have funds in your Money account to send yet. Add funds first."
+    },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
@@ -1249,7 +1252,8 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
@@ -3324,7 +3328,7 @@
       "gainers": "Gainers",
       "losers": "Losers",
       "recently_added": "Recently added",
-      "social_feed": "Social feed",
+      "social_feed": "Social",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
@@ -3733,7 +3737,20 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      }
     },
     "search": {
       "placeholder": "Search markets",
@@ -3820,7 +3837,8 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order"
+      "review": "Review order",
+      "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
       "title": "Review your order",
@@ -3851,6 +3869,10 @@
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
       "requote": "Try again"
+    },
+    "order_notification": {
+      "not_placed_title": "Order not placed",
+      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     }
   },
   "predict": {
@@ -9502,8 +9524,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Convert to digital dollars",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -9776,7 +9798,7 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
-      "microdeposit": "Test Deposit",
+      "microdeposit": "Verification deposit",
       "microdeposit_from": "From {{name}}",
       "microdeposit_from_bank": "From your bank",
       "received": "Received",
@@ -10393,7 +10415,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -10765,6 +10788,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",

@@ -416,7 +416,10 @@ export function renderSocialV1ViewWithRoutes(
   options: RenderSocialLeaderboardOptions = {},
 ) {
   const { presetOptions, overrides } = options;
-  const builder = initialStateSocialLeaderboard(presetOptions);
+  const builder = initialStateSocialLeaderboard({
+    ...presetOptions,
+    linkedSocialProfile: presetOptions?.linkedSocialProfile ?? true,
+  });
   if (overrides) builder.withOverrides(overrides);
   const state = builder.build();
 

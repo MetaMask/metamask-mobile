@@ -15,10 +15,7 @@ import {
   mockUseSocialV1FeedLoading,
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
-import {
-  FeedSortFilterSelectorsIDs,
-  getFeedSortFilterOptionTestId,
-} from '../components/Filters';
+import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { SOCIAL_FEED_ERROR_TEST_ID } from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
@@ -252,7 +249,7 @@ describe('EmptyShellTabPage', () => {
       mockMyProfile = { profileId: 'viewer-profile' };
     });
 
-    it('pins the viewer’s new post above the Following feed', () => {
+    it('does not pin the viewer’s new post on Following', () => {
       renderWithProvider(
         <EmptyShellTabPage
           tab="following"
@@ -265,29 +262,8 @@ describe('EmptyShellTabPage', () => {
       addViewerPost();
 
       expect(
-        screen.getAllByTestId(/^social-v1-feed-card-/)[0].props.testID,
-      ).toBe('social-v1-feed-card-pinned-item');
-    });
-
-    it('keeps the post pinned when Following is sorted by reactions', () => {
-      renderWithProvider(
-        <EmptyShellTabPage
-          tab="following"
-          isActive
-          containerTestID="following-page-content"
-          scrollTestID="following-page-scroll"
-        />,
-      );
-      addViewerPost();
-
-      fireEvent.press(screen.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR));
-      fireEvent.press(
-        screen.getByTestId(getFeedSortFilterOptionTestId('popular')),
-      );
-
-      expect(
-        screen.getAllByTestId(/^social-v1-feed-card-/)[0].props.testID,
-      ).toBe('social-v1-feed-card-pinned-item');
+        screen.queryByTestId('social-v1-feed-card-pinned-item'),
+      ).toBeNull();
     });
 
     it('never shows the viewer’s new post on Trending', () => {

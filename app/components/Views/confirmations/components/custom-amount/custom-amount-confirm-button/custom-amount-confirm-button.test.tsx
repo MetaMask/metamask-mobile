@@ -107,6 +107,8 @@ describe('CustomAmountConfirmButton', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: noop,
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
