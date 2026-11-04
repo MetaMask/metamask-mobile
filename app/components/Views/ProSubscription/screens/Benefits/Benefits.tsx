@@ -5,7 +5,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -169,14 +168,15 @@ const Benefits = ({
       twClassName="flex-1 bg-background-default"
       testID={BenefitsTestIds.CONTAINER}
     >
-      <HeaderStandard
-        title={strings('pro_subscription.title')}
-        titleProps={{
-          accessibilityRole: 'header',
-          testID: BenefitsTestIds.TITLE,
-        }}
-      />
+      {/* Header */}
       <Box twClassName="px-4 py-2">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="mb-2"
+          testID={BenefitsTestIds.TITLE}
+        >
+          {strings('pro_subscription.title')}
+        </Text>
         {priceLine ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
