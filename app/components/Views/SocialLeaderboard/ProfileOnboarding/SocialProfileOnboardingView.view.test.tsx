@@ -11,6 +11,7 @@
 import '../../../../../tests/component-view/mocks';
 import type { Profile } from '@metamask/profile-controller';
 import NetInfo from '@react-native-community/netinfo';
+import { useNavigation } from '@react-navigation/native';
 import {
   act,
   fireEvent,
@@ -18,6 +19,8 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import React from 'react';
+import { Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -68,6 +71,17 @@ const leaveReadyStep = async () => {
   });
   fireEvent.press(
     screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+  );
+};
+
+const FeedExitStackProbe = () => {
+  const navigation = useNavigation();
+  const routeNames = (navigation.getState()?.routes ?? [])
+    .map((route) => route.name)
+    .join(',');
+
+  return (
+    <Text testID={getRouteProbeTestId(Routes.SOCIAL.V1)}>{routeNames}</Text>
   );
 };
 
@@ -260,7 +274,9 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('writes a manual profile and opens the feed', async () => {
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([
+      { name: Routes.SOCIAL.V1, Component: FeedExitStackProbe },
+    ]);
 
     fireEvent.press(
       screen.getByTestId(
@@ -326,7 +342,10 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(Routes.SOCIAL.V1);
+    expect(
+      screen.getByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toHaveTextContent(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
         handle,
@@ -651,16 +670,26 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.changeText(usernameInput, 'hello_');
 
     expect(
-      screen.queryByText('Use letters, numbers, and underscores.'),
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
     ).not.toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        Engine.context.ProfileController.checkUsernameAvailability,
-      ).toHaveBeenCalledWith('hello_');
-    });
-    expect(
-      await screen.findByText('Username available', { exact: true }),
-    ).toBeOnTheScreen();
+    // Availability is debounced 400ms. Wait for the available status — the
+    // assertion subject — with a budget above that debounce.
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+        expect(
+          screen.getByText(
+            strings('social_leaderboard.profile_onboarding.username_available'),
+            { exact: true },
+          ),
+        ).toBeOnTheScreen();
+      },
+      { timeout: 3000 },
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
@@ -1152,12 +1181,12 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('creates the profile with the signed-in session id', async () => {
+  it('creates the profile with the canonical profile id of a merged session', async () => {
     jest
       .mocked(Engine.context.AuthenticationController.getSessionProfile)
       .mockResolvedValue({
         ...SIGNED_OUT_SESSION,
-        profileId: 'signed-in-profile',
+        profileId: 'alias-profile',
         canonicalProfileId: 'signed-in-profile',
       });
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);

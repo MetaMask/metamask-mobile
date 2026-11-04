@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Money Accountは[Entity] ([regulated status, to confirm]) により提供されています。Reaisは入金された時点でmUSDに交換されます。",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "銀行振込による入金",
@@ -1510,7 +1509,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "適用",
         "apply": "適用",
         "reset": "リセット",
@@ -5106,7 +5105,7 @@
     "card_update_badge": "更新",
     "settings": "設定",
     "networks": "ネットワーク",
-    "log_out": "ログアウト",
+    "log_out": "ロック",
     "notifications": "通知",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orangeに参加",
@@ -10124,7 +10123,6 @@
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
       "predict_withdraw": "出金",
-      "money_account_add_money": "資金を追加",
       "money_account_send": "送金"
     },
     "sub_title": {

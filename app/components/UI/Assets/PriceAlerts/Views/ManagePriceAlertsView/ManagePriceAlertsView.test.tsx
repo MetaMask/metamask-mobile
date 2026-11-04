@@ -33,6 +33,11 @@ const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
 const mockFeatureGate = jest.fn((_props: unknown) => null);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return {

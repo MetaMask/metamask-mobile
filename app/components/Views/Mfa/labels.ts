@@ -22,7 +22,6 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   otp_resend_cooldown: 'mfa.errors.cooldown',
   rate_limited: 'mfa.errors.cooldown',
   max_passkeys_reached: 'mfa.errors.limit_reached',
-  max_identifiers_reached: 'mfa.errors.limit_reached',
   authentication_required: 'mfa.errors.signed_out',
   passkey_unsupported: 'mfa.errors.unsupported',
   flow_in_progress: 'mfa.errors.flow_in_progress',
@@ -85,13 +84,16 @@ export const getSpecificErrorMessage = (
  * Errors whose failure screen has its own title and description, rather than
  * "Something went wrong" and the error's message.
  */
+const SUPPORT_KEYS = {
+  title: 'mfa.failure.support_title',
+  description: 'mfa.failure.support_description',
+};
+
 const FAILURE_KEYS: Partial<
   Record<MfaFlowErrorCode, { title: string; description: string }>
 > = {
-  multi_primary_srp: {
-    title: 'mfa.failure.support_title',
-    description: 'mfa.failure.support_description',
-  },
+  max_identifiers_reached: SUPPORT_KEYS,
+  multi_primary_srp: SUPPORT_KEYS,
 };
 
 /**

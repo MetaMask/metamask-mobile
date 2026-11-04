@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Tu Money Account es proporcionada por [Entity], [regulated status, to confirm]. Los reales se convierten a mUSD al llegar.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Agrega dinero mediante transferencia bancaria",
@@ -1510,7 +1509,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Aplicar",
         "apply": "Aplicar",
         "reset": "Restablecer",
@@ -5106,7 +5105,7 @@
     "card_update_badge": "Actualizar",
     "settings": "Configuración",
     "networks": "Redes",
-    "log_out": "Cerrar sesión",
+    "log_out": "Bloquear",
     "notifications": "Notificaciones",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Únete a MetaMask Orange",
@@ -10124,7 +10123,6 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_add_money": "Agregar fondos",
       "money_account_send": "Enviar"
     },
     "sub_title": {

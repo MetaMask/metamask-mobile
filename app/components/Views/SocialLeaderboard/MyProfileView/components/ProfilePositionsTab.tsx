@@ -5,9 +5,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -24,12 +21,9 @@ import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import { partitionUncountedPositions } from '../utils/partitionUncountedPositions';
 import {
   filterPositionsByAsset,
-  partitionUncountedPositions,
-} from '../utils/partitionUncountedPositions';
-import {
-  getFilteredPositionSections,
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
 } from '../utils/splitPositionsByType';
@@ -45,7 +39,6 @@ export interface ProfilePositionsTabProps {
   error: string | null;
   isClosed: boolean;
   filter: ProfileAssetFilter;
-  onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
   /**
@@ -63,7 +56,6 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   error,
   isClosed,
   filter,
-  onFilterChange,
   onPositionPress,
   onRetry,
   showFlaggedState,
@@ -71,23 +63,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
-  const { tokens, perps, uncounted } = useMemo(() => {
-    // Every viewer, including the owner, pins flagged rows after Tokens and
-    // Perpetuals. `showFlaggedState` blocks presses on other traders' rows
-    // and draws them with the subline treatment (full color, short flag).
-    // The owner omits it, so those rows stay tappable and full color.
-    // This list is already one Open or Closed tab, so the pin is per tab.
+  const { counted, uncounted } = useMemo(() => {
+    // Every viewer, including the owner, pins flagged rows after the counted
+    // list. `showFlaggedState` blocks presses on other traders' rows and draws
+    // them with the subline treatment. The owner omits it, so those rows stay
+    // tappable. The filter is applied by the parent, including inside the pin.
     const split = partitionUncountedPositions(positions);
-    const sections = getFilteredPositionSections(split.counted, filter);
 
     return {
-      ...sections,
+      counted: filterPositionsByAsset(split.counted, filter),
       uncounted: filterPositionsByAsset(split.uncounted, filter),
     };
   }, [filter, positions]);
-  const showSectionHeaders = filter === 'all';
-  const isEmpty =
-    tokens.length === 0 && perps.length === 0 && uncounted.length === 0;
+  const isEmpty = counted.length === 0 && uncounted.length === 0;
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
@@ -116,33 +104,6 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
 
   return (
     <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
-      <FilterButtonGroup
-        value={filter}
-        onChange={(value) => onFilterChange(value as ProfileAssetFilter)}
-        variant={FilterButtonVariant.Primary}
-        twClassName="px-4 pb-3"
-        testID={MyProfileViewSelectorsIDs.ASSET_FILTER}
-      >
-        <FilterButton
-          value="all"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_ALL}
-        >
-          {strings('social_leaderboard.shell.filters.type.all')}
-        </FilterButton>
-        <FilterButton
-          value="tokens"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS}
-        >
-          {strings('social_leaderboard.shell.filters.type.tokens')}
-        </FilterButton>
-        <FilterButton
-          value="perps"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_PERPS}
-        >
-          {strings('social_leaderboard.shell.filters.type.perps')}
-        </FilterButton>
-      </FilterButtonGroup>
-
       {error && isEmpty ? (
         <Box
           alignItems={BoxAlignItems.Center}
@@ -189,34 +150,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         </Box>
       ) : (
         <>
-          {tokens.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.TOKENS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_tokens')}
-                </Text>
-              ) : null}
-              {renderRows(tokens)}
-            </Box>
-          ) : null}
-          {perps.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.PERPS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_perpetuals')}
-                </Text>
-              ) : null}
-              {renderRows(perps)}
-            </Box>
-          ) : null}
+          {renderRows(counted)}
           {uncounted.length > 0 ? (
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
               <TouchableOpacity

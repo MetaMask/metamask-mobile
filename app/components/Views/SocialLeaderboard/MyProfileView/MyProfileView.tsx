@@ -23,12 +23,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  CommonActions,
   useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -49,7 +56,11 @@ import type {
   AppStackNavigationProp,
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
-import { playSelection } from '../../../../util/haptics';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -86,7 +97,12 @@ import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
-import type { ProfileAssetFilter } from './utils/splitPositionsByType';
+import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
+import {
+  matchesProfileAssetFilter,
+  type ProfileAssetFilter,
+} from './utils/splitPositionsByType';
+import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 /** Same 12px slop the home header uses so each icon stays a comfortable tap. */
@@ -112,6 +128,19 @@ const MyProfileView: React.FC = () => {
   const traderName = route.params?.traderName;
   const traderAddress = route.params?.traderAddress;
   const traderAvatarUri = route.params?.traderAvatarUri;
+
+  // The Profile drawer opens this screen with `navigate`, so the drawer stays
+  // beneath it and every back affordance (header, iOS swipe, Android hardware
+  // back) would reveal it again. Drop the drawer from the stack so back returns
+  // to the tab it was opened from. A no-op when opened from Social.
+  useEffect(() => {
+    const nextState = dropProfileDrawerFromStack(navigation.getState());
+    if (!nextState) {
+      return;
+    }
+    navigation.dispatch(CommonActions.reset(nextState));
+  }, [navigation]);
+
   const tw = useTailwind();
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
@@ -142,8 +171,9 @@ const MyProfileView: React.FC = () => {
     if (isOwner) {
       return myProfile;
     }
-    if (liveProfile.profile) {
-      return traderProfileResponseToMySocialProfile(liveProfile.profile, {
+    const remoteProfile = liveProfile.profile;
+    if (remoteProfile) {
+      return traderProfileResponseToMySocialProfile(remoteProfile, {
         handle: traderName,
         imageUrl: traderAvatarUri,
       });
@@ -176,7 +206,7 @@ const MyProfileView: React.FC = () => {
     isActive: isOwner,
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
   const profileTabs = useMemo<TabItem[]>(
     () => [
       {
@@ -240,6 +270,8 @@ const MyProfileView: React.FC = () => {
     refetchInterval: isBlocked ? undefined : 30_000,
   });
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
+  const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
+  const isAssetFilterActive = assetFilter !== 'all';
   const overlayedStats = useMemo(
     () =>
       displayProfile
@@ -447,6 +479,20 @@ const MyProfileView: React.FC = () => {
     },
     [assetFilter, trackInteraction],
   );
+  const handleOpenAssetFilter = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    setIsAssetFilterOpen(true);
+  }, []);
+  const handleCloseAssetFilter = useCallback(() => {
+    setIsAssetFilterOpen(false);
+  }, []);
+  const visiblePosts = useMemo(
+    () =>
+      posts.filter((post) =>
+        matchesProfileAssetFilter(post.position, assetFilter),
+      ),
+    [assetFilter, posts],
+  );
 
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -464,9 +510,35 @@ const MyProfileView: React.FC = () => {
     [activeTab, hasNextPage, loadMore],
   );
 
-  const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
+  // A Tokens or Perps filter only sees posts already loaded. Keep paging
+  // until a match shows up, the feed ends, or the request fails.
+  const showFilteredPostLoading =
+    assetFilter !== 'all' &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    (isPostsLoading || isFetchingNextPage || hasNextPage);
+  const showInitialPostSkeletons =
+    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
   const showPostsEmptyState =
-    !isPostsLoading && posts.length === 0 && !postsError;
+    !isPostsLoading &&
+    !isFetchingNextPage &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    !showFilteredPostLoading;
+  useEffect(() => {
+    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
+      return;
+    }
+    loadMore();
+  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
+  const postsEmptyMessage =
+    posts.length > 0 && assetFilter !== 'all'
+      ? strings(
+          assetFilter === 'tokens'
+            ? 'social_leaderboard.feed.empty_type.tokens.title'
+            : 'social_leaderboard.feed.empty_type.perps.title',
+        )
+      : undefined;
 
   return (
     <SocialFeedSurfaceProvider
@@ -526,7 +598,10 @@ const MyProfileView: React.FC = () => {
           }}
           endAccessory={
             !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface
+                twClassName="gap-2 px-2"
+                testID={MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE}
+              >
                 <ButtonIcon
                   iconName={IconName.Share}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -758,11 +833,32 @@ const MyProfileView: React.FC = () => {
                   cells={overlayedStats.performanceCells}
                 />
 
-                <Box twClassName="bg-default mt-5">
-                  <TabsBar
-                    tabs={profileTabs}
-                    activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
-                    onTabPress={handleProfileTabPress}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="bg-default mt-5 pr-4"
+                >
+                  <Box twClassName="min-w-0 flex-1">
+                    <TabsBar
+                      tabs={profileTabs}
+                      activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
+                      onTabPress={handleProfileTabPress}
+                    />
+                  </Box>
+                  <ButtonIcon
+                    iconName={IconName.Filter}
+                    iconProps={{
+                      size: IconSize.Lg,
+                      color: IconColor.IconDefault,
+                    }}
+                    size={ButtonIconSize.Md}
+                    onPress={handleOpenAssetFilter}
+                    accessibilityLabel={strings(
+                      'social_leaderboard.shell.filters.title',
+                    )}
+                    accessibilityState={{ selected: isAssetFilterActive }}
+                    testID={MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON}
+                    twClassName={isAssetFilterActive ? 'bg-pressed' : undefined}
                   />
                 </Box>
 
@@ -781,7 +877,6 @@ const MyProfileView: React.FC = () => {
                     }
                     isClosed={activeTab === 'closed'}
                     filter={assetFilter}
-                    onFilterChange={handleAssetFilterChange}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
@@ -790,8 +885,8 @@ const MyProfileView: React.FC = () => {
                 ) : showInitialPostSkeletons ? (
                   <ProfilePostsLoadingState />
                 ) : showPostsEmptyState ? (
-                  <ProfilePostsEmptyState />
-                ) : postsError && posts.length === 0 ? (
+                  <ProfilePostsEmptyState message={postsEmptyMessage} />
+                ) : postsError && visiblePosts.length === 0 ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     justifyContent={BoxJustifyContent.Center}
@@ -829,7 +924,7 @@ const MyProfileView: React.FC = () => {
                     testID={MyProfileViewSelectorsIDs.POSTS_LIST}
                   >
                     <SocialV1FeedPostList
-                      posts={posts}
+                      posts={visiblePosts}
                       dividerKeyPrefix="my-profile"
                       renderPost={(post) => (
                         <SocialFeedPostShell post={post} requireSocialTerms />
@@ -837,7 +932,9 @@ const MyProfileView: React.FC = () => {
                     />
                   </Box>
                 )}
-                {activeTab === 'posts' && isFetchingNextPage ? (
+                {activeTab === 'posts' &&
+                isFetchingNextPage &&
+                visiblePosts.length > 0 ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     twClassName="px-4"
@@ -882,6 +979,13 @@ const MyProfileView: React.FC = () => {
             </Button>
           </Box>
         )}
+        {isAssetFilterOpen ? (
+          <ProfileAssetFilterSheet
+            value={assetFilter}
+            onApply={handleAssetFilterChange}
+            onClose={handleCloseAssetFilter}
+          />
+        ) : null}
         {isProfileOptionsOpen && displayProfile && blockProfileId ? (
           <ProfileOptionsSheet
             traderName={displayProfile.displayName}
