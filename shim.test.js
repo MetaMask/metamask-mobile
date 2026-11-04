@@ -238,24 +238,31 @@ describe('E2E network shim', () => {
     );
   });
 
-  it('resolves data URLs in pure JS without calling the native fetch', async () => {
-    loadShim();
+  it('fetches data URLs directly on iOS', async () => {
+    loadShim({ platform: 'ios' });
     answerHealthCheck({ ok: true });
     await flushPromises();
 
-    // base64-encoded "foo"
     const dataUrl = 'data:application/octet-stream;base64,Zm9v';
-    const response = await global.fetch(dataUrl);
+    await global.fetch(dataUrl).catch(() => undefined);
 
-    // Must not reach the native fetch (which throws on Android) or the proxy.
-    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
     expect(underlyingFetch).not.toHaveBeenCalledWith(
-      `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(dataUrl)}`,
+      proxied(dataUrl),
       undefined,
     );
-    expect(response.status).toBe(200);
-    const text = await response.text();
-    expect(text).toBe('foo');
+  });
+
+  it('routes data URLs through the mock server on Android', async () => {
+    loadShim({ platform: 'android' });
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl).catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(proxied(dataUrl), undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
   });
 
   it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
