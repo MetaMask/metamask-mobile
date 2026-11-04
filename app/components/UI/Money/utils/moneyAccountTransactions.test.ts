@@ -732,6 +732,35 @@ describe('moneyAccountTransactions', () => {
       expectTransferTo(MONEY_ACCOUNT);
     });
 
+    it('prefers the given recipient over the current account override', () => {
+      mockSelectTransactionMetadataById.mockReturnValue(
+        buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
+      );
+      mockSelectAccountOverride.mockReturnValue(OTHER_ACCOUNT);
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
+
+      expectTransferTo(SELECTED_ACCOUNT);
+    });
+
+    it('prefers the given receive token over the current one', () => {
+      mockSelectPaymentToken.mockReturnValue(
+        MUSD_TOKEN as unknown as ReturnType<
+          typeof selectTransactionPaymentTokenByTransactionId
+        >,
+      );
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
+
+      expectTransferTo(MONEY_ACCOUNT);
+    });
+
     it('does nothing when the transfer already pays the target', () => {
       mockSelectTransactionMetadataById.mockReturnValue(
         buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
@@ -897,6 +926,41 @@ describe('moneyAccountTransactions', () => {
 
       expect(result[1].transactionData).toBe(
         encodeTransfer(MOCK_RECIPIENT, BigInt(1_000_000)),
+      );
+    });
+
+    it('uses the receive token set while the vault rate loads', async () => {
+      let resolveRate: (rate: ethers.BigNumber) => void = () => undefined;
+      mockGetRate.mockReturnValue(
+        new Promise<ethers.BigNumber>((resolve) => {
+          resolveRate = resolve;
+        }),
+      );
+      mockSelectPaymentToken.mockReturnValue({
+        address: MOCK_MUSD_ADDRESS,
+        chainId: MOCK_CHAIN_ID,
+      } as unknown as ReturnType<
+        typeof selectTransactionPaymentTokenByTransactionId
+      >);
+
+      const resultPromise = updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+        MOCK_RECIPIENT,
+      );
+
+      mockSelectPaymentToken.mockReturnValue({
+        address: '0x3333333333333333333333333333333333333333',
+        chainId: '0x1',
+      } as unknown as ReturnType<
+        typeof selectTransactionPaymentTokenByTransactionId
+      >);
+      resolveRate(ethers.BigNumber.from('1000000'));
+
+      const result = await resultPromise;
+
+      expect(result[1].transactionData).toBe(
+        encodeTransfer(MOCK_MONEY_ACCOUNT_ADDRESS, BigInt(1_000_000)),
       );
     });
 
