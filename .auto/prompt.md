@@ -91,4 +91,23 @@ Engine: Hermes CLI (`ios/Pods/hermes-engine/destroot/bin/hermes -O`), median of
 
 ## What's Been Tried
 
-(run 0) Baseline: candidate identical to original. See `.auto/log.jsonl`.
+Final: 13 experiments, primary_ms 24.45 -> 5.6 (4.4x) on the fixed fixture.
+- KEPT exp1: bounded Map memo for parseCaipAssetType (was ~1/3 of suite).
+- KEPT exp2: single-pass balance+custom merge in allTokens/accountsAssets.
+- KEPT exp3: bounded Map memo for decimalToPrefixedHex (12 refs vs ~600 BigInt).
+- KEPT exp4: currencyRates sorts only native candidates (stable subset sort =
+  identical insertion order; full-array localeCompare was ~3ms).
+- KEPT exp5: marketData hoisted conversion closure + keys loop over prices.
+- KEPT exp6: staked-token filter prefix fast path before parse/checksum.
+- KEPT exp7: bounded Map memo for parseBalanceWithDecimals.
+- KEPT exp8: keys loops in accountsByChainId/tokenBalances.
+- KEPT exp9: keys loop in allTokens (neutral alone, kept with batch).
+- KEPT exp10: currencyRates native-type check before parse.
+- KEPT exp11: eip155: prefix fast path in the 3 non-EVM selectors.
+- DISCARDED exp12: branch-vs-spread in accountsByChainId (noise-level).
+- KEPT exp13: marketData per-chain {rate, symbol} memo — first cut had two
+  scope bugs (nativeAssetSymbol/nativeCurrencyRate) that the bench fixture
+  MISSED (marketData never constructed because networkConfig.nativeCurrency
+  didn't match native symbols) and jest caught (7 failures). Fixture fixed.
+- Floor: per-asset result-object literals; memo lookups dominate the rest.
+  Production edit mirrored from candidate; transpiled prod == candidate.
