@@ -160,7 +160,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
-  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
+  // The tab stays mounted behind other tabs and pager pages, so only tick
+  // the ages (a re-render of every row) while this feed can be seen. Ages are
+  // relative and self-correct on the next visible tick, so no catch-up.
+  const isTickingAges = isFocused && isActive !== false;
+  useInterval(() => setClock(Date.now()), {
+    delay: isTickingAges ? AGE_TICK_MS : null,
+  });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
