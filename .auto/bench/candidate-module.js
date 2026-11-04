@@ -406,16 +406,27 @@ const getCurrencyRateControllerCurrencyRates = makeDirect([
     (state) => state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
 ], (assetsInfo, assetsPrice) => {
     const result = {};
-    // Sorting just to ensure that we process mainnet (eip155:1) first
-    for (const [assetId, metadata] of Object.entries(assetsInfo).sort((a, b) => a[0].localeCompare(b[0]))) {
+    // Only native EVM assets with fungible pricing can insert into the result,
+    // so collect those first (unsorted) and sort just them. The comparator is
+    // the same localeCompare as before; a stable subset sort preserves the
+    // relative order the full sorted iteration used to produce.
+    const nativeEntries = [];
+    const infoIds = Object.keys(assetsInfo);
+    for (let i = 0; i < infoIds.length; i++) {
+        const assetId = infoIds[i];
+        const metadata = assetsInfo[assetId];
+        const assetType = parseCaipAssetTypeCached(assetId);
+        if (metadata.type === 'native' &&
+            assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+            nativeEntries.push([assetId, metadata]);
+        }
+    }
+    nativeEntries.sort((a, b) => a[0].localeCompare(b[0]));
+    for (let i = 0; i < nativeEntries.length; i++) {
+        const assetId = nativeEntries[i][0];
+        const metadata = nativeEntries[i][1];
         // Skip if we already have an entry for this symbol
         if (result[metadata.symbol]) {
-            continue;
-        }
-        const assetType = parseCaipAssetTypeCached(assetId);
-        // Skip if not a native asset or not evm
-        if (metadata.type !== 'native' ||
-            assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
         }
         const price = assetsPrice[assetId];
