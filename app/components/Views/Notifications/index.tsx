@@ -54,19 +54,32 @@ export function useMarkAsReadCallback(props: {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+
   const handleMarkAllAsRead = useCallback(() => {
-    markNotificationAsRead(notifications).catch(
-      logNotificationFailure('Failed to mark all notifications as read'),
-    );
-    NotificationsService.setBadgeCount(0).catch(
-      logNotificationFailure('Failed to clear the notification badge'),
-    );
+    if (isGlassHeader) {
+      markNotificationAsRead(notifications).catch(
+        logNotificationFailure('Failed to mark all notifications as read'),
+      );
+      NotificationsService.setBadgeCount(0).catch(
+        logNotificationFailure('Failed to clear the notification badge'),
+      );
+    } else {
+      markNotificationAsRead(notifications);
+      NotificationsService.setBadgeCount(0);
+    }
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
       ).build(),
     );
-  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
+  }, [
+    createEventBuilder,
+    isGlassHeader,
+    markNotificationAsRead,
+    notifications,
+    trackEvent,
+  ]);
 
   return {
     handleMarkAllAsRead,

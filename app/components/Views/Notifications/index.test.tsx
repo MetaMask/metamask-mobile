@@ -12,6 +12,7 @@ import NotificationsView, {
 } from './';
 import renderWithProvider, {
   DeepPartial,
+  renderHookWithProvider,
 } from '../../../util/test/renderWithProvider';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
@@ -32,6 +33,10 @@ const navigationMock = {
   goBack: jest.fn(),
   canGoBack: jest.fn().mockReturnValue(true),
 } as unknown as NavigationProp<ParamListBase>;
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -62,6 +67,22 @@ const mockInitialState: DeepPartial<RootState> = {
       NotificationServicesController: {
         isNotificationServicesEnabled: true,
         metamaskNotificationsList: [],
+      },
+    },
+  },
+};
+
+const mockGlassHeadersEnabledState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          glassHeaders: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
       },
     },
   },
@@ -237,13 +258,41 @@ describe('useMarkAsReadCallback', () => {
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
-    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
 
     await act(() => hook.result.current.handleMarkAllAsRead());
 
     expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled();
     expect(mocks.mockSetBadgeCount).toHaveBeenCalled();
     expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('leaves mark-all-as-read rejections unlogged when glass headers are off', async () => {
+    const mocks = arrangeMocks();
+    const markFailure = Promise.reject(new Error('mark failed'));
+    const badgeFailure = Promise.reject(new Error('badge failed'));
+    void markFailure.catch(() => undefined);
+    void badgeFailure.catch(() => undefined);
+    mocks.mockMarkNotificationsAsRead.mockReturnValue(markFailure);
+    mocks.mockSetBadgeCount.mockReturnValue(badgeFailure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled();
+    expect(mocks.mockSetBadgeCount).toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
@@ -254,7 +303,10 @@ describe('useMarkAsReadCallback', () => {
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
-    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockGlassHeadersEnabledState },
+    );
 
     await act(async () => {
       hook.result.current.handleMarkAllAsRead();
@@ -274,7 +326,10 @@ describe('useMarkAsReadCallback', () => {
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
-    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockGlassHeadersEnabledState },
+    );
 
     await act(async () => {
       hook.result.current.handleMarkAllAsRead();
