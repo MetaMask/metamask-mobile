@@ -24,15 +24,7 @@ import TraderPositionQuickBuy, {
 } from '../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../UI/QuickBuy/hooks/useQuickBuySetup';
 import { usePositionTokenBalance } from '../../../UI/QuickBuy/hooks/usePositionTokenBalance';
-import type {
-  QuickBuyTarget,
-  QuickBuyTradeMode,
-} from '../../../UI/QuickBuy/types';
-import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import {
-  PostTradeShareOwner,
-  usePostTradeShareReopen,
-} from '../PostTradeShareBottomSheet';
+import type { QuickBuyTradeMode } from '../../../UI/QuickBuy/types';
 import { EnsureAccessRestricted } from '../../../UI/Compliance/contexts/AccessRestrictedContext';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import { useOpenPerpsOrder } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
@@ -197,27 +189,6 @@ const PositionDetailsSheet = () => {
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
-  const handlePostTradeReopen = useCallback(
-    (
-      reopenTarget: QuickBuyTarget,
-      _copyTradeOrigin?: CopyTradeOrigin,
-      tradeMode?: QuickBuyTradeMode,
-    ) => {
-      if (
-        quickBuyTarget &&
-        quickBuyTarget.tokenAddress === reopenTarget.tokenAddress &&
-        quickBuyTarget.chain === reopenTarget.chain
-      ) {
-        openQuickBuy(tradeMode ?? 'buy');
-      }
-    },
-    [quickBuyTarget, openQuickBuy],
-  );
-  usePostTradeShareReopen(
-    handlePostTradeReopen,
-    PostTradeShareOwner.positionDetails,
-  );
-
   const handleCopyTrade = useCallback(() => {
     if (data.isPerp) {
       handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
@@ -358,7 +329,6 @@ const PositionDetailsSheet = () => {
           originalEntryPoint="trader_feed"
           isTraderPositionClosed={data.isClosed}
           postTradeShare
-          postTradeShareOwner={PostTradeShareOwner.positionDetails}
           initialTradeMode={quickBuyMode ?? undefined}
         />
       ) : null}
