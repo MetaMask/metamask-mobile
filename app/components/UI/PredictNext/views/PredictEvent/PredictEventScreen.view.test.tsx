@@ -2008,17 +2008,33 @@ describe('PredictEventScreen', () => {
         await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
       );
 
-      // The held row is on the second Positions page. The tab can paint
-      // before that page is appended, so wait for the row itself.
-      const laterPageRow = await view.findByTestId(
-        EventMarketListTestIds.positionRow('market-1', 'yes'),
+      // The Positions tab is list-header UI. It can paint once page 1
+      // exists while the held row still waits on the page-2 read and the
+      // list item mount. findBy's default 1000ms budget expired on CI
+      // after that wait was added, so wait until the walked page is
+      // requested and both the row and its Cash Out control are on screen.
+      await waitFor(
+        () => {
+          expect(
+            messengerCall.mock.calls.some(
+              ([action, , , cursor]) =>
+                action === 'PredictPortfolioService:getPositions' &&
+                cursor === 'cursor-page-2',
+            ),
+          ).toBe(true);
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionRow('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 5000 },
       );
-      expect(laterPageRow).toBeOnTheScreen();
-      expect(
-        view.getByTestId(
-          EventMarketListTestIds.positionCashOut('market-1', 'yes'),
-        ),
-      ).toBeOnTheScreen();
     });
 
     it('stops walking venue-wide Positions pages at the screen bound', async () => {
@@ -2158,9 +2174,13 @@ describe('PredictEventScreen', () => {
         await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
       );
 
+      // Header tab and row item mount separately. Press the Cash Out
+      // control only after that row's button is on screen.
       fireEvent.press(
-        view.getByTestId(
+        await view.findByTestId(
           EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+          {},
+          { timeout: 5000 },
         ),
       );
       await view.findByTestId(PredictOrderFlowTestIds.SHEET);
