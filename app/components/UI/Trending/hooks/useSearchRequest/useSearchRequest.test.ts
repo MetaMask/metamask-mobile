@@ -273,6 +273,78 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('passes serviceProfile to searchTokens on the first page and on loadMore', async () => {
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: [createMockSearchResult()],
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockResolvedValueOnce({
+        data: [createMockSearchResult({ symbol: 'BTC' })],
+        pageInfo: { hasNextPage: false },
+      } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+        serviceProfile: 'assets--trending-search',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(spySearchTokens).toHaveBeenCalledTimes(2);
+    expect(spySearchTokens).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(),
+      'ETH',
+      expect.objectContaining({ serviceProfile: 'assets--trending-search' }),
+    );
+    expect(spySearchTokens).toHaveBeenNthCalledWith(
+      2,
+      expect.anything(),
+      'ETH',
+      expect.objectContaining({
+        after: 'cursor-page-2',
+        serviceProfile: 'assets--trending-search',
+      }),
+    );
+
+    unmount();
+  });
+
+  it('does not set serviceProfile on searchTokens when not provided', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(spySearchTokens).toHaveBeenCalledWith(
+      expect.anything(),
+      'ETH',
+      expect.objectContaining({ serviceProfile: undefined }),
+    );
+
+    unmount();
+  });
+
   it('loadMore is a no-op when hasNextPage is false', async () => {
     const mockResults = [createMockSearchResult()];
     spySearchTokens.mockResolvedValue({

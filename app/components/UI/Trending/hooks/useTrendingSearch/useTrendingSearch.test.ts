@@ -1,4 +1,7 @@
-import { useTrendingSearch } from './useTrendingSearch';
+import {
+  TRENDING_SEARCH_SERVICE_PROFILE,
+  useTrendingSearch,
+} from './useTrendingSearch';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -632,5 +635,33 @@ describe('useTrendingSearch', () => {
         expect.arrayContaining([expect.objectContaining({ symbol: 'USDC' })]),
       );
     });
+  });
+
+  it('passes the Trending search service profile to useSearchRequest', () => {
+    mockUseSearchRequest.mockReturnValue({
+      results: mockSearchResults,
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
+    });
+
+    renderHookWithProvider(() =>
+      useTrendingSearch({
+        searchQuery: 'USDC',
+        sortBy: 'h24_trending',
+        chainIds: null,
+      }),
+    );
+
+    expect(TRENDING_SEARCH_SERVICE_PROFILE).toBe('assets--trending-search');
+    expect(mockUseSearchRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        serviceProfile: 'assets--trending-search',
+      }),
+    );
   });
 });

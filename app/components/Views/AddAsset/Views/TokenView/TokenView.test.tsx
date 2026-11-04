@@ -118,6 +118,15 @@ describe('TokenView', () => {
     expect(queryByTestId('add-asset-tabs-container')).toBeNull();
   });
 
+  it('does not send a service profile with the search support probe', () => {
+    renderComponent();
+
+    expect(mockUseSearchRequest).toHaveBeenCalled();
+    for (const [options] of mockUseSearchRequest.mock.calls) {
+      expect(options).not.toHaveProperty('serviceProfile');
+    }
+  });
+
   it('shows both tabs for EVM chain when search is supported', () => {
     const { getByTestId, queryByTestId } = renderComponent();
 

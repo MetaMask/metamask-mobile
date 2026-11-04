@@ -1,0 +1,46 @@
+diff --git a/dist/token-service.d.ts b/dist/token-service.d.ts
+index 4eae24cc144aca81f282f47617d538dd25312e32..755e1a1334b6d1ea07c6e146aa65ca8464106c5e 100644
+--- a/dist/token-service.d.ts
++++ b/dist/token-service.d.ts
+@@ -184,6 +184,8 @@ type SearchTokenOptions = {
+     includeMarketData?: boolean;
+     includeRwaData?: boolean;
+     includeTokenSecurityData?: boolean;
++    /** Value sent as the `x-mm-service-profile` header on the request. Omitted when unset. */
++    serviceProfile?: string;
+ };
+ /**
+  * Search for tokens across one or more networks by query string using CAIP format chain IDs.
+@@ -198,7 +200,7 @@ type SearchTokenOptions = {
+  * @param options.includeTokenSecurityData - Optional flag to include token security data in the results (defaults to false).
+  * @returns Object containing count, totalCount, data array, optional pageInfo for pagination, and an optional error message if the request failed.
+  */
+-export declare function searchTokens(chainIds: CaipChainId[], query: string, { limit, after, includeMarketData, includeRwaData, includeTokenSecurityData, }?: SearchTokenOptions): Promise<{
++export declare function searchTokens(chainIds: CaipChainId[], query: string, { limit, after, includeMarketData, includeRwaData, includeTokenSecurityData, serviceProfile, }?: SearchTokenOptions): Promise<{
+     count: number;
+     totalCount?: number;
+     data: TokenSearchItem[];
+diff --git a/dist/token-service.js b/dist/token-service.js
+index fb9aac4415e2d507bcb5adc173c36db0b342eab4..e907f633fdca512f37dc1cf23425f16a89a7c308 100644
+--- a/dist/token-service.js
++++ b/dist/token-service.js
+@@ -270,7 +270,7 @@ export async function fetchTokenListByChainId(chainId, abortSignal, { timeout =
+  * @param options.includeTokenSecurityData - Optional flag to include token security data in the results (defaults to false).
+  * @returns Object containing count, totalCount, data array, optional pageInfo for pagination, and an optional error message if the request failed.
+  */
+-export async function searchTokens(chainIds, query, { limit = 10, after, includeMarketData = false, includeRwaData = true, includeTokenSecurityData, } = {}) {
++export async function searchTokens(chainIds, query, { limit = 10, after, includeMarketData = false, includeRwaData = true, includeTokenSecurityData, serviceProfile, } = {}) {
+     const tokenSearchURL = getTokenSearchURL({
+         chainIds,
+         query,
+@@ -281,7 +281,9 @@ export async function searchTokens(chainIds, query, { limit = 10, after, include
+         includeTokenSecurityData,
+     });
+     try {
+-        const result = await handleFetch(tokenSearchURL);
++        const result = await handleFetch(tokenSearchURL, serviceProfile
++            ? { headers: { 'x-mm-service-profile': serviceProfile } }
++            : undefined);
+         if (result && typeof result === 'object' && Array.isArray(result.data)) {
+             return {
+                 count: result.count ?? result.data.length,

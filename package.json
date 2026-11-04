@@ -327,7 +327,9 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
-    "@metamask/subscription-controller": "15.0.0"
+    "@metamask/subscription-controller": "15.0.0",
+    "@metamask/assets-controllers@npm:^113.0.0": "patch:@metamask/assets-controllers@npm%3A113.1.0#~/.yarn/patches/@metamask-assets-controllers-npm-113.1.0-7d1e808a33.patch",
+    "@metamask/assets-controllers@npm:^113.1.0": "patch:@metamask/assets-controllers@npm%3A113.1.0#~/.yarn/patches/@metamask-assets-controllers-npm-113.1.0-7d1e808a33.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -356,7 +358,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^10.0.0",
     "@metamask/assets-controller": "^20.2.0",
-    "@metamask/assets-controllers": "^113.1.0",
+    "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A113.1.0#~/.yarn/patches/@metamask-assets-controllers-npm-113.1.0-7d1e808a33.patch",
     "@metamask/authenticated-user-storage": "^4.1.0",
     "@metamask/base-controller": "^10.0.0",
     "@metamask/base-data-service": "^2.1.0",
