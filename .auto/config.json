@@ -1,3 +1,4 @@
 {
-  "maxIterations": 25
+  "maxIterations": 25,
+  "workingDir": "/Users/prithpalsooriya/Desktop/projects/.perf-research/2026-11-04/mobile"
 }
