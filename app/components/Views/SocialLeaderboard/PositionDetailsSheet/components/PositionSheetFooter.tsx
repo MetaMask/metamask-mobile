@@ -46,7 +46,7 @@ const PositionSheetFooter = ({
     if (!isClosed) {
       return (
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           startIconName={IconName.SwapHorizontal}
