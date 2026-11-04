@@ -166,6 +166,7 @@ jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
   __esModule: true,
   default: {
     init: jest.fn().mockResolvedValue(undefined),
+    startIfNeeded: jest.fn().mockResolvedValue(undefined),
     getInstance: jest.fn().mockReturnValue({}),
   },
 }));
@@ -337,7 +338,7 @@ describe('startAppServices', () => {
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
     expect(hydrateSocialTermsAcceptance).toHaveBeenCalled();
-    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
@@ -350,7 +351,7 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
-    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
@@ -378,16 +379,16 @@ describe('initializeSDKServices', () => {
     __resetSDKServicesInitializationForTesting();
   });
 
-  it('initializes WalletConnect V2 and SDKConnect', async () => {
+  it('starts WalletConnect V2 if needed and initializes SDKConnect', async () => {
     await expectSaga(initializeSDKServices).run();
 
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
   it('waits for WalletConnect V2 to finish if SDKConnect.init throws', async () => {
     let resolveWC2Init: () => void = () => undefined;
-    (WC2Manager.init as jest.Mock).mockImplementationOnce(
+    (WC2Manager.startIfNeeded as jest.Mock).mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           resolveWC2Init = resolve;
@@ -408,12 +409,14 @@ describe('initializeSDKServices', () => {
     resolveWC2Init();
     await sagaPromise;
 
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
   it('waits for SDKConnect to finish if WalletConnect V2 init throws', async () => {
-    (WC2Manager.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (WC2Manager.startIfNeeded as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
 
     let resolveSDKConnectInit: () => void = () => undefined;
     (SDKConnect.init as jest.Mock).mockImplementationOnce(
@@ -436,7 +439,7 @@ describe('initializeSDKServices', () => {
     resolveSDKConnectInit();
     await sagaPromise;
 
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 });
@@ -462,7 +465,7 @@ describe('initializeSDKServicesSaga', () => {
       .dispatch({ type: UserActionType.LOGIN })
       .silentRun();
 
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
     expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.clearPendingDeeplink).not.toHaveBeenCalled();
@@ -481,7 +484,7 @@ describe('initializeSDKServicesSaga', () => {
       .dispatch({ type: UserActionType.LOGIN })
       .silentRun();
 
-    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
@@ -495,7 +498,7 @@ describe('initializeSDKServicesSaga', () => {
       .dispatch(setCompletedOnboarding(true))
       .silentRun();
 
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
@@ -508,7 +511,7 @@ describe('initializeSDKServicesSaga', () => {
       .dispatch({ type: UserActionType.LOGIN })
       .silentRun();
 
-    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 });
@@ -554,7 +557,7 @@ describe('handleDeeplinkSaga', () => {
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
-      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
       expect(SDKConnect.init).not.toHaveBeenCalled();
     });
 
@@ -572,7 +575,7 @@ describe('handleDeeplinkSaga', () => {
         .silentRun();
 
       expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
       expect(SDKConnect.init).not.toHaveBeenCalled();
     });
   });
@@ -607,7 +610,7 @@ describe('handleDeeplinkSaga', () => {
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
-        expect(WC2Manager.init).not.toHaveBeenCalled();
+        expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
         expect(SDKConnect.init).not.toHaveBeenCalled();
       });
     });
@@ -631,7 +634,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
-          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
@@ -658,7 +661,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
@@ -764,7 +767,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
@@ -783,7 +786,7 @@ describe('handleDeeplinkSaga', () => {
             .dispatch(checkForDeeplink())
             .silentRun();
 
-          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(WC2Manager.startIfNeeded).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
           expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
             rewardsLink,
@@ -822,7 +825,7 @@ describe('handleDeeplinkSaga', () => {
           resolveSDKConnectInit();
           await sagaPromise;
 
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(WC2Manager.startIfNeeded).toHaveBeenCalled();
           expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
           expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
             'https://link.metamask.io/connect?channelId=test-channel-id',
