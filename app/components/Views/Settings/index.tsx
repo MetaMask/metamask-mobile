@@ -104,6 +104,10 @@ const Settings = () => {
     navigation.navigate('AesCryptoTestForm');
   };
 
+  const onPressKalshiKycPoc = () => {
+    navigation.navigate(Routes.KALSHI_KYC_POC);
+  };
+
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
   };
@@ -133,6 +137,11 @@ const Settings = () => {
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
+        <SettingsDrawer
+          title="Kalshi KYC (POC)"
+          description="Register a Kalshi user through the generalized KYC module"
+          onPress={onPressKalshiKycPoc}
+        />
         <SettingsDrawer
           description={strings('app_settings.general_desc')}
           onPress={onPressGeneral}

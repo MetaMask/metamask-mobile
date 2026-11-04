@@ -599,6 +599,7 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  KALSHI_KYC_POC: 'KalshiKycPoc',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
   ///: END:ONLY_INCLUDE_IF

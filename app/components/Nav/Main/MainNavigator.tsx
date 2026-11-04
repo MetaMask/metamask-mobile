@@ -152,6 +152,7 @@ import {
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
+import KalshiKycPoc from '../../UI/KYC/Views/KalshiPoc/KalshiKycPoc';
 import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
@@ -1651,6 +1652,10 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
+      <NativeStack.Screen
+        name={Routes.KALSHI_KYC_POC}
+        component={KalshiKycPoc}
+      />
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
