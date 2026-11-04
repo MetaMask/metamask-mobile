@@ -872,7 +872,15 @@ const STAKED_TOKEN_ASSET_IDS_TO_FILTER = new Set([
 ]);
 // AssetIds may carry the contract address in any case, so normalize the asset
 // reference to its checksummed form before matching against the filter set.
+// Fast path: the filter set only contains eip155:1/eip155:560048 erc20 ids, so
+// a raw-id prefix check skips the parse/checksum/template work for the common
+// (non-staking) case. Matching ids still go through the exact check.
+const STAKED_ID_PREFIXES = ['eip155:1/erc20:', 'eip155:560048/erc20:'];
 const isStakedTokenAssetId = (assetId) => {
+    if (!assetId.startsWith(STAKED_ID_PREFIXES[0]) &&
+        !assetId.startsWith(STAKED_ID_PREFIXES[1])) {
+        return false;
+    }
     const { chainId, assetNamespace, assetReference } = parseCaipAssetTypeCached(assetId);
     return STAKED_TOKEN_ASSET_IDS_TO_FILTER.has(`${chainId}/${assetNamespace}:${toChecksumHexAddress(assetReference)}`);
 };
