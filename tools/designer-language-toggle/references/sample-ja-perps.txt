@@ -1,0 +1,89 @@
+Language: ja (日本語)
+File: locales/languages/ja.json
+This is the file locales/i18n.js imports. The Android preview uses this file.
+Scope: perps
+RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+
+Keys in scope: 1417
+Missing: 9
+Still English: 6
+Too long: 234
+Too long, short English (12 width or less, the button-sized ones): 109
+Skipped as shared names or tokens: 37
+Extra keys not in English: 2
+Too-long rule: display width >= English x 1.4, and at least 4 width units longer, and English is at least 4 wide. Placeholders are ignored. CJK, kana, and hangul count as 2.
+
+Focus controls
+  perps.pro_positions_panel.card.close
+    Perps position card, Close. Three buttons share one row (flex-1). Designers budget about 114px.
+    en "Close" (5 chars, width 5)  →  "閉じる" (3 chars, width 6)
+  perps.pro_positions_panel.card.reverse
+    Perps position card, Reverse. A long shipped example is Russian.
+    en "Reverse" (7 chars, width 7)  →  "反転" (2 chars, width 4)
+  perps.pro_positions_panel.card.share
+    Perps position card, Share. A long shipped example is Portuguese in pt.json (the file the app loads).
+    en "Share" (5 chars, width 5)  →  "共有" (2 chars, width 4)
+
+Missing (9)
+  perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_with_bridge  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{br…"
+  perps.trade_sheet.includes_fee_after_promo_discounted  en "Includes {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_discounted_with_bridge  en "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee"
+  perps.trade_sheet.includes_fee_after_promo_a11y  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%"
+  perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, …"
+  perps.order.fees_taker_maker  en "Taker {{taker}}% / Maker {{maker}}%"
+  perps.position.card.post_to_feed  en "Post to feed"
+  perps.tooltips.fees.original_fee_value  en "was {{fee}}"
+
+Still English (6)
+  perps.pro_order_form.tpsl  "TP / SL"
+  perps.pro_positions_panel.card.tp_sl  "TP / SL"
+  perps.pro_positions_panel.order_card.tp_sl  "TP / SL"
+  perps.search_by_token_symbol  "Search"
+  perps.order.limit_price_modal.ask_price  "Ask"
+  perps.order.limit_price_modal.bid_price  "Bid"
+
+Too long (234)
+  perps.service_interruption.faq_title  en "Perps FAQs" (10 chars, width 10)  →  "パーペチュアルに関するよくある質問" (17 chars, width 34, 3.40x)
+  perps.home.social_feed  en "Social" (6 chars, width 6)  →  "ソーシャルフィード" (9 chars, width 18, 3.00x)
+  perps.title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
+  perps.deposit.estimated_processing_time  en "Est. {{time}}" (5 chars, width 5)  →  "推定所要時間: {{time}}" (8 chars, width 14, 2.80x)
+  perps.position.list.first_time_title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
+  perps.home.perps  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
+  perps.transactions.title  en "Perps" (5 chars, width 5)  →  "パーペチュアル" (7 chars, width 14, 2.80x)
+  perps.close_position.sheet_title_long  en "Close Long {{asset}}" (11 chars, width 11)  →  "{{asset}}のロングポジションをクローズ" (14 chars, width 28, 2.55x)
+  perps.close_position.sheet_title_short  en "Close Short {{asset}}" (12 chars, width 12)  →  "{{asset}}のショートポジションをクローズ" (15 chars, width 30, 2.50x)
+  perps.market_details.perp_pair  en "{{ticker}}-{{collateral}} perp" (6 chars, width 6)  →  "{{ticker}}-{{collateral}}パーペチュアル" (8 chars, width 15, 2.50x)
+  perps.chart.candle_period_selector.show_more  en "More" (4 chars, width 4)  →  "さらに表示" (5 chars, width 10, 2.50x)
+  perps.withdrawal.try_again  en "Try again" (9 chars, width 9)  →  "もう一度お試しください" (11 chars, width 22, 2.44x)
+  … 222 more. Re-run with --limit 234 to see all.
+
+Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
+
+Date hints in this locale file (0)
+  None.
+
+Date hints in screen code (app/components/UI/Perps) (36)
+  app/components/UI/Perps/utils/formatUtils.ts:1419  [english-month-list]  English month abbreviations (Jan, Feb, …)
+  app/components/UI/Perps/utils/formatUtils.ts:1393  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1413  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1385  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1390  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1406  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1410  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1490  [hard-coded-en-US-date]  const month = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1493  [hard-coded-en-US-date]  const day = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/marketHours.ts:20  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
+  app/components/UI/Perps/utils/marketHours.ts:43  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
+  app/components/UI/Perps/components/TradingViewChart/TradingViewChartTemplate.tsx:65  [hard-coded-en-US-date]  const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+  … 24 more. Re-run with --limit 36 to see all.
+
+Regional files (not imported by locales/i18n.js)
+  locales/languages/ja-jp.json: 1339 strings. The preview does not load this file.
+    In scope (perps): keys=1417 missing=1417 still_english=0 too_long=0
+    This regional file has none of the scoped English strings. It looks like an older bundle.
+
+Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
+
+SUMMARY ja perps missing=9 still_english=6 too_long=234 too_long_short=109 date_hints=36
+No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

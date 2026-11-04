@@ -1,0 +1,94 @@
+Language: de (Deutsch)
+File: locales/languages/de.json
+This is the file locales/i18n.js imports. The Android preview uses this file.
+Scope: perps
+RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+
+Keys in scope: 1417
+Missing: 9
+Still English: 73
+Too long: 374
+Too long, short English (12 width or less, the button-sized ones): 160
+Skipped as shared names or tokens: 38
+Extra keys not in English: 2
+Too-long rule: display width >= English x 1.4, and at least 4 width units longer, and English is at least 4 wide. Placeholders are ignored. CJK, kana, and hangul count as 2.
+
+Focus controls
+  perps.pro_positions_panel.card.close
+    Perps position card, Close. Three buttons share one row (flex-1). Designers budget about 114px.
+    en "Close" (5 chars, width 5)  →  "Schließen" (9 chars, width 9)
+  perps.pro_positions_panel.card.reverse
+    Perps position card, Reverse. A long shipped example is Russian.
+    en "Reverse" (7 chars, width 7)  →  "Umkehren" (8 chars, width 8)
+  perps.pro_positions_panel.card.share
+    Perps position card, Share. A long shipped example is Portuguese in pt.json (the file the app loads).
+    en "Share" (5 chars, width 5)  →  "Teilen" (6 chars, width 6)
+
+Missing (9)
+  perps.trade_sheet.includes_fee_after_promo  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_with_bridge  en "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{br…"
+  perps.trade_sheet.includes_fee_after_promo_discounted  en "Includes {{feePercentage}}% fee after promo"
+  perps.trade_sheet.includes_fee_after_promo_discounted_with_bridge  en "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee"
+  perps.trade_sheet.includes_fee_after_promo_a11y  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%"
+  perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge  en "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, …"
+  perps.order.fees_taker_maker  en "Taker {{taker}}% / Maker {{maker}}%"
+  perps.position.card.post_to_feed  en "Post to feed"
+  perps.tooltips.fees.original_fee_value  en "was {{fee}}"
+
+Still English (73)
+  perps.pro_positions_panel.orders_with_count  "Orders ({{count}})"
+  perps.order.chase.tab_with_count  "Chase ({{count}})"
+  perps.order_book.spread_value  "Spread {{value}}"
+  perps.order.button.short  "Short {{asset}}"
+  perps.order.button.long  "Long {{asset}}"
+  perps.pro_order_form.scale.start_price  "Start (USD)"
+  perps.home.tabs.memecoin  "Memecoins"
+  perps.home.watchlist  "Watchlist"
+  perps.market.countdown  "Countdown"
+  perps.sort.favorites  "Watchlist"
+  perps.watchlist.filter_badge_label  "Watchlist"
+  perps.deposit.slippage  "Slippage"
+  … 61 more. Re-run with --limit 73 to see all.
+
+Too long (374)
+  perps.errors.unknown.retry  en "Retry" (5 chars, width 5)  →  "Erneut versuchen" (16 chars, width 16, 3.20x)
+  perps.connection.websocket_retry  en "Retry" (5 chars, width 5)  →  "Erneut versuchen" (16 chars, width 16, 3.20x)
+  perps.tutorial.skip  en "Skip" (4 chars, width 4)  →  "Überspringen" (12 chars, width 12, 3.00x)
+  perps.slippage.custom  en "Custom" (6 chars, width 6)  →  "Benutzerdefiniert" (17 chars, width 17, 2.83x)
+  perps.deposit.slippage_auto  en "Auto" (4 chars, width 4)  →  "Automatisch" (11 chars, width 11, 2.75x)
+  perps.transactions.funding.rate  en "Rate" (4 chars, width 4)  →  "Wechselkurs" (11 chars, width 11, 2.75x)
+  perps.auto_close.edit_button  en "Edit" (4 chars, width 4)  →  "Bearbeiten" (10 chars, width 10, 2.50x)
+  perps.pro_positions_panel.order_card.edit  en "Edit" (4 chars, width 4)  →  "Bearbeiten" (10 chars, width 10, 2.50x)
+  perps.order_book.asks  en "Asks" (4 chars, width 4)  →  "Briefkurse" (10 chars, width 10, 2.50x)
+  perps.tap_to_retry  en "Tap to retry" (12 chars, width 12)  →  "Antippen zum erneuten Versuch" (29 chars, width 29, 2.42x)
+  perps.order_details.limit_buy  en "Limit Long" (10 chars, width 10)  →  "Long-Position limitieren" (24 chars, width 24, 2.40x)
+  perps.sort.reset  en "Reset" (5 chars, width 5)  →  "Zurücksetzen" (12 chars, width 12, 2.40x)
+  … 362 more. Re-run with --limit 374 to see all.
+
+Date-format hints are best-effort. A hit is a hard-coded date shape or an English locale in code, not a full audit.
+
+Date hints in this locale file (0)
+  None.
+
+Date hints in screen code (app/components/UI/Perps) (36)
+  app/components/UI/Perps/utils/formatUtils.ts:1419  [english-month-list]  English month abbreviations (Jan, Feb, …)
+  app/components/UI/Perps/utils/formatUtils.ts:1393  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1413  [hour12-ampm]  hour12: true,
+  app/components/UI/Perps/utils/formatUtils.ts:1385  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1390  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1406  [hard-coded-en-US-date]  const dateStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1410  [hard-coded-en-US-date]  const timeStr = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1490  [hard-coded-en-US-date]  const month = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/formatUtils.ts:1493  [hard-coded-en-US-date]  const day = getIntlDateTimeFormatter('en-US', {
+  app/components/UI/Perps/utils/marketHours.ts:20  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
+  app/components/UI/Perps/utils/marketHours.ts:43  [hard-coded-en-US-date]  const formatter = new Intl.DateTimeFormat('en-US', {
+  app/components/UI/Perps/components/TradingViewChart/TradingViewChartTemplate.tsx:65  [hard-coded-en-US-date]  const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+  … 24 more. Re-run with --limit 36 to see all.
+
+Regional files (not imported by locales/i18n.js)
+  None for de.json.
+
+Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.
+
+SUMMARY de perps missing=9 still_english=73 too_long=374 too_long_short=160 date_hints=36
+No locale JSON was edited. Crowdin owns locales/languages. To change the preview language, use apply-locale.js.

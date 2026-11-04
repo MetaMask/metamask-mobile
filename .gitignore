@@ -281,3 +281,10 @@ sourcemaps/**/*.js.map
 # Local planning artifacts. Not team-shared storage.
 .specs/
 .briefs/
+
+# Designer language toggle preview (tools/designer-language-toggle).
+# Crowdin still owns locales/languages/*.json. These files are local only.
+locales/designer-locale.override.json
+locales/designer-pseudo.generated.json
+locales/.designer-locale.i18n.js.bak
+locales/i18n.js.designer-tmp

@@ -1,0 +1,21 @@
+String keys for perps
+RTL is off. locales/i18n.js sets isRTL = false, so the layout does not mirror. This skill does not turn RTL on.
+Give a linguist the key plus the English sentence. Do not paste a fix into locales/languages. Crowdin owns those files. A blank feedback form is in tools/designer-language-toggle/FEEDBACK.md.
+
+## PerpsProMarketView
+  app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProPositionCard.tsx
+    perps.adjust_margin.title  "Adjust Margin"
+    perps.position.card.edit_tpsl  "Edit TP/SL"
+    perps.pro_positions_panel.card.close  "Close"
+    perps.pro_positions_panel.card.cross  "Cross"
+    perps.pro_positions_panel.card.entry_price  "Entry price"
+    perps.pro_positions_panel.card.funding  "Funding"
+    perps.pro_positions_panel.card.isolated  "Isolated"
+    perps.pro_positions_panel.card.liq_price  "Liq. price"
+    perps.pro_positions_panel.card.mark_price  "Mark price"
+    perps.pro_positions_panel.card.reverse  "Reverse"
+    perps.pro_positions_panel.card.share  "Share"
+    perps.pro_positions_panel.card.tp_sl  "TP / SL"
+    perps.pro_positions_panel.view_market_accessibility  "Switch to the {{symbol}} market"
+
+SUMMARY perps screens=1 string_calls=13
