@@ -4,8 +4,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../../UI/PredictNext';
 import SportsTab from './SportsTab';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 
@@ -95,7 +97,7 @@ describe('SportsTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPredictEnabledFlag) return true;
+      if (selector === selectPredictAvailability) return true;
       return undefined;
     });
     mockUsePredictionsFeed.mockReturnValue({

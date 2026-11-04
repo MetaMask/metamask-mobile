@@ -114,7 +114,10 @@ import {
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from '../../UI/PredictNext';
+import {
+  selectPredictAvailability,
+  usePredictActivityItems,
+} from '../../UI/PredictNext';
 import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
 import {
   FilledLimitOrdersList,
@@ -122,7 +125,6 @@ import {
 } from './FilledLimitOrdersList';
 import type { LimitOrder } from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
@@ -245,7 +247,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           typeFilter === ActivityTypeFilter.All),
       aggregateFills,
     });
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const predictFilterActive =
       typeFilter === ActivityTypeFilter.Predictions ||
       typeFilter === ActivityTypeFilter.All;

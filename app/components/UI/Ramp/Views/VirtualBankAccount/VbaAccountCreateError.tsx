@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -20,6 +19,9 @@ import type {
   AccountCreateErrorPrimaryAction,
   AccountCreateErrorVariant,
 } from './accountCreateError';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaAccountCreateErrorSelectorsIDs = {
   CONTAINER: 'vba-account-create-error-container',
@@ -49,6 +51,7 @@ const VbaAccountCreateError = ({
   onSecondary,
   onBack,
 }: VbaAccountCreateErrorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -97,7 +100,9 @@ const VbaAccountCreateError = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           isDisabled: pendingAction !== null,

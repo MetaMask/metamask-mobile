@@ -24,6 +24,13 @@ import {
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: 'viewer-profile-id',
+    isLoading: false,
+  }),
+}));
+
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
   getApplicationName: () => Promise.resolve('applicationName'),

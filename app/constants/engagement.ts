@@ -4,3 +4,4 @@
  */
 export const BANNER_EVENT_DISPLAY = 'Banner Display';
 export const BANNER_EVENT_DISMISSED = 'Banner Dismissed';
+export const BANNER_EVENT_SELECT = 'Banner Select';
