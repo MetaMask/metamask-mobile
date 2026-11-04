@@ -3,6 +3,7 @@ import { renderPredictNext } from '../../../../../../tests/component-view/render
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { PredictHomeTestIds } from './PredictHome.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
@@ -78,6 +79,38 @@ describe('PredictHome', () => {
       view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
     ).toBeOnTheScreen();
     expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+  });
+
+  it('floats the header over the content when the Predict brand refresh is on', async () => {
+    const view = renderPredictNext(false, {
+      remoteFeatureFlags: {
+        predictBrandRefresh: { enabled: true, minimumVersion: '0.0.0' },
+      },
+    });
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+        .paddingTop,
+    ).toBeGreaterThan(0);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
+
+    expect(
+      await view.findByTestId(PredictSearchScreenTestIds.VIEW),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the solid header when the Predict brand refresh is off', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    expect(
+      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+        .paddingTop,
+    ).toBe(0);
   });
 
   it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {

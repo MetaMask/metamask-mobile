@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Votre compte Money est fourni par [Entity], [regulated status, to confirm]. Les reais sont convertis en mUSD dès leur arrivée.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Approvisionner le compte par virement bancaire",
@@ -1510,7 +1509,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Appliquer",
         "apply": "Appliquer",
         "reset": "Réinitialiser",
@@ -6314,8 +6313,7 @@
           "description": "The main trading pool reported for this token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "title": "Volume flags"
         },
         "listed_on_exchange": {
           "title": "Coté en bourse",
@@ -10124,7 +10122,6 @@
       "perps_withdraw": "Retirer",
       "predict_deposit": "Ajouter des fonds de prédiction",
       "predict_withdraw": "Retirer",
-      "money_account_add_money": "Ajouter des fonds",
       "money_account_send": "Envoyer"
     },
     "sub_title": {

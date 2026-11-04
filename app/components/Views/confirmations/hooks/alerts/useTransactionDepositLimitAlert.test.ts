@@ -10,8 +10,10 @@ import {
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { selectDepositLimits } from '../../../../../selectors/featureFlagController/confirmations';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../../context/confirmation-context');
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -22,7 +24,14 @@ jest.mock(
   }),
 );
 
-function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
+function runHook({
+  pendingAmount,
+  contextPendingFiatAmount,
+}: { pendingAmount?: string; contextPendingFiatAmount?: string } = {}) {
+  jest.mocked(useConfirmationContext).mockReturnValue({
+    pendingFiatAmount: contextPendingFiatAmount,
+  } as unknown as ReturnType<typeof useConfirmationContext>);
+
   return renderHookWithProvider(() =>
     useTransactionDepositLimitAlert({ pendingAmount }),
   );
@@ -97,6 +106,45 @@ describe('useTransactionDepositLimitAlert', () => {
 
   it('returns no alert when no pendingAmount is provided', () => {
     const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('falls back to the pending keypad amount from confirmation context', () => {
+    const { result } = runHook({ contextPendingFiatAmount: '150000' });
+    const expectedTitle = strings('alert_system.deposit_limit.title', {
+      amount: '$100,000',
+    });
+
+    expect(result.current).toEqual([
+      {
+        key: AlertKeys.DepositLimit,
+        field: RowAlertKey.Amount,
+        title: expectedTitle,
+        message: expectedTitle,
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
+  });
+
+  it('returns no alert when the context pending amount is within the limit', () => {
+    const { result } = runHook({ contextPendingFiatAmount: '50000' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('prefers an explicit pendingAmount over the context pending amount', () => {
+    const { result } = runHook({
+      pendingAmount: '10',
+      contextPendingFiatAmount: '150000',
+    });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert when the pending amount is not a number', () => {
+    const { result } = runHook({ contextPendingFiatAmount: 'abc' });
 
     expect(result.current).toStrictEqual([]);
   });

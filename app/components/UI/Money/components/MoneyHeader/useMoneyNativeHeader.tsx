@@ -39,10 +39,14 @@ export const useMoneyNativeHeader = ({
       type: 'custom',
       hidesSharedBackground: true,
       element: (
-        <Box twClassName="flex-row items-center gap-1">
+        // The bar item starts ~4pt to the right of the balance, which is inset
+        // 16pt. Pull the title left so "Money" lines up with "$0.00". A pushed
+        // screen keeps the system inset so the title clears the back button.
+        <Box twClassName="flex-row items-center gap-1 overflow-visible">
           <Text
             variant={TextVariant.HeadingLg}
             testID={MoneyHeaderTestIds.TITLE}
+            twClassName={onBack ? undefined : '-ml-1'}
           >
             {strings('money.title')}
           </Text>
