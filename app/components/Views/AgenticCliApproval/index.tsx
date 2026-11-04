@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Image, Linking, View } from 'react-native';
+import { Image, Linking, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -115,7 +115,11 @@ const AgenticCliApproval: React.FC = () => {
     <HeaderStandardGlass
       isGlass={isGlassHeader}
       isFloating={false}
-      includesTopInset={!isGlassHeader}
+      // Android `presentation: 'modal'` is full-screen, so the in-flow header
+      // needs the status-bar inset with or without glass. iOS page sheets
+      // already start below the status bar; the glass header skips the extra
+      // inset there.
+      includesTopInset={Platform.OS === 'android' || !isGlassHeader}
       title={title}
       onBack={handleClose}
       endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
