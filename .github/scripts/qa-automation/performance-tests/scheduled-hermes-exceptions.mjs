@@ -382,6 +382,7 @@ export function buildPerformanceChannelSlack(exception) {
   lines.push(
     '',
     `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
+    "_Jira:_ each new GitHub issue is synced to the owning team's Jira project and keeps its team label.",
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
@@ -469,18 +470,19 @@ export function buildScheduledExceptionMarkdown(exception) {
 }
 
 /**
- * DM body for a scheduled finding that would have opened a GitHub issue.
+ * #metamask-performance body for a scheduled finding.
+ *
+ * A newly opened bug uses the short review, which mentions the owning Slack
+ * group and links the GitHub issue. A recurrence keeps the digest, which
+ * links the issue that is already open and does not mention the group again.
  * An all-clear returns an empty string so nothing is sent.
  */
-export function buildIssueVerdictDm(exception, aiText = null) {
+export function buildPerformanceChannelPost(exception, aiText = null) {
   if (!exception?.meta?.hasFindings) {
     return '';
   }
-  const parts = [
-    buildScheduledExceptionSlack(exception),
-    '',
-    '_GitHub:_ no issue was opened. This message is the verdict only.',
-  ];
+  const opened = buildPerformanceChannelSlack(exception);
+  const parts = [opened || buildScheduledExceptionSlack(exception)];
   const proposal = buildRegressionActionsSlack(aiText);
   if (proposal) {
     parts.push('', proposal);
