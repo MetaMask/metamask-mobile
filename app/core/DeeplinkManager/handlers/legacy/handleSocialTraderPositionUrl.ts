@@ -127,6 +127,10 @@ export const handleSocialTraderPositionUrl = ({
         .addProperties({
           [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
             notificationSubtype,
+          ...(deduplicationId !== undefined && {
+            [SocialLeaderboardEventProperties.DEDUPLICATION_ID]:
+              deduplicationId,
+          }),
           ...(notificationTemplateVariant !== undefined && {
             [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
               notificationTemplateVariant,

@@ -1,8 +1,11 @@
+import { Share } from 'react-native';
 import {
   buildSocialTraderDeeplink,
   buildSocialTraderPositionDeeplink,
   buildSocialTraderPositionShareContent,
   buildSocialTraderShareContent,
+  shareSocialProfile,
+  shareSocialTraderPosition,
 } from './socialTraderDeeplink';
 
 const PROFILE_URL = 'https://link.metamask.io/social/profile?traderId=trader-1';
@@ -60,5 +63,41 @@ describe('buildSocialTraderShareContent', () => {
     expect(buildSocialTraderShareContent('trader-1', 'android')).toEqual({
       message: PROFILE_URL,
     });
+  });
+});
+
+describe('OS share completion', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('reports a completed profile share and ignores a dismissed sheet', async () => {
+    const onShared = jest.fn();
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValueOnce({ action: Share.sharedAction });
+
+    shareSocialProfile('trader-1', onShared);
+    await Promise.resolve();
+    expect(onShared).toHaveBeenCalledTimes(1);
+
+    onShared.mockClear();
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValueOnce({ action: Share.dismissedAction });
+    shareSocialProfile('trader-1', onShared);
+    await Promise.resolve();
+    expect(onShared).not.toHaveBeenCalled();
+  });
+
+  it('reports a completed position share', async () => {
+    const onShared = jest.fn();
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+
+    shareSocialTraderPosition('position-1', 'trader-1', onShared);
+    await Promise.resolve();
+    expect(onShared).toHaveBeenCalledTimes(1);
   });
 });

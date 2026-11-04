@@ -3748,6 +3748,7 @@ export const runQuickBuyControllerCases = ({
             expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
               expect.objectContaining({
                 execution_time_ms: 250,
+                tx_hash: '0xabc',
               }),
             );
           } finally {
@@ -3817,6 +3818,54 @@ export const runQuickBuyControllerCases = ({
 
           expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
             expect.objectContaining({ amount_usd: 20 }),
+          );
+        });
+
+        it('includes tx_hash from bridge history when the submit result has none', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-intent' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<string, { originalTransactionId?: string }>;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'order-uid-1': { originalTransactionId: 'tx-intent' },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({
+              status: 'success',
+              tx_hash: 'order-uid-1',
+            }),
+          );
+        });
+
+        it('omits tx_hash on success when no hash can be resolved', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-missing' });
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
           );
         });
 

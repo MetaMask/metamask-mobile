@@ -765,6 +765,26 @@ describe('TraderPositionView', () => {
       });
     });
 
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps a %s origin on the Perps market navigation',
+      (origin) => {
+        mockRouteParams = { ...mockRouteParams, source: origin };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'ETH', name: 'ETH' },
+            source: origin,
+          },
+        });
+      },
+    );
+
     it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 

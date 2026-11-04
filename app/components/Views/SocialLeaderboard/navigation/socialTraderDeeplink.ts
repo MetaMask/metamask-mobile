@@ -71,8 +71,22 @@ export const buildSocialTraderPositionShareContent = (
 /**
  * Opens the native share sheet with the trader profile deeplink.
  */
-export const shareSocialProfile = (traderId: string): void => {
-  Share.share(buildSocialTraderShareContent(traderId)).catch(() => undefined);
+const notifyWhenShared = (
+  result: { action: string },
+  onShared?: () => void,
+): void => {
+  if (result.action === Share.sharedAction) {
+    onShared?.();
+  }
+};
+
+export const shareSocialProfile = (
+  traderId: string,
+  onShared?: () => void,
+): void => {
+  Share.share(buildSocialTraderShareContent(traderId))
+    .then((result) => notifyWhenShared(result, onShared))
+    .catch(() => undefined);
 };
 
 /**
@@ -81,8 +95,9 @@ export const shareSocialProfile = (traderId: string): void => {
 export const shareSocialTraderPosition = (
   positionId: string,
   traderId: string,
+  onShared?: () => void,
 ): void => {
-  Share.share(
-    buildSocialTraderPositionShareContent(positionId, traderId),
-  ).catch(() => undefined);
+  Share.share(buildSocialTraderPositionShareContent(positionId, traderId))
+    .then((result) => notifyWhenShared(result, onShared))
+    .catch(() => undefined);
 };
