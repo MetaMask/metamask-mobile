@@ -368,6 +368,196 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
       { nonce: '0xabc', telegramLoginEnabled: false },
     );
   });
+
+  it('forces browser fallback for Android Google nonce logins', async () => {
+    const providerIdToken = tokenFor('0xabc');
+    const previousOs = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest
+        .fn()
+        .mockResolvedValue(authServerResponse(providerIdToken)),
+      getUserInfo: jest.fn().mockReturnValue({
+        userId: 'auth-sub',
+        accountName: 'a@b.com',
+      }),
+      options: { clientId: 'android-google-client' },
+    } as never);
+
+    await loginWithNonceAndSeedlessAuthViaHandlers({
+      authConnection: AuthConnection.Google,
+      nonce: '0xabc',
+    });
+
+    expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+      'android',
+      AuthConnection.Google,
+      true,
+      { nonce: '0xabc' },
+    );
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: previousOs,
+    });
+  });
+
+  it('rethrows OAuthError from getAuthTokens unchanged', async () => {
+    const oauthError = new OAuthError(
+      'auth server down',
+      OAuthErrorType.AuthServerError,
+    );
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: 'raw' }),
+      getAuthTokens: jest.fn().mockRejectedValue(oauthError),
+      getUserInfo: jest.fn(),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toBe(oauthError);
+  });
+
+  it('wraps non-OAuth getAuthTokens errors as LoginError', async () => {
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: 'raw' }),
+      getAuthTokens: jest.fn().mockRejectedValue(new Error('network')),
+      getUserInfo: jest.fn(),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining('network'),
+    });
+  });
+
+  it('fails when provider ID token is missing from auth response and login result', async () => {
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({
+        code: 'auth-code',
+        clientId: 'ios-apple-client',
+        authConnection: AuthConnection.Apple,
+      }),
+      getAuthTokens: jest.fn().mockResolvedValue({
+        id_token: 'auth-server-jwt',
+        access_token: 'access',
+        metadata_access_token: 'metadata',
+        refresh_token: 'refresh',
+        revoke_token: 'revoke',
+        indexes: [],
+        endpoints: {},
+      }),
+      getUserInfo: jest.fn().mockReturnValue({
+        userId: 'auth-sub',
+        accountName: 'a@b.com',
+      }),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining(
+        'MFA recovery: auth server did not return the apple ID token',
+      ),
+    });
+  });
+
+  it.each([
+    [
+      'id_token',
+      {
+        access_token: 'a',
+        metadata_access_token: 'm',
+        refresh_token: 'r',
+        revoke_token: 'v',
+      },
+    ],
+    [
+      'access_token',
+      {
+        id_token: 'jwt',
+        metadata_access_token: 'm',
+        refresh_token: 'r',
+        revoke_token: 'v',
+      },
+    ],
+    [
+      'metadata_access_token',
+      {
+        id_token: 'jwt',
+        access_token: 'a',
+        refresh_token: 'r',
+        revoke_token: 'v',
+      },
+    ],
+  ])('fails when auth server omits %s', async (missingField, partialTokens) => {
+    const providerIdToken = tokenFor('0xabc');
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest.fn().mockResolvedValue({
+        provider_id_token: providerIdToken,
+        indexes: [],
+        endpoints: {},
+        ...partialTokens,
+      }),
+      getUserInfo: () => ({ userId: 'u', accountName: '' }),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining(
+        `MFA recovery: auth server did not return ${missingField}`,
+      ),
+    });
+  });
+
+  it('fails when auth server user id is empty', async () => {
+    const providerIdToken = tokenFor('0xabc');
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest
+        .fn()
+        .mockResolvedValue(authServerResponse(providerIdToken)),
+      getUserInfo: () => ({ userId: '', accountName: '' }),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining(
+        'MFA recovery: auth server response missing user id',
+      ),
+    });
+  });
 });
 
 describe('loginWithNonceViaHandlers', () => {
@@ -586,5 +776,110 @@ describe('createOidcIdentifierAuthProvider', () => {
         requestHash: REQUEST_HASH,
       }),
     ).rejects.toThrow('MFA recovery: signed in with a different account');
+  });
+
+  it('rejects unsupported identifier types', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonce: jest.fn(),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierToken({
+        identifier: { ...googleIdentifier, type: 'passkey' },
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow('MFA recovery: unsupported identifier type passkey');
+  });
+
+  it('rejects unsupported OIDC issuers', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonce: jest.fn(),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierToken({
+        identifier: {
+          ...googleIdentifier,
+          namespace: 'https://example.com',
+        },
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow(
+      'MFA recovery: unsupported OIDC issuer https://example.com',
+    );
+  });
+
+  it('rejects ID tokens missing subject', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonce: jest
+        .fn()
+        .mockResolvedValue(tokenFor(expectedNonce, { sub: '' })),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierToken({
+        identifier: googleIdentifier,
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow('MFA recovery: ID token is missing subject');
+  });
+
+  it('rejects ID tokens with mismatched issuer', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonce: jest
+        .fn()
+        .mockResolvedValue(
+          tokenFor(expectedNonce, { iss: 'https://appleid.apple.com' }),
+        ),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierToken({
+        identifier: googleIdentifier,
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow('MFA recovery: ID token issuer does not match');
+  });
+
+  it('uses loginWithNonceAndSeedlessAuth when loginWithNonce is omitted', async () => {
+    const providerIdToken = tokenFor(expectedNonce);
+    const loginWithNonceAndSeedlessAuth: jest.MockedFunction<LoginWithNonceAndSeedlessAuth> =
+      jest.fn().mockResolvedValue({
+        providerIdToken,
+        seedlessAuthData: {
+          idTokens: ['auth-jwt'],
+          accessToken: 'access',
+          metadataAccessToken: 'metadata',
+          refreshToken: 'refresh',
+          revokeToken: 'revoke',
+          authConnection: AuthConnection.Google,
+          authConnectionId: 'ios-google',
+          userId: 'auth-sub',
+        },
+      });
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth,
+    });
+
+    const token = await provider.getKeyBoundIdentifierToken({
+      identifier: googleIdentifier,
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(loginWithNonceAndSeedlessAuth).toHaveBeenCalledWith({
+      authConnection: AuthConnection.Google,
+      nonce: expectedNonce,
+    });
+    expect(token.providerAssertion).toBe(providerIdToken);
   });
 });
