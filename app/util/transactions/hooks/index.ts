@@ -33,6 +33,7 @@ import {
 import { store } from '../../../store';
 import type { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
+import { getBalance } from '../../../core/Engine/controllers/transaction-pay-controller/get-balance-callback';
 import {
   submitBatchSmartTransactionHook,
   submitSmartTransactionHook,
@@ -132,6 +133,7 @@ function publishHook({
     const { stxDisabled } = selectMetaMaskPayFlags(state);
 
     const payResult = await new TransactionPayPublishHook({
+      getBalance,
       isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
       messenger: initMessenger as TransactionPayControllerMessenger,
     }).getHook()(transactionMeta, signedTransactionInHex);
