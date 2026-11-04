@@ -56,7 +56,10 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   contextRef.current = { selectedAddress, provider, network };
   const isMountedRef = useRef(true);
 
-  const [isAccountUnsupportedModalVisible, setIsModalVisible] = useState(false);
+  const [
+    isAccountUnsupportedModalVisible,
+    setIsAccountUnsupportedModalVisible,
+  ] = useState(false);
 
   const readAccountSupport = useCallback(
     async (providerId?: PerpsProviderType) => {
@@ -111,7 +114,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
       }
       if (!support.isSupported) {
         if (!unmounted) {
-          setIsModalVisible(true);
+          setIsAccountUnsupportedModalVisible(true);
         }
         return 'unsupported';
       }
@@ -124,7 +127,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   );
 
   const closeAccountUnsupportedModal = useCallback(() => {
-    setIsModalVisible(false);
+    setIsAccountUnsupportedModalVisible(false);
   }, []);
 
   return {
