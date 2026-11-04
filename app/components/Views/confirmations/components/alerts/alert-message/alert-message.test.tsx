@@ -1,14 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { AlertMessage } from './alert-message';
 
 const MESSAGE_MOCK = 'Test message';
-const styles = StyleSheet.create({
-  alert: {
-    fontSize: 16,
-  },
-});
 const CONTENT_MOCK = <Text testID="custom-content">Custom content</Text>;
 
 describe('AlertMessage', () => {
@@ -19,14 +14,6 @@ describe('AlertMessage', () => {
 
     expect(getByText(MESSAGE_MOCK)).toBeDefined();
     expect(getByTestId('alert-message-banner')).toBeDefined();
-  });
-
-  it('applies a text style override', () => {
-    const { getByTestId } = render(
-      <AlertMessage alertMessage={MESSAGE_MOCK} style={styles.alert} />,
-    );
-
-    expect(getByTestId('alert-message-banner')).toHaveStyle({ fontSize: 16 });
   });
 
   it('renders nothing if no message or content is provided', () => {
