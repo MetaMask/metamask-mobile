@@ -1828,24 +1828,44 @@ describe('BridgeView', () => {
 
     it.each([
       {
-        name: 'Market',
-        initialTab: undefined,
+        name: 'Market from Limit',
+        startingTab: BridgeTabKey.Limit,
+        targetTab: BridgeTabKey.Market,
+        startingTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
+        sourceTokenAreaTestId: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
+      },
+      {
+        name: 'Market from Recurring',
+        startingTab: BridgeTabKey.Recurring,
+        targetTab: BridgeTabKey.Market,
+        startingTokenAreaTestId:
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
         sourceTokenAreaTestId: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
       },
       {
         name: 'Limit',
-        initialTab: BridgeTabKey.Limit,
+        startingTab: BridgeTabKey.Limit,
+        targetTab: BridgeTabKey.Limit,
+        startingTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
         sourceTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
       },
       {
         name: 'Recurring',
-        initialTab: BridgeTabKey.Recurring,
+        startingTab: BridgeTabKey.Recurring,
+        targetTab: BridgeTabKey.Recurring,
+        startingTokenAreaTestId:
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
         sourceTokenAreaTestId:
           BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
       },
     ])(
       'rehydrates explicit tokens for a warm $name deeplink',
-      async ({ initialTab, sourceTokenAreaTestId }) => {
+      async ({
+        startingTab,
+        targetTab,
+        startingTokenAreaTestId,
+        sourceTokenAreaTestId,
+      }) => {
         mockRoute.params = {
           sourcePage: 'deeplink',
           bridgeViewMode: BridgeViewMode.Unified,
@@ -1853,7 +1873,7 @@ describe('BridgeView', () => {
           sourceToken: mockDeepLinkSourceToken,
           destToken: mockDeepLinkDestToken,
           swapViewTraceId: 'trace-1',
-          initialTab,
+          initialTab: startingTab,
         };
         const rendered = renderScreen(
           BridgeView,
@@ -1867,6 +1887,9 @@ describe('BridgeView', () => {
           expect(rendered.store.getState().bridge.destToken).toEqual(
             mockDeepLinkDestToken,
           );
+          expect(
+            rendered.getByTestId(startingTokenAreaTestId),
+          ).toBeOnTheScreen();
         });
 
         act(() => {
@@ -1879,7 +1902,7 @@ describe('BridgeView', () => {
           sourceToken: mockSecondDeepLinkSourceToken,
           destToken: mockSecondDeepLinkDestToken,
           swapViewTraceId: 'trace-2',
-          initialTab,
+          initialTab: targetTab,
         };
         rendered.rerender(<BridgeView />);
 
