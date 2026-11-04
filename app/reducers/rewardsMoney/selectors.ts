@@ -1,5 +1,6 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   CommissionEntryView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
@@ -8,7 +9,11 @@ import type {
   ReferralRole,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import { selectGeoLocation } from '../rewards/selectors';
+import { selectRewardsMoneyControllerEnabled } from '../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../selectors/identity';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import type {
+  ClaimLock,
   EarningsSummaryEntry,
   ReferralFunnelEntry,
   ReferralMeEntry,
@@ -90,7 +95,7 @@ export function selectReferralMeEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralMe[profileId];
+  return state.rewardsMoney.referralMe?.[profileId];
 }
 
 /**
@@ -144,7 +149,7 @@ export function selectEarningsSummaryEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsSummary[profileId];
+  return state.rewardsMoney.earningsSummary?.[profileId];
 }
 
 export function selectReferralFunnelEntry(
@@ -154,7 +159,7 @@ export function selectReferralFunnelEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralFunnel[profileId];
+  return state.rewardsMoney.referralFunnel?.[profileId];
 }
 
 export function selectCommissions(
@@ -164,7 +169,7 @@ export function selectCommissions(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.commissions[profileId];
+  return state.rewardsMoney.commissions?.[profileId];
 }
 
 export function selectCashbackLedger(
@@ -174,7 +179,7 @@ export function selectCashbackLedger(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.cashbackLedger[profileId];
+  return state.rewardsMoney.cashbackLedger?.[profileId];
 }
 
 /** First page of the unified earnings ledger for one Hydra profile. */
@@ -185,5 +190,63 @@ export function selectEarningsHistory(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsHistory[profileId];
+  return state.rewardsMoney.earningsHistory?.[profileId];
+}
+
+/** First page of open claims for one Hydra profile. */
+export function selectInFlightClaims(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.inFlightClaims?.[profileId];
+}
+
+/** Epoch ms until Claim is enabled again, after a refusal's `Retry-After`. */
+export function selectClaimWaitingUntil(
+  state: RootState,
+  profileId: string | undefined,
+): number | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimWaitingUntil?.[profileId];
+}
+
+/** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
+export function selectClaimLock(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimLock | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimLocks?.[profileId];
+}
+
+/**
+ * Whether Rewards Settings has a Money referral section to show.
+ *
+ * The controller is off when basic functionality is off or the remote flag is
+ * off, even if a payload is still cached. A null payload with no cached data
+ * is the same: there is nothing to render. A profile whose roles include
+ * `REFERRER` cannot be referred, matching the Money invite sheet, whatever
+ * dashboard variant it was given. A referee still sees the linked code. A
+ * country on the program's excluded regions has no section either.
+ */
+export function selectSettingsReferralAvailable(state: RootState): boolean {
+  const moneyControllerEnabled =
+    Boolean(selectBasicFunctionalityEnabled(state)) &&
+    selectRewardsMoneyControllerEnabled(state);
+  if (!moneyControllerEnabled) {
+    return false;
+  }
+  const profileId = selectSessionProfileId(state);
+  const referralMe = selectReferralMeEntry(state, profileId)?.data;
+  if (referralMe == null || referralMe.roles.includes('REFERRER')) {
+    return false;
+  }
+  return selectMoneyReferralAllowedForGeo(state, profileId);
 }

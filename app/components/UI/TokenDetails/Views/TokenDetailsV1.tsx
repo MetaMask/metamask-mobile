@@ -18,6 +18,8 @@ import {
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
   Box,
@@ -67,9 +69,7 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import TokenAgeChip, {
-  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
-} from '../components/V1/TokenAgeChip/TokenAgeChip';
+import TokenAgeChip from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -109,15 +109,9 @@ import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
 import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
 import { formatTokenAge } from '../utils/formatTokenAge';
-
-export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
-export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
-  'token-details-v1-scroll-view';
-export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
-  'token-details-v1-tab-panel';
-export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
-  'token-details-v1-tab-content';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsIds } from '../testIds';
 
 /**
  * Direct-child index of the tab bar inside the body ScrollView — registered in
@@ -165,7 +159,7 @@ const TokenDetailsV1TabPlaceholder = ({
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Center}
     twClassName="py-8"
-    testID={`${TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX}-${tab}`}
+    testID={`${TokenDetailsIds.tabPanelPrefix}-${tab}`}
   >
     <Text
       variant={TextVariant.BodyMd}
@@ -353,7 +347,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     marketData,
     isMarketDataLoading,
     securityData,
-    launchpadData: tokenAsset?.launchpadData,
     tokenApiHoldersCount: tokenAsset?.holders?.count,
     currentCurrency: selectedCurrency,
   });
@@ -437,13 +430,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // read this page's instead of measuring their own footer on a timer.
   const pageScroll = useTokenDetailsScroll();
   const { onScroll: onPageScroll } = pageScroll;
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      const scrollOffset = event.nativeEvent.contentOffset.y;
+      headerScrollY.set(scrollOffset);
+      onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [onPageScroll, onScrollOffset],
+    [headerScrollY, onPageScroll, onScrollOffset],
   );
 
   const {
@@ -575,6 +576,45 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       onTabChange: handleTabChange,
       tabs: visibleTabs,
     });
+  // An empty feed has its own 48px padding. The short-tab spacer and the
+  // sticky-footer reservation exist for interactive tab content, and they
+  // leave a blank scroll under this state. A position footer is taller than
+  // Buy alone, so its measured height is added to that 48px gap.
+  const [feedIsEmpty, setFeedIsEmpty] = useState(false);
+  const handleFeedEmptyChange = useCallback((isEmpty: boolean) => {
+    setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
+  }, []);
+  const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
+  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
+  const handleBalanceFooterLayout = useCallback((height: number) => {
+    setBalanceFooterHeight((current) =>
+      current === height ? current : height,
+    );
+  }, []);
+  const emptyFeedBottomPadding = hasBalanceValue
+    ? balanceFooterHeight + 48
+    : 48;
+  const scrollContentStyle = useMemo(() => {
+    if (!isGlassHeader) {
+      return isEmptyFeed
+        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
+        : styles.scrollContent;
+    }
+
+    return [
+      styles.scrollContent,
+      {
+        paddingTop: headerInset,
+        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
+      },
+    ];
+  }, [
+    emptyFeedBottomPadding,
+    headerInset,
+    isGlassHeader,
+    isEmptyFeed,
+    styles.scrollContent,
+  ]);
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
@@ -693,16 +733,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         );
       }
-      if (tab === 'feed' && socialEnabled && caip19AssetId) {
+      if (tab === 'feed' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsFeedTab
             assetId={caip19AssetId}
+            token={token}
             isActive={isActive}
             onCopyTrade={handleFeedCopyTrade}
+            hasBalance={hasBalanceValue}
+            onEmptyChange={handleFeedEmptyChange}
           />
         );
       }
-      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+      if (tab === 'holders' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsHoldersTab assetId={caip19AssetId} isActive={isActive} />
         );
@@ -721,7 +764,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleRowExplain,
       handleAttributionPress,
       handleOpenContractSecurity,
-      socialEnabled,
+      showSocialTabs,
+      hasBalanceValue,
+      handleFeedEmptyChange,
       handleFeedCopyTrade,
     ],
   );
@@ -767,7 +812,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   return (
     <PriceChartProvider>
-      <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
+      <View style={styles.wrapper} testID={TokenDetailsIds.v1}>
         <TokenDetailsInlineHeader
           token={token}
           securityData={securityData}
@@ -787,6 +832,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               />
             ) : undefined
           }
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
         />
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
@@ -796,14 +844,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={scrollContentStyle}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
               onLayout={handleScrollViewLayout}
               onContentSizeChange={pageScroll.onContentSizeChange}
-              testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
+              testID={TokenDetailsIds.scrollView}
             >
               <Price.Provider
                 asset={token}
@@ -859,14 +907,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 onLayout={handleTabBarContainerLayout}
+                topInset={isGlassHeader ? headerInset : 0}
+                scrollY={headerScrollY}
                 tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
-                  style={tabContentStyle}
-                  testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
+                  style={isEmptyFeed ? undefined : tabContentStyle}
+                  testID={TokenDetailsIds.tabContent}
                 >
                   <TokenDetailsScrollProvider value={pageScroll.value}>
                     {visibleTabs.map((tab) => {
@@ -877,7 +927,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                           collapsable={false}
                           style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
                           pointerEvents={isActive ? 'auto' : 'none'}
-                          testID={`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-${tab}`}
+                          testID={TokenDetailsIds.tabPage(tab)}
                         >
                           {renderTabPage(tab, isActive)}
                         </View>
@@ -894,6 +944,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
+          // Measured on the first layout. Attaching this only after the feed
+          // is known empty misses that layout, leaves the height at 0, and the
+          // create-post button stays under the position bar.
+          onFooterLayout={handleBalanceFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

@@ -14,11 +14,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  HeaderStandard,
-  TextButton,
-} from '@metamask/design-system-react-native';
+import { Box, TextButton } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -67,6 +63,7 @@ import BN from 'bnjs4';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import useEarnToasts from '../../hooks/useEarnToasts';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
@@ -75,6 +72,9 @@ import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { formatChainIdForAnalytics } from '../../utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
@@ -98,10 +98,14 @@ interface NavBarEventOptions {
   cancelButtonEvent?: NavBarButtonEvent;
 }
 
-const EarnWithdrawInputView = () => {
-  const route = useRoute<EarnWithdrawInputViewProps['route']>();
-  const { token } = route.params;
+interface EarnWithdrawInputViewContentProps {
+  token: TokenI;
+}
 
+const EarnWithdrawInputViewContent = ({
+  token,
+}: EarnWithdrawInputViewContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -875,7 +879,9 @@ const EarnWithdrawInputView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={title}
         onBack={navBarOptions.hasBackButton ? handleHeaderBackPress : undefined}
         backButtonProps={
@@ -1012,6 +1018,30 @@ const EarnWithdrawInputView = () => {
       </ScreenLayout>
     </Box>
   );
+};
+
+const EarnWithdrawInputView = () => {
+  const route = useRoute<EarnWithdrawInputViewProps['route']>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { showToast, EarnToastOptions } = useEarnToasts();
+  const token = route.params?.token;
+  const hasValidToken = Boolean(token?.chainId && token?.address);
+
+  useEffect(() => {
+    if (hasValidToken) return;
+
+    showToast(EarnToastOptions.earnWithdrawal.detailsUnavailable);
+    navigation.goBack();
+  }, [
+    EarnToastOptions.earnWithdrawal.detailsUnavailable,
+    hasValidToken,
+    navigation,
+    showToast,
+  ]);
+
+  if (!hasValidToken || !token) return null;
+
+  return <EarnWithdrawInputViewContent token={token} />;
 };
 
 export default EarnWithdrawInputView;

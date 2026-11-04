@@ -15,16 +15,20 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
 import { useRoute } from '@react-navigation/native';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -65,10 +69,19 @@ describe('CustomAmountConfirmButton', () => {
     useIsTransactionPayLoading,
   );
   const useRouteMock = jest.mocked(useRoute);
+  const usePredictWithdrawGasFeeTokenMock = jest.mocked(
+    usePredictWithdrawGasFeeToken,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
+
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as never);
 
     useRouteMock.mockReturnValue({
       key: 'mock-route',
@@ -106,6 +119,10 @@ describe('CustomAmountConfirmButton', () => {
       onReject: jest.fn(),
     });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    usePredictWithdrawGasFeeTokenMock.mockReturnValue({
+      isPending: false,
+      isUnavailable: false,
+    });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
@@ -123,7 +140,7 @@ describe('CustomAmountConfirmButton', () => {
 
   it('always shows the default label regardless of stage', () => {
     // useTransactionMetadataRequest returns undefined → useButtonLabel returns the default 'done' string
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByText } = renderWithProvider(
       <CustomAmountConfirmButton
         isDisabled={false}
         stage={CustomAmountStage.Loading}
@@ -132,6 +149,18 @@ describe('CustomAmountConfirmButton', () => {
     );
     const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
     expect(button).toBeOnTheScreen();
+  });
+
+  it('shows Convert [symbol] if type is moneyAccountDeposit and payToken is present', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+    } as never);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { symbol: 'USDC' },
+    } as never);
+
+    const { getByText } = render({ stage: CustomAmountStage.ShowTotals });
+    expect(getByText('Convert USDC')).toBeOnTheScreen();
   });
 
   it('calls onConfirm and onContinue when pressed (enabled state)', async () => {
@@ -202,6 +231,22 @@ describe('CustomAmountConfirmButton', () => {
 
   it('button is disabled when pay data is loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId } = render({
+      isDisabled: false,
+      stage: CustomAmountStage.ShowTotals,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('disables the button while the Predict withdraw gas fee token check is pending', () => {
+    usePredictWithdrawGasFeeTokenMock.mockReturnValue({
+      isPending: true,
+      isUnavailable: false,
+    });
 
     const { getByTestId } = render({
       isDisabled: false,

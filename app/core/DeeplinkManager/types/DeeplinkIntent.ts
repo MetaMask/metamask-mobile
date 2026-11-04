@@ -1,6 +1,6 @@
 /**
  * A deeplink target rendered as a tab inside the bottom `HOME_TABS` navigator
- * (e.g. Wallet, Rewards, Trending, Browser). `params` may use React
+ * (e.g. Wallet, Trending, Browser). `params` may use React
  * Navigation's nested `{ screen, params }` form to reach a screen within the
  * tab's own stack.
  */

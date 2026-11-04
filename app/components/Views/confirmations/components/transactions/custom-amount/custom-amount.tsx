@@ -138,12 +138,7 @@ export function CustomAmountSkeleton({
       style={styles.container}
       testID="custom-amount-skeleton"
     >
-      <Skeleton
-        animatedViewProps={{ style: styles.skeleton }}
-        height={88}
-        style={styles.skeleton}
-        width={80}
-      />
+      <Skeleton height={88} twClassName="rounded-lg" width={80} />
     </Pressable>
   );
 }

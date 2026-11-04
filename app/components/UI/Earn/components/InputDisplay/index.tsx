@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   FontFamily,
@@ -178,8 +178,14 @@ const InputDisplay = ({
                     width: 1,
                     height: Math.round(amountFontSize * 0.95),
                     backgroundColor: colors.text.muted,
+                    // Android renders glyphs lower than iOS in a line box equal to fontSize.
                     transform: [
-                      { translateY: Math.round(amountFontSize * -0.04) },
+                      {
+                        translateY: Math.round(
+                          amountFontSize *
+                            (Platform.OS === 'android' ? 0.02 : -0.04),
+                        ),
+                      },
                     ],
                   },
                   testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR,

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { ScrollView } from 'react-native-gesture-handler';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
@@ -14,6 +14,8 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import { RootState } from '../../../../../../reducers';
 import DepositOrderContent from '../../../components/DepositOrderContent/DepositOrderContent';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface DepositOrderDetailsParams {
   orderId: string;
@@ -26,6 +28,7 @@ export const createDepositOrderDetailsNavDetails =
 
 /** Read-only view for persisted legacy DEPOSIT orders (no live polling). */
 const DepositOrderDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const params = useParams<DepositOrderDetailsParams>();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
@@ -40,7 +43,9 @@ const DepositOrderDetails = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={title}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-order-details-back-button' }}
@@ -52,7 +57,9 @@ const DepositOrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={title}
         onBack={handleHeaderBack}
         backButtonProps={{ testID: 'deposit-order-details-back-button' }}

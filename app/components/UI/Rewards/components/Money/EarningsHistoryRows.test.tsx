@@ -6,13 +6,17 @@ import type {
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { formatRewardsRelativeTime } from '../../utils/formatUtils';
 import { EarningsHistoryRow } from './EarningsHistoryRows';
+import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
 
 const LOCALIZED_TEXT = {
   historyReferrals: 'Referrals',
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
+  historyClaimPending: 'Pending',
+  voided: 'Voided',
 } as unknown as ReferralLocalizedText;
 
 const amountColor = (
@@ -67,22 +71,27 @@ describe('EarningsHistoryRow', () => {
     );
   });
 
-  it('shows the remaining earning in green when only part is voided', () => {
+  it('shows a partially voided day as the net credit in green', () => {
     const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
       <EarningsHistoryRow
-        item={{ ...earning, voided_musd_amount: '1000000' }}
+        item={{
+          ...earning,
+          musd_amount: '10000000',
+          voided_musd_amount: '2000000',
+        }}
         localizedText={LOCALIZED_TEXT}
       />,
     );
 
-    expect(getByText('+$1.50')).toBeOnTheScreen();
-    expect(amountColor(UNSAFE_getAllByType, '+$1.50')).toBe(
+    expect(getByText('+$8.00')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '+$8.00')).toBe(
       TextColor.SuccessDefault,
     );
-    expect(queryByText('+$2.50')).toBeNull();
+    expect(queryByText('Voided')).toBeNull();
+    expect(queryByText('+$10.00')).toBeNull();
   });
 
-  it('does not show a fully voided earning as a green credit', () => {
+  it('shows a fully voided earning as the original amount in gray, marked voided', () => {
     const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
       <EarningsHistoryRow
         item={{ ...earning, voided_musd_amount: '2500000' }}
@@ -90,11 +99,17 @@ describe('EarningsHistoryRow', () => {
       />,
     );
 
-    expect(getByText('$0.00')).toBeOnTheScreen();
-    expect(amountColor(UNSAFE_getAllByType, '$0.00')).toBe(
+    expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.TextAlternative,
     );
-    expect(queryByText('+$2.50')).toBeNull();
+    expect(
+      getByText(
+        formatRewardsRelativeTime(new Date('2026-09-01T00:00:00.000Z')),
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Voided')).toBeOnTheScreen();
+    expect(queryByText('$0.00')).toBeNull();
   });
 
   it('shows a settled claim as a debit', () => {
@@ -103,6 +118,23 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('-$2.50')).toBeOnTheScreen();
+  });
+
+  it('shows an in-flight claim as pending', () => {
+    const { getByText } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{
+          kind: 'pending-claim',
+          id: 'claim-open',
+          net_amount: '2500000',
+        }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
   });
 });

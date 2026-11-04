@@ -11,6 +11,9 @@ import {
   REWARDS_MONEY_CONTROLLER_NAME,
   type ClaimDto,
   type ClaimHistoryPageDto,
+  type ClaimRouteSlug,
+  type InitiateClaimBody,
+  type InitiateClaimResult,
   type CommissionsPageDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
@@ -219,6 +222,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimById',
   'getSwapsRebateQuote',
   'getPerpsRebateQuote',
+  'initiateClaim',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -239,6 +243,8 @@ export class RewardsMoneyController extends BaseController<
   readonly #isDisabled: () => boolean;
   readonly #referralMeRequestGeneration = new Map<string, number>();
   readonly #referralMeInFlight = new Map<string, Promise<ReferralMeDto>>();
+  readonly #claimHistoryRequestGeneration = new Map<string, number>();
+  readonly #claimHistoryWrittenGeneration = new Map<string, number>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -635,12 +641,30 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getClaimHistory', null);
+    let generation = 0;
+    const fetchFresh = () => {
+      generation =
+        (this.#claimHistoryRequestGeneration.get(profileId) ?? 0) + 1;
+      this.#claimHistoryRequestGeneration.set(profileId, generation);
+      return this.messenger.call(
+        'RewardsMoneyDataService:getClaimHistory',
+        null,
+      );
+    };
+    // Overlapping fetches can answer out of order. Keep the newest page.
+    const writeIfLatest = (payload: ClaimHistoryPageDto) => {
+      if (
+        generation <= (this.#claimHistoryWrittenGeneration.get(profileId) ?? 0)
+      ) {
+        return;
+      }
+      this.#claimHistoryWrittenGeneration.set(profileId, generation);
+      this.#writeClaimHistoryFirstPage(profileId, payload);
+    };
 
     if (forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeClaimHistoryFirstPage(profileId, fresh);
+      writeIfLatest(fresh);
       return fresh;
     }
 
@@ -649,8 +673,7 @@ export class RewardsMoneyController extends BaseController<
       ttl: CLAIM_HISTORY_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.claimHistoryFirstPage[key],
       fetchFresh,
-      writeCache: (key, payload) =>
-        this.#writeClaimHistoryFirstPage(key, payload),
+      writeCache: (_key, payload) => writeIfLatest(payload),
     });
   }
 
@@ -701,6 +724,21 @@ export class RewardsMoneyController extends BaseController<
       writeCache: (cacheKey, payload) =>
         this.#writeCommissionsFirstPage(cacheKey, payload),
     });
+  }
+
+  async initiateClaim(
+    route: ClaimRouteSlug,
+    body: InitiateClaimBody,
+  ): Promise<InitiateClaimResult> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:initiateClaim',
+      route,
+      body,
+    );
   }
 
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {

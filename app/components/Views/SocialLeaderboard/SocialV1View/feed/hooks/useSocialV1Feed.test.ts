@@ -19,7 +19,10 @@ import { useSocialV1Feed } from './useSocialV1Feed';
 jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
 
 // Unlocked wallet, unknown network: the overlay's defaults.
-jest.mock('react-redux', () => ({ useSelector: () => true }));
+let mockIsSocialV1Treatment = true;
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsSocialV1Treatment,
+}));
 jest.mock('../../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => null,
 }));
@@ -70,6 +73,7 @@ const pendingPost = () => ({
 describe('useSocialV1Feed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialV1Treatment = true;
     jest.useFakeTimers();
     arrangeFeed([buildRow('pos-1'), buildRow('pos-2')]);
     act(() => {
@@ -109,23 +113,38 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
-    it('reads the leaderboard scope on Trending', () => {
+    it('reads the trending scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'all',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        {
+          performance: { tab: 'trending' },
+        },
+      );
     });
 
     // Following must hit its own scope, or both tabs would render one list.
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'following',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'following' },
+        {
+          performance: { tab: 'following' },
+        },
+      );
+    });
+
+    it('omits performance tracing outside the Social V1 treatment', () => {
+      mockIsSocialV1Treatment = false;
+
+      renderHook(() => useSocialV1Feed('trending'));
+
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        { performance: undefined },
+      );
     });
 
     // Without these forwarded, the feed stops after page one and a failed

@@ -26,8 +26,6 @@ import { applyBridgeQuote } from './apply-bridge-quote';
 
 export type { ActivityListItem };
 
-const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
-
 const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
   (bridgeHistoryItem as unknown as { originalTransactionId?: string })
     .originalTransactionId;
@@ -47,70 +45,10 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
-function isIncomingTokenTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-
-  return (
-    (transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
-    ) ??
-      false) &&
-    transaction.from?.toLowerCase() !== normalizedAddress
-  );
-}
-
-function isNativeValueTransfer(
-  transfer: NonNullable<V1TransactionByHashResponse['valueTransfers']>[number],
-) {
-  const transferType = transfer.transferType?.toLowerCase();
-  return (
-    !transfer.contractAddress &&
-    (transferType === 'native' || transferType === 'normal')
-  );
-}
-
-function isIncomingNativeTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-  let hasOutgoingTransfer = false;
-  let hasIncomingNativeTransfer = false;
-
-  for (const transfer of transaction.valueTransfers ?? []) {
-    if (
-      !hasOutgoingTransfer &&
-      transfer.from?.toLowerCase() === normalizedAddress
-    ) {
-      hasOutgoingTransfer = true;
-    }
-
-    if (
-      !hasIncomingNativeTransfer &&
-      transfer.to?.toLowerCase() === normalizedAddress &&
-      isNativeValueTransfer(transfer)
-    ) {
-      hasIncomingNativeTransfer = true;
-    }
-
-    if (hasOutgoingTransfer && hasIncomingNativeTransfer) {
-      break;
-    }
-  }
-
-  return hasIncomingNativeTransfer && !hasOutgoingTransfer;
-}
-
 /**
  * Participation gate shared by the activity list and the Activity details
  * by-hash lookup: excluded hashes, transactions the subject does not take part
- * in at the top level, spam, and no-op self transfers.
+ * in at the top level, and no-op self transfers.
  *
  * `address` must already be lowercased.
  */
@@ -132,10 +70,6 @@ export function shouldSkipUnrelatedTransaction(
     return true;
   }
 
-  if (excludedTransactionTypes.includes(transaction.transactionType ?? '')) {
-    return true;
-  }
-
   return (
     rawFrom === address &&
     rawTo === address &&
@@ -146,9 +80,8 @@ export function shouldSkipUnrelatedTransaction(
 }
 
 /**
- * List gate. On top of {@link shouldSkipUnrelatedTransaction} it drops rows
- * whose only relevance to the subject is an inbound value transfer, which the
- * list surfaces from other sources.
+ * List gate. Drops excluded hashes, transactions the subject does not take
+ * part in at the top level, and no-op self transfers.
  *
  * Details must not reuse this gate: the by-hash request always asks for
  * `includeValueTransfers`, so a plain receive the user explicitly opened would
@@ -159,16 +92,7 @@ export function shouldSkipTransaction(
   transaction: V1TransactionByHashResponse,
   excludedTxHashes?: Set<string>,
 ) {
-  if (shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes)) {
-    return true;
-  }
-
-  const rawFrom = transaction.from?.toLowerCase();
-
-  return (
-    isIncomingTokenTransfer(address, transaction) ||
-    (rawFrom !== address && isIncomingNativeTransfer(address, transaction))
-  );
+  return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
 }
 
 function transformApiTransactions(

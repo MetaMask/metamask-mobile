@@ -241,11 +241,11 @@ describe('buildEarnModuleNavigationContext', () => {
 
   it('omits optional navigation metadata when not provided', () => {
     const result = buildEarnModuleNavigationContext({
-      entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
       screen_name: undefined,
     });
 
-    expect(result).toEqual({ entry_point: 'homepage' });
+    expect(result).toEqual({ entry_point: 'explore' });
   });
 
   it('preserves zero asset position and list size', () => {

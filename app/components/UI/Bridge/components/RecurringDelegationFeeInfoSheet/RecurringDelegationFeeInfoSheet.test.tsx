@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import RecurringDelegationFeeInfoSheet from './RecurringDelegationFeeInfoSheet';
 import { RecurringDelegationFeeInfoSheetSelectorsIDs } from './RecurringDelegationFeeInfoSheet.testIds';
@@ -38,14 +37,17 @@ describe('RecurringDelegationFeeInfoSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the placeholder body', () => {
-    const { getByTestId } = renderWithProvider(
+  it('renders the account upgrade fee copy', () => {
+    const { getByTestId, getByText } = renderWithProvider(
       <RecurringDelegationFeeInfoSheet goBack={jest.fn()} />,
     );
 
+    expect(getByText('Account upgrade fee')).toBeOnTheScreen();
     expect(
       getByTestId(RecurringDelegationFeeInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(strings('bridge.recurring.delegation_fee_info_body'));
+    ).toHaveTextContent(
+      'Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.',
+    );
   });
 
   it('goes back when the header close is pressed', () => {

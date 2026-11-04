@@ -80,7 +80,6 @@ describe('useOpenSocialPostComposer', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale',
-        shareUrl: 'https://metamask.io/social/giga-whale',
         linkedAccountId: LINKED_ID,
         linkedAccountAddress: LINKED_ADDRESS,
       },
@@ -106,7 +105,6 @@ describe('useOpenSocialPostComposer', () => {
     const options = {
       position: { positionId: 'btc-perp' } as Position,
       entryPoint: 'perps' as const,
-      openFeedAfterPost: true,
     };
     const { result } = renderHook(() => useOpenSocialPostComposer(), {
       wrapper,

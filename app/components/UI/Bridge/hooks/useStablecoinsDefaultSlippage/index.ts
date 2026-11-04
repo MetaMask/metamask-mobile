@@ -65,6 +65,9 @@ export const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [NETWORKS_CHAIN_ID.ARC]: new Set([
     '0x3600000000000000000000000000000000000000', // USDC
   ]),
+  [NETWORKS_CHAIN_ID.ROBINHOOD]: new Set([
+    '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', // USDG
+  ]),
 };
 
 export const getIsStablecoin = (tokenAddress: string, chainId: Hex) => {

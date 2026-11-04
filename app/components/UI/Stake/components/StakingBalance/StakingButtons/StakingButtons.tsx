@@ -13,11 +13,13 @@ import { selectEvmChainId } from '../../../../../../selectors/networkController'
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import useEarnToasts from '../../../../Earn/hooks/useEarnToasts';
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
 import { trace, TraceName } from '../../../../../../util/trace';
+import Logger from '../../../../../../util/Logger';
 import useStakingEligibility from '../../../hooks/useStakingEligibility';
 import {
   ButtonSize,
@@ -46,6 +48,7 @@ const StakingButtons = ({
   const { styles } = useStyles(styleSheet, {});
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { showToast, EarnToastOptions } = useEarnToasts();
 
   const { isEligible } = useStakingEligibility();
 
@@ -66,6 +69,21 @@ const StakingButtons = ({
   );
 
   const onUnstakePress = async () => {
+    if (!outputToken) {
+      Logger.error(
+        new Error('Pooled staking unstake output token unavailable'),
+        {
+          chainId: asset.chainId,
+          hasEthToUnstake,
+          isETH: asset.isETH,
+          isStaked: asset.isStaked,
+          ticker: asset.ticker,
+        },
+      );
+      showToast(EarnToastOptions.earnWithdrawal.detailsUnavailable);
+      return;
+    }
+
     trace({ name: TraceName.EarnWithdrawScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {

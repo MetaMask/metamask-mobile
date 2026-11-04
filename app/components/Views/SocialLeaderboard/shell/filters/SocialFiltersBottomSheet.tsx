@@ -13,11 +13,18 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
+import {
   COHORT_LABEL_KEY,
   COHORT_OPTIONS_FOLLOWING,
   COHORT_OPTIONS_LEADERBOARD,
-  COHORT_OPTIONS_LIVE_TRADES,
+  COHORT_OPTIONS_LIVE,
   MARKET_CAP_RANGE,
+  POSITION_STATUS_LABEL_KEY,
+  POSITION_STATUS_OPTIONS,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
   TYPE_LABEL_KEY,
@@ -33,6 +40,7 @@ import {
 import FilterChipSection from './sections/FilterChipSection';
 import FilterRangeSection from './sections/FilterRangeSection';
 import type {
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
   SocialFilterVerification,
@@ -83,8 +91,8 @@ const cohortOptionsForTab = (tab: SocialShellTab): SocialTraderCohort[] => {
   if (tab === 'leaderboard') {
     return COHORT_OPTIONS_LEADERBOARD;
   }
-  if (tab === 'liveTrades') {
-    return COHORT_OPTIONS_LIVE_TRADES;
+  if (tab === 'live') {
+    return COHORT_OPTIONS_LIVE;
   }
   return COHORT_OPTIONS_FOLLOWING;
 };
@@ -102,6 +110,8 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 }) => {
   const { colors } = useTheme();
 
+  const showType = tab !== 'leaderboard';
+  const showPositions = tab === 'trending';
   const showTimeframe = tab === 'leaderboard';
   const showMarketCap = tab !== 'leaderboard';
   // TODO: show 24h volume once the feed / live payload (or API) carries token
@@ -111,10 +121,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   // The blue check on cards is mocked today.
   const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
-  const typeTitleKey =
-    tab === 'leaderboard'
-      ? 'social_leaderboard.shell.filters.section.asset_type'
-      : 'social_leaderboard.shell.filters.section.type';
   const cohortOptions = cohortOptionsForTab(tab);
   // A lone All chip does not filter anything. Following is in that state
   // once shrimp, dolphin, and whale are gone.
@@ -122,6 +128,11 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
+    [onChange],
+  );
+  const handlePositionStatusChange = useCallback(
+    (next: string) =>
+      onChange({ positionStatus: next as SocialFilterPositionStatus }),
     [onChange],
   );
   const handleCohortChange = useCallback(
@@ -146,6 +157,14 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
     [onChange],
   );
 
+  const positionStatusOptions = useMemo(
+    () =>
+      POSITION_STATUS_OPTIONS.map((id) => ({
+        id,
+        labelKey: POSITION_STATUS_LABEL_KEY[id],
+      })),
+    [],
+  );
   const typeOptionObjects = useMemo(
     () =>
       typeOptions.map((id) => ({
@@ -182,7 +201,10 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const applyButtonProps = useMemo(
     () => ({
       children: strings('social_leaderboard.shell.filters.apply'),
-      onPress: onApply,
+      onPress: () => {
+        fireImpact(ImpactMoment.PrimaryCTA);
+        onApply();
+      },
       size: ButtonSize.Lg,
       testID: SocialFiltersBottomSheetSelectorsIDs.APPLY,
     }),
@@ -192,7 +214,10 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const resetButtonProps = useMemo(
     () => ({
       children: strings('social_leaderboard.shell.filters.reset'),
-      onPress: onReset,
+      onPress: () => {
+        playSelection().catch(() => undefined);
+        onReset();
+      },
       size: ButtonSize.Lg,
       style: styles.resetButton,
       testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
@@ -236,13 +261,25 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
               <ScrollView>
                 <Box twClassName="px-4 pb-4 mb-4">
-                  <FilterChipSection<SocialFilterType>
-                    titleKey={typeTitleKey}
-                    options={typeOptionObjects}
-                    value={draft.type}
-                    onChange={handleTypeChange}
-                    testID="social-filters-type"
-                  />
+                  {showType ? (
+                    <FilterChipSection<SocialFilterType>
+                      titleKey="social_leaderboard.shell.filters.section.type"
+                      options={typeOptionObjects}
+                      value={draft.type}
+                      onChange={handleTypeChange}
+                      testID="social-filters-type"
+                    />
+                  ) : null}
+
+                  {showPositions ? (
+                    <FilterChipSection<SocialFilterPositionStatus>
+                      titleKey="social_leaderboard.shell.filters.section.positions"
+                      options={positionStatusOptions}
+                      value={draft.positionStatus}
+                      onChange={handlePositionStatusChange}
+                      testID="social-filters-positions"
+                    />
+                  ) : null}
 
                   {showVerification ? (
                     <FilterChipSection<SocialFilterVerification>

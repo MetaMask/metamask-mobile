@@ -59,7 +59,6 @@ const openPerp: Position = {
 };
 
 describe('ProfilePositionsTab', () => {
-  const onFilterChange = jest.fn();
   const onPositionPress = jest.fn();
   const onRetry = jest.fn();
 
@@ -67,7 +66,7 @@ describe('ProfilePositionsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('insets Open and Closed filters to the same depth as profile posts', () => {
+  it('insets the position list below the profile tabs', () => {
     renderWithProvider(
       <ProfilePositionsTab
         positions={[openSpot]}
@@ -75,7 +74,6 @@ describe('ProfilePositionsTab', () => {
         error={null}
         isClosed={false}
         filter="all"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,
@@ -83,36 +81,32 @@ describe('ProfilePositionsTab', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
-    ).toHaveStyle({ paddingTop: 24 });
+    ).toHaveStyle({ paddingTop: 16 });
   });
 
-  it('renders Tokens then Perpetuals sections for All', () => {
+  it('renders tokens and perps in one list for All', () => {
     renderWithProvider(
       <ProfilePositionsTab
-        positions={[openSpot, openPerp]}
+        positions={[openPerp, openSpot]}
         isLoading={false}
         error={null}
         isClosed={false}
         filter="all"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,
     );
 
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.PERPS_SECTION),
-    ).toBeOnTheScreen();
-    expect(screen.getAllByText('Tokens').length).toBeGreaterThan(0);
-    expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
-    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
-    expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('Tokens')).toBeNull();
+    expect(screen.queryByText('Perpetuals')).toBeNull();
+    const rows = screen.getAllByTestId(/^position-row-/);
+    expect(rows.map((row) => row.props.testID)).toEqual([
+      'position-row-BTC',
+      'position-row-ETH',
+    ]);
   });
 
-  it('hides the Perpetuals section for the Tokens filter', () => {
+  it('drops perp rows for the Tokens filter', () => {
     renderWithProvider(
       <ProfilePositionsTab
         positions={[openSpot, openPerp]}
@@ -120,21 +114,15 @@ describe('ProfilePositionsTab', () => {
         error={null}
         isClosed={false}
         filter="tokens"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,
     );
 
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText('Perpetuals')).toBeNull();
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.PERPS_SECTION),
-    ).toBeNull();
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
     expect(screen.queryByTestId('position-row-BTC')).toBeNull();
+    expect(screen.queryByText('Tokens')).toBeNull();
+    expect(screen.queryByText('Perpetuals')).toBeNull();
   });
 
   it('shows empty copy when the Perps filter has no rows', () => {
@@ -145,7 +133,6 @@ describe('ProfilePositionsTab', () => {
         error={null}
         isClosed
         filter="perps"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,
@@ -165,7 +152,6 @@ describe('ProfilePositionsTab', () => {
         error={null}
         isClosed={false}
         filter="all"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,
@@ -176,6 +162,27 @@ describe('ProfilePositionsTab', () => {
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
   });
 
+  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+    const flagged = { ...openSpot, flags: ['insider'] };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[flagged]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(onPositionPress).not.toHaveBeenCalled();
+  });
+
   it('retries after a load error', () => {
     renderWithProvider(
       <ProfilePositionsTab
@@ -184,7 +191,6 @@ describe('ProfilePositionsTab', () => {
         error="offline"
         isClosed={false}
         filter="all"
-        onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
       />,

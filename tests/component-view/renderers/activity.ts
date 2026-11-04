@@ -9,6 +9,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import ActivityScreen from '../../../app/components/Views/ActivityScreen/ActivityScreen';
 import ActivityList from '../../../app/components/Views/ActivityList';
 import ActivityDetails from '../../../app/components/Views/ActivityDetails';
+import { TemplateLoader } from '../../../app/components/Views/ActivityDetails/templates/TemplateLoader';
 import ActivityTypeFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../../app/components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
 import ActivityNetworkFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
@@ -279,6 +280,31 @@ export function renderActivityDetailsView(
     ],
     { state },
     options.params as unknown as Record<string, unknown>,
+  );
+}
+
+interface RenderActivityDetailsTemplateViewOptions {
+  overrides?: DeepPartial<RootState>;
+  state?: DeepPartial<RootState>;
+  item: ActivityListItem;
+}
+
+/**
+ * Renders the details template for `item` through `TemplateLoader`, without
+ * resolving it from a data source. For kinds whose details lookup does not
+ * exist yet.
+ */
+export function renderActivityDetailsTemplateView(
+  options: RenderActivityDetailsTemplateViewOptions,
+): ReturnType<typeof renderComponentViewScreen> {
+  const state = buildActivityState(options);
+  const TemplateScreen = () =>
+    React.createElement(TemplateLoader, { item: options.item });
+
+  return renderComponentViewScreen(
+    TemplateScreen,
+    { name: Routes.ACTIVITY_DETAILS },
+    { state },
   );
 }
 
