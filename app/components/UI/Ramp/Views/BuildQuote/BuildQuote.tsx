@@ -30,6 +30,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontFamily,
   FontWeight,
   Button,
   ButtonVariant,
@@ -146,7 +147,6 @@ function BuildQuote() {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
-  const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { formatCurrency } = useFormatters();
   const hardwareTier = useMemo(() => getHardwareTier(), []);
@@ -384,6 +384,7 @@ function BuildQuote() {
   );
   const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
   const amountLineHeight = amountFontSize + 10;
+  const { styles } = useStyles(styleSheet, { amountFontSize });
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -844,14 +845,10 @@ function BuildQuote() {
                 containerStyle={styles.amountRow}
                 cursor={{
                   animated: amountAnimationEnabled,
-                  style: [
-                    styles.cursor,
-                    {
-                      height: Math.max(amountLineHeight - 4, 16),
-                    },
-                  ],
+                  style: styles.cursor,
                   testID: BUILD_QUOTE_TEST_IDS.AMOUNT_CURSOR,
                 }}
+                fontFamily={FontFamily.Hero}
                 fontWeight={FontWeight.Regular}
                 prefix={currencyPrefix}
                 style={tw.style(
