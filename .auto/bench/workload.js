@@ -985,12 +985,17 @@ const getTokensControllerAllTokens = makeDirect([
             }
         }
     }
-    for (const [accountId, assetIds] of Object.entries(allAssets)) {
+    const allAccountIds = Object.keys(allAssets);
+    for (let ai = 0; ai < allAccountIds.length; ai++) {
+        const accountId = allAccountIds[ai];
+        const assetIds = allAssets[accountId];
         const internalAccount = internalAccountsById[accountId];
         if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
             continue;
         }
-        for (const assetId of assetIds) {
+        const accountAddress = internalAccount.address;
+        for (let ti = 0; ti < assetIds.length; ti++) {
+            const assetId = assetIds[ti];
             const metadata = assetsInfo[assetId];
             if (!metadata || metadata.type === 'native') {
                 continue;
@@ -1012,8 +1017,8 @@ const getTokensControllerAllTokens = makeDirect([
                 image: metadata.image,
             };
             result[hexChainId] ?? (result[hexChainId] = {});
-            (_a = result[hexChainId])[_b = internalAccount.address] ?? (_a[_b] = []);
-            result[hexChainId][internalAccount.address].push(token);
+            (_a = result[hexChainId])[_b = accountAddress] ?? (_a[_b] = []);
+            result[hexChainId][accountAddress].push(token);
         }
     }
     return result;
