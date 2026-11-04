@@ -13,7 +13,7 @@
  * resolves with the enabled features, and disabled probes stop. Until the first
  * answer, spans and Redux counts are kept (bounded) so startup isn't missed; the
  * native side drops them if the collector turns them off.
- * See `scripts/perf-sessions/README.md`.
+ * See `docs/performance/perf-sessions.md`.
  */
 
 import { NativeModules } from 'react-native';

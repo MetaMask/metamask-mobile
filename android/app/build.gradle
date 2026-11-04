@@ -413,7 +413,7 @@ android {
 		  // every build except the BrowserStack performance APKs in builds.yml.
 		  it.buildConfigField 'boolean', 'IS_PERFORMANCE_TEST', "${System.getenv('IS_PERFORMANCE_TEST') == 'true'}"
 		  // Always-on perf sampler; empty (disabled) unless the builds.yml entry merges
-		  // *perf_session. See perfSessionConfig() above and scripts/perf-sessions/README.md.
+		  // *perf_session. See perfSessionConfig() above and docs/performance/perf-sessions.md.
 		  it.buildConfigField 'String', 'PERF_SESSION_URL', "\"${perfSession.url}\""
 		  it.buildConfigField 'String', 'PERF_SESSION_KEY', "\"${perfSession.key}\""
 		  it.buildConfigField 'String', 'PERF_SESSION_ENV', "\"${perfSession.env}\""

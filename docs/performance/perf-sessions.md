@@ -1,20 +1,8 @@
-# Perf sessions (POC)
+# Perf sessions
 
-Find performance problems while people use **Friday's nightly main-exp build** normally, with Flashlight-style metrics (CPU per thread, FPS, RAM) and no extra steps for the tester.
+Find performance problems while people use **Friday's nightly main-exp build** normally, unplugged, with Flashlight-style metrics (CPU per thread, FPS, RAM). Testers install the build and use it; there is nothing to set up, tap or send. An in-app sampler (`PerfSession.kt`) records while the app is in the foreground and uploads over HTTPS to the perf collector, a separate project.
 
-There are two modes:
-
-| | **Always-on** (default) | **Lab agent** |
-| --- | --- | --- |
-| What testers do | Install a `main-exp` build and use it | Keep the phone on a laptop running `agent.mjs` |
-| How it measures | In-app sampler (`PerfSession.kt`) | [Flashlight](https://github.com/bamlab/flashlight) over adb |
-| Screen names | Automatic (React Navigation) | Typed by the tester |
-| Data reaches you | HTTPS, live, to the perf collector | A JSON file they send you |
-| Survives app kills, offline | Yes (on-disk queue) | Re-attaches while the laptop runs |
-
-## Always-on mode
-
-### What's measured
+## What's measured
 
 Every second while MetaMask is in the foreground, tagged with the focused screen:
 
@@ -26,26 +14,26 @@ Batches of 10 samples (about 10 s) are written to app storage and POSTed to the 
 
 Only perf data, the screen name (static route names, never route params), device model, OS version and app version are sent. Each install gets a random `deviceId`. Anything that looks like user data (`0x` + 6 or more hex digits, or 6 or more digits in a row) is dropped from every string before it leaves the device.
 
-### Optional features
+## Optional features
 
 The collector switches each of these on or off per env at runtime (`features` in `GET /status`), so their overhead can be measured and anything too costly turned off without a rebuild. Each batch lists the features that were active (`features`).
 
-| Feature | What it adds | Where | Expected cost |
-| --- | --- | --- | --- |
-| `spans` | Completed `trace()` spans (name, id, start, duration, status; never `data` or `tags`), regardless of Sentry consent | `app/util/trace.ts` → `perfSession.ts`, one bridge call per second | A `Date.now()` and a small object per trace |
-| `interactions` | `tap`, `scrollStart`, `scrollEnd` events named by the touched view's testID (or accessibility label) | `PerfInteractions.kt`, a Window.Callback wrapper that never consumes events | One hit test of the view tree per gesture, on the main thread |
-| `framePhases` | For janky frames: mean ms per frame spent in input, animation, layout, draw, sync and GPU, plus the slowest frame | `PerfSession.kt` (FrameMetrics) | A few additions per janky frame |
-| `redux` | Actions dispatched per second and the top 5 types (`UPDATE_BG_STATE:<Controller>` for Engine updates) | Redux middleware in `app/store` | A map increment per action |
-| `jsLag` | Max JS event-loop lag per second | 100 ms interval in `perfSession.ts` | 10 timer callbacks per second on the JS thread |
-| `uiStalls` | Main thread blocked ≥ 100 ms: duration, screen and the most frequent stack | `PerfStallWatchdog.kt` (`mm-perf-watchdog`) | 10 pings per second to the main Looper; stack samples only during a stall |
-| `profiles` | Hermes CPU profiles around problems | `PerfProfiles.kt` | Hermes sampling while on, a dump every 10 s; see below |
-| `renderLoops` | When a screen keeps drawing with nobody touching it: the views responsible, each with a reason (`moving`, `playing`, `drawable`, `surface`) and its layer type | `PerfRenderLoops.kt` | Two view-tree walks on the main thread, at most once per 30 s per screen |
+| Feature        | What it adds                                                                                                                                                   | Where                                                                       | Expected cost                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `spans`        | Completed `trace()` spans (name, id, start, duration, status; never `data` or `tags`), regardless of Sentry consent                                            | `app/util/trace.ts` → `perfSession.ts`, one bridge call per second          | A `Date.now()` and a small object per trace                               |
+| `interactions` | `tap`, `scrollStart`, `scrollEnd` events named by the touched view's testID (or accessibility label)                                                           | `PerfInteractions.kt`, a Window.Callback wrapper that never consumes events | One hit test of the view tree per gesture, on the main thread             |
+| `framePhases`  | For janky frames: mean ms per frame spent in input, animation, layout, draw, sync and GPU, plus the slowest frame                                              | `PerfSession.kt` (FrameMetrics)                                             | A few additions per janky frame                                           |
+| `redux`        | Actions dispatched per second and the top 5 types (`UPDATE_BG_STATE:<Controller>` for Engine updates)                                                          | Redux middleware in `app/store`                                             | A map increment per action                                                |
+| `jsLag`        | Max JS event-loop lag per second                                                                                                                               | 100 ms interval in `perfSession.ts`                                         | 10 timer callbacks per second on the JS thread                            |
+| `uiStalls`     | Main thread blocked ≥ 100 ms: duration, screen and the most frequent stack                                                                                     | `PerfStallWatchdog.kt` (`mm-perf-watchdog`)                                 | 10 pings per second to the main Looper; stack samples only during a stall |
+| `profiles`     | Hermes CPU profiles around problems                                                                                                                            | `PerfProfiles.kt`                                                           | Hermes sampling while on, a dump every 10 s; see below                    |
+| `renderLoops`  | When a screen keeps drawing with nobody touching it: the views responsible, each with a reason (`moving`, `playing`, `drawable`, `surface`) and its layer type | `PerfRenderLoops.kt`                                                        | Two view-tree walks on the main thread, at most once per 30 s per screen  |
 
 **Render loops.** JS profiles can't explain a screen that burns the RenderThread or GPU while JS is idle (a looping Lottie or Rive animation, a shimmer, a spinner, a video). When for 3 s in a row nobody touched the screen and it kept drawing (≥ 25% of the refresh rate) or the RenderThread stayed above 50% of a core, the sampler walks the view tree twice, 150 ms apart, and reports up to 20 views: `moving` (position, transform or alpha changed: Reanimated, native-driver Animated, shimmers), `playing` (the view says so: Lottie `isAnimating()`, Rive and video `isPlaying()`), `drawable` (a running animated image) or `surface` (a visible TextureView, SurfaceView or WebView). Each comes with its testID (or the nearest named ancestor's) and layer type; a `software` layer is re-rasterized and re-uploaded every frame, which shows up as a long FrameMetrics sync phase. `proguard-rules.pro` keeps the getters it looks up by name.
 
 **Profiles.** While on, recording and in the foreground, the Hermes sampling profiler runs and is dumped every 10 s to an app-private segment file (dumping clears its buffer); only the last two segments are kept. A segment that saw a frozen frame, a UI stall, JS lag ≥ 250 ms, a janky burst (≥ 30% janky for 3 s) or a busy JS thread (≥ 80% for 3 s) is gzipped and uploaded to `POST /profile` together with the previous segment; the rest are deleted. At most `maxPerHour` (default 12) are captured, uploads only run on unmetered networks, and the queue is capped at 20 MB. On RN 0.86 `HermesSamplingProfiler.disable()` works, so the sampler is really stopped in the background and when the feature or the collector is off. The shake-to-profile `ProfilerManager` (exp and RC builds) uses the same global sampler: while it records, automatic profiles pause and their buffer is discarded first, so the two never steal each other's samples. Sentry's profiler also drives this sampler (it disables it and drains the buffer at the end of every transaction), so builds with the perf session set Sentry's `profilesSampleRate` to 0; Sentry tracing and errors are unchanged.
 
-### Time and cross-referencing
+## Time and cross-referencing
 
 Every sample, event, span, stall and profile carries two clocks:
 
@@ -56,11 +44,11 @@ Each batch adds a `clock` pair (`t`, `mono`, `tzOffsetMin`) taken at the same in
 
 **Hermes profiles.** The sampling profiler's trace timestamps come from `std::chrono::steady_clock`, which is CLOCK_MONOTONIC on Android, serialized in µs: the same base as `mono`. Hermes ships prebuilt, so this is from the Hermes sources rather than code in this repo; each uploaded profile carries the `mono` of its segment's start and end, which lets the collector confirm the alignment (the trace's `ts` range must fall inside it). The same applies to profiles from react-native-release-profiler / `ProfilerManager`, so they can be lined up with a device's perf session through the batch `clock` pairs.
 
-### The collector is the on/off switch
+## The collector is the on/off switch
 
 The app calls `GET /status?env=<env>` at launch, on resume and every few minutes. It only records while the collector answers `{"record": true}` for its env (`main-exp`, `main-rc`, ...). When the collector is off, unreachable or says no, nothing is sampled or queued, so turning the collector off stops every installed build within minutes.
 
-### Which builds have it
+## Which builds have it
 
 Only the **scheduled Friday nightly Android main-exp build**. Every other build, including other nightlies, manual `main-exp` builds, RC and production, compiles without it: the native module isn't registered and the JS side is a no-op.
 
@@ -73,24 +61,11 @@ So the collector only needs to run while testers use a Friday nightly build. Bui
 
 **The URL and key are public by design.** They are committed here and ship inside the APK. Security comes from the collector: it validates every batch strictly, rate-limits, caps storage, and only exposes the upload and status endpoints. Dashboards stay on localhost.
 
-### The collector
+## The collector
 
 The collector is a separate project, not part of this repo. It receives batches, serves the live dashboard and reports, and exports devices in Flashlight's result format (`npx @perf-profiler/web-reporter report <file>`).
 
-Code: `android/app/src/main/java/io/metamask/nativeModules/PerfSession/`, `app/core/Performance/perfSession.ts`, wired in `NavigationProvider.tsx`. Android only for now.
-
-## Lab agent (Flashlight over adb)
-
-For a deeper session on one device without a special build. It works with any installed build.
-
-1. Install `adb` (`brew install android-platform-tools`) and Node ≥ 20, enable USB debugging on the phone, plug it in, and run `npm install` here.
-2. `node agent.mjs --tester ana --session 2026-10-30-bugbash`
-   - `swap` + Enter: label what you're testing from now on
-   - Enter: flag a jank moment; `! note`: flag with a note
-   - `q` or Ctrl+C: stop and save to `perf-sessions-output/<session>/<tester>-<time>.json`
-3. `npx @perf-profiler/web-reporter report <file>.json` opens Flashlight's charts. `node aggregate.mjs <folder>` merges several testers (`npm run demo` for sample data).
-
-Release builds strip `console.*` (`babel.config.js`), which is why this mode can't see screen names on its own.
+Code: `android/app/src/main/java/io/metamask/nativeModules/PerfSession/`, `app/core/Performance/perfSession.ts` (wired in `NavigationProvider.tsx`, the Redux store and `app/util/trace.ts`). Android only for now.
 
 ## Known limits
 

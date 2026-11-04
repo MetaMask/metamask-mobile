@@ -128,7 +128,7 @@ _main_dev_env: &main_dev_env
 # MM_PERF_SESSION_ENABLED=true, which only the scheduled Friday nightly Android
 # main-exp build does (nightly-build.yml → build.yml `perf_session`); Gradle refuses
 # the flag in any other build. Both values are public by design: the collector
-# treats every client as untrusted. See scripts/perf-sessions/README.md.
+# treats every client as untrusted. See docs/performance/perf-sessions.md.
 _perf_session: &perf_session
   MM_PERF_SESSION_URL: 'https://superserviceable-stacia-nonindulgently.ngrok-free.dev'
   MM_PERF_SESSION_KEY: 'RPHLuCRSaAhZKf_brgroIpVAdqRrmwyr'
