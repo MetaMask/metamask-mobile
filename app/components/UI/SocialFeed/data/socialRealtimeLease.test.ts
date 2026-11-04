@@ -1,4 +1,5 @@
 import Engine from '../../../../core/Engine';
+import { waitFor } from '@testing-library/react-native';
 import {
   acquireSocialRealtime,
   resetSocialRealtimeLeases,
@@ -10,8 +11,6 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockContext = Engine.context as unknown as Record<string, unknown>;
-
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const createService = () => ({
   setScopes: jest.fn().mockResolvedValue(undefined),
@@ -31,33 +30,36 @@ describe('acquireSocialRealtime', () => {
     const onStatus = jest.fn();
 
     acquireSocialRealtime('all', onStatus);
-    await flush();
 
-    expect(service.setScopes).toHaveBeenCalledWith(['all']);
-    expect(service.setActive).toHaveBeenLastCalledWith(true);
-    expect(onStatus).toHaveBeenCalledWith('live');
+    await waitFor(() => {
+      expect(service.setScopes).toHaveBeenCalledWith(['all']);
+      expect(service.setActive).toHaveBeenLastCalledWith(true);
+      expect(onStatus).toHaveBeenCalledWith('live');
+    });
   });
 
   it('subscribes to the union of scopes held by every lease', async () => {
     acquireSocialRealtime('trending');
     acquireSocialRealtime('all');
-    await flush();
 
-    expect(service.setScopes).toHaveBeenLastCalledWith(['trending', 'all']);
+    await waitFor(() =>
+      expect(service.setScopes).toHaveBeenLastCalledWith(['trending', 'all']),
+    );
   });
 
   it('stays active until the last lease on a scope is released', async () => {
     const releaseFirst = acquireSocialRealtime('all');
     const releaseSecond = acquireSocialRealtime('all');
-    await flush();
 
     releaseFirst();
-    await flush();
-    expect(service.setActive).not.toHaveBeenCalledWith(false);
+    await waitFor(() =>
+      expect(service.setActive).not.toHaveBeenCalledWith(false),
+    );
 
     releaseSecond();
-    await flush();
-    expect(service.setActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() =>
+      expect(service.setActive).toHaveBeenLastCalledWith(false),
+    );
   });
 
   it('reports unavailable when the subscription fails', async () => {
@@ -65,8 +67,7 @@ describe('acquireSocialRealtime', () => {
     const onStatus = jest.fn();
 
     acquireSocialRealtime('all', onStatus);
-    await flush();
 
-    expect(onStatus).toHaveBeenCalledWith('unavailable');
+    await waitFor(() => expect(onStatus).toHaveBeenCalledWith('unavailable'));
   });
 });
