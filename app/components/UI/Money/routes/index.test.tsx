@@ -20,6 +20,15 @@ const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
   useUpgradeMoneyAccountOnFocus,
 );
 
+let mockRoute: { name: string; params?: { screen?: string } } = {
+  name: Routes.MONEY.MODALS.ROOT,
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => mockRoute,
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -253,6 +262,37 @@ describe('MoneyConfirmationScreenStack', () => {
 describe('MoneyModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute = { name: Routes.MONEY.MODALS.ROOT };
+  });
+
+  it('enables the account upgrade when a Money sheet opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: true,
+    });
+  });
+
+  it('skips the account upgrade when the 2-step verification prompt opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('calls useUpgradeMoneyAccountOnFocus', () => {
