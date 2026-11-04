@@ -1,5 +1,5 @@
 diff --git a/lib/module/fetch.js b/lib/module/fetch.js
-index 0d91c71368388fa1eed6c1b97993539657ac086c..9571df2b1a277327b1a07b491e2c218e99075fb3 100644
+index 0d91c71368388fa1eed6c1b97993539657ac086c..a470f7da8760d5dc7d16ae1c7f0e0c8efd3f45d2 100644
 --- a/lib/module/fetch.js
 +++ b/lib/module/fetch.js
 @@ -38,7 +38,7 @@ function headersToPairs(headers) {
@@ -11,8 +11,20 @@ index 0d91c71368388fa1eed6c1b97993539657ac086c..9571df2b1a277327b1a07b491e2c218e
      headers.forEach((v, k) => pairs.push({
        key: k,
        value: v
+@@ -496,8 +496,9 @@ let _decoder;
+ function resolveTextDecoder() {
+   if (_decoder !== undefined) return _decoder;
+   try {
+-    const dynamicRequire = require;
+-    const mod = dynamicRequire('react-native-nitro-text-decoder');
++    // MetaMask patch: static require so Metro bundles it. An aliased require with a
++    // string id is reported as fatal by metro-runtime in release builds (#38849).
++    const mod = require('react-native-nitro-text-decoder');
+     if (mod && typeof mod.TextDecoder === 'function') {
+       _decoder = new mod.TextDecoder('utf-8', {
+         fatal: true
 diff --git a/src/fetch.ts b/src/fetch.ts
-index e61e64b562f260be7f51cb7f90badf538ccbab2d..f259526fd8e6ed47a449fcca4376024b7dcadcac 100644
+index e61e64b562f260be7f51cb7f90badf538ccbab2d..340727ec6119ce0bec82534a645c1e564cc9e998 100644
 --- a/src/fetch.ts
 +++ b/src/fetch.ts
 @@ -47,7 +47,7 @@ function headersToPairs(headers?: HeadersInit): NitroHeader[] | undefined {
@@ -24,3 +36,15 @@ index e61e64b562f260be7f51cb7f90badf538ccbab2d..f259526fd8e6ed47a449fcca4376024b
      headers.forEach((v, k) => pairs.push({ key: k, value: v }));
      return pairs;
    }
+@@ -537,8 +537,9 @@ let _decoder: MinimalTextDecoder | null | undefined;
+ function resolveTextDecoder(): MinimalTextDecoder | null {
+   if (_decoder !== undefined) return _decoder;
+   try {
+-    const dynamicRequire = require;
+-    const mod = dynamicRequire('react-native-nitro-text-decoder') as {
++    // MetaMask patch: static require so Metro bundles it. An aliased require with a
++    // string id is reported as fatal by metro-runtime in release builds (#38849).
++    const mod = require('react-native-nitro-text-decoder') as {
+       TextDecoder?: TextDecoderCtor;
+     };
+     if (mod && typeof mod.TextDecoder === 'function') {
