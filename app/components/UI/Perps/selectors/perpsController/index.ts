@@ -271,7 +271,9 @@ const selectPerpsProLayoutPreferences = createSelector(
 /**
  * Whether the Pro inline chart is expanded. Persisted globally across markets
  * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
- * Defaults to `true` (visible) so first-time Pro users see the chart.
+ * Defaults to `true` (visible) so Pro mode opens with the chart showing.
+ * Migration 161 writes that default once over the earlier collapsed value.
+ * A collapse after that still persists.
  */
 const selectPerpsProChartExpanded = createSelector(
   selectPerpsProLayoutPreferences,
