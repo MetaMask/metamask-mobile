@@ -4,7 +4,7 @@ The signing profile holds a template for every venue request the phone may sign.
 
 Nothing asks "what do I sign?", so no route needs an error status for that. The profile is data that names allowlisted implementations shipped with the app, so client code stays venue-agnostic. The profile is bundled in the app today. Later it moves to a backend that is not the Predict API.
 
-Status: accepted. Phase 1 (framework, onboarding and balance) is implemented as of 2026-11-03. This replaces the `428 venue_signature_required` exchange and amends [ADR-0003](0003-backend-driven-venue-authentication.md). ADR-0003's trust model is kept: the phone signs only what its pinned profile allows, and it owns identity and freshness.
+Status: accepted and implemented as of 2026-11-04, except the funding, withdrawal, compliance and `onboarding.resendMfa` operations, which are not built yet (see [Not yet built](#not-yet-built)). This replaces the `428 venue_signature_required` exchange and amends [ADR-0003](0003-backend-driven-venue-authentication.md). ADR-0003's trust model is kept: the phone signs only what its pinned profile allows, and it owns identity and freshness.
 
 ## Context
 
@@ -162,10 +162,10 @@ The ledger lives in SecureKeychain with a 30-minute TTL. It is cleared on lock, 
 
 ### Where profiles come from
 
-| Phase | Phone                                                                                                             | Predict API                                | Trust                                  |
-| ----- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------- |
-| Now   | Bundled in the app                                                                                                | The same document, from the shared fixture | The app release                        |
-| Later | Fetched from a profile service that is not the Predict API, and verified against a MetaMask key pinned in the app | Fetched from the same service              | The pinned key and a monotonic version |
+| Stage   | Phone                                                                                                             | Predict API                                | Trust                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------- |
+| Today   | Bundled in the app                                                                                                | The same document, from the shared fixture | The app release                        |
+| Planned | Fetched from a profile service that is not the Predict API, and verified against a MetaMask key pinned in the app | Fetched from the same service              | The pinned key and a monotonic version |
 
 The phone's copy is the security boundary. The Predict API's copy is only used for rendering. If the two disagree, the signatures don't verify. Nothing is signed that the phone's profile doesn't allow.
 
@@ -288,44 +288,47 @@ Calls that use the admin key, such as Kalshi's deposit indication and withdrawal
 
 ## Calls that act as the user
 
-Each call below reads or changes the user's own venue account. Venue paths are under `/trade-api/v2`. "Today" means `main` plus the current branch, before Phase 0.
+Each call below reads or changes the user's own venue account. Venue paths are under `/trade-api/v2`.
 
-Market data (orderbooks, market snapshots, `/historical/cutoff`) is not user data. It keeps the admin key or uses no credential, and it has no template.
+Market data is not user data and has no template. REST orderbooks, market snapshots, and `/historical/cutoff` are unsigned. The market-data WebSocket handshake uses the ISV admin key.
 
 ### Credentials
 
-| Call                                                           | What it does                                                     | Design                                                                                             |
-| -------------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `POST /venues/kalshi/a2t/challenge`, `POST /venues/kalshi/a2t` | Issues the A2T that binds the device key to the MetaMask profile | Unchanged. Owned by the authentication profile. Moves to MetaMask Auth before production (A2T ADR) |
+| Call                                                           | What it does                                                     | Design                                                                                  |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `POST /venues/kalshi/a2t/challenge`, `POST /venues/kalshi/a2t` | Issues the A2T that binds the device key to the MetaMask profile | Owned by the authentication profile. Moves to MetaMask Auth before production (A2T ADR) |
 
 ### Onboarding (Kalshi ISV enrollment)
 
-| Operation                    | Route                             | Venue request template                                          | Sources                                                       | Server values | Today     |
-| ---------------------------- | --------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ------------- | --------- |
-| `onboarding.status`          | `GET /onboarding/status`          | `GET /portfolio/balance`, `GET /isv/enrollment/intents/current` | None                                                          | None          | 428       |
-| `onboarding.start`           | `POST /onboarding/intents`        | `POST /isv/enrollment/intents`                                  | Empty body. Idempotency key: `input`                          | None          | 428       |
-| `onboarding.link`            | `POST /onboarding/link`           | `POST /isv/users/link`                                          | `email`: `input`                                              | None          | 428       |
-| `onboarding.verify`          | `POST /onboarding/link/verify`    | `POST /isv/users/link/verify`                                   | `code`: `input`                                               | None          | 428       |
-| `onboarding.activate`        | `POST /onboarding/activate`       | `POST /isv/wallet/register`                                     | `wallet_address`, `network`: `input`. Per-intent confirmation | None          | 428       |
-| `onboarding.resendMfa` (new) | `POST /onboarding/link/challenge` | `POST /isv/users/link/challenge`                                | Empty body (ISV §5.6.1)                                       | None          | Not built |
-| —                            | `POST /onboarding/demo-kyc`       | Admin-key ISV profile and KYC calls                             | Not device-signed. Demo only                                  | —             | Admin key |
+| Operation             | Route                          | Venue request template                                          | Sources                                                       | Server values | Credential |
+| --------------------- | ------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------- | ------------- | ---------- |
+| `onboarding.status`   | `GET /onboarding/status`       | `GET /portfolio/balance`, `GET /isv/enrollment/intents/current` | None                                                          | None          | Device     |
+| `onboarding.start`    | `POST /onboarding/intents`     | `POST /isv/enrollment/intents`                                  | Empty body. Idempotency key: `input`                          | None          | Device     |
+| `onboarding.link`     | `POST /onboarding/link`        | `POST /isv/users/link`                                          | `email`: `input`                                              | None          | Device     |
+| `onboarding.verify`   | `POST /onboarding/link/verify` | `POST /isv/users/link/verify`                                   | `code`: `input`                                               | None          | Device     |
+| `onboarding.activate` | `POST /onboarding/activate`    | `POST /isv/wallet/register`                                     | `wallet_address`, `network`: `input`. Per-intent confirmation | None          | Device     |
+| —                     | `POST /onboarding/demo-kyc`    | Admin-key ISV profile and KYC calls                             | Not device-signed. Demo only                                  | —             | Admin key  |
 
 ### Portfolio reads
 
-| Operation             | Route                    | Venue request templates                                                                                                                                                                 | Server values                                                    | Today                                                        |
-| --------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| `portfolio.balance`   | `GET /balance`           | `GET /portfolio/balance`                                                                                                                                                                | None                                                             | 428, then signed                                             |
-| `portfolio.positions` | `GET /positions`         | Step `holdings`: `GET /portfolio/positions?count_filter=position&limit=…[&cursor=…]`. Step `settlements`: `GET /portfolio/settlements?ticker=…&limit=10`, once for each resolved ticker | `cursor`, `tickers` (`array` of `opaque`, up to `maxSignatures`) | Shared admin account                                         |
-| `portfolio.summary`   | `GET /portfolio/summary` | As positions, plus step `balance`: `GET /portfolio/balance`                                                                                                                             | As positions                                                     | Shared admin account                                         |
-| `portfolio.activity`  | `GET /activity`          | `GET /portfolio/settlements?limit=200[&max_ts=…][&cursor=…]`, `GET /historical/positions?limit=1`                                                                                       | `max_ts` (`time`), `cursor` (`opaque`)                           | 428 on this branch. Phase 0 returns it to the shared account |
+| Operation             | Route                    | Venue request templates                                                                                                                                                                 | Server values                                                    | Credential |
+| --------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------- |
+| `portfolio.balance`   | `GET /balance`           | `GET /portfolio/balance`                                                                                                                                                                | None                                                             | Device     |
+| `portfolio.positions` | `GET /positions`         | Step `holdings`: `GET /portfolio/positions?count_filter=position&limit=…[&cursor=…]`. Step `settlements`: `GET /portfolio/settlements?ticker=…&limit=10`, once for each resolved ticker | `cursor`, `tickers` (`array` of `opaque`, up to `maxSignatures`) | Device     |
+| `portfolio.summary`   | `GET /portfolio/summary` | As positions, plus step `balance`: `GET /portfolio/balance`                                                                                                                             | As positions                                                     | Device     |
+| `portfolio.activity`  | `GET /activity`          | `GET /portfolio/settlements?limit=200[&max_ts=…][&cursor=…]`, `GET /historical/positions?limit=1`                                                                                       | `max_ts` (`time`), `cursor` (`opaque`)                           | Device     |
+
+Positions, Summary and Activity are multi-step. Each call performs one step and returns a `continuation` until the read is complete. A device-lane `permission_denied` on the settlements read means the route is not served on the device lane. Activity then returns Trades only and marks settlements as possibly missing.
 
 ### Trading
 
-| Operation                     | Route                             | Venue request templates                                                                                                                                                                        | Server values                                                           | Today                                                                                            |
-| ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `orders.preview`              | `POST /orders/preview`            | Buy: `GET /portfolio/balance`. Sell: `GET /portfolio/positions?ticker=…&count_filter=position&limit=200`. New: `GET /isv/market-restriction?ticker=…`. The orderbook is market data            | None. The request carries the phone's `idempotencyKey`                  | Shared admin account                                                                             |
-| `orders.commit`               | `POST /orders/commit`             | Step `submit`: re-check balance or position, then `POST /portfolio/events/orders`                                                                                                              | `price`, `count`, from the preview response                             | Shared admin account. `client_order_id` is `randomUUID()` at commit                              |
-| `orders.commit` (observation) | `POST /orders/commit`, sent again | Step `submit`: the pinned body again. Step `lookup`: `GET /portfolio/orders/{order_id}`. Step `scan`: `GET /portfolio/orders?ticker=…&min_ts=…&limit=200[&cursor=…]`. Step `none`: no requests | `next: { step, values }` in the receipt: `order_id`, `min_ts`, `cursor` | Up to 5 scan pages in one call. A third verified absence re-arms and resubmits in that same call |
+| Operation                     | Route                             | Venue request templates                                                                                                                                                                        | Server values                                                           | Credential                                               |
+| ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
+| `orders.preview`              | `POST /orders/preview`            | Buy: `GET /portfolio/balance`. Sell: `GET /portfolio/positions?ticker=…&count_filter=position&limit=200`. New: `GET /isv/market-restriction?ticker=…`. The orderbook is market data            | None. The request carries the phone's `idempotencyKey`                  | Device. The orderbook is an unsigned public read         |
+| `orders.commit`               | `POST /orders/commit`             | Step `submit`: re-check balance or position, then `POST /portfolio/events/orders`                                                                                                              | `price`, `count`, from the preview response                             | Device. `client_order_id` is the phone's idempotency key |
+| `orders.commit` (observation) | `POST /orders/commit`, sent again | Step `submit`: the pinned body again. Step `lookup`: `GET /portfolio/orders/{order_id}`. Step `scan`: `GET /portfolio/orders?ticker=…&min_ts=…&limit=200[&cursor=…]`. Step `none`: no requests | `next: { step, values }` in the receipt: `order_id`, `min_ts`, `cursor` | Device                                                   |
+
+The preview stores `client_order_id`, `price` and `count`, and returns `price` and `count`.
 
 The `order_create` template, in order:
 
@@ -341,7 +344,7 @@ The `order_create` template, in order:
 
 The template also sets `maxBytes: 1024` and has the invariant `binary-limit-order-v1`. The phone renders and checks it as soon as the preview arrives, and enables Confirm only if the check passes. The sheet renders from the invariant's `display`. The phone signs at Confirm. The preview stores the same `client_order_id`, `price` and `count`, so the commit renders the same bytes.
 
-Order observation is stepped. Each call performs one step, and the receipt names the next one.
+Order observation is stepped. Each call performs one step, and the receipt names the next one. A third verified absence re-arms the intent, and the next call submits. The phone stops after `MAX_COMMIT_OBSERVATIONS` (8) calls.
 
 | Stored state                                 | Step this call                                                                  | After this call                                                  |
 | -------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
@@ -353,7 +356,7 @@ Order observation is stepped. Each call performs one step, and the receipt names
 
 Cancel, amend and decrease are not used, because every order is IOC. If they are added, they follow the same pattern, with per-intent confirmation and `order_id` taken from an order the user selected.
 
-### Funding and withdrawals (not built, flow not decided)
+### Funding and withdrawals (not yet built, flow not decided)
 
 These rows record what the ISV spec says, to show the framework can carry it. The product flow is still open.
 
@@ -371,11 +374,11 @@ The demo funding script (`scripts/kalshi-demo-fund.ts`) calls `crypto-addresses`
 
 ### Compliance
 
-| Operation                                             | Venue request                          | Credential                      | Fits as                                            |
-| ----------------------------------------------------- | -------------------------------------- | ------------------------------- | -------------------------------------------------- |
-| Part of `orders.preview` and `funding.depositAddress` | `GET /isv/market-restriction?ticker=…` | Device, or admin with `user_id` | Read. `ticker`: `input`. Not called anywhere today |
-| `compliance.employmentForm`                           | `GET /isv/employment`                  | Device, or admin                | Read                                               |
-| —                                                     | `PUT /isv/employment`                  | Admin key only                  | Outside the framework                              |
+| Operation                                             | Venue request                          | Credential                      | Fits as                 |
+| ----------------------------------------------------- | -------------------------------------- | ------------------------------- | ----------------------- |
+| Part of `orders.preview` and `funding.depositAddress` | `GET /isv/market-restriction?ticker=…` | Device, or admin with `user_id` | Read. `ticker`: `input` |
+| `compliance.employmentForm`                           | `GET /isv/employment`                  | Device, or admin                | Read                    |
+| —                                                     | `PUT /isv/employment`                  | Admin key only                  | Outside the framework   |
 
 ### Admin-only lookups and out of scope
 
@@ -386,6 +389,14 @@ These use the admin key and have no template:
 - KYC, phone and document submission
 
 Market streams are public. User websocket channels (fills, order updates) aren't used, and will be reviewed separately if Kalshi supports them for ISV users.
+
+### Not yet built
+
+These operations are specified by the profile design but not built. Each needs its own flow decision before it is added:
+
+- `onboarding.resendMfa`, `POST /onboarding/link/challenge` to `POST /isv/users/link/challenge` with an empty body (ISV §5.6.1)
+- The funding and withdrawal operations above
+- The compliance employment form operations above
 
 ## Security
 
@@ -408,64 +419,10 @@ What remains uncovered is the same as in ADR-0003: a forged catalog mapping, and
 
 - Client code names canonical operations. Adding a venue means adding a profile, plus at most a new bundled implementation, source shape or invariant.
 - Signed calls take one round trip, and no route answers 4xx in the normal flow.
-- The profile is the single description of the venue wire format, and both repos render from it. Venue request builders for user-scoped calls leave the Predict API.
+- The profile is the single description of the venue wire format, and both repos render from it. Venue request builders for user-scoped calls are gone from the Predict API.
+- Every signed route uses the profile. No route reads `KALSHI_HARDCODED_USER`.
+- Both repos test their profile constant against the shared fixture `venue-signing-v2.json`. The fixture also holds one real device signature vector, which must verify on the server.
+- Endpoints changed in place, with no version bump. There is no compatibility path for the `428` exchange.
 - A Kalshi wire change is a profile change. While profiles are bundled, that means an app release.
-- Multi-step operations take one call per step. Order observation needs a larger bound on its loop (`MAX_COMMIT_OBSERVATIONS`).
-- The `api-key` venue auth variant and the admin-key portfolio reads are removed once every operation uses templates. `KALSHI_HARDCODED_USER` and `KALSHI_DEVICE_AUTHORITY` were removed in Phase 1: no route reads the first, and the authority is part of the profile.
-
-## Rollout
-
-None of this is live. Endpoints change in place without a version bump, and nothing has to stay compatible with earlier builds. Each phase is still verified on demo before the next starts.
-
-During a phase, routes that haven't moved keep working as they do today. A route that has moved never uses `KALSHI_HARDCODED_USER`.
-
-| Phase                                | Scope                                                                                                                                                                                                                                                                                                                                                 | Done when                                                                                   |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 0. Revert to a working baseline      | Undo the device-signing changes for every call except onboarding and balance, so they read the shared account through `KALSHI_HARDCODED_USER` again (details below)                                                                                                                                                                                   | Balance and onboarding work device-signed. Every other screen loads from the shared account |
-| 1. Framework, onboarding and balance | The profile format and renderers, `signOperation`, `Venue-Authorization`, and the onboarding and balance operations (details below)                                                                                                                                                                                                                   | A new demo user onboards and reads their balance with no 428 and no shared account          |
-| 2. Orders                            | Preview takes the phone's idempotency key, stores `client_order_id`, `price` and `count`, and returns them. Commit uses the `order_create` template and `binary-limit-order-v1`. Observation is stepped: the scan cursor and absence state are stored, and re-arming is split from resubmitting. The approved-intent ledger is added                  | A buy and a sell place, and an ambiguous submit reconciles, on the user's own account       |
-| 3. Portfolio reads                   | Positions, Summary and Activity become multi-step operations with `continuation`. Prerequisite: Kalshi confirms that the device lane serves `/portfolio/settlements`, `/portfolio/fills` and `/historical/positions` (ISV §8 lists only orders, positions and balance), and how to tell "not enrolled" from "route not served" in `permission_denied` | Every portfolio screen reads the user's own account, including multi-page traversals        |
-| 4. Cleanup                           | Remove the admin-key portfolio helpers and the admin-key balance read order preview and commit still use. Market data keeps the admin key                                                                                                                                                                                                             | Nothing reads a user account with the admin key                                             |
-| Later                                | Funding, withdrawals, compliance and anything else that is added, as their flows are decided. That includes how the user authorizes admin-key-only calls                                                                                                                                                                                              | —                                                                                           |
-
-### Phase 0: revert to a working baseline
-
-**Predict API.** Revert:
-
-- Activity's device-signed settlements and archive reads, and its profile scoping
-- the device-signed positions read
-- `kalshi-device-get.ts`
-- the `settlements` and `historical_positions` request templates, their refs and their fixture entries
-
-**Mobile.** Revert:
-
-- the `positions`, `settlements` and `historical_positions` profile operations
-- the query-key extension to the signing policy
-- the signing intents on `fetchPositions` and `fetchActivity`
-- the tests for all of these
-
-**Keep:** balance and onboarding signing, the shared balance read, and the 429 mapping.
-
-### Phase 1: framework, onboarding and balance
-
-**Profile.**
-
-- Add the v2 format: implementation id and parameters, operations with steps, request templates, sources, shapes, and invariants (none needed yet).
-- Add the Kalshi demo entries for `portfolio.balance` and the five onboarding operations.
-- The document is a TypeScript constant in each repo (`auth/venueSigningProfiles.ts` here, `venue-signing/signing-profile.ts` in the Predict API). Each repo has a test that keeps its constant equal to `profile` in the shared fixture `venue-signing-v2.json`, so the two cannot drift apart.
-
-**Mobile.**
-
-- Add the renderer and `signOperation`.
-- Add the envelope builder for `Venue-Authorization`.
-- Make `PredictApiReadClient.fetchBalance` and `KalshiOnboardingClient` sign before the call, and remove the 428 handling and Kalshi refs from those clients.
-- `onboarding.activate` signs only after the wallet confirmation step that already exists. The full ledger comes in Phase 2.
-
-**Predict API.**
-
-- Add the profile and the renderer (`apps/api/src/venue-signing/`). The renderer file is a byte-for-byte twin of the phone's `venueTemplates.ts`.
-- Add the `VenueOperation` guard, which parses the envelope and verifies the A2T, and `VenueCallSet.prepare`, which renders, verifies, and gives the handler the calls to relay.
-- Move the balance and onboarding routes to the guard, dropping their 428 paths and the onboarding request builders.
-- Define the `continuation` and `next` response shapes and the HMAC continuation token, even though nothing uses them until Phase 2.
-
-**Shared fixture.** `venue-signing-v2.json` holds the profile, a case for each operation (inputs, values, the expected rendered requests, their digests and signing bases), the inputs the renderer must refuse, and one real signature vector. Both repos test against it, and a real device signature made on the phone side verifies on the server side.
+- Multi-step operations take one call per step. The phone's observation loop stops at `MAX_COMMIT_OBSERVATIONS` (8).
+- The `api-key` venue auth variant and the admin-key reads of user accounts are gone. `KALSHI_HARDCODED_USER` and `KALSHI_DEVICE_AUTHORITY` are gone. The authority is the profile's `implementation.params.authority`. The ISV admin key remains for the market-data WebSocket, demo KYC, deposit indication, and enrollment lookup by external id. REST market data and the historical cutoff are unsigned.
