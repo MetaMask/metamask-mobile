@@ -2,6 +2,8 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import Engine from '../../Engine';
+import { store } from '../../../store';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
@@ -17,6 +19,14 @@ jest.mock('../../../util/Logger');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
+jest.mock('../../Engine', () => ({
+  context: {
+    PermissionController: {
+      getPermissions: jest.fn(),
+      revokeAllPermissions: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../store', () => ({
   store: {
     getState: jest.fn(() => ({
@@ -96,6 +106,59 @@ describe('asyncInit', () => {
 
       expect(mockInstance.state.approvedHosts).toEqual({});
     });
+  });
+
+  it('revokes permissions when an expired connection is dropped', async () => {
+    const revokeAllPermissions = jest.fn();
+    const getPermissions = jest.fn().mockReturnValue({ eth_accounts: {} });
+    (Engine.context as { PermissionController: unknown }).PermissionController =
+      {
+        getPermissions,
+        revokeAllPermissions,
+      };
+    (store.getState as jest.Mock).mockReturnValueOnce({
+      sdk: {
+        connections: {
+          channel1: { validUntil: Date.now() - 1000 },
+        },
+        approvedHosts: {},
+        dappConnections: {},
+      },
+    });
+
+    await asyncInit({
+      instance: mockInstance,
+      navigation: mockNavigation,
+    });
+
+    expect(revokeAllPermissions).toHaveBeenCalledWith('channel1');
+    expect(mockInstance.state.connections.channel1).toBeUndefined();
+  });
+
+  it('keeps an expired connection when revoking permissions throws', async () => {
+    (Engine.context as { PermissionController: unknown }).PermissionController =
+      {
+        getPermissions: jest.fn(() => {
+          throw new Error('revoke failed');
+        }),
+        revokeAllPermissions: jest.fn(),
+      };
+    (store.getState as jest.Mock).mockReturnValueOnce({
+      sdk: {
+        connections: {
+          channel1: { validUntil: Date.now() - 1000 },
+        },
+        approvedHosts: { channel1: 1 },
+        dappConnections: {},
+      },
+    });
+
+    await asyncInit({
+      instance: mockInstance,
+      navigation: mockNavigation,
+    });
+
+    expect(mockInstance.state.connections.channel1).toBeDefined();
   });
 
   it('should set the initialized state to true after successful initialization', async () => {

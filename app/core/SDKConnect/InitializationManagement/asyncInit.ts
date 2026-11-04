@@ -13,7 +13,32 @@ import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
+import { PermissionController } from '@metamask/permission-controller';
 import AppConstants from '../../../../app/core/AppConstants';
+import Engine from '../../Engine';
+
+function revokeExpiredChannel(channelId: string): boolean {
+  try {
+    const permissionsController = (
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
+    ).PermissionController;
+
+    if (permissionsController.getPermissions(channelId)) {
+      permissionsController.revokeAllPermissions(channelId);
+    }
+    return true;
+  } catch (error) {
+    Logger.log(
+      error,
+      `SDKConnect::init() - failed to revoke expired channel ${channelId}`,
+    );
+    return false;
+  }
+}
 
 const asyncInit = async ({
   navigation,
@@ -62,12 +87,15 @@ const asyncInit = async ({
         // Only keep connections that are not expired.
         validConnections[id] = sdk.connections[id];
         validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
-      } else {
-        // Remove expired connections
+      } else if (revokeExpiredChannel(id)) {
         DevLogger.log(
           `SDKConnect::init() - removing expired connection ${id} ${sdkHostId}`,
           connInfo,
         );
+      } else {
+        // Keep the session when revoke fails so the next launch can try again.
+        validConnections[id] = sdk.connections[id];
+        validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
       }
     }
     DevLogger.log(
