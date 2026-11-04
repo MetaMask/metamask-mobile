@@ -59,6 +59,7 @@ import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
+import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
@@ -386,6 +387,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  /**
+   * Resolve `token.address` once through the same normalizer the header uses,
+   * so the security-row chip shows the bare contract address (not the full
+   * CAIP-19 asset id that Solana tokens carry in `token.address`).
+   */
+  const contractAddress = useMemo(
+    () => (isNativeToken ? null : resolveTokenContractAddress(token)),
+    [token, isNativeToken],
+  );
+
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
     return Number(token.balance) > 0;
@@ -817,6 +829,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           securityData={securityData}
           tdpVersion="v3"
+          hideContractAddress
           onBackPress={handleBackPress}
           onSharePress={shareUrl ? handleShare : undefined}
           starButton={starButton}
@@ -872,7 +885,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityVerdict={securityFacts.verdict}
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
-                    contractAddress={token.isNative ? null : token.address}
+                    contractAddress={contractAddress}
                     onSecurityPress={
                       visibleTabs.includes('security')
                         ? handleSecurityPress

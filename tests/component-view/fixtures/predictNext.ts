@@ -432,6 +432,66 @@ export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
   };
 };
 
+/**
+ * The laid-out Game with player props as the backend composes them
+ * (PRED-1438): a `player_props` tab where each Player's thresholds are one
+ * `choice` group titled with the Player. Rushing yards has four Players (one
+ * with a single threshold), passing yards one.
+ */
+export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
+  const event = makePredictNextLaidOutGameEvent();
+  const [template] = makePredictNextCompositeGameEvent().markets;
+  const prop = (
+    stat: { key: string; order: number },
+    player: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    threshold: number,
+    displayOrder: number,
+  ): PredictMarket => {
+    const id = `${event.id}-${stat.key}-${player}-${threshold}`;
+    const label = `${threshold}+ yards`;
+    return {
+      ...template,
+      id: id as PredictEntityId,
+      question: `${player}: ${label}`,
+      outcomes: [
+        {
+          ...template.outcomes[0],
+          id: `${id}-yes` as PredictEntityId,
+          label,
+          gameSelection,
+        },
+        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+      ],
+      group: {
+        key: `${event.id}:${stat.key}:${player}`,
+        groupType: 'choice',
+        displayOrder,
+        label: player,
+      },
+      layout: { tab: { key: 'player_props', order: 1 }, section: stat },
+    };
+  };
+  const rushing = { key: 'rushing_yards', order: 1 };
+  const passing = { key: 'passing_yards', order: 3 };
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      prop(rushing, 'Rhamondre Stevenson', 'away', 60, 1),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 40, 0),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 80, 2),
+      prop(rushing, 'Kenneth Walker', 'home', 50, 0),
+      prop(rushing, 'Kenneth Walker', 'home', 70, 1),
+      prop(rushing, 'Drake Maye', 'away', 20, 0),
+      prop(rushing, 'Zach Charbonnet', 'home', 30, 0),
+      prop(passing, 'Drake Maye', 'away', 200, 0),
+      prop(passing, 'Drake Maye', 'away', 250, 1),
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },

@@ -36,7 +36,7 @@ const createStyles = (
       marginVertical: 60,
     },
     ctaContainer: {
-      marginTop: 30,
+      marginTop: 32,
     },
     row: {
       marginVertical: 1,
