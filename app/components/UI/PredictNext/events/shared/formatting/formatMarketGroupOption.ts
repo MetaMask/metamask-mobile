@@ -10,6 +10,10 @@ export const formatMarketGroupOption = (
     return undefined;
   }
 
+  if (group.marketType === PREDICT_MARKET_TYPES.THRESHOLD) {
+    return `${group.option.value}+`;
+  }
+
   if (group.marketType === PREDICT_MARKET_TYPES.SPREAD && side === undefined) {
     // Keep the selector neutral while preserving the signed row value.
     return String(Math.abs(group.option.value));

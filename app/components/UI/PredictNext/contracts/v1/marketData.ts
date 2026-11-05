@@ -166,8 +166,8 @@ const marketSelectorGroupSchema = coerce(
 );
 
 /**
- * A card of rows, one Market per row priced by its yes side: a moneyline's
- * options, or a Player's thresholds titled with `label`.
+ * A card of rows, one Market per row priced by its yes side, such as a
+ * moneyline's options. Titled with `label` when the backend sends one.
  */
 const choiceGroupSchema = coerce(
   structType({
