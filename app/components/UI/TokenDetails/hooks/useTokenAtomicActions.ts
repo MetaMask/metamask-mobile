@@ -298,12 +298,7 @@ export const useHandleOnSend = ({
       return;
     }
 
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET.HOME);
 
     const selectedChainId = selectEvmChainId(store.getState());
 
