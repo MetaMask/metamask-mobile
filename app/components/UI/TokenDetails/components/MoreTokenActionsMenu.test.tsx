@@ -486,7 +486,7 @@ describe('MoreTokenActionsMenu', () => {
         });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
       expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Function),
@@ -519,7 +519,7 @@ describe('MoreTokenActionsMenu', () => {
         );
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     });
 
     it('uses block explorer base URL for native currency when View on block explorer is pressed', async () => {
@@ -596,7 +596,7 @@ describe('MoreTokenActionsMenu', () => {
 
       onConfirm?.();
 
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
       expect(mockHandleHideToken).toHaveBeenCalled();
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
         expect.objectContaining({
