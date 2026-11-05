@@ -67,7 +67,7 @@ const renderAccountSupport = () => {
     }),
   });
   const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+    React.createElement(Provider, { store, children });
   const hook = renderHook(() => usePerpsAccountSupport(), { wrapper });
 
   return {

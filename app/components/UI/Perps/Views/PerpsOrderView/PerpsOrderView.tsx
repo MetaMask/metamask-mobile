@@ -566,6 +566,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // approval and unmounts this view while the user is still on the sheet, and
   // that path still needs to leave once the confirmation settles.
   const isClosedByUserRef = useRef(false);
+  // Bumped on a real exit (back, gesture, tab switch) that may leave this view
+  // mounted, so a user submit awaiting a check started before it is retired.
+  const submissionGenerationRef = useRef(0);
+  const retireSubmissionAttempts = useCallback(() => {
+    submissionGenerationRef.current += 1;
+  }, []);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -1431,6 +1437,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsAbandonOrderTracking({
     getAbandonProperties,
     hasCommittedRef: hasPlacedOrderRef,
+    onExit: retireSubmissionAttempts,
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
@@ -2028,6 +2035,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
       }
 
+      // A user-initiated submit no longer owns the action once the user has
+      // left: sheet close, unmount, or a real exit that keeps this view
+      // mounted. The committed post-deposit re-entry keeps running so a
+      // confirmed deposit still produces its order.
+      const attemptGeneration = submissionGenerationRef.current;
+      const isAttemptRetired = () =>
+        !forceTrade &&
+        (isDismissedRef.current ||
+          submissionGenerationRef.current !== attemptGeneration);
+
       // Cover this await with the submit lock. The validating path sets the
       // same lock only after this read, so a second tap in the same turn
       // would otherwise start a parallel placement.
@@ -2035,12 +2052,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       const accountSupport = await checkAccountSupport().finally(() => {
         isSubmittingRef.current = false;
       });
-      // A user-initiated submit no longer owns the action once its view has
-      // closed. Keep the committed post-deposit re-entry running so a
-      // confirmed deposit still produces its order. That re-entry runs after
-      // this view unmounts, so an unmounted support read is not a reason to
-      // drop it. A changed account context still is.
-      if (!forceTrade && isDismissedRef.current) {
+      // The post-deposit re-entry runs after this view unmounts, so an
+      // unmounted support read is not a reason to drop it. A changed account
+      // context still is.
+      if (isAttemptRetired()) {
         return;
       }
       if (accountSupport === 'unsupported') {
@@ -2114,7 +2129,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // has left — the deposit branch itself navigates away once the
         // confirmation resolves — and the confirmed deposit is a commitment
         // that must still produce the order.
-        if (!forceTrade && isDismissedRef.current) {
+        if (isAttemptRetired()) {
           return;
         }
       }
