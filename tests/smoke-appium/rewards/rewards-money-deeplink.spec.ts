@@ -3,7 +3,7 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import { SmokeWalletPlatform } from '../../tags.js';
+import { SmokeRewards } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import RewardsMoneyView from '../../page-objects/Rewards/RewardsMoneyView.js';
 import { openE2EUrl } from '../../framework/DeepLink.js';
@@ -22,7 +22,7 @@ import {
 const MONEY_CAMPAIGN_DEEPLINK =
   'https://link.metamask.io/rewards?campaign=money';
 
-appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
+appiumTest.describe(SmokeRewards('Rewards Money deeplink'), () => {
   appiumTest.describe.configure({ timeout: 240000 });
 
   appiumTest(
