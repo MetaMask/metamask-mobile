@@ -9,6 +9,7 @@ import {
   hasAcceptedSocialTerms,
   hydrateSocialTermsAcceptance,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from './socialTermsAcceptance';
 
 jest.mock('../../../../store/storage-wrapper', () => ({
@@ -29,6 +30,7 @@ const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
 describe('socialTermsAcceptance', () => {
   beforeEach(async () => {
     await resetSocialTermsAcceptance();
+    takePendingSocialEntry();
     jest.clearAllMocks();
   });
 
@@ -148,6 +150,33 @@ describe('socialTermsAcceptance', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
         termsOnly: true,
       });
+    });
+
+    it('holds the blocked entry until it is taken, then forgets it', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const openEntry = jest.fn();
+
+      ensureSocialTermsAccepted(jest.fn(), openEntry);
+
+      expect(takePendingSocialEntry()).toBe(openEntry);
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('replaces an older blocked entry on the next gate call', () => {
+      mockGetItemSync.mockReturnValue(null);
+
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      ensureSocialTermsAccepted(jest.fn());
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('holds nothing when the terms are already accepted', () => {
+      mockGetItemSync.mockReturnValue(SOCIAL_TERMS_VERSION);
+
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+
+      expect(takePendingSocialEntry()).toBeUndefined();
     });
   });
 });
