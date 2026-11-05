@@ -549,6 +549,8 @@ export interface CardFundingSourceResult {
   balance?: string;
   balanceCurrency?: string;
   fundingChannelId?: string;
+  /** On-chain address Immersve debits, when the provider reports one. */
+  fundingAddress?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
