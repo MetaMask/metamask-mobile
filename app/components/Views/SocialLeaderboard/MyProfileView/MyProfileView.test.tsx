@@ -1,5 +1,6 @@
 import React from 'react';
-import { Linking, Share } from 'react-native';
+import { Linking } from 'react-native';
+import Share from 'react-native-share';
 import { IconName } from '@metamask/design-system-react-native';
 import { brandColor, lightTheme } from '@metamask/design-tokens';
 import {
@@ -33,6 +34,13 @@ import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
 
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -714,10 +722,6 @@ describe('MyProfileView', () => {
   });
 
   it('shares the owner profile deeplink from the share profile button', () => {
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
-
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
@@ -735,9 +739,10 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    expect(shareSpy).toHaveBeenCalledWith({
+    expect(Share.open).toHaveBeenCalledWith({
       message: 'https://link.metamask.io/social/profile?traderId=current-user',
       url: 'https://link.metamask.io/social/profile?traderId=current-user',
+      failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
@@ -1084,19 +1089,16 @@ describe('MyProfileView', () => {
       traderName: 'alpha.eth',
       traderAddress: '0xabc',
     };
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
-
     renderWithProvider(<MyProfileView />);
 
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
     );
 
-    expect(shareSpy).toHaveBeenCalledWith({
+    expect(Share.open).toHaveBeenCalledWith({
       message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });

@@ -95,13 +95,17 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
   buildFollowTradingTokenContext,
+  getSocialEventSource,
   pickFollowTradingDismissedProperties,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   getPerpPositionDirection,
@@ -146,6 +150,7 @@ const TraderPositionView = () => {
     isSocialV1,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -234,8 +239,16 @@ const TraderPositionView = () => {
     if (!effectivePositionId) {
       return;
     }
-    shareSocialTraderPosition(effectivePositionId, traderId);
-  }, [effectivePositionId, traderId]);
+    const source = getSocialEventSource(sourceParam);
+    shareSocialTraderPosition(effectivePositionId, traderId, () => {
+      trackSocialPost({
+        interaction_type: SocialEvent.Interaction.POST_SHARED,
+        screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+        share_destination: SocialEvent.ShareDestination.EXTERNAL,
+        ...(source ? { source } : {}),
+      });
+    });
+  }, [effectivePositionId, sourceParam, trackSocialPost, traderId]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
@@ -446,10 +459,16 @@ const TraderPositionView = () => {
       } as PerpsMarketData;
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source: 'social_leaderboard' },
+        params: {
+          market,
+          source: resolvePerpsSocialOrderSource(
+            sourceParam,
+            'social_leaderboard',
+          ),
+        },
       });
     },
-    [navigation, trackFollowTradingCtaClicked],
+    [navigation, sourceParam, trackFollowTradingCtaClicked],
   );
 
   // Tapping a trade row slides the chart to center that trade. The nonce changes
