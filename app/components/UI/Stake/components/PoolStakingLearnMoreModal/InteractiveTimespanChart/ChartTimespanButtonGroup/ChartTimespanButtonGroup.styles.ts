@@ -13,7 +13,7 @@ const styleSheet = (params: {
     chartTimespanButton: {
       borderRadius: 32,
       paddingHorizontal: 16,
-      paddingVertical: 7,
+      paddingVertical: 8,
       height: 36,
       justifyContent: 'center',
       alignItems: 'center',
