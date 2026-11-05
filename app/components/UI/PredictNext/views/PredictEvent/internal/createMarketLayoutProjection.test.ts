@@ -295,24 +295,25 @@ describe('createMarketLayoutProjection', () => {
     ]);
   });
 
-  it.each([
-    [
-      'a Market without a group',
-      [createMarket('single', { layout: layoutOf('props', 4, FULL_GAME) })],
-    ],
-    [
-      'a choice group with one option',
-      [
+  it('shows a Market without a group as a standard card', () => {
+    expect(
+      sectionsOf([
+        createMarket('single', { layout: layoutOf('props', 4, FULL_GAME) }),
+      ])?.[0].periods[0].cards,
+    ).toEqual([
+      { type: 'standard', key: 'market:single', markets: ['single'] },
+    ]);
+  });
+
+  it('shows a choice group with one option as a choice card', () => {
+    expect(
+      sectionsOf([
         createMarket('single', {
           group: choice('lonely'),
           layout: layoutOf('props', 4, FULL_GAME),
         }),
-      ],
-    ],
-  ])('shows %s as a standard card', (_, markets) => {
-    expect(sectionsOf(markets)?.[0].periods[0].cards).toEqual([
-      { type: 'standard', key: 'market:single', markets: ['single'] },
-    ]);
+      ])?.[0].periods[0].cards,
+    ).toEqual([{ type: 'choice', key: 'lonely', markets: ['single'] }]);
   });
 
   it.each([

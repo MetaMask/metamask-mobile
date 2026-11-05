@@ -48,6 +48,7 @@ import {
 import { formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
+  type OrderEditRejection,
   type PerpsErrorInput,
 } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
@@ -149,7 +150,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      editFailed: (error?: string) => PerpsToastOptions;
+      editFailed: (rejection?: OrderEditRejection) => PerpsToastOptions;
     };
     chase: {
       submitted: (
@@ -718,16 +719,19 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          editFailed: (error?: string) => ({
+          editFailed: (rejection?: OrderEditRejection) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_update_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.order_update_failed_subtitle',
-                ),
-              }),
+              rejection?.reason === 'post_only_would_cross' &&
+                rejection.originalOrder === 'cancelled'
+                ? strings('perps.order.order_update_post_only_would_cross')
+                : handlePerpsError({
+                    error: rejection?.error,
+                    fallbackMessage: strings(
+                      'perps.order.order_update_failed_subtitle',
+                    ),
+                  }),
             ),
           }),
         },

@@ -19,7 +19,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
-const mockIsFollowing = jest.fn((id: string) => id === 'trader-1');
+const mockIsFollowing = jest.fn(
+  (id: string, _knownFollowing?: boolean) => id === 'trader-1',
+);
 const mockRefreshFollowing = jest.fn().mockResolvedValue(undefined);
 const mockRefreshFollowers = jest.fn().mockResolvedValue(undefined);
 const mockRefreshMutuals = jest.fn().mockResolvedValue(undefined);
@@ -56,7 +58,8 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../../../hooks/useFollowToggle', () => ({
   useFollowToggleMany: () => ({
-    isFollowing: (id: string) => mockIsFollowing(id),
+    isFollowing: (id: string, knownFollowing?: boolean) =>
+      mockIsFollowing(id, knownFollowing),
     toggleFollow: mockToggleFollow,
   }),
 }));
@@ -261,6 +264,31 @@ describe('FollowConnectionsView', () => {
         traderAddress: '0x1111111111111111111111111111111111111111',
         traderUsername: 'Signal Scout',
       }),
+      true,
+    );
+  });
+
+  it('marks owner following rows as known-followed', () => {
+    mockRouteParams = { initialTab: 'following' };
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(mockIsFollowing).toHaveBeenCalledWith('trader-2', true);
+  });
+
+  it('does not mark another trader following rows as known-followed', () => {
+    mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
+
+    renderWithProvider(<FollowConnectionsView />);
+    fireEvent.press(
+      screen.getByTestId(getConnectionFollowButtonTestId('trader-2')),
+    );
+
+    expect(mockIsFollowing).toHaveBeenCalledWith('trader-2', false);
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-2',
+      expect.objectContaining({ source: 'trader_profile' }),
+      false,
     );
   });
 
