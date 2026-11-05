@@ -466,6 +466,7 @@ const SocialV1ViewContent: React.FC = () => {
   });
 
   const handleOpenMyProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
   }, [navigation]);
 
