@@ -326,7 +326,7 @@ describe('useOHLCVRealtime', () => {
 
   describe('isLoading', () => {
     const channel =
-      'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+      'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
     const bar = {
       timestamp: 1700000000,
       open: 100,

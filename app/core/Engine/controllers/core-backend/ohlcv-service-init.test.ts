@@ -13,7 +13,7 @@ describe('ohlcvServiceInit', () => {
     jest.clearAllMocks();
   });
 
-  it('initializes OHLCVService on the market-data.v1 namespace', () => {
+  it('initializes OHLCVService on the ohlcv.v1 namespace', () => {
     // Arrange
     const mocks = buildMessengerClientInitRequestMock(
       new ExtendedMessenger<MockAnyNamespace>({
@@ -27,7 +27,7 @@ describe('ohlcvServiceInit', () => {
     // Assert
     expect(OHLCVService).toHaveBeenCalledWith({
       messenger: mocks.controllerMessenger,
-      subscriptionNamespace: 'market-data.v1',
+      subscriptionNamespace: 'ohlcv.v1',
       traceFn: expect.any(Function),
     });
     expect(result.controller.init).toHaveBeenCalled();

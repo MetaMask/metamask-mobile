@@ -18,11 +18,9 @@ export const ohlcvServiceInit: MessengerClientInitFunction<
 
   const controller = new OHLCVService({
     messenger: controllerMessenger,
-    // core-backend 14 defaults to `ohlcv.v1`; keep `market-data.v1` until the
-    // client channel matching (charts, bridge live rates, social spot prices)
-    // moves to `ohlcv.v1`. Remove together with that switch:
-    // https://github.com/MetaMask/metamask-mobile/pull/38739
-    subscriptionNamespace: 'market-data.v1',
+    // Must match the client channel prefix used by useOHLCVRealtime,
+    // useLiveTokenFiatRate and SocialLivePricesProvider.
+    subscriptionNamespace: 'ohlcv.v1',
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
   });
