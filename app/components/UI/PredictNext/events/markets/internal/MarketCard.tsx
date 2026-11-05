@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Button,
@@ -9,10 +9,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import { Pressable, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 
 interface ChildrenProps {
   children: React.ReactNode;
@@ -43,12 +41,12 @@ const Summary = ({ children }: ChildrenProps) => (
   <Box twClassName="min-w-0 flex-1 gap-1">{children}</Box>
 );
 
-/** Dotted underline drawn under a pressable title: 2px dots, 2px gaps. */
-const TITLE_UNDERLINE_HEIGHT = 2;
-const TITLE_UNDERLINE_DASH = '2,2';
-
+/** A pressable title is underlined with dots, in the text's own color. */
 const styles = StyleSheet.create({
-  titleUnderline: { position: 'absolute', left: 0, bottom: -2 },
+  pressableTitle: {
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+  },
 });
 
 interface TitleProps extends ChildrenProps {
@@ -64,13 +62,6 @@ const Title = ({
   onPress,
   accessibilityHint,
 }: TitleProps) => {
-  const { colors } = useTheme();
-  const [textWidth, setTextWidth] = useState(0);
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    setTextWidth(event.nativeEvent.layout.width);
-  };
-
   if (!onPress) {
     return (
       <Text
@@ -102,25 +93,10 @@ const Title = ({
         variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Bold}
         numberOfLines={1}
-        onLayout={handleLayout}
+        style={styles.pressableTitle}
       >
         {children}
       </Text>
-      <Svg
-        width={textWidth}
-        height={TITLE_UNDERLINE_HEIGHT}
-        style={styles.titleUnderline}
-      >
-        <Line
-          x1={0}
-          y1={TITLE_UNDERLINE_HEIGHT / 2}
-          x2={textWidth}
-          y2={TITLE_UNDERLINE_HEIGHT / 2}
-          stroke={colors.text.default}
-          strokeWidth={TITLE_UNDERLINE_HEIGHT}
-          strokeDasharray={TITLE_UNDERLINE_DASH}
-        />
-      </Svg>
     </Pressable>
   );
 };

@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
@@ -181,6 +186,10 @@ describe('MarketStandardCard', () => {
     );
 
     expect(title).toHaveProp('accessibilityRole', 'button');
+    expect(within(title).getByText(market.outcomes[0].label)).toHaveStyle({
+      textDecorationLine: 'underline',
+      textDecorationStyle: 'dotted',
+    });
     fireEvent.press(title);
 
     expect(onRulesPress).toHaveBeenCalledWith(market);
@@ -196,6 +205,7 @@ describe('MarketStandardCard', () => {
     );
 
     expect(title).not.toHaveProp('accessibilityRole', 'button');
+    expect(title).not.toHaveStyle({ textDecorationLine: 'underline' });
     fireEvent.press(title);
 
     expect(onRulesPress).not.toHaveBeenCalled();
