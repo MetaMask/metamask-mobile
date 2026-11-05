@@ -107,11 +107,4 @@ describe('getEffectiveAppVersion', () => {
 
     expect(getEffectiveAppVersion()).toBe('12.5.0');
   });
-
-  it('returns the OTA version when the package.json version cannot be parsed', () => {
-    semverParseMock.mockReturnValue(null);
-    mockOta.OTA_VERSION = 'v12.5.1';
-
-    expect(getEffectiveAppVersion()).toBe('12.5.1');
-  });
 });

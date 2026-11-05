@@ -44,9 +44,5 @@ export const getEffectiveAppVersion = (): string => {
     return baseVersion;
   }
 
-  if (!semver.valid(baseVersion)) {
-    return otaVersion;
-  }
-
   return semver.gt(otaVersion, baseVersion) ? otaVersion : baseVersion;
 };
