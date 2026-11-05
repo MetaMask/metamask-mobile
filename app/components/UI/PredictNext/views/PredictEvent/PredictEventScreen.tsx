@@ -217,7 +217,12 @@ const orderOutcomeLabel = (
   outcome: PredictOutcome,
 ): string => {
   const line = formatThresholdLine(market);
-  return line ? `${outcome.label} · ${line}` : outcome.label;
+  return line
+    ? strings('predict.market_groups.threshold_order_outcome', {
+        outcome: outcome.label,
+        line,
+      })
+    : outcome.label;
 };
 
 export const PredictEventScreen = () => {

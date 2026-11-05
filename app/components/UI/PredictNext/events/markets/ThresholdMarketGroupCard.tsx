@@ -10,7 +10,8 @@ import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
 import {
   formatAskPrice,
-  formatMarketGroupOption,
+  formatThresholdLine,
+  formatThresholdTitle,
   getAskPricePercent,
 } from '../shared/formatting';
 import { isOutcomeTradeable } from '../shared/tradeable';
@@ -33,6 +34,17 @@ const findOutcome = (
 ): PredictOutcome | undefined =>
   market.outcomes.find((outcome) => outcome.side === side);
 
+// A line's Yes Outcome is just "Yes", so the row names the label and line.
+const getOptionAccessibilityLabel = (market: PredictMarket): string =>
+  strings('predict.market_groups.threshold_option_accessibility_label', {
+    line:
+      formatThresholdLine(market) ??
+      strings('predict.market_groups.line_unavailable'),
+    price:
+      formatAskPrice(findOutcome(market, 'yes')?.askPrice) ??
+      strings('predict.market_groups.price_unavailable'),
+  });
+
 /**
  * An "at least N" ladder as one card: the group label with the selected line
  * ("Josh Jacobs: 60+"), the line's chance, Yes and No, and a picker of its
@@ -54,11 +66,9 @@ export const ThresholdMarketGroupCard = React.memo(
       return null;
     }
 
-    const label = selectedMarket.group?.label?.trim();
-    const line =
-      formatMarketGroupOption(selectedMarket) ??
+    const title =
+      formatThresholdTitle(selectedMarket) ??
       strings('predict.market_groups.line_unavailable');
-    const title = label ? `${label}: ${line}` : line;
     const rules = selectedMarket.rules?.trim();
     const yesPercent = getAskPricePercent(yesOutcome.askPrice);
 
@@ -99,7 +109,7 @@ export const ThresholdMarketGroupCard = React.memo(
 
         <MarketCard.Actions>
           <MarketCard.OutcomeButton
-            label="Yes"
+            label={strings('predict_next.portfolio.outcome_side.yes')}
             price={formatAskPrice(yesOutcome.askPrice)}
             side="yes"
             testID={MarketGroupCardTestIds.outcomeButton(
@@ -111,7 +121,7 @@ export const ThresholdMarketGroupCard = React.memo(
             isDisabled={!isOutcomeTradeable(selectedMarket, yesOutcome)}
           />
           <MarketCard.OutcomeButton
-            label="No"
+            label={strings('predict_next.portfolio.outcome_side.no')}
             price={formatAskPrice(noOutcome.askPrice)}
             side="no"
             testID={MarketGroupCardTestIds.outcomeButton(
@@ -131,6 +141,7 @@ export const ThresholdMarketGroupCard = React.memo(
               markets={markets}
               selectedMarketId={selectedMarket.id}
               onSelect={onSelectMarket}
+              getOptionAccessibilityLabel={getOptionAccessibilityLabel}
             />
           </MarketCard.Footer>
         ) : null}

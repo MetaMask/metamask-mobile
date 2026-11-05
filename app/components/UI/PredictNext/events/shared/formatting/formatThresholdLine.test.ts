@@ -1,6 +1,9 @@
 import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictEntityId, PredictMarket } from '../../../types';
-import { formatThresholdLine } from './formatThresholdLine';
+import {
+  formatThresholdLine,
+  formatThresholdTitle,
+} from './formatThresholdLine';
 
 const createMarket = (group: PredictMarket['group']): PredictMarket => ({
   id: 'market-1' as PredictEntityId,
@@ -43,5 +46,23 @@ describe('formatThresholdLine', () => {
 
     expect(formatThresholdLine(total)).toBeUndefined();
     expect(formatThresholdLine(createMarket(undefined))).toBeUndefined();
+  });
+});
+
+describe('formatThresholdTitle', () => {
+  it('titles a threshold line with its label', () => {
+    expect(
+      formatThresholdTitle(createMarket(thresholdGroup('Josh Jacobs'))),
+    ).toBe('Josh Jacobs: 60+');
+  });
+
+  it('titles an unlabelled threshold line by the line alone', () => {
+    expect(formatThresholdTitle(createMarket(thresholdGroup('  ')))).toBe(
+      '60+',
+    );
+  });
+
+  it('titles no other Market', () => {
+    expect(formatThresholdTitle(createMarket(undefined))).toBeUndefined();
   });
 });

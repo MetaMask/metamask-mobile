@@ -123,6 +123,15 @@ describe('ThresholdMarketGroupCard', () => {
     expect(onSelectMarket).toHaveBeenCalledWith(line80.id);
   });
 
+  it('names each picker row by its label, line and Yes price', () => {
+    renderCard();
+
+    expect(screen.getByTestId(TestIds.option(GROUP, line80.id))).toHaveProp(
+      'accessibilityLabel',
+      'Josh Jacobs 80+, yes price 31¢',
+    );
+  });
+
   it('has no picker for a single line', () => {
     renderCard({ markets: [line60] });
 
