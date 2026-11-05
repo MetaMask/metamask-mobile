@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useStore } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import type {
   GetAccountSupportParams,
   PerpsAccountSupport,
@@ -7,6 +8,12 @@ import type {
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   selectPerpsNetwork,
@@ -99,7 +106,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
     };
   }, []);
 
-  const checkAccountSupport = useCallback(
+  const resolveSupportCheck = useCallback(
     async (
       providerId?: PerpsProviderType,
     ): Promise<PerpsAccountSupportCheckResult> => {
@@ -128,6 +135,35 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
       return 'supported';
     },
     [readAccountSupport, store],
+  );
+
+  const checkAccountSupport = useCallback(
+    async (
+      providerId?: PerpsProviderType,
+    ): Promise<PerpsAccountSupportCheckResult> => {
+      const traceId = uuidv4();
+      let result: PerpsAccountSupportCheckResult | undefined;
+      trace({
+        name: TraceName.PerpsAccountSupportCheck,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider:
+            providerId ?? selectPerpsProvider(store.getState()) ?? 'unknown',
+        },
+      });
+      try {
+        result = await resolveSupportCheck(providerId);
+        return result;
+      } finally {
+        endTrace({
+          name: TraceName.PerpsAccountSupportCheck,
+          id: traceId,
+          data: { result: result ?? 'error' },
+        });
+      }
+    },
+    [resolveSupportCheck, store],
   );
 
   const closeAccountUnsupportedModal = useCallback(() => {
