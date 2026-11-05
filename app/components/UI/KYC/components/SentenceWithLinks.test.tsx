@@ -29,7 +29,7 @@ describe('SentenceWithLinks', () => {
     );
 
     expect(getByTestId('sentence')).toHaveTextContent(
-      'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.',
+      'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask storing and transferring my information to idOS.',
     );
   });
 
@@ -84,7 +84,7 @@ describe('SentenceWithLinks', () => {
 
     expect(queryByTestId('terms-link')).not.toBeOnTheScreen();
     expect(getByTestId('sentence')).toHaveTextContent(
-      'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.',
+      'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask storing and transferring my information to idOS.',
     );
   });
 
@@ -103,7 +103,7 @@ describe('SentenceWithLinks', () => {
     // rather than dropping it — the clauses around it still render, and the
     // supplied link still works.
     expect(getByTestId('sentence')).toHaveTextContent(
-      'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask [missing {{privacyNotice}} value] and consent to MetaMask transferring my information to idOS.',
+      'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask [missing {{privacyNotice}} value] and consent to MetaMask storing and transferring my information to idOS.',
     );
   });
 });

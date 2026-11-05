@@ -104,6 +104,10 @@ describe('VbaVerifyIdentity', () => {
         'We share your verified identity with a partner only when you agree.',
       ),
     ).toBeOnTheScreen();
+    expect(getByText('Delete anytime.')).toBeOnTheScreen();
+    expect(
+      getByText('Delete your verified identity any time in Settings.'),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeEnabled();
@@ -115,12 +119,11 @@ describe('VbaVerifyIdentity', () => {
     });
   });
 
-  it('shows the first page of two in the header', () => {
+  it('shows the first page of two above the title', () => {
     const { getByTestId } = renderScreen();
 
     const indicator = getByTestId(VbaVerifyIdentitySelectorsIDs.STEP_INDICATOR);
-    expect(indicator).toHaveTextContent('1 of 2');
-    // Screen readers get the noun-prefixed, translated phrasing.
+    expect(indicator).toHaveTextContent('Step 1 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 1 of 2');
   });
 
@@ -130,7 +133,7 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.AGREEMENT),
     ).toHaveTextContent(
-      'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.',
+      'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask storing and transferring my information to idOS.',
     );
   });
 
@@ -151,6 +154,19 @@ describe('VbaVerifyIdentity', () => {
       [METAMASK_TERMS_URL],
       [METAMASK_PRIVACY_POLICY_URL],
     ]);
+  });
+
+  it('opens identity verification help from the inline Learn more link', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK));
+
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://support.metamask.io/trade/identity-verification',
+    );
   });
 
   it('returns to Money home when the header back button is pressed', () => {

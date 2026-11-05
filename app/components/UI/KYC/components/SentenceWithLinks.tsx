@@ -1,5 +1,9 @@
 import React, { useMemo } from 'react';
-import { Linking } from 'react-native';
+import {
+  Linking,
+  type GestureResponderEvent,
+  type TextStyle,
+} from 'react-native';
 import {
   FontWeight,
   Text,
@@ -7,6 +11,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 
 /**
@@ -22,6 +27,11 @@ export interface SentenceLink {
   /** Opened on press. Without it the label renders as emphasised plain text. */
   url?: string;
   testID?: string;
+  /**
+   * Color for this label. Set when it must stay distinct from the sentence,
+   * which otherwise tints nested text.
+   */
+  color?: TextColor;
 }
 
 interface SentenceWithLinksProps {
@@ -33,6 +43,9 @@ interface SentenceWithLinksProps {
   color?: TextColor;
   twClassName?: string;
   testID?: string;
+  /** Press on the sentence itself. A link's own press does not call this. */
+  onPress?: (event: GestureResponderEvent) => void;
+  suppressHighlighting?: boolean;
 }
 
 /**
@@ -57,7 +70,10 @@ const SentenceWithLinks = ({
   color = TextColor.TextAlternative,
   twClassName,
   testID,
+  onPress,
+  suppressHighlighting,
 }: SentenceWithLinksProps) => {
+  const tw = useTailwind();
   const segments = useMemo<string[]>(() => {
     const params = Object.fromEntries(
       Object.keys(links).map((name) => [name, `${TOKEN}${name}${TOKEN}`]),
@@ -72,6 +88,8 @@ const SentenceWithLinks = ({
       color={color}
       twClassName={twClassName}
       testID={testID}
+      onPress={onPress}
+      suppressHighlighting={suppressHighlighting}
     >
       {segments.map((segment, index) => {
         const isPlaceholder =
@@ -85,10 +103,19 @@ const SentenceWithLinks = ({
         }
 
         const link = links[segment];
+        const linkStyle: TextStyle | undefined = link.color
+          ? { color: tw.color(link.color) }
+          : undefined;
 
         if (!link.url) {
           return (
-            <Text key={index} variant={variant} fontWeight={FontWeight.Medium}>
+            <Text
+              key={index}
+              variant={variant}
+              fontWeight={FontWeight.Medium}
+              color={link.color}
+              style={linkStyle}
+            >
               {link.label}
             </Text>
           );
@@ -98,6 +125,7 @@ const SentenceWithLinks = ({
           <TextButton
             key={index}
             variant={variant}
+            style={linkStyle}
             onPress={() => Linking.openURL(link.url as string)}
             accessibilityRole="link"
             testID={link.testID}

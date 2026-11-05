@@ -54,3 +54,30 @@ export const findDisclaimerByKeyword = (
   disclaimers.find((disclaimer) =>
     disclaimer.key.toLowerCase().includes(keyword),
   );
+
+/**
+ * Whether an idOS document is listed in the terms card.
+ *
+ * The end user agreement, the terms row, and the privacy notice are omitted.
+ * The agreement stays available as the footer link. Privacy policy and the
+ * transparency document stay as rows.
+ *
+ * @param disclaimer - One idOS catalog document.
+ * @returns True when the document should render as a row.
+ */
+export const isListedIdosDocument = (
+  disclaimer: KycCatalogDisclaimerLink,
+): boolean => {
+  const haystack = `${disclaimer.key} ${disclaimer.title}`.toLowerCase();
+  if (
+    haystack.includes('end-user') ||
+    haystack.includes('end user') ||
+    haystack.includes('privacy-notice') ||
+    haystack.includes('privacy notice') ||
+    haystack.includes('terms') ||
+    haystack.includes('agreement')
+  ) {
+    return false;
+  }
+  return true;
+};

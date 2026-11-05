@@ -11,6 +11,7 @@ export const VbaVerifyIdentitySelectorsIDs = {
   DISCLAIMERS_ERROR: 'vba-verify-identity-disclaimers-error',
   DISCLAIMERS_RETRY: 'vba-verify-identity-disclaimers-retry',
   CONTINUE_BUTTON: 'vba-verify-identity-continue-button',
+  LEARN_MORE_LINK: 'vba-verify-identity-learn-more-link',
 };
 
 export const VbaPartnerTermsSelectorsIDs = {
@@ -20,6 +21,9 @@ export const VbaPartnerTermsSelectorsIDs = {
   DISCLAIMER_LINK: 'vba-partner-terms-disclaimer-link',
   SUMSUB_ACKNOWLEDGEMENT: 'vba-partner-terms-sumsub-acknowledgement',
   SUMSUB_NOTICE_LINK: 'vba-partner-terms-sumsub-notice-link',
+  SUMSUB_PRIVACY_NOTICE_LINK: 'vba-partner-terms-sumsub-privacy-notice-link',
+  SUMSUB_BIOMETRICS_LINK: 'vba-partner-terms-sumsub-biometrics-link',
+  BIOMETRIC_CONSENT_ROW: 'vba-partner-terms-biometric-consent-row',
   BIOMETRIC_CONSENT: 'vba-partner-terms-biometric-consent',
   BIOMETRIC_CONSENT_LINK: 'vba-partner-terms-biometric-consent-link',
   BIOMETRIC_CONSENT_CHECKBOX: 'vba-partner-terms-biometric-consent-checkbox',

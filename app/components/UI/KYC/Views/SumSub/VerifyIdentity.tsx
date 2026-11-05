@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -45,7 +45,6 @@ import {
   type KycScreenContentState,
 } from '../../kycScreenPerformance';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import {
   METAMASK_PRIVACY_POLICY_URL,
@@ -55,6 +54,9 @@ import SentenceWithLinks from '../../components/SentenceWithLinks';
 
 /** Pages the identity-verification terms are split across ("1 of 2"). */
 const TOTAL_PAGES = 2;
+
+const IDENTITY_VERIFICATION_LEARN_MORE_URL =
+  'https://support.metamask.io/trade/identity-verification';
 
 const VERIFICATION_STEPS = [
   {
@@ -93,6 +95,13 @@ const BENEFITS = [
     title: 'virtual_bank_account.verify_identity.benefit_control_title',
     description:
       'virtual_bank_account.verify_identity.benefit_control_description',
+  },
+  {
+    id: 'delete',
+    icon: IconName.Trash,
+    title: 'virtual_bank_account.verify_identity.benefit_delete_title',
+    description:
+      'virtual_bank_account.verify_identity.benefit_delete_description',
   },
 ] as const;
 
@@ -160,6 +169,11 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
     onContinue(disclaimers);
   }, [disclaimers, onContinue]);
 
+  const handleLearnMore = useCallback(
+    () => Linking.openURL(IDENTITY_VERIFICATION_LEARN_MORE_URL),
+    [],
+  );
+
   const stepIndicator = (
     <Text
       variant={TextVariant.BodySm}
@@ -194,25 +208,37 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           backButtonProps={{
             testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
-          // On the glass path custom accessories are not capsuled for us.
-          endAccessory={
-            isGlassHeader ? (
-              <CapsuleGlass twClassName="px-3">{stepIndicator}</CapsuleGlass>
-            ) : (
-              <Box twClassName="pr-1">{stepIndicator}</Box>
-            )
-          }
           includesTopInset
         />
         <ScrollView
           contentContainerStyle={tw.style('flex-grow pb-4')}
           testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
         >
+          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('virtual_bank_account.verify_identity.title')}
-            bottomLabel={strings(
-              'virtual_bank_account.verify_identity.subtitle',
-            )}
+            bottomLabel={
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('virtual_bank_account.verify_identity.subtitle')}
+                </Text>{' '}
+                <TextButton
+                  variant={TextVariant.BodySm}
+                  onPress={handleLearnMore}
+                  testID={VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK}
+                >
+                  {strings('virtual_bank_account.verify_identity.learn_more')}
+                </TextButton>
+              </Text>
+            }
             twClassName="px-4 pb-4"
           />
           <Box>
@@ -234,7 +260,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           </Box>
 
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Bold}
             twClassName="px-4 pb-1 pt-6"
           >
@@ -244,7 +270,8 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             {BENEFITS.map((benefit) => (
               <ListItem
                 key={benefit.id}
-                variant={ListItemVariant.TwoLines}
+                variant={ListItemVariant.MultiLine}
+                twClassName="min-h-0 justify-start py-2"
                 avatar={
                   <AvatarIcon
                     iconName={benefit.icon}

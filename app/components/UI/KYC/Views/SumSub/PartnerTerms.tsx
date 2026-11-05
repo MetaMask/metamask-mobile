@@ -1,13 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Linking,
+  ScrollView,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Button,
   ButtonSize,
-  ButtonVariant,
   Checkbox,
   ContentVariant,
   FontWeight,
@@ -24,6 +34,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  SUMSUB_BIOMETRICS_CONSENT_URL,
+  SUMSUB_PRIVACY_NOTICE_URL,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { trackIdentityTerms } from '../../utils/identityTermsAnalytics';
@@ -33,18 +47,30 @@ import {
   KYC_SCREEN_PERFORMANCE_CONFIG,
 } from '../../kycScreenPerformance';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import CrossfadeButton from './CrossfadeButton';
 import SentenceWithLinks, {
   type SentenceLink,
 } from '../../components/SentenceWithLinks';
 import {
   findDisclaimerByKeyword,
   groupDisclaimers,
+  isListedIdosDocument,
 } from './partnerDisclaimers';
 
 /** Pages the identity-verification terms are split across ("2 of 2"). */
 const TOTAL_PAGES = 2;
+
+/**
+ * How much of the consent row must be on screen to count as seen: the
+ * checkbox itself plus a little room, so the footer switches once the tick
+ * target is visible rather than only when the whole sentence is.
+ */
+const CHECKBOX_VISIBLE_HEIGHT = 24;
+
+const isUnitedStatesLocation = (location: string | undefined) =>
+  location?.toUpperCase().split('-')[0] === 'US';
 
 const DisclaimerRow = ({
   disclaimer,
@@ -63,9 +89,9 @@ const DisclaimerRow = ({
       title={disclaimer.title}
       endAccessory={
         <Icon
-          name={IconName.Arrow2UpRight}
+          name={IconName.ArrowRight}
           size={IconSize.Md}
-          color={IconColor.IconDefault}
+          color={IconColor.IconAlternative}
         />
       }
       onPress={openLink}
@@ -79,7 +105,7 @@ const GroupTitle = ({ title }: { title: string }) => (
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Bold}
-    twClassName="px-4 pb-1 pt-4"
+    twClassName="px-4 pb-1 pt-3"
   >
     {title}
   </Text>
@@ -108,8 +134,15 @@ const VbaPartnerTerms = ({
   onBack,
 }: VbaPartnerTermsProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isUsResident = isUnitedStatesLocation(
+    useSelector(selectGeolocationLocation),
+  );
   const tw = useTailwind();
   const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
+  const checkboxRef = useRef<{ toggle: () => void }>(null);
+  const [consentRowY, setConsentRowY] = useState<number>();
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [scrollOffset, setScrollOffset] = useState(0);
 
   useScreenPerformance({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -125,21 +158,49 @@ const VbaPartnerTerms = ({
     () => groupDisclaimers(disclaimers),
     [disclaimers],
   );
+  const listedIdosDocuments = useMemo(
+    () => idos.filter(isListedIdosDocument),
+    [idos],
+  );
 
-  // The acknowledgement names one SumSub document. Any further provider
-  // documents still render as rows so none is silently dropped.
-  const [sumsubNotice, ...extraProviderDocuments] = kycProvider;
+  const sumsubBiometrics = findDisclaimerByKeyword(kycProvider, 'biometric');
+  const sumsubPrivacy = kycProvider.find(
+    (disclaimer) =>
+      disclaimer !== sumsubBiometrics &&
+      disclaimer.key.toLowerCase().includes('privacy'),
+  );
+  const sumsubNotice =
+    kycProvider.find(
+      (disclaimer) =>
+        disclaimer !== sumsubBiometrics &&
+        disclaimer !== sumsubPrivacy &&
+        disclaimer.key.toLowerCase().includes('notice'),
+    ) ?? kycProvider.find((disclaimer) => disclaimer !== sumsubBiometrics);
+  const linkedProviderIds = new Set(
+    [sumsubNotice, sumsubPrivacy, sumsubBiometrics]
+      .filter((disclaimer) => disclaimer !== undefined)
+      .map((disclaimer) => disclaimer.id),
+  );
+  const extraProviderDocuments = kycProvider.filter(
+    (disclaimer) => !linkedProviderIds.has(disclaimer.id),
+  );
 
   const toSentenceLink = useCallback(
     (
       label: string,
       disclaimer: KycCatalogDisclaimerLink | undefined,
       testID: string,
+      fallbackUrl?: string,
     ): SentenceLink => ({
       label,
-      url: disclaimer?.url,
+      url: disclaimer?.url ?? fallbackUrl,
       testID,
     }),
+    [],
+  );
+
+  const toggleBiometricConsent = useCallback(
+    () => checkboxRef.current?.toggle(),
     [],
   );
 
@@ -147,6 +208,37 @@ const VbaPartnerTerms = ({
     trackIdentityTerms('page2_accepted');
     await onAgree();
   }, [onAgree]);
+
+  const handleViewportLayout = useCallback(
+    (event: LayoutChangeEvent) =>
+      setViewportHeight(event.nativeEvent.layout.height),
+    [],
+  );
+  const handleConsentRowLayout = useCallback(
+    (event: LayoutChangeEvent) => setConsentRowY(event.nativeEvent.layout.y),
+    [],
+  );
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) =>
+      setScrollOffset(event.nativeEvent.contentOffset.y),
+    [],
+  );
+
+  const isConsentRowInView =
+    consentRowY !== undefined &&
+    viewportHeight > 0 &&
+    consentRowY + CHECKBOX_VISIBLE_HEIGHT <= scrollOffset + viewportHeight;
+
+  let ctaLabel = strings(
+    'virtual_bank_account.partner_terms.scroll_to_continue_button',
+  );
+  if (hasBiometricConsent) {
+    ctaLabel = strings('virtual_bank_account.partner_terms.button');
+  } else if (isConsentRowInView) {
+    ctaLabel = strings(
+      'virtual_bank_account.partner_terms.agree_to_consent_above_button',
+    );
+  }
 
   const stepIndicator = (
     <Text
@@ -182,19 +274,16 @@ const VbaPartnerTerms = ({
           backButtonProps={{
             testID: VbaPartnerTermsSelectorsIDs.BACK_BUTTON,
           }}
-          endAccessory={
-            isGlassHeader ? (
-              <CapsuleGlass twClassName="px-3">{stepIndicator}</CapsuleGlass>
-            ) : (
-              <Box twClassName="pr-1">{stepIndicator}</Box>
-            )
-          }
           includesTopInset
         />
         <ScrollView
           contentContainerStyle={tw.style('flex-grow pb-4')}
+          scrollEventThrottle={16}
+          onScroll={handleScroll}
+          onLayout={handleViewportLayout}
           testID={VbaPartnerTermsSelectorsIDs.CONTAINER}
         >
+          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('virtual_bank_account.partner_terms.title')}
             bottomLabel={strings(
@@ -204,21 +293,20 @@ const VbaPartnerTerms = ({
           />
 
           <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            twClassName="px-4 pb-2 uppercase"
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="px-4 pb-2 pt-2"
           >
             {strings('virtual_bank_account.partner_terms.section_title')}
           </Text>
 
-          <Box twClassName="mx-4 overflow-hidden rounded-xl border border-muted">
+          <Box twClassName="mx-4 overflow-hidden rounded-xl bg-muted">
             <GroupTitle
               title={strings(
                 'virtual_bank_account.partner_terms.idos_group_title',
               )}
             />
-            {idos.map((disclaimer) => (
+            {listedIdosDocuments.map((disclaimer) => (
               <DisclaimerRow key={disclaimer.id} disclaimer={disclaimer} />
             ))}
 
@@ -230,18 +318,51 @@ const VbaPartnerTerms = ({
               )}
             />
             <Box twClassName="px-4 pb-4">
-              <SentenceWithLinks
-                i18nKey="virtual_bank_account.partner_terms.sumsub_acknowledgement"
+              <Text
                 variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 testID={VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT}
-                links={{
-                  notice: toSentenceLink(
-                    strings('virtual_bank_account.partner_terms.sumsub_notice'),
-                    sumsubNotice,
-                    VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK,
-                  ),
-                }}
-              />
+              >
+                <SentenceWithLinks
+                  i18nKey="virtual_bank_account.partner_terms.sumsub_acknowledgement"
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  links={{
+                    notice: toSentenceLink(
+                      strings(
+                        'virtual_bank_account.partner_terms.sumsub_notice',
+                      ),
+                      sumsubNotice,
+                      VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK,
+                    ),
+                  }}
+                />
+                {isUsResident ? (
+                  <SentenceWithLinks
+                    i18nKey="virtual_bank_account.partner_terms.sumsub_acknowledgement_us_residents"
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    links={{
+                      privacyNotice: toSentenceLink(
+                        strings(
+                          'virtual_bank_account.partner_terms.sumsub_privacy_notice',
+                        ),
+                        sumsubPrivacy,
+                        VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK,
+                        SUMSUB_PRIVACY_NOTICE_URL,
+                      ),
+                      biometricsConsent: toSentenceLink(
+                        strings(
+                          'virtual_bank_account.partner_terms.sumsub_biometrics_consent',
+                        ),
+                        sumsubBiometrics,
+                        VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK,
+                        SUMSUB_BIOMETRICS_CONSENT_URL,
+                      ),
+                    }}
+                  />
+                ) : null}
+              </Text>
             </Box>
             {extraProviderDocuments.map((disclaimer) => (
               <DisclaimerRow key={disclaimer.id} disclaimer={disclaimer} />
@@ -250,26 +371,13 @@ const VbaPartnerTerms = ({
 
           <Box
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mx-4 mt-4 gap-3 rounded-xl border border-muted p-4"
+            alignItems={BoxAlignItems.Start}
+            twClassName="mx-4 mt-4 gap-3"
+            onLayout={handleConsentRowLayout}
+            testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW}
           >
-            <Box twClassName="flex-1">
-              <SentenceWithLinks
-                i18nKey="virtual_bank_account.partner_terms.biometric_consent"
-                variant={TextVariant.BodySm}
-                testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT}
-                links={{
-                  privacyNotice: toSentenceLink(
-                    strings(
-                      'virtual_bank_account.partner_terms.biometric_consent_privacy_notice',
-                    ),
-                    findDisclaimerByKeyword(idos, 'privacy'),
-                    VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK,
-                  ),
-                }}
-              />
-            </Box>
             <Checkbox
+              ref={checkboxRef}
               isSelected={hasBiometricConsent}
               onChange={setHasBiometricConsent}
               accessibilityLabel={strings(
@@ -282,6 +390,25 @@ const VbaPartnerTerms = ({
               )}
               testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
             />
+            <Box twClassName="flex-1">
+              <SentenceWithLinks
+                i18nKey="virtual_bank_account.partner_terms.biometric_consent"
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                onPress={toggleBiometricConsent}
+                suppressHighlighting
+                testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT}
+                links={{
+                  privacyNotice: toSentenceLink(
+                    strings(
+                      'virtual_bank_account.partner_terms.biometric_consent_privacy_notice',
+                    ),
+                    findDisclaimerByKeyword(idos, 'privacy'),
+                    VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK,
+                  ),
+                }}
+              />
+            </Box>
           </Box>
         </ScrollView>
 
@@ -291,23 +418,24 @@ const VbaPartnerTerms = ({
             twClassName="text-center"
             testID={VbaPartnerTermsSelectorsIDs.AGREEMENT}
             links={{
-              termsAndConditions: toSentenceLink(
-                strings('virtual_bank_account.partner_terms.agreement_terms'),
-                findDisclaimerByKeyword(idos, 'terms'),
-                VbaPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
-              ),
+              termsAndConditions: {
+                ...toSentenceLink(
+                  strings('virtual_bank_account.partner_terms.agreement_terms'),
+                  findDisclaimerByKeyword(idos, 'terms'),
+                  VbaPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
+                ),
+                color: TextColor.PrimaryDefault,
+              },
             }}
           />
-          <Button
-            variant={ButtonVariant.Primary}
+          <CrossfadeButton
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={!hasBiometricConsent}
             onPress={handleAgree}
+            label={ctaLabel}
             testID={VbaPartnerTermsSelectorsIDs.AGREE_BUTTON}
-          >
-            {strings('virtual_bank_account.partner_terms.button')}
-          </Button>
+          />
         </Box>
       </SafeAreaView>
     </Box>

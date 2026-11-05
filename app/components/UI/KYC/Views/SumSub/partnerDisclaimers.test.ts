@@ -1,6 +1,7 @@
 import {
   findDisclaimerByKeyword,
   groupDisclaimers,
+  isListedIdosDocument,
 } from './partnerDisclaimers';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 
@@ -57,5 +58,32 @@ describe('findDisclaimerByKeyword', () => {
 
   it('returns undefined when the backend renamed the key', () => {
     expect(findDisclaimerByKeyword([idosTerms], 'privacy')).toBeUndefined();
+  });
+});
+
+describe('isListedIdosDocument', () => {
+  it('lists the privacy policy and the transparency document', () => {
+    expect(
+      isListedIdosDocument(disclaimer('idOS:privacy', 'idos-privacy-policy')),
+    ).toBe(true);
+    expect(
+      isListedIdosDocument(
+        disclaimer('idOS:transparency', 'idos-transparency-document'),
+      ),
+    ).toBe(true);
+  });
+
+  it('drops the end user agreement, the terms row, and the privacy notice', () => {
+    expect(
+      isListedIdosDocument(disclaimer('idOS:eua', 'idos-end-user-agreement')),
+    ).toBe(false);
+    expect(
+      isListedIdosDocument(
+        disclaimer('idOS:terms', 'idos-terms-and-conditions'),
+      ),
+    ).toBe(false);
+    expect(
+      isListedIdosDocument(disclaimer('idOS:notice', 'idos-privacy-notice')),
+    ).toBe(false);
   });
 });

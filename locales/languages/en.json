@@ -1157,7 +1157,7 @@
     "verify_identity": {
       "title": "Verify your identity",
       "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
-      "step_indicator": "{{current}} of {{total}}",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "Photograph your ID",
       "step_take_selfie": "Take a selfie",
       "step_confirm_details": "Confirm your details",
@@ -1167,12 +1167,15 @@
       "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
       "benefit_control_title": "You control your data.",
       "benefit_control_description": "We share your verified identity with a partner only when you agree.",
-      "agreement": "By tapping Agree and Continue, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask transferring my information to idOS.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
       "agreement_terms_of_use": "Terms of Use",
       "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agree_and_continue_button": "Agree and Continue"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
     },
     "partner_terms": {
       "title": "Our verification partners",
@@ -1181,12 +1184,17 @@
       "idos_group_title": "idOS",
       "sumsub_group_title": "Sumsub",
       "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
       "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
       "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
       "biometric_consent_privacy_notice": "idOS Privacy Notice",
-      "agreement": "By tapping Agree, I agree to the {{termsAndConditions}}.",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
       "agreement_terms": "idOS Terms and Conditions",
-      "button": "Agree"
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "Couldn't start verification",

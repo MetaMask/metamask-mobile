@@ -59,13 +59,27 @@ const DISCLAIMERS = [
   SUMSUB_NOTICE,
 ];
 
-const renderScreen = (disclaimers: KycCatalogDisclaimerLink[] = DISCLAIMERS) =>
+const renderScreen = (
+  disclaimers: KycCatalogDisclaimerLink[] = DISCLAIMERS,
+  location?: string,
+) =>
   renderWithProvider(
     <VbaPartnerTerms
       disclaimers={disclaimers}
       onAgree={mockOnAgree}
       onBack={mockOnBack}
     />,
+    location
+      ? {
+          state: {
+            engine: {
+              backgroundState: {
+                GeolocationController: { location },
+              },
+            },
+          },
+        }
+      : undefined,
   );
 
 const consent = (getByTestId: ReturnType<typeof renderScreen>['getByTestId']) =>
@@ -74,6 +88,26 @@ const consent = (getByTestId: ReturnType<typeof renderScreen>['getByTestId']) =>
     'change',
     true,
   );
+
+const scrollConsentIntoView = (
+  getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
+) => {
+  fireEvent(getByTestId(VbaPartnerTermsSelectorsIDs.CONTAINER), 'layout', {
+    nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 200 } },
+  });
+  fireEvent(
+    getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW),
+    'layout',
+    { nativeEvent: { layout: { x: 0, y: 800, width: 300, height: 80 } } },
+  );
+  fireEvent.scroll(getByTestId(VbaPartnerTermsSelectorsIDs.CONTAINER), {
+    nativeEvent: {
+      contentOffset: { y: 700 },
+      layoutMeasurement: { height: 200, width: 300 },
+      contentSize: { height: 1000, width: 300 },
+    },
+  });
+};
 
 describe('VbaPartnerTerms', () => {
   beforeEach(() => {
@@ -103,27 +137,31 @@ describe('VbaPartnerTerms', () => {
     });
   });
 
-  it('shows the second page of two in the header', () => {
+  it('shows the second page of two above the title', () => {
     const { getByTestId } = renderScreen();
 
     const indicator = getByTestId(VbaPartnerTermsSelectorsIDs.STEP_INDICATOR);
-    expect(indicator).toHaveTextContent('2 of 2');
+    expect(indicator).toHaveTextContent('Step 2 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 2 of 2');
   });
 
-  it('lists every idOS document from the catalog', () => {
-    const { getByTestId } = renderScreen();
+  it('lists the idOS privacy policy and transparency document', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
 
     const rowFor = (disclaimer: KycCatalogDisclaimerLink) =>
       getByTestId(
         `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
       );
 
-    expect(rowFor(IDOS_TERMS)).toHaveTextContent('idOS Terms and Conditions');
     expect(rowFor(IDOS_PRIVACY)).toHaveTextContent('idOS Privacy Policy');
     expect(rowFor(IDOS_TRANSPARENCY)).toHaveTextContent(
       'idOS Transparency Document',
     );
+    expect(
+      queryByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_TERMS.id}`,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens each idOS document URL from its row', () => {
@@ -145,18 +183,44 @@ describe('VbaPartnerTerms', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
-    const { getByTestId } = renderScreen();
+    const { getByTestId, queryByText } = renderScreen();
 
     expect(
       getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
     ).toHaveTextContent(
       'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing.',
     );
+    expect(queryByText(/Applicable to US residents only/)).toBeNull();
 
     fireEvent.press(
       getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/notice');
+  });
+
+  it('adds the US residents acknowledgement only for a US geolocation', () => {
+    const { getByTestId } = renderScreen(DISCLAIMERS, 'US-NY');
+
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+    ).toHaveTextContent(
+      'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing. Applicable to US residents only: I confirm that I have read the Privacy Notice and give my consent to the processing of my biometric information and biometric identifiers as described in the Sumsub Biometrics Processing Consent.',
+    );
+  });
+
+  it('links the US privacy notice even when the catalog has no Sumsub privacy document', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen(DISCLAIMERS, 'US-NY');
+
+    fireEvent.press(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+    );
+
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://sumsub.com/privacy-notice-service/',
+    );
   });
 
   it('renders further provider documents as rows so none is dropped', () => {
@@ -188,6 +252,17 @@ describe('VbaPartnerTerms', () => {
       getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/privacy');
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('toggles the consent when the sentence is pressed', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT));
+
+    expect(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON)).toBeEnabled();
   });
 
   it('keeps the consent sentence readable when no idOS privacy document matches', () => {
@@ -215,7 +290,7 @@ describe('VbaPartnerTerms', () => {
     expect(
       getByTestId(VbaPartnerTermsSelectorsIDs.AGREEMENT),
     ).toHaveTextContent(
-      'By tapping Agree, I agree to the idOS Terms and Conditions.',
+      'By tapping Agree and continue, I agree to idOS Terms and Conditions.',
     );
 
     fireEvent.press(
@@ -224,16 +299,20 @@ describe('VbaPartnerTerms', () => {
     expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/terms');
   });
 
-  it('keeps Agree disabled until the biometric consent is given', () => {
+  it('names the next step from whether the consent is on screen', () => {
     const { getByTestId } = renderScreen();
+    const button = () => getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON);
 
-    expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON),
-    ).toBeDisabled();
+    expect(button()).toHaveProp('accessibilityLabel', 'Scroll to continue');
+    expect(button()).toBeDisabled();
+
+    scrollConsentIntoView(getByTestId);
+    expect(button()).toHaveProp('accessibilityLabel', 'Agree to consent above');
+    expect(button()).toBeDisabled();
 
     consent(getByTestId);
-
-    expect(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON)).toBeEnabled();
+    expect(button()).toHaveProp('accessibilityLabel', 'Agree and continue');
+    expect(button()).toBeEnabled();
   });
 
   it('does not advance while the consent is unchecked', () => {
