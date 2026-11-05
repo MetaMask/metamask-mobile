@@ -739,6 +739,7 @@ describe('MyProfileView', () => {
       message: 'https://link.metamask.io/social/profile?traderId=current-user',
       url: 'https://link.metamask.io/social/profile?traderId=current-user',
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -767,6 +768,8 @@ describe('MyProfileView', () => {
 
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     fireEvent(
       screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
       'momentumScrollEnd',
@@ -925,6 +928,7 @@ describe('MyProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('still refreshes posts when live profile refresh rejects', async () => {
@@ -1094,6 +1098,7 @@ describe('MyProfileView', () => {
       message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('hides the trader deeplink share button on the owner profile', () => {

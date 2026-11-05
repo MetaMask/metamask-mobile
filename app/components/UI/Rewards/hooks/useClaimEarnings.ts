@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BtcAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  SolAccountType,
+  XlmAccountType,
+} from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
@@ -48,9 +52,13 @@ import {
   isClaimsPausedRefusal,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
   signBitcoinClaimMessage,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   submitClaimVoucher,
   type ClaimRouteOutcome,
 } from '../utils/claimEarnings';
@@ -71,6 +79,42 @@ function bitcoinAccountForEarningAddress(earningAddress: string) {
     (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
     (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
   return typeMatches ? { account, bitcoin } : null;
+}
+
+/** A Solana account on this phone. The address is compared with its case. */
+function solanaAccountForEarningAddress(earningAddress: string) {
+  const address = solanaAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/** A Stellar account on this phone. A lowercase `G` address is not a match. */
+function stellarAccountForEarningAddress(earningAddress: string) {
+  const address = stellarAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
+  ) {
+    return null;
+  }
+  return { account, address };
 }
 
 function branchClaimKey(
@@ -315,7 +359,11 @@ export function useClaimEarnings(
               body,
             ),
           canSignEarningAddress: (earningAddress) => {
-            if (bitcoinAccountForEarningAddress(earningAddress)) {
+            if (
+              bitcoinAccountForEarningAddress(earningAddress) ||
+              solanaAccountForEarningAddress(earningAddress) ||
+              stellarAccountForEarningAddress(earningAddress)
+            ) {
               return true;
             }
             const from = evmAddressFromEarningAddress(earningAddress);
@@ -332,6 +380,18 @@ export function useClaimEarnings(
                 bitcoin.bitcoin,
                 message,
               );
+            }
+            const solana = solanaAccountForEarningAddress(earningAddress);
+            if (solana) {
+              return signSolanaClaimMessage(
+                solana.account.id,
+                solana.address,
+                message,
+              );
+            }
+            const stellar = stellarAccountForEarningAddress(earningAddress);
+            if (stellar) {
+              return signStellarClaimMessage(stellar.account.id, message);
             }
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from) {

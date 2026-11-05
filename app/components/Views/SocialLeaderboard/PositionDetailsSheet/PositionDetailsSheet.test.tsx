@@ -15,6 +15,8 @@ import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useO
 import type { PositionSheetData } from './hooks/usePositionSheetData';
 import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import {
   DAY_MS,
@@ -89,6 +91,12 @@ jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
   useRequireSocialProfileOnboarding: () => ({
     ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
   }),
+}));
+
+jest.mock('../../../../util/haptics');
+
+jest.mock('../navigation/navigateToSocialV1Profile', () => ({
+  navigateToSocialV1Profile: jest.fn(),
 }));
 
 jest.mock('../terms/useSocialTermsGate', () => ({
@@ -170,7 +178,6 @@ const buildSheetData = (
   timeAxisLabels: [],
   isTrendPositive: true,
   markers: [],
-  levels: [],
   isMarketCapMode: false,
   formatValue: (price) => `$${price}`,
   currentPrice: 120,
@@ -216,10 +223,31 @@ describe('PositionDetailsSheet', () => {
 
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent("satoshi's trade");
+    ).toHaveTextContent('satoshi');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens the trader profile from the header identity', () => {
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.IDENTITY),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(navigateToSocialV1Profile).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      expect.objectContaining({
+        traderId: 'trader-1',
+        traderName: 'satoshi',
+        traderAddress: '0xTrader',
+        source: 'trader_feed',
+        viewerProfileId: 'viewer-1',
+        viewerAddress: '0xViewer',
+      }),
+    );
   });
 
   describe('follow button', () => {
@@ -614,6 +642,17 @@ describe('PositionDetailsSheet', () => {
         asset: 'BTC',
         leverage: undefined,
       });
+    });
+
+    it('plays a primary haptic when Buy is pressed', () => {
+      mockSheetData = buildSheetData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('offers only Buy on a closed spot position the viewer does not hold', () => {

@@ -33,7 +33,7 @@ const controller = {
 const start = (request: MfaFlowRequest) =>
   startMfaFlow({
     request,
-    reason: { operation: 'test' },
+    reason: { operation: 'qa.test' },
     platform: 'mobile',
     controller,
   }).catch(() => undefined);

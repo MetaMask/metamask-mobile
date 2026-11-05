@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type {
@@ -18,7 +19,8 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -55,6 +57,25 @@ const redactUrlToken = (url?: string) => {
       .replace(/([?&]auth_token=)[^&\s]*/, '$1[REDACTED]')
       .replace(/#((?:auth_)?token=)[^&\s]*/, '#$1[REDACTED]');
   }
+};
+
+const AgenticCliDashboardWebviewHeader = ({
+  onBack,
+}: {
+  onBack: () => void;
+}) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+
+  return (
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
+      title={strings('sdk_connect_v2.agentic_cli_dashboard_webview.title')}
+      onBack={onBack}
+      includesTopInset={Platform.OS === 'android'}
+      twClassName="bg-default rounded-t-2xl"
+    />
+  );
 };
 
 const AgenticCliDashboardWebview: React.FC = () => {
@@ -101,14 +122,9 @@ const AgenticCliDashboardWebview: React.FC = () => {
   }, [dashboardToken, dashboardUrl, rejectOnce]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('sdk_connect_v2.agentic_cli_dashboard_webview.title'),
-        onBack: close,
-        includesTopInset: Platform.OS === 'android',
-        twClassName: 'bg-default rounded-t-2xl',
-      }),
-    );
+    navigation.setOptions({
+      header: () => <AgenticCliDashboardWebviewHeader onBack={close} />,
+    });
   }, [close, navigation]);
 
   useEffect(() => {
