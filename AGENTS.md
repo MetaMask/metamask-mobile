@@ -112,6 +112,10 @@ scripts/                  # Build and automation scripts
 
 General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set (see `.agents/skills/mms-*`). The base skills arrive with `yarn install`; `yarn skills` adds the rest.
 
+### User-facing copy
+
+Before writing or changing any user-facing string (`locales/languages/en.json`, UI text, errors, buttons, notifications), read and follow [`.claude/skills/mms-content-guidelines/SKILL.md`](.claude/skills/mms-content-guidelines/SKILL.md). Run `yarn skills` if that file is missing. Edit English source strings in `locales/languages/en.json`, not the generated skill copy. To change a rule, change [MetaMask/skills](https://github.com/MetaMask/skills), not this repo.
+
 ### Quick Reference
 
 - **TypeScript**: All new code MUST be TypeScript, NO `any` type
