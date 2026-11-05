@@ -16,7 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import BoxGlass from '../../../../../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../../../../../component-library/components-temp/elevation/GroupedSurface';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionProps {
@@ -35,7 +35,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   badgeCount = 0,
   disabled = false,
   iconName,
-  isGlass = false,
+  isGlass: _isGlass = false,
   label,
   onPress,
   testID,
@@ -54,9 +54,8 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         tw.style(
           'items-center justify-center rounded-2xl px-1 py-3',
           // `flex-1` in the glass column sizes the tile from zero height.
-          isGlass ? 'grow' : 'flex-1 min-w-[68px]',
-          // On glass the surface draws the fill and the press response.
-          !isGlass && (pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted'),
+          'grow',
+          pressed && !disabled && 'bg-pressed',
           disabled ? 'opacity-50' : 'opacity-100',
         )
       }
@@ -96,20 +95,13 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
     </ButtonAnimated>
   );
 
-  if (!isGlass) {
-    return button;
-  }
-
   return (
-    <BoxGlass
+    <GroupedSurface
       radiusClassName="rounded-2xl"
-      isInteractive={!disabled}
-      hasSheen
-      containerStyle={tw.style('flex-1 min-w-[68px]')}
-      style={tw.style('grow')}
+      twClassName="min-w-[68px] grow"
     >
       {button}
-    </BoxGlass>
+    </GroupedSurface>
   );
 };
 

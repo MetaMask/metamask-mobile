@@ -16,7 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
-import BoxGlass from '../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../component-library/components-temp/elevation/GroupedSurface';
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -147,16 +147,13 @@ const BrazeBannerCard = ({
   imageUrl,
   ctaLabel,
   onDismiss,
-  isGlass = false,
+  isGlass: _isGlass = false,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
   return (
-    <BoxGlass
-      isGlass={isGlass}
+    <GroupedSurface
       testID={BRAZE_BANNER_TEST_IDS.CARD}
       radiusClassName="rounded-xl"
-      isInteractive
-      hasSheen
       style={[
         tw.style('w-full flex-row items-center gap-4 pl-4 pr-3 py-3'),
         { minHeight: BANNER_HEIGHT },
@@ -181,7 +178,7 @@ const BrazeBannerCard = ({
       ) : (
         <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
-    </BoxGlass>
+    </GroupedSurface>
   );
 };
 

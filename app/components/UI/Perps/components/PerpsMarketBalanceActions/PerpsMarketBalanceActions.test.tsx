@@ -3,7 +3,7 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -771,7 +771,7 @@ describe('PerpsMarketBalanceActions', () => {
 
   describe('glass', () => {
     it('draws Withdraw with the sheen and Add funds as the plain primary button', () => {
-      const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
+      const { UNSAFE_queryAllByType, getAllByTestId, getByTestId } =
         renderWithProvider(
           <PerpsMarketBalanceActions
             hideBalanceSection
@@ -782,8 +782,8 @@ describe('PerpsMarketBalanceActions', () => {
           false,
         );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+      expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(1);
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();

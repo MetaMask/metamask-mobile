@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import MainActionButtonGlass from './MainActionButtonGlass';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
+import { RAISED_SHEEN_TEST_ID } from '../elevation/RaisedSheenSurface';
 
 let mockIsGlassEnabled = true;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -21,10 +21,10 @@ describe('MainActionButtonGlass', () => {
     mockIsGlassEnabled = true;
   });
 
-  it('renders the plain button where the OS cannot draw glass', () => {
+  it('draws an opaque raised plate even when glass is unavailable', () => {
     mockIsGlassEnabled = false;
 
-    const { getByText, queryByTestId } = render(
+    const { getByText, getByTestId } = render(
       <MainActionButtonGlass
         iconName={IconName.Add}
         label="Add"
@@ -34,11 +34,11 @@ describe('MainActionButtonGlass', () => {
     );
 
     expect(getByText('Add')).toBeOnTheScreen();
-    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(getByTestId(RAISED_SHEEN_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders the plain button without glass', () => {
-    const { getByText, queryByTestId } = render(
+  it('draws an opaque raised plate when isGlass is false', () => {
+    const { getByText, getByTestId } = render(
       <MainActionButtonGlass
         iconName={IconName.Add}
         label="Add"
@@ -48,10 +48,10 @@ describe('MainActionButtonGlass', () => {
     );
 
     expect(getByText('Add')).toBeOnTheScreen();
-    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(getByTestId(RAISED_SHEEN_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('draws the button on the glass sheen and keeps it pressable', () => {
+  it('keeps the plate pressable', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(
       <MainActionButtonGlass
@@ -63,7 +63,7 @@ describe('MainActionButtonGlass', () => {
       />,
     );
 
-    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(RAISED_SHEEN_TEST_ID)).toBeOnTheScreen();
     expect(getByTestId('add')).toHaveStyle({ backgroundColor: 'transparent' });
 
     fireEvent.press(getByTestId('add'));

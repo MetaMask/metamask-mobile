@@ -351,8 +351,8 @@ describe('TokenDetailsActions', () => {
       expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
 
-    it('draws every tile on glass with the sheen when isGlass is set', () => {
-      const { getAllByTestId } = renderWithProvider(
+    it('keeps token action tiles off glass when isGlass is set', () => {
+      const { queryAllByTestId } = renderWithProvider(
         <TokenDetailsActions
           {...defaultProps}
           hasPerpsMarket={false}
@@ -363,7 +363,7 @@ describe('TokenDetailsActions', () => {
         { state: mockInitialState },
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(4);
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
   });
 });

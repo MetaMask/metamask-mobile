@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../util/theme';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -1278,22 +1278,21 @@ describe('MoneyBalanceCard', () => {
       );
 
       expect(getByTestId(MoneyBalanceCardTestIds.SURFACE)).toHaveStyle({
-        backgroundColor: mockTheme.colors.background.muted,
+        backgroundColor: mockTheme.colors.background.section,
       });
       expect(
         getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
       ).toBeUndefined();
-      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+      expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('draws the card on an interactive glass surface', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
-      ).toBe(true);
+      expect(getByTestId(MoneyBalanceCardTestIds.SURFACE)).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.section,
+      });
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });
 
     it('draws a secondary Add on glass too', () => {
@@ -1303,18 +1302,18 @@ describe('MoneyBalanceCard', () => {
         <MoneyBalanceCard isGlass />,
       );
 
-      // One sheen for the card, one for the Add button.
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+      // The card uses its own test id. The secondary Add is the grouped pill.
+      expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(1);
     });
 
     it('keeps a primary Add solid on the glass card', () => {
       mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-      const { getAllByTestId } = renderWithProvider(
+      const { queryAllByTestId } = renderWithProvider(
         <MoneyBalanceCard isGlass />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+      expect(queryAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(0);
     });
 
     it('still opens Money home when the glass card is pressed', () => {

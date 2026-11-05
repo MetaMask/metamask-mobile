@@ -38,7 +38,7 @@ import { getLatestActiveOrUpcomingCampaignOfType } from '../../../Rewards/compon
 import { CampaignType } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
-import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 // Rewards campaigns are only in Redux once the Rewards tab has been opened, so
 // the banner can render before the campaign is known. Dismissals in that window
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 
 const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   testID = 'perps-competition-banner',
-  isGlass = false,
+  isGlass: _isGlass = false,
 }) => {
   const isEnabled = useSelector(selectPerpsCompetitionBannerEnabledFlag);
   const navigation = useNavigation<AppNavigationProp>();
@@ -189,11 +189,8 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
 
   return (
     <Pressable style={styles.container} onPress={handlePress} testID={testID}>
-      <BoxGlass
-        isGlass={isGlass}
+      <GroupedSurface
         radiusClassName="rounded-xl"
-        isInteractive
-        hasSheen
         style={styles.banner}
         testID={`${testID}-surface`}
       >
@@ -231,7 +228,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
             {strings('perps.competition_banner.description')}
           </Text>
         </Box>
-      </BoxGlass>
+      </GroupedSurface>
     </Pressable>
   );
 };

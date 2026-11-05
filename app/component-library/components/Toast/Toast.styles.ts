@@ -1,6 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, Dimensions } from 'react-native';
-import { AppThemeKey, Theme } from '../../../util/theme/models';
+import { Theme } from '../../../util/theme/models';
+import { getFloatingSurfaceStyle } from '../../../util/theme/floatingSurface';
 
 const marginWidth = 16;
 const toastWidth = Dimensions.get('window').width - marginWidth * 2;
@@ -12,20 +13,13 @@ const toastWidth = Dimensions.get('window').width - marginWidth * 2;
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, shadows } = theme;
   return StyleSheet.create({
     base: {
       position: 'absolute',
       width: toastWidth,
       left: marginWidth,
       top: 0,
-      backgroundColor:
-        theme.themeAppearance === AppThemeKey.light
-          ? colors.background.default
-          : colors.background.section,
-      ...(theme.themeAppearance === AppThemeKey.light ? shadows.size.md : {}),
-      borderWidth: 1,
-      borderColor: colors.border.muted,
+      ...getFloatingSurfaceStyle(theme, 'md'),
       borderRadius: 16,
       paddingTop: 12,
       paddingBottom: 12,

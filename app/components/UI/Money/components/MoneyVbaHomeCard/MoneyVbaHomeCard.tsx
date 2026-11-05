@@ -32,6 +32,7 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import {
   MONEY_BUTTON_INTENTS,
@@ -241,9 +242,10 @@ const MoneyVbaHomeCard = ({
   );
 
   return (
-    <Box
+    <GroupedSurface
       testID={testIds.CONTAINER}
-      twClassName="mx-4 mt-2 rounded-2xl bg-muted p-4"
+      radiusClassName="rounded-2xl"
+      twClassName="mx-4 mt-2 p-4"
     >
       <LinearGradient
         colors={HERO_GRADIENT_COLORS}
@@ -305,7 +307,7 @@ const MoneyVbaHomeCard = ({
       ) : (
         ctaButton
       )}
-    </Box>
+    </GroupedSurface>
   );
 };
 

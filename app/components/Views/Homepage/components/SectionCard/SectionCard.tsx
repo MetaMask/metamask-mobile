@@ -1,18 +1,14 @@
 import React from 'react';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 interface SectionCardProps {
   children: React.ReactNode;
 }
 
 const SectionCard = ({ children }: SectionCardProps) => (
-  <Box
-    backgroundColor={BoxBackgroundColor.BackgroundMuted}
-    padding={4}
-    twClassName="rounded-xl w-full"
-  >
+  <GroupedSurface radiusClassName="rounded-xl" twClassName="w-full p-4">
     {children}
-  </Box>
+  </GroupedSurface>
 );
 
 export default SectionCard;

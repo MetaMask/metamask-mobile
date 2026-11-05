@@ -6,8 +6,7 @@ import {
   type ButtonBaseProps,
 } from '@metamask/design-system-react-native';
 
-import BoxGlass from '../BoxGlass';
-import { useLiquidGlass } from '../../hooks/useLiquidGlass';
+import GroupedSurface from '../elevation/GroupedSurface';
 
 export type ButtonGlassVariant =
   | typeof ButtonVariant.Primary
@@ -27,25 +26,18 @@ export type ButtonGlassProps = ButtonBaseProps & {
 };
 
 /**
- * The design-system `Button` drawn on Liquid Glass, kept out of the package
- * until the design system takes it. Callers pass their screen flag as `isGlass`.
- * Primary and tertiary stay the plain button.
+ * Secondary content pills use the L1 grouped treatment (stroke in dark,
+ * section fill in light). Primary and tertiary stay the plain `Button`.
+ * `isGlass` is ignored: content buttons are not Liquid Glass.
  */
 const ButtonGlass = ({
-  isGlass = true,
+  isGlass: _isGlass = true,
   variant = ButtonVariant.Secondary,
   containerStyle,
   twClassName,
   ...props
 }: ButtonGlassProps) => {
-  const { isGlassEnabled } = useLiquidGlass();
-
-  if (
-    !isGlass ||
-    !isGlassEnabled ||
-    variant === ButtonVariant.Primary ||
-    variant === ButtonVariant.Tertiary
-  ) {
+  if (variant === ButtonVariant.Primary || variant === ButtonVariant.Tertiary) {
     return (
       <Button
         {...props}
@@ -57,20 +49,18 @@ const ButtonGlass = ({
   }
 
   return (
-    <BoxGlass
-      radiusClassName="rounded-full"
-      isInteractive={!props.isDisabled}
-      hasSheen
-      containerStyle={containerStyle}
-    >
+    <GroupedSurface radiusClassName="rounded-full" style={containerStyle}>
       <Button
         {...props}
         variant={variant}
-        twClassName="bg-transparent border-transparent"
+        twClassName={`bg-transparent border-transparent ${
+          typeof twClassName === 'string' ? twClassName : ''
+        }`}
+        style={props.style}
         // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
         isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
-    </BoxGlass>
+    </GroupedSurface>
   );
 };
 

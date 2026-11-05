@@ -184,7 +184,7 @@ describe('MainActionButton', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('draws the content on an interactive glass surface', () => {
+    it('draws the content on an opaque raised plate', () => {
       const onPress = jest.fn();
       const { getByTestId, getByText } = render(
         <MainActionButton
@@ -192,13 +192,11 @@ describe('MainActionButton', () => {
           label="Buy"
           onPress={onPress}
           testID={MAINACTIONBUTTON_TEST_ID}
-          isGlass
+          isRaisedPlate
         />,
       );
 
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(true);
+      expect(getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
@@ -207,7 +205,7 @@ describe('MainActionButton', () => {
     });
 
     it('drops its own fill so only the glass shows', () => {
-      const backgroundOf = (isGlass: boolean) =>
+      const backgroundOf = (isRaisedPlate: boolean) =>
         StyleSheet.flatten(
           render(
             <MainActionButton
@@ -215,7 +213,7 @@ describe('MainActionButton', () => {
               label="Buy"
               onPress={jest.fn()}
               testID={MAINACTIONBUTTON_TEST_ID}
-              isGlass={isGlass}
+              isRaisedPlate={isRaisedPlate}
             />,
           ).getByTestId(MAINACTIONBUTTON_TEST_ID).props.style,
         ).backgroundColor;
@@ -232,7 +230,7 @@ describe('MainActionButton', () => {
           onPress={jest.fn()}
           testID={MAINACTIONBUTTON_TEST_ID}
           isDisabled
-          isGlass
+          isRaisedPlate
         />,
       );
 
@@ -242,20 +240,18 @@ describe('MainActionButton', () => {
       });
     });
 
-    it('keeps the glass static while disabled', () => {
+    it('keeps the raised plate mounted while disabled', () => {
       const { getByTestId } = render(
         <MainActionButton
           iconName={IconName.Add}
           label="Buy"
           onPress={jest.fn()}
           isDisabled
-          isGlass
+          isRaisedPlate
         />,
       );
 
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(false);
+      expect(getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeOnTheScreen();
     });
   });
 });

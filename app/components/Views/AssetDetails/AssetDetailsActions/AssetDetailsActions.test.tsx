@@ -120,18 +120,9 @@ describe('AssetDetailsActions', () => {
     expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
   });
 
-  it('keeps opaque buttons by default', () => {
-    const { queryAllByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} />,
-      { state: initialRootState },
-    );
-
-    expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
-  });
-
-  it('renders every button on glass when isGlass is set', () => {
+  it('draws every home action on an opaque raised plate', () => {
     const { getAllByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} isGlass />,
+      <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
 

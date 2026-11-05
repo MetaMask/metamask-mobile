@@ -5,7 +5,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 
 // The glass tests need the OS to draw glass, which Jest can't.
@@ -445,7 +445,7 @@ describe('MarketInsightsEntryCard', () => {
         <MarketInsightsEntryCard {...glassCardProps()} />,
       );
 
-      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
+      expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('draws the card on glass with the sheen and keeps it pressable', () => {
@@ -454,7 +454,7 @@ describe('MarketInsightsEntryCard', () => {
         <MarketInsightsEntryCard {...props} isGlass />,
       );
 
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
 
       fireEvent.press(getByTestId('entry-card'));
 

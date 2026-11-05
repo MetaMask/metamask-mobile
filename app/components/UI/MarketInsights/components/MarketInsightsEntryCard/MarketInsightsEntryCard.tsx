@@ -27,7 +27,7 @@ import { endTrace, TraceName } from '../../../../../util/trace';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { getMarketInsightsTraceEndData } from '../../utils/marketInsightsPerformance';
-import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
@@ -170,7 +170,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   traceId,
   source,
   testID,
-  isGlass = false,
+  isGlass: _isGlass = false,
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -315,31 +315,18 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         onPress={onPress}
         // Glass reacts to touch itself and breaks under a see-through parent.
         style={({ pressed }) =>
-          tw.style('px-4 mt-2', pressed && !isGlass && 'opacity-70')
+          tw.style('px-4 mt-2', pressed && 'opacity-70')
         }
         testID={testID}
       >
         <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
-          {isGlass ? (
-            <BoxGlass
-              radiusClassName="rounded-xl"
-              hasSheen
-              isInteractive
-              style={tw.style('p-4 gap-1')}
-              onLayout={handleLayout}
-            >
-              {cardContent}
-            </BoxGlass>
-          ) : (
-            <Box
-              twClassName="bg-background-muted rounded-xl"
-              padding={4}
-              gap={1}
-              onLayout={handleLayout}
-            >
-              {cardContent}
-            </Box>
-          )}
+          <GroupedSurface
+            radiusClassName="rounded-xl"
+            twClassName="p-4 gap-1"
+            onLayout={handleLayout}
+          >
+            {cardContent}
+          </GroupedSurface>
         </View>
       </Pressable>
     </>

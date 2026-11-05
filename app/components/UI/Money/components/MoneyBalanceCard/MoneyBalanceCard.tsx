@@ -34,7 +34,7 @@ import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
@@ -372,21 +372,18 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
       onPress={handleCardPress}
       style={({ pressed }) => [
         tw.style('mx-4'),
-        !isGlass && pressed && tw.style('opacity-80'),
+        pressed && tw.style('opacity-80'),
       ]}
     >
-      <BoxGlass
-        isGlass={isGlass}
+      <GroupedSurface
         radiusClassName="rounded-xl"
-        isInteractive
-        hasSheen
         testID={MoneyBalanceCardTestIds.SURFACE}
         style={tw.style(
           'min-h-[82px] flex-row items-center justify-between gap-3 p-4',
         )}
       >
         {content}
-      </BoxGlass>
+      </GroupedSurface>
     </Pressable>
   );
 };

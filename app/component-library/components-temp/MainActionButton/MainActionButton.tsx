@@ -12,7 +12,7 @@ import { useAnimatedPressable, useStyles } from '../../hooks';
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
 import styleSheet from './MainActionButton.styles';
-import BoxGlass from '../BoxGlass';
+import RaisedSheenSurface from '../elevation/RaisedSheenSurface';
 import {
   MAINACTIONBUTTON_CONTENT_TEST_ID,
   MAINACTIONBUTTON_GLASS_TEST_ID,
@@ -33,14 +33,15 @@ const MainActionButton = ({
   style,
   containerStyle,
   isDisabled = false,
-  isGlass = false,
+  isGlass: _isGlass = false,
+  isRaisedPlate = false,
   testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     isDisabled,
-    isGlass,
+    isRaisedPlate,
   });
 
   const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable({
@@ -52,7 +53,7 @@ const MainActionButton = ({
     <View
       style={[
         styles.container,
-        isGlass && isDisabled && styles.disabledGlassContent,
+        isRaisedPlate && isDisabled && styles.disabledGlassContent,
       ]}
       testID={MAINACTIONBUTTON_CONTENT_TEST_ID}
     >
@@ -83,16 +84,14 @@ const MainActionButton = ({
         disabled={isDisabled}
         {...props}
       >
-        {isGlass ? (
-          <BoxGlass
+        {isRaisedPlate ? (
+          <RaisedSheenSurface
             radiusClassName="rounded-2xl"
-            isInteractive={!isDisabled}
-            hasSheen
             style={styles.glassContent}
             testID={MAINACTIONBUTTON_GLASS_TEST_ID}
           >
             {content}
-          </BoxGlass>
+          </RaisedSheenSurface>
         ) : (
           content
         )}

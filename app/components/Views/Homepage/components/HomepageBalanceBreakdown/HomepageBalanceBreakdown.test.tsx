@@ -296,7 +296,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBeOnTheScreen();
     expect(UNSAFE_getByType(Button).props.children).toBe('Add');
     expect(UNSAFE_getByType(Button).props.variant).toBe(
-      ButtonVariant.Secondary,
+      ButtonVariant.Tertiary,
     );
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
@@ -337,7 +337,7 @@ describe('HomepageBalanceBreakdown', () => {
     );
     expect(UNSAFE_getByType(ButtonIcon).props.iconName).toBe(IconName.Add);
     expect(UNSAFE_getByType(ButtonIcon).props.variant).toBe(
-      ButtonIconVariant.Filled,
+      ButtonIconVariant.Default,
     );
     expect(UNSAFE_getByType(ButtonIcon).props.iconProps.size).toBe(IconSize.Sm);
   });

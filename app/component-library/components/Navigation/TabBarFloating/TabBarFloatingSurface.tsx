@@ -7,13 +7,51 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import type { UseBlurMaterialResult } from '../../../hooks/useBlurMaterial';
+import { useLiquidGlass } from '../../../hooks/useLiquidGlass';
+import { useTheme } from '../../../../util/theme';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import type { NetworkTier } from '../../../../util/deviceCapability/types';
 import { TAB_BAR_FLOATING_BLUR_INTENSITY } from './TabBarFloating.constants';
 
-export interface TabBarFloatingSurfaceProps
-  extends Pick<UseBlurMaterialResult, 'isBlurAvailable' | 'colorScheme'> {
+export type TabBarMaterial = 'glass' | 'blur' | 'opaque';
+
+export interface ResolveTabBarMaterialInput {
+  isGlassEnabled: boolean;
+  isBlurEnabled: boolean;
+  /**
+   * Read so the device-capability matrix is applied. A local backdrop sample
+   * does not get cheaper on a slow network. `null` is unknown, not offline.
+   */
+  networkTier: NetworkTier | null;
+}
+
+/**
+ * Same chain as header capsules: Liquid Glass, then system blur, then an
+ * opaque fill. Low hardware already arrives here with both flags false,
+ * because `useBlurMaterial` skips blur on that tier. Unknown hardware stays
+ * on the product path.
+ *
+ * @param input - Glass and blur availability, plus the network tier.
+ * @returns The chrome material to draw.
+ */
+export const resolveTabBarMaterial = ({
+  isGlassEnabled,
+  isBlurEnabled,
+  networkTier: _networkTier,
+}: ResolveTabBarMaterialInput): TabBarMaterial => {
+  if (isGlassEnabled) {
+    return 'glass';
+  }
+  if (isBlurEnabled) {
+    return 'blur';
+  }
+  return 'opaque';
+};
+
+export interface TabBarFloatingSurfaceProps {
   children?: React.ReactNode;
   twClassName?: string;
   style?: StyleProp<ViewStyle>;
@@ -23,35 +61,58 @@ export interface TabBarFloatingSurfaceProps
 }
 
 /**
- * A surface of the floating tab bar, drawn as a system chrome material where
- * the platform supports it and as an opaque fill everywhere else.
+ * A surface of the floating tab bar. iOS 26 draws Liquid Glass. Older iOS
+ * draws the system chrome blur. Everywhere else, including low-memory
+ * devices, the fill is opaque.
  *
- * Children must not paint their own background on the blur path, or they cover
- * the material.
+ * Children must not paint their own background on the glass or blur path,
+ * or they cover the material.
  */
 const TabBarFloatingSurface = ({
   children,
   twClassName = '',
   style,
-  isBlurAvailable,
-  colorScheme,
   pointerEvents,
   testID,
   onLayout,
 }: TabBarFloatingSurfaceProps) => {
   const tw = useTailwind();
+  const { shadows } = useTheme();
+  const { isGlassEnabled, glassColorScheme, isBlurEnabled, blurTint } =
+    useLiquidGlass();
+  const networkTier = useNetworkTier();
+  const material = resolveTabBarMaterial({
+    isGlassEnabled,
+    isBlurEnabled,
+    networkTier,
+  });
   const sharedProps = { pointerEvents, testID, onLayout };
 
-  if (isBlurAvailable) {
+  if (material === 'glass') {
+    return (
+      <View
+        style={[tw.style('rounded-full'), shadows.size.md, style]}
+        {...sharedProps}
+      >
+        <GlassView
+          glassEffectStyle="regular"
+          colorScheme={glassColorScheme}
+          isInteractive
+          // The native glass only takes the capsule's corners when clipped.
+          style={tw.style('h-full w-full overflow-hidden', twClassName)}
+        >
+          {children}
+        </GlassView>
+      </View>
+    );
+  }
+
+  if (material === 'blur') {
     return (
       <BlurView
         // The chrome family is what UIKit puts behind its own bars, so it reads
         // as bar material rather than as a panel dropped on top of one.
-        tint={
-          colorScheme === 'dark'
-            ? 'systemChromeMaterialDark'
-            : 'systemChromeMaterialLight'
-        }
+        tint={blurTint}
         intensity={TAB_BAR_FLOATING_BLUR_INTENSITY}
         // The blur is a native layer, so it only takes the capsule's corners
         // when the view clips to them.

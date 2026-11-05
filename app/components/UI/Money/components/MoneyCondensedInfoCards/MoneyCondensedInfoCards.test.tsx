@@ -6,7 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import howItWorksImageSource from '../../../../../images/mm_how_it_works.png';
 import musdCoinImageSource from '../../../../../images/mm_usd.png';
 import whatYouGetImageSource from '../../../../../images/mm_what_you_get.png';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 // The glass tests need the OS to draw glass, which Jest can't.
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -131,13 +131,13 @@ describe('MoneyCondensedInfoCards', () => {
     it('keeps opaque cards by default', () => {
       const { queryAllByTestId } = render(<MoneyCondensedInfoCards />);
 
-      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+      expect(queryAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(3);
     });
 
     it('draws every card on glass when isGlass is set', () => {
       const { getAllByTestId } = render(<MoneyCondensedInfoCards isGlass />);
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+      expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(3);
     });
   });
 });

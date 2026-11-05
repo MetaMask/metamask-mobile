@@ -595,6 +595,11 @@ describe('AssetOverviewContent', () => {
     beforeEach(() => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        isLoading: false,
+      });
     });
 
     afterEach(() => {
@@ -617,14 +622,12 @@ describe('AssetOverviewContent', () => {
     it('puts the action tiles, insights card and stake buttons on glass when the flag is on', () => {
       mockIsTokenDetailsGlass = true;
 
-      const { getAllByTestId, getByTestId } = renderAssetOverviewContent(
+      const { queryAllByTestId, getByTestId } = renderAssetOverviewContent(
         <AssetOverviewContent {...insightsProps} />,
         { state: createState(true) },
       );
 
-      expect(
-        getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).length,
-      ).toBeGreaterThan(0);
+      expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
       expect(getByTestId('market-insights-entry-card-glass')).toBeOnTheScreen();
       expect(mockEarnBalance).toHaveBeenLastCalledWith(
         expect.objectContaining({ isGlass: true }),
