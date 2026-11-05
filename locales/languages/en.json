@@ -1446,6 +1446,7 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
       }
@@ -10299,10 +10300,10 @@
         "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."

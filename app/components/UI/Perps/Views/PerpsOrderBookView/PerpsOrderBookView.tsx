@@ -11,7 +11,6 @@ import {
   ButtonSemantic,
   ButtonSemanticSeverity,
   FilterButton,
-  HeaderSubpage,
   IconColor,
   IconName,
   ListItemSelect,
@@ -50,6 +49,9 @@ import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTo
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -108,6 +110,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol, marketData: routeMarketData } = route.params || {};
@@ -371,25 +374,37 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     setIsDepthBandSheetVisible(true);
   }, []);
 
-  const groupingSelectButton = useMemo(
-    () => (
+  const groupingSelectButton = useMemo(() => {
+    const selectButton = (
+      <SelectButton
+        testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
+        // Secondary has no fill of its own, so the glass shows through.
+        variant={
+          isBrandRefresh
+            ? SelectButtonVariant.Secondary
+            : SelectButtonVariant.Primary
+        }
+        size={SelectButtonSize.Md}
+        placeholder={currentGroupingLabel}
+        value={currentGroupingLabel}
+        onPress={handleDepthBandPress}
+      />
+    );
+    return (
       <View style={styles.groupingSelectButtonAccessory}>
-        <SelectButton
-          testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
-          variant={SelectButtonVariant.Primary}
-          size={SelectButtonSize.Md}
-          placeholder={currentGroupingLabel}
-          value={currentGroupingLabel}
-          onPress={handleDepthBandPress}
-        />
+        {isBrandRefresh ? (
+          <CapsuleGlass>{selectButton}</CapsuleGlass>
+        ) : (
+          selectButton
+        )}
       </View>
-    ),
-    [
-      currentGroupingLabel,
-      handleDepthBandPress,
-      styles.groupingSelectButtonAccessory,
-    ],
-  );
+    );
+  }, [
+    currentGroupingLabel,
+    handleDepthBandPress,
+    isBrandRefresh,
+    styles.groupingSelectButtonAccessory,
+  ]);
 
   const orderBookHeader = useMemo(() => {
     if (!symbol) {
@@ -408,7 +423,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
 
     return (
-      <HeaderSubpage
+      <HeaderSubpageGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         twClassName="min-h-14 h-auto bg-default justify-center"
         onBack={handleBack}
@@ -445,6 +462,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     currentPrice,
     groupingSelectButton,
     displaySymbol,
+    isBrandRefresh,
   ]);
 
   // Handle grouping selection

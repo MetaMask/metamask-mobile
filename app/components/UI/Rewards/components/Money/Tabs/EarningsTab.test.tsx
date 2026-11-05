@@ -19,6 +19,14 @@ import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
 import EarningsTab from './EarningsTab';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
+jest.mock('../../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../hooks/useFollowTradeClaimOpen', () => ({
+  useFollowTradeClaimOpen: jest.fn(() => false),
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -258,9 +266,8 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the breakdown for a referrer and hides the claimable amount row', () => {
-    const { getByText, getByTestId, queryByTestId, queryByText } =
-      renderTab('referrer');
+  it('shows the breakdown and the claimable amount for a referrer while Social V1 is on', () => {
+    const { getByText, getByTestId, queryByTestId } = renderTab('referrer');
 
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
     expect(
@@ -276,8 +283,10 @@ describe('EarningsTab', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
-    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
-    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toBeOnTheScreen();
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
     ).toBeOnTheScreen();

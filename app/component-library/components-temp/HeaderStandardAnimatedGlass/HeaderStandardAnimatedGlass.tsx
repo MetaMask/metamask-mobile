@@ -1,4 +1,5 @@
 import React from 'react';
+import type { SharedValue } from 'react-native-reanimated';
 import {
   HeaderStandardAnimated,
   type HeaderStandardAnimatedProps,
@@ -11,7 +12,10 @@ import {
 } from '../HeaderGlass/headerGlassAccessories';
 
 export type HeaderStandardAnimatedGlassProps = HeaderStandardAnimatedProps &
-  HeaderGlassOptions;
+  HeaderGlassOptions & {
+    /** Extra backdrop height below the header, for content pinned under it. */
+    backdropExtension?: number | SharedValue<number>;
+  };
 
 /**
  * MMDS `HeaderStandardAnimated` floating over the content on a backdrop that
@@ -23,6 +27,7 @@ const HeaderStandardAnimatedGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  backdropExtension,
   isFloating,
   onLayout,
   ...props
@@ -37,6 +42,7 @@ const HeaderStandardAnimatedGlass = ({
       backdrop={backdrop}
       scrollDistance={props.scrollY}
       fadeInDistance={fadeInDistance}
+      backdropExtension={backdropExtension}
       isFloating={isFloating}
     >
       <HeaderStandardAnimated
