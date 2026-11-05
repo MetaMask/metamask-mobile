@@ -1,6 +1,7 @@
 import migrate from './098';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -44,7 +45,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
     );
   });
@@ -64,7 +65,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.PermissionController is string`,
     );
   });
@@ -86,7 +87,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
     );
   });
@@ -108,7 +109,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.SelectedNetworkController is undefined`,
     );
   });
@@ -131,7 +132,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.SelectedNetworkController is string`,
     );
   });
@@ -156,7 +157,7 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toContain(
       `Migration ${migrationVersion}: typeof state.SelectedNetworkController.domains is string`,
     );
   });
