@@ -120,6 +120,7 @@ function writeBuildEnvJson(buildName) {
     'REWARDS_API_URL',
     'MM_PORTFOLIO_URL',
     'MM_API_ENV',
+    'MM_PREDICT_A2T_URL',
     'HAS_TEST_OVERRIDES',
     // Additional env vars for full environment info
     'PORTFOLIO_API_URL',
