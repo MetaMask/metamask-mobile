@@ -1137,7 +1137,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the Game header for a non-football Event with a Game snapshot', async () => {
+  it('uses the Game header for a basketball Game', async () => {
     resolveEvent(
       createEvent({
         title: 'Lakers vs Celtics',
@@ -1174,11 +1174,14 @@ describe('PredictEventScreen', () => {
       view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
     ).not.toBeOnTheScreen();
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamName('home')),
-    ).toHaveTextContent('Celtics');
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamAbbreviation('home'),
+      ),
+    ).toHaveTextContent('BOS');
+    expect(within(header).queryByText('Celtics')).not.toBeOnTheScreen();
     expect(
-      within(header).queryByTestId(PredictEventScreenTestIds.LIVE_DOT),
-    ).not.toBeOnTheScreen();
+      within(header).getByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).toBeOnTheScreen();
   });
 
   it('renders complete Market data in backend order', async () => {
@@ -1868,7 +1871,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the abbreviation when a football Team has no logo', async () => {
+  it('shows the abbreviation when a Team has no logo', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
@@ -1889,7 +1892,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('faces both 40px football helmets toward the centre from their logo facing', async () => {
+  it('faces both 40px helmets toward the centre from their logo facing', async () => {
     resolveEvent(
       createGameEvent({
         awayTeam: {
@@ -1968,7 +1971,7 @@ describe('PredictEventScreen', () => {
       ),
     ).toHaveTextContent('CAR');
     expect(
-      within(header).queryByTestId(PredictEventScreenTestIds.teamName('away')),
+      within(header).queryByText('Arizona Cardinals'),
     ).not.toBeOnTheScreen();
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.LIVE_DOT),
@@ -2195,7 +2198,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps full Team names in the football Team labels', async () => {
+  it('keeps full Team names in the Team labels', async () => {
     const awayName = 'The Extremely Long Arizona Cardinals Team Name';
     const homeName = 'The Extremely Long Carolina Panthers Team Name';
     resolveEvent(

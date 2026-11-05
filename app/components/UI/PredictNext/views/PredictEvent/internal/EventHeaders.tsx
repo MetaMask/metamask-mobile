@@ -14,7 +14,6 @@ import {
   getEventGame,
   getGameTeamOrder,
   getMatchupSlot,
-  isFootballEvent,
   shouldMirrorTeamLogo,
   type GameSelection,
   type GameStatusLine,
@@ -85,9 +84,7 @@ interface GameTeamProps {
   mirrored: boolean;
 }
 
-const teamAccessibilityLabel = (team: PredictTeam, score?: string) =>
-  score === undefined ? team.name : `${team.name}, ${score}`;
-
+/** A Team: its helmet over its abbreviation. The score sits beside. */
 const GameTeam = ({
   team,
   abbreviation,
@@ -98,49 +95,9 @@ const GameTeam = ({
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
     accessible
-    accessibilityLabel={teamAccessibilityLabel(team, score)}
-    twClassName="min-w-0 flex-1 items-center gap-2"
-  >
-    <TeamLogo
-      team={team}
-      abbreviation={abbreviation}
-      size="xlarge"
-      flipped={mirrored}
-      testID={PredictEventScreenTestIds.teamLogo(selection)}
-      fallbackTestID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-    />
-    {score !== undefined ? (
-      <Text
-        testID={PredictEventScreenTestIds.teamScore(selection)}
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
-      >
-        {score}
-      </Text>
-    ) : null}
-    <Text
-      testID={PredictEventScreenTestIds.teamName(selection)}
-      variant={TextVariant.BodySm}
-      fontWeight={FontWeight.Bold}
-      twClassName="text-center"
-    >
-      {team.name}
-    </Text>
-  </Box>
-);
-
-/** A football Team: its helmet over its abbreviation. The score sits beside. */
-const FootballTeam = ({
-  team,
-  abbreviation,
-  score,
-  selection,
-  mirrored,
-}: GameTeamProps) => (
-  <Box
-    testID={PredictEventScreenTestIds.team(selection)}
-    accessible
-    accessibilityLabel={teamAccessibilityLabel(team, score)}
+    accessibilityLabel={
+      score === undefined ? team.name : `${team.name}, ${score}`
+    }
     twClassName="w-14 items-center gap-2"
   >
     <TeamLogo
@@ -164,7 +121,7 @@ const FootballTeam = ({
 );
 
 /** Read as part of its Team's label, so hidden from screen readers. */
-const FootballScore = ({
+const GameScore = ({
   score,
   selection,
 }: {
@@ -186,50 +143,41 @@ const FootballScore = ({
 const GameStatus = ({
   line,
   isLive,
-  layout,
 }: {
   line: GameStatusLine;
   isLive: boolean;
-  layout: 'football' | 'default';
-}) => {
-  const football = layout === 'football';
-  return (
-    <Box
-      twClassName={
-        football ? 'items-center' : 'w-24 shrink-0 items-center gap-1'
-      }
-    >
-      <Box twClassName="flex-row items-center gap-2">
-        {football && isLive ? (
-          <Box
-            testID={PredictEventScreenTestIds.LIVE_DOT}
-            twClassName="h-2.5 w-2.5 rounded-full bg-success-default"
-          />
-        ) : null}
-        <Text
-          testID={PredictEventScreenTestIds.GAME_STATUS}
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Bold}
-          color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {line.label}
-        </Text>
-      </Box>
-      {line.metadata ? (
-        <Text
-          testID={PredictEventScreenTestIds.GAME_METADATA}
-          variant={TextVariant.BodyXs}
-          fontWeight={football ? FontWeight.Bold : undefined}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {line.metadata}
-        </Text>
+}) => (
+  <Box twClassName="items-center">
+    <Box twClassName="flex-row items-center gap-2">
+      {isLive ? (
+        <Box
+          testID={PredictEventScreenTestIds.LIVE_DOT}
+          twClassName="h-2.5 w-2.5 rounded-full bg-success-default"
+        />
       ) : null}
+      <Text
+        testID={PredictEventScreenTestIds.GAME_STATUS}
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Bold}
+        color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {line.label}
+      </Text>
     </Box>
-  );
-};
+    {line.metadata ? (
+      <Text
+        testID={PredictEventScreenTestIds.GAME_METADATA}
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {line.metadata}
+      </Text>
+    ) : null}
+  </Box>
+);
 
 export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   const game = getEventGame(event);
@@ -249,38 +197,22 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
       mirrored: shouldMirrorTeamLogo(team, getMatchupSlot(order, selection)),
     };
   };
-  const status = (layout: 'football' | 'default') => (
-    <GameStatus
-      line={presentation.status.detail}
-      isLive={game.status === 'in_progress'}
-      layout={layout}
-    />
-  );
 
-  if (isFootballEvent(event)) {
-    // With the screen's 16px padding, the 56px Team columns put each 40px
-    // helmet 40px from the screen edge.
-    return (
-      <Box
-        testID={PredictEventScreenTestIds.GAME_HEADER}
-        twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
-      >
-        <FootballTeam {...teamProps(order[0])} />
-        <FootballScore score={game.score?.[order[0]]} selection={order[0]} />
-        {status('football')}
-        <FootballScore score={game.score?.[order[1]]} selection={order[1]} />
-        <FootballTeam {...teamProps(order[1])} />
-      </Box>
-    );
-  }
-
+  // With the screen's 16px padding, the 56px Team columns put each 40px
+  // helmet 40px from the screen edge.
   return (
-    <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
-      <Box twClassName="flex-row items-start gap-2">
-        <GameTeam {...teamProps(order[0])} />
-        {status('default')}
-        <GameTeam {...teamProps(order[1])} />
-      </Box>
+    <Box
+      testID={PredictEventScreenTestIds.GAME_HEADER}
+      twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
+    >
+      <GameTeam {...teamProps(order[0])} />
+      <GameScore score={game.score?.[order[0]]} selection={order[0]} />
+      <GameStatus
+        line={presentation.status.detail}
+        isLive={game.status === 'in_progress'}
+      />
+      <GameScore score={game.score?.[order[1]]} selection={order[1]} />
+      <GameTeam {...teamProps(order[1])} />
     </Box>
   );
 };

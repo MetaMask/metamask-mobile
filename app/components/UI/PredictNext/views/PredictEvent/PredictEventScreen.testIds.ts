@@ -21,8 +21,6 @@ export const PredictEventScreenTestIds = {
     `predict-next-event-team-${selection}-logo-fallback`,
   teamAbbreviation: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-abbreviation`,
-  teamName: (selection: 'away' | 'home') =>
-    `predict-next-event-team-${selection}-name`,
   teamScore: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-score`,
 } as const;
