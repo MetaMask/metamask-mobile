@@ -4,7 +4,6 @@ import type {
   CommissionEntryView,
   MechanismsView,
   LedgerEarningEntryDto,
-  MechanismsView,
   LedgerEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
