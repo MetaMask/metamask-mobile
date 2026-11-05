@@ -25,6 +25,31 @@ import { runAfterInteractions } from '../../utils/runAfterInteractions';
  */
 export const MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS = 5000;
 
+/**
+ * Branch can hang. Cap app-installation detection so it cannot consume the
+ * referral load budget and drop an eligible invite. On timeout, assume the
+ * app was installed, matching `detectAppInstallation`'s error default; a slow
+ * Branch response can then only affect the analytics entry type.
+ */
+export const MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS = 500;
+
+const detectAppInstallationWithTimeout = (): Promise<boolean> =>
+  new Promise<boolean>((resolve) => {
+    const timer = setTimeout(
+      () => resolve(true),
+      MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
+    );
+    detectAppInstallation()
+      .then((wasAppInstalled) => {
+        clearTimeout(timer);
+        resolve(wasAppInstalled);
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        resolve(true);
+      });
+  });
+
 interface PresenterProps {
   referralCode: string;
 }
@@ -63,7 +88,7 @@ const PendingMoneyReferralInvitePresenter = ({
       budgetTimer = setTimeout(dropCode, MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
       Promise.all([
         fetchReferralMe({ forceFresh: true }),
-        detectAppInstallation(),
+        detectAppInstallationWithTimeout(),
       ])
         .then(([result, wasAppInstalled]) => {
           if (cancelled) {

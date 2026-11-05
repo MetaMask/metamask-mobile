@@ -16,6 +16,7 @@ import * as SettingsSelectors from '../../../../../selectors/settings';
 import * as RewardsMoneyFlagSelectors from '../../../../../selectors/featureFlagController/rewardsMoneyController';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import PendingMoneyReferralInvite, {
+  MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
   MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS,
 } from './PendingMoneyReferralInvite';
 
@@ -218,6 +219,28 @@ describe('PendingMoneyReferralInvite', () => {
 
       expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not let a hung app-installation check consume the load budget', async () => {
+      mockDetectAppInstallation.mockReturnValue(new Promise(() => undefined));
+      const { store } = renderInvite();
+
+      act(() => {
+        jest.advanceTimersByTime(
+          MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS - 1,
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
+      expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
     });
 
     it('ignores a read that settles after the load budget', async () => {

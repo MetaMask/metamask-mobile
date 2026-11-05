@@ -293,7 +293,9 @@ const RewardsMoneyReferralAcceptedSplashView: React.FC = () => {
   const dispatch = useDispatch();
 
   // The invite sheet leaves a deeplink's code pending through an accept, so
-  // the push pre-prompt only follows once this splash is gone.
+  // the push pre-prompt only follows once this splash is gone. Clear every
+  // pending code here, not just the accepted one: the user is now a referee,
+  // so a newer code cannot be accepted and must not prompt again.
   useEffect(
     () => () => {
       dispatch(clearPendingReferralCode());

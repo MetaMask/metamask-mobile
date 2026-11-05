@@ -254,6 +254,15 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL1');
   });
 
+  it('clears a newer pending code once the splash closes, since the user is now a referee', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL2');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL2');
+  });
+
   it('renders activation copy through the cashback window end', () => {
     const { getByTestId, getByText } = renderSplash();
 
