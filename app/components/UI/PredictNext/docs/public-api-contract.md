@@ -80,7 +80,17 @@ A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaig
 
 Campaign data, statistics, leaderboards and the Rewards controller stay Rewards-owned. Only navigation and eligibility come from Predict.
 
-A surface hides an action its intent cannot open: Money hides the Predictions-account transfer while `canOpenPredict({ type: 'addFunds' })` is false. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+A surface hides an action its intent cannot open. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+
+### Funding entry points (PRED-1388)
+
+Money's Predictions-account transfer, pay-with's Predict source (the Predict balance row and its Add button) and the Predict deposit Money starts are legacy Polymarket funding. They stay legacy execution until PRED-1356; PredictNext only decides whether they may appear.
+
+- `usePredictLegacyDeposit()` returns `isAvailable` and `isAvailableNow()`. It is true only when Predict is available for the Active Venue (`selectPredictAvailability`), the Active Venue's implementation is `legacy`, and that Venue's descriptor lists `deposit`. While Kalshi is active, or while the Active Venue is resolving, it is false and the surface renders no entry point at all.
+- `isAvailableNow()` re-reads the store. A deposit that runs after a delay checks it when it runs: Money's transfer deferred behind a rejected confirmation, the deposit Money starts once its sheet has closed, and pay-with's Add before it rejects the confirmation. An Active Venue change in between drops the action instead of starting the legacy deposit on the wrong implementation.
+- `usePredictLegacyDepositEligibility()` is Polymarket's region eligibility, which Money also requires before it offers the transfer.
+
+Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry is empty until PRED-1161 (deposit) and PRED-1163 (withdraw) ship real flows, so a descriptor that lists `deposit` early still shows nothing. Those tickets add the `next` flow and its own entry points. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
 
 ## Rules for the Venue switch
 
