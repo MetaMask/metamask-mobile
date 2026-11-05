@@ -85,9 +85,15 @@ const getDiscoveryState = (
     : { status: 'hidden', reason: 'empty' };
 };
 
-const isSameState = (a: HomeDiscoveryState, b: HomeDiscoveryState) =>
-  a.status === b.status &&
-  (a.status !== 'ready' || b.status !== 'ready' || a.itemCount === b.itemCount);
+const isSameState = (a: HomeDiscoveryState, b: HomeDiscoveryState) => {
+  if (a.status === 'ready' && b.status === 'ready') {
+    return a.itemCount === b.itemCount;
+  }
+  if (a.status === 'hidden' && b.status === 'hidden') {
+    return a.reason === b.reason;
+  }
+  return a.status === b.status;
+};
 
 interface DiscoveryCarouselProps {
   venueId: PredictVenueId;
