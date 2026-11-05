@@ -1,10 +1,15 @@
+import { AppState, type AppStateStatus } from 'react-native';
+import { waitFor } from '@testing-library/react-native';
 import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
 import Logger from '../../../../util/Logger';
-import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
+import {
+  LEAVE_FOREGROUND_TIMEOUT_MS,
+  promptOsPushPermissionIfNeeded,
+} from './promptOsPushPermission';
 
 jest.mock('../../../../util/Logger');
 
@@ -52,19 +57,85 @@ describe('promptOsPushPermissionIfNeeded', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('opens the Settings alert when the OS permission is no longer promptable', async () => {
-    jest.mocked(isPushPermissionGranted).mockResolvedValue(false);
-    jest.mocked(isPushPermissionPromptable).mockResolvedValue(false);
-    jest
-      .mocked(NotificationService.requestPushNotificationsPermission)
-      .mockResolvedValue(undefined);
+  describe('when the OS permission is no longer promptable', () => {
+    let appStateListener: (state: AppStateStatus) => void;
+    const removeSubscription = jest.fn();
 
-    await expect(promptOsPushPermissionIfNeeded()).resolves.toBe(false);
+    beforeEach(() => {
+      jest.mocked(isPushPermissionPromptable).mockResolvedValue(false);
+      Object.defineProperty(AppState, 'currentState', {
+        value: 'active',
+        configurable: true,
+        writable: true,
+      });
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((_type, listener) => {
+          appStateListener = listener;
+          return { remove: removeSubscription };
+        });
+    });
 
-    expect(
-      NotificationService.requestPushNotificationsPermission,
-    ).toHaveBeenCalledTimes(1);
-    expect(requestPushPermissions).not.toHaveBeenCalled();
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns false without waiting when the Settings alert is dismissed', async () => {
+      jest.mocked(isPushPermissionGranted).mockResolvedValue(false);
+      jest
+        .mocked(NotificationService.requestPushNotificationsPermission)
+        .mockResolvedValue(false);
+
+      await expect(promptOsPushPermissionIfNeeded()).resolves.toBe(false);
+
+      expect(
+        NotificationService.requestPushNotificationsPermission,
+      ).toHaveBeenCalledTimes(1);
+      expect(requestPushPermissions).not.toHaveBeenCalled();
+      expect(AppState.addEventListener).not.toHaveBeenCalled();
+    });
+
+    it('reads the permission after the user returns from the system Settings', async () => {
+      jest
+        .mocked(isPushPermissionGranted)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      jest
+        .mocked(NotificationService.requestPushNotificationsPermission)
+        .mockResolvedValue(true);
+      const onSettled = jest.fn();
+
+      const result = promptOsPushPermissionIfNeeded().then((granted) => {
+        onSettled();
+        return granted;
+      });
+      await waitFor(() => expect(AppState.addEventListener).toHaveBeenCalled());
+      appStateListener('background');
+      await Promise.resolve();
+
+      expect(onSettled).not.toHaveBeenCalled();
+
+      appStateListener('active');
+
+      await expect(result).resolves.toBe(true);
+      expect(isPushPermissionGranted).toHaveBeenCalledTimes(2);
+      expect(removeSubscription).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops waiting when the app never leaves the foreground', async () => {
+      jest.useFakeTimers();
+      jest.mocked(isPushPermissionGranted).mockResolvedValue(false);
+      jest
+        .mocked(NotificationService.requestPushNotificationsPermission)
+        .mockResolvedValue(true);
+
+      const result = promptOsPushPermissionIfNeeded();
+      await waitFor(() => expect(AppState.addEventListener).toHaveBeenCalled());
+      jest.advanceTimersByTime(LEAVE_FOREGROUND_TIMEOUT_MS);
+
+      await expect(result).resolves.toBe(false);
+      expect(removeSubscription).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('returns the current permission when the request fails', async () => {
