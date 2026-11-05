@@ -26,8 +26,10 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
 import type { ReferralFunnelEntry } from '../../../../../../reducers/rewardsMoney';
 import {
+  refereeMoneySections,
   selectEarningsSummaryEntry,
   selectReferralFunnelEntry,
+  selectReferralMeEntry,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
 } from '../../../../../../reducers/rewardsMoney/selectors';
@@ -415,9 +417,16 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const roles = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  );
+  const sections = refereeMoneySections(roles);
   const isReferrer = persona === 'referrer';
   const isReferee = persona === 'referee';
-  const showCommissions = (isReferrer || isReferee) && showTradingCommissions;
+  const showCommissions =
+    (isReferrer || (isReferee && sections.socialRewards)) &&
+    showTradingCommissions;
+  const showRebates = isReferee && sections.tradingRebates;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
@@ -435,7 +444,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
     enabled: active && showCommissions,
   });
   const rebatesList = useCashbackLedger(profileId, {
-    enabled: active && isReferee,
+    enabled: active && showRebates,
   });
   const openTradeActions = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -452,7 +461,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
 
   const funnel = deriveFunnelSection(isReferrer, funnelEntry);
   const commissions = deriveActivitySection(showCommissions, commissionsList);
-  const rebates = deriveActivitySection(isReferee, rebatesList);
+  const rebates = deriveActivitySection(showRebates, rebatesList);
 
   return (
     <Box testID={PERFORMANCE_TAB_TEST_IDS.CONTAINER}>
@@ -484,6 +493,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           }}
           state={commissions}
           followsSection={funnel.show}
+          bottomPadding={!rebates.show}
           emptyDescription={localizedText.copyTradingEmptyDescription}
           emptyActionLabel={localizedText.copyTradingEmptyAction}
           onEmptyAction={openSocialTab}
