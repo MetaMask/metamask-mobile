@@ -11,8 +11,11 @@ import {
   setPostUnlockResume,
 } from '../../../../core/PostUnlockResume';
 import Logger from '../../../../util/Logger';
+import I18n from '../../../../../locales/i18n';
 import { getVbaOnboardingResumeState } from '../../Ramp/Views/VirtualBankAccount/routes';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
+import { toSumSubLocale } from '../utils/toSumSubLocale';
 
 export const VBA_KYC_RESUME_OWNER = 'vba-kyc';
 const VBA_KYC_RESUME_SOURCE = 'vba-kyc-relaunch';
@@ -107,6 +110,10 @@ export const useLaunchSumSub = (
   attemptRef.current = attempt;
 
   const retry = useCallback(() => {
+    trackKycVerificationUpdated({
+      status: 'retry_started',
+      retrySource: 'sumsub_error',
+    });
     setHasError(false);
     setIsLaunching(true);
     setAttempt((count) => count + 1);
@@ -150,7 +157,10 @@ export const useLaunchSumSub = (
           }
         });
 
-        const outcome = await KycController.launchProviderFlow({});
+        trackKycVerificationUpdated({ status: 'started' });
+        const outcome = await KycController.launchProviderFlow({
+          locale: toSumSubLocale(I18n.locale),
+        });
         await stopKycResume();
         if (cancelled) {
           return;

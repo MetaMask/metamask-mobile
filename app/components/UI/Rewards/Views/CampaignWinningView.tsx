@@ -27,7 +27,7 @@ import {
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { strings } from '../../../../../locales/i18n';
-import CopyableField from '../components/ReferralDetails/CopyableField';
+import CopyableField from '../components/CopyableField';
 import { RewardsMetricsButtons } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';

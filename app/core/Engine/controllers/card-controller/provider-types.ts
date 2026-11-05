@@ -25,6 +25,10 @@ export enum CardProviderErrorCode {
   Timeout = 'timeout',
   Network = 'network',
   Unknown = 'unknown',
+  /** Full phone or email did not match a verified MFA option. */
+  MfaDestinationMismatch = 'mfa_destination_mismatch',
+  /** Login challenge or MFA code can no longer continue. Start sign-in again. */
+  AuthRestartRequired = 'auth_restart_required',
 }
 
 export class CardProviderError extends Error {
@@ -130,7 +134,7 @@ export type CardSignInResolution =
       kind: 'wallet';
       option: CardSignInOption;
       address: string;
-      source: 'record' | 'lookup';
+      source: 'record' | 'lookup' | 'card_link';
     }
   | {
       kind: 'wallet_account_missing';
@@ -176,6 +180,11 @@ export interface CardAuthResult {
   done: boolean;
   tokenSet?: CardAuthTokens;
   nextStep?: CardAuthStep;
+  /**
+   * Login id from an MFA step response. The controller uses it for the next
+   * post when the provider issues a new id per step.
+   */
+  nextSessionId?: string;
   onboardingRequired?: {
     sessionId: string;
     phase: string;
@@ -184,10 +193,26 @@ export interface CardAuthResult {
 
 // -- Auth Flow --
 
+export type CardMfaMethod = 'phone' | 'email';
+
+export interface CardMfaOption {
+  method: CardMfaMethod;
+  /** Provider-masked contact, for example "+64 *****1234" or "j***@example.com". */
+  maskedDestination: string;
+}
+
 export type CardAuthStep =
   | { type: 'email_password' }
   | { type: 'otp'; destination: string }
   | { type: 'siwe'; message: string }
+  | { type: 'mfa_select'; options: CardMfaOption[] }
+  | {
+      type: 'mfa_code';
+      method: CardMfaMethod;
+      maskedDestination: string;
+      /** Epoch ms when the one-time code expires, or null when the provider omits it. */
+      expiresAt: number | null;
+    }
   | { type: 'complete' };
 
 export interface CardAuthSession {
@@ -203,7 +228,9 @@ export type CardCredentials =
       password: string;
       otpCode?: string;
     }
-  | { type: 'siwe'; signature: string };
+  | { type: 'siwe'; signature: string }
+  | { type: 'mfa_method'; method: CardMfaMethod; destination: string }
+  | { type: 'mfa_code'; code: string };
 
 // -- Capabilities --
 
@@ -344,6 +371,14 @@ export interface CardWalletProvisioningInfo {
   network: 'MASTERCARD';
   /** Opaque issuer id. Immersve seriesId. Absent for Baanx. */
   primaryAccountIdentifier?: string;
+  /** ISO 3166-1 alpha-2 country the provisioning flag is resolved against. */
+  countryCode?: string;
+  /**
+   * Baanx `UserResponse.cardProvider`. Not a persisted field of its own:
+   * it rides on the home payload and is re-read on the next Card Home fetch.
+   * Absent for Immersve and when the user response omits it.
+   */
+  cardProcessor?: string;
 }
 
 export interface CardHomeData {

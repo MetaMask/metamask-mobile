@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -15,13 +15,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
+  TextButton,
   Icon,
   IconColor,
   IconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -65,6 +66,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -126,6 +128,8 @@ import {
 } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -240,11 +244,24 @@ const CardHome = () => {
   const {
     initiateProvisioning,
     isProvisioning,
-    walletEntry,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+    isCardInWallet,
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
-  } = useCardWalletProvisioning(data, platformWalletSupported);
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+    countryCode: data?.walletProvisioning?.countryCode,
+    cardProcessor: data?.walletProvisioning?.cardProcessor,
+  });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);
@@ -559,14 +576,9 @@ const CardHome = () => {
   const canUnlinkMoneyAccount = useMemo(() => {
     if (!primaryToken?.isMoneyAccountEntry) return false;
 
-    const tokenMoneyAccountAddress = primaryToken.walletAddress;
-    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
-    return Boolean(
-      tokenMoneyAccountAddress &&
-        activeMoneyAccountAddress &&
-        tokenMoneyAccountAddress.toLowerCase() ===
-          activeMoneyAccountAddress.toLowerCase(),
-    );
+    const tokenAddress = primaryToken.walletAddress?.toLowerCase();
+    const activeAddress = primaryMoneyAccount?.address?.toLowerCase();
+    return Boolean(tokenAddress && tokenAddress === activeAddress);
   }, [
     primaryMoneyAccount?.address,
     primaryToken?.isMoneyAccountEntry,
@@ -614,6 +626,7 @@ const CardHome = () => {
   ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -629,7 +642,9 @@ const CardHome = () => {
   if (isError) {
     return (
       <Box twClassName="flex-1 bg-background-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -670,7 +685,9 @@ const CardHome = () => {
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}
@@ -883,6 +900,16 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
+            {Platform.OS === 'ios' && !isCardInWallet && (
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </TextButton>
+            )}
           </Box>
         )}
 
@@ -946,6 +973,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

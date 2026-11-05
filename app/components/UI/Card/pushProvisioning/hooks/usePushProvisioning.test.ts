@@ -1,6 +1,31 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { AppState, Platform, type AppStateStatus } from 'react-native';
+import { selectPushProvisioningEnabled } from '../../../../../selectors/featureFlagController/card';
 import { usePushProvisioning } from './usePushProvisioning';
+
+interface FocusEffectHarness {
+  latest?: () => void | (() => void);
+}
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const harness: FocusEffectHarness = {};
+  (
+    globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness }
+  ).__pushProvisioningFocusHarness = harness;
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        harness.latest = effect;
+        return effect();
+      }, [effect]);
+    },
+  };
+});
+
+const getFocusEffect = () =>
+  (globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness })
+    .__pushProvisioningFocusHarness?.latest;
 import { ProvisioningError, ProvisioningErrorCode } from '../types';
 
 let mockAppleProvisioningEnabled = true;
@@ -88,14 +113,12 @@ jest.mock('../../hooks/useCardCapabilities', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
-  selectPushProvisioningEnabled: (
-    _state: unknown,
-    _providerId: unknown,
-    walletType: string,
-  ) =>
-    walletType === 'apple_wallet'
-      ? mockAppleProvisioningEnabled
-      : mockGoogleProvisioningEnabled,
+  selectPushProvisioningEnabled: jest.fn(
+    (_state: unknown, _providerId: unknown, walletType: string) =>
+      walletType === 'apple_wallet'
+        ? mockAppleProvisioningEnabled
+        : mockGoogleProvisioningEnabled,
+  ),
 }));
 
 describe('usePushProvisioning', () => {
@@ -139,11 +162,6 @@ describe('usePushProvisioning', () => {
       if (selector === 'selectIsCardAuthenticated') return true;
       if (selector === 'selectCardActiveProviderId') return 'baanx';
       if (typeof selector === 'function') return selector({});
-      // Feature flags enabled by default for tests
-      if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-        return true;
-      if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-        return true;
       return undefined;
     });
     // Default adapter returns - use sync mock to avoid act() warnings
@@ -224,6 +242,129 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('re-checks eligibility when the screen regains focus', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      mockWalletAdapter.getEligibility.mockClear();
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'active',
+      });
+
+      await act(async () => {
+        getFocusEffect()?.();
+      });
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith(
+          '1234',
+          undefined,
+        );
+        expect(result.current.isCardInWallet).toBe(true);
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+      expect(result.current.isLoading).toBe(false);
+
+      unmount();
+    });
+
+    it('keeps the current add state while a same-card refocus check is in flight', async () => {
+      let resolveRecheck: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        existingCardStatus: 'active';
+      }) => void = () => undefined;
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveRecheck = resolve;
+        }),
+      );
+
+      act(() => {
+        getFocusEffect()?.();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.canAddToWallet).toBe(true);
+
+      await act(async () => {
+        resolveRecheck({
+          isAvailable: true,
+          canAddCard: false,
+          existingCardStatus: 'active',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      unmount();
+    });
+
+    it('shows loading when the card changes before the new eligibility check resolves', async () => {
+      let resolveNext: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        recommendedAction: 'add_card';
+      }) => void = () => undefined;
+      const { result, rerender, unmount } = renderHook(
+        ({ walletProvisioning }) =>
+          usePushProvisioning({ ...defaultOptions, walletProvisioning }),
+        { initialProps: { walletProvisioning: mockWalletProvisioning } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveNext = resolve;
+        }),
+      );
+
+      rerender({
+        walletProvisioning: { ...mockWalletProvisioning, lastFour: '5678' },
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+
+      await act(async () => {
+        resolveNext({
+          isAvailable: true,
+          canAddCard: true,
+          recommendedAction: 'add_card',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      unmount();
+    });
+
     it('does not check eligibility when wallet provisioning is missing', async () => {
       const { unmount } = renderHook(() =>
         usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
@@ -256,10 +397,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return false;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -357,6 +494,41 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('passes the card country and processor into the provisioning flag', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          walletProvisioning: {
+            ...mockWalletProvisioning,
+            countryCode: 'US',
+            cardProcessor: 'galileo',
+          },
+        }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: 'US', cardProcessor: 'galileo' },
+      );
+      unmount();
+    });
+
+    it('passes empty facts when provisioning info is missing', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: undefined, cardProcessor: undefined },
+      );
+      unmount();
+    });
+
     it('returns false when provisioning data is absent for a pending card', async () => {
       const { result, unmount } = renderHook(() =>
         usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
@@ -379,10 +551,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -415,10 +583,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -448,10 +612,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -484,10 +644,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -518,10 +674,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -555,10 +707,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -571,6 +719,116 @@ describe('usePushProvisioning', () => {
       });
 
       expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+  });
+
+  describe('Immersve Apple Pay flag off', () => {
+    const walletState = {
+      isAvailable: true,
+      canAddCard: false,
+      existingCardStatus: 'active' as const,
+      devices: { phone: 'active' as const },
+      pendingVerificationDevices: ['phone' as const],
+    };
+
+    it('skips the wallet check and hides wallet state on iOS', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).not.toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+      expect(result.current.isCardInWallet).toBe(false);
+      expect(result.current.pendingVerificationDevices).toEqual([]);
+      expect(result.current.canOpenInWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Immersve on Android', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockGoogleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
+      expect(result.current.pendingVerificationDevices).toEqual(['phone']);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Baanx when its Apple Pay flag is off', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'baanx';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
 
       Object.defineProperty(Platform, 'OS', {
         value: originalPlatform,

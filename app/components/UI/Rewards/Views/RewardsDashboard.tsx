@@ -5,19 +5,25 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
   Box,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
   IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import HeaderRootGlass from '../../../../component-library/components-temp/HeaderRootGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
@@ -44,7 +50,10 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../reducers/rewardsMoney/selectors';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -72,6 +81,10 @@ const RewardsDashboard: React.FC = () => {
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
@@ -283,6 +296,10 @@ const RewardsDashboard: React.FC = () => {
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -349,57 +366,67 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
+  const vipButtonStyle = isGlassHeader
+    ? undefined
+    : tw.style('h-8 w-8 items-center justify-center');
+  const vipIcon = isGlassHeader ? (
+    <CapsuleGlass twClassName="w-10 justify-center">
+      <VipIcon width={24} height={24} name="VipIcon" />
+    </CapsuleGlass>
+  ) : (
+    <VipIcon width={24} height={24} name="VipIcon" />
+  );
+
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">
       {isVipProgramEnabled && isVipReferee && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipRefereePress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
       {isVipProgramEnabled && isVipEnabled && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipPress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
-      <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-      />
-      <ButtonIcon
-        disabled={!subscriptionId}
-        iconName={IconName.Setting}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-      />
+      {settingsDisabled ? null : (
+        <ButtonIconGlass
+          isCapsule={isGlassHeader}
+          iconName={IconName.Setting}
+          onPress={() =>
+            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+          }
+          size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
+          testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+        />
+      )}
     </Box>
   );
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        // A floating header pads the status bar itself, so content scrolls under both.
+        edges={isGlassHeader ? {} : { top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         {isPushedScreen ? (
-          <HeaderStandardAnimated
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
             title={strings('rewards.main_title')}
             titleProps={{
               onPress: handleTitlePress,
@@ -413,7 +440,13 @@ const RewardsDashboard: React.FC = () => {
             endAccessory={headerEndAccessory}
           />
         ) : (
-          <HeaderRoot endAccessory={headerEndAccessory}>
+          <HeaderRootGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
+            scrollY={scrollY}
+            endAccessory={headerEndAccessory}
+          >
             <Pressable
               accessibilityRole="header"
               onPress={handleTitlePress}
@@ -423,14 +456,17 @@ const RewardsDashboard: React.FC = () => {
                 {strings('rewards.main_title')}
               </Text>
             </Pressable>
-          </HeaderRoot>
+          </HeaderRootGlass>
         )}
         <Animated.ScrollView
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+          contentContainerStyle={[
+            tw.style(`pb-[${floatingTabBarInset}px]`),
+            { paddingTop: headerInset },
+          ]}
         >
           {/* Pushed only: the large title lives in the content and collapses
               into the header on scroll, as on Activity and the home redesign.

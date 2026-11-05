@@ -1,6 +1,7 @@
 import type {
   FetchFeedParams,
   FetchPortfolioPageParams,
+  FetchPositionsParams,
   FetchSearchParams,
   PredictActivityPage,
   PredictBalance,
@@ -13,18 +14,24 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
+  PredictPortfolioSummary,
   PredictPositionsPage,
   PredictReadOptions,
   PredictSearchResults,
+  PredictVenueCatalog,
   PredictVenueStatus,
 } from '../types';
 
 export interface VenuePortfolioAdapter {
   fetchBalance(options?: PredictReadOptions): Promise<PredictBalance>;
   fetchPositions(
-    params: FetchPortfolioPageParams,
+    params: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<PredictPositionsPage>;
+  /** Totals over every holding, computed by the backend. */
+  fetchPortfolioSummary(
+    options?: PredictReadOptions,
+  ): Promise<PredictPortfolioSummary>;
   fetchActivity(
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
@@ -52,6 +59,9 @@ export interface VenueTradingAdapter {
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
+  /** The Venue's product support: actions, discovery Feeds by key, and
+   * search. Parsed with `parsePredictVenueCatalog`, so it fails closed. */
+  fetchVenueCatalog(options?: PredictReadOptions): Promise<PredictVenueCatalog>;
   fetchFeed(
     feedId: PredictFeedId,
     params: FetchFeedParams,

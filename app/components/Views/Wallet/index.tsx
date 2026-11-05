@@ -118,7 +118,11 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
+import {
+  selectShouldShowWalletHomeOnboardingSteps,
+  selectWalletHomeOnboardingSteps,
+} from '../../../selectors/onboarding';
+import { selectIsAccountGroupFunded } from '../../../selectors/assets/balances';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
@@ -369,6 +373,10 @@ const Wallet = ({
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
+
+  const walletHomeOnboardingStepIndex =
+    useSelector(selectWalletHomeOnboardingSteps).stepIndex ?? 0;
+  const isAccountGroupFunded = useSelector(selectIsAccountGroupFunded);
 
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
@@ -1263,9 +1271,15 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  // The fund step can outlast incoming funds, so check both (TMCU-1264).
+  const hideGrowthBannerForChecklist =
+    inWalletHomePostOnboardingFlow &&
+    (walletHomeOnboardingStepIndex === 0 || !isAccountGroupFunded);
+
   // Hide growth banners when money account is enabled but user is geo-blocked.
   const growthBanner =
-    !isMoneyAccountEnabled || isMoneyAccountVisible
+    !hideGrowthBannerForChecklist &&
+    (!isMoneyAccountEnabled || isMoneyAccountVisible)
       ? homeGrowthBannerContent
       : null;
 

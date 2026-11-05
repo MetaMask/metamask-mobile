@@ -36,6 +36,7 @@ describe('rewardsFlowFocusedScreen', () => {
 
 describe('isRewardsMoneyFlowScreen', () => {
   it.each([
+    Routes.REWARDS_SETTINGS_VIEW,
     Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
     Routes.REWARDS_TRADING_REBATES_VIEW,
     Routes.REWARDS_EARNINGS_HISTORY_VIEW,
@@ -44,7 +45,7 @@ describe('isRewardsMoneyFlowScreen', () => {
   });
 
   it('rejects a points screen', () => {
-    expect(isRewardsMoneyFlowScreen(Routes.REWARDS_SETTINGS_VIEW)).toBe(false);
+    expect(isRewardsMoneyFlowScreen(Routes.REWARDS_VIP_VIEW)).toBe(false);
   });
 });
 

@@ -484,6 +484,30 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
     });
 
+    it('does not store a null block explorer when the request has none', async () => {
+      const spyOnAddNetwork = jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+      const paramsWithoutExplorer = { ...correctParams };
+      delete paramsWithoutExplorer.blockExplorerUrls;
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [paramsWithoutExplorer],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+      await flushPromises();
+
+      expect(spyOnAddNetwork).toHaveBeenCalledWith(
+        expect.objectContaining({
+          blockExplorerUrls: [],
+          defaultBlockExplorerUrlIndex: undefined,
+        }),
+      );
+    });
+
     it('calls identify with chain ID list', async () => {
       jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
@@ -604,6 +628,37 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         Engine.context.NetworkController.updateNetwork,
       ).toHaveBeenCalledTimes(1);
       expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the existing block explorers when the request has none', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'updateNetwork')
+        .mockReturnValue(updatedNetworkResult);
+
+      otherOptions.hooks.getNetworkConfigurationByChainId = jest
+        .fn()
+        .mockReturnValue(existingNetworkWithRpc);
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [existingNetworkParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+      await flushPromises();
+
+      expect(
+        Engine.context.NetworkController.updateNetwork,
+      ).toHaveBeenCalledWith(
+        existingNetworkWithRpc.chainId,
+        expect.objectContaining({
+          blockExplorerUrls: existingNetworkWithRpc.blockExplorerUrls,
+          defaultBlockExplorerUrlIndex:
+            existingNetworkWithRpc.defaultBlockExplorerUrlIndex,
+        }),
+        undefined,
+      );
     });
 
     it('tracks RPC_ADDED event with rpc_url_index matching new endpoint position', async () => {

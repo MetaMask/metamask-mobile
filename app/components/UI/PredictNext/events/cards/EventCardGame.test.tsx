@@ -104,7 +104,7 @@ describe('EventCardGame', () => {
   it('defaults to the compact live layout', () => {
     const event = createEvent();
 
-    renderCard(event);
+    renderCard(event, { onOrder: jest.fn() });
 
     expect(
       screen.getByText(strings('predict.game_status.live')),
@@ -132,10 +132,24 @@ describe('EventCardGame', () => {
 
   it('renders the featured matchup layout', () => {
     const event = createEvent();
+    if (event.sports?.game) {
+      event.sports.game.homeTeam.logoUrl =
+        'https://example.com/car.png' as PredictHttpsUrl;
+    }
 
     renderCard(event, { variant: 'featured' });
 
     expect(screen.getByText(event.title)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-next-game-logo-game-event-away', {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      screen.getByTestId('predict-next-game-logo-game-event-home', {
+        includeHiddenElements: true,
+      }),
+    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
     expect(screen.getByText('Arizona Cardinals')).toHaveStyle({ width: 80 });
     expect(
       screen.getByTestId('predict-next-game-matchup-game-event'),
@@ -213,7 +227,7 @@ describe('EventCardGame', () => {
       ],
     });
 
-    renderCard(event, { variant: 'featured' });
+    renderCard(event, { variant: 'featured', onOrder: jest.fn() });
 
     expect(
       screen.queryByTestId('predict-next-game-quote-game-event-away'),
@@ -227,6 +241,14 @@ describe('EventCardGame', () => {
     expect(
       screen.getByTestId('predict-next-game-quote-game-event-home'),
     ).toHaveStyle({ width: '100%' });
+  });
+
+  it('shows quotes as prices, not buttons, without an order handler', () => {
+    renderCard(createEvent());
+
+    const quote = screen.getByTestId('predict-next-game-quote-game-event-away');
+    expect(quote).toHaveTextContent('ARI · 47¢');
+    expect(screen.queryByRole('button', { name: /buy/ })).not.toBeOnTheScreen();
   });
 
   it('emits the Event, Market, and Outcome from an active quote', () => {

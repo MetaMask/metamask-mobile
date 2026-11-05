@@ -47,6 +47,9 @@ export const getTokenDetails = (
 };
 
 export const resolveTokenContractAddress = (asset: TokenI): string | null => {
+  if (!asset.chainId) {
+    return null;
+  }
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const tokenContractAddress = !isNonEvmAsset

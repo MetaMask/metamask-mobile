@@ -10,7 +10,10 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import {
+  findUsableVbaAutoramp,
+  selectSelectedVbaWalletAddress,
+} from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -18,6 +21,7 @@ import {
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
+import { recordVbaOnboardingSnapshot } from '../vbaAnalytics';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
@@ -32,9 +36,16 @@ import {
   isAccountCreateErrorDestination,
   type AccountCreateFailureFields,
 } from '../accountCreateError';
-import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import {
+  applyVbaDevOverrides,
+  getVbaKycStatusOverride,
+} from '../vbaDevOverrides';
+import { findUsableAutoramp } from '../ensureMusdAutoramp';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -169,6 +180,59 @@ export const openCompletedVbaAccount = (
   }
 };
 
+const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
+  const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
+  return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
+};
+
+/**
+ * True when account details can open from persisted state, with no loading
+ * route. Matches the fast path inside {@link openVbaEntry}.
+ */
+export const canOpenPersistedVbaDetails = (): boolean => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!walletAddress || getVbaKycStatusOverride() !== null) {
+    return false;
+  }
+  return hasPersistedApprovedAutoramp(walletAddress);
+};
+
+/**
+ * Cold entry from Money surfaces. An account whose autoramp is already
+ * Approved on this device opens its details directly, and onboarding facts
+ * refresh in the background. Everyone else gets the loading screen, which
+ * hydrates before picking a destination. Dev KYC overrides always take the
+ * loading screen so the override still applies.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @param params - Loading screen params, used when the fast path does not apply.
+ */
+export const openVbaEntry = (
+  navigation: AppNavigationProp,
+  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
+): void => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (walletAddress && canOpenPersistedVbaDetails()) {
+    openCompletedVbaAccount(navigation);
+    Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: true,
+      refreshAutoramps: true,
+    }).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      });
+    });
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);
+};
+
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
@@ -231,28 +295,51 @@ const openRecoverableError = (navigation: AppNavigationProp): void => {
 export interface OpenVbaOnboardingRequest {
   source?: string;
   /**
-   * Re-enter identity verification when hydrate still reports a rejected KYC
-   * session. Without this, Try again on the failure page routes back to itself.
-   * The retry pushes a new identity screen so SumSub mounts again instead of
+   * Re-enter identity verification when hydrate still reports a KYC session
+   * whose status is `retry`. A rejected session stays on the failure page:
+   * rejection is terminal and must not request another SumSub token. The
+   * retry pushes a new identity screen so SumSub mounts again instead of
    * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
 }
 
+const isMissingAal2TokenError = (error: unknown): boolean =>
+  error instanceof Error && error.message.includes('aal2Token is required');
+
 /**
  * Re-submits capability authorization for a KYC session that already exists.
  * First-time creation stays on the email screen, which also has the signed-in
  * token `startSession` needs when no session exists.
+ *
+ * Reinstall deletes the persisted session. Hydrate only reads that local
+ * session and otherwise returns an empty funnel, so an approved account is
+ * shown the create-account screen. The latest vendor session is reattached
+ * here, without an AAL2 token, before that read. A missing latest session is
+ * a first-time user and must not fail onboarding.
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
   if (!kycController.readSessionStatus()) {
-    return;
+    const existingSession =
+      await kycController.getSessionStatusForVendor(VBA_KYC_VENDOR);
+    if (!existingSession) {
+      return;
+    }
   }
 
-  await kycController.startSession({
-    vendor: VBA_KYC_VENDOR,
-  });
+  try {
+    await kycController.startSession({
+      vendor: VBA_KYC_VENDOR,
+    });
+  } catch (error) {
+    // The latest session can disappear between the lookup and start. Creating
+    // one still belongs on the email screen.
+    if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
+      return;
+    }
+    throw error;
+  }
 };
 
 const resolveOpenRequest = (
@@ -288,11 +375,13 @@ export type ResolvedVbaOnboarding =
 export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
+  const hydrateTraceId = startVbaCufChildTrace(TraceName.VbaHydrate);
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
       ReduxService.store.getState() as RootState,
     );
     if (!walletAddress) {
+      endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
       return { status: 'error' };
     }
 
@@ -333,12 +422,27 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    recordVbaOnboardingSnapshot(snapshot);
+    endVbaCufChildTrace(hydrateTraceId, true);
+    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    // An existing autoramp opens the account only when the funnel would send
+    // the user back to vendor terms or email, as it does with no KYC session.
+    const hasExistingAccount =
+      (funnelDestination === 'vendorTerms' || funnelDestination === 'email') &&
+      getVbaKycStatusOverride() === null &&
+      Boolean(
+        findUsableVbaAutoramp(
+          Engine.context.RampsController.state?.autoramps ?? [],
+          walletAddress,
+        ),
+      );
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId: hasExistingAccount ? 'complete' : funnelDestination,
       snapshot,
     };
   } catch (error) {
+    endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
     Logger.error(error as Error, {
       tags: { feature: 'vba-onboarding' },
       context: {
@@ -356,7 +460,9 @@ export const resolveVbaOnboarding = async (
  * first and calls {@link resolveVbaOnboarding} there.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
- * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
+ * @returns An async callback. Pass a source string, or
+ * `{ retryRejectedKyc: true }` to re-enter SumSub when the hydrated KYC
+ * status is `retry`.
  */
 export const useOpenVbaOnboarding = (
   defaultSource = 'unspecified',
@@ -376,8 +482,10 @@ export const useOpenVbaOnboarding = (
       }
 
       try {
+        const canReenterSumSub =
+          retryRejectedKyc && resolved.snapshot.kycStatus === 'retry';
         const destinationId =
-          retryRejectedKyc && resolved.destinationId === 'kycRejected'
+          canReenterSumSub && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
             : resolved.destinationId;
         Logger.log('[vba-onboarding] resume', {
@@ -385,7 +493,7 @@ export const useOpenVbaOnboarding = (
           snapshot: resolved.snapshot,
           destinationId,
         });
-        if (retryRejectedKyc && destinationId === 'identityVerification') {
+        if (canReenterSumSub && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
               snapshot: resolved.snapshot,

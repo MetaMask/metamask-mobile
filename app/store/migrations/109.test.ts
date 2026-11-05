@@ -2,6 +2,7 @@ import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 
 import migrate from './109';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -235,7 +236,7 @@ describe(`migration #${migrationVersion}`, () => {
       // State should be unchanged
       expect(migratedState).toStrictEqual(orgState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     },

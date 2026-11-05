@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView } from 'react-native';
+import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -10,20 +10,20 @@ import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  BoxBackgroundColor,
   Button,
   ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   ListItem,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type {
@@ -33,6 +33,8 @@ import type {
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import type { RootState } from '../../../../../reducers';
+import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,8 +48,6 @@ import {
   VBA_CHOOSABLE_SOURCE_CURRENCIES,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import vbaPixLogo from './assets/vba-pix-logo.png';
-import bankTransferImage from '../../../../../images/bank-transfer.png';
 import {
   pickLatestTransaction,
   type AutorampTransactionSummary,
@@ -55,6 +55,12 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import {
+  getCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import {
   AccountCreateRegistrationError,
   ACCOUNT_CREATE_ERROR_DESTINATION,
@@ -71,17 +77,23 @@ import {
   VBA_SCREEN_PERFORMANCE_CONFIG,
   type VbaScreenContentState,
 } from './vbaScreenPerformance';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { AVENIA_URL } from './constants';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
-// Keep the Figma disclosure ready while Product finalizes the copy.
-const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
   BACK_BUTTON: 'vba-details-back-button',
-  LOGO: 'vba-details-logo',
   TITLE: 'vba-details-title',
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
@@ -90,10 +102,12 @@ export const VbaDetailsSelectorsIDs = {
   ROUTING_NUMBER: 'vba-details-routing-number',
   ACCOUNT_NUMBER: 'vba-details-account-number',
   BANK_NAME: 'vba-details-bank-name',
-  HELPER_TEXT: 'vba-details-helper-text',
+  PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
+  PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
+  DONE_BUTTON: 'vba-details-done-button',
 } as const;
 
 interface AutorampCursor {
@@ -107,9 +121,6 @@ interface DepositNeoBank {
   getDepositInstructions: (
     autorampId: string,
   ) => Promise<AutorampDepositInstructions | null>;
-  listAutorampTransactions?: (
-    autorampId: string,
-  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 interface DetailRow {
@@ -122,6 +133,9 @@ interface DetailRow {
 interface DepositRamps {
   state?: { autoramps?: AutorampCursor[] };
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
+  refreshAutorampTransactions?: (
+    autorampId: string,
+  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 const isTerminalStatus = (status: string): boolean =>
@@ -129,6 +143,32 @@ const isTerminalStatus = (status: string): boolean =>
 
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
+
+const readCachedInstructions = (
+  walletAddress: string | null | undefined,
+  sourceCurrency: string | undefined,
+): AutorampDepositInstructions | null => {
+  if (!walletAddress) {
+    return null;
+  }
+  const autoramp = findUsableAutoramp(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
+  if (autoramp?.status !== 'Approved') {
+    return null;
+  }
+  // An account without a stored fiat may be in another currency; refreshDeposit
+  // must confirm it before its details can show for this one.
+  if (
+    sourceCurrency &&
+    autoramp.depositRailsSummary?.currency !== sourceCurrency
+  ) {
+    return null;
+  }
+  return getCachedDepositInstructions(autoramp.id);
+};
 
 const buildDetailRows = (
   instructions: AutorampDepositInstructions | null,
@@ -164,14 +204,8 @@ const buildDetailRows = (
   if (instructions?.type !== 'Pix') {
     return [];
   }
-  const rows: DetailRow[] = [
-    {
-      id: 'copia-cola',
-      testID: VbaDetailsSelectorsIDs.PIX_CODE,
-      label: strings('virtual_bank_account.vba_details.copia_cola_label'),
-      value: instructions.brCode,
-    },
-  ];
+  // Pix key first, Copia e Cola second (TRAM-4210).
+  const rows: DetailRow[] = [];
   if (instructions.pixKey) {
     rows.push({
       id: 'pix-key',
@@ -180,6 +214,12 @@ const buildDetailRows = (
       value: instructions.pixKey,
     });
   }
+  rows.push({
+    id: 'copia-cola',
+    testID: VbaDetailsSelectorsIDs.PIX_CODE,
+    label: strings('virtual_bank_account.vba_details.copia_cola_label'),
+    value: instructions.brCode,
+  });
   return rows;
 };
 
@@ -196,6 +236,7 @@ const buildDetailRows = (
  * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
@@ -230,7 +271,10 @@ const VbaDetails = () => {
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
   const [instructions, setInstructions] =
-    useState<AutorampDepositInstructions | null>(null);
+    useState<AutorampDepositInstructions | null>(() =>
+      readCachedInstructions(walletAddress, sourceCurrency),
+    );
+  const [revalidateCount, setRevalidateCount] = useState(0);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
@@ -247,16 +291,45 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const pixFetchTraceIdRef = useRef<string | null>(null);
+  const pixFetchTraceSettledRef = useRef(false);
+  const transactionsFetchedForRef = useRef<string | null>(null);
   const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
   const accountKeyRef = useRef(accountKey);
   const [stateAccountKey, setStateAccountKey] = useState(accountKey);
+
+  const finishPixFetchTrace = useCallback(
+    (
+      success: boolean,
+      reason?: VbaCufEndReason,
+      expectedTraceId = pixFetchTraceIdRef.current,
+    ) => {
+      const traceId = pixFetchTraceIdRef.current;
+      if (!traceId || traceId !== expectedTraceId) {
+        return;
+      }
+      pixFetchTraceIdRef.current = null;
+      pixFetchTraceSettledRef.current = true;
+      if (reason) {
+        endVbaCufChildTrace(traceId, success, reason);
+      } else {
+        endVbaCufChildTrace(traceId, success);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      queueMicrotask(() => {
+        if (!isMountedRef.current) {
+          finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+        }
+      });
     };
-  }, []);
+  }, [finishPixFetchTrace]);
 
   const refreshDeposit = useCallback(
     async (replaceTerminal = false) => {
@@ -369,6 +442,7 @@ const VbaDetails = () => {
       const terminal = isTerminalStatus(status);
       if (terminal) {
         pollingDoneRef.current = true;
+        finishPixFetchTrace(false, VBA_CUF_END_REASON.ERROR);
         setInstructions(null);
         navigateToVbaOnboardingDestination(
           navigation,
@@ -386,44 +460,104 @@ const VbaDetails = () => {
       const neoBank = (
         Engine.context as unknown as { NeoBankService?: DepositNeoBank }
       ).NeoBankService;
-      if (!neoBank) {
-        return;
-      }
-
-      // Fetch details on their own so a flaky transaction poll cannot hide them.
-      try {
-        const details = await neoBank.getDepositInstructions(autoramp.id);
-        if (!stillCurrent()) {
-          return;
+      let depositError: unknown;
+      if (neoBank) {
+        // One logical trace covers all retries so polling cannot flood Sentry.
+        // Deposit details stay independent of the transaction refresh.
+        if (!pixFetchTraceIdRef.current && !pixFetchTraceSettledRef.current) {
+          pixFetchTraceIdRef.current = startVbaCufChildTrace(
+            TraceName.VbaPixFetch,
+          );
         }
-        if (details) {
-          setInstructions(details);
-          // Debug builds keep polling so the latest deposit stays visible.
-          pollingDoneRef.current = !debugEnabled;
-        }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to load deposit instructions',
-        });
-        throw error;
-      }
-
-      if (debugEnabled && neoBank.listAutorampTransactions) {
+        const requestTraceId = pixFetchTraceIdRef.current;
         try {
-          const transactions = await neoBank.listAutorampTransactions(
+          const details = await neoBank.getDepositInstructions(autoramp.id);
+          if (!stillCurrent()) {
+            finishPixFetchTrace(
+              false,
+              isMountedRef.current
+                ? VBA_CUF_END_REASON.SUPERSEDED
+                : VBA_CUF_END_REASON.BAILED,
+              requestTraceId,
+            );
+            return;
+          }
+          // The autoramp may have been rejected, cancelled or replaced while
+          // this request was in flight (for example by a background hydrate).
+          // Poll again right away instead of showing details for it.
+          if (
+            findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+              ?.id !== autoramp.id
+          ) {
+            setRevalidateCount((count) => count + 1);
+            return;
+          }
+          if (details) {
+            finishPixFetchTrace(true, undefined, requestTraceId);
+            setCachedDepositInstructions(autoramp.id, details);
+            setInstructions(details);
+            // Debug builds keep polling so the latest deposit stays visible.
+            pollingDoneRef.current = !debugEnabled;
+          }
+        } catch (error) {
+          if (!stillCurrent()) {
+            finishPixFetchTrace(
+              false,
+              isMountedRef.current
+                ? VBA_CUF_END_REASON.SUPERSEDED
+                : VBA_CUF_END_REASON.BAILED,
+              requestTraceId,
+            );
+            return;
+          }
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to load deposit instructions',
+          });
+          depositError = error;
+        }
+      }
+
+      const shouldRefreshTransactions =
+        Boolean(ramps.refreshAutorampTransactions) &&
+        (debugEnabled || transactionsFetchedForRef.current !== autoramp.id);
+      if (
+        stillCurrent() &&
+        shouldRefreshTransactions &&
+        ramps.refreshAutorampTransactions
+      ) {
+        try {
+          const transactions = await ramps.refreshAutorampTransactions(
             autoramp.id,
           );
-          setTransactionStatus(
-            pickLatestTransaction(transactions)?.status ?? null,
-          );
+          if (!stillCurrent()) {
+            return;
+          }
+          if (!debugEnabled) {
+            transactionsFetchedForRef.current = autoramp.id;
+          }
+          if (debugEnabled) {
+            setTransactionStatus(
+              pickLatestTransaction(transactions)?.status ?? null,
+            );
+          }
         } catch (error) {
           Logger.error(error as Error, {
-            message: 'VbaDetails: failed to list autoramp transactions',
+            message: 'VbaDetails: failed to refresh autoramp transactions',
           });
         }
       }
+
+      if (depositError) {
+        throw depositError;
+      }
     },
-    [debugEnabled, navigation, sourceCurrency, walletAddress],
+    [
+      debugEnabled,
+      finishPixFetchTrace,
+      navigation,
+      sourceCurrency,
+      walletAddress,
+    ],
   );
 
   useEffect(() => {
@@ -432,10 +566,13 @@ const VbaDetails = () => {
       return;
     }
     accountKeyRef.current = nextKey;
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.SUPERSEDED);
+    pixFetchTraceSettledRef.current = false;
     setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
-    setInstructions(null);
+    transactionsFetchedForRef.current = null;
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
     setAwaitingProviderApproval(false);
     setAutorampId(null);
@@ -445,7 +582,46 @@ const VbaDetails = () => {
             ?.status ?? null)
         : null,
     );
-  }, [sourceCurrency, walletAddress]);
+  }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
+
+  // Opening from Money can skip the loading screen, so hydrate may land after
+  // details are shown. When it changes the usable autoramp (Rejected,
+  // Cancelled or replaced), drop the shown details and poll again so
+  // refreshDeposit routes or reloads.
+  const usableAutorampKey = useSelector((state: RootState) => {
+    if (!walletAddress) {
+      return null;
+    }
+    const autoramps =
+      (
+        state.engine?.backgroundState?.RampsController as
+          | { autoramps?: AutorampCursor[] }
+          | undefined
+      )?.autoramps ?? [];
+    const autoramp = findUsableAutoramp(
+      autoramps,
+      walletAddress,
+      sourceCurrency,
+    );
+    return autoramp ? `${autoramp.id}:${autoramp.status}` : '';
+  });
+  const lastUsableAutorampRef = useRef({ accountKey, usableAutorampKey });
+
+  useEffect(() => {
+    const last = lastUsableAutorampRef.current;
+    lastUsableAutorampRef.current = { accountKey, usableAutorampKey };
+    if (
+      last.accountKey !== accountKey ||
+      last.usableAutorampKey === usableAutorampKey
+    ) {
+      return;
+    }
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
+    if (pollingDoneRef.current) {
+      pollingDoneRef.current = false;
+      setRevalidateCount((count) => count + 1);
+    }
+  }, [accountKey, sourceCurrency, usableAutorampKey, walletAddress]);
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -507,9 +683,32 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
+  }, [
+    hardwareTier,
+    navigation,
+    networkTier,
+    refreshDeposit,
+    revalidateCount,
+    sourceCurrency,
+  ]);
 
   const isApproved = autorampStatus === 'Approved';
+  const detailsViewedRef = useRef(false);
+
+  // The account-ready screen shows once the autoramp is approved. A return to
+  // an existing account reports it too; the ref keeps polling re-renders quiet.
+  useEffect(() => {
+    if (!isApproved || detailsViewedRef.current) {
+      return;
+    }
+    detailsViewedRef.current = true;
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () =>
+      buildVbaBaseProperties({
+        screenName: 'vba_details',
+        currencySource: sourceCurrency,
+      }),
+    );
+  }, [isApproved, sourceCurrency]);
 
   useEffect(() => {
     if (!loadError || !isApproved || instructions) {
@@ -521,20 +720,24 @@ const VbaDetails = () => {
   }, [instructions, isApproved, loadError]);
 
   const handleDone = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [navigation]);
+  }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
     }
 
     handleDone();
-  }, [handleDone, navigation]);
+  }, [finishPixFetchTrace, handleDone, navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -547,6 +750,14 @@ const VbaDetails = () => {
     },
     [],
   );
+
+  const handleOpenProviderInfo = useCallback(() => {
+    Linking.openURL(AVENIA_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the provider link',
+      });
+    });
+  }, []);
 
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
@@ -574,9 +785,19 @@ const VbaDetails = () => {
     contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
     contentState: accountDetailsContentState,
   });
+  useEffect(() => {
+    if (hasCurrentAccountState && rows.length > 0) {
+      endVbaCufJourney(true);
+    }
+  }, [hasCurrentAccountState, rows.length]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
+  // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
+  // the user's country. The US bank transfer layout never shows it.
+  const showProviderDisclosure = instructions
+    ? instructions.type === 'Pix'
+    : sourceCurrency === 'BRL';
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -586,7 +807,7 @@ const VbaDetails = () => {
   if (!isApproved) {
     return (
       <VbaCreatingAccount
-        onBack={handleDone}
+        onBack={handleBack}
         awaitingProviderApproval={awaitingProviderApproval}
       />
     );
@@ -597,7 +818,9 @@ const VbaDetails = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
         includesTopInset
@@ -607,70 +830,55 @@ const VbaDetails = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
-          <Image
-            source={isBankTransfer ? bankTransferImage : vbaPixLogo}
-            accessibilityIgnoresInvertColors
-            accessible={false}
-            importantForAccessibility="no"
-            style={tw.style('h-[88px] w-[88px]')}
-            testID={VbaDetailsSelectorsIDs.LOGO}
-          />
-        </Box>
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="mt-6 text-center"
-          testID={VbaDetailsSelectorsIDs.TITLE}
-        >
-          {strings(
+        <TitleStandard
+          title={strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_title'
               : 'virtual_bank_account.vba_details.title',
           )}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
-        >
-          {strings(
+          bottomLabel={strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_description'
               : 'virtual_bank_account.vba_details.description',
           )}
-        </Text>
+          titleProps={{ testID: VbaDetailsSelectorsIDs.TITLE }}
+        />
         {rows.length > 0 ? (
-          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+          <Box
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            marginTop={6}
+            twClassName="overflow-hidden rounded-xl"
+          >
             {rows.map((row) => (
-              <Box key={row.id} testID={row.testID}>
-                <ListItem
-                  title={row.label}
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Regular,
-                    color: TextColor.TextAlternative,
-                  }}
-                  description={row.value}
-                  descriptionProps={{
-                    variant: TextVariant.BodyMd,
-                    color: TextColor.TextDefault,
-                    numberOfLines: 1,
-                  }}
-                  endAccessory={
-                    <ButtonIcon
-                      iconName={IconName.Copy}
-                      size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value, row.label)}
-                      accessibilityLabel={strings(
-                        'virtual_bank_account.vba_details.copy_label',
-                        { field: row.label },
-                      )}
-                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
-                    />
-                  }
-                  accessoryGap={3}
-                />
-              </Box>
+              <ListItem
+                key={row.id}
+                testID={row.testID}
+                title={row.label}
+                titleProps={{
+                  variant: TextVariant.BodySm,
+                  fontWeight: FontWeight.Regular,
+                  color: TextColor.TextAlternative,
+                }}
+                description={row.value}
+                descriptionProps={{
+                  variant: TextVariant.BodyMd,
+                  color: TextColor.TextDefault,
+                  numberOfLines: 1,
+                }}
+                endAccessory={
+                  <ButtonIcon
+                    iconName={IconName.Copy}
+                    size={ButtonIconSize.Md}
+                    onPress={handleCopy(row.value, row.label)}
+                    accessibilityLabel={strings(
+                      'virtual_bank_account.vba_details.copy_label',
+                      { field: row.label },
+                    )}
+                    testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                  />
+                }
+                accessoryGap={3}
+              />
             ))}
           </Box>
         ) : errorMessage ? (
@@ -686,7 +894,9 @@ const VbaDetails = () => {
           </Text>
         ) : (
           <Box
-            twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            marginTop={6}
+            twClassName="overflow-hidden rounded-xl"
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
@@ -694,53 +904,63 @@ const VbaDetails = () => {
             )}
             testID={VbaDetailsSelectorsIDs.LOADING}
           >
-            {['copia-cola', 'pix-key'].map((id) => (
-              <Box
+            {/* Reuses ListItem so each placeholder row gets the same padding
+                and min height as a loaded two-line row, so the card doesn't
+                jump when the details land. Both bars sit in the title slot
+                because it is the only full-width slot, so the 85% bar has a
+                width to resolve against. */}
+            {['pix-key', 'copia-cola'].map((id) => (
+              <ListItem
                 key={id}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-3 px-4 py-3"
-              >
-                <Skeleton
-                  width={20}
-                  height={20}
-                  twClassName="rounded-full"
-                  {...skeletonMotion}
-                />
-                <Box twClassName="flex-1 gap-2">
+                title={
+                  <Box gap={2} twClassName="flex-1">
+                    <Skeleton
+                      width={96}
+                      height={14}
+                      twClassName="rounded"
+                      {...skeletonMotion}
+                    />
+                    <Skeleton
+                      width="85%"
+                      height={18}
+                      twClassName="rounded"
+                      {...skeletonMotion}
+                    />
+                  </Box>
+                }
+                endAccessory={
+                  // Matches the copy ButtonIcon at ButtonIconSize.Md (32px).
                   <Skeleton
-                    width={96}
-                    height={14}
+                    width={32}
+                    height={32}
                     twClassName="rounded"
                     {...skeletonMotion}
                   />
-                  <Skeleton
-                    width="85%"
-                    height={18}
-                    twClassName="rounded"
-                    {...skeletonMotion}
-                  />
-                </Box>
-                <Skeleton
-                  width={24}
-                  height={24}
-                  twClassName="rounded"
-                  {...skeletonMotion}
-                />
-              </Box>
+                }
+                accessoryGap={3}
+              />
             ))}
           </Box>
         )}
       </ScrollView>
-      <Box twClassName="gap-4 px-4 pb-2 pt-4">
-        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+      <Box gap={4} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
+        {showProviderDisclosure ? (
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="text-center"
-            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+            testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE}
           >
-            {strings('virtual_bank_account.vba_details.helper_text')}
+            {strings('virtual_bank_account.vba_details.provider_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenProviderInfo}
+              testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK}
+            >
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              )}
+            </TextButton>
           </Text>
         ) : null}
         {debugEnabled ? (
@@ -754,6 +974,15 @@ const VbaDetails = () => {
             {'Debug'}
           </Button>
         ) : null}
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleBack}
+          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
+        >
+          {strings('virtual_bank_account.vba_details.button')}
+        </Button>
       </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet

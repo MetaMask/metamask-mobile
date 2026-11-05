@@ -92,7 +92,11 @@ const TeamLogo = ({
           source={team.logoUrl}
           recyclingKey={team.logoUrl}
           contentFit="contain"
-          style={tw.style('h-14 w-14')}
+          style={
+            selection === 'home'
+              ? [tw.style('h-14 w-14'), { transform: [{ scaleX: -1 }] }]
+              : tw.style('h-14 w-14')
+          }
           onError={() => setImageFailed(true)}
         />
       ) : (

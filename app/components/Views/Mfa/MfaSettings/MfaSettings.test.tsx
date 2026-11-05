@@ -65,6 +65,14 @@ const renderSettings = (
     },
   );
 
+const mockAllMethods = ['passkey', 'totp', 'email_otp'];
+const mockEmailOnly = ['email_otp'];
+const mockMethods = jest.fn();
+jest.mock('../../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitMethods: () => mockMethods(),
+}));
+beforeEach(() => mockMethods.mockReturnValue(mockAllMethods));
+
 describe('MfaSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -76,6 +84,7 @@ describe('MfaSettings', () => {
     const { queryByTestId, getByTestId } = renderSettings(
       [
         {
+          id: 'email_otp',
           type: 'email_otp',
           status: 'active',
           email: 'a@b.co',
@@ -116,6 +125,7 @@ describe('MfaSettings', () => {
   it('offers to add an email whose setup is not finished', () => {
     const { getByTestId } = renderSettings([
       {
+        id: 'email_otp',
         type: 'email_otp',
         status: 'pending',
         email: 'a@b.co',
@@ -130,7 +140,13 @@ describe('MfaSettings', () => {
 
   it('opens an active email', () => {
     const { getByTestId } = renderSettings([
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
     ]);
 
     expect(
@@ -247,7 +263,7 @@ describe('MfaSettings', () => {
 
   it('lists the only passkey', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -259,8 +275,8 @@ describe('MfaSettings', () => {
 
   it('lists several passkeys', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -268,6 +284,15 @@ describe('MfaSettings', () => {
     );
     fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.PASSKEYS);
+  });
+
+  it('only offers to add the methods the flag allows', () => {
+    mockMethods.mockReturnValue(mockEmailOnly);
+    const { queryByTestId } = renderSettings();
+
+    expect(queryByTestId(MfaSettingsSelectorsIDs.EMAIL_ROW)).toBeOnTheScreen();
+    expect(queryByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toBeNull();
+    expect(queryByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toBeNull();
   });
 
   it('offers to add an authenticator app', async () => {
@@ -294,7 +319,7 @@ describe('MfaSettings', () => {
 
   it('opens an authenticator app that is set up', () => {
     const { getByTestId } = renderSettings([
-      { type: 'totp', status: 'active' },
+      { id: 'totp', type: 'totp', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).not.toHaveTextContent(

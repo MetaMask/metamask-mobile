@@ -1,30 +1,27 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
 import {
-  selectConversionRateBySymbol,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
+import { getUsdToFiatConversionRate } from '../../../../UI/Money/utils/moneyActivityFiat';
 
 /** Converts USD-denominated primitive balances to the user's display currency. */
 export function useFiatNormalizer() {
   const userCurrency = useSelector(selectCurrentCurrency);
-
-  // USD rate in user currency
-  const usdRate = useSelector((state: RootState) =>
-    selectConversionRateBySymbol(state, 'usd'),
-  );
+  const currencyRates = useSelector(selectCurrencyRates);
+  const usdToFiatRate = getUsdToFiatConversionRate(currencyRates);
 
   const toUserCurrency = useCallback(
     (amount: number): number | undefined => {
       if (!Number.isFinite(amount)) return 0;
       if (userCurrency.toLowerCase() === 'usd') return amount;
-      if (!Number.isFinite(usdRate) || usdRate <= 0) {
+      if (usdToFiatRate === undefined) {
         return undefined;
       }
-      return amount * usdRate;
+      return amount * usdToFiatRate;
     },
-    [usdRate, userCurrency],
+    [usdToFiatRate, userCurrency],
   );
 
   return { toUserCurrency, userCurrency };

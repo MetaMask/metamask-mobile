@@ -2,12 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -19,6 +17,11 @@ import {
   resolveVbaOnboarding,
 } from './hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from './routes';
+import { endVbaCufJourney, startVbaCufJourney } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const VBA_LOADING_SOURCE = 'money-add-money-bank-account';
 
@@ -43,6 +46,7 @@ export const VbaOnboardingLoadingSelectorsIDs = {
  * `source` is the calling surface, used for error telemetry.
  */
 const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const source = route?.params?.source ?? VBA_LOADING_SOURCE;
@@ -52,12 +56,21 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   // keyring, and hydrate would find no wallet.
   const isUnlocked = useSelector(selectIsUnlocked);
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
+    navigation.goBack();
+  }, [navigation]);
 
   const handleRetry = useCallback(() => {
+    const entrySurface = source.startsWith('vba-home-card-')
+      ? 'home_card'
+      : source === 'vba-action-row-details'
+        ? 'money_action_row'
+        : 'add_money_sheet';
+    startVbaCufJourney(entrySurface);
     setHasError(false);
     setAttempt((count) => count + 1);
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     if (!isUnlocked) {
@@ -104,6 +117,12 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
     };
   }, [attempt, isUnlocked, navigation, source]);
 
+  useEffect(() => {
+    if (hasError) {
+      endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+    }
+  }, [hasError]);
+
   if (hasError) {
     return <VbaOnboardingStub variant="error" onContinue={handleRetry} />;
   }
@@ -114,7 +133,9 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
       style={tw.style('flex-1 bg-default')}
       testID={VbaOnboardingLoadingSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: VbaOnboardingLoadingSelectorsIDs.BACK_BUTTON,

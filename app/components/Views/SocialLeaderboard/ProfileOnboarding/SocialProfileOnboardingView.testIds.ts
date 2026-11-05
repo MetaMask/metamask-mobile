@@ -9,6 +9,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   INTRO_ANIMATION: 'social-profile-onboarding-intro-animation',
   INTRO_FALLBACK: 'social-profile-onboarding-intro-fallback',
   CONNECT_X_BUTTON: 'social-profile-onboarding-connect-x-button',
+  CONNECT_X_LOGO: 'social-profile-onboarding-connect-x-logo',
   CREATE_MANUALLY_BUTTON: 'social-profile-onboarding-create-manually-button',
   X_IDENTITY_STEP: 'social-profile-onboarding-x-identity-step',
   X_DISPLAY_NAME: 'social-profile-onboarding-x-display-name',
@@ -40,6 +41,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   ACCOUNT_ROW: 'social-profile-onboarding-account-row',
   ACCOUNT_CHANGE_FOOTNOTE: 'social-profile-onboarding-account-change-footnote',
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',
+  ACCOUNT_BENEFITS: 'social-profile-onboarding-account-benefits',
   READY_STEP: 'social-profile-onboarding-ready-step',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',
   READY_ANIMATION: 'social-profile-onboarding-ready-animation',
@@ -47,4 +49,6 @@ export const SocialProfileOnboardingSelectorsIDs = {
   READY_FALLBACK: 'social-profile-onboarding-ready-fallback',
   CONTINUE_BUTTON: 'social-profile-onboarding-continue-button',
   LETS_GO_BUTTON: 'social-profile-onboarding-lets-go-button',
+  RETRY_CREATE_BUTTON: 'social-profile-onboarding-retry-create-button',
+  CONNECT_X_ERROR: 'social-profile-onboarding-connect-x-error',
 } as const;

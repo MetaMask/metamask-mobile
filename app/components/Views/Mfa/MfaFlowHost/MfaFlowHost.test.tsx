@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 import { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import type {
   EnrolledCredential,
@@ -45,6 +46,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const activeEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   email: 'a@b.co',
@@ -93,7 +95,7 @@ const start = async (
   controller: MfaControllerAdapter,
   passkey?: MfaFlowOptions['passkey'],
   reason: MfaReason = {
-    operation: 'test',
+    operation: 'qa.test',
     enrollDescription: 'Why we ask',
   },
 ) => {
@@ -134,7 +136,7 @@ describe('MfaFlowHost', () => {
         { kind: 'enroll', method: 'email_otp' },
         createController(),
         undefined,
-        { operation: 'test', presentation },
+        { operation: 'qa.test', presentation },
       );
 
       const { getByTestId, unmount } = renderHost();
@@ -293,6 +295,48 @@ describe('MfaFlowHost', () => {
     expect(mockRemoveSelf).not.toHaveBeenCalled();
   });
 
+  it('returns to the setup with Android back from its code screen', async () => {
+    type BackPressHandler = Parameters<typeof BackHandler.addEventListener>[1];
+    const handlers: BackPressHandler[] = [];
+    jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation((_event, handler) => {
+        handlers.push(handler);
+        return {
+          remove: () => {
+            handlers.splice(handlers.indexOf(handler), 1);
+          },
+        };
+      });
+    await start({ kind: 'enroll', method: 'email_otp' }, createController());
+    const { getByTestId, getByText } = renderHost();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
+        'a@b.co',
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(getByText('Enter your verification code')).toBeOnTheScreen();
+    // The newest listener runs first: this screen's.
+    const onBack = handlers[handlers.length - 1];
+
+    let handled: boolean | null | undefined;
+    await act(async () => {
+      handled = onBack({ type: 'hardwareBackPress', timeStamp: 0 });
+    });
+
+    expect(handled).toBe(true);
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT)).toBeOnTheScreen();
+    expect(handlers).not.toContain(onBack);
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
+  });
+
   it('rejects with flow_cancelled when the user closes it', async () => {
     const { outcome } = await start(
       { kind: 'enroll', method: 'email_otp' },
@@ -315,7 +359,10 @@ describe('MfaFlowHost', () => {
         methods: ['email_otp', 'passkey'],
         verifyWith: ['email_otp', 'passkey'],
       },
-      createController([activeEmail, { type: 'passkey', status: 'active' }]),
+      createController([
+        activeEmail,
+        { id: 'passkey', type: 'passkey', status: 'active' },
+      ]),
       { create: jest.fn(), get: jest.fn() },
     );
     const { getByTestId } = renderHost();
@@ -384,7 +431,7 @@ describe('MfaFlowHost', () => {
     await act(async () => {
       startMfaFlow({
         request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
-        reason: { operation: 'next', enrollDescription: 'Next reason' },
+        reason: { operation: 'qa.next', enrollDescription: 'Next reason' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);
@@ -420,7 +467,7 @@ describe('MfaFlowHost', () => {
       });
       startMfaFlow({
         request: { kind: 'enroll', method: 'email_otp' },
-        reason: { operation: 'next' },
+        reason: { operation: 'qa.next' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);

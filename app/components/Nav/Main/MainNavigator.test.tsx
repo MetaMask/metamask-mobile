@@ -152,9 +152,23 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
-jest.mock('../../UI/PredictNext', () => ({
-  PredictRoot: () => 'PredictRoot',
+// Stub only PredictRoot so the entry point's other exports, which Wallet's
+// Homepage callers read, stay real.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => 'PredictRoot',
 }));
+
+// On the legacy lane Predict availability is the legacy flag. Mock the
+// selector's own module: a factory spreading the PredictNext entry point
+// re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({
+    selectPredictAvailability: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  }),
+);
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -681,6 +695,20 @@ describe('MainNavigator', () => {
       expect(homeScreen).toBeDefined();
     });
 
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
+    });
+
     it('includes TokensFullView screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -847,6 +875,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.EDIT_AVATAR,
         Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
@@ -1790,7 +1819,7 @@ describe('MainNavigator', () => {
 
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: { name: string; displayName?: string };
     }
     const screenProps: ScreenChild[] = container.root
       .findAll(
@@ -1808,36 +1837,44 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialV0View');
+    expect(topTradersScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV0View)',
+    );
 
     const bundleV1Screen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1,
     );
 
     expect(bundleV1Screen).toBeDefined();
-    expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+    expect(bundleV1Screen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV1View)',
+    );
 
     const myProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
     );
 
     expect(myProfileScreen).toBeDefined();
-    expect(myProfileScreen?.component.name).toBe('MyProfileView');
+    expect(myProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const v1ProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
     );
 
     expect(v1ProfileScreen).toBeDefined();
-    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+    expect(v1ProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
 
     expect(followConnectionsScreen).toBeDefined();
-    expect(followConnectionsScreen?.component.name).toBe(
-      'FollowConnectionsView',
+    expect(followConnectionsScreen?.component.displayName).toBe(
+      'withSocialAccountGate(FollowConnectionsView)',
     );
 
     const profilesToFollowScreen = screenProps?.find(
@@ -1845,21 +1882,27 @@ describe('MainNavigator', () => {
     );
 
     expect(profilesToFollowScreen).toBeDefined();
-    expect(profilesToFollowScreen?.component.name).toBe('ProfilesToFollowView');
+    expect(profilesToFollowScreen?.component.displayName).toBe(
+      'withSocialAccountGate(ProfilesToFollowView)',
+    );
 
     const postComposerScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
     );
 
     expect(postComposerScreen).toBeDefined();
-    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+    expect(postComposerScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialPostComposerView)',
+    );
 
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
 
     expect(manageProfileScreen).toBeDefined();
-    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
+    expect(manageProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(ManageProfileView)',
+    );
   });
 
   it('omits Social V1 screens for the control variant', () => {
@@ -1912,6 +1955,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.EDIT_AVATAR);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
@@ -2151,7 +2195,7 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'TabScreen' &&
           node.props?.name === Routes.SOCIAL.TAB,
-      )[0]?.props?.component?.name;
+      )[0]?.props?.component?.displayName;
 
     it.each(['searchFocused', 'tradeFocused'])(
       'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
@@ -2161,7 +2205,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV1View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV1View)');
       },
     );
 
@@ -2173,7 +2217,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV0View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV0View)');
       },
     );
   });

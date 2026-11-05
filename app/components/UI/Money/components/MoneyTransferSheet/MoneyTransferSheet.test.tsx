@@ -13,11 +13,13 @@ import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pa
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -34,6 +36,11 @@ jest.mock('../../../../../selectors/transactionController', () => ({
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
 }));
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
@@ -147,9 +154,46 @@ describe('MoneyTransferSheet', () => {
     });
     (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(true);
     (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: true });
+    (
+      selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+    ).mockReturnValue(undefined);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
+  });
+
+  describe('Money account availability', () => {
+    it('redirects to the feature-unavailable modal when Money is disabled', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('feature_disabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+    });
+
+    it('redirects to the geo-block sheet when Money is geo-ineligible', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('geo_blocked');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
     });
   });
 
@@ -377,6 +421,41 @@ describe('MoneyTransferSheet', () => {
     expect(
       queryByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
     ).toBeNull();
+  });
+
+  it('hides the "Predictions account" option while the Active Venue has no Predict funding', () => {
+    const kalshiOnly = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            ...backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
+              predictConfig: {
+                enabled: true,
+                venues: {
+                  polymarket: { enabled: false },
+                  kalshi: { enabled: true },
+                },
+                venueSelection: { enabled: false },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />, {
+      state: kalshiOnly,
+    });
+
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    ).not.toBeNull();
   });
 
   it('disables the "Predictions account" option when flag is disabled', () => {

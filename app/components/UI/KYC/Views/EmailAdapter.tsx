@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -28,6 +27,9 @@ import { strings } from '../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaEmailAdapterSelectorsIDs = {
   CONTAINER: 'vba-email-adapter-container',
@@ -73,6 +75,7 @@ const retryRecordVendorDisclaimers = async (
  * because creating a session needs an AAL2 token.
  */
 const VbaEmailAdapter = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { verifyOrEnroll } = useMfa();
@@ -106,12 +109,6 @@ const VbaEmailAdapter = () => {
           reason: {
             operation: 'vba.verifyEmail',
             presentation: 'card',
-            enrollDescription: strings(
-              'virtual_bank_account.kyc_email.enroll_description',
-            ),
-            verifyDescription: strings(
-              'virtual_bank_account.kyc_email.verify_description',
-            ),
           },
         });
         if (!active) {
@@ -175,7 +172,9 @@ const VbaEmailAdapter = () => {
         style={tw.style('flex-1 bg-default')}
         testID={VbaEmailAdapterSelectorsIDs.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           onBack={handleBack}
           backButtonProps={{
             testID: VbaEmailAdapterSelectorsIDs.BACK_BUTTON,
