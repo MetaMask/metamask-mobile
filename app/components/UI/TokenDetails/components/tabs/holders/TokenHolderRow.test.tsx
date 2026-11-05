@@ -17,8 +17,7 @@ const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 const toRow = (
   index: number,
   overrides: {
-    // `positionValueUSD` is not on the core type yet; the row reads it optionally.
-    core?: Partial<TraderFeedRow['core'] & { positionValueUSD?: number }>;
+    core?: Partial<TraderFeedRow['core']>;
     item?: Partial<TraderFeedRow['item']>;
   } = {},
 ): TraderFeedRow => {

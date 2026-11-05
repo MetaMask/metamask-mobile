@@ -21,16 +21,6 @@ import { TokenDetailsIds } from '../../../testIds';
 /** Matches the avatar size on the Social V1 feed's identity row. */
 const AVATAR_SIZE = 32;
 
-/**
- * `positionValueUSD` is what the holders route ranks by: leveraged notional
- * for a perp, equal to `currentValueUSD` for spot. It is optional on the API
- * (absent on older responses and cached entries) and not yet declared on
- * `@metamask/social-controllers`' `FeedItem`.
- */
-type HolderPosition = TraderFeedRow['core'] & {
-  positionValueUSD?: number | null;
-};
-
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
@@ -48,8 +38,7 @@ export interface TokenHolderRowProps {
  * leaderboard row had.
  */
 const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
-  const { item } = row;
-  const core: HolderPosition = row.core;
+  const { item, core } = row;
   // Left in USD for now, as the API prices it. Converting to the viewer's
   // currency is a deliberate follow-up, not an oversight.
   // Abbreviated so a whale's holding keeps the column one line. A perp's
