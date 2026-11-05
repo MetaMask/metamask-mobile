@@ -171,9 +171,9 @@ describe('usePositionSheetData', () => {
       mockUseTraderPositionData.mockReturnValue(baseData());
 
       const { result } = renderData(
-        buildPosition({
+        Object.assign(buildPosition(), {
           firstTradeAt: (NOW_MS - 5 * HOUR_MS) / 1000,
-        } as Position),
+        }),
       );
 
       expect(result.current.summarySubtitle).toBe('Opened · 5 hr ago');

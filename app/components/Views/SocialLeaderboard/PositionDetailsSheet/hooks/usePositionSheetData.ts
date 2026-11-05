@@ -4,6 +4,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   formatAbbreviatedUsd,
+  formatFeedPostAge,
   formatPercent,
   formatSignedUsd,
   formatTokenAmount,
