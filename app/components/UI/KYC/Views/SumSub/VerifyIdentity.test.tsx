@@ -8,7 +8,6 @@ import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   METAMASK_PRIVACY_NOTICE_URL,
   METAMASK_TERMS_URL,
-  VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -85,7 +84,7 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-delete`),
     ).toHaveTextContent(
-      'Delete anytime.Delete your verified identity anytime in Settings. Learn more',
+      'Delete anytime.Delete your verified identity anytime in Settings.',
     );
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -154,17 +153,21 @@ describe('VbaVerifyIdentity', () => {
     expect(mockOnContinue).not.toHaveBeenCalled();
   });
 
-  it('opens the Learn more article from the delete benefit', () => {
-    const openUrlSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined);
-    const { getByTestId } = renderScreen();
+  it('styles the idOS partners heading like the MetaMask terms section title', () => {
+    const { getByText } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK));
+    expect(
+      getByText('We partner with idOS to verify your identity.').props.style,
+    ).toStrictEqual(getByText('MetaMask terms').props.style);
+  });
 
-    expect(openUrlSpy).toHaveBeenCalledWith(
-      VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL,
-    );
+  it('shows the delete benefit as plain text with no Learn more link', () => {
+    const { getByText, queryByText } = renderScreen();
+
+    expect(
+      getByText('Delete your verified identity anytime in Settings.'),
+    ).toBeOnTheScreen();
+    expect(queryByText(/Learn more/)).toBeNull();
   });
 
   it('exits the flow to Money home when the header back button is pressed', () => {

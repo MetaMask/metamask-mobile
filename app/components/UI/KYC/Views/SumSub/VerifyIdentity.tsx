@@ -27,7 +27,6 @@ import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   METAMASK_PRIVACY_NOTICE_URL,
   METAMASK_TERMS_URL,
-  VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { trackIdentityTerms } from '../../utils/trackIdentityTerms';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -163,13 +162,9 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             ))}
           </Box>
 
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-1 pt-6"
-          >
+          <TermsSectionTitle>
             {verifyIdentityString('partners_heading')}
-          </Text>
+          </TermsSectionTitle>
           <Box>
             {BENEFITS.map((benefit) => (
               <ListItem
@@ -183,25 +178,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                   />
                 }
                 title={verifyIdentityString(`benefit_${benefit.id}_title`)}
-                description={
-                  benefit.id === 'delete' ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {verifyIdentityString('benefit_delete_body')}{' '}
-                      <InlineLink
-                        url={VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL}
-                        variant={TextVariant.BodySm}
-                        testID={VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK}
-                      >
-                        {verifyIdentityString('learn_more_link')}
-                      </InlineLink>
-                    </Text>
-                  ) : (
-                    verifyIdentityString(`benefit_${benefit.id}_body`)
-                  )
-                }
+                description={verifyIdentityString(`benefit_${benefit.id}_body`)}
                 descriptionProps={{ fontWeight: FontWeight.Regular }}
                 testID={`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
               />

@@ -13,11 +13,6 @@ export const PIX_BRAND_COLOR = '#2CBFB0';
 export const METAMASK_PRIVACY_NOTICE_URL = AppConstants.URLS.PRIVACY_POLICY;
 export const METAMASK_TERMS_URL = AppConstants.URLS.TERMS_AND_CONDITIONS;
 
-// TODO: replace with the support article on deleting a verified identity
-// once it's published. Placeholder until then.
-export const VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL =
-  'https://support.metamask.io/';
-
 // idOS Terms and Conditions in the "By tapping Agree" line on "Our verification
 // partners". Used only when the session catalog has no end user agreement.
 export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';

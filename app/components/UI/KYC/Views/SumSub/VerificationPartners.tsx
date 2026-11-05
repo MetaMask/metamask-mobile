@@ -13,7 +13,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonSize,
-  ButtonVariant,
   Checkbox,
   Icon,
   IconColor,
@@ -352,7 +351,9 @@ const VbaVerificationPartners = ({
                 </Box>
               }
             />
-            <Box twClassName="pl-8">
+            {/* Starts where the label text does: the 22px checkbox plus its
+                ml-3 label gap. */}
+            <Box twClassName="pl-[34px]">
               <InlineLink
                 url={IDOS_PRIVACY_NOTICE_URL}
                 testID={
@@ -415,7 +416,6 @@ const VbaVerificationPartners = ({
             {verifyIdentityString('footer_agreement_idos_end')}
           </Text>
           <CrossfadeButton
-            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={!hasBiometricConsent || !hasTerms}

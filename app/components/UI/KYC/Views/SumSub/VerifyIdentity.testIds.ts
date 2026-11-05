@@ -4,7 +4,6 @@ export const VbaVerifyIdentitySelectorsIDs = {
   STEP_COUNTER: 'vba-verify-identity-step-counter',
   STEP: 'vba-verify-identity-step',
   BENEFIT: 'vba-verify-identity-benefit',
-  LEARN_MORE_LINK: 'vba-verify-identity-learn-more-link',
   METAMASK_TERMS_ROW: 'vba-verify-identity-metamask-terms-row',
   METAMASK_PRIVACY_NOTICE_ROW:
     'vba-verify-identity-metamask-privacy-notice-row',
