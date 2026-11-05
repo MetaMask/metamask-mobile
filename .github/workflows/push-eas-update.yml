@@ -135,6 +135,24 @@ jobs:
           fi
 
           head_ref=$(echo "$pr_details" | jq -r '.head.ref')
+          # head.ref is only the branch name, so a fork branch named release/* would match.
+          head_repo=$(echo "$pr_details" | jq -r '.head.repo.full_name // empty')
+
+          if [[ "$head_repo" != "$GITHUB_REPOSITORY" ]]; then
+            {
+              echo "### ❌ OTA push rejected"
+              echo ""
+              echo "OTA pushes are only allowed from a branch in \`${GITHUB_REPOSITORY}\`."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| PR | #${PR_NUMBER} |"
+              echo "| Head repository | \`${head_repo:-<deleted>}\` |"
+              echo "| Required repository | \`${GITHUB_REPOSITORY}\` |"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Invalid repository for OTA::PR #${PR_NUMBER} head repository is '${head_repo:-<deleted>}' but must be '${GITHUB_REPOSITORY}'"
+            exit 1
+          fi
 
           if [[ "$head_ref" != release/* ]]; then
             {
