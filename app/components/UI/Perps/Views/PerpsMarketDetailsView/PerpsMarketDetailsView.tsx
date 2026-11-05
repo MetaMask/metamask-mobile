@@ -377,7 +377,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           preferredProvider,
     );
 
-    return fullMarket || routeMarket;
+    return fullMarket ?? routeMarket;
   }, [activeProvider, markets, routeMarket, needsEnrichment]);
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
@@ -782,9 +782,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         loader: 'customAmount' as ConfirmationLoader,
         stack: Routes.PERPS.ROOT,
       });
-      if (!depositPrepSessionRef.current) {
-        depositPrepSessionRef.current = createDepositPrepSession();
-      }
+      depositPrepSessionRef.current ??= createDepositPrepSession();
       depositPrepSessionRef.current.attachGuard(
         createDepositConfirmationGuard(
           navigation as unknown as DepositConfirmationNavigation,

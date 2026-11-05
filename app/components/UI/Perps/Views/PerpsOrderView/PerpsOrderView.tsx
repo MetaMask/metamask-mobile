@@ -1193,9 +1193,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // covers both a fresh false→true transition and a quote already loading
       // when this effect first runs (custom token pre-selected), so a
       // completing quote is never missed for lack of a recorded start.
-      if (payQuoteStartRef.current === null) {
-        payQuoteStartRef.current = Date.now();
-      }
+      payQuoteStartRef.current ??= Date.now();
       return;
     }
 
@@ -1703,7 +1701,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           // eslint-disable-next-line @typescript-eslint/no-deprecated -- Keep parity with the existing limit-price analytics contract.
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED, // NOSONAR
         [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
         [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
