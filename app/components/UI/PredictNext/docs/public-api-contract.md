@@ -113,6 +113,8 @@ The Homepage Predictions section becomes a Predict-owned component, `PredictHome
 
 The BalanceBreakdown Predict slice stays Homepage code and calls `usePredictPortfolioValue()`.
 
+For a next Venue (PRED-1406, PRED-1407) the section has the Polymarket layout over canonical reads. With open Positions it lists the top ones by value under the Summary PnL. Without them, or when they fail to load, it shows discovery: the trending-carousel layout, filled with the Events of each `homepageSlots` row in `capabilities/surfaceFeedKeys.ts` whose Feed key the Venue's descriptor has. A slot without a key is absent, and pinned championship Events are Polymarket Events, so no next Venue shows them. Card presses open an `event` intent, and outcome presses open the PredictNext Order flow, which the section mounts over the Homepage. Discovery renders through the same `wallet-home.predict-empty-state` UI Slot. Under a next Venue, the registered widget keeps only the assignment items a Feed can fill, and an assignment that names none falls back to the Venue's default slots. It does not join the Polymarket empty-state A/B test.
+
 ## Explore (TrendingView) prediction sections
 
 PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. Explore renders it through `trending/`:
