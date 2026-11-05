@@ -446,6 +446,14 @@ module.exports = {
         'no-restricted-syntax': [
           'error',
           {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
             selector:
               "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime|runAllTimers|runOnlyPendingTimers)$/]",
             message:
