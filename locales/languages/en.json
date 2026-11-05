@@ -1637,7 +1637,7 @@
     "position_flags": {
       "insider": "Insider allocation - excluded",
       "developer": "Contract creator - excluded",
-      "excluded": "Excluded from PnL",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -3670,7 +3670,7 @@
     "tp_on_chart": "TP on Chart",
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
+      "title": "P&L Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
@@ -6180,7 +6180,7 @@
     "balance": "balance. See the support article",
     "position_pnl": {
       "your_position": "Your position",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -12548,7 +12548,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
-      "top_pnl": "Top PnL",
+      "top_pnl": "Top P&L",
       "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
@@ -12658,7 +12658,7 @@
       "performance_title": "Performance",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
@@ -12674,7 +12674,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
-      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
@@ -12688,7 +12688,7 @@
       "label_your_rank": "Your rank",
       "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL (after fees)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
