@@ -110,7 +110,7 @@ const EarnSectionListSubtitle = ({ testID }: { testID?: string }) => (
     testID={testID}
     variant={TextVariant.BodyMd}
     color={TextColor.TextAlternative}
-    twClassName="pt-2 pb-1"
+    twClassName="pt-1 pb-1"
   >
     {strings('earn_module.stake_or_lend_description')}
   </Text>

@@ -405,12 +405,14 @@ const BridgeView = () => {
         includesTopInset
       />
       {showTabsBar ? (
-        <TabsBar
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-          testID={BridgeViewSelectorsIDs.TABS_BAR}
-        />
+        <Box twClassName="pt-2">
+          <TabsBar
+            tabs={tabs}
+            activeIndex={activeIndex}
+            onTabPress={handleTabPress}
+            testID={BridgeViewSelectorsIDs.TABS_BAR}
+          />
+        </Box>
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>

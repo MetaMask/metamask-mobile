@@ -374,7 +374,7 @@ const ActivityScreen = () => {
   const activityListHeader = useMemo(
     () => (
       <Box>
-        <Box twClassName="px-4" onLayout={handleTitleLayout}>
+        <Box twClassName="px-4 pt-4" onLayout={handleTitleLayout}>
           <Box twClassName="pb-4">
             <Text variant={TextVariant.HeadingLg}>
               {strings('activity_view.title')}
