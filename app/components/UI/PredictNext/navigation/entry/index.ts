@@ -1,6 +1,7 @@
 export {
   createLegacyPredictEventRef,
   createNextPredictEventRef,
+  createPredictCampaignEventRef,
   type PredictEventRef,
 } from './eventRef';
 export type {

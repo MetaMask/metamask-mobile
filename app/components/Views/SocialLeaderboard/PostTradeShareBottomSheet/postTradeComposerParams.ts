@@ -1,5 +1,6 @@
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
+import type { SocialEventSource } from '../analytics/socialEvents';
 import type {
   SocialPostComposerViewParams,
   SocialPostPerpsPreview,
@@ -10,10 +11,12 @@ export const buildSpotPostTradeComposerParams = ({
   transactionHash,
   chain,
   preview,
+  analyticsSource,
 }: {
   transactionHash: string;
   chain: string;
   preview: SocialPostTradePreview;
+  analyticsSource?: SocialEventSource;
 }): SocialPostComposerViewParams => ({
   tradeInFlight: {
     transactionHash,
@@ -21,14 +24,17 @@ export const buildSpotPostTradeComposerParams = ({
     tokenAddress: preview.tokenAddress,
   },
   preview,
+  ...(analyticsSource ? { analyticsSource } : {}),
 });
 
 export const buildPerpsPostTradeComposerParams = ({
   orderId,
   preview,
+  analyticsSource,
 }: {
   orderId: string;
   preview: SocialPostPerpsPreview;
+  analyticsSource?: SocialEventSource;
 }): SocialPostComposerViewParams => ({
   tradeInFlight: {
     orderId,
@@ -36,6 +42,7 @@ export const buildPerpsPostTradeComposerParams = ({
     tokenAddress: preview.tokenAddress,
   },
   preview,
+  ...(analyticsSource ? { analyticsSource } : {}),
 });
 
 export const openPostTradeComposer = (

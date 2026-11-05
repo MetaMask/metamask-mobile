@@ -17,10 +17,13 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+import { playSelection } from '../../../../util/haptics';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
   REACTION_EMOJI_BURST_TEST_ID,
 } from './ReactionEmojiBurst';
+
+jest.mock('../../../../util/haptics');
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
@@ -162,6 +165,8 @@ const renderShell = (
     showCopyTrade?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
+    /** Feed surface. Sets the Perps order source for that tab. */
+    location?: 'social_trending' | 'social_following' | 'social_live';
     /** Turns on `aiSocialCommentTranslation` for this render. */
     translationEnabled?: boolean;
   },
@@ -187,7 +192,10 @@ const renderShell = (
       {showMockedFields === null ? (
         shell
       ) : (
-        <SocialFeedSurfaceProvider showMockedFields={showMockedFields}>
+        <SocialFeedSurfaceProvider
+          showMockedFields={showMockedFields}
+          location={options?.location}
+        >
           {shell}
         </SocialFeedSurfaceProvider>
       )}
@@ -254,6 +262,8 @@ describe('SocialFeedPostShell', () => {
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
     );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(
@@ -727,6 +737,23 @@ describe('SocialFeedPostShell', () => {
         Promise.resolve(action()),
       );
       mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens a trending-feed perps order with the trending source', async () => {
+      renderShell(basePost(), { location: 'social_trending' });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.objectContaining({ source: 'social_trending' }),
+          }),
+        );
+      });
     });
 
     it('opens the perps order redirect as a bottom sheet for an open perp', async () => {

@@ -51,9 +51,9 @@ export const useVenueSelection = (): VenueSelection => {
           })
           .build(),
       );
-      // Re-enter the root route without legacy market-list parameters, which
-      // would otherwise pin it to Polymarket (`resolvePinnedVenue`). Navigate
-      // before the preference lands: the change remounts this screen.
+      // Re-enter the root route at its home, without legacy market-list
+      // parameters. Navigate before the preference lands: the change remounts
+      // this screen.
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
       });

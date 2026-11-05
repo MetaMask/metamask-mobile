@@ -306,7 +306,7 @@ describe('ProfilePositionsTab', () => {
     },
   );
 
-  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+  it('notifies when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
     renderTab([flagged], { showFlaggedState: true });
@@ -375,6 +375,10 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
     ).toBeNull();
+    expect(row.props.accessibilityState).toEqual({ disabled: false });
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
+    expect(row).toHaveProp('accessibilityLabel', 'subline');
   });
 
   it('retries after a load error', () => {

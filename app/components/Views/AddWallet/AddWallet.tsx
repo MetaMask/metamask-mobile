@@ -9,6 +9,7 @@ import {
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   IconName,
   ListItem,
@@ -133,11 +134,11 @@ const AddWallet = () => {
       />
       <Box
         testID={AddWalletTestIds.SCREEN}
-        twClassName="flex-1"
+        twClassName="flex-1 pt-3"
         style={{ marginTop: headerInset }}
       >
         <TitleStandard
-          twClassName="mb-6 px-4"
+          twClassName="mb-2 px-4"
           title={strings('multichain_accounts.add_wallet')}
         />
 
@@ -152,6 +153,7 @@ const AddWallet = () => {
               <AvatarIcon
                 iconName={config.iconName}
                 severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
               />
             }
             title={config.title}

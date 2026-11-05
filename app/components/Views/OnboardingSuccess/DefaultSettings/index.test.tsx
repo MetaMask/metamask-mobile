@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -9,6 +9,7 @@ import DefaultSettings from './';
 import { useSelector } from 'react-redux';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import Logger from '../../../../util/Logger';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -46,6 +47,27 @@ describe('DefaultSettings', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       AppConstants.URLS.PRIVACY_BEST_PRACTICES,
     );
+  });
+
+  it('logs when the privacy best practices link fails to open', async () => {
+    const openError = new Error('cannot open url');
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(openError);
+    const loggerError = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+
+    const { getByText } = render(<DefaultSettings />);
+    fireEvent.press(
+      getByText(strings('default_settings.learn_more_about_privacy')),
+    );
+
+    await waitFor(() => {
+      expect(loggerError).toHaveBeenCalledWith(
+        openError,
+        'DefaultSettings: failed to open privacy best practices',
+      );
+    });
+    loggerError.mockRestore();
   });
 
   it('navigates to General Settings when pressed', () => {
