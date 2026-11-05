@@ -4,15 +4,17 @@ import {
   type LoginResponse,
 } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../../../core/Engine';
-import { profileSyncEnv } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
+import { authEnv } from '../../../../core/apiEnv';
 
 /**
- * Temporary pre-unlock MFA listing for social wallet recovery:
- * 1. `AuthenticationController.exchangeSocialAccessToken()` → profile access token
+ * Pre-unlock MFA listing for social wallet recovery (local Auth POC):
+ * 1. `AuthenticationController.exchangeSocialAccessToken()` → profile access
+ * token (resolves social type from Seedless `authConnection` even when vault
+ * is missing)
  * 2. `GET /api/v2/mfa/credentials` with that bearer
  *
- * Until Auth makes `refreshEnrolledCredentials` work before unlock.
- * Do not call `/social/login` from mobile — that stays inside Auth.
+ * Prefer this before password unlock when factors exist. Do not call
+ * `/social/login` from mobile — that stays inside Auth.
  */
 
 interface MfaCredentialsApiRow {
@@ -109,8 +111,8 @@ export const socialRecoveryMethodFlags = (
 };
 
 /**
- * Temporary: profile session via `exchangeSocialAccessToken`, then list MFA
- * factors from the Auth API (pre-unlock path when Auth allows it).
+ * Profile session via `exchangeSocialAccessToken`, then list MFA factors from
+ * the Auth API — usable before seedless vault unlock with the Auth POC.
  *
  * @returns Supported enrolled credentials for the social-paired profile.
  */
@@ -121,7 +123,9 @@ export const listSocialEnrolledCredentials = async (): Promise<
     await Engine.context.AuthenticationController.exchangeSocialAccessToken();
   const accessToken = login.token.accessToken;
 
-  const url = `${getEnvUrls(profileSyncEnv).authApiUrl}/api/v2/mfa/credentials`;
+  // Must match AuthenticationController's authEnv — the bearer from
+  // exchangeSocialAccessToken is issued by that same Auth cluster.
+  const url = `${getEnvUrls(authEnv()).authApiUrl}/api/v2/mfa/credentials`;
   const response = await fetch(url, {
     method: 'GET',
     headers: {

@@ -118,8 +118,10 @@ import Engine from '../../../core/Engine';
 import { useMfa } from '../../../util/identity/mfa';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 import {
+  WalletRecoveryLoading,
   WalletRecoveryPassword,
   WalletRecoveryVerify,
+  listSocialEnrolledCredentials,
   socialRecoveryMethodFlags,
   type WalletRecoveryMethod,
 } from './WalletRecovery';
@@ -167,17 +169,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       : null,
   );
   const [disabledInput, setDisabledInput] = useState(false);
-  // Interim order while pre-unlock vault gate blocks exchangeSocialAccessToken:
-  // password unlock → Verify it's you → home.
-  const [recoveryStep, setRecoveryStep] = useState<'password' | 'verify'>(
-    'password',
+  // Social recovery: loading → Verify it's you (password always; other MFA
+  // methods when enrolled) → password entry → home. First login shows Verify
+  // with password only; after settings enroll, Verify includes those factors.
+  // Start on loading so neither Verify nor password flashes during the list.
+  const [recoveryStep, setRecoveryStep] = useState<
+    'loading' | 'password' | 'verify'
+  >(() =>
+    canOfferSocialMfaVerify && !isSeedlessPasswordOutdated
+      ? 'loading'
+      : 'password',
   );
   const [mfaBusy, setMfaBusy] = useState(false);
-  const [socialCredentialsLoading, setSocialCredentialsLoading] =
-    useState(false);
+  const [socialCredentialsLoading, setSocialCredentialsLoading] = useState(
+    () => canOfferSocialMfaVerify && !isSeedlessPasswordOutdated,
+  );
   const [socialCredentials, setSocialCredentials] = useState<
     EnrolledCredential[]
   >([]);
+  /** True when pre-unlock listing surfaced MFA methods (verify-first path). */
+  const [preUnlockVerifyAvailable, setPreUnlockVerifyAvailable] =
+    useState(false);
+  /** Post-unlock fallback verify (blocks home until resolve). */
+  const [isPostUnlockVerify, setIsPostUnlockVerify] = useState(false);
   const postUnlockVerifyResolveRef = useRef<(() => void) | null>(null);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
@@ -609,16 +623,79 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const finishPostUnlockVerify = useCallback(() => {
     const resolve = postUnlockVerifyResolveRef.current;
     postUnlockVerifyResolveRef.current = null;
+    // Do not setIsPostUnlockVerify(false) here: Verify uses
+    // showPassword={!isPostUnlockVerify}, so clearing the flag re-renders the
+    // password row for a frame before unlock navigates home.
     resolve?.();
   }, []);
 
   /**
-   * After password unlock: list MFA via refreshEnrolledCredentials (unlocked
-   * Auth path — does not need social pairing / exchangeSocialAccessToken).
-   * Show Verify it's you; block home until verify/skip.
+   * Pre-unlock: list MFA via exchangeSocialAccessToken + /mfa/credentials, then
+   * always show Verify it's you. Password is always available there; Passkey /
+   * Email / TOTP rows appear only when enrolled. Listing failure → Verify with
+   * password only (same first-login UX).
+   */
+  useEffect(() => {
+    if (!canOfferSocialMfaVerify || isSeedlessPasswordOutdated) {
+      // Outdated-password path skips listing — go straight to password.
+      setRecoveryStep('password');
+      setSocialCredentialsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const showPreUnlockVerify = (credentials: EnrolledCredential[]) => {
+      if (cancelled || !isMountedRef.current) {
+        return;
+      }
+      setSocialCredentials(credentials);
+      setPreUnlockVerifyAvailable(true);
+      setIsPostUnlockVerify(false);
+      setRecoveryStep('verify');
+    };
+
+    const loadPreUnlockFactors = async () => {
+      setSocialCredentialsLoading(true);
+      setRecoveryStep((step) => (step === 'verify' ? step : 'loading'));
+      try {
+        const credentials = await listSocialEnrolledCredentials();
+        showPreUnlockVerify(credentials);
+      } catch (listError) {
+        Logger.error(
+          listError instanceof Error ? listError : new Error(String(listError)),
+          {
+            tags: {
+              feature: 'mfa',
+              operation: 'onboarding.social_mfa_verify',
+              phase: 'listSocialEnrolledCredentials_pre_unlock',
+            },
+          },
+        );
+        // Unpaired / list error: still Verify-first with password only.
+        showPreUnlockVerify([]);
+      } finally {
+        if (!cancelled && isMountedRef.current) {
+          setSocialCredentialsLoading(false);
+        }
+      }
+    };
+
+    loadPreUnlockFactors().catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [canOfferSocialMfaVerify, isSeedlessPasswordOutdated]);
+
+  /**
+   * Fallback after password unlock when pre-unlock listing did not surface
+   * factors: refresh via unlocked Auth path, then Verify it's you before home.
    */
   const offerSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
+      return;
+    }
+    // Already offered verify-first pre-unlock — do not prompt again.
+    if (preUnlockVerifyAvailable) {
       return;
     }
     setLoading(false);
@@ -636,8 +713,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
 
     setSocialCredentialsLoading(true);
+    let credentials: EnrolledCredential[] = [];
     try {
-      const credentials =
+      credentials =
         await Engine.context.AuthenticationController.refreshEnrolledCredentials();
       if (isMountedRef.current) {
         setSocialCredentials(credentials);
@@ -662,20 +740,33 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
     }
 
+    const flags = socialRecoveryMethodFlags(credentials);
+    const hasUsableFactors =
+      flags.showPasskey || flags.showEmail || flags.showTotp;
+    if (!hasUsableFactors) {
+      return;
+    }
+
     await new Promise<void>((resolve) => {
       postUnlockVerifyResolveRef.current = resolve;
+      setIsPostUnlockVerify(true);
       setRecoveryStep('verify');
     });
-  }, [canOfferSocialMfaVerify]);
+  }, [canOfferSocialMfaVerify, preUnlockVerifyAvailable]);
 
   /**
-   * Post-unlock Verify it's you. Password row skips to home (already unlocked).
-   * Passkey/email/totp run kit verify, then continue home.
+   * Verify it's you method pick.
+   * Pre-unlock: MFA or password → password unlock step.
+   * Post-unlock fallback: MFA or password skip → continue home.
    */
-  const handlePostUnlockVerifyMethod = useCallback(
+  const handleRecoveryVerifyMethod = useCallback(
     async (method: WalletRecoveryMethod) => {
       if (method === 'password') {
-        finishPostUnlockVerify();
+        if (isPostUnlockVerify) {
+          finishPostUnlockVerify();
+        } else {
+          setRecoveryStep('password');
+        }
         return;
       }
 
@@ -688,6 +779,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setMfaBusy(true);
       try {
+        // Pre-unlock: refresh social profile bearer so Auth can MFA-verify
+        // while locked (caches token from exchangeSocialAccessToken).
+        if (!isPostUnlockVerify) {
+          await Engine.context.AuthenticationController.exchangeSocialAccessToken();
+        }
         await verifyOrEnroll({
           methods: [kitMethod],
           verifyWith: kitMethod,
@@ -699,7 +795,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             ),
           },
         });
-        finishPostUnlockVerify();
+        if (isPostUnlockVerify) {
+          finishPostUnlockVerify();
+        } else {
+          setRecoveryStep('password');
+        }
       } catch (mfaError) {
         const code = getMfaErrorCode(mfaError);
         if (code === 'flow_cancelled') {
@@ -714,7 +814,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               feature: 'mfa',
               mfaCode: code ?? 'unknown',
               operation: 'onboarding.social_mfa_verify',
-              phase: 'post_unlock_verify',
+              phase: isPostUnlockVerify
+                ? 'post_unlock_verify'
+                : 'pre_unlock_verify',
             },
           },
         );
@@ -722,7 +824,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setMfaBusy(false);
       }
     },
-    [finishPostUnlockVerify, verifyOrEnroll],
+    [finishPostUnlockVerify, isPostUnlockVerify, verifyOrEnroll],
   );
 
   const onRehydrateLogin = useCallback(async () => {
@@ -787,7 +889,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
               await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // Interim: MFA verify after unlock while pre-unlock vault gate is blocked.
+              // Fallback verify only when pre-unlock listing did not offer MFA.
               await offerSocialMfaVerify();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
@@ -1070,19 +1172,28 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     </OnboardingLoginCanvas>
   );
 
-  // Interim order: password unlock → Verify it's you → home.
+  // Preferred: loading → Verify (password ± MFA) → password entry → home.
+  // Post-unlock verify is only for paths that skipped pre-unlock Verify.
   const renderWalletRecovery = () => {
+    if (recoveryStep === 'loading') {
+      return <WalletRecoveryLoading onBack={handleUseOtherMethod} />;
+    }
+
     if (recoveryStep === 'verify') {
       return (
         <WalletRecoveryVerify
           showPasskey={recoveryMethodFlags.showPasskey}
-          showPassword={false}
+          showPassword={!isPostUnlockVerify}
           showEmail={recoveryMethodFlags.showEmail}
           showTotp={recoveryMethodFlags.showTotp}
           isBusy={mfaBusy || socialCredentialsLoading}
-          onBack={finishPostUnlockVerify}
+          onBack={
+            // Post-unlock: back = skip verify and continue to home.
+            // Pre-unlock: back = leave social recovery (other methods).
+            isPostUnlockVerify ? finishPostUnlockVerify : handleUseOtherMethod
+          }
           onSelectMethod={(method) => {
-            handlePostUnlockVerifyMethod(method).catch(() => undefined);
+            handleRecoveryVerifyMethod(method).catch(() => undefined);
           }}
         />
       );
@@ -1092,10 +1203,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       <WalletRecoveryPassword
         password={password}
         error={error}
-        isBusy={finalLoading}
+        isBusy={finalLoading || socialCredentialsLoading}
         isDisabled={disabledInput}
         themeAppearance={themeAppearance}
-        onBack={handleUseOtherMethod}
+        onBack={
+          preUnlockVerifyAvailable
+            ? () => setRecoveryStep('verify')
+            : handleUseOtherMethod
+        }
         onChangePassword={handlePasswordChange}
         onContinue={handleLogin}
       />

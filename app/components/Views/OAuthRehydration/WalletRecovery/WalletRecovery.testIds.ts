@@ -1,4 +1,5 @@
 export const WalletRecoverySelectorsIDs = {
+  LOADING_SCREEN: 'wallet-recovery-loading-screen',
   VERIFY_SCREEN: 'wallet-recovery-verify-screen',
   PASSWORD_SCREEN: 'wallet-recovery-password-screen',
   USE_PASSKEY_BUTTON: 'wallet-recovery-use-passkey-button',
