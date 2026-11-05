@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Kept Money Account identity verification pending until the provider gives final approval
 
-### Fixed
-
-- Restored AssetsController state (balances, prices, token metadata, custom assets) in exported state logs
-
 ## [8.18.0]
 
 ### Added
