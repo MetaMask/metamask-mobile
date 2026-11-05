@@ -9,6 +9,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useOptimistic,
   useRef,
   useState,
 } from 'react';
@@ -77,7 +78,6 @@ const styles = StyleSheet.create({
 /** Where a pressed pill sat in the viewport, so its docked copy can fly out of it. */
 interface PillOrigin {
   tokenId: string;
-  chipId: string;
   left: number;
   center: number;
 }
@@ -85,8 +85,12 @@ interface PillOrigin {
 /** The rail's pills scatter while a chip is docked, away from this point. */
 interface PillDispersal {
   originCenter: number;
-  /** Hidden at once: the docked chip covers its spot as it takes off. */
-  sourceChipId: string | null;
+  /**
+   * Hidden at once: the docked chip covers its spot as it takes off. Both the
+   * primary and the loop copy match, since a track that barely overflows can
+   * show the two side by side.
+   */
+  sourceTokenId: string | null;
   /** Low-end hardware or Reduce Motion: a plain fade, no stagger or motion. */
   isLight: boolean;
 }
@@ -172,7 +176,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
       isPillOnScreen(placement.left, placement.width, viewport);
 
     if (dispersal) {
-      if (chipId === dispersal.sourceChipId || !placement || !isOnScreen) {
+      if (token.id === dispersal.sourceTokenId || !placement || !isOnScreen) {
         opacity.value = 0;
         return;
       }
@@ -220,11 +224,11 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     translateY.value = withDelay(delay, withTiming(0, config));
     scale.value = withDelay(delay, withTiming(1, config));
   }, [
-    chipId,
     dispersal,
     measureInViewport,
     opacity,
     scale,
+    token.id,
     translateX,
     translateY,
     viewportWidth,
@@ -246,13 +250,12 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
       placement
         ? {
             tokenId: token.id,
-            chipId,
             left: placement.left,
             center: placement.left + placement.width / 2,
           }
         : null,
     );
-  }, [chipId, measureInViewport, onPress, token]);
+  }, [measureInViewport, onPress, token]);
 
   return (
     // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
@@ -341,17 +344,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const reduceMotion = useReducedMotion();
   // A press moves the rail at once and hands the feed's filter to a
   // transition, so the animation does not wait on the feed re-rendering. The
-  // guess is dropped as soon as the page answers with a new selection.
-  const [optimistic, setOptimistic] = useState<{
-    fromId: string | null;
-    toId: string | null;
-  } | null>(null);
-  if (optimistic && optimistic.fromId !== committedSelectedTokenId) {
-    setOptimistic(null);
-  }
-  const selectedTokenId = optimistic
-    ? optimistic.toId
-    : committedSelectedTokenId;
+  // latest guess holds until every pending press has reached the page, so a
+  // page update that only catches up to an earlier press cannot undo a later
+  // one.
+  const [selectedTokenId, setOptimisticSelectedTokenId] = useOptimistic<
+    string | null,
+    string | null
+  >(committedSelectedTokenId, (_current, next) => next);
   const rankedToken = useMemo(
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
@@ -413,7 +412,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       docked && !docked.isExiting
         ? {
             originCenter: docked.origin?.center ?? DOCK_LEFT,
-            sourceChipId: docked.origin?.chipId ?? null,
+            sourceTokenId: docked.origin?.tokenId ?? null,
             isLight: isLowHardware || reduceMotion,
           }
         : null,
@@ -533,13 +532,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
-      setOptimistic({
-        fromId: committedSelectedTokenId,
-        toId: token.id === selectedTokenId ? null : token.id,
+      const nextId = token.id === selectedTokenId ? null : token.id;
+      startTransition(() => {
+        setOptimisticSelectedTokenId(nextId);
+        onTokenPress(token);
       });
-      startTransition(() => onTokenPress(token));
     },
-    [committedSelectedTokenId, onTokenPress, selectedTokenId],
+    [onTokenPress, selectedTokenId, setOptimisticSelectedTokenId],
   );
 
   const handlePillPress = useCallback(

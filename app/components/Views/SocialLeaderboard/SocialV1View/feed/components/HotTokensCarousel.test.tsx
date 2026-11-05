@@ -10,7 +10,7 @@ import {
   IconSize,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { Suspense, useState } from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { playSelection } from '../../../../../../util/haptics';
@@ -78,6 +78,53 @@ const arrange = (tokens: SocialV1HotToken[], isLoading = false) => {
 const HotTokensCarousel = (props: HotTokensCarouselProps) => (
   <HotTokensCarouselView {...arranged} {...props} />
 );
+
+const NEVER_SETTLES = new Promise<never>(() => undefined);
+
+/** Suspends once a press lands, so the press's transition stays pending. */
+const PageGate = ({ isHeld }: { isHeld: boolean }) => {
+  if (isHeld) {
+    throw NEVER_SETTLES;
+  }
+  return null;
+};
+
+/**
+ * A page that never finishes answering a press, like a feed that is still
+ * re-rendering. The test supplies the committed selection, so it can play
+ * the page catching up to an earlier press.
+ */
+const SlowPage = ({
+  selectedTokenId = null,
+  onTokenPress,
+}: Pick<HotTokensCarouselProps, 'selectedTokenId' | 'onTokenPress'>) => {
+  const [isHeld, setIsHeld] = useState(false);
+  return (
+    <>
+      <HotTokensCarousel
+        selectedTokenId={selectedTokenId}
+        onTokenPress={(token) => {
+          onTokenPress?.(token);
+          setIsHeld(true);
+        }}
+      />
+      <Suspense fallback={null}>
+        <PageGate isHeld={isHeld} />
+      </Suspense>
+    </>
+  );
+};
+
+/** The host view whose animated style carries a pill's opacity. */
+const getPillWrapper = (chipId: string) => {
+  let node = screen.getByTestId(getSocialV1HotTokenChipTestId(chipId), {
+    includeHiddenElements: true,
+  });
+  while (node.parent && !node.props.onLayout) {
+    node = node.parent;
+  }
+  return node;
+};
 
 const NVIDIA = mockHotToken({
   id: 'hot-nvda',
@@ -293,7 +340,7 @@ describe('HotTokensCarousel', () => {
   it('docks the pressed chip before the page answers', () => {
     const onTokenPress = jest.fn();
     arrange([mockHotToken(), NVIDIA]);
-    renderWithProvider(<HotTokensCarousel onTokenPress={onTokenPress} />);
+    renderWithProvider(<SlowPage onTokenPress={onTokenPress} />);
 
     fireEvent.press(
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
@@ -332,10 +379,7 @@ describe('HotTokensCarousel', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(
-      <HotTokensCarousel
-        selectedTokenId={NVIDIA.id}
-        onTokenPress={onTokenPress}
-      />,
+      <SlowPage selectedTokenId={NVIDIA.id} onTokenPress={onTokenPress} />,
     );
     fireEvent.press(
       screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
@@ -345,6 +389,47 @@ describe('HotTokensCarousel', () => {
     expect(
       screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props.pointerEvents,
     ).toBe('auto');
+  });
+
+  it('keeps a quick clear when the page only catches up to the select', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(<SlowPage />);
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+    );
+    rerender(<SlowPage selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props.pointerEvents,
+    ).toBe('auto');
+  });
+
+  it('keeps a chip picked during the exit when the page only catches up to the clear', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <SlowPage selectedTokenId={NVIDIA.id} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
+    );
+    rerender(<SlowPage selectedTokenId={null} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-btc')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID, {
+        includeHiddenElements: true,
+      }).props.pointerEvents,
+    ).toBe('none');
   });
 
   it('gives the rail back its taps while the docked chip leaves', () => {
@@ -563,6 +648,48 @@ describe('HotTokensCarousel', () => {
       expect(
         screen.queryByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
       ).toBeNull();
+    });
+
+    it('hides both copies of the pressed chip when the loop shows them side by side', () => {
+      arrange([mockHotToken(), NVIDIA]);
+      renderWithProvider(<SlowPage />);
+      fireEvent(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+        'layout',
+        { nativeEvent: { layout: { width: 300, height: 40 } } },
+      );
+      fireEvent(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID),
+        'layout',
+        { nativeEvent: { layout: { width: 320, height: 40 } } },
+      );
+      layOutPill('hot-btc', 16);
+      layOutPill('hot-nvda', 144);
+      layOutPill('hot-btc-loop', 16);
+      layOutPill('hot-nvda-loop', 144);
+      // Scrubbed into the wrap zone: NVIDIA sits at -56 and its loop copy at 264.
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID),
+          [{ translationX: 0 }, { translationX: -100 }, { translationX: -200 }],
+        );
+      });
+
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+      );
+      // One frame: well inside every other pill's scatter delay.
+      act(() => {
+        jest.advanceTimersByTime(16);
+      });
+
+      expect(getPillWrapper('hot-nvda')).toHaveAnimatedStyle({ opacity: 0 });
+      expect(getPillWrapper('hot-nvda-loop')).toHaveAnimatedStyle({
+        opacity: 0,
+      });
+      expect(getPillWrapper('hot-btc-loop')).toHaveAnimatedStyle({
+        opacity: 1,
+      });
     });
 
     it('hides a pill that mounts while the rail is scattered', () => {
