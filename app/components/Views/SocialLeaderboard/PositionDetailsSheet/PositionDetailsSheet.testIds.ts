@@ -4,6 +4,7 @@ export const PositionDetailsSheetSelectorsIDs = {
   IDENTITY: 'position-details-sheet-identity',
   TITLE: 'position-details-sheet-title',
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
+  PRICE_HEADER: 'position-details-sheet-price-header',
   PRICE: 'position-details-sheet-price',
   DAILY_CHANGE: 'position-details-sheet-daily-change',
   CHART_CONTROLS: 'position-details-sheet-chart-controls',

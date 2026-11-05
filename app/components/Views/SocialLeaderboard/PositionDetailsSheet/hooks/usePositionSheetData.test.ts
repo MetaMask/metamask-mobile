@@ -166,6 +166,33 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
+      expect(result.current.summarySubtitle).toBe('Sold · 2 d ago');
+      expect(result.current.summaryTagLabel).toBeUndefined();
+    });
+
+    it('ages an open position from firstTradeAt', () => {
+      mockUseTraderPositionData.mockReturnValue(baseData());
+
+      const { result } = renderData(
+        Object.assign(buildPosition(), {
+          firstTradeAt: (NOW_MS - 5 * HOUR_MS) / 1000,
+        }),
+      );
+
+      expect(result.current.summarySubtitle).toBe('Opened · 5 hr ago');
+    });
+
+    it('leaves the caption empty when a closed position has no trades', () => {
+      mockUseTraderPositionData.mockReturnValue(
+        baseData({ isClosed: true, historicalPrices: prices }),
+      );
+
+      const { result } = renderData(
+        buildPosition({ trades: [], lastTradeAt: 0 }),
+        true,
+      );
+
+      expect(result.current.summarySubtitle).toBe('');
     });
   });
 
@@ -204,10 +231,50 @@ describe('usePositionSheetData', () => {
       expect(result.current.currentPrice).toBe(104000);
       expect(result.current.isTrendPositive).toBe(false);
       expect(result.current.perpTradeSymbol).toBe('BTC');
-      expect(result.current.summaryTitle).toBe('BTC · 40x Short');
+      expect(result.current.summaryTitle).toBe('2 BTC');
+      expect(result.current.summaryTagLabel).toBe('40x Short');
+      expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
       expect(result.current.markers[0].tooltipLabel).toMatch(
         /^Opened short @ \$107,469/,
       );
+    });
+
+    it('sizes an open perp from the leveraged amount', () => {
+      mockUseTraderPositionData.mockReturnValue(
+        baseData({ isPerp: true, symbol: 'BTC' }),
+      );
+
+      const { result } = renderData(
+        buildPerpPosition({
+          positionAmount: 1,
+          positionAmountWithLeverage: 40,
+        }),
+      );
+
+      expect(result.current.summaryTitle).toBe('40 BTC');
+    });
+
+    it('ages a closed perp from the latest fill when lastTradeAt is missing', () => {
+      mockUseTraderPositionData.mockReturnValue(
+        baseData({ isPerp: true, symbol: 'BTC', isClosed: true }),
+      );
+
+      const { result } = renderData(
+        buildPerpPosition({
+          lastTradeAt: 0,
+          trades: [
+            buildTrade({
+              timestamp: NOW_MS - 3 * DAY_MS,
+              direction: 'sell',
+              perpPositionType: 'short',
+            }),
+          ],
+        }),
+        true,
+      );
+
+      expect(result.current.summarySubtitle).toBe('Closed · 3 d ago');
+      expect(result.current.summaryTagLabel).toBe('40x Short');
     });
 
     it('skips the candle request offline', () => {
