@@ -93,6 +93,7 @@ jest.mock('./SocialEntryOptionsBottomSheet', () => ({
   useSocialEntryModeration: () => ({ isEntryHidden: mockIsEntryHidden }),
 }));
 
+let lastShellNow: number | undefined;
 jest.mock('./SocialFeedPostShell', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   return {
@@ -100,12 +101,17 @@ jest.mock('./SocialFeedPostShell', () => {
     default: ({
       post,
       onPositionPress,
+      now,
     }: {
       post: { id: string };
       onPositionPress?: (post: { id: string }) => void;
-    }) => (
-      <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
-    ),
+      now?: number;
+    }) => {
+      lastShellNow = now;
+      return (
+        <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
+      );
+    },
   };
 });
 
@@ -851,6 +857,53 @@ describe('SocialFeedVirtualized', () => {
         hasUsableData: expectedUsableData,
         performance: context,
       });
+    });
+  });
+
+  describe('age tick', () => {
+    const AGE_TICK_MS = 60_000;
+
+    const renderActiveFeed = (isActive: boolean) => (
+      <SocialFeedVirtualized
+        {...query}
+        location="social_live"
+        scrollMode="virtualized"
+        scrollTestID="feed-scroll"
+        isActive={isActive}
+      />
+    );
+
+    beforeEach(() => {
+      lastShellNow = undefined;
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+    });
+
+    it('does not tick while the feed is inactive', () => {
+      jest.useFakeTimers();
+      renderFeed({ isActive: false });
+      const beforeHidden = lastShellNow;
+
+      act(() => {
+        jest.advanceTimersByTime(AGE_TICK_MS * 3);
+      });
+
+      expect(lastShellNow).toBe(beforeHidden);
+    });
+
+    it('refreshes ages as soon as the feed becomes active again', () => {
+      jest.useFakeTimers();
+      const { rerender } = renderFeed({ isActive: false });
+      const whileHidden = lastShellNow;
+
+      act(() => {
+        jest.advanceTimersByTime(AGE_TICK_MS * 5);
+      });
+      expect(lastShellNow).toBe(whileHidden);
+
+      rerender(renderActiveFeed(true));
+
+      // The refresh fires on re-activation, not a full minute later.
+      expect(lastShellNow).not.toBe(whileHidden);
     });
   });
 });
