@@ -14,11 +14,15 @@ import {
   formatAbbreviatedUsd,
   formatFollowerCountLabel,
   formatPercent,
+  formatSignedAbbreviatedUsd,
 } from '../../../../SocialFeed/utils/formatters';
 import { TokenDetailsIds } from '../../../testIds';
 
 /** Matches the avatar size on the Social V1 feed's identity row. */
 const AVATAR_SIZE = 32;
+
+const isPresentNumber = (value: number | null | undefined): value is number =>
+  value != null && Number.isFinite(value);
 
 export interface TokenHolderRowProps {
   row: TraderFeedRow;
@@ -27,21 +31,32 @@ export interface TokenHolderRowProps {
 /**
  * One holder of the token on screen: who they are, and what they hold.
  *
- * The right-hand column is value over percent. The position value is a
- * holding, not a result, so it carries no `+`/`-` and no color -- only the
- * unrealized P&L percent beneath it is colored. The agreed design drops the
- * rank medal, win-rate tag and follow button the old leaderboard row had.
+ * The right-hand column is size over P&L. The size is a holding, not a
+ * result, so it carries no `+`/`-` and no color -- only the unrealized P&L
+ * beneath it is colored: in dollars for a perp, as a percent for spot. The
+ * agreed design drops the rank medal, win-rate tag and follow button the old
+ * leaderboard row had.
  */
 const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
   const { item, core } = row;
   // Left in USD for now, as the API prices it. Converting to the viewer's
   // currency is a deliberate follow-up, not an oversight.
-  // `mapFeedItem` already formats an open position's value as unsigned USD;
-  // abbreviate it so a whale's holding keeps the column one line.
-  const valueLabel = item.hasValueData
-    ? formatAbbreviatedUsd(core.currentValueUSD)
-    : '';
-  const pnlLabel = item.hasPnlData ? formatPercent(core.pnlPercent) : '';
+  // Abbreviated so a whale's holding keeps the column one line. A perp's
+  // `currentValueUSD` is its equity, which does not follow the list's order,
+  // so it is only the fallback when the API omits `positionValueUSD`.
+  let valueLabel = '';
+  if (isPresentNumber(core.positionValueUSD)) {
+    valueLabel = formatAbbreviatedUsd(core.positionValueUSD);
+  } else if (item.hasValueData) {
+    valueLabel = formatAbbreviatedUsd(core.currentValueUSD);
+  }
+  const showPnlUsd = item.type === 'perps' && isPresentNumber(core.pnlValueUsd);
+  let pnlLabel = '';
+  if (showPnlUsd) {
+    pnlLabel = formatSignedAbbreviatedUsd(core.pnlValueUsd);
+  } else if (item.hasPnlData) {
+    pnlLabel = formatPercent(core.pnlPercent);
+  }
 
   return (
     <Box
@@ -93,7 +108,11 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
             twClassName={
               item.isPnlPositive ? 'text-success-default' : 'text-error-default'
             }
-            testID={TokenDetailsIds.holderRow.PNL_PERCENT}
+            testID={
+              showPnlUsd
+                ? TokenDetailsIds.holderRow.PNL_VALUE
+                : TokenDetailsIds.holderRow.PNL_PERCENT
+            }
           >
             {pnlLabel}
           </Text>
