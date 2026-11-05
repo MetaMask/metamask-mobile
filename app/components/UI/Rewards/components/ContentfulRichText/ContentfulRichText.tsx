@@ -107,11 +107,8 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   const handleLinkPress = useCallback(
     (url: string) => {
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-        },
+        newTabUrl: url,
+        timestamp: Date.now(),
       });
     },
     [navigation],

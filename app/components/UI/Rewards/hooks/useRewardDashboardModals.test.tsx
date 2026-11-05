@@ -655,7 +655,7 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
