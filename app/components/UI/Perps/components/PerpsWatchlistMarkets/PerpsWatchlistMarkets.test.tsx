@@ -751,6 +751,29 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Native layout
+  // -------------------------------------------------------------------------
+
+  describe('Native layout', () => {
+    it('sets collapsable false on the section root', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+          testID="explore-watchlist"
+        />,
+      );
+
+      // Without it, the section's children attach to the page and the
+      // LinearTransition wrapper animates on every height change above it.
+      expect(screen.getByTestId('explore-watchlist')).toHaveProp(
+        'collapsable',
+        false,
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Component lifecycle
   // -------------------------------------------------------------------------
 

@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "我们将在预测所使用的 Polygon 网络上将您的代币兑换为 pUSD。兑换提供商可能收取费用，但 MetaMask 不收取费用。"
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask 将为您兑换为您想要的代币。兑换至 mUSD 时，MetaMask 不收取任何费用。"
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask 将为您兑换为您想要的代币。兑换至 mUSD 时，MetaMask 不收取任何费用。"
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD 兑换费用包含网络费用，并可能包含提供商费用。兑换为 mUSD 时，MetaMask 不收取任何费用。"
       },

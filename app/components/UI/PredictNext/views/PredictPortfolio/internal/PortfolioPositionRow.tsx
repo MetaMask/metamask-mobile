@@ -20,9 +20,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 import { getEntryTitle, getOutcomeName } from '../../../utils/entryCopy';
+import { formatPositionPnl } from '../../../utils/positionValue';
 import {
-  formatSignedPercent,
-  formatSignedUsdAmount,
   formatSharesAmount,
   formatUsdAmount,
   pnlToneClassName,
@@ -40,20 +39,6 @@ interface PortfolioPositionMetricsProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
 }
-
-/** The signed unrealized PnL, with its percent when the backend sent one. */
-const formatPositionPnl = (
-  unrealizedPnl: string,
-  unrealizedPnlPercent?: string,
-): string => {
-  const amount = formatSignedUsdAmount(unrealizedPnl);
-  return unrealizedPnlPercent === undefined
-    ? amount
-    : strings('predict_next.portfolio.pnl_with_percent', {
-        amount,
-        percent: formatSignedPercent(unrealizedPnlPercent),
-      });
-};
 
 /**
  * Trailing current value and unrealized PnL. A Position without a current

@@ -221,10 +221,12 @@ describe('PredictFeed', () => {
     // Re-establish getBalance: spying on it in a test and calling mockRestore()
     // wipes the shared Engine mock's implementation (spyOn returns the existing
     // jest.fn), which would make the balance query resolve undefined → error
-    // state instead of the balance card.
-    (
-      Engine.context.PredictController.getBalance as jest.Mock
-    ).mockResolvedValue(0);
+    // state instead of the balance card. Also clear its call history: no jest
+    // config sets clearMocks, so calls from earlier tests would otherwise count
+    // toward call-count assertions.
+    (Engine.context.PredictController.getBalance as jest.Mock)
+      .mockClear()
+      .mockResolvedValue(0);
   });
 
   describe('search interaction', () => {
