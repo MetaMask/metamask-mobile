@@ -33,7 +33,7 @@ import kotlin.math.ceil
  * /proc, the same source Flashlight reads over adb), RSS memory, and frame stats
  * from FrameMetrics, tagged with the screen JS reports through [setScreen]. Optional
  * features (feature spans, interactions, frame phases, Redux and JS lag, UI-thread
- * stalls, Hermes profiles) are switched on and off by the collector at runtime.
+ * stalls, Hermes profiles, network request timing) are switched on and off by the collector at runtime.
  * Samples are batched to disk and POSTed to the collector; the on-disk queue
  * survives app kills and offline periods and is drained on the next flush.
  *
@@ -58,6 +58,9 @@ object PerfSession {
     // second would otherwise upload every few seconds. Extra stalls are dropped.
     private const val MAX_STALLS_PER_BATCH = 20
     private const val MAX_RENDER_LOOPS_PER_BATCH = 5
+    // Requests never force a flush either. Past this, only slow or failed ones are kept.
+    private const val MAX_REQUESTS_PER_BATCH = 200
+    private const val SLOW_REQUEST_MS = 1000.0
     private const val MAX_UNCONFIRMED_SAMPLES = 60
     private const val MAX_BATCH_CHARS = 240_000
     private const val FROZEN_FRAME_NS = 700_000_000L
@@ -124,6 +127,8 @@ object PerfSession {
     private var spans = JSONArray()
     private var stalls = JSONArray()
     private var renderLoops = JSONArray()
+    private var requests = JSONArray()
+    private var requestsDropped = 0
     private val batchFeatures = LinkedHashSet<String>()
 
     // Frame stats for the current window (sampler thread; FrameMetrics callbacks run on [handler]).
@@ -189,6 +194,7 @@ object PerfSession {
 
         handler = Handler(HandlerThread(SAMPLER_THREAD).apply { start() }.looper)
         PerfProfiles.init(app)
+        PerfNetwork.install()
         // Sample optimistically until the first status answer so cold start is covered;
         // nothing is written to disk until the collector says to record.
         handler.post {
@@ -309,6 +315,10 @@ object PerfSession {
                 if (spans.length() >= MAX_SPANS_PER_BATCH) spans = JSONArray()
                 if (stalls.length() >= MAX_STALLS_PER_BATCH) stalls = JSONArray()
                 if (renderLoops.length() >= MAX_RENDER_LOOPS_PER_BATCH) renderLoops = JSONArray()
+                if (requests.length() >= MAX_REQUESTS_PER_BATCH) {
+                    requests = JSONArray()
+                    requestsDropped = 0
+                }
             }
             if (foreground && System.currentTimeMillis() - lastStatusCheckAt >= statusIntervalMs) checkStatus()
         } catch (e: Exception) {
@@ -350,6 +360,8 @@ object PerfSession {
             spans = JSONArray()
             stalls = JSONArray()
             renderLoops = JSONArray()
+            requests = JSONArray()
+            requestsDropped = 0
             batchFeatures.clear()
         }
         updateFeatureWorkers()
@@ -364,6 +376,8 @@ object PerfSession {
             if (active && (features.interactions || features.renderLoops)) activity.runOnUiThread { PerfInteractions.attach(activity) }
         }
         if (!(active && features.renderLoops)) PerfRenderLoops.reset()
+        // Requests in the background count too (a refresh on resume starts there).
+        PerfNetwork.enabled = recording != Recording.OFF && features.network
         PerfStallWatchdog.setActive(active && features.uiStalls)
         PerfProfiles.tick(foreground && recording == Recording.ON && features.profiles)
     }
@@ -545,6 +559,21 @@ object PerfSession {
         }
     }
 
+    /** Called by [PerfNetwork] on OkHttp threads when a request ends. */
+    internal fun onRequest(request: JSONObject) {
+        handler.post {
+            if (recording == Recording.OFF || !features.network) return@post
+            batchFeatures.add("network")
+            val important = request.has("error") || request.optInt("status", 200) >= 400 ||
+                request.optDouble("durationMs", 0.0) >= SLOW_REQUEST_MS
+            if (requests.length() < MAX_REQUESTS_PER_BATCH || (important && requests.length() < MAX_REQUESTS_PER_BATCH * 2)) {
+                requests.put(request)
+            } else {
+                requestsDropped++
+            }
+        }
+    }
+
     /** Called by [PerfInteractions] from the main thread. */
     internal fun onInteraction(type: String, value: String?, t: Long, mono: Long) {
         handler.post {
@@ -601,7 +630,7 @@ object PerfSession {
     private fun flush() {
         if (recording != Recording.ON) return
         if (samples.length() == 0 && events.length() == 0 && spans.length() == 0 && stalls.length() == 0 &&
-            renderLoops.length() == 0
+            renderLoops.length() == 0 && requests.length() == 0
         ) return
         val batch = JSONObject()
             .put("v", 3)
@@ -620,11 +649,15 @@ object PerfSession {
             batch.put("stacks", shareStacks(batchStalls)).put("stalls", batchStalls)
         }
         if (renderLoops.length() > 0) batch.put("renderLoops", renderLoops)
+        if (requests.length() > 0) batch.put("requests", requests)
+        if (requestsDropped > 0) batch.put("requestsDropped", requestsDropped)
         samples = JSONArray()
         events = JSONArray()
         spans = JSONArray()
         stalls = JSONArray()
         renderLoops = JSONArray()
+        requests = JSONArray()
+        requestsDropped = 0
         batchFeatures.clear()
         var body = batch.toString()
         if (body.length > MAX_BATCH_CHARS) {
@@ -636,6 +669,8 @@ object PerfSession {
             }
             body = batch.toString()
             if (body.length > MAX_BATCH_CHARS) batch.put("events", limit(batch.getJSONArray("events"), 100))
+            body = batch.toString()
+            if (body.length > MAX_BATCH_CHARS) batch.optJSONArray("requests")?.let { batch.put("requests", limit(it, 100)) }
             body = batch.toString()
         }
         runCatching {

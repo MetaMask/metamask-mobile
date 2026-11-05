@@ -19,6 +19,7 @@ flowchart LR
       views["View tree, 2 snapshots<br/>render loops: animating views"]
       life["Activity lifecycle<br/>launch, firstFrame,<br/>foreground, background"]
       hermes["Hermes sampling profiler<br/>JS CPU profile, 10 s segments"]
+      net["OkHttp EventListener<br/>fetch / XHR from JS: endpoint template,<br/>JSON-RPC method, status, queue / DNS /<br/>connect / TLS / first byte / total"]
     end
     subgraph js["JS: perfSession.ts"]
       nav["React Navigation<br/>screen name"]
@@ -31,7 +32,7 @@ flowchart LR
 
   subgraph collector["Perf collector (laptop + ngrok)"]
     status["GET /status<br/>record on/off, features"]
-    ingest["POST /ingest<br/>batch v3: meta, clock, samples,<br/>events, spans, stalls + stacks,<br/>render loops"]
+    ingest["POST /ingest<br/>batch v3: meta, clock, samples,<br/>events, spans, stalls + stacks,<br/>render loops, requests"]
     profile["POST /profile<br/>gzip Hermes trace +<br/>X-Perf-Profile metadata"]
     store[("data/&lt;env&gt;/<br/>batches (ndjson), profiles (gz)<br/>+ source maps per versionCode")]
   end
@@ -42,9 +43,11 @@ flowchart LR
     trace["Device trace.json<br/>(Perfetto / Chrome tracing)"]
     fl["Device flashlight.json<br/>(Flashlight web reporter)"]
     pv["Profile view<br/>(symbolicated functions, flame graph)"]
+    cpu["Profile .cpuprofile (symbolicated)<br/>+ raw Hermes trace .json.gz"]
+    all["Download everything<br/>export.tar.gz"]
   end
 
-  proc & heap & fm & touch & wd & views & life --> queue
+  proc & heap & fm & touch & wd & views & life & net --> queue
   nav & spans & redux & lag -->|"bridge, once a second"| queue
   hermes -->|"only segments around a problem,<br/>≤ 12 per hour, unmetered networks only"| queue
   status -.->|"features to collect"| phone
@@ -52,24 +55,25 @@ flowchart LR
   queue --> profile
   ingest --> store
   profile --> store
-  store --> ai & rep & trace & fl & pv
+  store --> ai & rep & trace & fl & pv & cpu & all
 ```
 
-| Data                                     | ai-report.md                | report.json / .md            | trace.json              | flashlight.json | Profile view |
-| ---------------------------------------- | --------------------------- | ---------------------------- | ----------------------- | --------------- | ------------ |
-| CPU per thread, FPS, janky/frozen, RAM   | ±5 s around each problem    | per screen                   | ✓                       | ✓               |              |
-| Frame phases, slowest frame              | ±5 s around each problem    | per screen                   | ✓                       |                 |              |
-| Java heap                                |                             | ✓                            | ✓                       |                 |              |
-| JS lag                                   | ✓                           | ✓                            | ✓                       | ✓               |              |
-| Redux actions                            | ✓                           | ✓                            |                         |                 |              |
-| Screens, taps, scrolls, lifecycle events | 10 s before each problem    | last tap before each problem | ✓                       |                 |              |
-| Spans                                    | overlapping each problem    | per screen                   | ✓                       |                 |              |
-| UI stalls and stacks                     | ✓                           | per screen                   | ✓                       |                 |              |
-| Render loops                             | ✓                           | per screen                   | ✓                       |                 |              |
-| Hermes profiles                          | top functions, hottest path |                              | samples on the timeline |                 | ✓            |
-| Sampler overhead (selfCpu, features on)  | fixed note only             | ✓ (per feature set)          | ✓                       | ✓               |              |
+| Data                                     | ai-report.md                 | report.json / .md               | trace.json              | flashlight.json | Profile view / .cpuprofile | export.tar.gz |
+| ---------------------------------------- | ---------------------------- | ------------------------------- | ----------------------- | --------------- | -------------------------- | ------------- |
+| CPU per thread, FPS, janky/frozen, RAM   | ±5 s around each problem     | per screen                      | ✓                       | ✓               |                            | ✓ raw         |
+| Frame phases, slowest frame              | ±5 s around each problem     | per screen                      | ✓                       |                 |                            | ✓ raw         |
+| Java heap                                |                              | ✓                               | ✓                       |                 |                            | ✓ raw         |
+| JS lag                                   | ✓                            | ✓                               | ✓                       | ✓               |                            | ✓ raw         |
+| Redux actions                            | ✓                            | ✓                               |                         |                 |                            | ✓ raw         |
+| Screens, taps, scrolls, lifecycle events | 10 s before each problem     | last tap before each problem    | ✓                       |                 |                            | ✓ raw         |
+| Spans                                    | overlapping each problem     | per screen                      | ✓                       |                 |                            | ✓ raw         |
+| UI stalls and stacks                     | ✓                            | per screen                      | ✓                       |                 |                            | ✓ raw         |
+| Render loops                             | ✓                            | per screen                      | ✓                       |                 |                            | ✓ raw         |
+| Network requests                         | per endpoint, per span, ±5 s | per endpoint, per problem, span | Network track           |                 |                            | ✓ raw         |
+| Hermes profiles                          | top functions, hottest path  |                                 | samples on the timeline |                 | ✓                          | ✓ both + raw  |
+| Sampler overhead (selfCpu, features on)  | fixed note only              | ✓ (per feature set)             | ✓                       | ✓               |                            | ✓ raw         |
 
-What isn't in any download today: the **raw Hermes profile** (`.cpuprofile`, for Chrome DevTools or speedscope), and **one file with all data** for a time window. The AI report covers the worst 30 problems, and `trace.json` covers one device.
+**Download everything** (`export.tar.gz`) has every record the collector holds for the env and window, unaggregated (`devices/<id>/records.json`), each device's `trace.json`, the three reports, and every profile as `.cpuprofile` (symbolicated, opens in Chrome DevTools, speedscope or VS Code), the raw upload and its metadata. Everything the sampler collects is downloadable.
 
 ## What's measured
 
@@ -87,16 +91,17 @@ Only perf data, the screen name (static route names, never route params), device
 
 The collector switches each of these on or off per env at runtime (`features` in `GET /status`), so their overhead can be measured and anything too costly turned off without a rebuild. Each batch lists the features that were active (`features`).
 
-| Feature        | What it adds                                                                                                                                                   | Where                                                                       | Expected cost                                                             |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `spans`        | Completed `trace()` spans (name, id, start, duration, status; never `data` or `tags`), regardless of Sentry consent                                            | `app/util/trace.ts` → `perfSession.ts`, one bridge call per second          | A `Date.now()` and a small object per trace                               |
-| `interactions` | `tap`, `scrollStart`, `scrollEnd` events named by the touched view's testID (or accessibility label)                                                           | `PerfInteractions.kt`, a Window.Callback wrapper that never consumes events | One hit test of the view tree per gesture, on the main thread             |
-| `framePhases`  | For janky frames: mean ms per frame spent in input, animation, layout, draw, sync and GPU, plus the slowest frame                                              | `PerfSession.kt` (FrameMetrics)                                             | A few additions per janky frame                                           |
-| `redux`        | Actions dispatched per second and the top 5 types (`UPDATE_BG_STATE:<Controller>` for Engine updates)                                                          | Redux middleware in `app/store`                                             | A map increment per action                                                |
-| `jsLag`        | Max JS event-loop lag per second                                                                                                                               | 100 ms interval in `perfSession.ts`                                         | 10 timer callbacks per second on the JS thread                            |
-| `uiStalls`     | Main thread blocked ≥ 100 ms: duration, screen and the most frequent stack                                                                                     | `PerfStallWatchdog.kt` (`mm-perf-watchdog`)                                 | 10 pings per second to the main Looper; stack samples only during a stall |
-| `profiles`     | Hermes CPU profiles around problems                                                                                                                            | `PerfProfiles.kt`                                                           | Hermes sampling while on, a dump every 10 s; see below                    |
-| `renderLoops`  | When a screen keeps drawing with nobody touching it: the views responsible, each with a reason (`moving`, `playing`, `drawable`, `surface`) and its layer type | `PerfRenderLoops.kt`                                                        | Two view-tree walks on the main thread, at most once per 30 s per screen  |
+| Feature        | What it adds                                                                                                                                                                   | Where                                                                               | Expected cost                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `spans`        | Completed `trace()` spans (name, id, start, duration, status; never `data` or `tags`), regardless of Sentry consent                                                            | `app/util/trace.ts` → `perfSession.ts`, one bridge call per second                  | A `Date.now()` and a small object per trace                                                                             |
+| `interactions` | `tap`, `scrollStart`, `scrollEnd` events named by the touched view's testID (or accessibility label)                                                                           | `PerfInteractions.kt`, a Window.Callback wrapper that never consumes events         | One hit test of the view tree per gesture, on the main thread                                                           |
+| `framePhases`  | For janky frames: mean ms per frame spent in input, animation, layout, draw, sync and GPU, plus the slowest frame                                                              | `PerfSession.kt` (FrameMetrics)                                                     | A few additions per janky frame                                                                                         |
+| `redux`        | Actions dispatched per second and the top 5 types (`UPDATE_BG_STATE:<Controller>` for Engine updates)                                                                          | Redux middleware in `app/store`                                                     | A map increment per action                                                                                              |
+| `jsLag`        | Max JS event-loop lag per second                                                                                                                                               | 100 ms interval in `perfSession.ts`                                                 | 10 timer callbacks per second on the JS thread                                                                          |
+| `uiStalls`     | Main thread blocked ≥ 100 ms: duration, screen and the most frequent stack                                                                                                     | `PerfStallWatchdog.kt` (`mm-perf-watchdog`)                                         | 10 pings per second to the main Looper; stack samples only during a stall                                               |
+| `profiles`     | Hermes CPU profiles around problems                                                                                                                                            | `PerfProfiles.kt`                                                                   | Hermes sampling while on, a dump every 10 s; see below                                                                  |
+| `renderLoops`  | When a screen keeps drawing with nobody touching it: the views responsible, each with a reason (`moving`, `playing`, `drawable`, `surface`) and its layer type                 | `PerfRenderLoops.kt`                                                                | Two view-tree walks on the main thread, at most once per 30 s per screen                                                |
+| `network`      | Every fetch / XHR from JS: host, path template (ids, keys and addresses → `:id`, no query), JSON-RPC method, status or error, queue / DNS / connect / TLS / first byte / total | `PerfNetwork.kt`, an OkHttp EventListener on React Native's NetworkingModule client | A few timestamps per request on OkHttp's threads; the first 2 KB of small JSON bodies are copied to read the RPC method |
 
 **Render loops.** JS profiles can't explain a screen that burns the RenderThread or GPU while JS is idle (a looping Lottie or Rive animation, a shimmer, a spinner, a video). When for 3 s in a row nobody touched the screen and it kept drawing (≥ 25% of the refresh rate) or the RenderThread stayed above 50% of a core, the sampler walks the view tree twice, 150 ms apart, and reports up to 20 views: `moving` (position, transform or alpha changed: Reanimated, native-driver Animated, shimmers), `playing` (the view says so: Lottie `isAnimating()`, Rive and video `isPlaying()`), `drawable` (a running animated image) or `surface` (a visible TextureView, SurfaceView or WebView). Each comes with its testID (or the nearest named ancestor's) and layer type; a `software` layer is re-rasterized and re-uploaded every frame, which shows up as a long FrameMetrics sync phase. `proguard-rules.pro` keeps the getters it looks up by name.
 

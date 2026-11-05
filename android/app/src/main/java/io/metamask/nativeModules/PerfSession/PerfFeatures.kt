@@ -15,6 +15,7 @@ internal data class PerfFeatures(
     val uiStalls: Boolean = false,
     val profiles: Boolean = false,
     val renderLoops: Boolean = false,
+    val network: Boolean = false,
     val maxProfilesPerHour: Int = DEFAULT_MAX_PROFILES_PER_HOUR,
 ) {
     fun names(): List<String> = listOfNotNull(
@@ -26,6 +27,7 @@ internal data class PerfFeatures(
         "uiStalls".takeIf { uiStalls },
         "profiles".takeIf { profiles },
         "renderLoops".takeIf { renderLoops },
+        "network".takeIf { network },
     )
 
     /** The features JS has to act on (see app/core/Performance/perfSession.ts). */
@@ -59,6 +61,7 @@ internal data class PerfFeatures(
                 uiStalls = json.optBoolean("uiStalls", false),
                 profiles = profilesEnabled,
                 renderLoops = json.optBoolean("renderLoops", false),
+                network = json.optBoolean("network", false),
                 maxProfilesPerHour = maxPerHour.coerceIn(0, 120),
             )
         }
