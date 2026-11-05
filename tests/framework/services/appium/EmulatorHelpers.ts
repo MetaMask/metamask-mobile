@@ -1318,22 +1318,42 @@ export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
   );
 }
 
+async function readIosSimulatorState(
+  udid: string,
+): Promise<string | undefined> {
+  const { stdout } = await execAsync('xcrun simctl list devices -j');
+  const list = JSON.parse(stdout) as {
+    devices: Record<string, { udid: string; state: string }[]>;
+  };
+  for (const devices of Object.values(list.devices)) {
+    const sim = devices.find((d) => d.udid === udid);
+    if (sim) {
+      return sim.state;
+    }
+  }
+  return undefined;
+}
+
 export async function isIosSimulatorBooted(udid: string): Promise<boolean> {
   try {
-    const { stdout } = await execAsync('xcrun simctl list devices -j');
-    const list = JSON.parse(stdout) as {
-      devices: Record<string, { udid: string; state: string }[]>;
-    };
-    for (const devices of Object.values(list.devices)) {
-      const sim = devices.find((d) => d.udid === udid);
-      if (sim) {
-        return sim.state === 'Booted';
-      }
-    }
+    return (await readIosSimulatorState(udid)) === 'Booted';
   } catch {
     return false;
   }
-  return false;
+}
+
+/** `Shutdown` is down. `Booted` and `Shutting Down` are not. */
+function isIosSimulatorDown(state: string | undefined): boolean {
+  return state !== undefined && state !== 'Booted' && state !== 'Shutting Down';
+}
+
+function resolveNonNegativeIntEnv(envKey: string, fallbackMs: number): number {
+  const raw = process.env[envKey]?.trim();
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallbackMs;
 }
 
 function resolveIosPostBootSettleMs(): number {
@@ -1417,13 +1437,53 @@ export async function stopIosSimulator(udid: string): Promise<void> {
   }
 }
 
+const IOS_SIMULATOR_SHUTDOWN_TIMEOUT_MS = 15_000;
+const IOS_SIMULATOR_SHUTDOWN_POLL_MS = 250;
+
 /**
  * Shutdown + boot one simulator. Used when SpringBoard's accessibility server
  * dies (`kAXErrorServerNotFound`) and a new WebDriver session against the
- * still-booted sim fails the same way. `bootIosSimulatorByUdid` no-ops while
- * the sim is already booted, so the shutdown has to happen first.
+ * still-booted sim fails the same way.
+ *
+ * `bootIosSimulatorByUdid` no-ops while the sim is already booted, and
+ * `stopIosSimulator` swallows shutdown failures. This path verifies the sim
+ * is actually down before booting, and throws if it is still running.
  */
 export async function rebootIosSimulator(udid: string): Promise<void> {
-  await stopIosSimulator(udid);
+  logger.info(`Rebooting iOS simulator: ${udid}`);
+  let shutdownError: unknown;
+  try {
+    await execAsync(`xcrun simctl shutdown "${udid}"`);
+  } catch (error) {
+    // Already-shutdown devices fail this command. A still-booted device
+    // must not continue into boot, which would skip the restart.
+    shutdownError = error;
+  }
+
+  const timeoutMs = resolveNonNegativeIntEnv(
+    'IOS_SIMULATOR_SHUTDOWN_TIMEOUT_MS',
+    IOS_SIMULATOR_SHUTDOWN_TIMEOUT_MS,
+  );
+  const deadline = Date.now() + timeoutMs;
+  let state = await readIosSimulatorState(udid);
+  while (!isIosSimulatorDown(state) && Date.now() < deadline) {
+    await sleep(
+      Math.min(IOS_SIMULATOR_SHUTDOWN_POLL_MS, deadline - Date.now()),
+    );
+    state = await readIosSimulatorState(udid);
+  }
+
+  if (!isIosSimulatorDown(state)) {
+    const detail =
+      shutdownError instanceof Error
+        ? `: ${shutdownError.message}`
+        : shutdownError
+          ? `: ${String(shutdownError)}`
+          : '';
+    throw new Error(
+      `iOS simulator ${udid} is still ${state ?? 'missing'} after shutdown${detail}. Refusing to open a session against a simulator that did not restart.`,
+    );
+  }
+
   await bootIosSimulatorByUdid(udid);
 }
