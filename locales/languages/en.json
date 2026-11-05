@@ -1840,6 +1840,8 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -3783,6 +3785,14 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
     },
     "search": {
@@ -9558,6 +9568,11 @@
         "title": "You’re all set",
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
+      },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
       },
       "kyc_pending": {
         "title": "Verifying your identity",
