@@ -2,12 +2,9 @@ import React from 'react';
 import { InteractionManager } from 'react-native';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import RewardsDashboard, {
-  selectRewardsDashboardReferralMe,
-} from './RewardsDashboard';
+import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
@@ -511,34 +508,6 @@ describe('RewardsDashboard', () => {
       expect(getByTestId('campaigns-preview')).toBeTruthy();
       expect(getByTestId('earn-rewards-preview')).toBeTruthy();
       expect(getByTestId('benefits-preview')).toBeTruthy();
-    });
-
-    it('shows copy trading instead of earn rewards while Social V1 is on', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsSocialV1Enabled) return true;
-        if (selector === selectRewardsDashboardReferralMe) {
-          return {
-            roles: [],
-            localized_text: {
-              tradingCommissionsSection: 'Trading commissions',
-              copyTradingEmptyDescription:
-                'You can earn rewards from sharing a trade. Start sharing to earn today!',
-              copyTradingEmptyAction: 'Start sharing',
-            },
-          };
-        }
-        return undefined;
-      });
-
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION),
-      ).toBeTruthy();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY),
-      ).toBeTruthy();
-      expect(queryByTestId('earn-rewards-preview')).toBeNull();
     });
 
     it('calls modal hooks when component is rendered', () => {

@@ -87,7 +87,7 @@ import Engine from '../../../../core/Engine';
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
-export function selectRewardsDashboardReferralMe(state: RootState) {
+function selectRewardsDashboardReferralMe(state: RootState) {
   const profileId = selectSessionProfileId(state);
   return selectReferralMeEntry(state, profileId)?.data;
 }

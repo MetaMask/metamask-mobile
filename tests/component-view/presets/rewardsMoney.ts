@@ -192,6 +192,8 @@ export interface EarningsSummaryFixtureOptions {
   cashbackBlocked?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
+  /** Follow-trade claimable base units. Omitted leaves that family out. */
+  followTradeClaimable?: string;
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -201,6 +203,7 @@ export function earningsSummaryFixture(
   const claimable = options.claimable ?? '0';
   const cashbackClaimable = options.cashbackClaimable ?? claimable;
   const revShareLifetime = options.revShareLifetime ?? '0';
+  const followTradeClaimable = options.followTradeClaimable;
 
   return {
     lifetime_total: options.lifetimeTotal ?? '58500000',
@@ -234,6 +237,13 @@ export function earningsSummaryFixture(
       ...totals(revShareLifetime),
       by_claim_family: {
         REFERRAL_REV_SHARE: totals(revShareLifetime),
+        ...(followTradeClaimable === undefined
+          ? {}
+          : {
+              SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
+                claimable: followTradeClaimable,
+              }),
+            }),
       },
     },
   };
