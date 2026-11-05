@@ -858,7 +858,7 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders a centered Posts empty line without a create action', () => {
+  it('renders the illustrated Posts empty state without a create action', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
@@ -868,10 +868,13 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.getByText('Start the conversation')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toHaveStyle({ paddingTop: 16 });
+      screen.getByText(
+        'Post a trade. When others copy it, you get 15% of the fees.',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('No posts yet')).toBeNull();
     expect(screen.queryByText('Make your first post')).toBeNull();
     expect(
       screen.queryByText(

@@ -29,6 +29,17 @@ jest.mock('react-native-reanimated', () => {
 
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
+const mockGetHardwareTier = jest.fn(() => null);
+const mockUseNetworkTier = jest.fn(() => null);
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockGetHardwareTier(),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockUseNetworkTier(),
+}));
+
 const mockOpenComposer = jest.fn();
 const mockUseOpenPositionHeader = jest.fn(
   (): { sharePosition: TraderPosition | null; isPositionLoading: boolean } => ({
@@ -83,6 +94,8 @@ describe('TokenDetailsFeedEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
+    mockGetHardwareTier.mockReturnValue(null);
+    mockUseNetworkTier.mockReturnValue(null);
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isPositionLoading: false,
@@ -92,24 +105,29 @@ describe('TokenDetailsFeedEmptyState', () => {
   it('invites a trade without a button when the wallet does not hold the token', () => {
     renderWithProvider(<TokenDetailsFeedEmptyState hasBalance={false} />);
 
-    expect(screen.getByText('Post your trade')).toBeOnTheScreen();
+    expect(screen.getByText('Start the conversation')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "You'll get 15% of the fees every time someone copies your moves.",
+        'Buy this token and post your trade. When others copy it, you get 15% of the fees.',
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByText('Start your first post')).toBeNull();
     expect(screen.queryByText('Create MetaMask Post')).toBeNull();
     expect(
-      screen.getByTestId('token-details-feed-empty-megaphone'),
+      screen.getByTestId('token-details-feed-empty-no-balance-illustration', {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('token-details-feed-empty-megaphone'),
+    ).toBeNull();
   });
 
   it('invites a first post when the wallet holds the token', () => {
     renderWithProvider(<TokenDetailsFeedEmptyState hasBalance />);
 
     expect(screen.getByText('Start your first post')).toBeOnTheScreen();
-    expect(screen.queryByText('Post your trade')).toBeNull();
+    expect(screen.queryByText('Start the conversation')).toBeNull();
 
     fireEvent.press(screen.getByText('Create MetaMask Post'));
 
@@ -138,10 +156,25 @@ describe('TokenDetailsFeedEmptyState', () => {
     });
   });
 
+  it('shows the static megaphone when the phone has no network', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+
+    renderWithProvider(<TokenDetailsFeedEmptyState hasBalance />);
+
+    expect(
+      screen.getByTestId('token-details-feed-empty-megaphone-fallback', {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('token-details-feed-empty-megaphone'),
+    ).toBeNull();
+  });
+
   it('shows the static megaphone when Reduce Motion is on', () => {
     mockUseReducedMotion.mockReturnValue(true);
 
-    renderWithProvider(<TokenDetailsFeedEmptyState hasBalance={false} />);
+    renderWithProvider(<TokenDetailsFeedEmptyState hasBalance />);
 
     expect(
       screen.getByTestId('token-details-feed-empty-megaphone-fallback', {
