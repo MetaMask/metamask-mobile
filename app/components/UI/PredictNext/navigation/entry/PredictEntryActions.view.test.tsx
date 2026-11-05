@@ -28,6 +28,7 @@ import { PredictPortfolioScreenTestIds } from '../../views/PredictPortfolio/Pred
 import {
   createLegacyPredictEventRef,
   createNextPredictEventRef,
+  createPredictCampaignEventRef,
 } from './eventRef';
 import type { PredictIntent } from './intents';
 import { usePredictEntryActions } from './usePredictEntryActions';
@@ -76,6 +77,19 @@ const INTENTS = {
   },
   portfolio: { type: 'portfolio', tab: 'activity' },
   addFunds: { type: 'addFunds', autoDeposit: true },
+  /** Predict The Pitch runs on Polymarket. */
+  campaignHome: {
+    type: 'home',
+    entryPoint: 'rewards',
+    campaign: 'predict-the-pitch',
+  },
+  campaignEvent: {
+    type: 'event',
+    eventRef: createPredictCampaignEventRef('predict-the-pitch', 'event-1'),
+    entryPoint: 'rewards',
+    titleSnapshot: 'Match winner',
+    imageSnapshot: 'https://example.com/icon.png',
+  },
 } satisfies Record<string, PredictIntent>;
 
 type IntentName = keyof typeof INTENTS;
@@ -189,6 +203,26 @@ describe('Predict entry actions', () => {
           params: { initialTab: 'history' },
         },
       ],
+      [
+        'campaignHome',
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: { entryPoint: 'rewards' },
+        },
+      ],
+      [
+        'campaignEvent',
+        {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: 'event-1',
+            providerId: 'polymarket',
+            entryPoint: 'rewards',
+            title: 'Match winner',
+            image: 'https://example.com/icon.png',
+          },
+        },
+      ],
     ])('opens %s on its legacy Predict route', async (name, expected) => {
       const view = renderWithRouteProbes(LEGACY_LANE);
 
@@ -245,12 +279,14 @@ describe('Predict entry actions', () => {
       ).toStrictEqual(expected);
     });
 
-    it.each<IntentName>(['polymarketEvent', 'addFunds'])(
-      'opens nothing for %s',
-      (name) => {
-        expectNothingOpened(renderWithRouteProbes(KALSHI_ONLY), name);
-      },
-    );
+    it.each<IntentName>([
+      'polymarketEvent',
+      'addFunds',
+      'campaignHome',
+      'campaignEvent',
+    ])('opens nothing for %s', (name) => {
+      expectNothingOpened(renderWithRouteProbes(KALSHI_ONLY), name);
+    });
   });
 
   describe('through the registered Predict root router (Kalshi rollout)', () => {
@@ -288,11 +324,13 @@ describe('Predict entry actions', () => {
 
       fireEvent.press(view.getByTestId(openTestId('kalshiEvent')));
 
+      // The loading screen already shows the title snapshot; its header
+      // remounts once the Event loads, so wait for the loaded header first.
       expect(
-        await view.findByTestId(PredictEventScreenTestIds.VIEW),
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
       ).toBeOnTheScreen();
       expect(
-        await view.findByTestId(PredictEventScreenTestIds.TITLE),
+        view.getByTestId(PredictEventScreenTestIds.TITLE),
       ).toHaveTextContent(KALSHI_EVENT.title);
       expect(view.queryByTestId(PredictHomeTestIds.HOME)).toBeNull();
     });

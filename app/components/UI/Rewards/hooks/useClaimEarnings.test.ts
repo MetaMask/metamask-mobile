@@ -7,7 +7,15 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import type { Action } from '@reduxjs/toolkit';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { BtcAccountType, BtcScope } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  SolScope,
+  XlmAccountType,
+  XlmScope,
+} from '@metamask/keyring-api';
+import { base58 } from 'ethers/lib/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import {
@@ -823,6 +831,230 @@ describe('useClaimEarnings', () => {
     );
     expect(onSubmitted).toHaveBeenCalledTimes(1);
     expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('signs a Solana challenge through the keyring and submits 0x hex', async () => {
+    const address = 'So11111111111111111111111111111111111111112';
+    const earningAddress = `solana:${address}`;
+    const signatureBytes = Buffer.alloc(64, 9);
+    const submitRequest = jest.fn().mockResolvedValue({
+      signature: base58.encode(signatureBytes),
+      signedMessage: 'ignored',
+      signatureType: 'ed25519',
+    });
+    (
+      Engine.context.AccountsController.getAccountByAddress as jest.Mock
+    ).mockImplementation((lookup: string) =>
+      lookup === address
+        ? { id: 'sol-account', address, type: SolAccountType.DataAccount }
+        : undefined,
+    );
+    (
+      Engine.context.KeyringController.withKeyringV2 as jest.Mock
+    ).mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    mockEngineCall.mockImplementation(
+      async (_action: string, _route: string, body: InitiateClaimBody) => {
+        if (!body.proofs) {
+          return {
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-sol',
+              expires_at: '2026-09-29T00:00:00.000Z',
+              challenges: [
+                {
+                  earning_address: earningAddress,
+                  amount_musd_base_units: ONE_DOLLAR,
+                  message: 'solana challenge',
+                },
+              ],
+            },
+          };
+        }
+        return authorized();
+      },
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: SolScope.Mainnet,
+        account: 'sol-account',
+        request: {
+          method: 'signMessage',
+          params: {
+            account: { address },
+            message: Buffer.from('solana challenge', 'utf8').toString('base64'),
+          },
+        },
+      }),
+    );
+    expect(mockSignPersonalMessage).not.toHaveBeenCalled();
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        claim_intent_id: 'intent-sol',
+        proofs: [
+          {
+            earning_address: earningAddress,
+            signature: `0x${signatureBytes.toString('hex')}`,
+          },
+        ],
+      },
+    );
+  });
+
+  it('signs a Stellar challenge with the raw message and submits 0x hex', async () => {
+    const address = 'GDVEU3DD4KOFECV66VIHWEZOYX4ZKR3WV27L464SIIPOU2IUI3JCZA57';
+    const earningAddress = `stellar:${address}`;
+    const submitRequest = jest.fn().mockResolvedValue({
+      signedMessage: Buffer.from([1, 2, 3]).toString('base64'),
+      signerAddress: address,
+    });
+    (
+      Engine.context.AccountsController.getAccountByAddress as jest.Mock
+    ).mockImplementation((lookup: string) =>
+      lookup === address
+        ? { id: 'xlm-account', address, type: XlmAccountType.Account }
+        : undefined,
+    );
+    (
+      Engine.context.KeyringController.withKeyringV2 as jest.Mock
+    ).mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    mockEngineCall.mockImplementation(
+      async (_action: string, _route: string, body: InitiateClaimBody) => {
+        if (!body.proofs) {
+          return {
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-xlm',
+              expires_at: '2026-09-29T00:00:00.000Z',
+              challenges: [
+                {
+                  earning_address: earningAddress,
+                  amount_musd_base_units: ONE_DOLLAR,
+                  message: 'stellar challenge',
+                },
+              ],
+            },
+          };
+        }
+        return authorized();
+      },
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: XlmScope.Pubnet,
+        account: 'xlm-account',
+        request: {
+          method: 'signMessage',
+          params: { message: 'stellar challenge' },
+        },
+      }),
+    );
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        claim_intent_id: 'intent-xlm',
+        proofs: [{ earning_address: earningAddress, signature: '0x010203' }],
+      },
+    );
+  });
+
+  it('leaves a Solana address this phone does not hold off the narrowed claim', async () => {
+    const solana = 'solana:So11111111111111111111111111111111111111112';
+    mockEngineCall.mockImplementation(
+      async (_action: string, _route: string, body: InitiateClaimBody) => {
+        if (body.proofs) {
+          return authorized();
+        }
+        if (body.earning_addresses) {
+          return {
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-narrow',
+              expires_at: '2026-09-29T00:00:00.000Z',
+              challenges: [
+                {
+                  earning_address: EARNING_ADDRESS,
+                  amount_musd_base_units: ONE_DOLLAR,
+                  message: 'sign the evm one',
+                },
+              ],
+            },
+          };
+        }
+        return {
+          kind: 'proof_required',
+          body: {
+            reason: 'PROOF_REQUIRED',
+            claim_intent_id: 'intent-narrow',
+            expires_at: '2026-09-29T00:00:00.000Z',
+            challenges: [
+              {
+                earning_address: solana,
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'not on this phone',
+              },
+              {
+                earning_address: EARNING_ADDRESS,
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'sign the evm one',
+              },
+            ],
+          },
+        };
+      },
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockEngineCall).toHaveBeenNthCalledWith(
+      2,
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        earning_addresses: [EARNING_ADDRESS],
+      },
+    );
+    expect(
+      Engine.context.KeyringController.withKeyringV2,
+    ).not.toHaveBeenCalled();
+    expect(mockSignPersonalMessage).toHaveBeenCalledTimes(1);
   });
 
   it('shows the unavailable toast and leaves Claim disabled when this phone has no Bitcoin account', async () => {
