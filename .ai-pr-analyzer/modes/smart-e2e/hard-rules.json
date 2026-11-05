@@ -15,8 +15,7 @@
       ],
       "prefixes": [
         ".github/scripts/qa-automation/e2e-ci-orchestration/",
-        ".github/actions/setup-e2e-env/",
-        ".github/actions/smart-e2e-selection/"
+        ".github/actions/setup-e2e-env/"
       ],
       "regexes": [
         "^\\.github/workflows/run-e2e-.*\\.yml$",
