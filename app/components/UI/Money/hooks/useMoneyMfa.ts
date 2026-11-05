@@ -19,7 +19,10 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import {
+  selectMoneyEnableMfaFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../selectors/featureFlags';
 import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -87,6 +90,7 @@ const migrate = (): Promise<void> => {
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
   const isKitEnabled = useSelector(selectMfaUiKitEnabled);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
@@ -110,7 +114,12 @@ export const useMoneyMfa = () => {
 
   let status: MoneyMfaStatus;
   // Turning it on creates the MPC Money account, which needs the MPC keyring.
-  if (!isFlagEnabled || !isKitEnabled || !isMpcMoneyKeyringBuildEnabled()) {
+  if (
+    !isFlagEnabled ||
+    !isKitEnabled ||
+    !isMoneyAccountEnabled ||
+    !isMpcMoneyKeyringBuildEnabled()
+  ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';

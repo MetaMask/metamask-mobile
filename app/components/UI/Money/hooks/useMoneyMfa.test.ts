@@ -6,7 +6,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { useMfa } from '../../../../util/identity/mfa';
-import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import {
+  selectMoneyEnableMfaFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../selectors/featureFlags';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
@@ -142,16 +145,20 @@ const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
   isMpcKeyringEnabled = true,
+  isMoneyAccountEnabled = true,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
   isMpcKeyringEnabled?: boolean;
+  isMoneyAccountEnabled?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMfaFlag) return isFlagEnabled;
     if (selector === selectMfaUiKitEnabled) return isKitEnabled;
+    if (selector === selectMoneyEnableMoneyAccountFlag)
+      return isMoneyAccountEnabled;
     return undefined;
   });
   mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
@@ -192,6 +199,12 @@ describe('useMoneyMfa', () => {
   describe('status', () => {
     it('returns unavailable when the Money MFA flag is off', () => {
       const { result } = arrange({ isFlagEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+    });
+
+    it('returns unavailable when the Money account flag is off', () => {
+      const { result } = arrange({ isMoneyAccountEnabled: false });
 
       expect(result.current.status).toBe('unavailable');
     });
