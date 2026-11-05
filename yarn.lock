@@ -9418,7 +9418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^20.0.1, @metamask/assets-controller@npm:^20.2.1, @metamask/assets-controller@npm:^20.2.2":
+"@metamask/assets-controller@npm:^20.0.1, @metamask/assets-controller@npm:^20.2.2":
   version: 20.2.2
   resolution: "@metamask/assets-controller@npm:20.2.2"
   dependencies:
@@ -12603,15 +12603,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^30.4.2":
-  version: 30.4.2
-  resolution: "@metamask/transaction-pay-controller@npm:30.4.2"
+"@metamask/transaction-pay-controller@npm:^30.4.3":
+  version: 30.4.3
+  resolution: "@metamask/transaction-pay-controller@npm:30.4.3"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.8.0"
     "@metamask/accounts-controller": "npm:^40.1.0"
-    "@metamask/assets-controller": "npm:^20.2.1"
+    "@metamask/assets-controller": "npm:^20.2.2"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/gas-fee-controller": "npm:^27.1.0"
@@ -12622,13 +12622,13 @@ __metadata:
     "@metamask/ramps-controller": "npm:^29.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
-    "@metamask/transaction-controller": "npm:^73.1.0"
+    "@metamask/transaction-controller": "npm:^73.1.1"
     "@metamask/utils": "npm:^12.0.1"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.5"
     immer: "npm:^11.1.18"
     lodash-es: "npm:^4.18.1"
-  checksum: 10/1e168dac9916e4e8be4eddd396065efcc209a10580f980666d7e84093aae5f1f8284e3e9a5fd0055e78e998180f4bcf8f7c86143aba1d7addd040a49beb9cdd6
+  checksum: 10/929a4d092c78dc7698dbf80ed53c09c81e45a9178183d03905cd1fb5be29b8754ca96ddfd2bf37340f9606b319d04061693c139df31a8cca3b357ba172a96339
   languageName: node
   linkType: hard
 
@@ -38512,7 +38512,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^73.0.0"
-    "@metamask/transaction-pay-controller": "npm:^30.4.2"
+    "@metamask/transaction-pay-controller": "npm:^30.4.3"
     "@metamask/tron-wallet-snap": "npm:^4.3.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^18.0.0"
