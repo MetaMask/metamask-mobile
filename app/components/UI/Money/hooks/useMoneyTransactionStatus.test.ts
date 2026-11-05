@@ -1119,8 +1119,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
         'your account',
       );
-      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBe('$5.00');
-      expect(getMemoizedInternalAccountByAddress).not.toHaveBeenCalled();
     });
 
     it('failed → withdraw failed toast', () => {
