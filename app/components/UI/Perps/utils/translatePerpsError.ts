@@ -14,16 +14,23 @@ import {
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
 
+interface HyperLiquidErrorDetails {
+  code: PerpsErrorCode;
+  provider: 'hyperliquid';
+}
+
+type SupportedPerpsErrorDetails = PerpsErrorDetails | HyperLiquidErrorDetails;
+
 export interface PerpsErrorInput {
   error: string;
   errorCode?: PerpsErrorCode;
-  errorDetails?: PerpsErrorDetails;
+  errorDetails?: SupportedPerpsErrorDetails;
   maxSlippageBps?: number;
 }
 
 const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
 
-function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
+function isPriceMovedErrorDetails(value: unknown): value is PerpsErrorDetails {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -38,6 +45,25 @@ function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
     hasProperty(value, 'currentPrice') &&
     typeof value.currentPrice === 'number'
   );
+}
+
+function isHyperLiquidErrorDetails(
+  value: unknown,
+): value is HyperLiquidErrorDetails {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'code') &&
+    isPerpsErrorCodeValue(value.code) &&
+    hasProperty(value, 'provider') &&
+    value.provider === 'hyperliquid'
+  );
+}
+
+function isPerpsErrorDetails(
+  value: unknown,
+): value is SupportedPerpsErrorDetails {
+  return isPriceMovedErrorDetails(value) || isHyperLiquidErrorDetails(value);
 }
 
 function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
@@ -87,7 +113,7 @@ const getErrorInterpolationData = (
   const { errorCode, errorDetails } = errorInput;
 
   if (
-    errorDetails?.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    isPriceMovedErrorDetails(errorDetails) &&
     Number.isFinite(errorDetails.priceDeltaBps) &&
     Number.isFinite(errorDetails.maxSlippageBps)
   ) {
@@ -533,6 +559,10 @@ const NO_POSITION_FOUND_PATTERN = /No position found/i;
  * filled, closed, or liquidated — a stale-state race, not a user-side failure.
  */
 export function isNoPositionFoundError(error: unknown): boolean {
+  if (isPerpsErrorCode(error, PERPS_ERROR_CODES.POSITION_NOT_FOUND)) {
+    return true;
+  }
+
   const message =
     error instanceof Error
       ? error.message
