@@ -45,12 +45,7 @@ const smokeTags = {
   smokeMoney: {
     tag: 'SmokeMoney:',
     description:
-      'Tests MetaMask Card and fiat on/off-ramp (ramps) flows. Card: home screen, navbar entry, Add Funds (Deposit/Swap paths), Advanced Card Management, and card analytics. Ramps: unified buy, sell/off-ramp, region-aware flows, deep links into buy/sell, limits and unsupported-network handling. Card is gated by experimental flags. When selecting SmokeMoney for Card Add Funds or similar flows that execute swaps, also select SmokeSwap and SmokeConfirmations. When changes touch wallet home or actions entry to buy/sell, also select SmokeWalletPlatform. Rewards Money referral and earnings live under SmokeRewards, not this tag.',
-  },
-  smokeRewards: {
-    tag: 'SmokeRewards:',
-    description:
-      'Tests Rewards Money for the Rewards team. Covers the money campaign deeplink (https://link.metamask.io/rewards?campaign=money) opening the referee dashboard, and claimed earnings still rendering after the app process is killed and relaunched. Specs live in tests/smoke-appium/rewards/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Select this tag when changes touch the Rewards Money dashboard, referral registration, earnings claim, the money campaign deeplink, or RewardsMoneyView. Do not select SmokeMoney for these flows: SmokeMoney is MetaMask Card and fiat ramps. Do not select SmokeWalletPlatform unless the change also touches shared wallet navigation outside Rewards.',
+      'Tests MetaMask Card and fiat on/off-ramp (ramps) flows. Card: home screen, navbar entry, Add Funds (Deposit/Swap paths), Advanced Card Management, and card analytics. Ramps: unified buy, sell/off-ramp, region-aware flows, deep links into buy/sell, limits and unsupported-network handling. Card is gated by experimental flags. When selecting SmokeMoney for Card Add Funds or similar flows that execute swaps, also select SmokeSwap and SmokeConfirmations. When changes touch wallet home or actions entry to buy/sell, also select SmokeWalletPlatform.',
   },
   smokePerps: {
     tag: 'SmokePerps:',
@@ -133,7 +128,6 @@ const {
   SmokeStake,
   SmokeWalletPlatform,
   SmokeMoney,
-  SmokeRewards,
   SmokePerps,
   SmokeMultiChainAPI,
   SmokePredictions,
@@ -157,7 +151,6 @@ export {
   SmokeStake,
   SmokeWalletPlatform,
   SmokeMoney,
-  SmokeRewards,
   SmokePerps,
   SmokeMultiChainAPI,
   SmokePredictions,

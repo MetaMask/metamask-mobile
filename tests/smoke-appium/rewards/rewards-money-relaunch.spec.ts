@@ -3,7 +3,7 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import { SmokeRewards } from '../../tags.js';
+import { SmokeWalletPlatform } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import Gestures from '../../framework/Gestures.js';
 import RewardsMoneyView from '../../page-objects/Rewards/RewardsMoneyView.js';
@@ -37,7 +37,7 @@ async function openClaimedEarnings(): Promise<void> {
   });
 }
 
-appiumTest.describe(SmokeRewards('Rewards Money relaunch'), () => {
+appiumTest.describe(SmokeWalletPlatform('Rewards Money relaunch'), () => {
   appiumTest.describe.configure({ timeout: 240000 });
 
   appiumTest(

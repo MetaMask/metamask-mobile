@@ -28,7 +28,6 @@ const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
   SmokeSwap: 'Swap/Bridge',
   SmokeStake: 'Stake/Lending',
   SmokeMoney: 'Card/Ramps (Fiat)',
-  SmokeRewards: 'Rewards',
   SmokeWalletPlatform: 'Wallet Platform (Navigation/Core)',
   SmokePerps: 'Perps',
   SmokeMultiChainAPI: 'Multi-Chain API (CAIP-25)',
