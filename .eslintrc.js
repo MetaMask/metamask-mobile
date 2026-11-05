@@ -429,6 +429,28 @@ module.exports = {
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
+          {
+            selector:
+              "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime|runAllTimers|runOnlyPendingTimers)$/]",
+            message:
+              'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+          },
+        ],
+      },
+    },
+    {
+      // Shared component-view helpers get the fake-timer ban only. The
+      // jest.mock ban above does not apply here (mocks.ts mocks Engine).
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector:
+              "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime|runAllTimers|runOnlyPendingTimers)$/]",
+            message:
+              'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+          },
         ],
       },
     },
