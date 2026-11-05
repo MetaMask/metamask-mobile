@@ -1,5 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  getFocusedRouteNameFromRoute,
+  useRoute,
+} from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
@@ -103,9 +107,24 @@ const MoneyConfirmationScreenStack = () => {
 
 // Money modals are reachable without the Money tab (e.g. Card Home's "Add
 // money" action), so this stack must also kick off the account upgrade —
-// opening any Money sheet is the user's signal of intent to use the feature.
+// opening a Money sheet is the user's signal of intent to use the feature.
+// The 2-step verification sheets can open on their own from the wallet home.
+const MFA_SHEETS: ReadonlySet<string> = new Set([
+  Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
+  Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+  Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+  Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
+]);
+
 const MoneyModalStack = () => {
-  useUpgradeMoneyAccountOnFocus();
+  const route = useRoute();
+  const focusedSheet =
+    getFocusedRouteNameFromRoute(route) ??
+    (route.params as { screen?: string } | undefined)?.screen;
+
+  useUpgradeMoneyAccountOnFocus({
+    enabled: !focusedSheet || !MFA_SHEETS.has(focusedSheet),
+  });
 
   return (
     <ModalStack.Navigator
