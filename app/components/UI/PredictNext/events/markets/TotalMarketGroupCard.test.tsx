@@ -7,6 +7,7 @@ import type {
   PredictMarket,
 } from '../../types';
 import { MarketGroupCardTestIds as TestIds } from './MarketGroupCard.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import { TotalMarketGroupCard } from './TotalMarketGroupCard';
 
 const GROUP = 'KXNFLTOTAL-26OCT29CARGB:total';
@@ -52,6 +53,26 @@ describe('TotalMarketGroupCard', () => {
 
   it('has no header without a title', () => {
     expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
+  });
+
+  it('has no header or rules entry without a title, even with rules and a handler', () => {
+    const withRules = { ...market, rules: 'Resolves on the final score.' };
+    screen.rerender(
+      <TotalMarketGroupCard
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+        onRulesPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
+    expect(
+      screen.queryByHintText(
+        strings('predict.rules.market_accessibility_label'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows a given title', () => {
