@@ -27,6 +27,10 @@ import {
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import {
+  hasViewedVbaAccountDetails,
+  subscribeVbaAccountDetailsViewed,
+} from '../vbaAccountDetailsViewedStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
   getVbaHomeCard,
@@ -61,6 +65,10 @@ jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../../../hooks/useNetworkTier');
 jest.mock('../vbaVendorTermsStorage');
+jest.mock('../vbaAccountDetailsViewedStorage', () => ({
+  hasViewedVbaAccountDetails: jest.fn(),
+  subscribeVbaAccountDetailsViewed: jest.fn(),
+}));
 jest.mock('../vbaDevOverrides', () => ({
   ...jest.requireActual('../vbaDevOverrides'),
   getVbaKycStatusOverride: jest.fn(),
@@ -81,6 +89,11 @@ const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
 );
 const mockHasAcceptedVbaVendorTerms = jest.mocked(hasAcceptedVbaVendorTerms);
+const mockHasViewedVbaAccountDetails = jest.mocked(hasViewedVbaAccountDetails);
+const mockSubscribeVbaAccountDetailsViewed = jest.mocked(
+  subscribeVbaAccountDetailsViewed,
+);
+const mockUnsubscribeDetailsViewed = jest.fn();
 const mockGetVbaKycStatusOverride = jest.mocked(getVbaKycStatusOverride);
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
@@ -156,6 +169,7 @@ const baseInputs: VbaHomeCardInputs = {
   sessionStatus: null,
   providerFlowStatus: 'not_started',
   hasAcceptedVendorTerms: false,
+  hasViewedAccountDetails: false,
   autoramps: [],
   walletRegistrations: [],
   hasUsableAutoramp: false,
@@ -303,17 +317,16 @@ describe('getVbaHomeCard', () => {
     },
   );
 
-  it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
+  it('renders kyc_pending when only the relay kycStatus is approved', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
         finalStatus: 'pending',
         kycStatus: 'approved',
       }),
-      autoramps: [makeAutoramp()],
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {
@@ -482,6 +495,78 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'account_is_ready' });
   });
 
+  it.each([
+    ['viewed', true],
+    ['still loading', null],
+  ] as const)(
+    'renders no card for a usable autoramp once its details are %s',
+    (_label, hasViewedAccountDetails) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        hasUsableAutoramp: true,
+        hasViewedAccountDetails,
+        sessionStatus: makeSession({
+          finalStatus: 'approved',
+          kycStatus: 'approved',
+        }),
+      });
+
+      expect(card).toEqual({ type: 'none' });
+    },
+  );
+
+  it('ignores the details-viewed flag for an approved session without a usable autoramp', () => {
+    // Its CTA is how the account gets (re)created, so the flag must not hide
+    // it. Compared against the not-viewed result so this holds whichever card
+    // the session rules pick for that state.
+    const approvedWithoutAccount = {
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    };
+    const notViewedCard = getVbaHomeCard({
+      ...approvedWithoutAccount,
+      hasViewedAccountDetails: false,
+    });
+
+    expect(notViewedCard).not.toEqual({ type: 'none' });
+    for (const hasViewedAccountDetails of [true, null]) {
+      expect(
+        getVbaHomeCard({ ...approvedWithoutAccount, hasViewedAccountDetails }),
+      ).toEqual(notViewedCard);
+    }
+  });
+
+  it.each([
+    ['get_started', {}],
+    ['kyc_pending', { sessionStatus: makeSession() }],
+    ['finish_verification', { hasAcceptedVendorTerms: true }],
+    [
+      'kyc_decision',
+      {
+        sessionStatus: makeSession({
+          finalStatus: 'rejected',
+          kycStatus: 'rejected',
+        }),
+      },
+    ],
+  ] as const)(
+    'leaves %s unchanged whatever the details-viewed flag says',
+    (type, overrides) => {
+      for (const hasViewedAccountDetails of [true, false, null]) {
+        expect(
+          getVbaHomeCard({
+            ...baseInputs,
+            ...overrides,
+            hasViewedAccountDetails,
+          }),
+        ).toEqual({ type });
+      }
+    },
+  );
+
   it('still renders no card when there is no usable autoramp and no rule matches', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
@@ -543,6 +628,7 @@ describe('useVbaHomeCard', () => {
       hasUsableAutoramp ? makeAutoramp() : undefined,
     );
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
+    mockHasViewedVbaAccountDetails.mockResolvedValue(false);
   };
 
   beforeEach(() => {
@@ -552,27 +638,37 @@ describe('useVbaHomeCard', () => {
       selector(undefined as never),
     );
     mockHydrateVbaOnboarding.mockResolvedValue({} as VbaOnboardingSnapshot);
+    mockSubscribeVbaAccountDetailsViewed.mockReturnValue(
+      mockUnsubscribeDetailsViewed,
+    );
   });
 
-  it('does not hit the network on load', () => {
+  it('does not hit the network on load', async () => {
     setupSelectors();
 
     renderHook(() => useVbaHomeCard());
+    // Let the local storage reads settle so their state updates stay in act().
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('resolves the card from Redux state', () => {
+  it('resolves the card from Redux state', async () => {
     setupSelectors({
       sessionStatus: makeSession(),
     });
 
     const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(result.current).toEqual({ type: 'kyc_pending' });
   });
 
-  it('honors the dev KYC status override for the card decision', () => {
+  it('honors the dev KYC status override for the card decision', async () => {
     mockGetVbaKycStatusOverride.mockReturnValue('rejected');
     setupSelectors({
       sessionStatus: makeSession({
@@ -582,6 +678,9 @@ describe('useVbaHomeCard', () => {
     });
 
     const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
   });
@@ -647,6 +746,134 @@ describe('useVbaHomeCard', () => {
       2,
       OTHER_WALLET,
     );
+  });
+
+  describe('account details viewed flag', () => {
+    const readyAccount = {
+      hasUsableAutoramp: true,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    };
+
+    it('hides account_is_ready while the flag loads, then shows it when details were never viewed', async () => {
+      setupSelectors(readyAccount);
+      let resolveViewed: (viewed: boolean) => void = () => undefined;
+      mockHasViewedVbaAccountDetails.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveViewed = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => useVbaHomeCard());
+      expect(result.current).toEqual({ type: 'none' });
+
+      await act(async () => {
+        resolveViewed(false);
+      });
+
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+      expect(mockHasViewedVbaAccountDetails).toHaveBeenCalledWith(WALLET);
+    });
+
+    it('keeps account_is_ready hidden when details were already viewed', async () => {
+      setupSelectors(readyAccount);
+      mockHasViewedVbaAccountDetails.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useVbaHomeCard());
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current).toEqual({ type: 'none' });
+    });
+
+    it('falls back to showing account_is_ready when the flag read fails', async () => {
+      setupSelectors(readyAccount);
+      mockHasViewedVbaAccountDetails.mockRejectedValue(new Error('read'));
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      const { result } = renderHook(() => useVbaHomeCard());
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+      expect(loggerSpy).toHaveBeenCalled();
+      loggerSpy.mockRestore();
+    });
+
+    it('hides account_is_ready as soon as the details screen records this wallet', async () => {
+      setupSelectors(readyAccount);
+      const { result } = renderHook(() => useVbaHomeCard());
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+
+      const listener = mockSubscribeVbaAccountDetailsViewed.mock.calls[0][0];
+      act(() => {
+        listener(OTHER_WALLET.toLowerCase());
+      });
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+
+      act(() => {
+        listener(WALLET.toLowerCase());
+      });
+      expect(result.current).toEqual({ type: 'none' });
+    });
+
+    it('lets a mark that lands mid-read win over a stale not-viewed read', async () => {
+      setupSelectors(readyAccount);
+      let resolveViewed: (viewed: boolean) => void = () => undefined;
+      mockHasViewedVbaAccountDetails.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveViewed = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useVbaHomeCard());
+      const listener = mockSubscribeVbaAccountDetailsViewed.mock.calls[0][0];
+
+      act(() => {
+        listener(WALLET.toLowerCase());
+      });
+      await act(async () => {
+        resolveViewed(false);
+      });
+
+      expect(result.current).toEqual({ type: 'none' });
+    });
+
+    it('re-reads the flag per wallet and unsubscribes from the previous one', async () => {
+      setupSelectors(readyAccount);
+      mockHasViewedVbaAccountDetails
+        .mockResolvedValueOnce(true) // WALLET
+        .mockResolvedValueOnce(false); // OTHER_WALLET
+
+      const { result, rerender } = renderHook(() => useVbaHomeCard());
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(result.current).toEqual({ type: 'none' });
+
+      mockSelectSelectedVbaWalletAddress.mockReturnValue(OTHER_WALLET);
+      rerender();
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+      expect(mockHasViewedVbaAccountDetails).toHaveBeenNthCalledWith(
+        2,
+        OTHER_WALLET,
+      );
+      expect(mockUnsubscribeDetailsViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

@@ -174,6 +174,8 @@ interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  // The card's title when the client can't name it, such as a Player.
+  label?: string;
 }
 
 // Event screen placement. Keys are stable snake_case IDs the backend
@@ -274,9 +276,19 @@ interface PredictFeed {
 - `group.groupType` selects the presentation behavior. The supported values are
   `marketSelector` and `choice`; unknown values remain standard Markets until a
   supported composition exists.
-- A `choice` group has one option per Market, such as a moneyline's away team,
-  tie and home team, ordered by `displayOrder`. It has no `marketType` or
-  `option`. A malformed `choice` group is kept as an unsupported group.
+- A `choice` group is a card of rows, one Market per row priced by its yes
+  side, ordered by `displayOrder`: a moneyline's away team, tie and home team,
+  or one Player's prop thresholds. It has no `marketType` or `option`. A
+  malformed `choice` group is kept as an unsupported group.
+- `group.label` is the card's title, set by the backend only when the client
+  can't name the card itself, such as a Player's name on a player-props card.
+  It is optional on every group type and never blank. Mobile shows it only as
+  the title of a `choice` card; on other group types it is parsed and unused.
+- An unlabelled `choice` group is a moneyline when it has a Game and its rows
+  back different Teams (or the tie). It sits under its section header with Team
+  names and logos. Any other unlabelled `choice` group, such as a Player the
+  backend couldn't name or a single row, is an untitled choice card showing its
+  outcome labels. Without a Game, its Markets render as standard cards.
 - `group.key` identifies one presentation group within the Event. Markets with
   the same key may share one selector; different keys must remain separate.
 - A `marketSelector` group has a `marketType` and a numeric `option`. For a
@@ -304,8 +316,8 @@ interface PredictFeed {
   cards (`createMarketLayoutProjection`):
   - Every tab, section and subgroup key is projected; mobile keeps no
     allowlist. The renderer shows every section, titled from its key.
-  - The card type follows the group's shape: a `choice` group of two or more
-    Markets, a `marketSelector` line picker of any `marketType`, or one
+  - The card type follows the group's shape: a `choice` group of any size
+    (a Player with one threshold is still a card), a `marketSelector` line picker of any `marketType`, or one
     standard card per Market. A Market without a group, a group of an unknown
     `groupType`, or a group with inconsistent lines becomes standard cards in
     its period. Laid-out Markets are never dropped.

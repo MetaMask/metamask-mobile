@@ -156,6 +156,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        requireSocialProfile
         testID={LiveViewSelectorsIDs.CONTAINER}
         scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
       />

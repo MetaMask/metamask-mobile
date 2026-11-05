@@ -273,7 +273,7 @@ describe('SocialProfileOnboardingView', () => {
     restoreProfileControllerMocks();
   });
 
-  it('writes a manual profile and opens the feed', async () => {
+  it('writes a manual profile with the typed username casing and opens the feed', async () => {
     renderSocialProfileOnboarding([
       { name: Routes.SOCIAL.V1, Component: FeedExitStackProbe },
     ]);
@@ -283,7 +283,11 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
-    const handle = usernameValue();
+    const handle = 'Wen_Cat';
+    fireEvent.changeText(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+      handle,
+    );
     const displayName = displayNameFromUsername(handle);
     expect(
       screen.getByText('Username available', { exact: true }),
