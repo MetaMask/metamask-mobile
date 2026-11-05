@@ -10,7 +10,6 @@ import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
 import {
   formatAskPrice,
-  formatThresholdLine,
   formatThresholdTitle,
   getAskPricePercent,
 } from '../shared/formatting';
@@ -34,16 +33,30 @@ const findOutcome = (
 ): PredictOutcome | undefined =>
   market.outcomes.find((outcome) => outcome.side === side);
 
-// A line's Yes Outcome is just "Yes", so the row names the label and line.
-const getOptionAccessibilityLabel = (market: PredictMarket): string =>
-  strings('predict.market_groups.threshold_option_accessibility_label', {
-    line:
-      formatThresholdLine(market) ??
+// A line's Yes Outcome is just "Yes", so the row names the label and line:
+// "Josh Jacobs, 60 or more, Yes 42¢".
+const getOptionAccessibilityLabel = (market: PredictMarket): string => {
+  const label = market.group?.label?.trim();
+  const values = {
+    label,
+    value:
+      market.group?.option?.value ??
       strings('predict.market_groups.line_unavailable'),
+    outcome: strings('predict_next.portfolio.outcome_side.yes'),
     price:
       formatAskPrice(findOutcome(market, 'yes')?.askPrice) ??
       strings('predict.market_groups.price_unavailable'),
-  });
+  };
+  return label
+    ? strings(
+        'predict.market_groups.threshold_option_accessibility_label',
+        values,
+      )
+    : strings(
+        'predict.market_groups.threshold_option_unlabelled_accessibility_label',
+        values,
+      );
+};
 
 /**
  * An "at least N" ladder as one card: the group label with the selected line

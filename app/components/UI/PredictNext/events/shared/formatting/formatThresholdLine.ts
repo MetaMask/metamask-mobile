@@ -18,7 +18,7 @@ const thresholdParts = (
 
 /**
  * Names a threshold line on its own, outside its card: the card's label and
- * the line ("Josh Jacobs 60+"), or just the line without a label. Undefined
+ * the line ("Josh Jacobs · 60+"), or just the line without a label. Undefined
  * for any other Market.
  */
 export const formatThresholdLine = (

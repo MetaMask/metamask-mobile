@@ -324,7 +324,7 @@ interface PredictFeed {
   sends lines ascending. Its card is titled with `label` and the selected
   line ("Josh Jacobs: 60+") and shows the line's chance, Yes and No, and a
   picker of its lines. It knows nothing about the sport, stat or unit. The Event
-  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs 60+".
+  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs · 60+".
   Screens that read a Position's `context.outcomeLabel` (Home, Portfolio,
   Activity) show the Outcome label alone, "Yes" or "No".
 - `Market.layout` is optional. The backend places a Market on the Event screen

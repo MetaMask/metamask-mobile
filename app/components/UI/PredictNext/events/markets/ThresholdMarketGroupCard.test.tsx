@@ -128,8 +128,21 @@ describe('ThresholdMarketGroupCard', () => {
 
     expect(screen.getByTestId(TestIds.option(GROUP, line80.id))).toHaveProp(
       'accessibilityLabel',
-      'Josh Jacobs 80+, yes price 31¢',
+      'Josh Jacobs, 80 or more, Yes 31¢',
     );
+  });
+
+  it('names an unlabelled picker row by its line and Yes price', () => {
+    const unlabelled60 = line(60, '0.62', '0.40');
+    const unlabelled80 = line(80, '0.31', '0.71');
+    renderCard({
+      markets: [unlabelled60, unlabelled80],
+      selectedMarket: unlabelled60,
+    });
+
+    expect(
+      screen.getByTestId(TestIds.option(GROUP, unlabelled80.id)),
+    ).toHaveProp('accessibilityLabel', '80 or more, Yes 31¢');
   });
 
   it('has no picker for a single line', () => {

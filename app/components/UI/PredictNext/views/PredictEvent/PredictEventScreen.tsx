@@ -210,7 +210,7 @@ const EventLoadedHeader = ({
 
 /**
  * The Outcome as the Order sheet names it. A threshold line's Outcome is just
- * "Yes" or "No", so it also names the line: "Yes · Josh Jacobs 60+".
+ * "Yes" or "No", so it also names the line: "Yes · Josh Jacobs · 60+".
  */
 const orderOutcomeLabel = (
   market: PredictMarket,

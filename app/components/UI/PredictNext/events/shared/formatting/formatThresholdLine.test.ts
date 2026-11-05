@@ -28,7 +28,7 @@ describe('formatThresholdLine', () => {
   it('names a threshold line with its label', () => {
     expect(
       formatThresholdLine(createMarket(thresholdGroup('Josh Jacobs'))),
-    ).toBe('Josh Jacobs 60+');
+    ).toBe('Josh Jacobs · 60+');
   });
 
   it('names an unlabelled threshold line by the line alone', () => {

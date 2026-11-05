@@ -1439,7 +1439,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-    ).toHaveTextContent(/^No · Rhamondre Stevenson 40\+/);
+    ).toHaveTextContent(/^No · Rhamondre Stevenson · 40\+/);
   });
 
   it('does not reload history when a grouped non-Game line is selected', async () => {
