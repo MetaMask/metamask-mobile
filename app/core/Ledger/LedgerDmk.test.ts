@@ -196,6 +196,50 @@ describe('LedgerDmk', () => {
       expect(mockBridge.updateSessionId).toHaveBeenCalled();
     });
 
+    describe('rebind guard', () => {
+      it('rejects a different device when the keyring is already bound', async () => {
+        jest
+          .spyOn(ledgerKeyring, 'getDeviceId')
+          .mockReturnValueOnce('bound-device');
+
+        const error = await connectLedgerDmkHardware(
+          mockSessionId,
+          'other-device',
+        ).catch((caughtError) => caughtError);
+
+        expect(error).toBeInstanceOf(HardwareWalletError);
+        expect(error).toMatchObject({
+          code: ErrorCode.DeviceMultipleConnected,
+          message:
+            'A different Ledger is already bound; multi-device is not supported',
+        });
+        expect(ledgerKeyring.setDeviceId).not.toHaveBeenCalled();
+        expect(mockBridge.updateSessionId).not.toHaveBeenCalled();
+      });
+
+      it('allows connecting when no device is bound', async () => {
+        jest.spyOn(ledgerKeyring, 'getDeviceId').mockReturnValueOnce('');
+
+        await expect(
+          connectLedgerDmkHardware(mockSessionId, 'new-device'),
+        ).resolves.toBe('appName');
+
+        expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('new-device');
+      });
+
+      it('allows reconnecting the same device', async () => {
+        jest
+          .spyOn(ledgerKeyring, 'getDeviceId')
+          .mockReturnValueOnce('same-device');
+
+        await expect(
+          connectLedgerDmkHardware(mockSessionId, 'same-device'),
+        ).resolves.toBe('appName');
+
+        expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('same-device');
+      });
+    });
+
     it('calls keyring.getAppAndVersion', async () => {
       await connectLedgerDmkHardware(mockSessionId, 'bar');
 

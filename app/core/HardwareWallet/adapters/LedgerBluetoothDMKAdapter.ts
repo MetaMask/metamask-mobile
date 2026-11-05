@@ -13,6 +13,7 @@ import {
   DeviceEvent,
   DeviceEventPayload,
   ErrorCode,
+  HardwareWalletError,
 } from '@metamask/hw-wallet-sdk';
 import {
   DiscoveredDevice,
@@ -621,6 +622,16 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
           currentAppName: REQUIRED_APP_NAME,
         });
         return false;
+      }
+
+      if (
+        error instanceof HardwareWalletError &&
+        error.code === ErrorCode.DeviceMultipleConnected
+      ) {
+        // The rebind guard in connectLedgerDmkHardware rejects a different
+        // device after the DMK session has already been established — tear it
+        // down so the wrong device is not left connected.
+        await this.#closeSession();
       }
 
       throw error;

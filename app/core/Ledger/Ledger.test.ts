@@ -24,6 +24,7 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import type { Keyring } from '@metamask/keyring-api/v2';
+import { ErrorCode } from '@metamask/hw-wallet-sdk';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import {
@@ -124,6 +125,10 @@ describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    // `jest.resetAllMocks` also resets the global `Date.now` mock installed by
+    // testSetup, which `HardwareWalletError` uses to generate its id.
+    jest.spyOn(Date, 'now').mockReturnValue(123);
+
     ledgerKeyring = new LedgerKeyring({
       // @ts-expect-error: Property '#private' in type LedgerKeyring refers to a
       // different member that cannot be accessed from within type 'LedgerKeyring'.
@@ -159,7 +164,9 @@ describe('Ledger core', () => {
       { address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2' },
     ]);
     jest.spyOn(ledgerKeyring, 'forgetDevice').mockResolvedValue();
-    jest.spyOn(ledgerKeyring, 'getDeviceId').mockReturnValue('deviceId');
+    // A freshly-created keyring has no bound device. Tests that need a bound
+    // device override this per-case.
+    jest.spyOn(ledgerKeyring, 'getDeviceId').mockReturnValue('');
     jest.spyOn(ledgerKeyring, 'getFirstPage').mockResolvedValue([
       {
         address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
@@ -236,6 +243,49 @@ describe('Ledger core', () => {
         mockTransport,
       );
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
+    });
+
+    describe('rebind guard', () => {
+      it('rejects a different device when the keyring is already bound', async () => {
+        jest
+          .mocked(ledgerKeyring.getDeviceId)
+          .mockReturnValueOnce('bound-device');
+
+        const error = await connectLedgerHardware(
+          mockTransport,
+          'other-device',
+        ).catch((caughtError) => caughtError);
+
+        expect(error).toMatchObject({
+          code: ErrorCode.DeviceMultipleConnected,
+          message:
+            'A different Ledger is already bound; multi-device is not supported',
+        });
+        expect(ledgerKeyring.setDeviceId).not.toHaveBeenCalled();
+        expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
+      });
+
+      it('allows connecting when no device is bound', async () => {
+        jest.mocked(ledgerKeyring.getDeviceId).mockReturnValueOnce('');
+
+        await expect(
+          connectLedgerHardware(mockTransport, 'new-device'),
+        ).resolves.toBe('appName');
+
+        expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('new-device');
+      });
+
+      it('allows reconnecting the same device', async () => {
+        jest
+          .mocked(ledgerKeyring.getDeviceId)
+          .mockReturnValueOnce('same-device');
+
+        await expect(
+          connectLedgerHardware(mockTransport, 'same-device'),
+        ).resolves.toBe('appName');
+
+        expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('same-device');
+      });
     });
 
     it('returns app name correctly', async () => {
@@ -428,6 +478,8 @@ describe('Ledger core', () => {
 
   describe('getDeviceId', () => {
     it('returns deviceId', async () => {
+      jest.mocked(ledgerKeyring.getDeviceId).mockReturnValueOnce('deviceId');
+
       const value = await getDeviceId();
       expect(value).toBe('deviceId');
     });
@@ -891,6 +943,32 @@ describe('Ledger core', () => {
 
     it('sets the newly unlocked account as selected address', async () => {
       await unlockLedgerWalletAccount(1);
+      expect(MockEngine.setSelectedAddress).toHaveBeenCalledWith(
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      );
+    });
+
+    it('throws a wrong device error when the returned account does not match the expected address', async () => {
+      await expect(
+        unlockLedgerWalletAccount(
+          1,
+          '0x0000000000000000000000000000000000000001',
+        ),
+      ).rejects.toThrow('not the correct device');
+
+      expect(MockEngine.setSelectedAddress).not.toHaveBeenCalled();
+    });
+
+    it('proceeds when the returned account matches the expected address', async () => {
+      await expect(
+        unlockLedgerWalletAccount(
+          1,
+          // Lower-case form of the returned address: the comparison is
+          // case-insensitive.
+          '0x49b6ffd1bd9d1c64eef400a64a1e4bbc33e2cab2',
+        ),
+      ).resolves.toBeUndefined();
+
       expect(MockEngine.setSelectedAddress).toHaveBeenCalledWith(
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
       );

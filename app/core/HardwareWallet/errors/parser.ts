@@ -280,6 +280,19 @@ export const LOCAL_MESSAGE_PATTERNS: {
   condition?: (msg: string) => boolean;
 }[] = [
   {
+    // Keyring/dedup path: the derived account for this index belongs to a
+    // different device/seed than the one currently connected. Also matches the
+    // add-account guard message (hardware_wallet.errors.wrong_device).
+    // MUST stay above the generic 'disconnected' entry: the localized
+    // wrong-device copy contains "Disconnect it and connect…", which would
+    // otherwise shadow this and misroute to DeviceDisconnected.
+    patterns: [
+      'does not belong to the connected device',
+      'not the correct device',
+    ],
+    code: ErrorCode.DeviceUsedElsewhere,
+  },
+  {
     // Ledger devices can only sign EIP-712 typed data with version V4.
     // The keyring throws "Ledger: Only version 4 of typed data signing is
     // supported" for V1/V3 requests.

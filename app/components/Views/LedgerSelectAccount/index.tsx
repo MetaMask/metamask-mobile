@@ -342,7 +342,10 @@ const LedgerSelectAccount = () => {
         showLoadingModal();
 
         for (const index of accountIndexes) {
-          await unlockLedgerWalletAccount(index);
+          const expectedAccount = accounts.find(
+            (account) => account.index === index,
+          );
+          await unlockLedgerWalletAccount(index, expectedAccount?.address);
         }
         const numberOfConnectedDevices = await getConnectedDevicesCount();
         await updateNewLegacyAccountsLabel();
@@ -386,6 +389,7 @@ const LedgerSelectAccount = () => {
       navigation,
       ensureDeviceReady,
       deviceId,
+      accounts,
     ],
   );
 

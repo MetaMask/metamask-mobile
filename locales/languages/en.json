@@ -1826,6 +1826,8 @@
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
       "username_invalid": "Use letters, numbers, and underscores.",
+      "display_name_required": "Enter a display name.",
+      "display_name_too_long": "Use at most {{max}} characters.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -13092,6 +13094,7 @@
       "not_supported": "This operation is not supported",
       "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "multiple_devices": "You can only connect one {{device}} at a time. To use a different {{device}}, remove the connected {{device}}'s accounts from MetaMask first",
+      "wrong_device": "The connected {{device}} is not the correct device for your accounts. Disconnect it and connect the {{device}} used to add them",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
@@ -13117,6 +13120,7 @@
       "camera_permission_denied": "Camera Permission Required",
       "unsupported_signature": "Signature not supported",
       "multiple_devices_title": "{{device}} Already Connected",
+      "wrong_device_title": "Wrong {{device}} Connected",
       "something_went_wrong": "Something went wrong"
     },
     "qr_scan_errors": {

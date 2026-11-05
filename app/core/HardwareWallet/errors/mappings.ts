@@ -145,6 +145,21 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () =>
       strings('hardware_wallet.errors.connection_timeout'),
   },
+  [ErrorCode.DeviceUsedElsewhere]: {
+    // The connected device is not the one the accounts belong to. Retrying on
+    // the same device cannot succeed — the user must switch devices.
+    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    icon: IconName.Danger,
+    iconColor: IconColor.Default,
+    getLocalizedTitle: (walletType) =>
+      strings('hardware_wallet.error.wrong_device_title', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+    getLocalizedMessage: (walletType) =>
+      strings('hardware_wallet.errors.wrong_device', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+  },
 
   // Connection
   [ErrorCode.ConnectionClosed]: {

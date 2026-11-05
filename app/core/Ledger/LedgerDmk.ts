@@ -69,6 +69,17 @@ export const connectLedgerDmkHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
+    // Same single-device invariant as the legacy connect path: never rebind
+    // the keyring to a different physical device.
+    const boundDeviceId = keyring.getDeviceId();
+    if (boundDeviceId && boundDeviceId !== deviceId) {
+      throw createHardwareWalletError(
+        ErrorCode.DeviceMultipleConnected,
+        HardwareWalletType.Ledger,
+        'A different Ledger is already bound; multi-device is not supported',
+      );
+    }
+
     keyring.setDeviceId(deviceId);
     const dmkBridge = assertLedgerDmkBridge(keyring.bridge);
     const sessionBound = await dmkBridge.updateSessionId(sessionId);

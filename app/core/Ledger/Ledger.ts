@@ -17,6 +17,13 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { getChecksumAddress, Hex } from '@metamask/utils';
+import {
+  Category,
+  ErrorCode,
+  HardwareWalletError,
+  HardwareWalletType,
+  Severity,
+} from '@metamask/hw-wallet-sdk';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
 
@@ -39,6 +46,41 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   const error = new Error('Ledger operation aborted');
   error.name = 'LedgerOperationAbortedError';
   throw error;
+};
+
+/**
+ * Reject rebinding the keyring to a different physical device.
+ *
+ * A single `LedgerKeyring` owns one deviceId; `setDeviceId` would silently
+ * redirect signing to the wrong device. Callers must invoke this inside the
+ * keyring mutex, immediately before `setDeviceId`. An unbound keyring (empty
+ * id) and reconnecting the same device are allowed.
+ *
+ * NOTE: The error is constructed directly (instead of via
+ * `createHardwareWalletError`) to avoid a module cycle:
+ * Ledger -> HardwareWallet/errors -> mappings -> helpers -> Ledger.
+ */
+const throwIfLedgerDeviceRebindBlocked = (
+  keyring: LedgerKeyring,
+  deviceId: string,
+): void => {
+  const boundDeviceId = keyring.getDeviceId();
+  if (!boundDeviceId || boundDeviceId === deviceId) {
+    return;
+  }
+
+  throw new HardwareWalletError(
+    'A different Ledger is already bound; multi-device is not supported',
+    {
+      code: ErrorCode.DeviceMultipleConnected,
+      severity: Severity.Err,
+      category: Category.DeviceState,
+      userMessage: strings('hardware_wallet.errors.multiple_devices', {
+        device: strings('hardware_wallet.device_names.ledger'),
+      }),
+      metadata: { walletType: HardwareWalletType.Ledger },
+    },
+  );
 };
 
 /**
@@ -112,6 +154,11 @@ export const connectLedgerHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
+    // A single LedgerKeyring owns one deviceId. Rebinding it to another
+    // physical device would silently redirect signing to the wrong device, so
+    // reject the rebind here (inside the mutex) instead of failing open.
+    throwIfLedgerDeviceRebindBlocked(keyring, deviceId);
+
     keyring.setDeviceId(deviceId);
     const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
     await ledgerBridge.updateTransportMethod(transport);
@@ -314,8 +361,15 @@ export const checkAccountNameExists = async (accountName: string) => {
  * Unlock Ledger Wallet Account with index, and add it that account to metamask
  *
  * @param index - The index of the account to unlock
+ * @param expectedAddress - The address the connected device derived for this
+ * index. When provided, the created/returned account must match it — the
+ * keyring dedupes by derivation path only, so a different device can silently
+ * return an account it does not own.
  */
-export const unlockLedgerWalletAccount = async (index: number) => {
+export const unlockLedgerWalletAccount = async (
+  index: number,
+  expectedAddress?: string,
+) => {
   const accountsController = Engine.context.AccountsController;
   try {
     const { unlockAccount, name } = await withLedgerKeyring(
@@ -347,6 +401,18 @@ export const unlockLedgerWalletAccount = async (index: number) => {
         if (!account) {
           throw new Error(`No account created for device: Ledger`);
         }
+
+        if (
+          expectedAddress &&
+          account.address.toLowerCase() !== expectedAddress.toLowerCase()
+        ) {
+          throw new Error(
+            strings('hardware_wallet.errors.wrong_device', {
+              device: strings('hardware_wallet.device_names.ledger'),
+            }),
+          );
+        }
+
         return {
           unlockAccount: account.address,
           name: accountName,

@@ -28,6 +28,7 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ErrorCode.DeviceStateBlindSignNotSupported,
       ErrorCode.DeviceStateOnlyV4Supported,
       ErrorCode.DeviceUnresponsive,
+      ErrorCode.DeviceUsedElsewhere,
       ErrorCode.ConnectionClosed,
       ErrorCode.ConnectionTimeout,
       ErrorCode.UserRejected,
@@ -149,6 +150,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUnresponsive];
       const title = ext?.getLocalizedTitle();
       expect(title).toBe('hardware_wallet.error.connection_timeout');
+    });
+
+    it('returns localized title for DeviceUsedElsewhere', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUsedElsewhere];
+      const title = ext?.getLocalizedTitle(HardwareWalletType.Ledger);
+      expect(title).toContain('hardware_wallet.error.wrong_device_title');
+      expect(title).toContain('device:');
     });
 
     it('returns localized title for ConnectionClosed', () => {
@@ -302,6 +310,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUnresponsive];
       const message = ext?.getLocalizedMessage();
       expect(message).toBe('hardware_wallet.errors.connection_timeout');
+    });
+
+    it('returns localized message for DeviceUsedElsewhere', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUsedElsewhere];
+      const message = ext?.getLocalizedMessage(HardwareWalletType.Ledger);
+      expect(message).toContain('hardware_wallet.errors.wrong_device');
+      expect(message).toContain('device:');
     });
 
     it('returns localized message for ConnectionClosed', () => {

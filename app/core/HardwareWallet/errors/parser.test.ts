@@ -224,6 +224,18 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
     });
 
+    it.each([
+      'Ledger: Account 0x1234 does not belong to the connected device',
+      'The connected device is not the correct device for your accounts',
+      // Full localized copy: contains "Disconnect it and connect…" which must
+      // NOT be shadowed by the generic 'disconnected' pattern.
+      'The connected Ledger is not the correct device for your accounts. Disconnect it and connect the Ledger used to add them',
+    ])('parses wrong-device message "%s" as DeviceUsedElsewhere', (message) => {
+      const result = parseErrorByType(new Error(message), walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUsedElsewhere);
+    });
+
     it('parses LockedDeviceError', () => {
       const error = new Error('Device is locked');
       error.name = 'LockedDeviceError';
