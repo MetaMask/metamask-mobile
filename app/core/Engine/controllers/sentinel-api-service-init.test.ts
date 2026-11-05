@@ -56,6 +56,26 @@ describe('sentinelApiServiceInit', () => {
     );
   });
 
+  it('uses the global fetch installed at request time', async () => {
+    const originalFetch = globalThis.fetch;
+    const laterFetch = jest.fn().mockResolvedValue(new Response('{}'));
+
+    try {
+      sentinelApiServiceInit(getInitRequestMock());
+      const { fetch: serviceFetch } =
+        jest.mocked(SentinelApiService).mock.calls[0][0];
+
+      globalThis.fetch = laterFetch;
+      await serviceFetch?.('https://example.com', { method: 'POST' });
+
+      expect(laterFetch).toHaveBeenCalledWith('https://example.com', {
+        method: 'POST',
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it('sets messenger for legacy Sentinel utils', () => {
     const request = getInitRequestMock();
 
