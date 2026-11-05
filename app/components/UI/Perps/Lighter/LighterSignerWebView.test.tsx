@@ -857,6 +857,39 @@ describe('LighterSignerWebView', () => {
     ).rejects.toThrow('unavailable after repeated WebView load failures');
   });
 
+  it('keeps failing fast after the reload limit when unlock repeats without a lock', async () => {
+    jest.useFakeTimers();
+    render(<LighterSignerWebView />);
+    const failInitialization = () => {
+      mockWebViewProps.onMessage?.(
+        messageEvent({ type: 'initError', message: 'Allocation failed' }),
+      );
+    };
+    for (
+      let attempt = 0;
+      attempt < MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS;
+      attempt++
+    ) {
+      act(failInitialization);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(
+          LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS * 2 ** attempt,
+        );
+      });
+    }
+    act(failInitialization);
+
+    act(() => emitWalletEvent('KeyringController:unlock'));
+
+    await expect(
+      lighterSignerBridge.execute({
+        function: '_createAuthToken',
+        params: [28, 7],
+      }),
+    ).rejects.toThrow('unavailable after repeated WebView load failures');
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it('retries WASM initialization failures until the reload limit is reached', async () => {
     jest.useFakeTimers();
     const { toJSON } = render(<LighterSignerWebView />);

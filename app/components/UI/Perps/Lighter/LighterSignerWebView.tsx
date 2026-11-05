@@ -502,12 +502,17 @@ export const LighterSignerWebView = () => {
   );
   useEffect(() => {
     const messenger = Engine.controllerMessenger;
+    let isLocked = !Engine.context.KeyringController.isUnlocked();
     const onLock = () => {
+      isLocked = true;
       // The next unlock waits for a new request before loading the page.
       clearLighterSignerRequest();
       setLighterBridgeUnavailable(LIGHTER_SIGNER_LOCKED_ERROR);
     };
     const onUnlock = () => {
+      // A repeated unlock must not revive a page that exhausted its reloads.
+      if (!isLocked) return;
+      isLocked = false;
       reviveLighterBridge();
     };
     messenger.subscribe('KeyringController:lock', onLock);
