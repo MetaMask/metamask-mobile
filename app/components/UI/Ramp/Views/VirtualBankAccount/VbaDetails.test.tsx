@@ -975,7 +975,7 @@ describe('VbaDetails', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows Creating your bank account until the autoramp is Approved', async () => {
+  it('shows the account creation design until the autoramp is Approved', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
@@ -983,31 +983,27 @@ describe('VbaDetails', () => {
       status: 'Authorized',
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
     expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.ILLUSTRATION),
+    ).toBeOnTheScreen();
+    expect(
       getByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.creating_account.description')),
     ).toBeOnTheScreen();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
-  });
 
-  it('goes to Money home from the creating state back button', async () => {
-    setAutoramps([]);
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-    await waitFor(() => {
-      expect(mockHydrate).toHaveBeenCalled();
-    });
     fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
@@ -1017,9 +1013,8 @@ describe('VbaDetails', () => {
       kycStatus: 'approved',
     });
 
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByTestId, getByText, queryByText, queryByTestId } =
+      renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
@@ -1032,6 +1027,9 @@ describe('VbaDetails', () => {
     expect(
       getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('virtual_bank_account.creating_account.description')),
+    ).toBeNull();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
   });

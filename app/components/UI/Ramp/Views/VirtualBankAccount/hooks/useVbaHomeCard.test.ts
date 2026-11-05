@@ -303,17 +303,16 @@ describe('getVbaHomeCard', () => {
     },
   );
 
-  it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
+  it('renders kyc_pending when only the relay kycStatus is approved', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
         finalStatus: 'pending',
         kycStatus: 'approved',
       }),
-      autoramps: [makeAutoramp()],
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {

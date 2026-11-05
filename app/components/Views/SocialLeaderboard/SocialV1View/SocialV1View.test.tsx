@@ -407,6 +407,7 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
@@ -444,6 +445,7 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('opens the post composer from the plus button', () => {

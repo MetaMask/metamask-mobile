@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import {
   BtcAccountType,
@@ -284,7 +284,9 @@ describe('AddressList', () => {
 
     expect(navOptionsWithHeader).toBeDefined();
 
-    const { getByTestId, unmount } = render(navOptionsWithHeader.header());
+    const { getByTestId, unmount } = renderWithProvider(
+      navOptionsWithHeader.header(),
+    );
     fireEvent.press(getByTestId(AddressListIds.GO_BACK));
 
     expect(mockGoBack).toHaveBeenCalled();
