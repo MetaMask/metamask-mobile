@@ -521,18 +521,6 @@ export const formatSignedUsd = (
   return `${sign}${formatUsd(value, options)}`;
 };
 
-/** True for a positive integer string of base units. Zero and junk are not. */
-export function isPositiveBaseUnits(value: string | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-  try {
-    return BigInt(value) > 0n;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * True when a Money API base-unit string is a positive integer.
  * Missing, zero, and unreadable values are false.

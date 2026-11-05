@@ -1030,19 +1030,6 @@ export class RewardsMoneyController extends BaseController<
     }
   }
 
-  /**
-   * Forget a profile's tax determination. The generation moves first so a
-   * read that started before the POST cannot refill the entry after it is
-   * removed. The in-flight promise is dropped so a later read does not join it.
-   */
-  #invalidateTaxMe(profileId: string): void {
-    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
-      this.update((draft) => {
-        delete draft.taxMe[key];
-      });
-    });
-  }
-
   #writeTaxMe(profileId: string, payload: TaxMeDto): void {
     this.update((draft) => {
       draft.taxMe[profileId] = { payload, lastFetched: Date.now() };

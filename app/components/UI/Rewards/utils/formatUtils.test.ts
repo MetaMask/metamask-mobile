@@ -1545,6 +1545,7 @@ describe('formatUtils', () => {
       expect(isPositiveBaseUnits(null)).toBe(false);
       expect(isPositiveBaseUnits('')).toBe(false);
       expect(isPositiveBaseUnits('not-a-number')).toBe(false);
+      expect(isPositiveBaseUnits('1.5')).toBe(false);
     });
   });
 
@@ -1970,18 +1971,6 @@ describe('formatUtils', () => {
           thousandSuffix: 'k',
         }),
       ).toBe('123k');
-    });
-  });
-
-  describe('isPositiveBaseUnits', () => {
-    it('is true only for a positive integer string', () => {
-      expect(isPositiveBaseUnits('1')).toBe(true);
-      expect(isPositiveBaseUnits('1000000')).toBe(true);
-      expect(isPositiveBaseUnits('0')).toBe(false);
-      expect(isPositiveBaseUnits('-1')).toBe(false);
-      expect(isPositiveBaseUnits(undefined)).toBe(false);
-      expect(isPositiveBaseUnits('')).toBe(false);
-      expect(isPositiveBaseUnits('1.5')).toBe(false);
     });
   });
 });
