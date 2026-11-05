@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   usePredictMarketData,
   type UsePredictMarketDataResult,
-} from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { strings } from '../../../../../../locales/i18n';
-import { useFeedRefresh } from '../../hooks/useFeedRefresh';
-import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import type { PillOption } from '../../components/PillRow';
+} from '../hooks/usePredictMarketData';
+import { strings } from '../../../../../locales/i18n';
+import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh';
+import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
+import type { PillOption } from '../../../Views/TrendingView/components/PillRow';
 
 const PAGE_SIZE = 20;
 
@@ -41,6 +41,8 @@ export interface UseSportsMarketsFeedResult {
 
 interface UseSportsMarketsFeedOptions {
   refresh?: RefreshConfig;
+  /** When false, fetches nothing and ignores refreshes. @default true */
+  enabled?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ interface UseSportsMarketsFeedOptions {
  */
 export const useSportsMarketsFeed = ({
   refresh,
+  enabled = true,
 }: UseSportsMarketsFeedOptions = {}): UseSportsMarketsFeedResult => {
   const [activeKey, setActiveKey] = useState<string>(SOCCER.key);
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(
@@ -59,19 +62,19 @@ export const useSportsMarketsFeed = ({
     category: 'sports',
     customQueryParams: SOCCER.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(SOCCER.key),
+    enabled: enabled && loadedKeys.has(SOCCER.key),
   });
   const basketball = usePredictMarketData({
     category: 'sports',
     customQueryParams: BASKETBALL.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(BASKETBALL.key),
+    enabled: enabled && loadedKeys.has(BASKETBALL.key),
   });
   const tennis = usePredictMarketData({
     category: 'sports',
     customQueryParams: TENNIS.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(TENNIS.key),
+    enabled: enabled && loadedKeys.has(TENNIS.key),
   });
 
   const marketsByKey: Record<string, UsePredictMarketDataResult> = useMemo(
@@ -101,7 +104,7 @@ export const useSportsMarketsFeed = ({
     await Promise.all(tasks);
   }, [loadedKeys, refetchSoccer, refetchBasketball, refetchTennis]);
 
-  useFeedRefresh(refresh, refetch);
+  useFeedRefresh(refresh, refetch, enabled);
 
   const active = marketsByKey[activeKey];
   const isLoading = active.isFetching && active.marketData.length === 0;

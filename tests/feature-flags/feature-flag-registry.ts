@@ -202,6 +202,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialGifApi: {
+    name: 'aiSocialGifApi',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsAbtestButtonColor: {
     name: 'perpsAbtestButtonColor',
     type: FeatureFlagType.Remote,

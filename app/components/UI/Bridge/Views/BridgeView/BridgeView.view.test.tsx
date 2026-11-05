@@ -32,6 +32,7 @@ import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import {
   FeatureId,
+  MetaMetricsSwapsEventSource,
   RequestStatus,
   QuoteStreamCompleteReason,
   UnifiedSwapBridgeEventName,
@@ -66,6 +67,8 @@ import {
 import { merge } from 'lodash';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import { BridgeTabKey } from './BridgeView.constants';
+import { RecurringScheduleFieldsSelectorsIDs } from '../../components/RecurringScheduleFields/RecurringScheduleFields.testIds';
 
 const HOUR_MS = 60 * 60 * 1000;
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
@@ -162,6 +165,85 @@ describeForPlatforms('BridgeView', () => {
   });
 
   describe('tabs', () => {
+    it('opens the Recurring tab with the schedule from route params', async () => {
+      const state = initialStateBridge().build();
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: MetaMetricsSwapsEventSource.MainView,
+          initialTab: BridgeTabKey.Recurring,
+          initialRecurringSchedule: {
+            everyValue: '2',
+            everyUnit: 'week',
+            repeatCount: '8',
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      expect(
+        getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+      ).toHaveDisplayValue('2');
+      expect(
+        getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON),
+      ).toHaveTextContent(strings('bridge.recurring.unit.week'));
+      expect(
+        getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
+      ).toHaveDisplayValue('8');
+      expect(store.getState().bridge.recurring).toEqual({
+        everyValue: '2',
+        everyUnit: 'week',
+        repeatCount: '8',
+        priceRange: undefined,
+      });
+    });
+
+    it('falls back to Market when a route requests the disabled Recurring tab', async () => {
+      const state = initialStateBridge()
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsLimitOrder: { enabled: false },
+                  swapsRecurringBuy: { enabled: false },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+      const { getByTestId, queryByTestId } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: MetaMetricsSwapsEventSource.MainView,
+          initialTab: BridgeTabKey.Recurring,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the market tab with its label by default, then switches to the limit tab and hides slippage settings on press', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 

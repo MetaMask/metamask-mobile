@@ -78,6 +78,7 @@ import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { AVENIA_URL } from './constants';
+import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -762,6 +763,27 @@ const VbaDetails = () => {
       endVbaCufJourney(true);
     }
   }, [hasCurrentAccountState, rows.length]);
+  // Once deposit details are on screen, Money home stops showing the
+  // account-ready card for this wallet. Every entry point lands here, so this
+  // is the one place that records it. The ref keeps polling re-renders quiet.
+  const detailsMarkedForWalletRef = useRef<string | null>(null);
+  const hasShownDetails =
+    isApproved && hasCurrentAccountState && rows.length > 0;
+  useEffect(() => {
+    if (
+      !hasShownDetails ||
+      !walletAddress ||
+      detailsMarkedForWalletRef.current === walletAddress
+    ) {
+      return;
+    }
+    detailsMarkedForWalletRef.current = walletAddress;
+    markVbaAccountDetailsViewed(walletAddress).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to record that details were viewed',
+      });
+    });
+  }, [hasShownDetails, walletAddress]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
