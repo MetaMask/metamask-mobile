@@ -233,14 +233,14 @@ describe('MoneyUiDeveloperOptionsSection', () => {
 
         act(() => {
           fireEvent.press(
-            getByText('2. VBA region, empty wallet — Get started'),
+            getByText('2. VBA eligible, empty wallet: Get started'),
           );
         });
 
         expect(getMoneyHomeCardDevOverride()?.id).toBe('get_started');
         expect(
           getByText(
-            'Home card override: 2. VBA region, empty wallet — Get started',
+            'Home card override: 2. VBA eligible, empty wallet: Get started',
           ),
         ).toBeOnTheScreen();
       } finally {

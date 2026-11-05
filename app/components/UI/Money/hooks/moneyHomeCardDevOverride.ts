@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { MoneyHomeCard } from './getMoneyHomeCard';
+import type { MoneyHomeCard, MoneyHomeVbaVariant } from './getMoneyHomeCard';
 
 /**
  * One forced Money home card for a local demo. `null` means live routing.
@@ -13,59 +13,66 @@ export interface MoneyHomeCardDevOverride {
   onboardingStep?: 0 | 1;
 }
 
+/** One VBA identity card in the developer menu. */
+const vbaOverride = (
+  id: string,
+  label: string,
+  variant: MoneyHomeVbaVariant,
+): MoneyHomeCardDevOverride => ({
+  id,
+  label,
+  card: { type: 'vba', variant },
+});
+
 /** Table rows a developer can force from Settings → Developer options. */
 export const MONEY_HOME_CARD_DEV_OVERRIDES: readonly MoneyHomeCardDevOverride[] =
   [
-    {
-      id: 'loading',
-      label: '1. Loading — no card',
-      card: { type: 'none' },
-    },
-    {
-      id: 'get_started',
-      label: '2. VBA region, empty wallet — Get started',
-      card: { type: 'vba', variant: 'get_started' },
-    },
-    {
-      id: 'finish_verification',
-      label: '3. VBA region — Finish verification',
-      card: { type: 'vba', variant: 'finish_verification' },
-    },
-    {
-      id: 'kyc_pending',
-      label: '4. VBA region — KYC pending',
-      card: { type: 'vba', variant: 'kyc_pending' },
-    },
-    {
-      id: 'kyc_decision',
-      label: '5. VBA region — KYC decision',
-      card: { type: 'vba', variant: 'kyc_decision' },
-    },
-    {
-      id: 'identity_verified',
-      label: '6. VBA region: Identity verified',
-      card: { type: 'vba', variant: 'identity_verified' },
-    },
+    { id: 'loading', label: '1. Loading: no card', card: { type: 'none' } },
+    vbaOverride(
+      'get_started',
+      '2. VBA eligible, empty wallet: Get started',
+      'get_started',
+    ),
+    vbaOverride(
+      'finish_verification',
+      '3. VBA eligible, KYC in progress: Finish verification',
+      'finish_verification',
+    ),
+    vbaOverride(
+      'kyc_pending',
+      '4. VBA eligible, KYC in progress: KYC pending',
+      'kyc_pending',
+    ),
+    vbaOverride(
+      'kyc_decision',
+      '5. VBA eligible, KYC rejected or retry: KYC decision',
+      'kyc_decision',
+    ),
+    vbaOverride(
+      'identity_verified',
+      '6. VBA eligible, KYC approved: Identity verified',
+      'identity_verified',
+    ),
     {
       id: 'add_funds',
-      label: '7. Outside a VBA region, or has crypto — Add funds',
+      label: '7. Not VBA eligible, or has crypto: Add funds',
       card: { type: 'onboarding' },
       onboardingStep: 0,
     },
     {
       id: 'card',
-      label: '8. Funded — Get card or Link card',
+      label: '8. Funded: Get card or Link card',
       card: { type: 'onboarding' },
       onboardingStep: 1,
     },
     {
       id: 'card_done',
-      label: '9. Card linked, blocked, or skipped — no card',
+      label: '9. Card linked, blocked, or skipped: no card',
       card: { type: 'none' },
     },
     {
       id: 'autoramp_active',
-      label: '10. Autoramp active — no card',
+      label: '10. Autoramp active: no card',
       card: { type: 'none' },
     },
   ];
@@ -151,7 +158,7 @@ export const useMoneyHomeCardDevOverride =
  * A funded Money account moves to the card step. Otherwise Add funds.
  *
  * @param isMoneyAccountFunded - Money account token total is above zero.
- * @returns The fallback catalog entry.
+ * @returns The catalog entry for that step.
  */
 export const getKycDecisionDismissDevOverride = (
   isMoneyAccountFunded: boolean,
@@ -159,12 +166,7 @@ export const getKycDecisionDismissDevOverride = (
   const id = isMoneyAccountFunded ? 'card' : 'add_funds';
   const entry = getMoneyHomeCardDevOverrideById(id);
   if (!entry) {
-    return {
-      id: 'add_funds',
-      label: '7. Outside a VBA region, or has crypto — Add funds',
-      card: { type: 'onboarding' },
-      onboardingStep: 0,
-    };
+    throw new Error(`Missing Money home card dev override: ${id}`);
   }
   return entry;
 };
