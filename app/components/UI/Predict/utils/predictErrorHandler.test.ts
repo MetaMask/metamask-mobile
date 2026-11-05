@@ -187,10 +187,6 @@ describe('predictErrorHandler', () => {
         NOT_CONNECTED_TO_INTERNET_DESCRIPTION,
       ],
       [
-        NSURL_ERROR_SECURE_CONNECTION_FAILED,
-        SECURE_CONNECTION_FAILED_DESCRIPTION,
-      ],
-      [
         NSURL_ERROR_CANNOT_CONNECT_TO_HOST,
         LOCALIZED_CANNOT_CONNECT_DESCRIPTION,
       ],
@@ -203,15 +199,46 @@ describe('predictErrorHandler', () => {
       },
     );
 
-    it('returns false for an NSCocoaErrorDomain secure-connection failure', () => {
-      // The raw fixture's English "Could not connect" text matches an existing
-      // phrase, so the negative case has to be the -1200 variant.
+    it('returns false for an NSURLErrorDomain secure-connection failure', () => {
       const message = nsurlErrorMessage(
         NSURL_ERROR_SECURE_CONNECTION_FAILED,
         SECURE_CONNECTION_FAILED_DESCRIPTION,
+      );
+
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
+    it('returns false for the same connectivity code on NSCocoaErrorDomain', () => {
+      const message = nsurlErrorMessage(
+        NSURL_ERROR_CANNOT_CONNECT_TO_HOST,
+        LOCALIZED_CANNOT_CONNECT_DESCRIPTION,
       ).replaceAll('NSURLErrorDomain', 'NSCocoaErrorDomain');
 
       expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
+    it.each([408, 504])('returns true for an HTTP %s failure', (status) => {
+      expect(
+        isNetworkError(new Error(`POST /prices failed: ${status} gateway`)),
+      ).toBe(true);
+    });
+
+    it('returns false when an HTTP 400 body contains timeout', () => {
+      expect(
+        isNetworkError(
+          new Error(
+            'POST /prices failed: 400 {"error":"invalid param timeoutMs"}',
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for an HTTP 500 server deadline', () => {
+      expect(
+        isNetworkError(
+          new Error('POST /prices failed: 500 context deadline exceeded'),
+        ),
+      ).toBe(false);
     });
 
     it('returns false for an NSURLErrorDomain bad-server-response failure', () => {

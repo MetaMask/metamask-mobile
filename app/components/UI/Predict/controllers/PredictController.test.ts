@@ -3692,7 +3692,7 @@ describe('PredictController', () => {
       }
     });
 
-    it('does not report an iOS secure-connection failure to Sentry', async () => {
+    it('reports an iOS secure-connection failure to Sentry', async () => {
       const networkError = new Error(
         nsurlErrorMessage(
           NSURL_ERROR_SECURE_CONNECTION_FAILED,
@@ -3709,7 +3709,27 @@ describe('PredictController', () => {
           const result = await controller.refreshEligibility();
 
           expect(result).toEqual({ status: 'unavailable', eligible: false });
-          expect(errorSpy).not.toHaveBeenCalled();
+          expect(errorSpy).toHaveBeenCalled();
+        });
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports a geoblock HTTP 500 to Sentry', async () => {
+      mockPolymarketProvider.isEligible.mockRejectedValue(
+        new Error('Polymarket geoblock check failed with status 500'),
+      );
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(errorSpy).toHaveBeenCalled();
         });
       } finally {
         errorSpy.mockRestore();

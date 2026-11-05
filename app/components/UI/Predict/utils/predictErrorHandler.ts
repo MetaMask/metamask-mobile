@@ -26,6 +26,10 @@ export function ensureError(error: unknown): Error {
 /**
  * iOS URLSession connectivity codes. Numeric NSURLErrorDomain codes survive
  * localization, unlike English connectivity phrases.
+ *
+ * Left as errors on purpose: -999 cancelled, -1011 bad server response,
+ * -1013 auth required, -1018 roaming off, -1020 data not allowed, -1022 ATS,
+ * -1200 secure connection failed, -1202 to -1206 certificate.
  */
 const IOS_CONNECTIVITY_ERROR_CODES = {
   timedOut: -1001,
@@ -33,7 +37,6 @@ const IOS_CONNECTIVITY_ERROR_CODES = {
   cannotConnectToHost: -1004,
   networkConnectionLost: -1005,
   notConnectedToInternet: -1009,
-  secureConnectionFailed: -1200,
 } as const;
 
 const IOS_CONNECTIVITY_ERROR_PATTERN = new RegExp(
@@ -48,8 +51,8 @@ const IOS_CONNECTIVITY_ERROR_PATTERN = new RegExp(
  * match on the substrings each of them emits.
  *
  * Reported as breadcrumbs/warnings instead of Sentry errors, since they are
- * driven by the user's network conditions (DNS failures, timeouts, offline,
- * geo/ISP blocking) and are not actionable as crashes.
+ * driven by the user's network conditions (DNS failures, timeouts, offline)
+ * and are not actionable as crashes.
  */
 const NETWORK_ERROR_PATTERNS: RegExp[] = [
   // Chromium/Cronet (Android nitro-fetch) net::ERR_* codes
@@ -79,11 +82,21 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
  * @param error - The caught error (Error, string, or unknown)
  * @returns true when the error looks like a connectivity failure
  */
+// shortcut: status is read from "failed: <code>" text, upgrade when errors carry status.
+const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
+
 export function isNetworkError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   if (!message) {
     return false;
   }
+
+  const httpFailure = HTTP_FAILURE_STATUS.exec(message);
+  if (httpFailure) {
+    const status = Number(httpFailure[1]);
+    return status === 408 || status === 504;
+  }
+
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 

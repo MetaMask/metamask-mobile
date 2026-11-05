@@ -1180,6 +1180,36 @@ describe('PolymarketProvider', () => {
         results: [],
       });
       expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict request failed due to network conditions:',
+        networkError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports an HTTP 500 price failure to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      Logger.error.mockClear();
+      Logger.log.mockClear();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue('context deadline exceeded'),
+      });
+      const provider = createProvider();
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result).toEqual({
+        providerId: provider.providerId,
+        results: [],
+      });
+      expect(Logger.error).toHaveBeenCalled();
+      expect(Logger.log).not.toHaveBeenCalled();
     });
   });
 
