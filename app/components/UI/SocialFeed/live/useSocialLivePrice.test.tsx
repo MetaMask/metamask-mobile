@@ -50,7 +50,7 @@ const renderLivePrice = (initialPageActive: boolean) => {
 };
 
 describe('useSocialLivePrice', () => {
-  it('registers the card and follows its price on an active page', () => {
+  it('follows live prices after registering on an active page', () => {
     const { result, store, context } = renderLivePrice(true);
 
     act(() => store.publish('perp:BTC', 110));
@@ -72,7 +72,7 @@ describe('useSocialLivePrice', () => {
     expect(result.current.figures).toBeNull();
   });
 
-  it('unsubscribes while inactive and resumes on return', () => {
+  it('updates the subscription across page activity changes', () => {
     const { result, store, context, unregister, setPageActive } =
       renderLivePrice(true);
     act(() => store.publish('perp:BTC', 110));

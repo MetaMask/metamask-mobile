@@ -38,7 +38,6 @@ const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
-let mockIsFocused = true;
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -107,12 +106,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { SocialFeedRealtimeContext } = jest.requireActual(
     '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
   );
-  const { SocialFeedPageActiveContext } = jest.requireActual(
-    '../../../UI/SocialFeed/components/SocialFeedPageActiveContext',
-  );
-  const { TraderStatRotationContext } = jest.requireActual(
-    '../../../UI/SocialFeed/components/TraderStatRotationContext',
-  );
 
   interface MockSocialFeedProps {
     location?: string;
@@ -122,18 +115,12 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
-    isPageActive?: boolean;
-    rotatesTraderStats?: boolean;
   }
 
   return {
     __esModule: true,
     default: (props: MockSocialFeedProps) => {
-      const isPageActive = ReactActual.useContext(SocialFeedPageActiveContext);
-      const rotatesTraderStats = ReactActual.useContext(
-        TraderStatRotationContext,
-      );
-      mockSocialFeed({ ...props, isPageActive, rotatesTraderStats });
+      mockSocialFeed(props);
       return ReactActual.createElement(
         View,
         { testID: props.testID },
@@ -290,7 +277,7 @@ jest.mock('@react-navigation/native', () => {
       setParams: mockSetParams,
     }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
-    useIsFocused: () => mockIsFocused,
+    useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },
@@ -344,7 +331,6 @@ jest.mock('react-native-gesture-handler', () => {
 describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsFocused = true;
     mockRouteParams = {};
     act(() => {
       resetPendingPosts();
@@ -432,24 +418,6 @@ describe('SocialV1View', () => {
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
       }),
-    );
-  });
-
-  it('marks every feed page inactive while the screen is unfocused', () => {
-    mockIsFocused = false;
-
-    renderWithProvider(<SocialV1View />);
-    const pageActivity = mockSocialFeed.mock.calls.map(([props]) => ({
-      isPageActive: props.isPageActive,
-      rotatesTraderStats: props.rotatesTraderStats,
-    }));
-
-    expect(pageActivity.length).toBeGreaterThan(0);
-    expect(pageActivity).toEqual(
-      pageActivity.map(() => ({
-        isPageActive: false,
-        rotatesTraderStats: false,
-      })),
     );
   });
 

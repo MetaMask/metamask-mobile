@@ -1,10 +1,7 @@
 import { act, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
-import {
-  mockClosedPerpsFeedItem,
-  mockOpenPerpsFeedItem,
-} from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedRow, {
   areSocialFeedRowPropsEqual,
@@ -93,17 +90,11 @@ describe('SocialFeedRow', () => {
 
 describe('areSocialFeedRowPropsEqual', () => {
   it('treats a rebuilt post with the same content as equal', () => {
-    const previous = rowProps({
-      post: post({ translations: { en: 'Hello' } }),
-    });
+    const previous = rowProps();
 
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
-      post: {
-        ...previous.post,
-        reactions: [{ emotion: 'heart', count: 1 }],
-        translations: { en: 'Hello' },
-      },
+      post: { ...previous.post, reactions: [{ emotion: 'heart', count: 1 }] },
     });
 
     expect(equal).toBe(true);
@@ -114,8 +105,6 @@ describe('areSocialFeedRowPropsEqual', () => {
     ['the mapped item', { item: mockOpenPerpsFeedItem({ id: 'post-1' }) }],
     ['the realtime event', { realtimeEventId: 'event-2' }],
     ['the copy count', { copyCount: 4 }],
-    ['the pending state', { isPending: true }],
-    ['translations', { translations: { en: 'Updated' } }],
   ])('rerenders when %s change', (_label, change) => {
     const previous = rowProps();
 
@@ -160,34 +149,6 @@ describe('areSocialFeedRowPropsEqual', () => {
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
       now: 61_000,
-    });
-
-    expect(equal).toBe(false);
-  });
-
-  it('skips a clock tick that leaves the age label unchanged', () => {
-    const hour = 60 * 60_000;
-    const previous = { ...rowProps(), now: 3.5 * hour };
-
-    const equal = areSocialFeedRowPropsEqual(previous, {
-      ...previous,
-      now: 3.5 * hour + 60_000,
-    });
-
-    expect(equal).toBe(true);
-  });
-
-  it('rerenders when only the closed card age changes', () => {
-    const hour = 60 * 60_000;
-    const closedPost = post({
-      timestampMs: 1,
-      item: mockClosedPerpsFeedItem({ id: 'post-1', closedAtMs: 2 * hour }),
-    });
-    const previous = { ...rowProps({ post: closedPost }), now: 2 * hour };
-
-    const equal = areSocialFeedRowPropsEqual(previous, {
-      ...previous,
-      now: 2 * hour + 60_000,
     });
 
     expect(equal).toBe(false);

@@ -175,6 +175,18 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
 
+const SocialFeedPageProviders: React.FC<{
+  isActive: boolean;
+  rotatesTraderStats: boolean;
+  children: React.ReactNode;
+}> = ({ isActive, rotatesTraderStats, children }) => (
+  <SocialFeedPageActiveContext.Provider value={isActive}>
+    <TraderStatRotationContext.Provider value={rotatesTraderStats}>
+      {children}
+    </TraderStatRotationContext.Provider>
+  </SocialFeedPageActiveContext.Provider>
+);
+
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live under a collapsing header. Opened only for TSA-1122 treatment.
@@ -809,7 +821,6 @@ const SocialV1ViewContent: React.FC = () => {
                       : tab === 'live'
                         ? livePageRef
                         : leaderboardPageRef;
-                const isPageActive = isFocused && activeIndex === pageIndex;
                 return (
                   <View
                     key={tab}
@@ -817,73 +828,72 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    <SocialFeedPageActiveContext.Provider value={isPageActive}>
-                      <TraderStatRotationContext.Provider value={isPageActive}>
-                        {tab === 'leaderboard' ? (
-                          <LeaderboardShellTabPage
-                            isActive={activeIndex === leaderboardIndex}
-                            performance={socialPerformanceByTab.leaderboard}
-                            onScroll={scrollHandlers[tab]}
-                            pageRef={pageRef}
-                            containerTestID={testIds.container}
-                            appliedFilters={applied.leaderboard}
-                            onOpenFilters={handleOpenLeaderboardFilters}
-                            isFilterActive={hasActiveFilters('leaderboard')}
-                            onClearFilters={() =>
-                              clearAppliedFilters('leaderboard')
-                            }
-                            onTypeChange={setLeaderboardType}
-                          />
-                        ) : tab === 'live' ? (
-                          <LiveView
-                            isActive={activeIndex === liveIndex}
-                            source={analyticsSource}
-                            onScroll={scrollHandlers[tab]}
-                            pageRef={pageRef}
-                            onCopyTrade={handleLiveCopyTrade}
-                            onOpenFilters={handleOpenLiveFilters}
-                            isFilterActive={hasActiveFilters('live')}
-                            onClearFilters={() => clearAppliedFilters('live')}
-                            appliedFilters={applied.live}
-                          />
-                        ) : tab === 'trending' ? (
-                          <TrendingView
-                            isActive={activeIndex === trendingIndex}
-                            source={analyticsSource}
-                            performance={socialPerformanceByTab.trending}
-                            onScroll={scrollHandlers[tab]}
-                            pageRef={pageRef}
-                            onCopyTrade={handleTrendingCopyTrade}
-                            onOpenFilters={handleOpenTrendingFilters}
-                            isFilterActive={hasActiveFilters('trending')}
-                            onClearFilters={() =>
-                              clearAppliedFilters('trending')
-                            }
-                            appliedFilters={applied.trending}
-                            testID={testIds.container}
-                            scrollTestID={testIds.scroll}
-                          />
-                        ) : (
-                          <EmptyShellTabPage
-                            tab={tab}
-                            source={analyticsSource}
-                            performance={socialPerformanceByTab[tab]}
-                            isActive={activeIndex === followingIndex}
-                            onScroll={scrollHandlers[tab]}
-                            pageRef={pageRef}
-                            containerTestID={testIds.container}
-                            scrollTestID={testIds.scroll}
-                            onOpenFilters={handleOpenFollowingFilters}
-                            isFilterActive={hasActiveFilters('following')}
-                            onClearFilters={() =>
-                              clearAppliedFilters('following')
-                            }
-                            appliedFilters={applied.following}
-                            onQuickBuy={openFollowingQuickBuy}
-                          />
-                        )}
-                      </TraderStatRotationContext.Provider>
-                    </SocialFeedPageActiveContext.Provider>
+                    <SocialFeedPageProviders
+                      isActive={isFocused && activeIndex === pageIndex}
+                      rotatesTraderStats={activeIndex === pageIndex}
+                    >
+                      {tab === 'leaderboard' ? (
+                        <LeaderboardShellTabPage
+                          isActive={activeIndex === leaderboardIndex}
+                          performance={socialPerformanceByTab.leaderboard}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          appliedFilters={applied.leaderboard}
+                          onOpenFilters={handleOpenLeaderboardFilters}
+                          isFilterActive={hasActiveFilters('leaderboard')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('leaderboard')
+                          }
+                          onTypeChange={setLeaderboardType}
+                        />
+                      ) : tab === 'live' ? (
+                        <LiveView
+                          isActive={activeIndex === liveIndex}
+                          source={analyticsSource}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleLiveCopyTrade}
+                          onOpenFilters={handleOpenLiveFilters}
+                          isFilterActive={hasActiveFilters('live')}
+                          onClearFilters={() => clearAppliedFilters('live')}
+                          appliedFilters={applied.live}
+                        />
+                      ) : tab === 'trending' ? (
+                        <TrendingView
+                          isActive={activeIndex === trendingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.trending}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleTrendingCopyTrade}
+                          onOpenFilters={handleOpenTrendingFilters}
+                          isFilterActive={hasActiveFilters('trending')}
+                          onClearFilters={() => clearAppliedFilters('trending')}
+                          appliedFilters={applied.trending}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                        />
+                      ) : (
+                        <EmptyShellTabPage
+                          tab={tab}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab[tab]}
+                          isActive={activeIndex === followingIndex}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                          onOpenFilters={handleOpenFollowingFilters}
+                          isFilterActive={hasActiveFilters('following')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('following')
+                          }
+                          appliedFilters={applied.following}
+                          onQuickBuy={openFollowingQuickBuy}
+                        />
+                      )}
+                    </SocialFeedPageProviders>
                   </View>
                 );
               })}
