@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -17,13 +17,31 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { PredictThePitchPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
-import { usePredictNavigation } from '../../../Predict/hooks/usePredictNavigation';
-import type { PredictMarketDetailsParams } from '../../../Predict/types/navigation';
-import { formatPercentage, formatPrice } from '../../../Predict/utils/format';
+import {
+  createPredictCampaignEventRef,
+  PredictEventValues,
+  usePredictAvailability,
+  usePredictEntryActions,
+  type PredictIntent,
+} from '../../../PredictNext';
 import { strings } from '../../../../../../locales/i18n';
+import { PREDICT_THE_PITCH_PREDICT_CAMPAIGN } from '../../utils/predictCampaignConstants';
+import {
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
+} from '../../utils/formatUtils';
 
 dayjs.extend(relativeTime);
+
+/**
+ * Whether the campaign's Venue is active. Rows ask it of the campaign rather
+ * than of each position's Event, so a position without an Event stays the
+ * same disabled row it was.
+ */
+const CAMPAIGN_VENUE_INTENT: PredictIntent = {
+  type: 'home',
+  campaign: PREDICT_THE_PITCH_PREDICT_CAMPAIGN,
+};
 
 export const PREDICT_THE_PITCH_POSITION_ROW_TEST_ID =
   'predict-the-pitch-portfolio-row';
@@ -108,37 +126,58 @@ const PredictThePitchPositionIcon: React.FC<{
   );
 };
 
+/**
+ * A campaign row. Its tap opens the position's Event on the campaign's Venue
+ * through a campaign-minted reference, so the Event can only open there. While
+ * that Venue is not active the row has no action at all: no tap, no button
+ * role.
+ */
 const PredictThePitchPositionRowShell: React.FC<{
   position: PredictThePitchPositionDto;
   index: number;
   children: React.ReactNode;
 }> = ({ position, index, children }) => {
-  const { navigateToMarketDetails } = usePredictNavigation();
+  const { openPredict, canOpenPredict } = usePredictEntryActions();
+  const isPredictAvailable = usePredictAvailability();
+  const testID = `${PREDICT_THE_PITCH_POSITION_ROW_TEST_ID}-${index}`;
+
+  const eventIntent = useMemo<PredictIntent | undefined>(
+    () =>
+      position.eventId
+        ? {
+            type: 'event',
+            eventRef: createPredictCampaignEventRef(
+              PREDICT_THE_PITCH_PREDICT_CAMPAIGN,
+              position.eventId,
+            ),
+            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+            titleSnapshot: position.conditionName,
+            ...(position.iconUrl ? { imageSnapshot: position.iconUrl } : {}),
+          }
+        : undefined,
+    [position.conditionName, position.eventId, position.iconUrl],
+  );
 
   const handlePress = useCallback(() => {
-    if (!position.eventId) {
-      return;
+    if (eventIntent) {
+      openPredict(eventIntent);
     }
+  }, [eventIntent, openPredict]);
 
-    navigateToMarketDetails(
-      {
-        marketId: position.eventId,
-        entryPoint: PredictEventValues.ENTRY_POINT.REWARDS as NonNullable<
-          PredictMarketDetailsParams['entryPoint']
-        >,
-        title: position.conditionName,
-        ...(position.iconUrl ? { image: position.iconUrl } : {}),
-      },
-      { throughRoot: true },
+  if (!isPredictAvailable || !canOpenPredict(CAMPAIGN_VENUE_INTENT)) {
+    return (
+      <View style={styles.positionContainer} testID={testID}>
+        {children}
+      </View>
     );
-  }, [navigateToMarketDetails, position]);
+  }
 
   return (
     <Pressable
       style={styles.positionContainer}
-      testID={`${PREDICT_THE_PITCH_POSITION_ROW_TEST_ID}-${index}`}
+      testID={testID}
       onPress={handlePress}
-      disabled={!position.eventId}
+      disabled={!eventIntent}
       accessibilityRole="button"
     >
       {children}
@@ -157,13 +196,9 @@ export const PredictThePitchOpenPositionRow: React.FC<{
   const currentValue = position.capitalDeployed + position.pnl;
   const percentPnl = position.roi * 100;
   const positionInfo = strings('predict.position_info', {
-    initialValue: formatPrice(position.capitalDeployed, {
-      maximumDecimals: 2,
-    }),
+    initialValue: formatPredictPositionUsd(position.capitalDeployed),
     outcome: position.outcomeAsset ?? '-',
-    shares: formatPrice(position.fillShares, {
-      maximumDecimals: 2,
-    }),
+    shares: formatPredictPositionUsd(position.fillShares),
   });
 
   return (
@@ -191,7 +226,7 @@ export const PredictThePitchOpenPositionRow: React.FC<{
       </View>
       <View style={styles.positionPnl}>
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
+          {formatPredictPositionUsd(currentValue)}
         </Text>
         <Text
           variant={TextVariant.BodySm}
@@ -200,7 +235,7 @@ export const PredictThePitchOpenPositionRow: React.FC<{
           }
           numberOfLines={1}
         >
-          {formatPercentage(percentPnl)}
+          {formatPredictPositionPercent(percentPnl)}
         </Text>
       </View>
     </PredictThePitchPositionRowShell>
@@ -219,9 +254,7 @@ export const PredictThePitchResolvedPositionRow: React.FC<{
   const currentValue = position.capitalDeployed + position.pnl;
   const percentPnl = position.roi * 100;
   const subtitle = `${strings('predict.market_details.amount_on_outcome', {
-    amount: formatPrice(position.capitalDeployed, {
-      maximumDecimals: 2,
-    }),
+    amount: formatPredictPositionUsd(position.capitalDeployed),
     outcome: position.outcomeAsset ?? '-',
   })} • ${formatMarketEndDate(position.fillDate)}`;
 
@@ -257,7 +290,7 @@ export const PredictThePitchResolvedPositionRow: React.FC<{
             ellipsizeMode="tail"
           >
             {strings('predict.market_details.won')}{' '}
-            {formatPrice(currentValue, { maximumDecimals: 2 })}
+            {formatPredictPositionUsd(currentValue)}
           </Text>
         ) : (
           <Text
@@ -267,9 +300,7 @@ export const PredictThePitchResolvedPositionRow: React.FC<{
             ellipsizeMode="tail"
           >
             {strings('predict.market_details.lost')}{' '}
-            {formatPrice(position.capitalDeployed - currentValue, {
-              maximumDecimals: 2,
-            })}
+            {formatPredictPositionUsd(position.capitalDeployed - currentValue)}
           </Text>
         )}
       </View>
@@ -291,9 +322,7 @@ export const PredictThePitchSoldPositionRow: React.FC<{
   const currentValue = position.capitalDeployed + position.pnl;
   const percentPnl = position.roi * 100;
   const subtitle = `${strings('predict.market_details.amount_on_outcome', {
-    amount: formatPrice(position.capitalDeployed, {
-      maximumDecimals: 2,
-    }),
+    amount: formatPredictPositionUsd(position.capitalDeployed),
     outcome: position.outcomeAsset ?? '-',
   })} • ${formatSoldAt(position.fillDate)}`;
 
@@ -322,7 +351,7 @@ export const PredictThePitchSoldPositionRow: React.FC<{
       </View>
       <View style={styles.positionPnl}>
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
+          {formatPredictPositionUsd(currentValue)}
         </Text>
         <Text
           variant={TextVariant.BodySm}
@@ -331,7 +360,7 @@ export const PredictThePitchSoldPositionRow: React.FC<{
           }
           numberOfLines={1}
         >
-          {formatPercentage(percentPnl)}
+          {formatPredictPositionPercent(percentPnl)}
         </Text>
       </View>
     </PredictThePitchPositionRowShell>

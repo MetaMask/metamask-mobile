@@ -75,6 +75,12 @@ export const resolveLegacyIntent = (
           marketId: eventRef.marketId,
           providerId: eventRef.providerId,
           ...withEntryPoint(intent.entryPoint),
+          ...(intent.titleSnapshot === undefined
+            ? {}
+            : { title: intent.titleSnapshot }),
+          ...(intent.imageSnapshot === undefined
+            ? {}
+            : { image: intent.imageSnapshot }),
         },
       });
     }
