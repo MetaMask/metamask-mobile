@@ -1529,6 +1529,7 @@ describe('ImmersveProvider', () => {
     });
 
     it('maps a Money account funding source to vmUSD on Monad', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
       const { provider, service } = createProvider(PROGRAM_CONFIG, {
         getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
         findFundingChannelById: (channelId: string) =>
@@ -1544,19 +1545,34 @@ describe('ImmersveProvider', () => {
             ...fundingSourceDetail,
             network: 'monad-mainnet',
             fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            fundingAddress: moneyAccountAddress,
             balanceCurrency: 'USDC',
           },
         }),
       );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '15.0',
+        spendableBalance: '15',
+      });
 
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        MONEY_ACCOUNT_CHANNEL.tokenAddress,
+        moneyAccountAddress,
+        MONEY_ACCOUNT_CHANNEL.spenderAddress,
+        6,
+      );
       expect(data.primaryFundingAsset).toMatchObject({
         symbol: 'vmUSD',
         address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
-        walletAddress: '0xabc',
+        walletAddress: moneyAccountAddress,
         chainId: 'eip155:143',
         decimals: 6,
+        spendableBalance: '15',
+        spendingCap: '15.0',
         status: FundingAssetStatus.Active,
       });
     });
@@ -1618,6 +1634,76 @@ describe('ImmersveProvider', () => {
         caipChainId: 'eip155:143',
         context: { fundingSourceId: 'fs-money' },
       });
+    });
+
+    it('prepareMoneyAccountLink reuses a source only when its funding address matches', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-siwe',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: '0x1111111111111111111111111111111111111111',
+          },
+          {
+            id: 'fs-money',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: moneyAccountAddress.toLowerCase(),
+          },
+        ],
+      });
+      service.post.mockResolvedValue({ prerequisites: [] });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        { moneyAccountAddress, amountHuman: '1' },
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(preparation.context).toEqual({ fundingSourceId: 'fs-money' });
+    });
+
+    it('prepareMoneyAccountLink creates a source when the existing one funds another address', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-siwe',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: '0x1111111111111111111111111111111111111111',
+          },
+        ],
+      });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({ id: 'fs-new', network: 'monad-mainnet' });
+        }
+        return Promise.resolve({ prerequisites: [] });
+      });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        { moneyAccountAddress, amountHuman: '1' },
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({ fundingAddress: moneyAccountAddress }),
+        TOKENS,
+      );
+      expect(preparation.context).toEqual({ fundingSourceId: 'fs-new' });
     });
 
     it('completeMoneyAccountLink creates a card when prerequisites are active', async () => {
