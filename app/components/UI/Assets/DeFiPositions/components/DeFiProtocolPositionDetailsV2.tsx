@@ -103,6 +103,7 @@ const DeFiProtocolPositionDetailsV2: React.FC = () => {
               networkIconAvatar={networkIconAvatar}
               avatarName={protocolId}
               avatarIconUrl={protocolIconUrl}
+              protocolId={protocolId}
             />
           </View>
         </View>

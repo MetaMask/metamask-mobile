@@ -177,6 +177,7 @@ describe('DeFiPositionsListItem', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('DeFiProtocolPositionDetails', {
       protocolAggregate: mockProtocolAggregateData,
+      protocolId,
       networkIconAvatar: expect.anything(),
     });
 

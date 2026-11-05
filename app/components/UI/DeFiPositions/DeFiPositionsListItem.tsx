@@ -128,6 +128,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
         navigation.navigate('DeFiProtocolPositionDetails', {
           protocolAggregate,
+          protocolId,
           networkIconAvatar,
         });
       }}
@@ -137,6 +138,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         networkIconAvatar={networkIconAvatar}
         avatarName={protocolAggregate.protocolDetails.name}
         avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+        protocolId={protocolId}
       />
 
       <View style={styles.contentWrapper}>

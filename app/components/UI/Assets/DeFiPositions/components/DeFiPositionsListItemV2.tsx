@@ -119,6 +119,7 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
         networkIconAvatar={networkIconAvatar}
         avatarName={title}
         avatarIconUrl={position.protocolIconUrl}
+        protocolId={position.protocolId}
       />
 
       <View style={styles.contentWrapper}>

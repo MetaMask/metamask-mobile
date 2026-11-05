@@ -38,6 +38,8 @@ export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID };
 export interface DeFiProtocolPositionDetailsParams {
   protocolAggregate?: GroupedDeFiPositions['protocols'][number];
   protocolPositionGroup?: DeFiProtocolPositionGroup;
+  /** V1 only: DeFi protocol id of `protocolAggregate`. */
+  protocolId?: string;
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
@@ -46,7 +48,7 @@ const DeFiProtocolPositionDetailsV1: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation<AppStackNavigationProp>();
 
-  const { protocolAggregate, networkIconAvatar } =
+  const { protocolAggregate, protocolId, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -101,6 +103,7 @@ const DeFiProtocolPositionDetailsV1: React.FC = () => {
               networkIconAvatar={networkIconAvatar}
               avatarName={protocolAggregate.protocolDetails.name}
               avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+              protocolId={protocolId}
             />
           </View>
         </View>

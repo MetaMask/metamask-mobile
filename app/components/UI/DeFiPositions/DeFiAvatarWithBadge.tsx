@@ -8,16 +8,23 @@ import {
   BadgeWrapperPosition,
   type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
+import { getProtocolAvatarSrc } from './get-protocol-avatar-src';
 
 interface DeFiAvatarWithBadgeProps {
   avatarName: string;
   avatarIconUrl: string;
+  /**
+   * DeFi protocol id. When set, known protocols (e.g. MetaMask staking) render
+   * a bundled logo instead of `avatarIconUrl`.
+   */
+  protocolId?: string;
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
 const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
   avatarName,
   avatarIconUrl,
+  protocolId,
   networkIconAvatar,
 }: DeFiAvatarWithBadgeProps) => (
   <BadgeWrapper
@@ -36,7 +43,7 @@ const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
   >
     <AvatarToken
       name={avatarName}
-      src={{ uri: avatarIconUrl }}
+      src={getProtocolAvatarSrc(avatarIconUrl, protocolId)}
       size={AvatarTokenSize.Lg}
       imageOrSvgProps={{
         imageProps: { testID: 'token-avatar-image' },
