@@ -126,7 +126,7 @@ import {
 } from '../../../Card/util/metrics';
 
 import { TraceName } from '../../../../../util/trace';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   useMoneyHomePerformance,

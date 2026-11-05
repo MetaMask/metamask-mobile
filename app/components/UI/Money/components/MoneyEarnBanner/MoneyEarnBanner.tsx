@@ -53,7 +53,7 @@ import {
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
 

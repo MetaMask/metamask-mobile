@@ -1,18 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import {
-  useMoneyNavigation,
-  useMoneyDepositNavigation,
-} from './useMoneyNavigation';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
+import { useMoneyHomeNavigation } from './useMoneyHomeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import NavigationService from '../../../../core/NavigationService';
 import { selectMoneyEntryContext } from '../selectors/entry';
 import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
 
 const mockNavigate = jest.fn();
-const mockInitiateDeposit = jest.fn();
 const analyticsContext = {
   id: 'balance-breakdown-navigation',
   attribution: 'homescreen_balance_breakdown' as const,
@@ -22,27 +16,16 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
-
 jest.mock('../selectors/entry', () => ({
   selectMoneyEntryContext: jest.fn(),
 }));
 
-jest.mock('./useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(),
-}));
-
-jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+jest.mock('../../../../core/NavigationService', () => ({
   navigation: { navigate: jest.fn() },
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockSelectMoneyEntryContext = jest.mocked(selectMoneyEntryContext);
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
 const setupSelectorMocks = ({
   hasSeenOnboarding = false,
@@ -65,13 +48,10 @@ const setupSelectorMocks = ({
   });
 };
 
-describe('useMoneyNavigation', () => {
+describe('useMoneyHomeNavigation', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
-    });
     setupSelectorMocks();
   });
 
@@ -82,7 +62,7 @@ describe('useMoneyNavigation', () => {
         isOnboardingEnabled: true,
       });
 
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
@@ -91,7 +71,7 @@ describe('useMoneyNavigation', () => {
     });
 
     it('forwards analytics context through Money onboarding', () => {
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
@@ -106,7 +86,7 @@ describe('useMoneyNavigation', () => {
         isOnboardingEnabled: true,
       });
 
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
@@ -126,7 +106,7 @@ describe('useMoneyNavigation', () => {
         hasSeenOnboarding: true,
         isOnboardingEnabled: true,
       });
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
@@ -149,7 +129,7 @@ describe('useMoneyNavigation', () => {
         isOnboardingEnabled: false,
       });
 
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
@@ -167,7 +147,7 @@ describe('useMoneyNavigation', () => {
     it('opens the geo-block sheet when access is geo blocked', () => {
       setupSelectorMocks({ accessBlockReason: 'geo_blocked' });
 
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
@@ -179,7 +159,7 @@ describe('useMoneyNavigation', () => {
     it('opens the disabled notice when the feature is disabled', () => {
       setupSelectorMocks({ accessBlockReason: 'feature_disabled' });
 
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome());
 
@@ -196,7 +176,7 @@ describe('useMoneyNavigation', () => {
       const callOrder: string[] = [];
       mockNavigate.mockImplementation(() => callOrder.push('navigate'));
       const track = jest.fn(() => callOrder.push('track'));
-      const { result } = renderHook(() => useMoneyNavigation());
+      const { result } = renderHook(() => useMoneyHomeNavigation());
 
       act(() => result.current.navigateToMoneyHome({ track }));
 
@@ -206,111 +186,5 @@ describe('useMoneyNavigation', () => {
         button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
       });
     });
-  });
-});
-
-describe('useMoneyDepositNavigation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    setupSelectorMocks({ hasSeenOnboarding: true });
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
-    });
-  });
-
-  it('tracks before initiating an accessible deposit', async () => {
-    const callOrder: string[] = [];
-    mockInitiateDeposit.mockImplementation(async () => {
-      callOrder.push('deposit');
-    });
-    const track = jest.fn(() => callOrder.push('track'));
-    const { result } = renderHook(() => useMoneyDepositNavigation());
-
-    await act(async () => {
-      await result.current.navigateToMoneyDeposit({
-        preferredPaymentToken: {
-          address: '0xabc',
-          chainId: '0x1',
-        },
-        track,
-      });
-    });
-
-    expect(callOrder).toStrictEqual(['track', 'deposit']);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      preferredPaymentToken: {
-        address: '0xabc',
-        chainId: '0x1',
-      },
-    });
-  });
-
-  it('continues to deposit after onboarding state remains stale', async () => {
-    setupSelectorMocks({ isOnboardingEnabled: true });
-    const { result } = renderHook(() => useMoneyDepositNavigation());
-
-    await act(async () => {
-      await result.current.navigateToMoneyDeposit({
-        isPostOnboardingContinuation: true,
-      });
-    });
-
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({});
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('routes an unseen deposit to onboarding without initiating it', async () => {
-    setupSelectorMocks({ isOnboardingEnabled: true });
-    const { result } = renderHook(() => useMoneyDepositNavigation());
-
-    await act(async () => {
-      await result.current.navigateToMoneyDeposit();
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
-      postOnboardingRedirect: {
-        type: MoneyPostOnboardingRedirectType.DEPOSIT,
-      },
-    });
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
-  });
-
-  it('routes a blocked deposit to an access notice without initiating it', async () => {
-    setupSelectorMocks({
-      hasSeenOnboarding: true,
-      accessBlockReason: 'geo_blocked',
-    });
-    const { result } = renderHook(() => useMoneyDepositNavigation());
-
-    await act(async () => {
-      await result.current.navigateToMoneyDeposit();
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-    });
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
-  });
-
-  it('keeps feature restrictions for a post-onboarding continuation', async () => {
-    setupSelectorMocks({
-      accessBlockReason: 'feature_disabled',
-    });
-    const { result } = renderHook(() => useMoneyDepositNavigation());
-
-    await act(async () => {
-      await result.current.navigateToMoneyDeposit({
-        isPostOnboardingContinuation: true,
-      });
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.MODALS.DEEPLINK_MODAL,
-      expect.objectContaining({
-        title: expect.any(String),
-        description: expect.any(String),
-      }),
-    );
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 });

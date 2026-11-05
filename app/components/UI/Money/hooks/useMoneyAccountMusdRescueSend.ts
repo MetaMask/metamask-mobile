@@ -27,7 +27,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { calcTokenValue } from '../../../../util/transactions';
 import useMoneyToasts from './useMoneyToasts';
-import { useMoneyNavigation } from './useMoneyNavigation';
+import { useMoneyHomeNavigation } from './useMoneyHomeNavigation';
 import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
@@ -99,7 +99,7 @@ export function useMoneyAccountMusdRescueSend() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   /**
    * Stage 1 — validate everything against fresh state and prepare the
