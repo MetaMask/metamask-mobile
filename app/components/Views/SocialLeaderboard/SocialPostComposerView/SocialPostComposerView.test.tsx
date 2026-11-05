@@ -37,6 +37,23 @@ jest.mock('../analytics', () => ({
   useSocialScreenAnalytics: () => jest.fn(),
 }));
 
+const mockHeaderRender = jest.fn();
+jest.mock(
+  '../../../../component-library/components-temp/HeaderBaseGlass',
+  () => {
+    const Actual = jest.requireActual(
+      '../../../../component-library/components-temp/HeaderBaseGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderRender();
+        return <Actual {...props} />;
+      },
+    };
+  },
+);
+
 const mockPositionCardBody = jest.fn<null, [unknown]>();
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
@@ -856,6 +873,26 @@ describe('SocialPostComposerView', () => {
         showCopyTrade: false,
       }),
     );
+  });
+
+  it('does not re-render the screen chrome while typing', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const headerRendersBeforeTyping = mockHeaderRender.mock.calls.length;
+
+    ['a', 'ab', 'abc'].forEach((text) => {
+      fireEvent.changeText(input, text);
+    });
+
+    expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
+  });
+
+  it('keeps the character count a constant width with equal-width digits', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveStyle({ fontVariant: ['tabular-nums'] });
   });
 
   it('wraps the composer preview in the live price provider', () => {

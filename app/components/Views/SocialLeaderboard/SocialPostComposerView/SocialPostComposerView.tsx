@@ -32,6 +32,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import {
   Image,
@@ -207,10 +208,135 @@ const ComposerChip = ({
   );
 };
 
+// The caption lives outside React state so typing re-renders only the count
+// and the Post button, not the screen.
+const createComposerTextStore = () => {
+  let text = '';
+  const listeners = new Set<() => void>();
+  return {
+    get: () => text,
+    set: (next: string) => {
+      if (next === text) {
+        return;
+      }
+      text = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+};
+type ComposerTextStore = ReturnType<typeof createComposerTextStore>;
+
+const useComposerText = <T,>(
+  store: ComposerTextStore,
+  select: (text: string) => T,
+): T => useSyncExternalStore(store.subscribe, () => select(store.get()));
+
+const ComposerTextInput = ({
+  store,
+  inputRef,
+  onImageChange,
+}: {
+  store: ComposerTextStore;
+  inputRef: React.RefObject<TextInput | null>;
+  onImageChange: (event: ImageInsertEvent) => void;
+}) => {
+  const tw = useTailwind();
+  const { colors, typography } = useTheme();
+  const text = useComposerText(store, (value) => value);
+  const inputTypography = useMemo<TextStyle>(
+    () => ({
+      fontSize: typography.lBodyMD.fontSize,
+      lineHeight: typography.lBodyMD.lineHeight,
+      letterSpacing: typography.lBodyMD.letterSpacing,
+      fontWeight: typography.lBodyMD.fontWeight as TextStyle['fontWeight'],
+    }),
+    [typography.lBodyMD],
+  );
+
+  return (
+    <TextInput
+      ref={inputRef}
+      value={text}
+      onChangeText={store.set}
+      placeholder={strings('social_leaderboard.composer.placeholder')}
+      placeholderTextColor={colors.text.alternative}
+      multiline
+      showSoftInputOnFocus
+      style={[tw.style('w-full text-default p-0'), inputTypography]}
+      testID={SocialPostComposerViewSelectorsIDs.INPUT}
+      {...{ onImageChange }}
+    />
+  );
+};
+
+const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
+
+// HeaderBase re-renders when its end accessory's width changes, so use
+// equal-width digits to keep the count's width stable while typing.
+const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
+  const count = useComposerText(store, (value) => value.length);
+
+  return (
+    <Text
+      variant={TextVariant.BodySm}
+      color={
+        count > COMPOSER_COMMENT_MAX_LENGTH
+          ? TextColor.ErrorDefault
+          : TextColor.TextAlternative
+      }
+      style={TABULAR_NUMS_STYLE}
+      testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
+    >
+      {strings('social_leaderboard.composer.character_count', {
+        count,
+        limit: COMPOSER_COMMENT_MAX_LENGTH,
+      })}
+    </Text>
+  );
+};
+
+const ComposerPostButton = ({
+  store,
+  hasTarget,
+  isSubmitting,
+  onPress,
+}: {
+  store: ComposerTextStore;
+  hasTarget: boolean;
+  isSubmitting: boolean;
+  onPress: () => void;
+}) => {
+  const hasPostableText = useComposerText(
+    store,
+    (value) =>
+      value.trim().length > 0 && value.length <= COMPOSER_COMMENT_MAX_LENGTH,
+  );
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Md}
+      isDisabled={!hasTarget || !hasPostableText || isSubmitting}
+      onPress={onPress}
+      testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+    >
+      {isSubmitting
+        ? strings('social_leaderboard.composer.posting')
+        : strings('social_leaderboard.composer.post')}
+    </Button>
+  );
+};
+
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
@@ -224,7 +350,7 @@ const SocialPostComposerView: React.FC = () => {
   const { profile } = useMyProfile();
   const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
-  const [text, setText] = useState('');
+  const [textStore] = useState(createComposerTextStore);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
@@ -276,16 +402,12 @@ const SocialPostComposerView: React.FC = () => {
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
     if (tradeInFlightPreview) {
       if ('product' in tradeInFlightPreview) {
-        return mapPerpsOrderInFlightToFeedItem(
-          tradeInFlightPreview,
-          text.trim(),
-          {
-            author: composerAuthor,
-            commentGifUrl: gifUri ?? undefined,
-          },
-        );
+        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, '', {
+          author: composerAuthor,
+          commentGifUrl: gifUri ?? undefined,
+        });
       }
-      return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
+      return mapTradeInFlightToFeedItem(tradeInFlightPreview, '', {
         author: composerAuthor,
         commentGifUrl: gifUri ?? undefined,
       });
@@ -293,7 +415,7 @@ const SocialPostComposerView: React.FC = () => {
     if (!selectedPosition) {
       return null;
     }
-    return mapPositionToFeedItem(selectedPosition.position, text.trim(), {
+    return mapPositionToFeedItem(selectedPosition.position, '', {
       isClosed: selectedPosition.isClosed,
       author: composerAuthor,
       commentGifUrl: gifUri ?? undefined,
@@ -304,7 +426,6 @@ const SocialPostComposerView: React.FC = () => {
     gifUri,
     isLivePreview,
     selectedPosition,
-    text,
     tradeInFlightPreview,
   ]);
   const analyticsTradeType = previewItem
@@ -314,20 +435,12 @@ const SocialPostComposerView: React.FC = () => {
     : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
-  const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
-  const canSubmit =
-    (selectedPosition != null || isTradeInFlightLocked) &&
-    !isOverCharacterLimit;
-  const hasComment = text.trim().length > 0;
+  const hasTarget = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
   }, [navigation, trackInteraction]);
-
-  const handleChangeText = useCallback((next: string) => {
-    setText(next);
-  }, []);
 
   const handleSelectPosition = useCallback(
     (position: Position, isClosed: boolean) => {
@@ -343,16 +456,6 @@ const SocialPostComposerView: React.FC = () => {
       setGifUri(uri);
     }
   }, []);
-
-  const composerInputTypography = useMemo<TextStyle>(
-    () => ({
-      fontSize: typography.lBodyMD.fontSize,
-      lineHeight: typography.lBodyMD.lineHeight,
-      letterSpacing: typography.lBodyMD.letterSpacing,
-      fontWeight: typography.lBodyMD.fontWeight as TextStyle['fontWeight'],
-    }),
-    [typography.lBodyMD],
-  );
 
   const focusComposer = useCallback(() => {
     inputRef.current?.focus();
@@ -398,15 +501,16 @@ const SocialPostComposerView: React.FC = () => {
   }, [isScreenTransitionComplete, focusComposer]);
 
   const handlePost = useCallback(async () => {
+    const rawText = textStore.get();
+    const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      !canSubmit ||
-      !hasComment ||
+      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      caption.length === 0 ||
       isSubmitting
     ) {
       return;
     }
-    const caption = text.trim();
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
     fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
@@ -560,11 +664,9 @@ const SocialPostComposerView: React.FC = () => {
   }, [
     authorName,
     analyticsTradeType,
-    canSubmit,
     colors.error.default,
     colors.success.default,
     gifUri,
-    hasComment,
     isSubmitting,
     linkedAccountAddress,
     navigation,
@@ -572,7 +674,7 @@ const SocialPostComposerView: React.FC = () => {
     profile?.imageUrl,
     profile?.profileId,
     selectedPosition,
-    text,
+    textStore,
     trackInteraction,
     toastRef,
     tradeInFlightParams,
@@ -610,31 +712,13 @@ const SocialPostComposerView: React.FC = () => {
               alignItems={BoxAlignItems.Center}
               gap={3}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isOverCharacterLimit
-                    ? TextColor.ErrorDefault
-                    : TextColor.TextAlternative
-                }
-                testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
-              >
-                {strings('social_leaderboard.composer.character_count', {
-                  count: text.length,
-                  limit: COMPOSER_COMMENT_MAX_LENGTH,
-                })}
-              </Text>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Md}
-                isDisabled={!canSubmit || !hasComment || isSubmitting}
+              <ComposerCharacterCount store={textStore} />
+              <ComposerPostButton
+                store={textStore}
+                hasTarget={hasTarget}
+                isSubmitting={isSubmitting}
                 onPress={handlePost}
-                testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
-              >
-                {isSubmitting
-                  ? strings('social_leaderboard.composer.posting')
-                  : strings('social_leaderboard.composer.post')}
-              </Button>
+              />
             </Box>
           }
           testID={SocialPostComposerViewSelectorsIDs.HEADER}
@@ -660,22 +744,10 @@ const SocialPostComposerView: React.FC = () => {
                 avatarBackgroundId={profile?.avatarBackgroundId}
                 size="sm"
               />
-              <TextInput
-                ref={inputRef}
-                value={text}
-                onChangeText={handleChangeText}
-                placeholder={strings('social_leaderboard.composer.placeholder')}
-                placeholderTextColor={colors.text.alternative}
-                multiline
-                showSoftInputOnFocus
-                style={[
-                  tw.style('w-full text-default p-0'),
-                  composerInputTypography,
-                ]}
-                testID={SocialPostComposerViewSelectorsIDs.INPUT}
-                {...{
-                  onImageChange: handleImageInsert,
-                }}
+              <ComposerTextInput
+                store={textStore}
+                inputRef={inputRef}
+                onImageChange={handleImageInsert}
               />
             </Box>
 
