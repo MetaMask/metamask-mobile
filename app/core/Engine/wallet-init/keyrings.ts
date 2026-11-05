@@ -76,8 +76,7 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
-// Restoring the MPC key follows turning on 2-step verification, so it reuses
-// that verification when it is this recent.
+// Restore follows turning on 2FA, so it reuses a verification this recent.
 const MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS = 2 * 60_000;
 
 /**

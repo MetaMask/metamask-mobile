@@ -15,16 +15,7 @@ export interface MpcTwoFactorApprovalOptions {
   verify: () => Promise<void>;
 }
 
-/**
- * Returns a function that gets a one-time approval for an MPC signature,
- * bound to its hash. Every signature gets its own verification, so it always
- * prompts first.
- *
- * @param options - Approval and verification calls.
- * @param options.requestMfaApproval - Requests the approval from the auth API.
- * @param options.verify - Runs a fresh 2-step verification prompt.
- * @returns A function from the signature hash to the approval token.
- */
+// Every signature gets its own verification, so it always prompts.
 export const createMpcTwoFactorApproval =
   ({ requestMfaApproval, verify }: MpcTwoFactorApprovalOptions) =>
   async (hash: Uint8Array): Promise<string> => {

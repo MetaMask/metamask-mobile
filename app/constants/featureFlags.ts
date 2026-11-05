@@ -30,11 +30,7 @@ export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
 }
 
-/**
- * Build-time gate for real 2-step verification on Money MPC signatures that
- * need it: the keyring gets a one-time approval from the auth API instead of
- * the profile token. Needs `MM_MONEY_MPC_REAL_KEYRING` too.
- */
+/** Build-time gate for 2FA approvals on Money MPC signatures. Needs `MM_MONEY_MPC_REAL_KEYRING`. */
 export function isMpcTwoFactorApprovalBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_2FA_APPROVAL === 'true';
 }

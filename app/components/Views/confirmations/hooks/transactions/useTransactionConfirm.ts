@@ -81,8 +81,7 @@ export function useTransactionConfirm() {
   // confirmation waiting to drive the awaiting UI and surface errors.
   const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
-  // A Money MPC account signs only after 2-step verification: the
-  // confirmation stays open until the user passes it.
+  // MPC signs only after 2-step verification, so the confirmation waits for it.
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isMpcMoneyAccountTransaction =
     isMpcMoneyAccount(transactionMetadata?.txParams?.from ?? '') ||

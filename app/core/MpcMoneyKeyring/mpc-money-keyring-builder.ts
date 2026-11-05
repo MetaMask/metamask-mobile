@@ -108,16 +108,9 @@ export function buildMpcMoneyKeyringV2Builder(): KeyringV2Builder {
 export interface RealMpcMoneyKeyringBuilderOptions {
   /** Returns the profile access token used for the MPC service. */
   getBearerToken: () => Promise<string>;
-  /**
-   * Returns a one-time 2FA approval for a signature hash. Without it,
-   * signatures that need 2FA use the profile token.
-   */
+  /** Returns a one-time 2FA approval for a signature hash. */
   getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>;
-  /**
-   * Returns a profile token verified with 2FA, for calls that need 2FA
-   * without a signature hash, such as restoring the key on a new device.
-   * Without it, those calls use the profile token.
-   */
+  /** Returns a 2FA-verified profile token, for 2FA calls without a hash. */
   getTwoFactorToken?: () => Promise<string>;
 }
 

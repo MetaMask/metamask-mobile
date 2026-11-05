@@ -143,8 +143,7 @@ function isAwaitingHardwareSignature(
   );
 }
 
-// An MPC Money account signs only after 2-step verification, which the user
-// can still cancel; the toast waits until verification succeeds.
+// MPC signs only after 2-step verification, so the toast waits for it.
 function isMpcMoneyAccountAddress(address: string | undefined): boolean {
   return Boolean(
     address &&
@@ -156,8 +155,6 @@ function isMpcMoneyAccountAddress(address: string | undefined): boolean {
   );
 }
 
-// The Money account signs the transaction, or pays for a Perps or Predict
-// deposit signed by the wallet account.
 function isFromMpcMoneyAccount(transactionMeta: TransactionMeta): boolean {
   return (
     isMpcMoneyAccountAddress(transactionMeta.txParams?.from) ||
@@ -291,8 +288,7 @@ export const useMoneyTransactionStatus = () => {
       const isRescue = isMusdRescueSendTx(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
       cancelPendingInProgress(transactionMeta.id);
-      // Declining 2-step verification fails the transaction, but the user
-      // chose not to proceed.
+      // Declining 2-step verification is not a failure.
       if (isUserRejectedError(transactionMeta.error, '')) return;
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       const onPress = () =>
@@ -466,9 +462,7 @@ export const useMoneyTransactionStatus = () => {
           break;
         default:
           showInProgressForSignedDeposits(transactionMeta);
-          // Whitelisted signatures skip verification and reach `submitted`.
-          // A wallet-signed deposit the Money account pays for is `signed`
-          // before the Money account signs.
+          // Whitelisted signatures skip verification.
           if (
             transactionMeta.status === TransactionStatus.submitted &&
             awaitingMpcSignature.delete(transactionMeta.id)
@@ -500,13 +494,10 @@ export const useMoneyTransactionStatus = () => {
       },
     );
 
-    // A relayed transaction is signed and submitted in one step, so
-    // `submitted` arrives just before `confirmed`; a successful verification
-    // is the earliest sign that the transaction will go out.
+    // Relayed transactions skip `submitted`, so verification is the earliest signal.
     let watchedFlow: MfaFlow | undefined;
     const unsubscribeMfaFlows = subscribeToActiveMfaFlow(() => {
       const flow = getActiveMfaFlow();
-      // Only a signing verification means the transaction will go out.
       if (
         !flow ||
         flow === watchedFlow ||

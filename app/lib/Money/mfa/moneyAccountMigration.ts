@@ -41,12 +41,10 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
 
 /**
  * Moves the Money account to the MPC account that 2-step verification
- * protects: creates the MPC Money account and makes it the default. The status
- * is saved on the device so an interrupted migration resumes.
+ * protects.
  */
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
-  /** The last failure's name, message and stack, for QA tools. */
   getLastError: (): string | undefined => lastError,
   subscribe: (listener: () => void) => {
     listeners.add(listener);

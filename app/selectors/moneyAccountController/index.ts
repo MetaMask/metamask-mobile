@@ -31,9 +31,7 @@ const selectDefaultMoneyAccountId = createSelector(
 );
 
 /**
- * Selects the primary Money account: the MPC Money account once Money 2-step
- * verification created it (builds with the MPC keyring), otherwise the one
- * derived from the primary SRP.
+ * Selects the primary Money account: the MPC one if it exists, else the SRP one.
  *
  * @param state - The root Redux state.
  * @returns The primary Money account.
