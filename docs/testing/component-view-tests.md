@@ -66,8 +66,11 @@ yarn eslint <path/to/test.tsx>
 
 3. **Reuse presets and renderers** — never rebuild the full state manually from scratch.
 
-4. **No fake timers** — never use `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()`. ESLint enforces this in `*.view.test.*` files and in `tests/component-view/**` (also `jest.runAllTimers()` and `jest.runOnlyPendingTimers()`). Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state (an expired quote, an ended game). Never widen a budget to cover a timer.
+4. **No fake timers, no real sleeps** — never use the jest fake-timer API (`jest.useFakeTimers()`, `jest.useRealTimers()`, `jest.advanceTimersByTime()`, `jest.runAllTimers()`, `jest.setSystemTime()`, their `*Async` variants, and the rest). ESLint enforces this in `*.view.test.*` files and in `tests/component-view/**`. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state (an expired quote, an ended game). Never widen a budget to cover a timer.
+   - **Real sleeps race the clock too.** `await new Promise((r) => setTimeout(r, 50))` to let time pass is the same race as a widened `waitFor`. Await the observable outcome with `waitFor` / `findBy*` instead. A zero-delay flush (`setTimeout(r, 0)`) before asserting that something did _not_ happen is fine. Existing sleeps are cleaned up when their test is next modified.
    - `Date.now` is real in component-view tests. `testSetupView.js` does not load `testSetup.js`, which freezes `Date.now` for unit tests.
+   - `jest.spyOn(Date, 'now')` is allowed when the test reads that clock and leaves timers real. PredictHome and PredictPortfolioScreen return a time inside the 60-second Balance focus window, then a time past it. Restore the spy in the same test.
+   - Do not freeze `Date.now` on a screen that uses lodash `debounce`. The real timer still fires, `timeSinceLastCall` stays 0, and the trailing call never runs. BridgeView's `Date.now = () => new Date().getTime()` in `beforeEach` predates this setup and is a no-op now that `Date.now` is real; do not copy it.
 
 5. **Test behavior, not snapshots** — use `toBeOnTheScreen()`, `not.toBeOnTheScreen()`, interaction assertions.
 
@@ -84,8 +87,10 @@ yarn eslint <path/to/test.tsx>
 11. **Clear call history before asserting call counts** — `toHaveBeenCalledTimes` on a shared Engine or `controllerMessenger.call` mock also counts calls made by earlier tests. Call `mockClear()` on that mock in `beforeEach` (`mockReset()` when a test changes implementations). Signature: `Expected number of calls: N, Received: M`; passes alone, fails after another test.
 
 12. **A `findBy*` result is valid only until the next state change** — if the component can remount between the `await` and the assertion (a query resolving, a loading branch swapping for the loaded one), the held node detaches. Await a marker that only the loaded tree renders, then re-query with `getBy*`. Signatures: `Unable to find node on an unmounted component` or `element could not be found in the element tree` right after an `await`.
+    - Remount signals: a skeleton or loading view that reuses the loaded view's testID (as in #38949), a loading → loaded branch switch, or a `key` change on the component or a parent.
+    - `expect(await findBy*(...))` carries the same risk: the node resolves before the next render commits. Prefer `await waitFor(() => expect(getBy*(...)).toBeOnTheScreen())`.
 
-13. **An explicit `{ timeout }` names its async boundary** — pass `{ timeout }` to `waitFor` or `findBy*` only with a comment that names the async boundary needing it (a debounce, a chained query). A raised budget alone is not a fix.
+13. **An explicit `{ timeout }` names its async boundary** — pass `{ timeout }` to `waitFor` or `findBy*` only with a comment that names the async boundary needing it (a debounce, a chained query). A raised budget alone is not a fix. This applies to new and modified waits. When a file shares one budget constant (for example `TIMEOUT_MS`), one comment where the constant is defined is enough if it names the boundary.
 
 14. **Fix a flake at its cause** — name the cause, reproduce it locally first (a `--randomize --seed` or CPU load), and show the fix passes under the same condition. A change whose only change is a longer timeout is not a fix. See [Fixing a flake](#fixing-a-flake).
 
@@ -206,21 +211,19 @@ it('calls quote API with custom slippage when user has set 5% and quote is reque
 // field of every item. Valid because data arrival is async (findBy / waitFor).
 // One of these per view — proves the full data pipeline end-to-end.
 it('user sees all items with complete data after async load', async () => {
-  const { findByText, findByTestId } = renderMyFeatureWithRoutes();
+  const { getByText, getByTestId } = renderMyFeatureWithRoutes();
 
   // Wait for the first item to confirm data has loaded
-  await waitFor(async () => {
-    expect(await findByText('Token A')).toBeOnTheScreen();
-  });
+  await waitFor(() => expect(getByText('Token A')).toBeOnTheScreen());
 
   // Validate all fields of each item in the base mock dataset
-  const tokenARow = await findByTestId('token-row-item-eip155:1/erc20:0xAAA');
+  const tokenARow = getByTestId('token-row-item-eip155:1/erc20:0xAAA');
   const tokenAScope = within(tokenARow);
   expect(tokenAScope.getByText('Token A')).toBeOnTheScreen();
   expect(tokenAScope.getByText(/\+5\.2/)).toBeOnTheScreen(); // % change
   expect(tokenAScope.getByText(/\$/)).toBeOnTheScreen(); // price
 
-  const tokenBRow = await findByTestId('token-row-item-eip155:1/erc20:0xBBB');
+  const tokenBRow = getByTestId('token-row-item-eip155:1/erc20:0xBBB');
   const tokenBScope = within(tokenBRow);
   expect(tokenBScope.getByText('Token B')).toBeOnTheScreen();
   expect(tokenBScope.getByText(/-1\.8/)).toBeOnTheScreen();
@@ -757,10 +760,8 @@ afterEach(() => {
 });
 
 it('user sees trending tokens section with mocked data', async () => {
-  const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
-  await waitFor(async () => {
-    expect(await findByText('Ethereum')).toBeOnTheScreen();
-  });
+  const { getByText, queryByTestId } = renderTrendingViewWithRoutes();
+  await waitFor(() => expect(getByText('Ethereum')).toBeOnTheScreen());
   // assert rows with assertTrendingTokenRowsVisibility(...)
 });
 
@@ -811,7 +812,7 @@ Before declaring the task done, go through this checklist for every test written
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | 1   | **No render scenarios** — every test has at least one `fireEvent`, `waitFor`/`findBy`, `store.dispatch`, or Engine spy                                                                                                                                       | Rewrite the test to add a user interaction or system reaction                                        |
 | 2   | **No selector mocking** — no `(useSelector as jest.Mock).mockImplementation(...)` anywhere in the file                                                                                                                                                       | Remove; drive behavior through state overrides instead                                               |
-| 3   | **No fake timers** — no `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()`                                                                                                                                                      | Remove fake timers; move time behaviour to a unit test or serve fixtures already in the target state |
+| 3   | **No fake timers** — no `jest` fake-timer API (`useFakeTimers`, `advanceTimersByTime`, `setSystemTime`, `*Async` variants)                                                                                                                                   | Remove fake timers; move time behaviour to a unit test or serve fixtures already in the target state |
 | 4   | **Data-completeness test exists** — if the view loads data asynchronously (API, Engine polling), there is one test that waits for the load and validates all fields of all items in the full base mock using `within()` per row                              | Add the data-completeness test                                                                       |
 | 5   | **Filter/segmentation tests have paired assertions** — every test that selects a filter or changes a network asserts both what appears (`findByTestId`) AND what disappears (`queryByTestId(...).not.toBeOnTheScreen()`) for each item from the previous set | Add the missing negative assertions                                                                  |
 | 6   | **No raw strings in `getByTestId` / `findByTestId` / `queryByTestId`** — all test IDs reference constants from the component's `ComponentName.testIds.ts`                                                                                                    | Create or update the testIds file; replace raw strings with constants                                |
@@ -820,7 +821,7 @@ Before declaring the task done, go through this checklist for every test written
 | 9   | **Import order** — `mocks.ts` is first; remaining order follows project ESLint rules                                                                                                                                                                         | Ensure `mocks.ts` is the very first import; reorder the rest as needed                               |
 | 10  | **Call counts start clean** — every `toHaveBeenCalledTimes` on a shared Engine / messenger mock has `mockClear()` (or `mockReset()`) on that mock in `beforeEach`                                                                                            | Add the clear; check with `--randomize`                                                              |
 | 11  | **No `findBy*` result held across a remount** — when the tree can remount after the `await`, the test awaits a loaded-only marker and re-queries with `getBy*` before asserting                                                                              | Await the loaded marker, then re-query                                                               |
-| 12  | **No real timers raced** — countdown, debounce, and expiry behaviour lives in a unit test or in target-state fixtures, not in a widened `waitFor`                                                                                                            | Move it to a unit test or change the fixture                                                         |
+| 12  | **No real timers raced** — countdown, debounce, and expiry behaviour lives in a unit test or in target-state fixtures, not in a widened `waitFor` or a real sleep                                                                                            | Move it to a unit test or change the fixture; replace sleeps with `waitFor` on the outcome           |
 | 13  | **Every `{ timeout }` names its async boundary** — a comment next to it says which debounce or chained query needs the extra time                                                                                                                            | Add the comment, or drop the timeout                                                                 |
 | 14  | **A flake fix names its cause** — the cause is reproduced locally (seed or load) and the fix passes under that condition; it is not only a longer timeout                                                                                                    | Reproduce first; see [Fixing a flake](#fixing-a-flake)                                               |
 
@@ -838,7 +839,7 @@ Before declaring the task done, go through this checklist for every test written
 | `Warning: An update was not wrapped in act(...)`                                   | Async state update not awaited                                                                                            | Use `await waitFor(...)`                                                                                   |
 | `No QueryClient set`                                                               | Missing provider — not in Engine mock                                                                                     | Add to mocks.ts or wrap with QueryClientProvider in renderer                                               |
 | Flakey number assertions                                                           | Non-deterministic exchange rates                                                                                          | Add `deterministicFiat: true`                                                                              |
-| Test passes locally, fails in CI                                                   | Time-sensitive assertions                                                                                                 | Use `waitFor` not inline assertions after interactions                                                     |
+| Test passes locally, fails in CI                                                   | "CI is slow" is not a cause. Look for a race the slower runner exposes: an order leak, a real timer, a remount            | See [Fixing a flake](#fixing-a-flake)                                                                      |
 | `Expected number of calls: N, Received: M`; passes alone, fails after another test | Shared Engine / `controllerMessenger.call` `jest.fn()` kept call history (or a `mockImplementation`) from an earlier test | `mockClear()` on that mock in `beforeEach`; `mockReset()` / restore if a case changed implementations      |
 | `Unable to find node on an unmounted component` right after an `await`             | The `findBy*` node detached when the component remounted (loading branch replaced by the loaded one)                      | Await a loaded-only marker, then re-query with `getBy*`                                                    |
 | `element could not be found in the element tree` after an `await`                  | Same remount: the held node is no longer part of the rendered tree                                                        | Await a loaded-only marker, then re-query with `getBy*`; never assert on a node held across a state change |
@@ -923,6 +924,12 @@ jest.mock('../../some/hook', () => ({ useMyHook: jest.fn() }));
 // ❌ Fake timers — blocked by ESLint
 jest.useFakeTimers();
 // ✅ Instead: test the timer in a unit test, or serve a fixture already in the target state
+
+// ❌ Real sleep to let time pass — races the clock like a widened waitFor
+await new Promise((resolve) => setTimeout(resolve, 50));
+expect(getByText('Quote refreshed')).toBeOnTheScreen();
+// ✅ Await the outcome
+await waitFor(() => expect(getByText('Quote refreshed')).toBeOnTheScreen());
 
 // ❌ Hold a findBy* result across a remount
 const title = await findByText(marketTitle);
