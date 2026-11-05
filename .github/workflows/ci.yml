@@ -436,6 +436,8 @@ jobs:
   # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
   # file set and bin-packs by size. Per-file cache stays off the persisted
   # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  # 8x16, not 16x32: ESLint 8 lints on one thread, and the heaviest shard
+  # peaks at 10.8 GB RSS.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
     permissions:
@@ -443,7 +445,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -497,9 +499,10 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
-          # the other test jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+          # Namespace ci-linux is 8x16, so the heap stays at 12288 to leave room
+          # for the rest of the process. ubuntu-latest matches the other test
+          # jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '12288' || '20480' }}
       - name: Require clean working directory
         shell: bash
         run: |
