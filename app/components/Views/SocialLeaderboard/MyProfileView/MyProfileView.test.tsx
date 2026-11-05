@@ -1,7 +1,8 @@
 import React from 'react';
-import { Linking, Share } from 'react-native';
+import { Linking } from 'react-native';
+import Share from 'react-native-share';
 import { IconName } from '@metamask/design-system-react-native';
-import { brandColor } from '@metamask/design-tokens';
+import { brandColor, lightTheme } from '@metamask/design-tokens';
 import {
   act,
   fireEvent,
@@ -33,6 +34,13 @@ import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
 
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -207,23 +215,36 @@ jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
 });
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       position,
       onPress,
+      flaggedPresentation,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
-    }) => (
-      <Pressable
-        testID={`position-row-${position.tokenSymbol}`}
-        onPress={() => onPress?.(position)}
-      >
-        <Text>{position.tokenSymbol}</Text>
-      </Pressable>
-    ),
+      flaggedPresentation?: 'excluded' | 'subline';
+    }) => {
+      const pressable = Boolean(onPress) && flaggedPresentation !== 'excluded';
+      if (!pressable) {
+        return (
+          <View testID={`position-row-${position.tokenSymbol}`}>
+            <Text>{position.tokenSymbol}</Text>
+          </View>
+        );
+      }
+      return (
+        <Pressable
+          accessibilityRole="button"
+          testID={`position-row-${position.tokenSymbol}`}
+          onPress={() => onPress?.(position)}
+        >
+          <Text>{position.tokenSymbol}</Text>
+        </Pressable>
+      );
+    },
   };
 });
 
@@ -231,9 +252,20 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
+    default: ({
+      post,
+      showCopyTrade = true,
+    }: {
+      post: { id: string };
+      showCopyTrade?: boolean;
+    }) => (
       <View testID={`my-profile-post-${post.id}`}>
         <Text>{post.id}</Text>
+        {showCopyTrade ? (
+          <Text testID={`my-profile-post-copy-trade-${post.id}`}>
+            Copy trade
+          </Text>
+        ) : null}
       </View>
     ),
   };
@@ -703,10 +735,6 @@ describe('MyProfileView', () => {
   });
 
   it('shares the owner profile deeplink from the share profile button', () => {
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
-
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
@@ -724,9 +752,12 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    expect(shareSpy).toHaveBeenCalledWith({
+    expect(Share.open).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=current-user',
       url: 'https://link.metamask.io/social/profile?traderId=current-user',
+      failOnCancel: false,
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -755,6 +786,8 @@ describe('MyProfileView', () => {
 
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     fireEvent(
       screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
       'momentumScrollEnd',
@@ -810,8 +843,37 @@ describe('MyProfileView', () => {
     ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
+      screen.queryByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeNull();
+    expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps copy trade on another trader posts', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeOnTheScreen();
   });
 
   it('renders a centered Posts empty line without a create action', () => {
@@ -884,6 +946,7 @@ describe('MyProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('still refreshes posts when live profile refresh rejects', async () => {
@@ -1039,19 +1102,18 @@ describe('MyProfileView', () => {
       traderName: 'alpha.eth',
       traderAddress: '0xabc',
     };
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
-
     renderWithProvider(<MyProfileView />);
 
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
     );
 
-    expect(shareSpy).toHaveBeenCalledWith({
+    expect(Share.open).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      failOnCancel: false,
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('hides the trader deeplink share button on the owner profile', () => {
@@ -1458,12 +1520,10 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.PERPS_SECTION),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('Tokens')).toBeNull();
+    expect(screen.queryByText('Perpetuals')).toBeNull();
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeNull();
@@ -1484,9 +1544,16 @@ describe('MyProfileView', () => {
       trades: [],
       lastTradeAt: 1,
     };
+    const closedPerp: Position = {
+      ...closedSpot,
+      positionId: 'btc-closed',
+      tokenSymbol: 'BTC',
+      chain: 'hyperliquid',
+      perpPositionType: 'short',
+    };
     mockUseTraderPositions.mockReturnValue({
       openPositions: [],
-      closedPositions: [closedSpot],
+      closedPositions: [closedPerp, closedSpot],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
@@ -1498,14 +1565,140 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
     fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+
+    const allOption = screen.getByTestId(
+      MyProfileViewSelectorsIDs.ASSET_FILTER_ALL,
+    );
+    expect(screen.getByText('Asset type')).toBeOnTheScreen();
+    expect(screen.getByText('All')).toBeOnTheScreen();
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('Perps')).toBeOnTheScreen();
+    expect(allOption.props.accessibilityState.selected).toBe(true);
+    expect(
+      within(allOption).UNSAFE_getAllByProps({ name: IconName.Check }).length,
+    ).toBeGreaterThan(0);
+
+    fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
     );
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
-    ).toBeOnTheScreen();
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.background.pressed });
     expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
+    expect(screen.queryByTestId('position-row-BTC')).toBeNull();
+  });
+
+  it('applies the same Tokens filter on Posts', () => {
+    const spotPosition: Position = {
+      positionId: 'eth-spot',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: '0xeth',
+      chain: 'ethereum',
+      positionAmount: 1,
+      boughtUsd: 100,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [
+        mockMyProfilePost({ id: 'spot-post', position: spotPosition }),
+        mockMyProfilePost({
+          id: 'perp-post',
+          position: {
+            ...spotPosition,
+            positionId: 'btc-perp',
+            tokenSymbol: 'BTC',
+            chain: 'hyperliquid',
+            perpPositionType: 'long',
+          },
+        }),
+      ],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(screen.getByTestId('my-profile-post-spot-post')).toBeOnTheScreen();
+    expect(screen.queryByTestId('my-profile-post-perp-post')).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('loads later pages when a filter hides every loaded post', () => {
+    const loadMore = jest.fn();
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: true,
+      loadMore,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('No token activity')).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
+  });
+
+  it('shows the posts error when a filter hides every loaded post', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: 'failed',
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("The feed didn't load")).toBeOnTheScreen();
   });
 
   it('shows closed empty copy when only the open fetch failed', () => {
@@ -1569,6 +1762,112 @@ describe('MyProfileView', () => {
       traderAddress: undefined,
       tokenSymbol: 'ETH',
       position: openSpot,
+      source: 'profile_position',
+      isClosed: false,
+    });
+  });
+
+  it('pins the owner flagged positions and opens history from that row', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [flagged],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId('position-row-Nigel'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'current-user',
+      traderName: 'Giga Whale',
+      traderImageUrl: undefined,
+      traderAddress: undefined,
+      tokenSymbol: 'Nigel',
+      position: flagged,
+      source: 'profile_position',
+      isClosed: false,
+    });
+  });
+
+  it('opens position history from a flagged row on another trader profile', () => {
+    const nigel: Position = {
+      positionId: 'd11488e1-89d8-4010-b772-a8ec23fe2589',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '8EnmgofrT5zp6uUiNfECkUMBnYA42pMqPj35vVXUpump',
+      chain: 'solana',
+      positionAmount: 24198367.115879,
+      boughtUsd: 1620.37,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 1620.37,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'shittymike.sol',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [nigel],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+
+    expect(screen.getByTestId('position-row-Nigel')).toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+
+    fireEvent.press(screen.getByTestId('position-row-Nigel'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'trader-1',
+      traderName: 'shittymike.sol',
+      traderImageUrl: undefined,
+      traderAddress: '0xabc',
+      tokenSymbol: 'Nigel',
+      position: nigel,
       source: 'profile_position',
       isClosed: false,
     });

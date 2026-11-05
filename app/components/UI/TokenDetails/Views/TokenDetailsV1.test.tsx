@@ -4,13 +4,15 @@ import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import {
   TokenDetailsV1,
-  TOKEN_DETAILS_V1_TEST_ID,
-  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
-  TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
   TOKEN_DETAILS_TAB_BAR_STICKY_INDEX,
   resolveSwipeTargetTab,
 } from './TokenDetailsV1';
+import { TokenDetailsIds } from '../testIds';
+
+const TOKEN_DETAILS_V1_TEST_ID = TokenDetailsIds.v1;
+const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = TokenDetailsIds.ageChip;
+const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID = TokenDetailsIds.scrollView;
+const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID = TokenDetailsIds.tabContent;
 import {
   TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
@@ -1666,7 +1668,10 @@ describe('TokenDetailsV1', () => {
       // A different token must re-fire (dedup keys on the token, not mount).
       rerender(
         <TokenDetailsV1
-          token={{ ...baseToken, address: '0xdifferentaddress' }}
+          token={{
+            ...baseToken,
+            address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+          }}
           variant={TokenDetailsVariant.Memecoin}
         />,
       );

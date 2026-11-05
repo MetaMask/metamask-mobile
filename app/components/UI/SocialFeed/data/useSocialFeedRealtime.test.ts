@@ -10,6 +10,7 @@ import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from './socialFeedRealtime';
+import { resetSocialRealtimeLeases } from './socialRealtimeLease';
 import { useSocialFeedRealtime } from './useSocialFeedRealtime';
 
 const mockAddListener = jest.fn();
@@ -126,6 +127,7 @@ describe('useSocialFeedRealtime', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSocialRealtimeLeases();
     listener = undefined;
     reconnectListener = undefined;
     refresh = jest.fn().mockResolvedValue(undefined);
@@ -157,7 +159,7 @@ describe('useSocialFeedRealtime', () => {
 
     expect(mockSetScopes).toHaveBeenCalledWith(['trending']);
     expect(mockAddReconnectListener).toHaveBeenCalledTimes(1);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 
   it('does not subscribe while inactive', () => {
@@ -305,15 +307,18 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
     const heldPnl = result.current?.posts[0]?.position?.pnlValueUsd;
     const heldCount = result.current?.realtime.pendingNewCount;
+    const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
 
     rerender({ rows, paused: false });
 
     expect(heldPnl).not.toBe(99);
     expect(heldCount).toBe(0);
+    expect(wasHeld).toBe(true);
     await waitFor(() =>
       expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
     );
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });
 
   it('caps socket-only posts and refreshes to catch up', async () => {
@@ -450,13 +455,13 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.posts[0]?.commentId).toBeUndefined();
   });
 
-  it('keeps socket posts while inactive', () => {
+  it('keeps socket posts while inactive', async () => {
     const { result, rerender } = renderRealtime();
     emit(buildEvent('pos-a'));
 
     rerender({ active: false });
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 });

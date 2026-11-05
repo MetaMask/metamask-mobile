@@ -130,6 +130,9 @@
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
     },
+    "money_account_no_funds": {
+      "message": "You don't have funds in your Money account to send yet. Add funds first."
+    },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
@@ -1195,7 +1198,8 @@
       "button": "Continue"
     },
     "creating_account": {
-      "title": "Creating your bank account",
+      "title": "Creating your account...",
+      "description": "Most accounts are created instantly.",
       "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
@@ -1249,7 +1253,8 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
@@ -1441,6 +1446,7 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
       }
@@ -1518,7 +1524,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Apply",
         "apply": "Apply",
         "reset": "Reset",
@@ -1632,7 +1638,22 @@
     "position_flags": {
       "insider": "Insider allocation - excluded",
       "developer": "Contract creator - excluded",
-      "excluded": "Excluded from PnL"
+      "excluded": "Excluded from P&L",
+      "short": {
+        "insider": "Insider",
+        "creator": "Creator",
+        "excluded": "Excluded"
+      },
+      "accessibility": {
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
+        "direction_up": "up",
+        "direction_down": "down",
+        "direction_flat": "unchanged",
+        "reason_insider": "insider",
+        "reason_creator": "creator",
+        "reason_excluded": "excluded"
+      }
     },
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -1703,6 +1724,7 @@
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
+      "not_counted_in_pnl": "Not counted in P&L",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -1799,6 +1821,8 @@
       "linked_social_account": "Linked social account",
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
+      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
+      "display_name_unavailable": "This name isn’t available. Try something different.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
@@ -1817,6 +1841,11 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
+      "posts_tab": "Posts ({{count}})",
+      "transactions_tab": "Transactions ({{count}})",
+      "no_posts": "No posts on this trade yet",
       "level": {
         "entry": "Entry",
         "exit": "Exit",
@@ -2638,7 +2667,8 @@
       "updating_your_order": "Updating your order",
       "order_updated": "Order updated",
       "order_update_failed": "Failed to update order",
-      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -2947,6 +2977,8 @@
       "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
       "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
@@ -3322,7 +3354,7 @@
       "gainers": "Gainers",
       "losers": "Losers",
       "recently_added": "Recently added",
-      "social_feed": "Social feed",
+      "social_feed": "Social",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
@@ -3641,7 +3673,7 @@
     "tp_on_chart": "TP on Chart",
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
+      "title": "P&L Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
@@ -3708,6 +3740,10 @@
   },
   "predict_next": {
     "available_balance": "Available balance",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Balance unavailable",
       "description": "Unable to load your available balance.",
@@ -3731,7 +3767,34 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "view_all_markets": "View all {{count}} markets",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "player_props": "Player props",
+        "anytime_touchdown": "Anytime touchdown",
+        "rushing_yards": "Rushing yards",
+        "receiving_yards": "Receiving yards",
+        "passing_yards": "Passing yards",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
+      }
     },
     "search": {
       "placeholder": "Search markets",
@@ -3818,7 +3881,8 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order"
+      "review": "Review order",
+      "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
       "title": "Review your order",
@@ -3849,6 +3913,10 @@
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
       "requote": "Try again"
+    },
+    "order_notification": {
+      "not_placed_title": "Order not placed",
+      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     }
   },
   "predict": {
@@ -6123,7 +6191,7 @@
     "balance": "balance. See the support article",
     "position_pnl": {
       "your_position": "Your position",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6389,7 +6457,7 @@
         },
         "volume_flags": {
           "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
         },
         "listed_on_exchange": {
           "title": "Listed on exchange",
@@ -9493,8 +9561,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Convert to digital dollars",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -9767,7 +9835,7 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
-      "microdeposit": "Test Deposit",
+      "microdeposit": "Verification deposit",
       "microdeposit_from": "From {{name}}",
       "microdeposit_from_bank": "From your bank",
       "received": "Received",
@@ -10227,10 +10295,10 @@
         "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
@@ -10384,7 +10452,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -10477,6 +10546,8 @@
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
       "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
+      "swap_into_token": "Swap into {{symbol}}",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",
@@ -10509,9 +10580,9 @@
       "expires_after": "Expires after",
       "slippage_all_orders": "Slippage (all orders)",
       "est_network_fee_per_order": "Est. network fee (per order)",
-      "delegation_fee_one_time": "Delegation fee (one time)",
-      "delegation_fee_info_title": "Delegation fee",
-      "delegation_fee_info_body": "placeholder",
+      "account_upgrade_fee": "Account upgrade fee",
+      "account_upgrade_fee_info_title": "Account upgrade fee",
+      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
       "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
@@ -10519,6 +10590,7 @@
       "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
+        "input_label": "Price range (optional)",
         "not_set": "Not set",
         "token": "Token",
         "price": "Price",
@@ -10755,6 +10827,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
@@ -12486,7 +12559,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
-      "top_pnl": "Top PnL",
+      "top_pnl": "Top P&L",
       "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
@@ -12596,7 +12669,7 @@
       "performance_title": "Performance",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
@@ -12612,7 +12685,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
-      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
@@ -12626,7 +12699,7 @@
       "label_your_rank": "Your rank",
       "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL (after fees)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",

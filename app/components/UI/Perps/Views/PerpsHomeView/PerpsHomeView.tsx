@@ -73,14 +73,14 @@ import {
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
-  selectPerpsLastViewedMarketSymbol,
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { usePerpsHeaderEntryNavigation } from '../../hooks/usePerpsHeaderEntryNavigation';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import {
-  buildDefaultProMarket,
+  resetToPerpsHomeTarget,
   withHomeDroppedFromHistory,
 } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -187,9 +187,15 @@ const PerpsHomeView = () => {
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const { showExploreTable } = usePerpsHomeExploreAbTest();
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const [trackProSwitchExposure, setTrackProSwitchExposure] = useState(false);
+  const [commitProSwitch, setCommitProSwitch] = useState(false);
+  const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
+    // Arm exposure only after a committed switch into Pro. Viewing Lite, or
+    // opening the chooser and then staying in Lite, must not enroll the user.
+    trackExposure: trackProSwitchExposure,
+  });
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const isGlass = useIsGlassSurfaceEnabled(selectPerpsBrandRefreshEnabled);
-  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
@@ -203,25 +209,33 @@ const PerpsHomeView = () => {
 
       // Chooser already completed — flip immediately without the sheet.
       setPerpsMode(nextMode);
-      // Discard Perps Home while Pro is active (TAT-3612).
+      // Discard Perps Home while Pro is active (TAT-3612). Navigation runs
+      // in an effect so Experiment Viewed is emitted before the reset.
       if (nextMode === PerpsMode.Pro) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.PERPS.MARKET_DETAILS,
-              params: withHomeDroppedFromHistory({
-                market: buildDefaultProMarket(lastViewedMarketSymbol),
-                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              }),
-            },
-          ],
-        });
+        setTrackProSwitchExposure(true);
+        setCommitProSwitch(true);
       }
       return true;
     },
-    [lastViewedMarketSymbol, navigation, setPerpsMode],
+    [navigation, setPerpsMode],
   );
+
+  const hasCommittedProSwitchRef = useRef(false);
+  useEffect(() => {
+    if (!commitProSwitch || hasCommittedProSwitchRef.current) {
+      return;
+    }
+    hasCommittedProSwitchRef.current = true;
+
+    resetToPerpsHomeTarget(
+      navigation,
+      getProSwitchTarget(
+        withHomeDroppedFromHistory({
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        }),
+      ),
+    );
+  }, [commitProSwitch, getProSwitchTarget, navigation]);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).

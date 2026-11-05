@@ -180,8 +180,9 @@ const expectPlaceAnotherPrediction = async (
   const params = await screen.findByTestId(
     getRouteParamsProbeTestId(Routes.PREDICT.ROOT),
   );
+  // The Home intent on the Kalshi (next) branch opens PredictNext Home.
   expect(JSON.parse(String(params.props.children))).toEqual({
-    screen: Routes.PREDICT.MARKET_LIST,
+    screen: 'PredictNextHome',
   });
 };
 

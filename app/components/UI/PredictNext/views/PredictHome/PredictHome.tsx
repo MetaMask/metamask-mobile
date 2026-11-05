@@ -1,15 +1,19 @@
 import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  HeaderStandardAnimated,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
@@ -77,6 +81,10 @@ const PredictHomeView = ({
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
   const {
     visibleKeys,
     onViewportLayout,
@@ -184,13 +192,19 @@ const PredictHomeView = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimated
+      <HeaderStandardAnimatedGlass
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
         includesTopInset
         title={homeTitle}
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endAccessory={<PredictVenueSelectorButton variant="standard" />}
+        endAccessory={
+          <PredictVenueSelectorButton
+            variant={isGlassHeader ? 'glass' : 'standard'}
+          />
+        }
         {...(!openedFromTradeFooter && navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
@@ -200,6 +214,7 @@ const PredictHomeView = ({
       />
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
+        contentContainerStyle={{ paddingTop: headerInset }}
         onScroll={onScroll}
         onLayout={onViewportLayout}
         // The animated handler above only reads contentOffset, so these plain

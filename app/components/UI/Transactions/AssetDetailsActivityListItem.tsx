@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { selectErc20MetadataLookup } from '../../../selectors/assets/assets-controller';
 import { ActivityListItemRow } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
@@ -14,10 +16,6 @@ import {
   type TransactionWithImportTime,
 } from './AssetDetailsActivityListItem.utils';
 
-type AssetTokensByChainAndAccount = Record<
-  string,
-  Record<string, { address: string; symbol?: string; decimals?: number }[]>
->;
 type AssetBridgeHistory = Parameters<
   typeof findBridgeHistoryItem
 >[0]['bridgeHistory'];
@@ -26,7 +24,6 @@ const EMPTY_NETWORK_CONFIGURATIONS: Record<
   string,
   { nativeCurrency?: string }
 > = {};
-const EMPTY_ASSET_TOKENS: AssetTokensByChainAndAccount = {};
 const EMPTY_BRIDGE_HISTORY: AssetBridgeHistory = {};
 
 interface AssetDetailsActivityListItemProps {
@@ -37,9 +34,7 @@ interface AssetDetailsActivityListItemProps {
   tokenChainId?: Hex;
   navigation: AppNavigationProp;
   accountImportTime?: number;
-  groupEvmAccountAddress?: string;
   networkConfigurations?: Record<string, { nativeCurrency?: string }>;
-  allTokens?: AssetTokensByChainAndAccount;
   bridgeHistory?: AssetBridgeHistory;
 }
 
@@ -51,9 +46,7 @@ export const AssetDetailsActivityListItem = ({
   tokenChainId,
   navigation,
   accountImportTime,
-  groupEvmAccountAddress,
   networkConfigurations = EMPTY_NETWORK_CONFIGURATIONS,
-  allTokens = EMPTY_ASSET_TOKENS,
   bridgeHistory = EMPTY_BRIDGE_HISTORY,
 }: AssetDetailsActivityListItemProps) => {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
@@ -69,6 +62,8 @@ export const AssetDetailsActivityListItem = ({
     [bridgeHistory, tx.id, actionId, tx.hash],
   );
 
+  const getErc20Metadata = useSelector(selectErc20MetadataLookup);
+
   const activityItem = useMemo(() => {
     const resolvedChainId = (tx.chainId ?? tokenChainId ?? currentChainId) as
       | Hex
@@ -78,15 +73,12 @@ export const AssetDetailsActivityListItem = ({
       ? networkConfigurations?.[resolvedChainId]?.nativeCurrency
       : undefined;
 
-    // Token metadata for the tx's target contract, from TokensController —
-    // same enrichment as useLocalActivityItems.
-    const accountAddress = groupEvmAccountAddress?.toLowerCase();
+    // Token metadata for the tx's target contract, from AssetsController —
+    // same enrichment as selectLocalActivityItems.
     const contractAddress = tx.txParams?.to?.toLowerCase();
     const matchingToken =
-      resolvedChainId && accountAddress && contractAddress
-        ? (allTokens[resolvedChainId]?.[accountAddress] ?? []).find(
-            (t) => t.address?.toLowerCase() === contractAddress,
-          )
+      resolvedChainId && contractAddress
+        ? getErc20Metadata(resolvedChainId, contractAddress)
         : undefined;
 
     return mapTransactionToActivityItem({
@@ -100,11 +92,10 @@ export const AssetDetailsActivityListItem = ({
       bridgeHistoryItem,
     });
   }, [
-    allTokens,
     assetSymbol,
     bridgeHistoryItem,
     currentChainId,
-    groupEvmAccountAddress,
+    getErc20Metadata,
     networkConfigurations,
     tokenChainId,
     tx,
