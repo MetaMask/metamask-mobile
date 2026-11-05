@@ -186,6 +186,11 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),
     ).toBeOnTheScreen();
+    expect(
+      await findByText(
+        strings('virtual_bank_account.creating_account.description'),
+      ),
+    ).toBeOnTheScreen();
     releaseCreate();
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),

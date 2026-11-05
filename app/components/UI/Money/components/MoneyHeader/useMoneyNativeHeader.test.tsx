@@ -59,9 +59,12 @@ describe('useMoneyNativeHeader', () => {
     expect(leftItems[0]).toStrictEqual(
       expect.objectContaining({ type: 'custom', hidesSharedBackground: true }),
     );
-    expect(
-      renderCustom(leftItems[0]).getByTestId(MoneyHeaderTestIds.TITLE),
-    ).toBeOnTheScreen();
+    const title = renderCustom(leftItems[0]).getByTestId(
+      MoneyHeaderTestIds.TITLE,
+    );
+    expect(title).toBeOnTheScreen();
+    // 4pt left of the UIKit inset, in line with the 16pt balance padding.
+    expect(StyleSheet.flatten(title.props.style).marginLeft).toBe(-4);
   });
 
   it('adds a separate back button when pushed over another flow', () => {
@@ -75,6 +78,13 @@ describe('useMoneyNativeHeader', () => {
 
     expect(backItem.sharesBackground).toBe(false);
     expect(onBack).toHaveBeenCalledTimes(1);
+    expect(
+      StyleSheet.flatten(
+        renderCustom(renderItems({ onBack }).leftItems[1]).getByTestId(
+          MoneyHeaderTestIds.TITLE,
+        ).props.style,
+      ).marginLeft,
+    ).toBeUndefined();
   });
 
   it('shows only the menu when the Pro button is unavailable', () => {

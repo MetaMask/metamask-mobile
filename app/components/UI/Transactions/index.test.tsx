@@ -28,8 +28,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
@@ -313,15 +311,6 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
-jest.mock('../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
 }));
@@ -938,20 +927,14 @@ describe('mapStateToProps', () => {
 
     it('selects asset enrichment data once in the parent', () => {
       const internalAccount = { metadata: { importTime: 123 } };
-      const groupAccount = { address: '0x123' };
       const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
-      const allTokens = { '0x89': { '0x123': [] } };
       const bridgeHistory = { bridge: {} };
       jest
         .mocked(selectSelectedInternalAccount)
         .mockReturnValue(internalAccount as never);
       jest
-        .mocked(selectSelectedAccountGroupEvmInternalAccount)
-        .mockReturnValue(groupAccount as never);
-      jest
         .mocked(selectEvmNetworkConfigurationsByChainId)
         .mockReturnValue(networkConfigurations as never);
-      jest.mocked(selectAllTokens).mockReturnValue(allTokens as never);
       jest
         .mocked(selectBridgeHistoryForAccount)
         .mockReturnValue(bridgeHistory as never);
@@ -961,9 +944,7 @@ describe('mapStateToProps', () => {
       expect(result).toEqual(
         expect.objectContaining({
           accountImportTime: 123,
-          groupEvmAccountAddress: '0x123',
           networkConfigurationsByChainId: networkConfigurations,
-          allTokens,
           bridgeHistory,
         }),
       );
@@ -993,11 +974,7 @@ describe('mapStateToProps', () => {
       mapStateToProps(mockState, ownProps);
 
       expect(selectSelectedInternalAccount).not.toHaveBeenCalled();
-      expect(
-        selectSelectedAccountGroupEvmInternalAccount,
-      ).not.toHaveBeenCalled();
       expect(selectEvmNetworkConfigurationsByChainId).not.toHaveBeenCalled();
-      expect(selectAllTokens).not.toHaveBeenCalled();
       expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
     });
   });
