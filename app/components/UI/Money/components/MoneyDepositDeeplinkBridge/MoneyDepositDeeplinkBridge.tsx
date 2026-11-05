@@ -17,6 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import {
@@ -25,7 +26,6 @@ import {
   type MoneyPreferredPaymentToken,
 } from '../../types/navigation';
 import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
-import { earnSelectors } from '../../../../../selectors/earnController/earn';
 
 type MoneyDepositDeeplinkRouteProp = RouteProp<
   RootStackParamList,
@@ -43,9 +43,10 @@ const MoneyDepositDeeplinkBridge = () => {
     selectIsMoneyAccountGeoEligible,
   );
   const geolocationStatus = useSelector(selectGeolocationStatus);
-  const highestBalanceAaveOutputToken = useSelector(
-    earnSelectors.selectHighestBalanceAaveOutputToken,
+  const highestBalanceAaveTokenMeetingDepositMinimum = useSelector(
+    selectHighestBalanceAaveTokenMeetingDepositMinimum,
   );
+
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { isOnboardingRedirectNeeded } = useMoneyOnboardingNavigation();
   const hasHandledRequest = useRef(false);
@@ -60,17 +61,17 @@ const MoneyDepositDeeplinkBridge = () => {
   >(() => {
     if (
       tokenType !== MoneyDepositTokenType.ATOKEN ||
-      !highestBalanceAaveOutputToken?.address ||
-      !highestBalanceAaveOutputToken.chainId
+      !highestBalanceAaveTokenMeetingDepositMinimum?.address ||
+      !highestBalanceAaveTokenMeetingDepositMinimum.chainId
     ) {
       return undefined;
     }
 
     return {
-      address: toHex(highestBalanceAaveOutputToken.address),
-      chainId: toHex(highestBalanceAaveOutputToken.chainId),
+      address: toHex(highestBalanceAaveTokenMeetingDepositMinimum.address),
+      chainId: toHex(highestBalanceAaveTokenMeetingDepositMinimum.chainId),
     };
-  }, [highestBalanceAaveOutputToken, tokenType]);
+  }, [highestBalanceAaveTokenMeetingDepositMinimum, tokenType]);
 
   const navigateToGeoBlockSheet = useCallback(() => {
     navigation.dispatch((state) => ({

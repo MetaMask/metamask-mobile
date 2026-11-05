@@ -6,9 +6,9 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { earnSelectors } from '../../../../../selectors/earnController/earn';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
@@ -56,12 +56,12 @@ const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
   isMoneyAccountGeoEligible = true,
   geolocationStatus = 'complete',
-  highestBalanceAaveOutputToken,
+  highestBalanceAaveTokenMeetingDepositMinimum,
 }: {
   isMoneyAccountFeatureEnabled?: boolean;
   isMoneyAccountGeoEligible?: boolean;
   geolocationStatus?: string;
-  highestBalanceAaveOutputToken?: typeof mockHighestBalanceAaveOutputToken;
+  highestBalanceAaveTokenMeetingDepositMinimum?: typeof mockHighestBalanceAaveOutputToken;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMoneyAccountFlag) {
@@ -76,8 +76,8 @@ const arrangeEligibility = ({
       return geolocationStatus;
     }
 
-    if (selector === earnSelectors.selectHighestBalanceAaveOutputToken) {
-      return highestBalanceAaveOutputToken;
+    if (selector === selectHighestBalanceAaveTokenMeetingDepositMinimum) {
+      return highestBalanceAaveTokenMeetingDepositMinimum;
     }
 
     return undefined;
@@ -151,7 +151,8 @@ describe('MoneyDepositDeeplinkBridge', () => {
       },
     } as never);
     arrangeEligibility({
-      highestBalanceAaveOutputToken: mockHighestBalanceAaveOutputToken,
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: true,
@@ -201,7 +202,8 @@ describe('MoneyDepositDeeplinkBridge', () => {
       },
     } as never);
     arrangeEligibility({
-      highestBalanceAaveOutputToken: mockHighestBalanceAaveOutputToken,
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
     });
 
     render(<MoneyDepositDeeplinkBridge />);
@@ -240,7 +242,8 @@ describe('MoneyDepositDeeplinkBridge', () => {
       },
     } as never);
     arrangeEligibility({
-      highestBalanceAaveOutputToken: mockHighestBalanceAaveOutputToken,
+      highestBalanceAaveTokenMeetingDepositMinimum:
+        mockHighestBalanceAaveOutputToken,
     });
 
     render(<MoneyDepositDeeplinkBridge />);
