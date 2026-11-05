@@ -8,7 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -25,6 +24,7 @@ import {
   useRoute,
   type NavigationState,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import React, {
   useCallback,
   useContext,
@@ -60,6 +60,8 @@ import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardH
 import { useTheme } from '../../../../util/theme';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import {
   fireImpact,
   ImpactMoment,
@@ -207,6 +209,7 @@ const ComposerChip = ({
 
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -583,7 +586,9 @@ const SocialPostComposerView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
       >
-        <HeaderBase
+        <HeaderBaseGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="px-4"
           startAccessory={

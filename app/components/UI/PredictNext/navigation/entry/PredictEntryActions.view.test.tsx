@@ -1,7 +1,8 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
@@ -14,6 +15,9 @@ import {
   makePredictNextEvent,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import type { PredictConfig } from '../../config/predictConfig';
 import type { PredictEntityId } from '../../types';
 import PredictRoot from '../root/PredictRoot';
@@ -24,11 +28,14 @@ import { PredictPortfolioScreenTestIds } from '../../views/PredictPortfolio/Pred
 import {
   createLegacyPredictEventRef,
   createNextPredictEventRef,
+  createPredictCampaignEventRef,
 } from './eventRef';
 import type { PredictIntent } from './intents';
 import { usePredictEntryActions } from './usePredictEntryActions';
 
 const ENTRY_ROUTE = 'PredictEntryProbe';
+/** A caller not yet on intents, navigating to a legacy child route. */
+const LEGACY_ROUTE_CALLER = 'legacy-route-caller';
 
 const LEGACY_LANE: PredictConfig = {
   enabled: false,
@@ -40,6 +47,13 @@ const KALSHI_ONLY: PredictConfig = {
   enabled: true,
   venues: { polymarket: { enabled: false }, kalshi: { enabled: true } },
   venueSelection: { enabled: false },
+};
+
+/** Both Venues rolled out: the Active Venue resolves from the region. */
+const BOTH_VENUES: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
 };
 
 const polymarketRef = createLegacyPredictEventRef({
@@ -63,6 +77,19 @@ const INTENTS = {
   },
   portfolio: { type: 'portfolio', tab: 'activity' },
   addFunds: { type: 'addFunds', autoDeposit: true },
+  /** Predict The Pitch runs on Polymarket. */
+  campaignHome: {
+    type: 'home',
+    entryPoint: 'rewards',
+    campaign: 'predict-the-pitch',
+  },
+  campaignEvent: {
+    type: 'event',
+    eventRef: createPredictCampaignEventRef('predict-the-pitch', 'event-1'),
+    entryPoint: 'rewards',
+    titleSnapshot: 'Match winner',
+    imageSnapshot: 'https://example.com/icon.png',
+  },
 } satisfies Record<string, PredictIntent>;
 
 type IntentName = keyof typeof INTENTS;
@@ -73,8 +100,18 @@ const canOpenTestId = (name: IntentName) => `can-open-${name}`;
 /** A screen outside Predict that opens every intent through entry actions. */
 const EntryProbe = () => {
   const { openPredict, canOpenPredict } = usePredictEntryActions();
+  const navigation = useNavigation<AppNavigationProp>();
   return (
     <>
+      <Pressable
+        testID={LEGACY_ROUTE_CALLER}
+        onPress={() =>
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: { marketId: 'market-1', providerId: 'polymarket' },
+          })
+        }
+      />
       {(Object.keys(INTENTS) as IntentName[]).map((name) => (
         <Pressable
           key={name}
@@ -166,6 +203,26 @@ describe('Predict entry actions', () => {
           params: { initialTab: 'history' },
         },
       ],
+      [
+        'campaignHome',
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: { entryPoint: 'rewards' },
+        },
+      ],
+      [
+        'campaignEvent',
+        {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params: {
+            marketId: 'event-1',
+            providerId: 'polymarket',
+            entryPoint: 'rewards',
+            title: 'Match winner',
+            image: 'https://example.com/icon.png',
+          },
+        },
+      ],
     ])('opens %s on its legacy Predict route', async (name, expected) => {
       const view = renderWithRouteProbes(LEGACY_LANE);
 
@@ -222,12 +279,14 @@ describe('Predict entry actions', () => {
       ).toStrictEqual(expected);
     });
 
-    it.each<IntentName>(['polymarketEvent', 'addFunds'])(
-      'opens nothing for %s',
-      (name) => {
-        expectNothingOpened(renderWithRouteProbes(KALSHI_ONLY), name);
-      },
-    );
+    it.each<IntentName>([
+      'polymarketEvent',
+      'addFunds',
+      'campaignHome',
+      'campaignEvent',
+    ])('opens nothing for %s', (name) => {
+      expectNothingOpened(renderWithRouteProbes(KALSHI_ONLY), name);
+    });
   });
 
   describe('through the registered Predict root router (Kalshi rollout)', () => {
@@ -274,6 +333,17 @@ describe('Predict entry actions', () => {
       expect(view.queryByTestId(PredictHomeTestIds.HOME)).toBeNull();
     });
 
+    it('serves the Active Venue to a legacy child route, opening PredictNext Home', async () => {
+      configurePredictNextFeeds();
+      const view = renderWithPredictRoot();
+
+      fireEvent.press(view.getByTestId(LEGACY_ROUTE_CALLER));
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
+      ).toBeOnTheScreen();
+    });
+
     it('opens the PredictNext Portfolio', async () => {
       configurePredictNextFeeds({ positions: [], activity: [] });
       const view = renderWithPredictRoot();
@@ -282,6 +352,77 @@ describe('Predict entry actions', () => {
 
       expect(
         await view.findByTestId(PredictPortfolioScreenTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('through the registered Predict root router while the Active Venue resolves', () => {
+    const engine = Engine as unknown as { state: Record<string, unknown> };
+    const originalEngineState = engine.state;
+
+    const renderResolving = () =>
+      renderScreenWithRoutes(
+        EntryProbe,
+        { name: ENTRY_ROUTE },
+        [
+          {
+            name: Routes.PREDICT.ROOT,
+            Component: PredictRoot as React.ComponentType<object>,
+          },
+        ],
+        {
+          state: initialStatePredictNext()
+            .withRemoteFeatureFlags({ predictConfig: BOTH_VENUES })
+            .withOverrides({
+              engine: {
+                backgroundState: {
+                  PredictVenueController: {
+                    venueSelectionPreference: null,
+                    lastActiveVenue: null,
+                    sessionDefault: null,
+                  },
+                },
+              },
+            })
+            .build(),
+        },
+      );
+
+    /** Latches the session's regional default, as the Engine publishes it. */
+    const latchKalshiSessionDefault = (
+      view: ReturnType<typeof renderResolving>,
+    ) => {
+      act(() => {
+        engine.state = {
+          ...engine.state,
+          PredictVenueController: {
+            ...view.store.getState().engine.backgroundState
+              .PredictVenueController,
+            sessionDefault: { venue: 'kalshi', source: 'geolocation' },
+          },
+        };
+        view.store.dispatch(updateBgState({ key: 'PredictVenueController' }));
+      });
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      engine.state = originalEngineState;
+    });
+
+    it('lands a feed opened before Kalshi latches on PredictNext Home', async () => {
+      configurePredictNextFeeds();
+      const view = renderResolving();
+
+      fireEvent.press(view.getByTestId(openTestId('feed')));
+      expect(view.queryByTestId(PredictHomeTestIds.HOME)).toBeNull();
+      latchKalshiSessionDefault(view);
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
       ).toBeOnTheScreen();
     });
   });

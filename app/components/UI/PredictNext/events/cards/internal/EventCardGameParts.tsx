@@ -101,9 +101,11 @@ const Provider = ({
 const TeamLogo = ({
   selection,
   size = 'small',
+  flipped = false,
 }: {
   selection: GameSelection;
   size?: 'small' | 'large';
+  flipped?: boolean;
 }) => {
   const { event, team, abbreviation } = useTeam(selection);
 
@@ -112,6 +114,7 @@ const TeamLogo = ({
       team={team}
       abbreviation={abbreviation}
       size={size}
+      flipped={flipped}
       testID={`predict-next-game-logo-${event.id}-${selection}`}
       fallbackTestID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
     />
@@ -218,7 +221,11 @@ const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
 
   return (
     <Box twClassName="w-14 items-center gap-1">
-      <TeamLogo selection={selection} size="large" />
+      <TeamLogo
+        selection={selection}
+        size="large"
+        flipped={selection === 'home'}
+      />
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Bold}

@@ -45,10 +45,8 @@ import {
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
@@ -76,7 +74,7 @@ const WalletActions = () => {
     sourcePage: 'MainView',
   });
   const { isEligible: isEarnEligible } = useStakingEligibility();
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -129,18 +127,13 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        const target = getPerpsHomeNavigationTarget({
+        const target = getTarget({
           source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
         navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(target));
       }
     });
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    isFirstTimePerpsUser,
-    getPerpsHomeNavigationTarget,
-  ]);
+  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser, getTarget]);
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
