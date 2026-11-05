@@ -93,8 +93,8 @@ describeForPlatforms('ManagePriceAlertsView', () => {
 
     await findByTestId(CreatePriceAlertTestIds.CONTAINER);
 
-    expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
-    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
+    expect(getByText('Edit ETH alert')).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$3,000' })).toBeOnTheScreen();
   });
 
   it('auto-redirects to Create view when no alerts exist for the token', async () => {

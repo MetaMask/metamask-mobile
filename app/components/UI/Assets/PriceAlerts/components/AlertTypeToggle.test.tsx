@@ -1,19 +1,17 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
-import AlertTypeToggle from './AlertTypeToggle';
-import AlertPeriodToggle from './AlertPeriodToggle';
+import { fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { playSelection } from '../../../../../util/haptics';
 import { CreatePriceAlertTestIds } from '../constants';
+import AlertTypeToggle from './AlertTypeToggle';
 
 jest.mock('../../../../../util/haptics', () => ({
-  playSelection: jest.fn(),
+  playSelection: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { playSelection } from '../../../../../util/haptics';
 const mockPlaySelection = playSelection as jest.MockedFunction<
   typeof playSelection
 >;
-
 const mockOnChange = jest.fn();
 
 beforeEach(() => {
@@ -21,112 +19,54 @@ beforeEach(() => {
 });
 
 describe('AlertTypeToggle', () => {
-  it('renders both tabs', () => {
+  it.each([
+    ['absolute_price', 'price_alerts.price_target'],
+    ['percent_change', 'price_alerts.price_change'],
+  ] as const)('renders the %s label', (value, labelKey) => {
     const { getByTestId } = render(
-      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
+      <AlertTypeToggle value={value} onChange={mockOnChange} />,
     );
 
+    expect(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT)).toHaveTextContent(
+      strings(labelKey),
+    );
     expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET),
+      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_ICON),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
-    ).toBeOnTheScreen();
   });
 
-  it('rounds the container as fully as the period toggle below it', () => {
-    const typeToggle = render(
-      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
-    );
-    const periodToggle = render(
-      <AlertPeriodToggle value="24h" onChange={mockOnChange} />,
-    );
-
-    const radiusOf = (testID: string, screen: ReturnType<typeof render>) =>
-      StyleSheet.flatten(screen.getByTestId(testID).props.style).borderRadius;
-
-    expect(radiusOf(CreatePriceAlertTestIds.TYPE_SEGMENT, typeToggle)).toBe(
-      radiusOf(CreatePriceAlertTestIds.PERIOD_SEGMENT, periodToggle),
-    );
-  });
-
-  it('marks the active tab as selected via accessibilityState', () => {
-    const { getByTestId, rerender } = render(
-      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
-    );
-
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props
-        .accessibilityState?.selected,
-    ).toBe(true);
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props
-        .accessibilityState?.selected,
-    ).toBe(false);
-
-    rerender(
-      <AlertTypeToggle value="percent_change" onChange={mockOnChange} />,
-    );
-
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props
-        .accessibilityState?.selected,
-    ).toBe(false);
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props
-        .accessibilityState?.selected,
-    ).toBe(true);
-  });
-
-  it('both tabs have accessibilityRole="button"', () => {
+  it('swaps from target to percent change', () => {
     const { getByTestId } = render(
       <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
     );
 
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props
-        .accessibilityRole,
-    ).toBe('button');
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props
-        .accessibilityRole,
-    ).toBe('button');
-  });
-
-  it('calls onChange with the new value when a different tab is pressed', () => {
-    const { getByTestId } = render(
-      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
-    );
-
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE));
+    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
     expect(mockOnChange).toHaveBeenCalledWith('percent_change');
   });
 
-  it('does not call onChange when the already-selected tab is pressed', () => {
+  it('swaps from percent change to target', () => {
     const { getByTestId } = render(
-      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
+      <AlertTypeToggle value="percent_change" onChange={mockOnChange} />,
     );
 
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET));
+    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
-    expect(mockOnChange).not.toHaveBeenCalled();
+    expect(mockOnChange).toHaveBeenCalledWith('absolute_price');
   });
 
-  it('plays haptic feedback when switching tabs, but not when re-pressing the current tab', () => {
+  it('plays haptic feedback when swapping', () => {
     const { getByTestId } = render(
       <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
     );
 
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET));
-    expect(mockPlaySelection).not.toHaveBeenCalled();
+    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE));
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
-  it('marks both tabs disabled when isDisabled', () => {
+  it('reports disabled while editing', () => {
     const { getByTestId } = render(
       <AlertTypeToggle
         value="absolute_price"
@@ -135,17 +75,10 @@ describe('AlertTypeToggle', () => {
       />,
     );
 
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
-    expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
+    expect(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT)).toBeDisabled();
   });
 
-  it('ignores presses when isDisabled', () => {
+  it('ignores presses while disabled', () => {
     const { getByTestId } = render(
       <AlertTypeToggle
         value="absolute_price"
@@ -154,7 +87,7 @@ describe('AlertTypeToggle', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE));
+    fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
     expect(mockOnChange).not.toHaveBeenCalled();
     expect(mockPlaySelection).not.toHaveBeenCalled();
