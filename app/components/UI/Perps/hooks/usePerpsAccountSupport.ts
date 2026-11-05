@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import type {
   GetAccountSupportParams,
   PerpsAccountSupport,
   PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import type { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   selectPerpsNetwork,
@@ -40,6 +41,14 @@ export interface UsePerpsAccountSupportReturn {
   closeAccountUnsupportedModal: () => void;
 }
 
+const getSupportContextKey = (
+  state: RootState,
+  providerId?: PerpsProviderType,
+) =>
+  `${selectSelectedInternalAccountAddress(state) ?? ''}:${
+    providerId ?? selectPerpsProvider(state) ?? ''
+  }:${selectPerpsNetwork(state)}`;
+
 /**
  * Reads provider-owned account support before actions that can sign.
  *
@@ -48,12 +57,11 @@ export interface UsePerpsAccountSupportReturn {
  * immediately before supported providers sign.
  */
 export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
+  const store = useStore<RootState>();
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
   const contextKey = `${selectedAddress ?? ''}:${provider ?? ''}:${network}`;
-  const contextRef = useRef({ selectedAddress, provider, network });
-  contextRef.current = { selectedAddress, provider, network };
   const isMountedRef = useRef(true);
 
   const [
@@ -94,22 +102,17 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
     async (
       providerId?: PerpsProviderType,
     ): Promise<PerpsAccountSupportCheckResult> => {
-      const requested = contextRef.current;
-      const requestedRoute = providerId ?? requested.provider;
-      const requestedContext = `${requested.selectedAddress ?? ''}:${
-        requestedRoute ?? ''
-      }:${requested.network}`;
+      const requestedContext = getSupportContextKey(
+        store.getState(),
+        providerId,
+      );
       const support = await readAccountSupport(providerId);
       const unmounted = !isMountedRef.current;
-      const current = contextRef.current;
-      const currentRoute = providerId ?? current.provider;
-      const currentContext = `${current.selectedAddress ?? ''}:${
-        currentRoute ?? ''
-      }:${current.network}`;
-      // A changed account, provider, or network is stale even if the view
-      // also went away. Unmount alone is a separate result so a committed
-      // post-deposit order can still be placed.
-      if (currentContext !== requestedContext) {
+      // Read the live store, not render state: a committed post-deposit
+      // order resolves after its view unmounts and must still see a switch.
+      if (
+        getSupportContextKey(store.getState(), providerId) !== requestedContext
+      ) {
         return 'stale';
       }
       if (!support.isSupported) {
@@ -123,7 +126,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
       }
       return 'supported';
     },
-    [readAccountSupport],
+    [readAccountSupport, store],
   );
 
   const closeAccountUnsupportedModal = useCallback(() => {
