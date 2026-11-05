@@ -80,8 +80,11 @@ const HERO_GRADIENT_ANGLE = 224;
  */
 const MoneyVbaHomeCard = ({
   variant,
+  onDismiss,
 }: {
   variant: MoneyVbaHomeCardVariant;
+  /** Called after the dismissible variant hides itself. */
+  onDismiss?: () => void;
 }) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
@@ -209,7 +212,8 @@ const MoneyVbaHomeCard = ({
       label_key: `${config.i18nPrefix}.dismiss`,
     });
     setIsDismissed(true);
-  }, [config, trackButtonClicked]);
+    onDismiss?.();
+  }, [config, onDismiss, trackButtonClicked]);
 
   if (isDismissed) {
     return null;
