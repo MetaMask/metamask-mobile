@@ -168,7 +168,7 @@ const VARIANTS: MoneyVbaHomeCardVariant[] = [
 ];
 
 /** Variants with a pressable CTA. KYC_PENDING's CTA is disabled. */
-const CTA_VARIANTS = VARIANTS.filter((variant) => variant !== 'kyc_pending' || variant !== 'kyc_decision');
+const CTA_VARIANTS = VARIANTS.filter((variant) => variant !== 'kyc_pending' && variant !== 'kyc_decision');
 
 /**
  * Literal per-variant expectations, independent of `MONEY_VBA_HOME_CARD_CONFIG`,
