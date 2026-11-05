@@ -167,4 +167,19 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
       opensSupportArticle: true,
     },
   },
+  kyc_retry: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    source: 'vba-home-card-kyc-retry',
+    i18nPrefix: 'money.vba_home_card.kyc_retry',
+    heroArt: {
+      source: moneyVbaKycDecisionArt,
+      width: 106.5,
+      height: 88,
+    },
+    cta: {
+      buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      className: 'bg-icon-default',
+      textClassName: 'text-primary-inverse',
+    },
+  },
 };

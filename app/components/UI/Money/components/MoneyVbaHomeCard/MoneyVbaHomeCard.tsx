@@ -70,8 +70,9 @@ const HERO_GRADIENT_ANGLE = 224;
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
- * kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * kyc_decision, kyc_retry); all per-variant differences — copy, analytics
+ * names, CTA treatment, hero art and optional Rive hero — live in
+ * {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.

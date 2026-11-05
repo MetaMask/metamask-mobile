@@ -165,6 +165,7 @@ const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'kyc_pending',
   'finish_verification',
   'kyc_decision',
+  'kyc_retry',
 ];
 
 /** Variants with a pressable CTA. KYC_PENDING's CTA is disabled. */
@@ -214,6 +215,12 @@ const VARIANT_EXPECTATIONS: Record<
     source: 'vba-home-card-kyc-decision',
     i18nPrefix: 'money.vba_home_card.kyc_decision',
     buttonIntent: MONEY_BUTTON_INTENTS.LEARN_MORE,
+  },
+  kyc_retry: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    source: 'vba-home-card-kyc-retry',
+    i18nPrefix: 'money.vba_home_card.kyc_retry',
+    buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
 };
 
@@ -561,6 +568,23 @@ describe('MoneyVbaHomeCard', () => {
       ).toBeNull();
     },
   );
+
+  it('renders the kyc_retry card with a single Try again CTA and no Dismiss', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry;
+    const { getByTestId, queryByText } = render(
+      <MoneyVbaHomeCard variant="kyc_retry" />,
+    );
+
+    expect(getByTestId(testIds.TITLE)).toHaveTextContent(
+      'Finish verifying your identity',
+    );
+    expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
+      'A few details need fixing before you can use bank transfers.',
+    );
+    expect(getByTestId(testIds.CTA_BUTTON)).toHaveTextContent('Try again');
+    expect(testIds.DISMISS_BUTTON).toBeUndefined();
+    expect(queryByText('Dismiss')).toBeNull();
+  });
 
   it('disables the CTA only on the kyc_pending card', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.cta).toEqual({
