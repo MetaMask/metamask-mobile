@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../locales/i18n';
 
 export const DISMISSABLE_BANNER_TEST_ID = 'dismissable-banner';
 export const DISMISSABLE_BANNER_DISMISS_TEST_ID = 'dismissable-banner-dismiss';
@@ -80,6 +81,7 @@ export const DismissableBanner = ({
               iconName={IconName.Close}
               size={ButtonIconSize.Sm}
               onPress={onDismiss}
+              accessibilityLabel={strings('navigation.close')}
               iconProps={{ color: IconColor.IconDefault }}
               twClassName="ml-2"
               testID={dismissTestID}

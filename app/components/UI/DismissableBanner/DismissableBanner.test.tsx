@@ -70,6 +70,14 @@ describe('DismissableBanner', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
+  it('exposes an accessible label on the close button', () => {
+    const { getByLabelText } = renderWithProvider(
+      <DismissableBanner {...defaultProps} />,
+    );
+
+    expect(getByLabelText('Close')).toBeOnTheScreen();
+  });
+
   it('uses the provided test IDs', () => {
     const { getByTestId } = renderWithProvider(
       <DismissableBanner
