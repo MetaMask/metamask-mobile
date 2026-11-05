@@ -275,10 +275,8 @@ describe('PositionDetailsSheet', () => {
   });
 
   it('opens on price when the spot card has no market cap on its fills', () => {
-    const setChartPeriod = jest.fn();
     mockSheetData = buildSheetData({
       marketCap: 1_200_000,
-      setChartPeriod,
     });
 
     render(<PositionDetailsSheet />);
@@ -299,10 +297,31 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$1.2M');
+  });
+
+  it('names the market cap toggle for screen readers', () => {
+    mockSheetData = buildSheetData({ marketCap: 1_200_000 });
+
+    render(<PositionDetailsSheet />);
+
+    const marketCapToggle = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+    );
+
+    expect(marketCapToggle).toHaveTextContent('MC');
+    expect(marketCapToggle.props.accessibilityLabel).toBe('Market cap');
+  });
+
+  it('changes the chart period from the range control', () => {
+    const setChartPeriod = jest.fn();
+    mockSheetData = buildSheetData({ setChartPeriod });
+
+    render(<PositionDetailsSheet />);
 
     fireEvent.press(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.chartPeriod('1W')),
     );
+
     expect(setChartPeriod).toHaveBeenCalledWith('1W');
   });
 

@@ -1843,6 +1843,7 @@
       "market_cap_suffix": "(MC)",
       "price_toggle": "Price",
       "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
       "open_asset_accessibility_hint": "Opens the asset page",
       "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",

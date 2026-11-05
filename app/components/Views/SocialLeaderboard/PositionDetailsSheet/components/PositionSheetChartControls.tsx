@@ -29,17 +29,21 @@ export type HeadlineValueMode = 'price' | 'marketCap';
 
 const ValueSegment = ({
   label,
+  accessibilityLabel,
   isSelected,
   onPress,
   testID,
 }: {
   label: string;
+  /** Spoken name when the visible label is an abbreviation. */
+  accessibilityLabel?: string;
   isSelected: boolean;
   onPress: () => void;
   testID: string;
 }) => (
   <Pressable
     accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
     accessibilityState={{ selected: isSelected }}
     onPress={onPress}
     testID={testID}
@@ -133,6 +137,9 @@ const PositionSheetChartControls = ({
           <ValueSegment
             label={strings(
               'social_leaderboard.position_sheet.market_cap_toggle',
+            )}
+            accessibilityLabel={strings(
+              'social_leaderboard.position_sheet.market_cap_toggle_accessibility_label',
             )}
             isSelected={valueMode === 'marketCap'}
             onPress={() => handleValueMode('marketCap')}
