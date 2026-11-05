@@ -669,7 +669,11 @@ export class BaanxProvider implements ICardProvider {
           )
         : null;
       const account = user ? this.mapAccountStatus(user) : null;
-      const walletProvisioning = this.mapWalletProvisioning(user, card);
+      const walletProvisioning = this.mapWalletProvisioning(
+        user,
+        card,
+        tokens.location,
+      );
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -2017,6 +2021,7 @@ export class BaanxProvider implements ICardProvider {
   private mapWalletProvisioning(
     user: UserResponse | null,
     card: CardDetails | null,
+    location: string,
   ): CardWalletProvisioningInfo | null {
     if (!user || !card) {
       return null;
@@ -2025,6 +2030,7 @@ export class BaanxProvider implements ICardProvider {
     return {
       eligible:
         card.status === CardStatus.ACTIVE &&
+        location.toLowerCase() === 'us' &&
         isAccountEligibleForProvisioning(user.createdAt),
       cardholderName: buildBaanxCardholderName(user),
       lastFour: card.lastFour,
