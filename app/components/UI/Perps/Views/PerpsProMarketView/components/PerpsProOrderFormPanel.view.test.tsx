@@ -740,12 +740,15 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
 });
 
 describeForPlatforms('PerpsProOrderFormPanel account support', () => {
-  afterEach(() => {
-    cleanup();
+  beforeEach(() => {
     jest
       .mocked(Engine.context.PerpsController.getAccountSupport)
       .mockReset()
       .mockResolvedValue({ isSupported: true });
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('explains an unsupported account instead of placing the order and dismisses the explanation', async () => {
@@ -755,6 +758,7 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
     renderPerpsProMarketView({
       streamOverrides: { account: createFundedAccountForViews('1000') },
     });
+
     fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
     fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
     await waitFor(
