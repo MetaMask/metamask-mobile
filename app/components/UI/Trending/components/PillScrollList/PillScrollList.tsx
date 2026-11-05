@@ -6,7 +6,6 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const DEFAULT_MAX_PILLS = 12;
 const DEFAULT_ROW_COUNT = 2;
@@ -91,23 +90,8 @@ function PillScrollList<T>({
       </React.Fragment>
     ));
 
-  const handleRailLayout = (event: {
-    nativeEvent: { layout: { height: number } };
-  }) => {
-    const { height } = event.nativeEvent.layout;
-    if (!isLoading && rows.length > 0 && height <= 12) {
-      DevLogger.log(
-        `[TAT-4456] BUG_MARKER: pill rail reserved height collapsed to ${height} (rows=${rows.length})`,
-      );
-    }
-  };
-
   return (
-    <Box
-      testID="pill-scroll-list-wrapper"
-      twClassName={wrapperTwClassName}
-      onLayout={handleRailLayout}
-    >
+    <Box testID="pill-scroll-list-wrapper" twClassName={wrapperTwClassName}>
       {isLoading && (
         <Box twClassName="px-4">
           <Skeleton rowCount={normalizedRowCount} />
