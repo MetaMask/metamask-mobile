@@ -344,9 +344,20 @@ function findingComparison(finding) {
 }
 
 /**
+ * Findings that did not open a bug on this run: an issue that was already
+ * open, a create that failed, or a finding with no issue yet.
+ */
+function findingsWithoutNewBug(exception) {
+  return exception.findings.filter(
+    (finding) => !(finding.issue?.created && finding.issue?.url),
+  );
+}
+
+/**
  * Message for #metamask-performance when this run opened a bug. The owning
- * team is mentioned. A referenced issue, or a run with no issue, returns
- * null so that channel stays quiet.
+ * team is mentioned. A run that only references an existing issue, or that
+ * opened nothing, returns null. A mixed run still lists those other findings
+ * so the already-open issue stays linked.
  */
 export function buildPerformanceChannelSlack(exception) {
   const opened = openedBugs(exception);
@@ -378,6 +389,15 @@ export function buildPerformanceChannelSlack(exception) {
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
       `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
     );
+  }
+  const others = findingsWithoutNewBug(exception);
+  if (others.length > 0) {
+    lines.push('', '*Also flagged*');
+    for (const finding of others) {
+      lines.push(
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
+      );
+    }
   }
   lines.push(
     '',
@@ -473,9 +493,10 @@ export function buildScheduledExceptionMarkdown(exception) {
  * #metamask-performance body for a scheduled finding.
  *
  * A newly opened bug uses the short review, which mentions the owning Slack
- * group and links the GitHub issue. A recurrence keeps the digest, which
- * links the issue that is already open and does not mention the group again.
- * An all-clear returns an empty string so nothing is sent.
+ * group and links the GitHub issue. Other findings in that same run are
+ * listed under it, including an issue that was already open. A run with no
+ * new bug keeps the digest. An all-clear returns an empty string so nothing
+ * is sent.
  */
 export function buildPerformanceChannelPost(exception, aiText = null) {
   if (!exception?.meta?.hasFindings) {
