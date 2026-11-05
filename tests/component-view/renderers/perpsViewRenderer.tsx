@@ -775,9 +775,9 @@ export function renderPerpsView(
     const tabTree = (
       <Tab.Navigator
         screenOptions={{ headerShown: false }}
-        tabBar={({ state, navigation }) => (
+        tabBar={({ state: tabState, navigation }) => (
           <View>
-            {state.routes.map(({ key, name }) => (
+            {tabState.routes.map(({ key, name }) => (
               <Pressable
                 key={key}
                 testID={`tab-${name}`}
