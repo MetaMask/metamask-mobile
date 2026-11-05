@@ -1,18 +1,18 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { type KeypadChangeData } from '../../../../../Base/Keypad';
 import AlertAmountInput from '../../components/AlertAmountInput';
@@ -36,6 +36,8 @@ import {
   toPercentKeypadString,
 } from './utils';
 
+const percentAmountContainerStyle = { transform: [{ translateX: 12 }] };
+
 interface PercentChangeAlertFormProps {
   assetId: string;
   marketId?: string;
@@ -51,7 +53,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   editingAlert,
   existingPercentAlerts,
 }) => {
-  const tw = useTailwind();
   const isEditing = Boolean(editingAlert);
   const [percentAmount, setPercentAmount] = useState(
     editingAlert ? toPercentKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
@@ -184,39 +185,48 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     );
   }
 
-  const directionToggle = (
-    <TouchableOpacity
-      onPress={handleToggleDirection}
-      testID={CreatePriceAlertTestIds.DIRECTION_TOGGLE}
-      style={tw.style(
-        'mr-2 h-10 w-10 rounded-full bg-muted items-center justify-center',
-      )}
-    >
-      <Icon
-        name={direction === 'up' ? IconName.TrendUp : IconName.TrendDown}
-        size={IconSize.Md}
-        color={
-          direction === 'up' ? IconColor.SuccessDefault : IconColor.ErrorDefault
-        }
-      />
-    </TouchableOpacity>
+  const directionWord = strings(
+    direction === 'up'
+      ? 'price_alerts.direction_increases'
+      : 'price_alerts.direction_decreases',
   );
+  const directionColor =
+    direction === 'up' ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
   const percentSuffix = (
     <Text
       variant={TextVariant.HeadingLg}
       fontWeight={FontWeight.Bold}
-      color={TextColor.TextAlternative}
+      color={hasInput ? TextColor.TextDefault : TextColor.TextAlternative}
       twClassName="ml-[3px]"
     >
       %
     </Text>
   );
 
+  const alertPeriodRow = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="mb-3"
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('price_alerts.alert_period')}
+      </Text>
+      <AlertPeriodToggle
+        value={period}
+        onChange={setPeriod}
+        includeFiveMinutes={isPerpsMode}
+      />
+    </Box>
+  );
+
   return (
     <AlertFormShell
       isRecurring={isRecurring}
       onRecurringChange={setIsRecurring}
+      aboveRecurring={alertPeriodRow}
       keypadValue={percentAmount}
       onKeypadChange={handleKeypadChange}
       keypadDecimals={PERCENT_KEYPAD_DECIMALS}
@@ -231,30 +241,34 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         <AlertAmountInput
           text={displayPercent}
           hasInput={hasInput}
-          prefix={directionToggle}
           suffix={percentSuffix}
+          containerStyle={percentAmountContainerStyle}
           testID={CreatePriceAlertTestIds.PERCENT_INPUT}
         />
 
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mt-3"
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={handleToggleDirection}
+          testID={CreatePriceAlertTestIds.DIRECTION_TOGGLE}
+          accessibilityLabel={directionWord}
+          twClassName="mt-3 self-center"
+          endIconName={
+            direction === 'up' ? IconName.TrendUp : IconName.TrendDown
+          }
+          endIconProps={{
+            color: directionColor,
+            twClassName: directionColor,
+          }}
         >
-          {strings(
-            direction === 'up'
-              ? 'price_alerts.moves_up'
-              : 'price_alerts.moves_down',
-          )}
-        </Text>
-
-        <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
-          <AlertPeriodToggle
-            value={period}
-            onChange={setPeriod}
-            includeFiveMinutes={isPerpsMode}
-          />
-        </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={directionColor}
+          >
+            {directionWord}
+          </Text>
+        </Button>
       </Box>
     </AlertFormShell>
   );

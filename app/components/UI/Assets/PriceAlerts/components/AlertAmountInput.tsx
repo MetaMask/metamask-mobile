@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -27,6 +27,7 @@ interface AlertAmountInputProps {
   hasInput: boolean;
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
   testID: string;
 }
 
@@ -39,6 +40,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
   hasInput,
   prefix,
   suffix,
+  containerStyle,
   testID,
 }) => {
   const tw = useTailwind();
@@ -65,7 +67,11 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
       amountAccessible
       animated
       color={hasInput ? TextColor.TextDefault : TextColor.TextAlternative}
-      containerStyle={[tw.style('w-full justify-center'), styles.container]}
+      containerStyle={[
+        tw.style('w-full justify-center'),
+        styles.container,
+        containerStyle,
+      ]}
       cursor={{
         animated: true,
         style: cursorStyle,

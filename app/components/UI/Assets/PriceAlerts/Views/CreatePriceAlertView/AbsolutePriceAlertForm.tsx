@@ -238,7 +238,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
         />
 
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={CreatePriceAlertTestIds.PERCENT_DIFF}
           twClassName="mt-2"
@@ -249,7 +249,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
             <>
               {'≈ '}
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={
                   percentDiff.direction === 'above'

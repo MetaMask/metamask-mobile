@@ -202,11 +202,16 @@ describe('ManagePriceAlertsView', () => {
       }),
     );
 
-    const { getByTestId } = renderView();
+    const { getByTestId, queryByText } = renderView();
     expect(getByTestId(ManagePriceAlertsTestIds.LOADING)).toBeOnTheScreen();
+    expect(queryByText('Price alerts')).toBeNull();
 
     await act(async () => {
       resolve(makeFetchResponse([makeAlert()]));
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Price alerts')).toBeOnTheScreen();
     });
   });
 
@@ -911,9 +916,11 @@ describe('ManagePriceAlertsView', () => {
 
     it('replaces the screen when the API returns an empty list', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([]));
-      renderView();
+      const screen = renderView();
 
       await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+
+      expect(screen.queryByText('Price alerts')).toBeNull();
 
       expect(mockReplace).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,

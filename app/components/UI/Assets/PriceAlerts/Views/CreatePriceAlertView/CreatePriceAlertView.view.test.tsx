@@ -101,8 +101,8 @@ describeForPlatforms('CreatePriceAlertView', () => {
       });
 
     expect(getByText('Edit ETH alert')).toBeOnTheScreen();
-    // threshold 3000 is pre-filled as "$3000"
-    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
+    // threshold 3000 is pre-filled as "$3,000"
+    expect(getByRole('text', { name: '$3,000' })).toBeOnTheScreen();
     // Update button is shown (not "Set price alert")
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
@@ -122,7 +122,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    expect(await findByRole('text', { name: '$2625' })).toBeOnTheScreen();
+    expect(await findByRole('text', { name: '$2,625' })).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).not.toBeDisabled();
@@ -146,7 +146,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
     fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
 
     expect(
-      await findByText(strings('price_alerts.moves_down')),
+      await findByText(strings('price_alerts.direction_decreases')),
     ).toBeOnTheScreen();
     expect(
       await within(percentInput()).findByRole('text', { name: '10' }),
@@ -335,6 +335,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
 
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H));
 
       await waitFor(() => {
@@ -344,13 +345,13 @@ describeForPlatforms('CreatePriceAlertView', () => {
         expect(
           queryByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
         ).not.toBeOnTheScreen();
-        expect(getByText('When price moves down')).toBeOnTheScreen();
         expect(
-          getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
-        ).toHaveProp(
-          'accessibilityState',
-          expect.objectContaining({ selected: true }),
-        );
+          getByText(strings('price_alerts.direction_decreases')),
+        ).toBeOnTheScreen();
+        expect(getByText(strings('price_alerts.period_1h'))).toBeOnTheScreen();
+        expect(
+          queryByTestId(CreatePriceAlertTestIds.PERIOD_SHEET),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -367,6 +368,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
       });
 
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H));
       fireEvent.press(getByText('1'));
       fireEvent.press(getByText('0'));
@@ -425,6 +427,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
       });
 
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_24H));
       fireEvent(
         getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
@@ -434,7 +437,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
 
       expect(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT)).toBeDisabled();
       expect(
-        getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
+        getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT),
       ).not.toBeDisabled();
       expect(
         getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
