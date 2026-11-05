@@ -166,6 +166,28 @@ describe('usePredictTrendingFeed', () => {
     });
   });
 
+  it('reads the feed once, without replaying an earlier refresh, when the Active Venue becomes Polymarket', async () => {
+    givenVenue(KALSHI);
+    const { rerender } = renderHook(
+      ({ trigger }: { trigger: number }) =>
+        usePredictTrendingFeed({
+          variant: 'trending',
+          refresh: { trigger, silentRefresh: true },
+        }),
+      { wrapper: createWrapper(), initialProps: { trigger: 0 } },
+    );
+    rerender({ trigger: 1 });
+
+    givenVenue(POLYMARKET);
+    rerender({ trigger: 1 });
+
+    await waitFor(() => expect(mockGetMarkets).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+  });
+
   it('drops the legacy markets when the Active Venue moves to a next Venue', async () => {
     givenVenue(POLYMARKET);
     const { result, rerender } = renderHook(

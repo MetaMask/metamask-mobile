@@ -47,7 +47,7 @@ export const usePredictionsFeed = ({
 
   const activeResult = hasQuery ? search : feed;
 
-  useFeedRefresh(enabled ? refresh : undefined, activeResult.refetch);
+  useFeedRefresh(refresh, activeResult.refetch, enabled);
 
   // When a search query is active, results are already server-ranked by
   // relevance — skip Fuse re-ranking to preserve server order across pages.

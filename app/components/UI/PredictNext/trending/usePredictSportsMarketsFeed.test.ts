@@ -89,6 +89,27 @@ describe('usePredictSportsMarketsFeed', () => {
     expect(result.current.activeKey).toBe('tennis');
   });
 
+  it('reads soccer once, without replaying an earlier refresh, when the Active Venue becomes Polymarket', async () => {
+    givenVenue(KALSHI);
+    const { rerender } = renderHook(
+      ({ trigger }: { trigger: number }) =>
+        usePredictSportsMarketsFeed({
+          refresh: { trigger, silentRefresh: true },
+        }),
+      { initialProps: { trigger: 0 } },
+    );
+    rerender({ trigger: 1 });
+
+    givenVenue(POLYMARKET);
+    rerender({ trigger: 1 });
+
+    await waitFor(() => expect(mockGetMarkets).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+  });
+
   describe.each([
     ['a next Venue is active', KALSHI],
     ['the Active Venue is resolving', RESOLVING],

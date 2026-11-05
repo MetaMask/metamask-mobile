@@ -104,7 +104,7 @@ export const useSportsMarketsFeed = ({
     await Promise.all(tasks);
   }, [loadedKeys, refetchSoccer, refetchBasketball, refetchTennis]);
 
-  useFeedRefresh(enabled ? refresh : undefined, refetch);
+  useFeedRefresh(refresh, refetch, enabled);
 
   const active = marketsByKey[activeKey];
   const isLoading = active.isFetching && active.marketData.length === 0;
