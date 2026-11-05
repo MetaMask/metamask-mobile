@@ -532,9 +532,12 @@ describe('MoneyVbaHomeCard', () => {
   });
 
   it('offers Dismiss only on the kyc_decision card', () => {
-    expect(
-      MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.cta.opensSupportArticle,
-    ).toBe(true);
+    const decisionCta = MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.cta;
+    expect(decisionCta.isDisabled).not.toBe(true);
+    if (decisionCta.isDisabled) {
+      return;
+    }
+    expect(decisionCta.opensSupportArticle).toBe(true);
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
     const otherVariants = VARIANTS.filter(
       (variant) => variant !== 'kyc_decision',
@@ -542,9 +545,9 @@ describe('MoneyVbaHomeCard', () => {
     otherVariants.forEach((variant) => {
       const { cta } = MONEY_VBA_HOME_CARD_CONFIG[variant];
       expect(MONEY_VBA_HOME_CARD_CONFIG[variant].isDismissible).toBeUndefined();
-      expect(
-        cta.isDisabled ? undefined : cta.opensSupportArticle,
-      ).toBeUndefined();
+      if (!cta.isDisabled) {
+        expect(cta.opensSupportArticle).toBeUndefined();
+      }
     });
   });
 
