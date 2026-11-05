@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -31,6 +31,10 @@ jest.mock('../../perpApi', () => ({
     isSubmitting: false,
   })),
 }));
+
+const textColor = (node: { props: { style?: unknown } }) =>
+  StyleSheet.flatten<TextStyle>(node.props.style as StyleProp<TextStyle>)
+    ?.color;
 
 const baseProps: React.ComponentProps<typeof PercentChangeAlertForm> = {
   assetId: 'eip155:1/slip44:60',
@@ -140,19 +144,17 @@ describe('PercentChangeAlertForm', () => {
         <Text color={TextColor.TextAlternative}>alternative-reference</Text>
       </>,
     );
-    const colorOf = (node: { props: { style?: unknown } }) =>
-      StyleSheet.flatten(node.props.style)?.color;
-    const defaultColor = colorOf(references.getByText('default-reference'));
-    const alternativeColor = colorOf(
+    const defaultColor = textColor(references.getByText('default-reference'));
+    const alternativeColor = textColor(
       references.getByText('alternative-reference'),
     );
     const screen = renderForm();
 
-    expect(colorOf(screen.getByText('%'))).toBe(alternativeColor);
+    expect(textColor(screen.getByText('%'))).toBe(alternativeColor);
 
     fireEvent.press(screen.getByTestId('keypad-key-5'));
 
-    expect(colorOf(screen.getByText('%'))).toBe(defaultColor);
+    expect(textColor(screen.getByText('%'))).toBe(defaultColor);
   });
 
   it('colors Increase green and Decrease red', () => {
@@ -162,14 +164,12 @@ describe('PercentChangeAlertForm', () => {
         <Text color={TextColor.ErrorDefault}>error-reference</Text>
       </>,
     );
-    const colorOf = (node: { props: { style?: unknown } }) =>
-      StyleSheet.flatten(node.props.style)?.color;
-    const successColor = colorOf(references.getByText('success-reference'));
-    const errorColor = colorOf(references.getByText('error-reference'));
+    const successColor = textColor(references.getByText('success-reference'));
+    const errorColor = textColor(references.getByText('error-reference'));
     const screen = renderForm();
 
     expect(
-      colorOf(screen.getByText(strings('price_alerts.direction_increases'))),
+      textColor(screen.getByText(strings('price_alerts.direction_increases'))),
     ).toBe(successColor);
 
     fireEvent.press(
@@ -177,7 +177,7 @@ describe('PercentChangeAlertForm', () => {
     );
 
     expect(
-      colorOf(screen.getByText(strings('price_alerts.direction_decreases'))),
+      textColor(screen.getByText(strings('price_alerts.direction_decreases'))),
     ).toBe(errorColor);
   });
 
