@@ -1,10 +1,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type { SocialShellTab } from '../../../Views/SocialLeaderboard/shell/types';
-import type {
-  AssetLoaderParams,
-  AssetViewParams,
-} from '../../../Views/Asset/Asset.types';
+import type { AssetViewParams } from '../../../Views/Asset/Asset.types';
 import type { TokenDetailsRouteParams } from '../../../UI/TokenDetails/constants/constants';
 import type {
   TdpVersion,
@@ -59,29 +56,6 @@ export type AssetStackParamList = {
 };
 
 /**
- * Param list for screens inside `WalletTabStackFlow`.
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type WalletTabStackParamList = {
-  WalletView: undefined;
-  RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
-};
-
-/**
- * `WalletTabHome` is registered with component `WalletTabStackFlow`, but many
- * call sites still navigate with an intermediate `WalletTabStackFlow` screen.
- * Include both the real stack screens and that nested form.
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type WalletTabHomeParamList = WalletTabStackParamList & {
-  WalletTabStackFlow:
-    | NavigatorScreenParams<WalletTabStackParamList>
-    | undefined;
-};
-
-/**
  * Param list for screens inside `SettingsFlow` (`SettingsView`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -121,17 +95,6 @@ export type SettingsStackParamList = {
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   SnapsSettingsList: undefined;
-};
-
-/**
- * Param list for screens inside `BrowserFlow` (`BrowserTabHome`).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type BrowserTabHomeParamList = {
-  BrowserView: BrowserParams | undefined;
-  AssetLoader: AssetLoaderParams | undefined;
-  AssetView: AssetViewParams | undefined;
 };
 
 /**
@@ -221,21 +184,14 @@ export interface WalletTabHomeParams {
  *
  * The wallet and browser tabs are the screens themselves. The trade slot
  * reuses the wallet screen under `TradeWalletActions`. Money and Activity
- * tabs are mutually exclusive at runtime. `WalletTabHome` and `BrowserTabHome`
- * still accept the nested `{ screen, params }` form while call sites pass it.
+ * tabs are mutually exclusive at runtime.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
-  WalletTabHome:
-    | WalletTabHomeParams
-    | NavigatorScreenParams<WalletTabHomeParamList>
-    | undefined;
+  WalletTabHome: WalletTabHomeParams | undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
-  BrowserTabHome:
-    | BrowserParams
-    | NavigatorScreenParams<BrowserTabHomeParamList>
-    | undefined;
+  BrowserTabHome: BrowserParams | undefined;
   SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   TradeWalletActions: undefined;
   MoneyScreens: NavigatorScreenParams<MoneyTabStackParamList> | undefined;

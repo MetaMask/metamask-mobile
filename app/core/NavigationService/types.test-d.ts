@@ -3,7 +3,7 @@ import type { AppNavigationProp } from './types';
 declare const navigation: AppNavigationProp;
 
 // Valid route — must compile.
-navigation.navigate('WalletView');
+navigation.navigate('WalletTabHome');
 
 // Invalid route — must be a type error. If this line ever compiles,
 // the @ts-expect-error becomes "unused" and tsc fails: the regression guard.
