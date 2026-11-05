@@ -28,6 +28,8 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -1789,6 +1791,34 @@ describe('formatUtils', () => {
       expect(formatUsd(undefined)).toBe('—');
       expect(formatUsd(Number.NaN)).toBe('—');
       expect(formatUsd('not-a-number')).toBe('—');
+    });
+  });
+
+  describe('formatPredictPositionUsd', () => {
+    it.each([
+      [10, '$10'],
+      [0, '$0'],
+      [12.5, '$12.50'],
+      [1234.567, '$1,234.57'],
+      [9.999, '$10'],
+      [-3.2, '-$3.20'],
+      [NaN, '$0.00'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionUsd(value)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictPositionPercent', () => {
+    it.each([
+      [25, '25%'],
+      [0, '0%'],
+      [-12.5, '-12.5%'],
+      [33.3333, '33.33%'],
+      [10.1, '10.1%'],
+      [-0.001, '0%'],
+      [NaN, '0%'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionPercent(value)).toBe(expected);
     });
   });
 
