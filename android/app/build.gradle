@@ -193,20 +193,20 @@ def reactNativeArchitectures() {
  */
 /**
  * Perf session sampler (nativeModules/PerfSession). Off unless the build sets
- * MM_PERF_SESSION_ENABLED=true, which only the scheduled Friday nightly main-exp
- * Android build does (.github/workflows/nightly-build.yml → build.yml `perf_session`).
+ * MM_PERF_SESSION_ENABLED=true: the scheduled Friday nightly main-exp Android build
+ * (.github/workflows/nightly-build.yml), or a manual Build dispatch of main-exp with
+ * `perf_session` checked (build.yml), for testing.
  * The URL and key in builds.yml are inert without it: the native module isn't registered.
  */
 def perfSessionConfig() {
     def enabled = System.getenv('MM_PERF_SESSION_ENABLED') == 'true'
     def environment = System.getenv('METAMASK_ENVIRONMENT') ?: 'dev'
     def buildType = System.getenv('METAMASK_BUILD_TYPE') ?: 'main'
-    def attribution = System.getenv('METAMASK_BUILD_ATTRIBUTION') ?: ''
     if (!enabled) {
         return [url: '', key: '', env: "${buildType}-${environment}"]
     }
-    if (environment != 'exp' || buildType != 'main' || attribution != 'nightly') {
-        throw new GradleException("MM_PERF_SESSION_ENABLED is only allowed for nightly main-exp builds, not ${buildType}-${environment} (attribution '${attribution}')")
+    if (environment != 'exp' || buildType != 'main') {
+        throw new GradleException("MM_PERF_SESSION_ENABLED is only allowed for main-exp builds, not ${buildType}-${environment}")
     }
     def url = System.getenv('MM_PERF_SESSION_URL') ?: ''
     def key = System.getenv('MM_PERF_SESSION_KEY') ?: ''

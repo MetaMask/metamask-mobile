@@ -124,11 +124,11 @@ The app calls `GET /status?env=<env>` at launch, on resume and every few minutes
 
 ## Which builds have it
 
-Only the **scheduled Friday nightly Android main-exp build**. Every other build, including other nightlies, manual `main-exp` builds, RC and production, compiles without it: the native module isn't registered and the JS side is a no-op.
+Only the **scheduled Friday nightly Android main-exp build**, plus manual `main-exp` builds where someone checks `perf_session` to test a branch. Every other build, including other nightlies, unchecked manual builds, RC and production, compiles without it: the native module isn't registered and the JS side is a no-op.
 
 - `.github/workflows/nightly-build.yml` runs a `perf-session-day` job: when the run was triggered by the schedule and the UTC day is Friday, it passes `perf_session: true` to the Android `main-exp` build.
-- `.github/workflows/build.yml` turns that into `MM_PERF_SESSION_ENABLED=true` for the Gradle build. The input only exists for `workflow_call`, not for manual dispatch, and is ignored unless the build is `main-exp` with `build_attribution: nightly`.
-- `android/app/build.gradle` compiles the sampler in only with `MM_PERF_SESSION_ENABLED=true`, and fails the build if the flag is set on anything other than a nightly `main-exp` build. With the flag, the URL must be an `https://` origin and the key 24–128 characters of `[A-Za-z0-9_-]`.
+- `.github/workflows/build.yml` turns that into `MM_PERF_SESSION_ENABLED=true` for the Gradle build. The same `perf_session` input (default off) is on the manual **Build** dispatch, so a branch can be tested before Friday: Actions → Build → Run workflow, `source_branch` = your branch, `build_name` = `main-exp`, platform `android`, check `perf_session`. It is ignored for any other build name.
+- `android/app/build.gradle` compiles the sampler in only with `MM_PERF_SESSION_ENABLED=true`, and fails the build if the flag is set on anything other than a `main-exp` build. With the flag, the URL must be an `https://` origin and the key 24–128 characters of `[A-Za-z0-9_-]`.
 - `MM_PERF_SESSION_URL` and `MM_PERF_SESSION_KEY` come from the `*perf_session` anchor in `builds.yml` (merged into `main-exp`). On their own they do nothing.
 
 So the collector only needs to run while testers use a Friday nightly build. Builds from previous Fridays keep recording whenever the collector is on, because the collector is still the on/off switch.

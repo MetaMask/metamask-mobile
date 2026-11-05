@@ -125,9 +125,9 @@ _main_dev_env: &main_dev_env
 
 # Perf session sampler (android/.../nativeModules/PerfSession): where it reports to.
 # These values alone don't turn it on. It is compiled in only when the build sets
-# MM_PERF_SESSION_ENABLED=true, which only the scheduled Friday nightly Android
-# main-exp build does (nightly-build.yml → build.yml `perf_session`); Gradle refuses
-# the flag in any other build. Both values are public by design: the collector
+# MM_PERF_SESSION_ENABLED=true: the scheduled Friday nightly Android main-exp build
+# (nightly-build.yml), or a manual Build dispatch of main-exp with `perf_session`
+# checked (build.yml), for testing. Gradle refuses the flag in any other build. Both values are public by design: the collector
 # treats every client as untrusted. See docs/performance/perf-sessions.md.
 _perf_session: &perf_session
   MM_PERF_SESSION_URL: 'https://superserviceable-stacia-nonindulgently.ngrok-free.dev'
