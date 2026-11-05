@@ -1,6 +1,7 @@
 export const PositionDetailsSheetSelectorsIDs = {
   CONTAINER: 'position-details-sheet',
   HEADER: 'position-details-sheet-header',
+  IDENTITY: 'position-details-sheet-identity',
   TITLE: 'position-details-sheet-title',
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
   PRICE: 'position-details-sheet-price',
