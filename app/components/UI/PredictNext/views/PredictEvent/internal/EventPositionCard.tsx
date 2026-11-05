@@ -71,7 +71,10 @@ const getMarketTeam = (
   return selection === 'away' ? game?.awayTeam : undefined;
 };
 
-/** "Yes · Chicago", or "Yes · Derrick Henry 60+ yards" for a titled card. */
+/**
+ * "Yes · Chicago", or "Yes · Derrick Henry 60+ yards" for a titled `choice`
+ * card. Other group types don't show their label.
+ */
 const getTitle = (
   position: PredictPosition,
   heldOutcome?: PredictOutcome,
@@ -80,9 +83,9 @@ const getTitle = (
   const outcome =
     position.context?.outcomeLabel ??
     (heldOutcome?.label || getOutcomeName(position.side));
-  const name = market?.group?.label
-    ? `${market.group.label} ${outcome}`
-    : outcome;
+  const label =
+    market?.group?.groupType === 'choice' ? market.group.label : undefined;
+  const name = label ? `${label} ${outcome}` : outcome;
   return strings('predict_next.event.position.title', {
     side: strings(`predict_next.portfolio.outcome_side.${position.side}`),
     name,

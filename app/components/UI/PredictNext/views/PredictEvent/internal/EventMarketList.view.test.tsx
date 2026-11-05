@@ -2165,6 +2165,60 @@ describe('EventMarketList', () => {
       ).toBeOnTheScreen();
     });
 
+    it('titles an unlabelled player prop with its threshold alone', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      const markets = event.markets.map((candidate) =>
+        candidate.group?.label
+          ? {
+              ...candidate,
+              group: { ...candidate.group, label: undefined },
+            }
+          : candidate,
+      );
+      const market = markets.find((candidate) =>
+        candidate.outcomes[0].label.endsWith('yards'),
+      );
+      const position = makePredictNextPosition({
+        marketId: market?.id,
+        context: undefined,
+      });
+      const { view } = await renderPositions({ ...event, markets }, [
+        position,
+      ]);
+
+      expect(
+        cardOf(view, position).getByText(
+          positionTitle(position, market?.outcomes[0].label),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves a label off a Market that is not a choice card', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const markets = event.markets.map((candidate) =>
+        candidate.group?.groupType === 'marketSelector'
+          ? {
+              ...candidate,
+              group: { ...candidate.group, label: 'Total points' },
+            }
+          : candidate,
+      );
+      const market = markets.find((candidate) => candidate.group?.label);
+      const position = makePredictNextPosition({
+        marketId: market?.id,
+        context: undefined,
+      });
+      const { view } = await renderPositions({ ...event, markets }, [
+        position,
+      ]);
+
+      expect(
+        cardOf(view, position).getByText(
+          positionTitle(position, market?.outcomes[0].label),
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('falls back without a current value, PnL, average price or ask, and disables Buy', async () => {
       const event = makePredictNextCompositeGameEvent();
       const [market] = event.markets;
