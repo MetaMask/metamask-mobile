@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ScrollView,
+  type AccessibilityActionEvent,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -39,6 +46,7 @@ import {
   type KycCatalogDisclaimerLink,
 } from '../../hooks/useKycSessionDisclaimers';
 import { trackIdentityTerms } from '../../utils/trackIdentityTerms';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
@@ -64,6 +72,9 @@ const verifyIdentityString = (key: string) =>
   strings(`virtual_bank_account.verify_identity.${key}`);
 
 const IDOS_TERMS_DISCLAIMER_ID = 'idOS:end_user_agreement';
+
+/** Screen reader action on the consent checkbox that opens its inline link. */
+const OPEN_PRIVACY_NOTICE_ACTION = 'openPrivacyNotice';
 
 /**
  * How much of the consent row must be on screen to count as seen: the
@@ -92,13 +103,17 @@ const toTermsLink = (
 /**
  * Picks the documents legal asked for, in their order and with their labels.
  * Falls back to the full catalog with backend titles if none match, so the
- * screen is never empty when the catalog changes shape.
+ * screen is never empty when the catalog changes shape. The idOS Terms and
+ * Conditions are left out of both: the footer line already links them.
  */
 const getDisplayedLinks = (
   disclaimers: KycCatalogDisclaimerLink[],
 ): TermsLink[] => {
+  const cardDisclaimers = disclaimers.filter(
+    (item) => item.id !== IDOS_TERMS_DISCLAIMER_ID,
+  );
   const displayed = KYC_SESSION_DISCLAIMER_DISPLAY.flatMap((entry) => {
-    const disclaimer = disclaimers.find(
+    const disclaimer = cardDisclaimers.find(
       (item) => item.id === `${entry.group}:${entry.key}`,
     );
     return disclaimer ? [toTermsLink(disclaimer, strings(entry.titleKey))] : [];
@@ -106,7 +121,7 @@ const getDisplayedLinks = (
 
   return displayed.length
     ? displayed
-    : disclaimers.map((disclaimer) =>
+    : cardDisclaimers.map((disclaimer) =>
         toTermsLink(disclaimer, disclaimer.title),
       );
 };
@@ -224,6 +239,26 @@ const VbaVerificationPartners = ({
     .map(verifyIdentityString)
     .join('');
 
+  // The sentence beside the checkbox toggles it too, through the Checkbox's
+  // own toggle so it gets the same bounce. Its nested link handles its own
+  // press, so tapping the link never reaches this.
+  const checkboxRef = useRef<{ toggle: () => void }>(null);
+  const toggleBiometricConsent = useCallback(
+    () => checkboxRef.current?.toggle(),
+    [],
+  );
+  const privacyNoticeActionLabel = `${verifyIdentityString(
+    'biometric_consent_link',
+  )}, ${verifyIdentityString('opens_in_browser_hint')}`;
+  const handleConsentAccessibilityAction = useCallback(
+    (event: AccessibilityActionEvent) => {
+      if (event.nativeEvent.actionName === OPEN_PRIVACY_NOTICE_ACTION) {
+        openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
+      }
+    },
+    [],
+  );
+
   const handleAgree = useCallback(async () => {
     trackIdentityTerms('accepted');
     await onAgree();
@@ -286,12 +321,13 @@ const VbaVerificationPartners = ({
                 }
               >
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
                   {verifyIdentityString('sumsub_acknowledgement_start')}
                   <InlineLink
                     url={SUMSUB_PERSONAL_DATA_PROCESSING_URL}
+                    variant={TextVariant.BodySm}
                     testID={
                       VbaVerificationPartnersSelectorsIDs.SUMSUB_PERSONAL_DATA_PROCESSING_LINK
                     }
@@ -303,6 +339,7 @@ const VbaVerificationPartners = ({
                   {verifyIdentityString('sumsub_acknowledgement_us_residents')}
                   <InlineLink
                     url={SUMSUB_PRIVACY_NOTICE_URL}
+                    variant={TextVariant.BodySm}
                     testID={
                       VbaVerificationPartnersSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK
                     }
@@ -316,6 +353,7 @@ const VbaVerificationPartners = ({
                   )}
                   <InlineLink
                     url={SUMSUB_BIOMETRICS_CONSENT_URL}
+                    variant={TextVariant.BodySm}
                     testID={
                       VbaVerificationPartnersSelectorsIDs.SUMSUB_BIOMETRICS_CONSENT_LINK
                     }
@@ -329,43 +367,59 @@ const VbaVerificationPartners = ({
             </TermsParty>
           </TermsCard>
 
-          {/* Plain MMDS Checkbox row, as on the Card onboarding consents
-              (PhysicalAddress). The label is plain text; the privacy notice
-              link is a separate button below so both stay reachable. */}
+          {/* The MMDS Checkbox is only the tick control. The sentence beside
+              it is a separate Text so the idOS Privacy Notice link can sit
+              inline: tapping the words toggles the box, and the nested link's
+              own press wins, so the link only opens the notice. Screen
+              readers get one checkbox labelled with the whole sentence, with
+              the link as a custom action on it, so the sentence itself is
+              hidden from them. */}
           <Box
-            twClassName="mx-4 mt-6 gap-2"
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Start}
+            twClassName="mx-4 mt-6"
             onLayout={handleConsentRowLayout}
             testID={VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW}
           >
             <Checkbox
+              ref={checkboxRef}
               isSelected={hasBiometricConsent}
               onChange={setHasBiometricConsent}
               accessibilityLabel={consentSentence}
+              accessibilityActions={[
+                {
+                  name: OPEN_PRIVACY_NOTICE_ACTION,
+                  label: privacyNoticeActionLabel,
+                },
+              ]}
+              onAccessibilityAction={handleConsentAccessibilityAction}
               testID={
                 VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX
               }
-              twClassName="items-start"
-              label={
-                <Box twClassName="ml-3 flex-1">
-                  <Text variant={TextVariant.BodyMd}>{consentSentence}</Text>
-                </Box>
-              }
+              // Centres the 22px box on the sentence's 24px first line.
+              twClassName="mt-px"
             />
-            {/* Starts where the label text does: the 22px checkbox plus its
-                ml-3 label gap. */}
-            <Box twClassName="pl-[34px]">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="ml-3 flex-1"
+              onPress={toggleBiometricConsent}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              testID={
+                VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LABEL
+              }
+            >
+              {verifyIdentityString('biometric_consent_label')}
               <InlineLink
                 url={IDOS_PRIVACY_NOTICE_URL}
                 testID={
                   VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK
                 }
-                accessibilityLabel={`${verifyIdentityString(
-                  'biometric_consent_link',
-                )}, ${verifyIdentityString('opens_in_browser_hint')}`}
               >
                 {verifyIdentityString('biometric_consent_link')}
               </InlineLink>
-            </Box>
+              {verifyIdentityString('biometric_consent_label_end')}
+            </Text>
           </Box>
         </ScrollView>
 

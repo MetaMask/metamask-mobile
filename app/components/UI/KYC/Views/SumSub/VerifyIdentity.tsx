@@ -40,8 +40,6 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import {
   InlineLink,
-  TermsCard,
-  TermsLinkRow,
   TermsSectionTitle,
   TermsStepCounter,
 } from './IdentityTermsComponents';
@@ -184,27 +182,6 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
               />
             ))}
           </Box>
-
-          <TermsSectionTitle>
-            {verifyIdentityString('terms_section_title_metamask')}
-          </TermsSectionTitle>
-          <TermsCard>
-            {/* No party label: the section title already names MetaMask. */}
-            <Box twClassName="py-2">
-              <TermsLinkRow
-                title={verifyIdentityString('footer_terms')}
-                url={METAMASK_TERMS_URL}
-                testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_ROW}
-              />
-              <TermsLinkRow
-                title={verifyIdentityString('footer_privacy_notice')}
-                url={METAMASK_PRIVACY_NOTICE_URL}
-                testID={
-                  VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW
-                }
-              />
-            </Box>
-          </TermsCard>
         </ScrollView>
 
         {/* Sticky footer: a top border separates it from the scrolling

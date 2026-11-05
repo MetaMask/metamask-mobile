@@ -99,7 +99,7 @@ const openVerificationPartners = async () => {
   await waitFor(() =>
     expect(
       result.getByTestId(
-        `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:end_user_agreement`,
+        `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:privacy_policy`,
       ),
     ).toBeOnTheScreen(),
   );
@@ -197,25 +197,27 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
   });
 
   describe('screen 2 of 2: Our verification partners', () => {
-    it('lists the three idOS documents from the session catalog', async () => {
+    it('lists the idOS Privacy Policy and Transparency Document from the session catalog', async () => {
       const { getByTestId, queryByTestId } = await openVerificationPartners();
 
-      expect(
-        queryByTestId(
-          `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:privacy_notice`,
-        ),
-      ).not.toBeOnTheScreen();
-      ['end_user_agreement', 'privacy_policy', 'transparency_document'].forEach(
-        (key) =>
-          fireEvent.press(
-            getByTestId(
-              `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:${key}`,
-            ),
+      // The Privacy Notice is linked from the consent sentence and the terms
+      // from the footer line, so neither gets a row.
+      ['privacy_notice', 'end_user_agreement'].forEach((key) =>
+        expect(
+          queryByTestId(
+            `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:${key}`,
           ),
+        ).not.toBeOnTheScreen(),
+      );
+      ['privacy_policy', 'transparency_document'].forEach((key) =>
+        fireEvent.press(
+          getByTestId(
+            `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:${key}`,
+          ),
+        ),
       );
 
       expect(jest.mocked(Linking.openURL).mock.calls).toEqual([
-        [IDOS_TERMS_URL],
         [IDOS_PRIVACY_POLICY_URL],
         [IDOS_TRANSPARENCY_URL],
       ]);
@@ -264,10 +266,24 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
         )}${verifyIdentityKey('biometric_consent_label_end')}`,
       );
       expect(within(checkbox).queryByRole('link')).not.toBeOnTheScreen();
-      fireEvent.press(getByRole('link', { name: /idOS Privacy Notice/ }));
-      expect(jest.mocked(Linking.openURL)).toHaveBeenCalledWith(
-        'https://www.idos.network/legal/privacy-notice',
+      // The idOS Privacy Notice link sits inline in the sentence, which
+      // screen readers skip; they reach it as an action on the checkbox.
+      fireEvent.press(
+        getByTestId(
+          VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK,
+          {
+            includeHiddenElements: true,
+          },
+        ),
       );
+      fireEvent(checkbox, 'accessibilityAction', {
+        nativeEvent: { actionName: 'openPrivacyNotice' },
+      });
+      expect(jest.mocked(Linking.openURL).mock.calls).toEqual([
+        ['https://www.idos.network/legal/privacy-notice'],
+        ['https://www.idos.network/legal/privacy-notice'],
+      ]);
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
 
       expect(getAllByRole('checkbox')).toHaveLength(1);
       expect(

@@ -98,7 +98,7 @@ export const TermsStepCounter = ({
   </Text>
 );
 
-/** Section header above a terms card, e.g. "MetaMask terms". */
+/** Section header above a terms card, e.g. "Terms and privacy". */
 export const TermsSectionTitle = ({ children }: { children: string }) => (
   <SectionHeader
     title={children}

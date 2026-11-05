@@ -4,9 +4,6 @@ export const VbaVerifyIdentitySelectorsIDs = {
   STEP_COUNTER: 'vba-verify-identity-step-counter',
   STEP: 'vba-verify-identity-step',
   BENEFIT: 'vba-verify-identity-benefit',
-  METAMASK_TERMS_ROW: 'vba-verify-identity-metamask-terms-row',
-  METAMASK_PRIVACY_NOTICE_ROW:
-    'vba-verify-identity-metamask-privacy-notice-row',
   METAMASK_TERMS_LINK: 'vba-verify-identity-metamask-terms-link',
   METAMASK_PRIVACY_NOTICE_LINK:
     'vba-verify-identity-metamask-privacy-notice-link',
@@ -30,6 +27,7 @@ export const VbaVerificationPartnersSelectorsIDs = {
     'vba-verification-partners-sumsub-biometrics-consent-link',
   BIOMETRIC_CONSENT_CHECKBOX:
     'vba-verification-partners-biometric-consent-checkbox',
+  BIOMETRIC_CONSENT_LABEL: 'vba-verification-partners-biometric-consent-label',
   BIOMETRIC_CONSENT_LINK: 'vba-verification-partners-biometric-consent-link',
   BIOMETRIC_CONSENT_ROW: 'vba-verification-partners-biometric-consent-row',
   IDOS_AGREEMENT: 'vba-verification-partners-idos-agreement',

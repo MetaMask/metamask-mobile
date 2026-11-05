@@ -35,6 +35,8 @@ export const SUMSUB_BIOMETRICS_CONSENT_URL =
  * idOS documents shown on "Our verification partners", in display order and
  * with the labels legal asked for. Catalog documents not listed here are hidden
  * from the screen (consent recording in `useLaunchSumSub` is unaffected).
+ * The idOS Terms and Conditions aren't listed: the screen's footer line links
+ * them instead.
  *
  * Entries match the catalog `id` (`${group}:${key}`), so a new document
  * version or a backend title change doesn't affect the list.
@@ -49,11 +51,6 @@ export interface KycSessionDisclaimerDisplayEntry {
 
 export const KYC_SESSION_DISCLAIMER_DISPLAY: KycSessionDisclaimerDisplayEntry[] =
   [
-    {
-      group: 'idOS',
-      key: 'end_user_agreement',
-      titleKey: 'virtual_bank_account.verify_identity.terms_link_idos_terms',
-    },
     {
       group: 'idOS',
       key: 'privacy_policy',

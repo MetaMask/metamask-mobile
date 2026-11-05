@@ -1,5 +1,11 @@
 import React from 'react';
-import { Linking, ScrollView } from 'react-native';
+import {
+  Linking,
+  ScrollView,
+  StyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerificationPartners from './VerificationPartners';
@@ -128,6 +134,11 @@ const SUMSUB_ACKNOWLEDGEMENT =
 const BIOMETRIC_CONSENT =
   'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.';
 
+// The consent sentence is hidden from screen readers (the checkbox carries
+// it as its label), so queries for it and its link must include hidden
+// elements.
+const HIDDEN_FROM_SCREEN_READERS = { includeHiddenElements: true };
+
 const identityTermsStatuses = () =>
   jest
     .mocked(trackVbaEvent)
@@ -163,8 +174,10 @@ describe('VbaVerificationPartners', () => {
       'Terms and privacy',
       'idOS',
       'Sumsub',
-      BIOMETRIC_CONSENT,
     ].forEach((text) => expect(getByText(text)).toBeOnTheScreen());
+    expect(
+      getByText(BIOMETRIC_CONSENT, HIDDEN_FROM_SCREEN_READERS),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerificationPartnersSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
     ).toHaveTextContent(SUMSUB_ACKNOWLEDGEMENT, { exact: true });
@@ -187,18 +200,75 @@ describe('VbaVerificationPartners', () => {
     });
   });
 
-  it('lists only the three idOS documents, in order with their labels', () => {
+  it('lists only the idOS Privacy Policy and Transparency Document, in order with their labels', () => {
     const { getAllByTestId } = renderScreen();
 
     expect(
       getAllByTestId(
         new RegExp(`^${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-`),
       ).map((row) => within(row).getByText(/./).props.children),
-    ).toEqual([
-      'idOS Terms and Conditions',
-      'idOS Privacy Policy',
-      'idOS Transparency Document',
-    ]);
+    ).toEqual(['idOS Privacy Policy', 'idOS Transparency Document']);
+  });
+
+  it('leaves the idOS terms out of the card when it falls back to the backend titles', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: [
+        {
+          id: 'idOS:end_user_agreement',
+          key: 'end_user_agreement',
+          version: '2',
+          title: 'idOS End User Agreement v2',
+          url: 'https://www.idos.network/legal/user-agreement-v2',
+        },
+        {
+          id: 'idOS:renamed_policy',
+          key: 'renamed_policy',
+          version: '1',
+          title: 'idOS Renamed Policy',
+          url: 'https://www.idos.network/legal/renamed-policy',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
+    });
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getAllByTestId, getByTestId } = renderScreen();
+
+    expect(
+      getAllByTestId(
+        new RegExp(`^${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-`),
+      ).map((row) => within(row).getByText(/./).props.children),
+    ).toEqual(['idOS Renamed Policy']);
+    fireEvent.press(
+      getByTestId(VbaVerificationPartnersSelectorsIDs.IDOS_TERMS_LINK),
+    );
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://www.idos.network/legal/user-agreement-v2',
+    );
+  });
+
+  it('sets the Sumsub paragraph and its links one size below the consent sentence', () => {
+    const { getByTestId, getByText } = renderScreen();
+    const fontSizeOf = (text: { props: { style?: unknown } }) =>
+      StyleSheet.flatten(text.props.style as StyleProp<TextStyle>)?.fontSize;
+    const consentSize = fontSizeOf(
+      getByText(BIOMETRIC_CONSENT, HIDDEN_FROM_SCREEN_READERS),
+    );
+    const paragraphTexts = [
+      getByText(SUMSUB_ACKNOWLEDGEMENT),
+      ...[
+        VbaVerificationPartnersSelectorsIDs.SUMSUB_PERSONAL_DATA_PROCESSING_LINK,
+        VbaVerificationPartnersSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK,
+        VbaVerificationPartnersSelectorsIDs.SUMSUB_BIOMETRICS_CONSENT_LINK,
+      ].map((testID) => getByTestId(testID)),
+    ];
+
+    const sizes = new Set(paragraphTexts.map(fontSizeOf));
+    expect(sizes.size).toBe(1);
+    expect([...sizes][0]).toBeLessThan(consentSize as number);
   });
 
   it('opens every idOS and Sumsub link at its URL', () => {
@@ -210,7 +280,6 @@ describe('VbaVerificationPartners', () => {
       `${VbaVerificationPartnersSelectorsIDs.DISCLAIMER_LINK}-idOS:${key}`;
 
     [
-      row('end_user_agreement'),
       row('privacy_policy'),
       row('transparency_document'),
       VbaVerificationPartnersSelectorsIDs.SUMSUB_PERSONAL_DATA_PROCESSING_LINK,
@@ -218,10 +287,11 @@ describe('VbaVerificationPartners', () => {
       VbaVerificationPartnersSelectorsIDs.SUMSUB_BIOMETRICS_CONSENT_LINK,
       VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK,
       VbaVerificationPartnersSelectorsIDs.IDOS_TERMS_LINK,
-    ].forEach((testID) => fireEvent.press(getByTestId(testID)));
+    ].forEach((testID) =>
+      fireEvent.press(getByTestId(testID, HIDDEN_FROM_SCREEN_READERS)),
+    );
 
     expect(openUrlSpy.mock.calls).toEqual([
-      ['https://www.idos.network/legal/user-agreement-v2'],
       ['https://www.idos.network/legal/privacy-policy'],
       ['https://www.idos.network/legal/transparency-document'],
       [SUMSUB_PERSONAL_DATA_PROCESSING_URL],
@@ -411,18 +481,108 @@ describe('VbaVerificationPartners', () => {
     expect(agree).toBeDisabled();
   });
 
-  it('does not tick the consent when its idOS Privacy Notice link is opened', () => {
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    const { getByTestId } = renderScreen();
-    revealConsent(getByTestId);
+  describe('biometric consent row', () => {
+    const checkboxOf = (getByTestId: GetByTestId) =>
+      getByTestId(
+        VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX,
+      );
+    const isTicked = (getByTestId: GetByTestId) =>
+      checkboxOf(getByTestId).props.accessibilityState.checked;
 
-    fireEvent.press(
-      getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK),
-    );
+    it('links idOS Privacy Notice inside the consent sentence, with no separate link row', () => {
+      const { getByTestId } = renderScreen();
+      const sentence = getByTestId(
+        VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LABEL,
+        HIDDEN_FROM_SCREEN_READERS,
+      );
 
-    expect(
-      getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-    ).toBeDisabled();
+      expect(sentence).toHaveTextContent(BIOMETRIC_CONSENT, { exact: true });
+      expect(
+        within(sentence).getByTestId(
+          VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK,
+          HIDDEN_FROM_SCREEN_READERS,
+        ),
+      ).toHaveTextContent('idOS Privacy Notice', { exact: true });
+    });
+
+    it('opens the idOS Privacy Notice from the inline link without ticking the consent', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByTestId } = renderScreen();
+      revealConsent(getByTestId);
+
+      fireEvent.press(
+        getByTestId(
+          VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK,
+          HIDDEN_FROM_SCREEN_READERS,
+        ),
+      );
+
+      expect(openUrlSpy.mock.calls).toEqual([[IDOS_PRIVACY_NOTICE_URL]]);
+      expect(isTicked(getByTestId)).toBe(false);
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('toggles the consent from the checkbox', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(checkboxOf(getByTestId));
+      expect(isTicked(getByTestId)).toBe(true);
+      fireEvent.press(checkboxOf(getByTestId));
+      expect(isTicked(getByTestId)).toBe(false);
+    });
+
+    it('toggles the consent from the plain words of the sentence', () => {
+      const openUrlSpy = jest.spyOn(Linking, 'openURL');
+      const { getByTestId } = renderScreen();
+      const sentence = getByTestId(
+        VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LABEL,
+        HIDDEN_FROM_SCREEN_READERS,
+      );
+
+      fireEvent.press(sentence);
+      expect(isTicked(getByTestId)).toBe(true);
+      fireEvent.press(sentence);
+      expect(isTicked(getByTestId)).toBe(false);
+      expect(openUrlSpy).not.toHaveBeenCalled();
+    });
+
+    it('is one checkbox for screen readers, labelled with the whole sentence, with the link as an action', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByTestId, getByRole } = renderScreen();
+      const checkbox = checkboxOf(getByTestId);
+
+      expect(getByRole('checkbox', { name: BIOMETRIC_CONSENT })).toBe(checkbox);
+      expect(checkbox.props.accessibilityLabel).toBe(BIOMETRIC_CONSENT);
+      expect(checkbox.props.accessibilityActions).toEqual([
+        {
+          name: 'openPrivacyNotice',
+          label: 'idOS Privacy Notice, Opens in your browser',
+        },
+      ]);
+      // The sentence repeats the label, so screen readers skip it.
+      expect(
+        getByTestId(
+          VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LABEL,
+          HIDDEN_FROM_SCREEN_READERS,
+        ).props,
+      ).toMatchObject({
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants',
+      });
+
+      fireEvent(checkbox, 'accessibilityAction', {
+        nativeEvent: { actionName: 'openPrivacyNotice' },
+      });
+
+      expect(openUrlSpy.mock.calls).toEqual([[IDOS_PRIVACY_NOTICE_URL]]);
+      expect(isTicked(getByTestId)).toBe(false);
+    });
   });
 
   it('shows Agree loading while the session terms load', () => {

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { TermsSectionTitle } from './IdentityTermsComponents';
 import {
   METAMASK_PRIVACY_NOTICE_URL,
   METAMASK_TERMS_URL,
@@ -52,8 +53,8 @@ describe('VbaVerifyIdentity', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders screen 1 of 2 with the steps, the idOS benefits and the MetaMask terms', () => {
-    const { getByText, getByTestId, queryByText } = renderScreen();
+  it('renders screen 1 of 2 with the steps and the idOS benefits', () => {
+    const { getByText, getByTestId } = renderScreen();
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.STEP_COUNTER),
@@ -71,16 +72,7 @@ describe('VbaVerifyIdentity', () => {
       'You control your data.',
       'We share your verified identity with a partner only when you agree.',
       'Delete anytime.',
-      'MetaMask terms',
     ].forEach((text) => expect(getByText(text)).toBeOnTheScreen());
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_ROW),
-    ).toHaveTextContent('Terms of Use', { exact: true });
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW),
-    ).toHaveTextContent('Privacy Notice', { exact: true });
-    // The section title names MetaMask, so the card has no party label.
-    expect(queryByText('MetaMask')).toBeNull();
     expect(
       getByTestId(`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-delete`),
     ).toHaveTextContent(
@@ -127,22 +119,33 @@ describe('VbaVerifyIdentity', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the MetaMask Terms of Use and Privacy Notice from the rows and the consent line', () => {
+  it('has no MetaMask terms card, since the consent line links both documents', () => {
+    const { queryByText, getAllByText, getByTestId } = renderScreen();
+
+    expect(queryByText('MetaMask terms')).toBeNull();
+    // Each document is named once: in the consent line, not in a row too.
+    expect(getAllByText('Terms of Use')).toHaveLength(1);
+    expect(getAllByText('Privacy Notice')).toHaveLength(1);
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
+    ).toHaveTextContent('Terms of Use', { exact: true });
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_LINK),
+    ).toHaveTextContent('Privacy Notice', { exact: true });
+  });
+
+  it('opens the MetaMask Terms of Use and Privacy Notice from the consent line', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
     const { getByTestId } = renderScreen();
 
     [
-      VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_ROW,
-      VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW,
       VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
       VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_LINK,
     ].forEach((testID) => fireEvent.press(getByTestId(testID)));
 
     expect(openUrlSpy.mock.calls).toEqual([
-      [METAMASK_TERMS_URL],
-      [METAMASK_PRIVACY_NOTICE_URL],
       [METAMASK_TERMS_URL],
       [METAMASK_PRIVACY_NOTICE_URL],
     ]);
@@ -153,12 +156,15 @@ describe('VbaVerifyIdentity', () => {
     expect(mockOnContinue).not.toHaveBeenCalled();
   });
 
-  it('styles the idOS partners heading like the MetaMask terms section title', () => {
+  it('styles the idOS partners heading as a terms section title', () => {
     const { getByText } = renderScreen();
+    const sectionTitle = render(
+      <TermsSectionTitle>Section title</TermsSectionTitle>,
+    ).getByText('Section title');
 
     expect(
       getByText('We partner with idOS to verify your identity.').props.style,
-    ).toStrictEqual(getByText('MetaMask terms').props.style);
+    ).toStrictEqual(sectionTitle.props.style);
   });
 
   it('shows the delete benefit as plain text with no Learn more link', () => {
