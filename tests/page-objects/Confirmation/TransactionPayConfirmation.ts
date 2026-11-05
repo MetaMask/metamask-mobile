@@ -454,8 +454,11 @@ class TransactionPayConfirmation {
    * That container only renders when the pay controller stored a quote error,
    * so a missing container means the alert came from state without one (for
    * example a withdraw whose post-quote config was never initialised).
+   *
+   * @param step - Label prefixed to the error so a spec with several
+   * checkpoints reports which one failed.
    */
-  async verifyNoQuoteError(): Promise<void> {
+  async verifyNoQuoteError(step = 'confirmation'): Promise<void> {
     const waitUntilOrDeadline = (
       isDone: () => Promise<boolean>,
       timeoutMs: number,
@@ -482,7 +485,7 @@ class TransactionPayConfirmation {
 
     if (!(await hasQuoteErrorAlert())) {
       throw new Error(
-        'Neither bridge-fee-row nor a quote error alert appeared. The pay controller stored no quote error, so the alert (if any) came from empty quotes or an uninitialised withdraw config.',
+        `[${step}] Neither bridge-fee-row nor a quote error alert appeared. The pay controller stored no quote error, so the alert (if any) came from empty quotes or an uninitialised withdraw config.`,
       );
     }
 
@@ -497,7 +500,9 @@ class TransactionPayConfirmation {
     await alertElement.click();
     const details = (await alertElement.getText()).replace(/\s+/gu, ' ').trim();
 
-    throw new Error(`Quote failed instead of showing a fee row: ${details}`);
+    throw new Error(
+      `[${step}] Quote failed instead of showing a fee row: ${details}`,
+    );
   }
 
   async verifyTransactionFeeVisible(): Promise<void> {

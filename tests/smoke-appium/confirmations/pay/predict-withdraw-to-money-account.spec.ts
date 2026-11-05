@@ -95,6 +95,11 @@ appiumTest.describe(
 
             await TransactionPayConfirmation.verifyPayWithSymbol('mUSD');
             await TransactionPayConfirmation.enterAmountAndContinue('5');
+            // Checkpoint: tells a Monad mUSD destination failure apart from a
+            // Money Account override failure.
+            await TransactionPayConfirmation.verifyNoQuoteError(
+              'mUSD on Monad, before Money account',
+            );
 
             await TransactionPayConfirmation.tapPayWithRow();
             await PayWithModal.verifyMoneyAccountSectionVisible();
@@ -104,7 +109,9 @@ appiumTest.describe(
               'Money account',
             );
 
-            await TransactionPayConfirmation.verifyNoQuoteError();
+            await TransactionPayConfirmation.verifyNoQuoteError(
+              'Money account selected',
+            );
             await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
