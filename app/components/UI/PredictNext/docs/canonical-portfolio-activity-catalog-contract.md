@@ -479,7 +479,7 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 - `hash` carries the canonical `id`, not a transaction hash.
 - `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
 - Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
-- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
+- `predictionSettled` comes from `@metamask/client-utils` (added in `3.1.0`, MetaMask/core#11169) with the same item shape as the other prediction kinds. Mobile declared it locally from PRED-1405 until PRED-1420 bumped client-utils and deleted the local entry. The settlement fields above (`PredictSettlementExtras`) and `KALSHI_VENUE_CHAIN_ID` stay mobile-only in `app/util/activity-adapters/types.ts`.
 
 ## Open decisions for product
 
