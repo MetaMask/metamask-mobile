@@ -28,6 +28,7 @@ import { ChoiceMarketGroupCardTestIds } from '../../../events/markets/ChoiceMark
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
 import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
+  PredictDecimal,
   PredictEvent,
   PredictMarket,
   PredictPosition,
@@ -2076,6 +2077,38 @@ describe('EventMarketList', () => {
         market.outcomes[0],
       );
       expect(callbacks.onCashOut).not.toHaveBeenCalled();
+    });
+
+    it('rounds a sub-cent ask to the same whole number in the chance and Buy', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const [market] = event.markets;
+      const subCent: PredictEvent = {
+        ...event,
+        markets: [
+          {
+            ...market,
+            outcomes: [
+              { ...market.outcomes[0], askPrice: '0.425' as PredictDecimal },
+              market.outcomes[1],
+            ],
+          },
+          ...event.markets.slice(1),
+        ],
+      };
+      const position = makePredictNextPosition({ marketId: market.id });
+      const { view } = await renderPositions(subCent, [position]);
+      const card = cardOf(view, position);
+
+      expect(
+        card.getByTestId(
+          EventMarketListTestIds.positionChance(position.marketId, 'yes'),
+        ),
+      ).toHaveTextContent('43% to win');
+      expect(
+        card.getByTestId(
+          EventMarketListTestIds.positionBuy(position.marketId, 'yes'),
+        ),
+      ).toHaveTextContent('Buy 43¢');
     });
 
     it('shows a losing No Position in red and buys its No side', async () => {

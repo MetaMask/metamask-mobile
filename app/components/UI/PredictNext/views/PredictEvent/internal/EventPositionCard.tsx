@@ -139,7 +139,7 @@ export const EventPositionCard = ({
     chance === undefined
       ? undefined
       : strings('predict_next.event.position.chance_to_win', {
-          percent: chance,
+          percent: Math.round(chance),
         });
   const price = formatAskPrice(heldOutcome?.askPrice);
   const canBuy =
