@@ -8,7 +8,6 @@ import { SectionRefreshHandle } from '../../types';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
-const mockNavigateToSocialV1Profile = jest.fn();
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
 let mockHasFetched = true;
 
@@ -131,14 +130,6 @@ jest.mock(
       mockNavigateToSocialLeaderboard(...args),
   }),
 );
-jest.mock(
-  '../../../SocialLeaderboard/navigation/navigateToSocialV1Profile',
-  () => ({
-    navigateToSocialV1Profile: (...args: unknown[]) =>
-      mockNavigateToSocialV1Profile(...args),
-  }),
-);
-
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -601,43 +592,6 @@ describe('TopTradersSection', () => {
       source: 'home_carousel',
       traderRank: 1,
     });
-  });
-
-  it('navigates to the Social V1 profile when a treatment card is tapped', () => {
-    mockUseABTest.mockImplementation((flagKey, variants) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: variants.treatment,
-          variantName: 'treatment',
-          isActive: true,
-        };
-      }
-      return {
-        variant: variants.control,
-        variantName: 'control',
-        isActive: false,
-      };
-    });
-
-    renderWithProvider(<TopTradersSection {...defaultProps} />);
-
-    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
-
-    expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
-      expect.any(Object),
-      {
-        traderId: 'trader-1',
-        traderName: 'alice',
-        traderAddress: '0x0000000000000000000000000000000000000001',
-        traderAvatarUri: undefined,
-        source: 'home_carousel',
-        traderRank: 1,
-      },
-    );
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL.PROFILE,
-      expect.anything(),
-    );
   });
 
   it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
