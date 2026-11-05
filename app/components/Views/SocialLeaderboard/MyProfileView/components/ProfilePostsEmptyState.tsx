@@ -7,46 +7,31 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import SocialConversationEmptyState from '../../../../UI/SocialFeed/components/SocialConversationEmptyState';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 
 export interface ProfilePostsEmptyStateProps {
-  /** Open, Closed, and a filtered Posts tab pass their own line. */
+  /** Defaults to "No posts yet". Open and Closed pass their own line. */
   message?: string;
 }
 
 /**
- * Posts with nothing to show use the illustrated conversation empty state.
- * Open, Closed, and a filtered Posts tab pass their own one-line message.
+ * One centered line for an empty profile tab. The line uses the same type and
+ * box as the Open and Closed empty copy.
  */
 const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   message,
-}) => {
-  if (!message) {
-    return (
-      <SocialConversationEmptyState
-        title={strings('social_leaderboard.my_profile.posts_empty_title')}
-        description={strings(
-          'social_leaderboard.my_profile.posts_empty_description',
-        )}
-        testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
-      />
-    );
-  }
-
-  return (
-    <Box
-      paddingTop={4}
-      twClassName="w-full"
-      testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
-    >
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-4 py-8">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {message}
-        </Text>
-      </Box>
+}) => (
+  <Box
+    paddingTop={4}
+    twClassName="w-full"
+    testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
+  >
+    <Box alignItems={BoxAlignItems.Center} twClassName="px-4 py-8">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {message ?? strings('social_leaderboard.my_profile.empty_title')}
+      </Text>
     </Box>
-  );
-};
+  </Box>
+);
 
 export default ProfilePostsEmptyState;

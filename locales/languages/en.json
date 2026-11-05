@@ -1731,8 +1731,6 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
-      "posts_empty_title": "Start the conversation",
-      "posts_empty_description": "Post a trade. When others copy it, you get 15% of the fees.",
       "joined": "Joined {{time}}",
       "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",

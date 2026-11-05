@@ -862,13 +862,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
     );
-    expect(screen.getByText('Start the conversation')).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        'Post a trade. When others copy it, you get 15% of the fees.',
-      ),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
   });
 
@@ -879,7 +873,7 @@ describe('TraderProfileView', () => {
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
     );
     expect(screen.getByText('post-1')).toBeOnTheScreen();
-    expect(screen.queryByText('Start the conversation')).not.toBeOnTheScreen();
+    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
   });
 
   it('requests the next posts page when a scroll settles near the end', () => {
