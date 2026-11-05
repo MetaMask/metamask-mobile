@@ -17,7 +17,8 @@ const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 const toRow = (
   index: number,
   overrides: {
-    core?: Partial<TraderFeedRow['core']>;
+    // `positionValueUSD` is not on the core type yet; the row reads it optionally.
+    core?: Partial<TraderFeedRow['core'] & { positionValueUSD?: number }>;
     item?: Partial<TraderFeedRow['item']>;
   } = {},
 ): TraderFeedRow => {
@@ -61,14 +62,90 @@ describe('TokenHolderRow', () => {
     ).toHaveTextContent('$2.4M');
   });
 
-  it('prices the holding in dollars, as the API reports it', () => {
-    const row = toRow(0, { core: { currentValueUSD: 2_400_000 } });
+  it('shows positionValueUSD, the value the list is ranked by, over currentValueUSD', () => {
+    const row = toRow(0, {
+      core: { currentValueUSD: 2_400_000, positionValueUSD: 3_100_000 },
+    });
+
+    renderWithProvider(<TokenHolderRow row={row} />);
+
+    expect(
+      screen.getByTestId(TokenHolderRowSelectorsIDs.POSITION_VALUE),
+    ).toHaveTextContent('$3.1M');
+  });
+
+  it('falls back to currentValueUSD when the API omits positionValueUSD', () => {
+    const row = toRow(0, {
+      core: { currentValueUSD: 2_400_000, positionValueUSD: undefined },
+    });
 
     renderWithProvider(<TokenHolderRow row={row} />);
 
     expect(
       screen.getByTestId(TokenHolderRowSelectorsIDs.POSITION_VALUE),
     ).toHaveTextContent('$2.4M');
+  });
+
+  describe('perps holder', () => {
+    const PERP_CORE = {
+      chain: 'hyperliquid',
+      tokenSymbol: 'BTC',
+      tokenAddress: 'BTC',
+      perpPositionType: 'long',
+      currentValueUSD: 50_000,
+      positionValueUSD: 500_000,
+      pnlPercent: 25,
+    } as const;
+
+    it('shows the leveraged size and the P&L in dollars', () => {
+      const row = toRow(0, { core: { ...PERP_CORE, pnlValueUsd: 12_300 } });
+
+      renderWithProvider(<TokenHolderRow row={row} />);
+
+      expect(
+        screen.getByTestId(TokenHolderRowSelectorsIDs.POSITION_VALUE),
+      ).toHaveTextContent('$500K');
+      expect(
+        screen.getByTestId(TokenHolderRowSelectorsIDs.PNL_VALUE),
+      ).toHaveTextContent('+$12.3K');
+      expect(
+        screen.queryByTestId(TokenHolderRowSelectorsIDs.PNL_PERCENT),
+      ).toBeNull();
+    });
+
+    it('colors the dollar P&L by direction while the size stays default', () => {
+      const gain = toRow(0, { core: { ...PERP_CORE, pnlValueUsd: 12_300 } });
+      const { unmount } = renderWithProvider(<TokenHolderRow row={gain} />);
+      const gainColor = textColorOf(TokenHolderRowSelectorsIDs.PNL_VALUE);
+      const sizeColor = textColorOf(TokenHolderRowSelectorsIDs.POSITION_VALUE);
+      unmount();
+
+      const loss = toRow(0, { core: { ...PERP_CORE, pnlValueUsd: -4_000 } });
+      renderWithProvider(<TokenHolderRow row={loss} />);
+
+      expect(
+        screen.getByTestId(TokenHolderRowSelectorsIDs.PNL_VALUE),
+      ).toHaveTextContent('-$4K');
+      expect(textColorOf(TokenHolderRowSelectorsIDs.PNL_VALUE)).not.toBe(
+        gainColor,
+      );
+      expect(sizeColor).not.toBe(gainColor);
+    });
+
+    it('falls back to the P&L percent when the dollar P&L is missing', () => {
+      const row = toRow(0, {
+        core: { ...PERP_CORE, pnlValueUsd: undefined },
+      });
+
+      renderWithProvider(<TokenHolderRow row={row} />);
+
+      expect(
+        screen.getByTestId(TokenHolderRowSelectorsIDs.PNL_PERCENT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TokenHolderRowSelectorsIDs.PNL_VALUE),
+      ).toBeNull();
+    });
   });
 
   it('renders the position value unsigned: a holding is not a result', () => {

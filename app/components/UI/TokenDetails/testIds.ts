@@ -32,5 +32,6 @@ export const TokenDetailsIds = {
     FOLLOWERS: 'token-holder-row-followers',
     POSITION_VALUE: 'token-holder-row-position-value',
     PNL_PERCENT: 'token-holder-row-pnl-percent',
+    PNL_VALUE: 'token-holder-row-pnl-value',
   },
 };
