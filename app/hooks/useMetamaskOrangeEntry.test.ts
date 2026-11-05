@@ -100,7 +100,7 @@ describe('useMetamaskOrangeEntry', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('labels an entitled member MetaMask Orange before the subscription list loads', () => {
+  it('keeps the row pending while an entitlement is still loading', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
@@ -115,8 +115,37 @@ describe('useMetamaskOrangeEntry', () => {
     result.current.onPress();
 
     expect(result.current.showOrangeEntry).toBe(true);
-    expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+    expect(result.current.isLabelPending).toBe(true);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('invites a settled entitlement-only user to join and opens Benefits', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: true,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.isLabelPending).toBe(false);
+    expect(result.current.label).toBe(
+      strings('accounts_menu.join_metamask_orange'),
+    );
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+      label_key: 'accounts_menu.join_metamask_orange',
+      redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
       source: 'accounts_menu',
     });
   });
@@ -154,6 +183,10 @@ describe('useMetamaskOrangeEntry', () => {
       isProSubscriptionEnabled: true,
     });
     mockUseHasProMembership.mockReturnValue(true);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: true,
+    });
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 

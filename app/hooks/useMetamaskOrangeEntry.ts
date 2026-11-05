@@ -41,24 +41,29 @@ export interface UseMetamaskOrangeEntryResult {
  * Visibility, copy, analytics, and destination stay identical across both
  * surfaces, including the `accounts_menu` navigation source.
  *
- * A stored membership shows "MetaMask Orange" immediately. A settled
- * non-member shows "Join MetaMask Orange". While the check is still running
- * and nothing is stored, the row stays put and shows a skeleton.
+ * A stored membership shows "MetaMask Orange" and opens Pro Hub. A settled
+ * non-member shows "Join MetaMask Orange" and opens Benefits. That includes
+ * a leftover entitlement once subscriptions have settled, because Pro Hub
+ * leaves immediately unless a membership is stored. While that check is
+ * still running and nothing is stored, the row stays put and shows a skeleton.
  */
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { access } = useMoneyAccountPlusAccessState();
+  const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
   // Opening the menu starts the subscriptions query. A stored plan can label
-  // the row on the first paint; an empty result waits until that query settles.
-  const isMember =
-    hasMembership || access === MoneyAccountPlusAccess.Subscriber;
+  // the row on the first paint. Subscriber access also covers a leftover
+  // entitlement, including before the list loads, so it is not enough to open
+  // the hub. An empty result waits until that query settles, then joins.
+  const isMember = hasMembership;
   const isKnownNonMember =
-    !isMember && access === MoneyAccountPlusAccess.Eligible;
+    !isMember &&
+    (access === MoneyAccountPlusAccess.Eligible ||
+      (access === MoneyAccountPlusAccess.Subscriber && isSubscriptionsSettled));
   const showOrangeEntry = isProSubscriptionEnabled;
   const isLabelPending = showOrangeEntry && !isMember && !isKnownNonMember;
   const labelKey = isKnownNonMember
