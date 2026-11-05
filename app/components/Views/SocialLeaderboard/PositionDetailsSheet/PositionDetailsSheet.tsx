@@ -18,6 +18,7 @@ import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { parseCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -194,6 +195,19 @@ const PositionDetailsSheet = () => {
       ? position.tokenAddress
       : (toAssetId(position.tokenAddress, caipChainId) ??
         position.tokenAddress);
+    let isNative = !isEvm && address.includes('/slip44:');
+    if (isEvm) {
+      try {
+        // The zero address is how social records ETH and other native coins.
+        // The asset page treats that as an ERC-20 unless this flag is set.
+        isNative =
+          formatAddressToAssetId(position.tokenAddress, caipChainId)?.includes(
+            '/slip44:',
+          ) ?? false;
+      } catch {
+        isNative = false;
+      }
+    }
     const { tokenSymbol } = position;
     const { assetName } = data;
     void playSelection()?.catch(() => undefined);
@@ -203,7 +217,7 @@ const PositionDetailsSheet = () => {
         address,
         symbol: tokenSymbol,
         name: assetName,
-        isNative: false,
+        isNative,
       });
     });
   }, [closeThen, data, navigation, position]);

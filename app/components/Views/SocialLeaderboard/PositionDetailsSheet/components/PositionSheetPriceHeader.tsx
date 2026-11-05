@@ -53,11 +53,24 @@ const PositionSheetPriceHeader = ({
   const hasChange =
     changePercent !== undefined && Number.isFinite(changePercent);
   const isChangePositive = (changePercent ?? 0) >= 0;
+  const leverageLabel = isPerp && leverage ? `${leverage}x` : undefined;
+  const changeLabel = hasChange ? formatPercent(changePercent) : undefined;
+  // One label, because the whole header is the button. A label on the
+  // pressable otherwise replaces the price, change, and leverage.
+  const accessibilityLabel = [
+    assetName,
+    leverageLabel,
+    valueLabel,
+    changeLabel,
+    changeCaption,
+  ]
+    .filter((part) => part != null && part !== '')
+    .join(', ');
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={assetName}
+      accessibilityLabel={accessibilityLabel}
       onPress={onPressAsset}
       testID={PositionDetailsSheetSelectorsIDs.PRICE_HEADER}
     >
@@ -77,9 +90,6 @@ const PositionSheetPriceHeader = ({
               variant={TextVariant.HeadingSm}
               numberOfLines={1}
               twClassName="shrink"
-              // HeadingSm's line box is taller than the tag and the arrow.
-              // Match their height so the three share one vertical center.
-              style={{ lineHeight: 20, includeFontPadding: false }}
             >
               {assetName}
             </Text>

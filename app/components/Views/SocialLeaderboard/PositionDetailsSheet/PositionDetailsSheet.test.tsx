@@ -245,6 +245,8 @@ describe('PositionDetailsSheet', () => {
     );
 
     expect(within(priceHeader).getByText('Pepe')).toBeOnTheScreen();
+    expect(priceHeader.props.accessibilityLabel).toContain('Pepe');
+    expect(priceHeader.props.accessibilityLabel).toContain('$120');
     expect(within(priceHeader).UNSAFE_getByType(Icon).props).toMatchObject({
       name: IconName.ArrowRight,
       color: IconColor.IconAlternative,
@@ -263,6 +265,35 @@ describe('PositionDetailsSheet', () => {
       symbol: 'PEPE',
       name: 'Pepe',
       isNative: false,
+    });
+  });
+
+  it('opens a native token as the chain asset', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        tokenAddress: '0x0000000000000000000000000000000000000000',
+        tokenSymbol: 'ETH',
+        tokenName: 'Ethereum',
+      }),
+    };
+    mockSheetData = buildSheetData({
+      symbol: 'ETH',
+      assetName: 'Ethereum',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: '0x1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      isNative: true,
     });
   });
 
