@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -60,8 +59,11 @@ import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import type { RootState } from '../../../reducers';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountsMenu = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -391,7 +393,9 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset

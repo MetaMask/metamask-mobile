@@ -56,7 +56,11 @@ import type {
   AppStackNavigationProp,
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
-import { playSelection } from '../../../../util/haptics';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -74,6 +78,7 @@ import {
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
@@ -92,7 +97,11 @@ import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
-import type { ProfileAssetFilter } from './utils/splitPositionsByType';
+import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
+import {
+  matchesProfileAssetFilter,
+  type ProfileAssetFilter,
+} from './utils/splitPositionsByType';
 import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
@@ -108,6 +117,131 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
+
+const linkedAddressesMatch = (
+  traderAddress: string | null | undefined,
+  linkedAccountAddress: string | null | undefined,
+): boolean =>
+  Boolean(
+    linkedAccountAddress &&
+      traderAddress?.toLowerCase() === linkedAccountAddress.toLowerCase(),
+  );
+
+const profilePositionTab = ({
+  activeTab,
+  openPositions,
+  closedPositions,
+  isLoadingOpen,
+  isLoadingClosed,
+  openError,
+  closedError,
+}: {
+  activeTab: ProfileContentTab;
+  openPositions: Position[];
+  closedPositions: Position[];
+  isLoadingOpen: boolean;
+  isLoadingClosed: boolean;
+  openError: string | null;
+  closedError: string | null;
+}) => {
+  if (activeTab === 'closed') {
+    return {
+      positions: closedPositions,
+      isLoading: isLoadingClosed,
+      error: closedError,
+      isClosed: true,
+    };
+  }
+  return {
+    positions: openPositions,
+    isLoading: isLoadingOpen,
+    error: openError,
+    isClosed: false,
+  };
+};
+
+const filteredPostsEmptyKey = (assetFilter: ProfileAssetFilter): string =>
+  assetFilter === 'tokens'
+    ? 'social_leaderboard.feed.empty_type.tokens.title'
+    : 'social_leaderboard.feed.empty_type.perps.title';
+
+interface ProfilePostsContentProps {
+  showInitialPostSkeletons: boolean;
+  showPostsEmptyState: boolean;
+  postsEmptyMessage?: string;
+  postsError: string | null;
+  visiblePosts: SocialV1FeedPost[];
+  onRetry: () => void;
+  showCopyTrade: boolean;
+}
+
+const ProfilePostsContent = ({
+  showInitialPostSkeletons,
+  showPostsEmptyState,
+  postsEmptyMessage,
+  postsError,
+  visiblePosts,
+  onRetry,
+  showCopyTrade,
+}: ProfilePostsContentProps) => {
+  if (showInitialPostSkeletons) {
+    return <ProfilePostsLoadingState />;
+  }
+  if (showPostsEmptyState) {
+    return <ProfilePostsEmptyState message={postsEmptyMessage} />;
+  }
+  if (postsError && visiblePosts.length === 0) {
+    return (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="w-full px-4 py-16 gap-3"
+        testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
+      >
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          twClassName="text-center"
+        >
+          {strings('social_leaderboard.feed.error.title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('social_leaderboard.feed.error.description')}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          onPress={onRetry}
+          twClassName="self-center"
+          testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
+        >
+          {strings('social_leaderboard.feed.error.retry')}
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
+      <SocialV1FeedPostList
+        posts={visiblePosts}
+        dividerKeyPrefix="my-profile"
+        renderPost={(post) => (
+          <SocialFeedPostShell
+            post={post}
+            requireSocialTerms
+            showCopyTrade={showCopyTrade}
+          />
+        )}
+      />
+    </Box>
+  );
+};
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -139,12 +273,7 @@ const MyProfileView: React.FC = () => {
   const isOwner =
     !traderId ||
     traderId === myProfile?.profileId ||
-    Boolean(
-      traderAddress &&
-        myProfile?.linkedAccountAddress &&
-        traderAddress.toLowerCase() ===
-          myProfile.linkedAccountAddress.toLowerCase(),
-    );
+    linkedAddressesMatch(traderAddress, myProfile?.linkedAccountAddress);
   const { traders: following } = useFollowedTraders();
   const ownerAddressOrId = useMyProfileAddress(myProfile);
   const addressOrId = isOwner ? ownerAddressOrId : (traderId ?? traderAddress);
@@ -156,14 +285,16 @@ const MyProfileView: React.FC = () => {
   } = liveProfile;
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile: true,
   });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
     }
-    if (liveProfile.profile) {
-      return traderProfileResponseToMySocialProfile(liveProfile.profile, {
+    const remoteProfile = liveProfile.profile;
+    if (remoteProfile) {
+      return traderProfileResponseToMySocialProfile(remoteProfile, {
         handle: traderName,
         imageUrl: traderAvatarUri,
       });
@@ -196,7 +327,7 @@ const MyProfileView: React.FC = () => {
     isActive: isOwner,
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
   const profileTabs = useMemo<TabItem[]>(
     () => [
       {
@@ -220,12 +351,17 @@ const MyProfileView: React.FC = () => {
     ],
     [],
   );
-  const handleProfileTabPress = useCallback((index: number) => {
-    const nextTab = PROFILE_CONTENT_TABS[index];
-    if (nextTab) {
+  const handleProfileTabPress = useCallback(
+    (index: number) => {
+      const nextTab = PROFILE_CONTENT_TABS[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      playSelection().catch(() => undefined);
       setActiveTab(nextTab);
-    }
-  }, []);
+    },
+    [activeTab],
+  );
   const scrollRef = useRef<Animated.ScrollView>(null);
   useFocusEffect(
     useCallback(() => {
@@ -260,6 +396,8 @@ const MyProfileView: React.FC = () => {
     refetchInterval: isBlocked ? undefined : 30_000,
   });
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
+  const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
+  const isAssetFilterActive = assetFilter !== 'all';
   const overlayedStats = useMemo(
     () =>
       displayProfile
@@ -281,6 +419,7 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const handleEditProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleEditAvatar = useCallback(() => {
@@ -317,6 +456,7 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
+    playSelection().catch(() => undefined);
     shareSocialProfile(traderId);
   }, [traderId]);
 
@@ -332,6 +472,7 @@ const MyProfileView: React.FC = () => {
     if (!myProfile?.profileId) {
       return;
     }
+    playSelection().catch(() => undefined);
     shareSocialProfile(myProfile.profileId);
   }, [myProfile?.profileId]);
 
@@ -460,6 +601,20 @@ const MyProfileView: React.FC = () => {
     },
     [assetFilter, trackInteraction],
   );
+  const handleOpenAssetFilter = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    setIsAssetFilterOpen(true);
+  }, []);
+  const handleCloseAssetFilter = useCallback(() => {
+    setIsAssetFilterOpen(false);
+  }, []);
+  const visiblePosts = useMemo(
+    () =>
+      posts.filter((post) =>
+        matchesProfileAssetFilter(post.position, assetFilter),
+      ),
+    [assetFilter, posts],
+  );
 
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -477,9 +632,40 @@ const MyProfileView: React.FC = () => {
     [activeTab, hasNextPage, loadMore],
   );
 
-  const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
+  // A Tokens or Perps filter only sees posts already loaded. Keep paging
+  // until a match shows up, the feed ends, or the request fails.
+  const showFilteredPostLoading =
+    assetFilter !== 'all' &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    (isPostsLoading || isFetchingNextPage || hasNextPage);
+  const showInitialPostSkeletons =
+    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
   const showPostsEmptyState =
-    !isPostsLoading && posts.length === 0 && !postsError;
+    !isPostsLoading &&
+    !isFetchingNextPage &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    !showFilteredPostLoading;
+  useEffect(() => {
+    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
+      return;
+    }
+    loadMore();
+  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
+  const postsEmptyMessage =
+    posts.length > 0 && assetFilter !== 'all'
+      ? strings(filteredPostsEmptyKey(assetFilter))
+      : undefined;
+  const positionTab = profilePositionTab({
+    activeTab,
+    openPositions,
+    closedPositions,
+    isLoadingOpen,
+    isLoadingClosed,
+    openError: openPositionsError,
+    closedError: closedPositionsError,
+  });
 
   return (
     <SocialFeedSurfaceProvider
@@ -539,7 +725,10 @@ const MyProfileView: React.FC = () => {
           }}
           endAccessory={
             !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface
+                twClassName="gap-2 px-2"
+                testID={MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE}
+              >
                 <ButtonIcon
                   iconName={IconName.Share}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -771,85 +960,60 @@ const MyProfileView: React.FC = () => {
                   cells={overlayedStats.performanceCells}
                 />
 
-                <Box twClassName="bg-default mt-5">
-                  <TabsBar
-                    tabs={profileTabs}
-                    activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
-                    onTabPress={handleProfileTabPress}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="bg-default mt-5 pr-4"
+                >
+                  <Box twClassName="min-w-0 flex-1">
+                    <TabsBar
+                      tabs={profileTabs}
+                      activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
+                      onTabPress={handleProfileTabPress}
+                    />
+                  </Box>
+                  <ButtonIcon
+                    iconName={IconName.Filter}
+                    iconProps={{
+                      size: IconSize.Lg,
+                      color: IconColor.IconDefault,
+                    }}
+                    size={ButtonIconSize.Md}
+                    onPress={handleOpenAssetFilter}
+                    accessibilityLabel={strings(
+                      'social_leaderboard.shell.filters.title',
+                    )}
+                    accessibilityState={{ selected: isAssetFilterActive }}
+                    testID={MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON}
+                    twClassName={isAssetFilterActive ? 'bg-pressed' : undefined}
                   />
                 </Box>
 
                 {activeTab !== 'posts' ? (
                   <ProfilePositionsTab
-                    positions={
-                      activeTab === 'open' ? openPositions : closedPositions
-                    }
-                    isLoading={
-                      activeTab === 'open' ? isLoadingOpen : isLoadingClosed
-                    }
-                    error={
-                      activeTab === 'open'
-                        ? openPositionsError
-                        : closedPositionsError
-                    }
-                    isClosed={activeTab === 'closed'}
+                    positions={positionTab.positions}
+                    isLoading={positionTab.isLoading}
+                    error={positionTab.error}
+                    isClosed={positionTab.isClosed}
                     filter={assetFilter}
-                    onFilterChange={handleAssetFilterChange}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
                   />
-                ) : showInitialPostSkeletons ? (
-                  <ProfilePostsLoadingState />
-                ) : showPostsEmptyState ? (
-                  <ProfilePostsEmptyState />
-                ) : postsError && posts.length === 0 ? (
-                  <Box
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    twClassName="w-full px-4 py-16 gap-3"
-                    testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
-                  >
-                    <Text
-                      variant={TextVariant.HeadingSm}
-                      fontWeight={FontWeight.Bold}
-                      color={TextColor.TextDefault}
-                      twClassName="text-center"
-                    >
-                      {strings('social_leaderboard.feed.error.title')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                      twClassName="text-center"
-                    >
-                      {strings('social_leaderboard.feed.error.description')}
-                    </Text>
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      size={ButtonSize.Sm}
-                      onPress={refreshPosts}
-                      twClassName="self-center"
-                      testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
-                    >
-                      {strings('social_leaderboard.feed.error.retry')}
-                    </Button>
-                  </Box>
                 ) : (
-                  <Box
-                    paddingTop={4}
-                    testID={MyProfileViewSelectorsIDs.POSTS_LIST}
-                  >
-                    <SocialV1FeedPostList
-                      posts={posts}
-                      dividerKeyPrefix="my-profile"
-                      renderPost={(post) => (
-                        <SocialFeedPostShell post={post} requireSocialTerms />
-                      )}
-                    />
-                  </Box>
+                  <ProfilePostsContent
+                    showInitialPostSkeletons={showInitialPostSkeletons}
+                    showPostsEmptyState={showPostsEmptyState}
+                    postsEmptyMessage={postsEmptyMessage}
+                    postsError={postsError}
+                    visiblePosts={visiblePosts}
+                    onRetry={refreshPosts}
+                    showCopyTrade={!isOwner}
+                  />
                 )}
-                {activeTab === 'posts' && isFetchingNextPage ? (
+                {activeTab === 'posts' &&
+                isFetchingNextPage &&
+                visiblePosts.length > 0 ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     twClassName="px-4"
@@ -894,6 +1058,13 @@ const MyProfileView: React.FC = () => {
             </Button>
           </Box>
         )}
+        {isAssetFilterOpen ? (
+          <ProfileAssetFilterSheet
+            value={assetFilter}
+            onApply={handleAssetFilterChange}
+            onClose={handleCloseAssetFilter}
+          />
+        ) : null}
         {isProfileOptionsOpen && displayProfile && blockProfileId ? (
           <ProfileOptionsSheet
             traderName={displayProfile.displayName}

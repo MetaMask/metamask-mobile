@@ -495,8 +495,10 @@ describe('TraderProfileView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share profile');
@@ -1223,6 +1225,7 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+      expect(mockPlaySelection).toHaveBeenCalledTimes(5);
     });
 
     it('triggers a haptic on each sort tap', () => {
