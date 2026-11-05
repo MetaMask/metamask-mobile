@@ -10,7 +10,6 @@ import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
-import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import OfflineMode from '../../Views/OfflineMode';
 import {
   slideFromRightNativeOptions,
@@ -49,7 +48,6 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 
-const NATIVE_TAB_INSET_PROBE_TEST_ID = 'native-tab-inset-probe';
 jest.mock('@react-navigation/bottom-tabs/unstable', () => {
   const ReactActual = jest.requireActual('react');
   const { Text, View } = jest.requireActual('react-native');
@@ -252,7 +250,7 @@ describe('MainNavigator', () => {
       return homeScreen?.props?.component;
     };
 
-    const getTabBarFn = (
+    const getTabBarComponent = (
       HomeTabsComponent: React.ComponentType<Record<string, unknown>>,
     ) => {
       const { root: homeRoot } = renderWithProvider(
@@ -262,52 +260,13 @@ describe('MainNavigator', () => {
       const tabNavigatorNode = homeRoot.findAll(
         (node: ReactTestInstance) => node.type?.toString?.() === 'TabNavigator',
       )[0];
-      return tabNavigatorNode?.props?.tabBar as (args: {
-        state: {
-          routes: { name: string; state?: unknown }[];
-          index: number;
-        };
-        descriptors: Record<string, unknown>;
-        navigation: Record<string, unknown>;
-      }) => React.ReactNode;
+      return tabNavigatorNode?.props?.tabBar as { name?: string } | undefined;
     };
 
-    it('hides tab bar when browser is active', () => {
-      // Given HomeTabs is rendered and the active route is the browser
+    it('uses one footer component for every tab', () => {
       const HomeTabs = getHomeTabsComponent();
-      const renderTabBar = getTabBarFn(HomeTabs);
 
-      // When renderTabBar is called with a browser route as the active tab
-      const result = renderTabBar({
-        state: {
-          routes: [{ name: Routes.BROWSER.HOME }],
-          index: 0,
-        },
-        descriptors: {},
-        navigation: {},
-      });
-
-      // Then the tab bar should be hidden
-      expect(result).toBeNull();
-    });
-
-    it('shows tab bar when not in browser', () => {
-      // Given HomeTabs is rendered and the active route is the wallet
-      const HomeTabs = getHomeTabsComponent();
-      const renderTabBar = getTabBarFn(HomeTabs);
-
-      // When renderTabBar is called with a non-browser route as the active tab
-      const result = renderTabBar({
-        state: {
-          routes: [{ name: Routes.WALLET.HOME }],
-          index: 0,
-        },
-        descriptors: {},
-        navigation: {},
-      });
-
-      // Then the tab bar should be visible
-      expect(result).not.toBeNull();
+      expect(getTabBarComponent(HomeTabs)?.name).toBe('FixedTabBar');
     });
 
     it('hosts Quick Buy above the tab navigator', () => {
@@ -375,198 +334,73 @@ describe('MainNavigator', () => {
       expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
     });
 
-    it.each([
-      Routes.BROWSER.HOME,
-      Routes.TRANSACTIONS_VIEW,
-      Routes.REWARDS_VIEW,
-    ])('keeps freeze-on-blur off for %s', (tabName) => {
-      // Given HomeTabs is rendered
+    it('does not freeze blurred tabs', () => {
       const HomeTabs = getHomeTabsComponent();
-
-      // When the tab screens are inspected
       const { root: homeRoot } = renderWithProvider(
         <HomeTabs route={{ params: {} }} />,
         { state: initialRootState },
       );
-      const tabScreen = homeRoot.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'TabScreen' &&
-          node.props?.name === tabName,
+      const tabNavigator = homeRoot.findAll(
+        (node: ReactTestInstance) => node.type?.toString?.() === 'TabNavigator',
       )[0];
 
-      // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
-      // frozen subtree suspends the wrapper's unmount and keeps the tab alive
-      expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
+      expect(tabNavigator?.props?.screenOptions?.freezeOnBlur).toBe(false);
     });
 
-    describe('Rewards tab bar visibility', () => {
-      // Only the three Rewards home screens live under the tab; every sub-page
-      // is pushed as REWARDS_FLOW on the root stack, which covers the tab
-      // shell entirely. So the tab bar stays up for the whole tab.
-      const buildRewardsState = (activeRouteName: string | undefined) => ({
-        routes: [
-          {
-            name: Routes.REWARDS_VIEW,
-            state: activeRouteName
-              ? {
-                  index: 0,
-                  routes: [{ name: activeRouteName }],
-                }
-              : undefined,
-          },
-        ],
-        index: 0,
-      });
+    it('registers the fixed footer tabs', () => {
+      const HomeTabs = getHomeTabsComponent();
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const tabNames = homeRoot
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
+        )
+        .map((node) => node.props.name);
 
-      it.each([
-        Routes.REWARDS_DASHBOARD,
-        Routes.REWARDS_MONEY_DASHBOARD,
-        Routes.REWARDS_ONBOARDING_FLOW,
-        undefined,
-      ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
-        // Given HomeTabs is rendered with the Rewards tab active
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for that home screen
-        const result = renderTabBar({
-          state: buildRewardsState(activeRouteName),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar is rendered
-        expect(result).not.toBeNull();
-      });
+      expect(tabNames).toEqual([
+        Routes.WALLET.HOME,
+        Routes.FIXED_TAB_NAV.TRADE,
+        Routes.FIXED_TAB_NAV.MONEY,
+        Routes.FIXED_TAB_NAV.COLLECT,
+      ]);
     });
   });
 
-  describe('Native tab bar (iOS 26)', () => {
-    const renderHomeTabs = () => {
+  describe('Fixed footer instead of the native tab bar', () => {
+    it('keeps the four JS tabs when the native tab bar flag is on', () => {
+      mockIsNativeTabBar = true;
       const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-      const homeScreen = mainRoot.findAll(
+      const HomeTabs = mainRoot.findAll(
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
-      )[0];
-      const HomeTabs = homeScreen?.props?.component as React.ComponentType<
-        Record<string, unknown>
-      >;
-      return renderWithProvider(<HomeTabs route={{ params: {} }} />, {
+      )[0]?.props?.component as React.ComponentType<Record<string, unknown>>;
+      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
         state: initialRootState,
       });
-    };
 
-    const findNativeScreens = (root: ReactTestInstance) =>
-      root.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'NativeTabScreen',
-      );
-
-    beforeEach(() => {
-      mockIsNativeTabBar = true;
-    });
-
-    it('hosts Quick Buy above the native tab screens', () => {
-      const { UNSAFE_root } = renderHomeTabs();
-
-      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
-
-      expect(findNativeScreens(host).length).toBeGreaterThan(0);
-    });
-
-    it('renders native tab screens instead of the JS navigator', () => {
-      const { root } = renderHomeTabs();
-
-      expect(findNativeScreens(root).length).toBeGreaterThan(0);
       expect(
         root.findAll(
           (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabNavigator' ||
-            node.type?.toString?.() === 'TabScreen',
+            node.type?.toString?.() === 'NativeTabScreen',
         ),
       ).toHaveLength(0);
-    });
-
-    it('registers the visible tabs plus the system search slot, not Browser or Trade', () => {
-      const { root } = renderHomeTabs();
-
       expect(
-        findNativeScreens(root).map((screen) => screen.props.name),
+        root
+          .findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'TabScreen',
+          )
+          .map((screen) => screen.props.name),
       ).toEqual([
         Routes.WALLET.HOME,
-        Routes.TRENDING_VIEW,
-        Routes.TRANSACTIONS_VIEW,
-        Routes.REWARDS_VIEW,
-        'SearchTab',
+        Routes.FIXED_TAB_NAV.TRADE,
+        Routes.FIXED_TAB_NAV.MONEY,
+        Routes.FIXED_TAB_NAV.COLLECT,
       ]);
-    });
-
-    it('gives every tab a title, an icon and press listeners', () => {
-      const { root } = renderHomeTabs();
-      const homeScreen = findNativeScreens(root).find(
-        (screen) => screen.props.name === Routes.WALLET.HOME,
-      );
-
-      expect(homeScreen?.props.options).toMatchObject({ title: 'Home' });
-      expect(typeof homeScreen?.props.options.tabBarIcon).toBe('function');
-      expect(typeof homeScreen?.props.listeners).toBe('function');
-    });
-
-    it('hides the bar on Rewards sub-pages through a stable style identity', () => {
-      const { root } = renderHomeTabs();
-      const rewardsScreen = findNativeScreens(root).find(
-        (screen) => screen.props.name === Routes.REWARDS_VIEW,
-      );
-      const resolveOptions = rewardsScreen?.props.options as (args: {
-        route: unknown;
-      }) => { tabBarStyle?: { display: string } };
-
-      const onDashboard = resolveOptions({
-        route: {
-          name: Routes.REWARDS_VIEW,
-          state: {
-            routes: [
-              {
-                name: Routes.REWARDS_VIEW,
-                state: {
-                  index: 0,
-                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
-                },
-              },
-            ],
-          },
-        },
-      });
-      const onSubPage = resolveOptions({
-        route: {
-          name: Routes.REWARDS_VIEW,
-          state: {
-            routes: [
-              {
-                name: Routes.REWARDS_VIEW,
-                state: {
-                  index: 0,
-                  routes: [{ name: 'OndoCampaignDetails' }],
-                },
-              },
-            ],
-          },
-        },
-      });
-
-      expect(onDashboard.tabBarStyle).toBeUndefined();
-      expect(onSubPage.tabBarStyle).toEqual({ display: 'none' });
-    });
-
-    it('reports the native bar height so scroll views clear it', () => {
-      const { getByTestId } = renderHomeTabs();
-
-      // Mocked safe-area bottom is 0, so the padding floor (16) plus the bar (62).
-      expect(getByTestId(NATIVE_TAB_INSET_PROBE_TEST_ID)).toHaveTextContent(
-        '78',
-      );
     });
   });
 
@@ -2025,48 +1859,23 @@ describe('MainNavigator', () => {
         )
         .map((node) => node.props.name);
 
-    const renderedTabBar = (
-      root: ReactTestInstance,
-    ): React.ReactElement<{ trailingAction?: string }> =>
-      root
-        .findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabNavigator',
-        )[0]
-        ?.props?.tabBar({
-          state: { routes: [{ name: Routes.WALLET.HOME }], index: 0 },
-          descriptors: {},
-          navigation: {},
-        });
+    const fixedFooterTabs = [
+      Routes.WALLET.HOME,
+      Routes.FIXED_TAB_NAV.TRADE,
+      Routes.FIXED_TAB_NAV.MONEY,
+      Routes.FIXED_TAB_NAV.COLLECT,
+    ];
 
-    it.each(['searchFocused', 'tradeFocused'])(
-      'pushes Rewards onto the root stack in %s, where it is no longer a tab',
+    it.each(['searchFocused', 'tradeFocused', 'control'])(
+      'keeps the fixed footer and Rewards on the root stack in %s',
       (arm) => {
         const state = stateForArm(arm);
         const container = renderWithProvider(<MainNavigator />, { state });
 
         expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
-
-        const tabs = homeTabNames(container, state);
-        expect(tabs).toContain(Routes.SOCIAL.TAB);
-        expect(tabs).not.toContain(Routes.REWARDS_VIEW);
-        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+        expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
       },
     );
-
-    it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
-      const state = stateForArm('control');
-      const container = renderWithProvider(<MainNavigator />, { state });
-
-      // Registered in both arms so the route always resolves. Control also has
-      // the tab, and the tab navigator is nearer the caller, so it takes it.
-      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
-
-      const tabs = homeTabNames(container, state);
-      expect(tabs).toContain(Routes.REWARDS_VIEW);
-      expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
-    });
 
     it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
       mockSelectIsMoneyAccountVisible.mockReturnValue(true);
@@ -2093,53 +1902,20 @@ describe('MainNavigator', () => {
       };
       const container = renderWithProvider(<MainNavigator />, { state });
 
-      const tabs = homeTabNames(container, state).filter(
-        (tab) => tab !== Routes.BROWSER.HOME,
-      );
-
-      expect(tabs).toEqual([
-        Routes.WALLET.HOME,
-        Routes.TRENDING_VIEW,
-        Routes.MONEY.ROOT,
-        Routes.SOCIAL.TAB,
-      ]);
+      expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
       expect(rootStackScreenNames(container)).toContain(
         Routes.SOCIAL.ONBOARDING,
       );
-      expect(
-        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-      ).toBe('trade');
     });
 
-    it('keeps legacy Social users on the existing tab layout', () => {
+    it('keeps legacy Social off the footer and off the V1 root screen', () => {
       mockSelectIsMoneyAccountVisible.mockReturnValue(true);
       const state = stateForArm('tradeFocused', 'control');
       const container = renderWithProvider(<MainNavigator />, { state });
 
-      expect(homeTabNames(container, state)).toEqual([
-        Routes.WALLET.HOME,
-        Routes.TRENDING_VIEW,
-        Routes.BROWSER.HOME,
-        Routes.MONEY.ROOT,
-        Routes.SOCIAL.TAB,
-      ]);
+      expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
       expect(rootStackScreenNames(container)).not.toContain(Routes.SOCIAL.V1);
     });
-
-    it.each([
-      ['searchFocused', 'search'],
-      ['tradeFocused', 'trade'],
-    ])(
-      'hands the %s arm trailing action to the floating bar',
-      (arm, trailingAction) => {
-        const state = stateForArm(arm);
-        const container = renderWithProvider(<MainNavigator />, { state });
-
-        expect(
-          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-        ).toBe(trailingAction);
-      },
-    );
 
     const stateForInterim = (headerNavBarVariant: string) => {
       const state = stateForArm(headerNavBarVariant);
@@ -2166,58 +1942,49 @@ describe('MainNavigator', () => {
     };
 
     it.each(['control', 'searchFocused'])(
-      'keeps Rewards as a tab with no Social tab when the interim flag is on over %s',
+      'keeps the fixed footer when the interim flag is on over %s',
       (arm) => {
         const state = stateForInterim(arm);
         const container = renderWithProvider(<MainNavigator />, { state });
 
-        const tabs = homeTabNames(container, state);
-        expect(tabs).toContain(Routes.REWARDS_VIEW);
-        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
-        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+        expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
+        expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
       },
     );
 
-    it('hands the trade button to the floating bar when the interim flag is on', () => {
-      const state = stateForInterim('control');
-      const container = renderWithProvider(<MainNavigator />, { state });
-
-      expect(
-        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-      ).toBe('trade');
-    });
-
-    const socialTabComponentName = (
+    const rootScreenComponentName = (
       container: { root: ReactTestInstance },
-      state: ReturnType<typeof stateForArm>,
+      screenName: string,
     ): string | undefined =>
-      renderHomeTabs(container, state).findAll(
+      container.root.findAll(
         (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'TabScreen' &&
-          node.props?.name === Routes.SOCIAL.TAB,
+          node.type?.toString?.() === 'Screen' &&
+          node.props?.name === screenName,
       )[0]?.props?.component?.displayName;
 
     it.each(['searchFocused', 'tradeFocused'])(
-      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      'keeps Social V1 on the root stack in %s when TSA-1122 is treatment',
       (arm) => {
         const state = stateForArm(arm, 'treatment');
         const container = renderWithProvider(<MainNavigator />, { state });
 
-        const componentName = socialTabComponentName(container, state);
-
-        expect(componentName).toBe('withSocialAccountGate(SocialV1View)');
+        expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
+        expect(rootScreenComponentName(container, Routes.SOCIAL.V1)).toBe(
+          'withSocialAccountGate(SocialV1View)',
+        );
       },
     );
 
     it.each(['searchFocused', 'tradeFocused'])(
-      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      'keeps Social V0 on the root stack in %s when TSA-1122 is control',
       (arm) => {
         const state = stateForArm(arm, 'control');
         const container = renderWithProvider(<MainNavigator />, { state });
 
-        const componentName = socialTabComponentName(container, state);
-
-        expect(componentName).toBe('withSocialAccountGate(SocialV0View)');
+        expect(homeTabNames(container, state)).toEqual(fixedFooterTabs);
+        expect(rootScreenComponentName(container, Routes.SOCIAL.V0)).toBe(
+          'withSocialAccountGate(SocialV0View)',
+        );
       },
     );
   });
@@ -2419,47 +2186,40 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('points the TrendingView tab straight at the Explore feed', () => {
+      it('registers Trade, Money, and Collect hubs beside Home', () => {
         expect(
-          getScreenComponent(homeTabsRoot, Routes.TRENDING_VIEW, 'TabScreen'),
-        ).toBe(ExploreFeed);
-      });
-
-      it('renders BrowserFlow', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.BROWSER.HOME,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
-
-      it('renders TransactionsHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.TRANSACTIONS_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
-
-      it('renders RewardsHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.REWARDS_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+          getScreenComponent(
+            homeTabsRoot,
+            Routes.FIXED_TAB_NAV.TRADE,
+            'TabScreen',
+          ),
+        ).toBeTruthy();
+        expect(
+          getScreenComponent(
+            homeTabsRoot,
+            Routes.FIXED_TAB_NAV.MONEY,
+            'TabScreen',
+          ),
+        ).toBeTruthy();
+        expect(
+          getScreenComponent(
+            homeTabsRoot,
+            Routes.FIXED_TAB_NAV.COLLECT,
+            'TabScreen',
+          ),
+        ).toBeTruthy();
       });
 
       it('gates the Rewards tab behind RewardsUpdateRequired when the client version is blocked', () => {
         // The version guard now lives in RewardsHome (above the
         // onboarding/dashboard branch), so version-blocked clients see the
         // update-required screen regardless of subscription status.
+        const { root: rewardsRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
         const RewardsHome = getScreenComponent(
-          homeTabsRoot,
+          rewardsRoot,
           Routes.REWARDS_VIEW,
-          'TabScreen',
         );
         const { getByTestId } = renderWithProvider(
           <RewardsHome route={{ params: {} }} />,
@@ -2485,10 +2245,12 @@ describe('MainNavigator', () => {
         // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
         // full-screen skeleton indefinitely.
         mockUseCandidateSubscriptionId.mockClear();
+        const { root: rewardsRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
         const RewardsHome = getScreenComponent(
-          homeTabsRoot,
+          rewardsRoot,
           Routes.REWARDS_VIEW,
-          'TabScreen',
         );
         renderWithProvider(<RewardsHome route={{ params: {} }} />, {
           state: initialRootState,
@@ -2511,10 +2273,12 @@ describe('MainNavigator', () => {
           moneyPersona: money.moneyPersona,
           navigatorKey: 'test',
         });
+        const { root: rewardsRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
         const RewardsHome = getScreenComponent(
-          homeTabsRoot,
+          rewardsRoot,
           Routes.REWARDS_VIEW,
-          'TabScreen',
         );
         const { root } = renderWithProvider(
           <RewardsHome route={{ params: {} }} />,
@@ -2702,10 +2466,12 @@ describe('MainNavigator', () => {
         });
 
         it('remounts the nested stack when a plain user becomes a referee', () => {
+          const { root: rewardsRoot } = renderWithProvider(<MainNavigator />, {
+            state: initialRootState,
+          });
           const RewardsHome = getScreenComponent(
-            homeTabsRoot,
+            rewardsRoot,
             Routes.REWARDS_VIEW,
-            'TabScreen',
           );
           mockUseRewardsMoneyTabRouting.mockReturnValue({
             moneyEnabled: true,
@@ -2978,36 +2744,15 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when account is visible', () => {
+      it('keeps Money on the footer whether or not the money account is visible', () => {
         mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+        expect(getHomeTabsScreenNames()).toContain(Routes.FIXED_TAB_NAV.MONEY);
 
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-      });
-
-      it('excludes Money route when account is not visible', () => {
         mockSelectIsMoneyAccountVisible.mockReturnValue(false);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
-      });
-
-      it('gives the Money slot to Activity in regions without Money', () => {
-        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).toContain(Routes.TRANSACTIONS_VIEW);
-      });
-
-      it('keeps Activity out of the tab set when Money is available', () => {
-        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
+        expect(getHomeTabsScreenNames()).toContain(Routes.FIXED_TAB_NAV.MONEY);
+        expect(getHomeTabsScreenNames()).not.toContain(
+          Routes.TRANSACTIONS_VIEW,
+        );
       });
     });
   });

@@ -706,6 +706,15 @@ const Routes = {
     /** Cancel membership screen — cancellation survey and confirmation. */
     CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },
+  /**
+   * Prototype fixed footer. Home reuses `WALLET.HOME`.
+   * Search is not a footer tab. Content pills live inside Trade, Money, and Collect.
+   */
+  FIXED_TAB_NAV: {
+    TRADE: 'FixedTabTrade',
+    MONEY: 'FixedTabMoney',
+    COLLECT: 'FixedTabCollect',
+  },
 } as const;
 
 export default Routes;

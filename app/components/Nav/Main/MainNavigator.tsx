@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useRef,
-  useCallback,
-} from 'react';
-import { Keyboard, Platform } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
@@ -13,11 +6,6 @@ import {
 import type { ParamListBase, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
-import {
-  createBottomTabNavigator,
-  type BottomTabBarProps,
-} from '@react-navigation/bottom-tabs';
-import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -46,7 +34,6 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
-import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
@@ -83,7 +70,6 @@ import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateS
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
 import { useRewardsPendingDeeplink } from '../../UI/Rewards/hooks/useRewardsPendingDeeplink';
-import { usePrefetchRewardsIdentity } from '../../UI/Rewards/hooks/usePrefetchRewardsIdentity';
 import {
   getRewardsTabContentState,
   type RewardsTabContentVariant,
@@ -94,7 +80,6 @@ import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
 import RewardsMoneyDashboard from '../../UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
-import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import type { ExploreSearchRouteParams } from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
@@ -116,33 +101,12 @@ import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
-import TabBar from '../../../component-library/components/Navigation/TabBar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TabBarFloating, {
-  FloatingTabBarInsetContext,
-} from '../../../component-library/components/Navigation/TabBarFloating';
-import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
-import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
-import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
 import {
   SOCIAL_V1_AB_KEY,
   SOCIAL_V1_VARIANTS,
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
-import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
-import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
-import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
-import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
-import {
-  TAB_BAR_VISIBLE_STYLE,
-  toJsTabOptions,
-  toNativeTabOptions,
-} from './HomeTabs/homeTabs.mappers';
-import type {
-  HomeTabDefinition,
-  HomeTabKey,
-  HomeTabRoute,
-} from './HomeTabs/homeTabs.types';
+import FixedTabNavigator from './FixedTabNav';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -161,11 +125,6 @@ import {
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { getExploreSearchScreenOptions } from '../../../constants/navigation/exploreSearchScreenOptions';
-import {
-  TabBarIconKey,
-  type ExtendedBottomTabNavigationOptions,
-  type TabBarProps,
-} from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
@@ -188,7 +147,6 @@ import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet'
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -202,8 +160,6 @@ import {
   PredictPreviewSheetProvider,
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
-import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
-import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
@@ -233,7 +189,6 @@ import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactions
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -260,9 +215,7 @@ import CreatePriceAlertView from '../../UI/Assets/PriceAlerts/Views/CreatePriceA
 import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
-import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
-import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
@@ -270,13 +223,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
 const NativeStack = createNativeStackNavigator();
-const JsTab = createBottomTabNavigator();
-const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
-
-const WalletWithMessenger = withRouteMessenger(Wallet, {
-  capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
-});
 
 const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
   capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -358,26 +305,6 @@ const AssetStackFlow = (props: ForwardedParamsHostProps) => (
     />
   </NativeStack.Navigator>
 );
-
-const WalletTabStackFlow = () => {
-  const defaultScreenOptions = useDefaultStackScreenOptions();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={'WalletView'}
-      screenOptions={defaultScreenOptions}
-    >
-      <NativeStack.Screen
-        name="WalletView"
-        component={WalletWithMessenger}
-        options={{ animation: 'none' }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-      />
-    </NativeStack.Navigator>
-  );
-};
 
 const TransactionsHome = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -727,268 +654,12 @@ const SettingsFlow = () => {
   );
 };
 
-// Replaces `unmountOnBlur` (removed in React Navigation v7).
-const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
-const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
-
-// `satisfies` keeps each component's own type for `JsTab.Screen` while still
-// requiring an entry for every static tab. Social is chosen at runtime.
-const HOME_TAB_COMPONENTS = {
-  home: WalletTabStackFlow,
-  explore: ExploreFeed,
-  browser: BrowserFlowUnmountOnTabBlur,
-  activity: TransactionsHomeUnmountOnTabBlur,
-  money: MoneyTabScreenStack,
-  // Rewards stays mounted. Leaving the tab used to throw the tree away, so
-  // every return rebuilt the screen. Data refreshes on focus instead.
-  rewards: RewardsHome,
-} satisfies Record<Exclude<HomeTabKey, 'social'>, unknown>;
-
-const HomeTabSheetHosts = ({ children }: { children: React.ReactNode }) => (
+/** Predict sheets opened from Home or Trade sit above the fixed footer. */
+const FixedTabHome = () => (
   <PredictPreviewSheetProvider>
-    <TrendingQuickBuySheetProvider>
-      <QuickBuySheetHostProvider>{children}</QuickBuySheetHostProvider>
-    </TrendingQuickBuySheetProvider>
+    <FixedTabNavigator />
   </PredictPreviewSheetProvider>
 );
-
-const HomeTabs = () => {
-  const { colors } = useTheme();
-  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
-  // The Rewards tab is not mounted until it is opened. Start the candidate
-  // lookup once, and referral me when Money is on, while Home is already up.
-  // Focus would repeat the candidate scan every time the user returns here.
-  useCandidateSubscriptionId({ refreshOnFocus: false });
-  usePrefetchRewardsIdentity();
-
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
-
-  const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
-  const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
-  // Refreshed nav configs use `search` or `trade`. `none` is control-only and
-  // does not render this bar. Undefined keeps `TabBarFloating`'s `search` default.
-  const trailingNavBarAction =
-    homeNavBarConfig.trailingNavBarAction === 'none'
-      ? undefined
-      : homeNavBarConfig.trailingNavBarAction;
-  const isNativeTabBar = useIsNativeTabBar();
-  const safeAreaInsets = useSafeAreaInsets();
-  const nativeTabBarInset =
-    getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
-    TAB_BAR_FLOATING_HEIGHT;
-  const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
-  const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
-
-  const showSocialTab =
-    homeNavBarConfig.isSocialHeader ||
-    (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
-  const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
-  const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
-  // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
-  // treatment, legacy V0 for control. Exposure is recorded when the surface
-  // itself mounts, not when the tab slot is registered.
-  const socialTabComponent = homeNavBarConfig.isSocialHeader
-    ? SocialV1View
-    : SocialV0View;
-
-  const trackMoneyTabPressRef = useRef<(() => void) | null>(null);
-
-  const registerMoneyTabPressTracker = useCallback(
-    (fn: (() => void) | null) => {
-      trackMoneyTabPressRef.current = fn;
-    },
-    [],
-  );
-  const trackMoneyTabPress = useCallback(() => {
-    trackMoneyTabPressRef.current?.();
-  }, []);
-
-  const { tabs, trackBottomNavPress, getNativeTabListeners } =
-    useHomeTabDefinitions({
-      isMoneyAccountVisible,
-      showSocialTab,
-      isSocialV1Enabled,
-      showSocialTabNewBadge,
-      trackMoneyTabPress,
-    });
-  const systemSlotTab = useNativeSystemSlotTab(
-    homeNavBarConfig.trailingNavBarAction,
-  );
-
-  // Control only: a modal trigger the bar handles itself.
-  const tradeOptions: ExtendedBottomTabNavigationOptions = {
-    tabBarIconKey: TabBarIconKey.Trade,
-    rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
-  };
-
-  useEffect(() => {
-    // Hide keyboard on Android when keyboard is visible.
-    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
-    if (Platform.OS === 'android') {
-      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-        setIsKeyboardHidden(false);
-      });
-      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-        setIsKeyboardHidden(true);
-      });
-
-      return () => {
-        showSubscription.remove();
-        hideSubscription.remove();
-      };
-    }
-  }, []);
-
-  const renderTabBar = ({
-    state,
-    descriptors,
-    navigation,
-  }: BottomTabBarProps) => {
-    const currentRoute = state.routes[state.index];
-
-    // Hide tab bar when in browser
-    const nestedState = currentRoute?.state;
-    const currentStackRouteName =
-      nestedState?.index === undefined
-        ? undefined
-        : nestedState.routes[nestedState.index]?.name;
-    const isInBrowser =
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
-      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
-    if (isInBrowser) {
-      return null;
-    }
-
-    const currentTab = tabs.find((tab) => tab.name === currentRoute.name);
-    if (currentTab?.hidesTabBarFor?.(currentRoute)) {
-      return null;
-    }
-
-    if (isKeyboardHidden) {
-      // Screens here are registered with `ExtendedBottomTabNavigationOptions`
-      // (see `toJsTabOptions`), which the navigator still types as the base
-      // bottom-tab options.
-      const extendedDescriptors =
-        descriptors as unknown as TabBarProps['descriptors'];
-
-      return isFloatingTabBar ? (
-        <TabBarFloating
-          state={state}
-          descriptors={extendedDescriptors}
-          navigation={navigation}
-          onHeightChange={setFloatingTabBarHeight}
-          trailingAction={trailingNavBarAction}
-        />
-      ) : (
-        <TabBar
-          state={state}
-          descriptors={extendedDescriptors}
-          navigation={navigation}
-        />
-      );
-    }
-    return null;
-  };
-
-  const tabComponentFor = (tab: HomeTabDefinition) =>
-    tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
-
-  const renderJsTabScreen = (tab: HomeTabDefinition) => (
-    <JsTab.Screen
-      key={tab.name}
-      name={tab.name}
-      options={toJsTabOptions(
-        tab,
-        // `TabBar` fires the Navigation Drawer event itself.
-        isFloatingTabBar ? { trackBottomNavPress } : undefined,
-      )}
-      component={tabComponentFor(tab)}
-    />
-  );
-
-  const renderNativeTabScreen = (tab: HomeTabDefinition) => (
-    <NativeTab.Screen
-      key={tab.name}
-      name={tab.name}
-      options={
-        tab.hidesTabBarFor
-          ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route, colors.success.default)
-          : toNativeTabOptions(tab, undefined, colors.success.default)
-      }
-      listeners={getNativeTabListeners(tab)}
-      component={tabComponentFor(tab)}
-    />
-  );
-
-  if (isNativeTabBar) {
-    return (
-      <HomeTabSheetHosts>
-        {isMoneyAccountEnabled ? (
-          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-        ) : null}
-        <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <NativeTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            screenOptions={{
-              headerShown: false,
-              // Mount on first visit like the JS navigator; the native
-              // default renders every tab at launch and never freezes them.
-              lazy: true,
-              // UIKit picks the inactive colour.
-              tabBarActiveTintColor: colors.icon.default,
-              tabBarMinimizeBehavior: 'onScrollDown',
-              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-              overrideScrollViewContentInsetAdjustmentBehavior: false,
-            }}
-          >
-            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-            <NativeTab.Screen
-              name={systemSlotTab.name}
-              options={systemSlotTab.options}
-              listeners={systemSlotTab.listeners}
-              component={systemSlotTab.component}
-            />
-          </NativeTab.Navigator>
-        </FloatingTabBarInsetContext.Provider>
-      </HomeTabSheetHosts>
-    );
-  }
-
-  return (
-    <HomeTabSheetHosts>
-      {isMoneyAccountEnabled ? (
-        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-      ) : null}
-      <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-        <JsTab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={renderTabBar}
-          screenOptions={{
-            headerShown: false,
-            // Never suspend blurred tabs: react-native-screens' delayed freeze
-            // can drop the activityState commit when a tab is left mid-mount,
-            // leaving the old screen (usually Money) stuck on top.
-            freezeOnBlur: false,
-          }}
-        >
-          {tabs.slice(0, 3).map(renderJsTabScreen)}
-
-          {isFloatingTabBar ? null : (
-            <JsTab.Screen
-              name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-              options={tradeOptions}
-              component={WalletTabStackFlow}
-            />
-          )}
-
-          {tabs.slice(3).map(renderJsTabScreen)}
-        </JsTab.Navigator>
-      </FloatingTabBarInsetContext.Provider>
-    </HomeTabSheetHosts>
-  );
-};
 
 const Webview = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -1091,14 +762,11 @@ const MainNavigator = () => {
       screenOptions={defaultScreenOptions}
       initialRouteName={'Home'}
     >
-      <NativeStack.Screen name="Home" component={HomeTabs} />
+      {/* Prototype footer: Home · Trade · Money · Collect. */}
+      <NativeStack.Screen name="Home" component={FixedTabHome} />
       {/*
-       * Fallback home for Rewards. Treatment gives the tab slot to Social, so
-       * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
-       * bubbles up to here. Control registers the tab too, and the tab
-       * navigator is nearer to the caller, so it wins and this is never
-       * reached. Registered unconditionally so the route always resolves
-       * regardless of how the arms are configured.
+       * Rewards is not a footer tab in the fixed-tab prototype. This root
+       * screen keeps `navigate(REWARDS_VIEW)` resolvable.
        */}
       <NativeStack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
       {/*
