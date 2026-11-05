@@ -69,7 +69,10 @@ const resolveRealtimeAuthorComment = (
     }
     return {
       ...realtime,
-      engagement: known.engagement,
+      engagement: {
+        ...realtime.engagement,
+        userReaction: known.engagement.userReaction,
+      },
     };
   }
   return realtime;
@@ -79,7 +82,8 @@ const resolveRealtimeAuthorComment = (
  * Full realtime events are normalized by Core and can hydrate a row without
  * an HTTP snapshot. The event's data overrides the HTTP row's fields, except
  * `authorComment`: an explicit null clears the Call, while an absent one keeps
- * the HTTP row's Call.
+ * the HTTP row's Call. When both comments have the same UID, the realtime
+ * aggregate reactions are kept while the known viewer reaction is preserved.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
