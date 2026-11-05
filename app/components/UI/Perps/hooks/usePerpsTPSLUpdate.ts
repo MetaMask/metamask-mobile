@@ -153,7 +153,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           },
         });
 
-        const errorMessage = translatePerpsError(result.error);
+        const errorMessage = translatePerpsError(result);
 
         showToast(
           PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
