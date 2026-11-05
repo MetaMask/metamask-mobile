@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerificationPartners from './VerificationPartners';
@@ -86,6 +86,35 @@ const tickBiometricConsent = (getByTestId: GetByTestId) =>
     getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
   );
 
+// A 600pt viewport with the consent row (140pt tall) 900pt down the content.
+const layOutScreen = (getByTestId: GetByTestId) => {
+  fireEvent(
+    getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
+    'layout',
+    { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 600 } } },
+  );
+  fireEvent(
+    getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW),
+    'layout',
+    { nativeEvent: { layout: { x: 16, y: 900, width: 368, height: 140 } } },
+  );
+};
+
+const scrollContentTo = (getByTestId: GetByTestId, y: number) =>
+  fireEvent.scroll(getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER), {
+    nativeEvent: {
+      contentOffset: { x: 0, y },
+      contentSize: { width: 400, height: 1100 },
+      layoutMeasurement: { width: 400, height: 600 },
+    },
+  });
+
+/** Lays the screen out and scrolls the consent row on screen. */
+const revealConsent = (getByTestId: GetByTestId) => {
+  layOutScreen(getByTestId);
+  scrollContentTo(getByTestId, 400);
+};
+
 const SUMSUB_ACKNOWLEDGEMENT =
   'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing. Applicable to US residents only: I confirm that I have read the Privacy Notice and give my consent to the processing of my biometric information and biometric identifiers as described in the Sumsub Biometrics Processing Consent';
 const BIOMETRIC_CONSENT =
@@ -141,7 +170,7 @@ describe('VbaVerificationPartners', () => {
     );
     expect(
       getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-    ).toHaveTextContent('Agree', { exact: true });
+    ).toHaveTextContent('Scroll to continue', { exact: true });
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: KYC_SCREEN_PERFORMANCE_CONFIG,
       screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
@@ -217,81 +246,105 @@ describe('VbaVerificationPartners', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(IDOS_TERMS_URL);
   });
 
-  describe('tick hint in the footer', () => {
-    const CHECKBOX_HINT = 'Scroll to check the consent to continue.';
+  describe('Scroll to continue', () => {
+    const footerButton = (getByTestId: GetByTestId) =>
+      getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON);
 
-    // A 600pt viewport with the consent row 900pt down the scroll content.
-    const layOutScreen = (getByTestId: GetByTestId) => {
-      fireEvent(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
-        'layout',
-        { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 600 } } },
-      );
-      fireEvent(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW),
-        'layout',
-        { nativeEvent: { layout: { x: 16, y: 900, width: 368, height: 140 } } },
-      );
-    };
-
-    const scrollTo = (getByTestId: GetByTestId, y: number) =>
-      fireEvent.scroll(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
-        {
-          nativeEvent: {
-            contentOffset: { x: 0, y },
-            contentSize: { width: 400, height: 1100 },
-            layoutMeasurement: { width: 400, height: 600 },
-          },
-        },
-      );
-
-    it('shows the hint above the idOS line while the box is unticked and off screen', () => {
-      const { getByTestId } = renderScreen();
+    it('labels the enabled footer button Scroll to continue while the consent is off screen', () => {
+      const { getByTestId, getByRole } = renderScreen();
       layOutScreen(getByTestId);
 
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Scroll to continue',
+        { exact: true },
+      );
+      expect(footerButton(getByTestId)).toBeEnabled();
       expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
-      ).toHaveTextContent(CHECKBOX_HINT, { exact: true });
-    });
-
-    it('hides the hint once the box has scrolled into view', () => {
-      const { getByTestId, queryByTestId } = renderScreen();
-      layOutScreen(getByTestId);
-
-      scrollTo(getByTestId, 400);
-
-      expect(
-        queryByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
-      ).toBeNull();
-    });
-
-    it('shows the hint again if the box scrolls back off screen while unticked', () => {
-      const { getByTestId } = renderScreen();
-      layOutScreen(getByTestId);
-
-      scrollTo(getByTestId, 400);
-      scrollTo(getByTestId, 0);
-
-      expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
+        getByRole('button', { name: 'Scroll to continue' }),
       ).toBeOnTheScreen();
     });
 
-    it('hides the hint once the box is ticked, even when it is off screen', () => {
-      const { getByTestId, queryByTestId } = renderScreen();
+    it('scrolls the consent row into view when pressed, without agreeing', () => {
+      const { getByTestId, UNSAFE_getByType } = renderScreen();
+      const scrollToSpy = jest.spyOn(
+        UNSAFE_getByType(ScrollView).instance,
+        'scrollTo',
+      );
+      layOutScreen(getByTestId);
+
+      fireEvent.press(footerButton(getByTestId));
+
+      // Row bottom (900 + 140) plus a 16pt margin, less the 600pt viewport.
+      expect(scrollToSpy).toHaveBeenCalledWith({ y: 456, animated: true });
+      expect(mockOnAgree).not.toHaveBeenCalled();
+    });
+
+    it('scrolls to the end when pressed before the consent row is measured', () => {
+      const { getByTestId, UNSAFE_getByType } = renderScreen();
+      const scrollToEndSpy = jest.spyOn(
+        UNSAFE_getByType(ScrollView).instance,
+        'scrollToEnd',
+      );
+
+      fireEvent.press(footerButton(getByTestId));
+
+      expect(scrollToEndSpy).toHaveBeenCalledWith({ animated: true });
+    });
+
+    it('switches to a disabled Agree once the consent has scrolled into view', () => {
+      const { getByTestId, getByRole } = renderScreen();
+      revealConsent(getByTestId);
+
+      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
+        exact: true,
+      });
+      expect(footerButton(getByTestId)).toBeDisabled();
+      expect(getByRole('button', { name: 'Agree' })).toBeOnTheScreen();
+    });
+
+    it('stays on Agree when the consent scrolls back off screen', () => {
+      const { getByTestId } = renderScreen();
+      revealConsent(getByTestId);
+
+      scrollContentTo(getByTestId, 0);
+
+      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
+        exact: true,
+      });
+    });
+
+    it('keeps Scroll to continue while the terms load, even with the consent row on screen', () => {
+      mockUseKycSessionDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: true,
+        error: null,
+        retry: mockRetry,
+      });
+      const { getByTestId } = renderScreen();
+      revealConsent(getByTestId);
+
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Scroll to continue',
+        { exact: true },
+      );
+    });
+
+    it('switches to an enabled Agree when the consent is ticked', () => {
+      const { getByTestId } = renderScreen();
       layOutScreen(getByTestId);
 
       tickBiometricConsent(getByTestId);
 
-      expect(
-        queryByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
-      ).toBeNull();
+      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
+        exact: true,
+      });
+      expect(footerButton(getByTestId)).toBeEnabled();
     });
   });
 
   it('keeps Agree disabled until the biometric consent is ticked, then starts Sumsub', async () => {
     const { getByTestId } = renderScreen();
+    revealConsent(getByTestId);
     const agree = getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON);
     const checkbox = getByTestId(
       VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX,
@@ -323,6 +376,7 @@ describe('VbaVerificationPartners', () => {
   it('does not tick the consent when its idOS Privacy Notice link is opened', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const { getByTestId } = renderScreen();
+    revealConsent(getByTestId);
 
     fireEvent.press(
       getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK),

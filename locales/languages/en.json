@@ -1177,7 +1177,7 @@
       "agree_and_continue_button": "Agree and continue",
       "partners_title": "Our verification partners",
       "partners_description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
-      "partners_checkbox_hint": "Scroll to check the consent to continue.",
+      "partners_scroll_to_continue": "Scroll to continue",
       "terms_section_title": "Terms and privacy",
       "party_idos": "idOS",
       "party_sumsub": "Sumsub",

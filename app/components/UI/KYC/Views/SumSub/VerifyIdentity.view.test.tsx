@@ -111,6 +111,21 @@ const tickBiometricConsent = ({ getByTestId }: Rendered) =>
     getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
   );
 
+// Lays out a 600pt viewport with the consent row on screen, so the footer CTA
+// switches from Scroll to continue to Agree.
+const revealConsent = ({ getByTestId }: Rendered) => {
+  fireEvent(
+    getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
+    'layout',
+    { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 600 } } },
+  );
+  fireEvent(
+    getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW),
+    'layout',
+    { nativeEvent: { layout: { x: 16, y: 300, width: 368, height: 140 } } },
+  );
+};
+
 describeForPlatforms('VbaVerifyIdentity view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -257,6 +272,13 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       expect(getAllByRole('checkbox')).toHaveLength(1);
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+      ).toHaveTextContent('Scroll to continue', { exact: true });
+      revealConsent(result);
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+      ).toHaveTextContent('Agree', { exact: true });
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
       ).toBeDisabled();
 
       tickBiometricConsent(result);
@@ -298,6 +320,7 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       const result = await openVerificationPartners();
       const agree = () =>
         result.getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON);
+      revealConsent(result);
 
       fireEvent.press(agree());
       expect(mockRecordSessionDisclaimers).not.toHaveBeenCalled();
