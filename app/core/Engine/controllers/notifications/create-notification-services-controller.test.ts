@@ -13,7 +13,17 @@ jest.mock('@metamask/notification-services-controller/notification-services');
 jest.mock('react-native-device-info', () => ({ getVersion: () => '1.2.3' }));
 
 describe('Notification Services Controller', () => {
+  const originalApiEnv = process.env.MM_API_ENV;
+
   beforeEach(() => jest.resetAllMocks());
+
+  afterEach(() => {
+    if (originalApiEnv === undefined) {
+      delete process.env.MM_API_ENV;
+    } else {
+      process.env.MM_API_ENV = originalApiEnv;
+    }
+  });
 
   const arrange = () => {
     const globalMessenger = new ExtendedMessenger<MockAnyNamespace>({
@@ -63,9 +73,31 @@ describe('Notification Services Controller', () => {
           platformVersion: expect.any(String),
         },
         locale: expect.any(Function),
+        env: expect.any(String),
       },
     });
   });
+
+  it.each([
+    ['dev', 'dev'],
+    ['uat', 'uat'],
+    ['prod', 'prd'],
+  ])(
+    'maps MM_API_ENV=%s to notification API env %s',
+    (apiEnv, expectedEnv) => {
+      process.env.MM_API_ENV = apiEnv;
+
+      const { messenger, assertGetConstructorCall } = arrange();
+      createNotificationServicesController({ messenger });
+      const constructorParams = assertGetConstructorCall();
+
+      expect(constructorParams).toStrictEqual({
+        messenger,
+        state: undefined,
+        env: expect.objectContaining({ env: expectedEnv }),
+      });
+    },
+  );
 
   it('can pass undefined as initial state', () => {
     const { messenger, assertGetConstructorCall } = arrange();
