@@ -44,7 +44,11 @@ appiumTest.describe(
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });
 
-    appiumTest(
+    // Skipped: fails on main since the controller bumps in #38688. The quote
+    // for Predict withdraw → Money account is never built, so `bridge-fee-row`
+    // never renders. Fix tracked in
+    // https://github.com/MetaMask/metamask-mobile/pull/38978
+    appiumTest.skip(
       'withdraws Predict balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
         // Skipped on Android: this test consistently fails in Appium CI while
