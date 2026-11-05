@@ -310,8 +310,9 @@ export function connectLighterExecutor(newExecutor: LighterExecutor): void {
 /**
  * Revive the bridge after terminal unavailability. Only the signer host may
  * call this, and only when no page from before can still connect: when it is
- * remounting the WebView, or at unlock after the locked page has unmounted. A
- * late executor from the dying page must never resurrect a dead signer.
+ * remounting the WebView, or at unlock, once a page that saw the lock ignores
+ * its messages. A late executor from the dying page must never resurrect a
+ * dead signer.
  */
 export function reviveLighterBridge(): void {
   if (!isTerminallyUnavailable) {

@@ -488,6 +488,11 @@ const UnlockedLighterSignerWebView = () => {
  * whose load blocks the Android main thread for hundreds of ms, which used to
  * land on every unlock. Calls wait behind the bridge's readiness promise, so
  * the first one simply waits for the page to load.
+ *
+ * This always-mounted host owns lock retirement, so a lock retires bridge work
+ * even when no page is mounted (key discovery never mounts one). It listens to
+ * the keyring events rather than Redux, which can batch a lock and unlock into
+ * one commit.
  */
 export const LighterSignerWebView = () => {
   const isUnlocked = useSelector(selectIsUnlocked);
@@ -496,15 +501,21 @@ export const LighterSignerWebView = () => {
     isLighterSignerRequested,
   );
   useEffect(() => {
-    if (isUnlocked) {
-      // The page that saw the lock left the bridge unavailable and has since
-      // unmounted. Nothing remounts at unlock anymore, so revive here or the
-      // next call fails before it can request a fresh page.
-      reviveLighterBridge();
-    } else {
-      // Locking unmounts the page; the next unlock waits for a new request.
+    const messenger = Engine.controllerMessenger;
+    const onLock = () => {
+      // The next unlock waits for a new request before loading the page.
       clearLighterSignerRequest();
-    }
-  }, [isUnlocked]);
+      setLighterBridgeUnavailable(LIGHTER_SIGNER_LOCKED_ERROR);
+    };
+    const onUnlock = () => {
+      reviveLighterBridge();
+    };
+    messenger.subscribe('KeyringController:lock', onLock);
+    messenger.subscribe('KeyringController:unlock', onUnlock);
+    return () => {
+      messenger.tryUnsubscribe('KeyringController:lock', onLock);
+      messenger.tryUnsubscribe('KeyringController:unlock', onUnlock);
+    };
+  }, []);
   return isUnlocked && isRequested ? <UnlockedLighterSignerWebView /> : null;
 };
