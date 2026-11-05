@@ -9,7 +9,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { strings } from '../../../../../../locales/i18n';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
@@ -17,19 +19,45 @@ import {
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 import TradeAllowanceRow from './TradeAllowanceRow';
 
-const LoadingSkeletons = () => (
-  <Box
-    twClassName="gap-y-3"
-    testID={MemberPricingOnTradesTestIds.LOADING_SKELETON}
-  >
-    <Skeleton height={72} twClassName="w-full rounded-xl" />
-    <Skeleton height={72} twClassName="w-full rounded-xl" />
-    <Skeleton height={72} twClassName="w-full rounded-xl" />
-  </Box>
-);
+const LoadingSkeletons = () => {
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  // LOW memory or a known offline network gets a static bar. Unknown
+  // hardware or network keeps the animated skeleton.
+  const reduceMotion = hardwareTier === 'LOW' || networkTier === 'NONE';
+
+  return (
+    <Box
+      twClassName="gap-y-3"
+      testID={MemberPricingOnTradesTestIds.LOADING_SKELETON}
+    >
+      <Skeleton
+        height={72}
+        twClassName="w-full rounded-xl"
+        {...(reduceMotion ? { autoPlay: false } : {})}
+      />
+      <Skeleton
+        height={72}
+        twClassName="w-full rounded-xl"
+        {...(reduceMotion ? { autoPlay: false } : {})}
+      />
+      <Skeleton
+        height={72}
+        twClassName="w-full rounded-xl"
+        {...(reduceMotion ? { autoPlay: false } : {})}
+      />
+    </Box>
+  );
+};
 
 const MemberPricingOnTrades = () => {
-  const { status, items, resetsOn, retry } = useMoneyAccountPlusBenefits();
+  const {
+    status,
+    items,
+    resetsOn,
+    retry,
+    benefitsPaused = false,
+  } = useMoneyAccountPlusBenefits();
 
   const showError = status === MoneyAccountPlusBenefitsStatus.Failed;
   const showPending = status === MoneyAccountPlusBenefitsStatus.Pending;
@@ -88,6 +116,16 @@ const MemberPricingOnTrades = () => {
           testID={MemberPricingOnTradesTestIds.UNAVAILABLE}
         >
           {strings('pro_hub.member_pricing.unavailable')}
+        </Text>
+      ) : null}
+
+      {benefitsPaused ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MemberPricingOnTradesTestIds.PAUSED}
+        >
+          {strings('pro_hub.member_pricing.paused')}
         </Text>
       ) : null}
 

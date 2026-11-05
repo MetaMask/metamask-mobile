@@ -13312,6 +13312,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {

@@ -153,6 +153,25 @@ describe('MemberPricingOnTrades', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows paused usage without offering a waiver', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+      benefitsPaused: true,
+    });
+
+    const { getByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.PAUSED)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.paused')),
+    );
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toBeOnTheScreen();
+  });
+
   it('explains that member pricing is unavailable without offering retry', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Unavailable,
