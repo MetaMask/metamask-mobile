@@ -580,16 +580,7 @@ export const createMfaFlow = ({
     await advance();
   }
 
-  /**
-   * Opens the passkey sheet straight away when the passkey is the first of
-   * several methods. Cancelling it or a failure shows the picker instead, so
-   * the user can choose another method.
-   *
-   * A function declaration, as it and `advance` call each other.
-   *
-   * @param purpose - Why the passkey is used.
-   * @param options - The methods the picker offers, cheapest first.
-   */
+  // A declaration, as it and `advance` call each other.
   async function startPasskeyOrPicker(
     purpose: Exclude<MfaPurpose, 'setup'>,
     options: MfaMethod[],
