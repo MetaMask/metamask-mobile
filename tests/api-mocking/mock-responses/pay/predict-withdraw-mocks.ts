@@ -22,16 +22,8 @@ import {
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../polymarket/polymarket-mocks';
 import { createTransactionSentinelResponse } from '../polymarket/polymarket-transaction-sentinel-response.ts';
-import {
-  createSpotPrice,
-  requestedAssetIdsFromPriceUrl,
-  spotPricesForRequestedAssets,
-} from './spot-prices-for-requested-assets';
 
 const PREDICT_PUSD_ADDRESS = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
-// AssetsController keys Polygon POL as slip44 coin type 966. slip44:60 is ETH.
-const POLYGON_NATIVE_ASSET_ID = 'eip155:137/slip44:966';
-const MONAD_NATIVE_ASSET_ID = 'eip155:143/slip44:268435779';
 const PREDICT_WITHDRAW_AMOUNT_BASE_UNITS = '5000000'; // $5 pUSD at 6 decimals
 const PREDICT_WITHDRAW_ETH_OUT = '1666666666666667'; // ~$5 at $3000/ETH
 const PREDICT_WITHDRAW_TX_HASH =
@@ -233,9 +225,20 @@ async function mockPredictWithdrawalActivity(mockServer: Mockttp) {
 async function mockPriceApis(mockServer: Mockttp) {
   const spotPrices = {
     ...MAINNET_SPOT_PRICES,
-    'eip155:137/slip44:60': createSpotPrice('eip155:137/slip44:60', 1),
-    [POLYGON_NATIVE_ASSET_ID]: createSpotPrice(POLYGON_NATIVE_ASSET_ID, 1),
-    [MONAD_NATIVE_ASSET_ID]: createSpotPrice(MONAD_NATIVE_ASSET_ID, 1),
+    'eip155:137/slip44:60': {
+      id: 'eip155:137/slip44:60',
+      price: 1.0,
+      usd: 1.0,
+      eth: 1.0,
+      marketCap: 1,
+      pricePercentChange1h: 0,
+      pricePercentChange1d: 0,
+      pricePercentChange7d: 0,
+      pricePercentChange14d: 0,
+      pricePercentChange30d: 0,
+      pricePercentChange200d: 0,
+      pricePercentChange1y: 0,
+    },
     [`eip155:137/erc20:${PREDICT_PUSD_ADDRESS}`]: {
       id: `eip155:137/erc20:${PREDICT_PUSD_ADDRESS}`,
       price: 1.0,
@@ -281,13 +284,7 @@ async function mockPriceApis(mockServer: Mockttp) {
       const requestUrl = new URL(request.url).searchParams.get('url') || '';
 
       if (requestUrl.includes('price.api.cx.metamask.io/v3/spot-prices')) {
-        return {
-          statusCode: 200,
-          json: spotPricesForRequestedAssets(
-            spotPrices,
-            requestedAssetIdsFromPriceUrl(requestUrl),
-          ),
-        };
+        return { statusCode: 200, json: spotPrices };
       }
 
       if (requestUrl.includes('price.api.cx.metamask.io/v1/exchange-rates')) {
@@ -315,8 +312,6 @@ async function mockPriceApis(mockServer: Mockttp) {
           statusCode: 200,
           json: {
             ETH: { USD: 3000 },
-            POL: { USD: 1 },
-            MATIC: { USD: 1 },
             PUSD: { USD: 1 },
             mUSD: { USD: 1 },
             USD: { USD: 1 },
