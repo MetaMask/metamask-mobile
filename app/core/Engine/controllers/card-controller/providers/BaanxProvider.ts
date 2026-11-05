@@ -29,7 +29,6 @@ import {
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from './utils/provisioningEligibility';
 import { buildBaanxCardholderName } from './utils/cardholderName';
 import {
   generatePKCEPair,
@@ -372,6 +371,20 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
+function baanxProvisioningCountryCode(
+  location: string,
+  countryOfResidence: string | null | undefined,
+): string | undefined {
+  if (location === 'us') {
+    return 'US';
+  }
+  const residence = countryOfResidence?.trim();
+  if (!residence) {
+    return undefined;
+  }
+  return residence.toUpperCase();
+}
+
 export class BaanxProvider implements ICardProvider {
   readonly id = CardProviderIds.Baanx;
 
@@ -679,7 +692,11 @@ export class BaanxProvider implements ICardProvider {
           )
         : null;
       const account = user ? this.mapAccountStatus(user) : null;
-      const walletProvisioning = this.mapWalletProvisioning(user, card);
+      const walletProvisioning = this.mapWalletProvisioning(
+        user,
+        card,
+        tokens.location,
+      );
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -2111,18 +2128,28 @@ export class BaanxProvider implements ICardProvider {
   private mapWalletProvisioning(
     user: UserResponse | null,
     card: CardDetails | null,
+    location: string,
   ): CardWalletProvisioningInfo | null {
     if (!user || !card) {
       return null;
     }
 
+    const countryCode = baanxProvisioningCountryCode(
+      location,
+      user.countryOfResidence,
+    );
+    const cardProcessor =
+      typeof user.cardProvider === 'string' && user.cardProvider.length > 0
+        ? user.cardProvider
+        : undefined;
+
     return {
-      eligible:
-        card.status === CardStatus.ACTIVE &&
-        isAccountEligibleForProvisioning(user.createdAt),
+      eligible: card.status === CardStatus.ACTIVE,
       cardholderName: buildBaanxCardholderName(user),
       lastFour: card.lastFour,
       network: 'MASTERCARD',
+      ...(countryCode ? { countryCode } : {}),
+      ...(cardProcessor ? { cardProcessor } : {}),
     };
   }
 

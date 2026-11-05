@@ -15,7 +15,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Label,
   Spinner,
   Text,
@@ -61,6 +60,8 @@ import {
 } from '../../util/contactDetails';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { ContactDetailsSelectors } from './ContactDetails.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface InitialContactDetails {
   email: string;
@@ -70,6 +71,7 @@ interface InitialContactDetails {
 const ContactDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -502,7 +504,9 @@ const ContactDetails = () => {
       edges={['bottom']}
       testID={ContactDetailsSelectors.ROOT}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

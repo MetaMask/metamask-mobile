@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
-import { BtcScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, XlmScope } from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
@@ -224,6 +225,56 @@ export function bitcoinAddressFromEarningAddress(
   return address;
 }
 
+/** Base58 without `0`, `O`, `I`, or `l`. A Solana address keeps its case. */
+const SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+/**
+ * The Solana address in `solana:<address>`. Base58 is case-sensitive, so the
+ * address is returned as stored.
+ */
+export function solanaAddressFromEarningAddress(
+  earningAddress: string,
+): string | null {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
+    return null;
+  }
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'solana') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
+  if (!SOLANA_ADDRESS.test(address)) {
+    return null;
+  }
+  return address;
+}
+
+/** A Stellar ed25519 StrKey: `G` plus 55 base32 characters. Case is kept. */
+const STELLAR_ADDRESS = /^G[A-Z2-7]{55}$/;
+
+/**
+ * The Stellar address in `stellar:<G-address>`. A lowercase copy is not the
+ * same account.
+ */
+export function stellarAddressFromEarningAddress(
+  earningAddress: string,
+): string | null {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
+    return null;
+  }
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'stellar') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
+  if (!STELLAR_ADDRESS.test(address)) {
+    return null;
+  }
+  return address;
+}
+
 /**
  * The claim wire form of a Bitcoin snap signature. The snap returns the
  * BIP-322 witness as base64; the route wants those bytes as `0x` hex.
@@ -258,6 +309,82 @@ function signatureFromKeyringResult(result: Json): string | null {
   return typeof signature === 'string' ? bitcoinProofHex(signature) : null;
 }
 
+/** An ed25519 signature is 64 bytes. The Solana snap returns it as base58. */
+const SOLANA_SIGNATURE_BYTES = 64;
+
+function solanaProofHex(signature: string): string | null {
+  try {
+    const bytes = Buffer.from(base58.decode(signature));
+    if (bytes.length !== SOLANA_SIGNATURE_BYTES) {
+      return null;
+    }
+    return `0x${bytes.toString('hex')}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The Stellar snap returns the SEP-53 signature as base64 on `signedMessage`.
+ * An error envelope keeps that field empty.
+ */
+function stellarProofHex(result: Json): string | null {
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    Array.isArray(result) ||
+    ('error' in result && result.error) ||
+    !('signedMessage' in result)
+  ) {
+    return null;
+  }
+  const { signedMessage } = result;
+  return typeof signedMessage === 'string'
+    ? bitcoinProofHex(signedMessage)
+    : null;
+}
+
+/**
+ * Sends `signMessage` to the snap that holds `accountId`. A missing snap, a
+ * refused confirmation, and any other keyring failure become `SIGN_FAILED`.
+ * `account` on the request is the snap account id; chain params stay with
+ * the caller.
+ */
+async function submitSnapSignMessage(
+  accountId: string,
+  scope: string,
+  params: Record<string, Json>,
+): Promise<Json> {
+  try {
+    return (await Engine.context.KeyringController.withKeyringV2(
+      {
+        filter: (keyring) =>
+          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
+      },
+      async ({ keyring }) => {
+        if (!isSnapKeyring(keyring)) {
+          throw new Error('SIGN_FAILED');
+        }
+        return keyring.submitRequest({
+          id: uuidv4(),
+          origin: 'metamask',
+          scope,
+          account: accountId,
+          request: {
+            method: 'signMessage',
+            params,
+          },
+        });
+      },
+    )) as Json;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'SIGN_FAILED') {
+      throw error;
+    }
+    throw new Error('SIGN_FAILED');
+  }
+}
+
 /**
  * BIP-322 simple signature over the claim challenge, as `0x` hex.
  *
@@ -270,37 +397,69 @@ export async function signBitcoinClaimMessage(
   address: string,
   message: string,
 ): Promise<string> {
-  let result: Json;
-  try {
-    result = (await Engine.context.KeyringController.withKeyringV2(
-      {
-        filter: (keyring) =>
-          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
-      },
-      async ({ keyring }) => {
-        if (!isSnapKeyring(keyring)) {
-          throw new Error('SIGN_FAILED');
-        }
-        return keyring.submitRequest({
-          id: uuidv4(),
-          origin: 'metamask',
-          scope: BtcScope.Mainnet,
-          account: accountId,
-          request: {
-            method: 'signMessage',
-            params: { account: { address }, message },
-          },
-        });
-      },
-    )) as Json;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'SIGN_FAILED') {
-      throw error;
-    }
+  const result = await submitSnapSignMessage(accountId, BtcScope.Mainnet, {
+    account: { address },
+    message,
+  });
+  const signature = signatureFromKeyringResult(result);
+  if (!signature) {
     throw new Error('SIGN_FAILED');
   }
+  return signature;
+}
 
-  const signature = signatureFromKeyringResult(result);
+/**
+ * ed25519 signature over the raw claim challenge, as `0x` hex.
+ *
+ * The Solana keyring `signMessage` takes a base64 challenge, decodes it, and
+ * signs those UTF-8 bytes. `signRewardsMessage` only signs
+ * `rewards,<address>,<timestamp>` and refuses a claim challenge. The snap
+ * returns a base58 signature; the claim route wants those bytes as hex.
+ * `params.account` is the address; the request's `account` is the snap
+ * account id.
+ */
+export async function signSolanaClaimMessage(
+  accountId: string,
+  address: string,
+  message: string,
+): Promise<string> {
+  const result = await submitSnapSignMessage(accountId, SolScope.Mainnet, {
+    account: { address },
+    message: Buffer.from(message, 'utf8').toString('base64'),
+  });
+
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    Array.isArray(result) ||
+    !('signature' in result) ||
+    typeof result.signature !== 'string'
+  ) {
+    throw new Error('SIGN_FAILED');
+  }
+  const signature = solanaProofHex(result.signature);
+  if (!signature) {
+    throw new Error('SIGN_FAILED');
+  }
+  return signature;
+}
+
+/**
+ * SEP-53 signature over the raw claim challenge, as `0x` hex.
+ *
+ * The Stellar snap hashes `Stellar Signed Message:\n` plus the message itself
+ * and returns base64 on `signedMessage`. The challenge is sent as UTF-8, not
+ * base64, and `params` is only that message. The claim route wants the
+ * signature bytes as hex.
+ */
+export async function signStellarClaimMessage(
+  accountId: string,
+  message: string,
+): Promise<string> {
+  const result = await submitSnapSignMessage(accountId, XlmScope.Pubnet, {
+    message,
+  });
+  const signature = stellarProofHex(result);
   if (!signature) {
     throw new Error('SIGN_FAILED');
   }
@@ -480,8 +639,8 @@ export interface RunEarningsClaimDeps {
   ) => Promise<InitiateClaimResult>;
   /**
    * Whether this handset can sign for the earning-address key. EVM software
-   * keys and mainnet Bitcoin accounts on this phone can. Solana, Tron,
-   * hardware accounts, and keys that live on another device cannot.
+   * keys, mainnet Bitcoin, Solana, and Stellar accounts on this phone can.
+   * Tron, hardware accounts, and keys that live on another device cannot.
    */
   canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;

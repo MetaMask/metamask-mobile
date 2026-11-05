@@ -4,7 +4,7 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
-import { Share } from 'react-native';
+import Share from 'react-native-share';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -17,6 +17,13 @@ import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -485,18 +492,18 @@ describe('TraderProfileView', () => {
   });
 
   it('shares the trader profile deeplink from the header', () => {
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
     renderWithProvider(<TraderProfileView />);
 
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(shareSpy).toHaveBeenCalledWith({
+    expect(Share.open).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      failOnCancel: false,
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share profile');
@@ -1223,6 +1230,7 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+      expect(mockPlaySelection).toHaveBeenCalledTimes(5);
     });
 
     it('triggers a haptic on each sort tap', () => {

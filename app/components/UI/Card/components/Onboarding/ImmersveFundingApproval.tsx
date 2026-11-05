@@ -17,7 +17,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  HeaderStandard,
   AvatarAccount,
   AvatarToken,
   AvatarBaseSize,
@@ -70,6 +69,8 @@ import {
 } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type FundingApprovalMode = 'onboarding' | 'reapprove';
 
@@ -186,6 +187,7 @@ const ImmersveFundingApproval = () => {
   const headerHandlers = useCardHeaderHandlers(
     isReapprove ? 'back' : 'close-direct',
   );
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedCountry = useSelector(selectCardSelectedCountry);
   const fundingCountry = countryKey ?? selectedCountry;
@@ -460,12 +462,14 @@ const ImmersveFundingApproval = () => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box twClassName="flex-1 justify-center items-center px-4">
           <ActivityIndicator
             testID="immersve-funding-approval-spinner"
             size="large"
@@ -490,12 +494,14 @@ const ImmersveFundingApproval = () => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box twClassName="flex-1 justify-center items-center px-4">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -529,7 +535,9 @@ const ImmersveFundingApproval = () => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

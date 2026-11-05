@@ -22,3 +22,36 @@ export {
   usePredictPortfolioValue,
   type PredictPortfolioValue,
 } from './portfolio';
+export {
+  usePredictCampaignEligibility,
+  type PredictCampaign,
+} from './campaigns';
+export {
+  createLegacyPredictEventRef,
+  createPredictCampaignEventRef,
+  openPredict,
+  usePredictEntryActions,
+  type PredictEntryActions,
+  type PredictEntryPoint,
+  type PredictEventRef,
+  type PredictFeedCategory,
+  type PredictIntent,
+} from './navigation/entry';
+export type { PredictAppRouteParamList } from './navigation/appRoutes';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';
+export {
+  PredictTrendingCarousel,
+  PredictTrendingMarketCard,
+  PredictTrendingSearchRow,
+  PredictTrendingSkeleton,
+  getPredictTrendingMarketAnalyticsProperties,
+  usePredictSportsMarketsFeed,
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
+  type PredictSportsMarketsFeed,
+  type PredictTrendingMarket,
+  type PredictTrendingVariant,
+} from './trending';

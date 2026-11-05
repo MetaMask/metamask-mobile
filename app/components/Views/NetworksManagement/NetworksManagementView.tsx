@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import {
-  HeaderStandard,
   Box,
   Text,
   TextVariant,
@@ -34,8 +33,12 @@ import { SECTION_KEYS } from './NetworksManagementView.constants';
 import { NetworkManagementItem } from './NetworksManagementView.types';
 
 import AdditionalNetworkItem from './components/AdditionalNetworkItem';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const NetworksManagementView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { addPopularNetwork } = useAddPopularNetwork();
@@ -120,7 +123,9 @@ const NetworksManagementView = () => {
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.networks_title')}
         onBack={handleBack}
         includesTopInset

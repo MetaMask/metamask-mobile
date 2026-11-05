@@ -93,7 +93,7 @@ export const useImmersveResumeOnboarding = () => {
               address,
             })
             .catch(() => undefined);
-        } else if (!alreadyAuthenticated) {
+        } else {
           controller
             .recordProviderOnboardingStarted({
               provider: CardProviderIds.Immersve,

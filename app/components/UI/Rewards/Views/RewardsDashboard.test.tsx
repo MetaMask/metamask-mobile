@@ -110,6 +110,8 @@ import {
 } from '../../../../selectors/rewards';
 import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -583,6 +585,41 @@ describe('RewardsDashboard', () => {
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+
+    describe('with glass headers on', () => {
+      beforeEach(() => {
+        const defaultSelector = mockUseSelector.getMockImplementation();
+        mockUseSelector.mockImplementation((selector) =>
+          selector === selectGlassHeadersEnabled
+            ? true
+            : defaultSelector?.(selector),
+        );
+      });
+
+      it('floats the tab header over the content', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+
+      it('keeps settings pressable in its glass capsule', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_SETTINGS_VIEW,
+          params: undefined,
+        });
+      });
+    });
+
+    it('keeps the solid header when glass headers are off', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('renders settings button in header', () => {

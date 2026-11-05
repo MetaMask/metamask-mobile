@@ -94,7 +94,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
@@ -109,6 +108,16 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
+
+// Shared by the *.view.test.* and tests/component-view/** overrides so the
+// fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
+// variants included.
+const cvFakeTimerBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
+  message:
+    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+};
 
 module.exports = {
   root: true,
@@ -430,6 +439,27 @@ module.exports = {
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
+          cvFakeTimerBan,
+        ],
+      },
+    },
+    {
+      // Shared component-view helpers keep the base no-restricted-syntax bans
+      // and add the fake-timer ban. The jest.mock ban above does not apply
+      // here (mocks.ts mocks Engine).
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          cvFakeTimerBan,
         ],
       },
     },

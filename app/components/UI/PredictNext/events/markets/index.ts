@@ -10,3 +10,8 @@ export { TotalMarketGroupCard } from './TotalMarketGroupCard';
 export type { TotalMarketGroupCardProps } from './TotalMarketGroupCard';
 export { MoneylineMarketGroupCard } from './MoneylineMarketGroupCard';
 export type { MoneylineMarketGroupCardProps } from './MoneylineMarketGroupCard';
+export { ChoiceMarketGroupCard } from './ChoiceMarketGroupCard';
+export type {
+  ChoiceMarketGroupCardProps,
+  ChoiceRowAppearance,
+} from './ChoiceMarketGroupCard';

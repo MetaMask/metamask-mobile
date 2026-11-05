@@ -1124,7 +1124,9 @@ const MoneyHomeView = () => {
           }}
           transfer={{
             onPress: handleTransferPress,
-            disabled: !hasSpendableBalance,
+            // Keep Send available at $0 so pre-deposit users can inspect
+            // withdrawal routes before adding funds.
+            disabled: !hasBalanceValue,
           }}
           card={{ onPress: handleActionButtonCardPress }}
           details={

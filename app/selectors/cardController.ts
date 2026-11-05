@@ -6,7 +6,6 @@ import {
   type CaipChainId,
 } from '@metamask/utils';
 import { RootState } from '../reducers';
-import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
@@ -59,6 +58,11 @@ import {
   selectCardLinkApiEnabled,
   type CardRemoteFeatureFlags,
 } from './featureFlagController/card';
+import {
+  pickRoutableCardLink,
+  resolveCardEntryRouting,
+  type CardEntryRouting,
+} from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -239,9 +243,7 @@ export const selectCardLinks = createSelector(
 /** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
 const selectRoutableCardLink = createSelector(
   selectCardLinks,
-  (links): CardLink | null =>
-    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
-    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
+  (links): CardLink | null => pickRoutableCardLink(links),
 );
 
 export const selectHasLinkedCard = createSelector(
@@ -252,6 +254,26 @@ export const selectHasLinkedCard = createSelector(
 export const selectLinkedCardProvider = createSelector(
   selectRoutableCardLink,
   (link): CardProviderId | null => link?.provider ?? null,
+);
+
+export const selectCardEntryRouting = createSelector(
+  selectCardLinkApiEnabled,
+  selectCardLinks,
+  selectHasCardholderAccounts,
+  (cardLinkApiEnabled, cardLinks, hasLegacyCardholder): CardEntryRouting =>
+    resolveCardEntryRouting({
+      cardLinkApiEnabled,
+      cardLinks,
+      hasLegacyCardholder,
+    }),
+);
+
+/** Stored links decide once Card API returned any; until then the selected account's `card_user` label. */
+export const selectHasCard = createSelector(
+  selectCardEntryRouting,
+  selectIsCardholder,
+  (routing, isCardholder) =>
+    routing.source === 'card_links' ? routing.hasCard : isCardholder,
 );
 
 export const selectCardUserLocation = createSelector(

@@ -1335,18 +1335,19 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      const cardDetails = this.mapImmersveCard({
+      // LIST is the AC source for regionCode; detail may omit it.
+      const mergedDetail = {
         ...detail,
-        // LIST is the AC source for regionCode; detail may omit it.
         regionCode: detail.regionCode ?? card.regionCode,
-      });
+      };
+      const cardDetails = this.mapImmersveCard(mergedDetail);
       const fundingAssets = await this.fetchFundingAssets(
         detail.fundingSourceIds ?? [],
         tokens,
       );
       const primaryFundingAsset = fundingAssets[0] ?? null;
 
-      const walletProvisioning = this.mapWalletProvisioning(detail);
+      const walletProvisioning = this.mapWalletProvisioning(mergedDetail);
 
       if (this.isRevokedAllowance(primaryFundingAsset)) {
         return {
@@ -1578,12 +1579,14 @@ export class ImmersveProvider implements ICardProvider {
   private mapWalletProvisioning(
     detail: ImmersveCardDetail,
   ): CardWalletProvisioningInfo {
+    const region = detail.regionCode?.trim();
     return {
       eligible: this.mapImmersveCardStatus(detail) === CardStatus.ACTIVE,
       cardholderName: detail.cardholderName ?? '',
       lastFour: detail.panLast4 ?? '',
       network: 'MASTERCARD',
       primaryAccountIdentifier: detail.seriesId,
+      ...(region ? { countryCode: region.toUpperCase() } : {}),
     };
   }
 

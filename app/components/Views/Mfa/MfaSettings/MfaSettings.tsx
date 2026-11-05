@@ -27,7 +27,10 @@ import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMfaUiKitMethods } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
@@ -41,7 +44,7 @@ const ROW_TEST_IDS: Record<MfaMethod, string> = {
   totp: MfaSettingsSelectorsIDs.TOTP_ROW,
 };
 
-const ADD_OPERATIONS: Record<MfaMethod, string> = {
+const ADD_OPERATIONS: Record<MfaMethod, MfaReason['operation']> = {
   passkey: 'settings.addPasskey',
   email_otp: 'settings.addEmail',
   totp: 'settings.addAuthenticatorApp',
