@@ -499,6 +499,101 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
+  it('does not place the old amount when the trader edits it during the account-support check', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    let resolveAccountSupport: (
+      result: Awaited<ReturnType<typeof getAccountSupport>>,
+    ) => void = () => undefined;
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const submitButton = await waitForEnabledPlaceOrderButton(
+      PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    getAccountSupport.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveAccountSupport = resolve;
+      }),
+    );
+
+    fireEvent.press(submitButton);
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    fireEvent.press(await screen.findByTestId(KeypadTestIds.KEY_5));
+    await act(async () => {
+      resolveAccountSupport({ isSupported: true });
+    });
+    await waitForDeferredOrderData();
+
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('does not place an order that became invalid during the account-support check', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    let resolveAccountSupport: (
+      result: Awaited<ReturnType<typeof getAccountSupport>>,
+    ) => void = () => undefined;
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    getAccountSupport.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveAccountSupport = resolve;
+      }),
+    );
+
+    fireEvent.press(placeOrderButton);
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    act(() => {
+      stream.emitAccount(accountWithBalance('1'));
+    });
+    await waitForDeferredOrderData();
+    await act(async () => {
+      resolveAccountSupport({ isSupported: true });
+    });
+    await waitForDeferredOrderData();
+
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
   it('abandons a Trade sheet submission when its account-support context becomes stale', async () => {
     const getAccountSupport = jest.mocked(
       Engine.context.PerpsController.getAccountSupport,

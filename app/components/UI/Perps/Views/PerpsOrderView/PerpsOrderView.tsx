@@ -301,6 +301,11 @@ interface OrderRouteParams {
   useBottomSheet?: boolean;
 }
 
+type PlaceOrderHandler = (
+  forceTrade?: boolean,
+  hasCheckedAccountSupport?: boolean,
+) => Promise<'accountUnsupported' | undefined>;
+
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
@@ -1842,8 +1847,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
-  const handlePlaceOrder = useCallback(
-    async (forceTrade = false) => {
+  const submissionInputKey = JSON.stringify({
+    orderForm,
+    payTokenIdentity,
+    hasCustomTokenSelected,
+  });
+  const submissionInputKeyRef = useRef(submissionInputKey);
+  submissionInputKeyRef.current = submissionInputKey;
+  const handlePlaceOrderRef = useRef<PlaceOrderHandler>(async () => undefined);
+
+  const handlePlaceOrder = useCallback<PlaceOrderHandler>(
+    async (forceTrade = false, hasCheckedAccountSupport = false) => {
       if (
         isSubmittingRef.current ||
         (!forceTrade && isConfirmingDepositRef.current)
@@ -1868,7 +1882,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // the post-deposit re-invocation, not a user tap, so it is excluded. The
       // active A/B assignment (e.g. button color) is auto-injected onto this
       // PERPS_UI_INTERACTION event via enrichWithABTests().
-      if (!forceTrade) {
+      if (!forceTrade && !hasCheckedAccountSupport) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
@@ -1893,27 +1907,37 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         (isDismissedRef.current ||
           submissionGenerationRef.current !== attemptGeneration);
 
-      // Cover this await with the submit lock. The validating path sets the
-      // same lock only after this read, so a second tap in the same turn
-      // would otherwise start a parallel placement.
-      isSubmittingRef.current = true;
-      const accountSupport = await checkAccountSupport().finally(() => {
-        isSubmittingRef.current = false;
-      });
-      // The post-deposit re-entry runs after this view unmounts, so an
-      // unmounted support read is not a reason to drop it. A changed account
-      // context still is.
-      if (isAttemptRetired()) {
-        return;
-      }
-      if (accountSupport === 'unsupported') {
-        return 'accountUnsupported' as const;
-      }
-      if (
-        accountSupport === 'stale' ||
-        (accountSupport === 'unmounted' && !forceTrade)
-      ) {
-        return;
+      if (!hasCheckedAccountSupport) {
+        const inputKeyAtTap = submissionInputKeyRef.current;
+        // Cover this await with the submit lock. The validating path sets the
+        // same lock only after this read, so a second tap in the same turn
+        // would otherwise start a parallel placement.
+        isSubmittingRef.current = true;
+        const accountSupport = await checkAccountSupport().finally(() => {
+          isSubmittingRef.current = false;
+        });
+        // The post-deposit re-entry runs after this view unmounts, so an
+        // unmounted support read is not a reason to drop it. A changed
+        // account context still is.
+        if (isAttemptRetired()) {
+          return;
+        }
+        if (accountSupport === 'unsupported') {
+          return 'accountUnsupported';
+        }
+        if (
+          accountSupport === 'stale' ||
+          (accountSupport === 'unmounted' && !forceTrade)
+        ) {
+          return;
+        }
+        // Inputs edited during the check describe an order the user has not
+        // submitted yet. Otherwise continue on the latest render so blockers,
+        // validation and price reflect the state after the wait.
+        if (submissionInputKeyRef.current !== inputKeyAtTap) {
+          return;
+        }
+        return handlePlaceOrderRef.current(forceTrade, true);
       }
 
       if (liquidityError) {
@@ -2363,6 +2387,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       fireImpact,
     ],
   );
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
