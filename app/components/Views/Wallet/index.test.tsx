@@ -102,6 +102,7 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 let mockMoneyAccountVisible = false;
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
   selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
