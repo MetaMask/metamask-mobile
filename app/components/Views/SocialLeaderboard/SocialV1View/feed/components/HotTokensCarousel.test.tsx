@@ -1,4 +1,8 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
 import {
   FontWeight,
   IconColor,
@@ -20,6 +24,7 @@ import {
   getSocialV1HotTokenChipTestId,
   getSocialV1HotTokenSelectedChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID,
   SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
@@ -31,17 +36,29 @@ jest.mock('../../../../../../util/deviceCapability', () => ({
 jest.mock('../../../../../../util/haptics');
 
 const mockSetFrameCallbackActive = jest.fn();
+let mockFrameCallback:
+  | ((frame: { timeSincePreviousFrame: number | null }) => void)
+  | null = null;
+let mockReducedMotion = false;
 
 jest.mock('react-native-reanimated', () => {
   const actual = jest.requireActual('react-native-reanimated');
   return new Proxy(actual, {
     get(target, prop, receiver) {
+      if (prop === 'useReducedMotion') {
+        return () => mockReducedMotion;
+      }
       if (prop === 'useFrameCallback') {
-        return () => ({
-          setActive: mockSetFrameCallbackActive,
-          isActive: false,
-          callbackId: 1,
-        });
+        return (
+          callback: (frame: { timeSincePreviousFrame: number | null }) => void,
+        ) => {
+          mockFrameCallback = callback;
+          return {
+            setActive: mockSetFrameCallbackActive,
+            isActive: false,
+            callbackId: 1,
+          };
+        };
       }
       return Reflect.get(target, prop, receiver);
     },
@@ -74,10 +91,36 @@ const railChipTestIds = () =>
     .getAllByTestId(/^social-v1-hot-token-chip-(?!.*-loop$)/)
     .map((chip) => chip.props.testID);
 
+/** Lays out a 300px viewport over an 800px track, so the marquee loops. */
+const layOutOverflowingRail = () => {
+  fireEvent(
+    screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+    'layout',
+    {
+      nativeEvent: { layout: { width: 300, height: 40 } },
+    },
+  );
+  fireEvent(screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID), 'layout', {
+    nativeEvent: { layout: { width: 800, height: 40 } },
+  });
+};
+
+/** Places a pill in its track; the layout event reaches the pill's wrapper. */
+const layOutPill = (chipId: string, x: number, width = 120) =>
+  fireEvent(
+    screen.getByTestId(getSocialV1HotTokenChipTestId(chipId)),
+    'layout',
+    {
+      nativeEvent: { layout: { x, y: 0, width, height: 40 } },
+    },
+  );
+
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetHardwareTier.mockReturnValue(null);
+    mockReducedMotion = false;
+    mockFrameCallback = null;
   });
 
   it('renders a chip per hot token', () => {
@@ -416,6 +459,162 @@ describe('HotTokensCarousel', () => {
     rerender(<HotTokensCarousel isActive />);
 
     expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+  });
+
+  describe('selection motion', () => {
+    const OFF_SCREEN = mockHotToken({
+      id: 'hot-eth',
+      symbol: 'ETH',
+      label: 'Ethereum',
+    });
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    /** Selects NVIDIA from a laid-out rail, then clears it again. */
+    const selectThenClear = () => {
+      const onTokenPress = jest.fn();
+      arrange([mockHotToken(), NVIDIA, OFF_SCREEN]);
+      const { rerender } = renderWithProvider(
+        <HotTokensCarousel onTokenPress={onTokenPress} />,
+      );
+      layOutOverflowingRail();
+      layOutPill('hot-btc', 16);
+      layOutPill('hot-nvda', 144);
+      layOutPill('hot-eth', 600);
+      layOutPill('hot-btc-loop', 816);
+
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+      );
+      rerender(
+        <HotTokensCarousel
+          selectedTokenId={NVIDIA.id}
+          onTokenPress={onTokenPress}
+        />,
+      );
+      act(() => {
+        jest.runAllTimers();
+      });
+      const dockedAfterSelect =
+        screen.queryByTestId(
+          getSocialV1HotTokenSelectedChipTestId('hot-nvda'),
+        ) !== null;
+
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+      );
+      rerender(
+        <HotTokensCarousel
+          selectedTokenId={null}
+          onTokenPress={onTokenPress}
+        />,
+      );
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      return { onTokenPress, dockedAfterSelect };
+    };
+
+    it('scatters the rail, docks the chip, then brings the rail back', () => {
+      const { onTokenPress, dockedAfterSelect } = selectThenClear();
+
+      expect(dockedAfterSelect).toBe(true);
+      expect(onTokenPress).toHaveBeenNthCalledWith(1, NVIDIA);
+      expect(onTokenPress).toHaveBeenNthCalledWith(2, NVIDIA);
+      expect(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props
+          .pointerEvents,
+      ).toBe('auto');
+    });
+
+    it('removes the docked chip once its exit finishes', () => {
+      selectThenClear();
+
+      expect(
+        screen.queryByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+      ).toBeNull();
+    });
+
+    it('fades the rail in place on low-end hardware', () => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+
+      const { dockedAfterSelect } = selectThenClear();
+
+      expect(dockedAfterSelect).toBe(true);
+      expect(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props
+          .pointerEvents,
+      ).toBe('auto');
+    });
+
+    it('fades the rail in place under Reduce Motion', () => {
+      mockReducedMotion = true;
+
+      const { dockedAfterSelect } = selectThenClear();
+
+      expect(dockedAfterSelect).toBe(true);
+      expect(
+        screen.queryByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+      ).toBeNull();
+    });
+
+    it('hides a pill that mounts while the rail is scattered', () => {
+      arrange([mockHotToken(), NVIDIA]);
+      const { rerender } = renderWithProvider(
+        <HotTokensCarousel selectedTokenId={NVIDIA.id} />,
+      );
+
+      arrange([mockHotToken(), NVIDIA, OFF_SCREEN]);
+      rerender(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+      expect(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('hot-eth'), {
+          includeHiddenElements: true,
+        }),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('marquee', () => {
+    it('crawls the rail each frame once the track overflows', () => {
+      arrange([mockHotToken(), NVIDIA]);
+      renderWithProvider(<HotTokensCarousel />);
+      layOutOverflowingRail();
+
+      expect(() =>
+        act(() => {
+          mockFrameCallback?.({ timeSincePreviousFrame: 16 });
+          mockFrameCallback?.({ timeSincePreviousFrame: null });
+        }),
+      ).not.toThrow();
+      expect(mockFrameCallback).not.toBeNull();
+    });
+
+    it('lets the rail be scrubbed', () => {
+      arrange([mockHotToken(), NVIDIA]);
+      renderWithProvider(<HotTokensCarousel />);
+      layOutOverflowingRail();
+
+      expect(() =>
+        act(() => {
+          fireGestureHandler(
+            getByGestureTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID),
+            [
+              { translationX: 0 },
+              { translationX: -60 },
+              { translationX: -120 },
+            ],
+          );
+        }),
+      ).not.toThrow();
+    });
   });
 
   describe('on low-end hardware', () => {

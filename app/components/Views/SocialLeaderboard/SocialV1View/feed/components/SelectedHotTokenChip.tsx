@@ -82,6 +82,8 @@ export interface SelectedHotTokenChipProps {
   animatesIn: boolean;
   /** True once the filter clears; the chip plays its exit, then reports it. */
   isExiting: boolean;
+  /** Reduce Motion: the chip fades in and out at the dock, without moving. */
+  reduceMotion?: boolean;
   onPress: (token: SocialV1HotToken) => void;
   onExited: (dockKey: number) => void;
 }
@@ -89,7 +91,8 @@ export interface SelectedHotTokenChipProps {
 /**
  * The chip the feed is filtered on, docked at the rail's left edge. It flies
  * out of the pressed pill on a spring while taking the selected fill and
- * sliding its close icon open. Pressing it clears the filter.
+ * sliding its close icon open. Pressing it clears the filter. With Reduce
+ * Motion on, it fades in and out in place instead.
  *
  * The fill change is a cross-fade: an unselected copy sits over the real chip
  * and fades out. Both copies share the close slot, so they keep one width.
@@ -100,15 +103,21 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
   originLeft,
   animatesIn,
   isExiting,
+  reduceMotion = false,
   onPress,
   onExited,
 }) => {
-  const fliesIn = animatesIn && originLeft !== null;
-  const risesIn = animatesIn && originLeft === null;
+  const fliesIn = animatesIn && originLeft !== null && !reduceMotion;
+  const fadesIn = animatesIn && !fliesIn;
+  const motion = useSharedValue(reduceMotion ? 0 : 1);
   const flightX = useSharedValue(fliesIn ? (originLeft ?? 0) - DOCK_LEFT : 0);
-  const enter = useSharedValue(risesIn ? 0 : 1);
+  const enter = useSharedValue(fadesIn ? 0 : 1);
   const fill = useSharedValue(animatesIn ? 0 : 1);
-  const closeSlot = useSharedValue(animatesIn ? 0 : 1);
+  const closeSlot = useSharedValue(animatesIn && !reduceMotion ? 0 : 1);
+
+  useEffect(() => {
+    motion.value = reduceMotion ? 0 : 1;
+  }, [motion, reduceMotion]);
   const exit = useSharedValue(0);
 
   useEffect(() => {
@@ -116,7 +125,9 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
       return;
     }
     fill.value = withTiming(1, SELECTED_FILL);
-    closeSlot.value = withTiming(1, CLOSE_SLOT);
+    if (!reduceMotion) {
+      closeSlot.value = withTiming(1, CLOSE_SLOT);
+    }
     if (fliesIn) {
       flightX.value = withSpring(0, FLY_SPRING);
     } else {
@@ -125,30 +136,36 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
         easing: REASSEMBLE.easing,
       });
     }
-  }, [animatesIn, closeSlot, enter, fill, flightX, fliesIn]);
+  }, [animatesIn, closeSlot, enter, fill, flightX, fliesIn, reduceMotion]);
 
   useEffect(() => {
     if (!isExiting) {
       return;
     }
     const config = { duration: DOCK_EXIT.duration, easing: DOCK_EXIT.easing };
-    closeSlot.value = withTiming(0, config);
+    if (!reduceMotion) {
+      closeSlot.value = withTiming(0, config);
+    }
     exit.value = withTiming(1, config, (finished) => {
       'worklet';
       if (finished) {
         scheduleOnRN(onExited, dockKey);
       }
     });
-  }, [closeSlot, dockKey, exit, isExiting, onExited]);
+  }, [closeSlot, dockKey, exit, isExiting, onExited, reduceMotion]);
 
   const chipStyle = useAnimatedStyle(() => {
-    const enterScale = REASSEMBLE.scale + (1 - REASSEMBLE.scale) * enter.value;
-    const exitScale = 1 - (1 - DOCK_EXIT.scale) * exit.value;
+    const enterScale =
+      1 - (1 - REASSEMBLE.scale) * (1 - enter.value) * motion.value;
+    const exitScale = 1 - (1 - DOCK_EXIT.scale) * exit.value * motion.value;
     return {
       opacity: enter.value * (1 - exit.value),
       transform: [
-        { translateX: flightX.value + DOCK_EXIT.shiftX * exit.value },
-        { translateY: REASSEMBLE.shiftY * (1 - enter.value) },
+        {
+          translateX:
+            flightX.value + DOCK_EXIT.shiftX * exit.value * motion.value,
+        },
+        { translateY: REASSEMBLE.shiftY * (1 - enter.value) * motion.value },
         { scale: enterScale * exitScale },
       ],
     };

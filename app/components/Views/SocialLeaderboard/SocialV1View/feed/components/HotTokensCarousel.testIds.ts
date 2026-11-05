@@ -4,6 +4,9 @@ export const SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID =
 /** The marquee row holding the track and its loop copy. */
 export const SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID = 'social-v1-hot-tokens-rail';
 
+/** Gesture test ID for scrubbing the rail. */
+export const SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID = 'social-v1-hot-tokens-pan';
+
 export const SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID = 'social-v1-hot-tokens-track';
 
 export const getSocialV1HotTokenChipTestId = (id: string) =>

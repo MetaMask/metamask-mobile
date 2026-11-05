@@ -18,6 +18,7 @@ import Animated, {
   type SharedValue,
   useAnimatedStyle,
   useFrameCallback,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withTiming,
@@ -31,17 +32,20 @@ import type { SocialV1HotToken } from '../types';
 import {
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID,
   SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 import {
+  advanceMarquee,
   DISPERSE,
   DOCK_LEFT,
+  getDisperseMotion,
+  getReassembleDelay,
+  isPillOnScreen,
   LIGHT_FADE_DURATION,
-  MARQUEE_ACCELERATE_RATE,
-  MARQUEE_BRAKE_RATE,
-  ON_SCREEN_MARGIN,
   REASSEMBLE,
+  wrapOffset,
 } from './hotTokenRailMotion';
 import SelectedHotTokenChip from './SelectedHotTokenChip';
 
@@ -70,15 +74,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const wrapOffset = (x: number, width: number): number => {
-  'worklet';
-  if (width <= 0) {
-    return 0;
-  }
-  const wrapped = x % width;
-  return wrapped < 0 ? wrapped + width : wrapped;
-};
-
 /** Where a pressed pill sat in the viewport, so its docked copy can fly out of it. */
 interface PillOrigin {
   tokenId: string;
@@ -92,7 +87,7 @@ interface PillDispersal {
   originCenter: number;
   /** Hidden at once: the docked chip covers its spot as it takes off. */
   sourceChipId: string | null;
-  /** Low-end hardware: a plain fade, no stagger or motion. */
+  /** Low-end hardware or Reduce Motion: a plain fade, no stagger or motion. */
   isLight: boolean;
 }
 
@@ -174,8 +169,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     const viewport = viewportWidth.value;
     const isOnScreen =
       placement !== null &&
-      placement.left + placement.width > -ON_SCREEN_MARGIN &&
-      placement.left < viewport + ON_SCREEN_MARGIN;
+      isPillOnScreen(placement.left, placement.width, viewport);
 
     if (dispersal) {
       if (chipId === dispersal.sourceChipId || !placement || !isOnScreen) {
@@ -186,19 +180,13 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
         opacity.value = withTiming(0, { duration: LIGHT_FADE_DURATION });
         return;
       }
-      const distance =
-        placement.left + placement.width / 2 - dispersal.originCenter;
-      const direction = distance < 0 ? -1 : 1;
-      const delay = Math.min(
-        Math.abs(distance) * DISPERSE.delayPerPixel,
-        DISPERSE.maxDelay,
+      const { delay, shiftX } = getDisperseMotion(
+        placement.left + placement.width / 2,
+        dispersal.originCenter,
       );
       const config = { duration: DISPERSE.duration, easing: DISPERSE.easing };
       opacity.value = withDelay(delay, withTiming(0, config));
-      translateX.value = withDelay(
-        delay,
-        withTiming(direction * DISPERSE.shiftX, config),
-      );
+      translateX.value = withDelay(delay, withTiming(shiftX, config));
       translateY.value = withDelay(delay, withTiming(DISPERSE.shiftY, config));
       scale.value = withDelay(delay, withTiming(DISPERSE.scale, config));
       return;
@@ -225,10 +213,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
       translateY.value = REASSEMBLE.shiftY;
       scale.value = REASSEMBLE.scale;
     }
-    const delay =
-      REASSEMBLE.baseDelay +
-      (viewport > 0 ? Math.max(0, placement.left / viewport) : 0) *
-        REASSEMBLE.spreadDelay;
+    const delay = getReassembleDelay(placement.left, viewport);
     const config = { duration: REASSEMBLE.duration, easing: REASSEMBLE.easing };
     opacity.value = withDelay(delay, withTiming(1, config));
     translateX.value = withDelay(delay, withTiming(0, config));
@@ -338,8 +323,9 @@ const HotTokenTrack: React.FC<
  * still wins over the pager so scrubbing the chips does not change tabs.
  *
  * The crawl runs a callback every frame, so low-end hardware keeps the rail
- * still, and its chips fade in place instead of scattering. The pan stays, so
- * the chips can still be scrubbed.
+ * still, and its chips fade in place instead of scattering. Reduce Motion
+ * gets the same fade, and the docked chip fades in place instead of flying.
+ * The pan stays, so the chips can still be scrubbed.
  *
  * Icons go through `PositionTokenAvatar`, the same resolution the position
  * cards use.
@@ -352,6 +338,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isActive = true,
 }) => {
   const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
+  const reduceMotion = useReducedMotion();
   // A press moves the rail at once and hands the feed's filter to a
   // transition, so the animation does not wait on the feed re-rendering. The
   // guess is dropped as soon as the page answers with a new selection.
@@ -427,10 +414,10 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         ? {
             originCenter: docked.origin?.center ?? DOCK_LEFT,
             sourceChipId: docked.origin?.chipId ?? null,
-            isLight: isLowHardware,
+            isLight: isLowHardware || reduceMotion,
           }
         : null,
-    [docked, isLowHardware],
+    [docked, isLowHardware, reduceMotion],
   );
 
   const handleDockExited = useCallback((key: number) => {
@@ -477,6 +464,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .withTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID)
         .enabled(!isSelected)
         .activeOffsetX([-10, 10])
         .failOffsetY([-12, 12])
@@ -507,25 +495,19 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const tickMarquee = useCallback(
     (frame: { timeSincePreviousFrame: number | null }) => {
       'worklet';
-      const width = trackWidthSv.value;
-      const viewport = viewportWidthSv.value;
-      if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
+      if (paused.value) {
         return;
       }
-      const dtMs = frame.timeSincePreviousFrame ?? 0;
-      if (dtMs <= 0) {
-        return;
-      }
-      const dt = Math.min(dtMs / 1000, 0.05);
-      const target = parked.value ? 0 : MARQUEE_PIXELS_PER_SECOND;
-      const rate =
-        target < speed.value ? MARQUEE_BRAKE_RATE : MARQUEE_ACCELERATE_RATE;
-      speed.value += (target - speed.value) * (1 - Math.exp(-dt * rate));
-      if (target === 0 && speed.value < 0.05) {
-        speed.value = 0;
-        return;
-      }
-      offset.value = wrapOffset(offset.value + speed.value * dt, width);
+      const next = advanceMarquee(
+        offset.value,
+        speed.value,
+        parked.value ? 0 : MARQUEE_PIXELS_PER_SECOND,
+        frame.timeSincePreviousFrame ?? 0,
+        trackWidthSv.value,
+        viewportWidthSv.value,
+      );
+      offset.value = next.offset;
+      speed.value = next.speed;
     },
     [offset, parked, paused, speed, trackWidthSv, viewportWidthSv],
   );
@@ -633,6 +615,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
             originLeft={docked.origin?.left ?? null}
             animatesIn={docked.animatesIn}
             isExiting={docked.isExiting}
+            reduceMotion={reduceMotion}
             onPress={handleTokenPress}
             onExited={handleDockExited}
           />
