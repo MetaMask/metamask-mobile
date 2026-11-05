@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import { isPositiveBaseUnits } from '../../utils/formatUtils';
 import { SHOW_REFERRER_CLAIMABLE_AMOUNT } from './constants';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
@@ -27,17 +28,6 @@ export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
 
 function amountHeading(label: string, currency: string): string {
   return `${label} \u2022 ${currency}`;
-}
-
-function isPositiveBaseUnits(value: string | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-  try {
-    return BigInt(value) > 0n;
-  } catch {
-    return false;
-  }
 }
 
 /**

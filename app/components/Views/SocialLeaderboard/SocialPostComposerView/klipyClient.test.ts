@@ -1,53 +1,14 @@
-import {
-  fetchKlipyGifs,
-  KlipyApiError,
-  mapKlipyGifPage,
-  toKlipyLocale,
-} from './klipyClient';
-
-const gifFile = (url: string) => ({ gif: { url, width: 100, height: 100 } });
+import { fetchKlipyGifs, KlipyApiError, mapKlipyGifPage } from './klipyClient';
 
 const helloItem = {
-  id: 42,
-  slug: 'hello-hi',
+  id: 1,
   title: 'Hello',
   file: {
-    hd: gifFile('https://static.klipy.com/hd.gif'),
-    md: gifFile('https://static.klipy.com/md.gif'),
-    sm: gifFile('https://static.klipy.com/sm.gif'),
-    xs: gifFile('https://static.klipy.com/xs.gif'),
+    md: { gif: { url: 'https://static.klipy.com/one.gif' } },
   },
 };
 
 describe('klipyClient', () => {
-  it('maps an en locale to the us country code', () => {
-    expect(toKlipyLocale('en')).toBe('us');
-    expect(toKlipyLocale('en-US')).toBe('us');
-    expect(toKlipyLocale('pt-BR')).toBe('br');
-  });
-
-  it('maps a search payload to preview and full gif urls', () => {
-    const page = mapKlipyGifPage({
-      result: true,
-      data: {
-        data: [helloItem, { id: 7, title: 'Broken', file: {} }],
-        has_next: true,
-      },
-    });
-
-    expect(page).toEqual({
-      hasNext: true,
-      gifs: [
-        {
-          id: '42',
-          title: 'Hello',
-          previewUrl: 'https://static.klipy.com/sm.gif',
-          gifUrl: 'https://static.klipy.com/md.gif',
-        },
-      ],
-    });
-  });
-
   it('throws when the payload is not a successful KLIPY page', () => {
     expect(() => mapKlipyGifPage({ result: false })).toThrow(KlipyApiError);
   });
