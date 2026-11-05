@@ -467,6 +467,7 @@ const SocialV1ViewContent: React.FC = () => {
   });
 
   const handleOpenMyProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
   }, [navigation]);
 
@@ -740,7 +741,7 @@ const SocialV1ViewContent: React.FC = () => {
                 twClassName="bg-transparent"
               />
               <ButtonIcon
-                iconName={IconName.Edit}
+                iconName={IconName.FeedPost}
                 iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}

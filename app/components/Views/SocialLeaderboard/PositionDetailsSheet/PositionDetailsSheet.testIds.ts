@@ -1,6 +1,7 @@
 export const PositionDetailsSheetSelectorsIDs = {
   CONTAINER: 'position-details-sheet',
   HEADER: 'position-details-sheet-header',
+  IDENTITY: 'position-details-sheet-identity',
   TITLE: 'position-details-sheet-title',
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
   PRICE: 'position-details-sheet-price',
@@ -8,7 +9,6 @@ export const PositionDetailsSheetSelectorsIDs = {
   CHART: 'position-details-sheet-chart',
   CHART_LINE: 'position-details-sheet-chart-line',
   CHART_LOADING: 'position-details-sheet-chart-loading',
-  CHART_LEVEL: 'position-details-sheet-chart-level',
   CHART_MARKER: 'position-details-sheet-chart-marker',
   CHART_TOOLTIP: 'position-details-sheet-chart-tooltip',
   CHART_SCRUB: 'position-details-sheet-chart-scrub',

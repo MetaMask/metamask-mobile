@@ -6,6 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
+import { TokenDetailsIds } from '../testIds';
 
 const mockNavigate = jest.fn();
 const mockCopyContractAddress = jest.fn();
@@ -344,13 +345,13 @@ describe('TokenDetailsInlineHeader', () => {
 
       expect(getByText('Dogecoin')).toBeOnTheScreen();
 
-      const subtitle = within(getByTestId('token-details-subtitle'));
+      const subtitle = within(getByTestId(TokenDetailsIds.header.subtitle));
       expect(subtitle.getByText('DOGE')).toBeOnTheScreen();
       const nameColor = StyleSheet.flatten(
         getByText('Dogecoin').props.style,
       )?.color;
       const tickerColor = StyleSheet.flatten(
-        subtitle.getByTestId('token-details-ticker').props.style,
+        subtitle.getByTestId(TokenDetailsIds.header.ticker).props.style,
       )?.color;
       const addressColor = StyleSheet.flatten(
         subtitle.getByText('0x..0000').props.style,
@@ -359,7 +360,7 @@ describe('TokenDetailsInlineHeader', () => {
       expect(addressColor).not.toStrictEqual(tickerColor);
       expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
       expect(
-        subtitle.getByTestId('copy-contract-address-button'),
+        subtitle.getByTestId(TokenDetailsIds.header.copyAddressButton),
       ).toBeOnTheScreen();
       expect(subtitle.queryByText('Dogecoin')).toBeNull();
     });
@@ -380,14 +381,14 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      const subtitle = within(getByTestId('token-details-subtitle'));
+      const subtitle = within(getByTestId(TokenDetailsIds.header.subtitle));
 
-      expect(subtitle.getByTestId('token-details-ticker').props.children).toBe(
-        'USDT',
-      );
+      expect(
+        subtitle.getByTestId(TokenDetailsIds.header.ticker).props.children,
+      ).toBe('USDT');
       expect(subtitle.getByText('0x..86CA')).toBeOnTheScreen();
       expect(
-        subtitle.getByTestId('copy-contract-address-button'),
+        subtitle.getByTestId(TokenDetailsIds.header.copyAddressButton),
       ).toBeOnTheScreen();
     });
 
@@ -426,7 +427,7 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      const subtitle = within(getByTestId('token-details-subtitle'));
+      const subtitle = within(getByTestId(TokenDetailsIds.header.subtitle));
 
       expect(subtitle.getByText('SUN')).toBeOnTheScreen();
       expect(subtitle.getByText('TR7N..Lj6t')).toBeOnTheScreen();
@@ -445,9 +446,9 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      const subtitle = within(getByTestId('token-details-subtitle'));
-      const ticker = subtitle.getByTestId('token-details-ticker');
-      const addressGroup = subtitle.getByTestId('token-details-address');
+      const subtitle = within(getByTestId(TokenDetailsIds.header.subtitle));
+      const ticker = subtitle.getByTestId(TokenDetailsIds.header.ticker);
+      const addressGroup = subtitle.getByTestId(TokenDetailsIds.header.address);
 
       expect(ticker.props.children).toBe(longTicker);
       expect(ticker.props.numberOfLines).toBe(1);
@@ -456,7 +457,7 @@ describe('TokenDetailsInlineHeader', () => {
       expect(StyleSheet.flatten(addressGroup.props.style)?.flexShrink).toBe(0);
       expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
       expect(
-        subtitle.getByTestId('copy-contract-address-button'),
+        subtitle.getByTestId(TokenDetailsIds.header.copyAddressButton),
       ).toBeOnTheScreen();
     });
 
@@ -473,12 +474,14 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      const ticker = getByTestId('token-details-ticker');
+      const ticker = getByTestId(TokenDetailsIds.header.ticker);
 
       expect(ticker.props.numberOfLines).toBe(1);
       expect(ticker.props.children).toBe(longTicker);
-      expect(queryByTestId('token-details-address')).toBeNull();
-      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(queryByTestId(TokenDetailsIds.header.address)).toBeNull();
+      expect(
+        queryByTestId(TokenDetailsIds.header.copyAddressButton),
+      ).toBeNull();
     });
 
     it('renders the ticker under the name when there is no contract address', () => {
@@ -523,17 +526,19 @@ describe('TokenDetailsInlineHeader', () => {
       });
 
       expect(getByText('ETH')).toBeOnTheScreen();
-      expect(queryByTestId('token-details-ticker')).toBeNull();
+      expect(queryByTestId(TokenDetailsIds.header.ticker)).toBeNull();
     });
 
     it('does not render description or copy button for native tokens', () => {
       const { queryByTestId, queryByText } = renderHeader();
 
-      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(
+        queryByTestId(TokenDetailsIds.header.copyAddressButton),
+      ).toBeNull();
       expect(queryByText('0x..0000')).toBeNull();
     });
 
-    it('replaces the contract address when a description is provided', () => {
+    it('replaces the contract address with the description but keeps the ticker', () => {
       const { Text } = jest.requireActual('react-native');
       const { getByText, queryByText, queryByTestId } = renderHeader({
         token: {
@@ -546,9 +551,13 @@ describe('TokenDetailsInlineHeader', () => {
 
       expect(getByText('$0.000012')).toBeOnTheScreen();
       expect(getByText('Ethereum')).toBeOnTheScreen();
-      expect(queryByText('ETH')).toBeNull();
+      // Ticker stays visible alongside the live price.
+      expect(getByText('ETH')).toBeOnTheScreen();
+      // Address and copy button are replaced by the description.
       expect(queryByText('0x..0000')).toBeNull();
-      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(
+        queryByTestId(TokenDetailsIds.header.copyAddressButton),
+      ).toBeNull();
     });
 
     it('renders short contract address in description for non-native tokens', () => {
@@ -574,7 +583,7 @@ describe('TokenDetailsInlineHeader', () => {
         onCopyAddress: mockOnCopyAddress,
       });
 
-      fireEvent.press(getByTestId('copy-contract-address-button'));
+      fireEvent.press(getByTestId(TokenDetailsIds.header.copyAddressButton));
 
       expect(mockCopyContractAddress).toHaveBeenCalledTimes(1);
     });
@@ -583,7 +592,28 @@ describe('TokenDetailsInlineHeader', () => {
       mockResolveTokenContractAddress.mockReturnValue(null);
       const { queryByTestId, queryByText } = renderHeader();
 
-      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(
+        queryByTestId(TokenDetailsIds.header.copyAddressButton),
+      ).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
+    });
+
+    it('hides the contract address when hideContractAddress is true', () => {
+      const { queryByTestId, queryByText } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
+        hideContractAddress: true,
+      });
+
+      // resolveTokenContractAddress should not even be called.
+      expect(mockResolveTokenContractAddress).not.toHaveBeenCalled();
+      expect(queryByTestId(TokenDetailsIds.header.address)).toBeNull();
+      expect(
+        queryByTestId(TokenDetailsIds.header.copyAddressButton),
+      ).toBeNull();
       expect(queryByText('0x..0000')).toBeNull();
     });
 

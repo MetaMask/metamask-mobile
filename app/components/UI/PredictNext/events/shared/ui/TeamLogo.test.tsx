@@ -34,6 +34,21 @@ describe('TeamLogo', () => {
     expect(screen.queryByTestId('logo-fallback', HIDDEN)).toBeNull();
   });
 
+  it('mirrors the logo when flipped', () => {
+    render(
+      <TeamLogo
+        team={team('https://example.com/car.png')}
+        abbreviation="CAR"
+        flipped
+        testID="logo"
+      />,
+    );
+
+    expect(screen.getByTestId('logo', HIDDEN)).toHaveStyle({
+      transform: [{ scaleX: -1 }],
+    });
+  });
+
   it('shows the abbreviation when the Team has no logo', () => {
     renderLogo(team());
 

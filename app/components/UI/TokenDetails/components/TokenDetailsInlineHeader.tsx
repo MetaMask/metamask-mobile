@@ -41,6 +41,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import { TokenDetailsIds } from '../testIds';
 
 const COMPACT_ADDRESS_EDGE_LENGTH = 4;
 
@@ -74,6 +75,7 @@ export const TokenDetailsInlineHeader = ({
   titleEndAccessory,
   description,
   tdpVersion,
+  hideContractAddress = false,
   isGlass = false,
   onLayout,
   scrollY,
@@ -99,6 +101,12 @@ export const TokenDetailsInlineHeader = ({
    */
   tdpVersion?: TdpVersion;
   /**
+   * When `true`, omits the contract address (and copy button) from the header
+   * subtitle. The memecoin TDP V1 sets this because the address lives in the
+   * security-social row instead; the legacy TDP leaves it `false`.
+   */
+  hideContractAddress?: boolean;
+  /**
    * Floats the header over the page on its glass backdrop, with the buttons in
    * capsules, as on the brand refresh.
    */
@@ -115,11 +123,11 @@ export const TokenDetailsInlineHeader = ({
 
   const isNativeToken = token.isETH || token.isNative;
   const contractAddress = useMemo(() => {
-    if (isNativeToken) {
+    if (hideContractAddress || isNativeToken) {
       return null;
     }
     return resolveTokenContractAddress(token);
-  }, [token, isNativeToken]);
+  }, [token, isNativeToken, hideContractAddress]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
@@ -227,37 +235,33 @@ export const TokenDetailsInlineHeader = ({
     tokenTicker && tokenName && tokenTicker !== tokenName,
   );
 
-  const inlineDescription = useMemo(() => {
-    if (!showTickerBelowName && !contractAddress) {
-      return undefined;
+  // The trailing detail that sits next to the ticker: contract address at rest,
+  // live price once the user scrolls past the hero.
+  const trailingDetail = useMemo(() => {
+    if (description) {
+      return (
+        <Animated.View
+          key="live-price"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          {description}
+        </Animated.View>
+      );
     }
 
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="w-full min-w-0 gap-1"
-        testID="token-details-subtitle"
-      >
-        {showTickerBelowName ? (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            twClassName="shrink min-w-0"
-            testID="token-details-ticker"
-          >
-            {tokenTicker}
-          </Text>
-        ) : null}
-        {contractAddress ? (
+    if (contractAddress) {
+      return (
+        <Animated.View
+          key="contract-address"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="shrink-0 gap-1"
-            testID="token-details-address"
+            testID={TokenDetailsIds.header.address}
           >
             <Text
               variant={TextVariant.BodySm}
@@ -275,52 +279,56 @@ export const TokenDetailsInlineHeader = ({
                 color: IconColor.IconAlternative,
                 size: IconSize.Sm,
               }}
-              testID="copy-contract-address-button"
+              testID={TokenDetailsIds.header.copyAddressButton}
               accessibilityLabel={strings('token.contract_address')}
             />
           </Box>
-        ) : null}
-      </Box>
-    );
-  }, [
-    contractAddress,
-    handleCopyContractAddress,
-    showTickerBelowName,
-    tokenTicker,
-  ]);
-
-  const headerDescription = useMemo(() => {
-    if (description) {
-      return (
-        <Animated.View
-          key="live-price"
-          entering={FadeIn.duration(AnimationDuration.Fast)}
-          exiting={FadeOut.duration(AnimationDuration.Fast)}
-        >
-          {description}
         </Animated.View>
       );
     }
 
-    return inlineDescription ? <Box /> : undefined;
-  }, [description, inlineDescription]);
+    return null;
+  }, [description, contractAddress, handleCopyContractAddress]);
+
+  const hasSubtitle = showTickerBelowName || trailingDetail;
+
+  // Reserve the description row so HeaderSubpageGlass lays out the subtitle
+  // accessory; the actual content lives in `subtitleAccessory`.
+  const headerDescription = useMemo(
+    () => (hasSubtitle ? <Box /> : undefined),
+    [hasSubtitle],
+  );
 
   const subtitleAccessory = useMemo(() => {
-    if (description || !inlineDescription) {
+    if (!hasSubtitle) {
       return undefined;
     }
 
     return (
-      <Animated.View
-        key="contract-address"
-        entering={FadeIn.duration(AnimationDuration.Fast)}
-        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full min-w-0 gap-1"
         style={tw.style('min-w-0 flex-1 -ml-1')}
+        testID={TokenDetailsIds.header.subtitle}
       >
-        {inlineDescription}
-      </Animated.View>
+        {showTickerBelowName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
+            testID={TokenDetailsIds.header.ticker}
+          >
+            {tokenTicker}
+          </Text>
+        ) : null}
+        {trailingDetail}
+      </Box>
     );
-  }, [description, inlineDescription, tw]);
+  }, [hasSubtitle, showTickerBelowName, tokenTicker, trailingDetail, tw]);
 
   return (
     <HeaderSubpageGlass

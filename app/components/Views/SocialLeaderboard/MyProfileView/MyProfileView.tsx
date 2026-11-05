@@ -356,12 +356,17 @@ const MyProfileView: React.FC = () => {
     ],
     [],
   );
-  const handleProfileTabPress = useCallback((index: number) => {
-    const nextTab = PROFILE_CONTENT_TABS[index];
-    if (nextTab) {
+  const handleProfileTabPress = useCallback(
+    (index: number) => {
+      const nextTab = PROFILE_CONTENT_TABS[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      playSelection().catch(() => undefined);
       setActiveTab(nextTab);
-    }
-  }, []);
+    },
+    [activeTab],
+  );
   const scrollRef = useRef<Animated.ScrollView>(null);
   useFocusEffect(
     useCallback(() => {
@@ -419,6 +424,7 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const handleEditProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleEditAvatar = useCallback(() => {
@@ -462,6 +468,7 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
+    playSelection().catch(() => undefined);
     shareSocialProfile(traderId, trackProfileShared);
   }, [trackProfileShared, traderId]);
 
@@ -477,6 +484,7 @@ const MyProfileView: React.FC = () => {
     if (!myProfile?.profileId) {
       return;
     }
+    playSelection().catch(() => undefined);
     shareSocialProfile(myProfile.profileId, trackProfileShared);
   }, [myProfile?.profileId, trackProfileShared]);
 

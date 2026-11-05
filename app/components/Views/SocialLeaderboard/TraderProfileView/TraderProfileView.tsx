@@ -259,6 +259,7 @@ const TraderProfileView = () => {
   }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     shareSocialProfile(traderId, () => {
       trackSocialPost({
         interaction_type: SocialEvent.Interaction.POST_SHARED,
@@ -300,6 +301,7 @@ const TraderProfileView = () => {
   const handleTabChange = useCallback(
     (tab: TraderProfileTab) => {
       if (activeTab === tab) return;
+      playSelection().catch(() => undefined);
       setActiveTab(tab);
       if (traderAddress && tab !== 'posts') {
         queueMicrotask(() => {
