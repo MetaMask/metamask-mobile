@@ -42,6 +42,11 @@ export interface SocialLeaderboardPresetOptions {
    * Default: false.
    */
   linkedSocialProfile?: boolean;
+  /**
+   * Composer GIF picker gate. When on, the picker loads GIFs through the
+   * social API. Default: false, so existing leaderboard tests stay on Klipy.
+   */
+  gifApiEnabled?: boolean;
 }
 
 function makeVersionFlag(enabled: boolean) {
@@ -70,6 +75,7 @@ export function initialStateSocialLeaderboard(
     showAccountOnLeaderboard = true,
     notificationsEnabled = true,
     linkedSocialProfile = false,
+    gifApiEnabled = false,
   } = options;
 
   return createStateFixture()
@@ -82,6 +88,7 @@ export function initialStateSocialLeaderboard(
       aiSocialLeaderboardOptFlowEnabled: makeVersionFlag(optFlowEnabled),
       // Cache-refresh flag: off by default to avoid extra calls in tests.
       aiSocialAusCacheRefreshEnabled: makeVersionFlag(false),
+      aiSocialGifApi: makeVersionFlag(gifApiEnabled),
     })
     .withOverrides({
       engine: {
