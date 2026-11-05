@@ -141,6 +141,14 @@ export interface MfaControllerAdapter {
     request?: GetVerificationTokenRequest,
   ) => Promise<VerificationToken | null>;
   clearVerificationSession: () => Promise<void>;
+  /**
+   * Optional: list enrolled factors using a profile session from the Seedless
+   * W3A/social JWT (`exchangeSocialAccessToken`) — no vault unlock.
+   * Draft for social rehydration "Verify it's you" before password.
+   */
+  listEnrolledCredentialsWithSocialSession?: () => Promise<
+    EnrolledCredential[]
+  >;
 }
 
 export interface VerifyOrEnrollRequest {

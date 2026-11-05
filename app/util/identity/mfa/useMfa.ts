@@ -3,6 +3,10 @@ import { selectEnrolledCredentials } from '../../../selectors/identity';
 import { mobileMfaControllerAdapter } from './bindings';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
+import {
+  establishSocialProfileSession,
+  listEnrolledCredentialsWithSocialSession,
+} from './socialProfileSession';
 import Logger from '../../Logger';
 import type {
   EnrollOptions,
@@ -55,10 +59,20 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
  * - `credentials`: the profile's methods, as last fetched from the server.
+ * - `establishSocialProfileSession` / `listEnrolledCredentialsWithSocialSession`:
+ * draft W3A/social path — profile session + factor list without vault unlock
+ * (for social rehydration "Verify it's you"). Verify ceremonies still need
+ * Accounts/AuthController support to run fully on that session.
  *
  * @returns The kit's entry points and the credential list.
  */
 export const useMfa = () => {
   const credentials = useSelector(selectEnrolledCredentials);
-  return { credentials, verifyOrEnroll, enroll };
+  return {
+    credentials,
+    verifyOrEnroll,
+    enroll,
+    establishSocialProfileSession,
+    listEnrolledCredentialsWithSocialSession,
+  };
 };
