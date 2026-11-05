@@ -26,6 +26,7 @@ import Animated, {
   type EntryOrExitLayoutType,
 } from 'react-native-reanimated';
 import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 import { useParams } from '../../../util/navigation/navUtils';
 
 import {
@@ -170,8 +171,15 @@ function TradeWalletActions() {
   const insets = useSafeAreaInsets();
 
   const tw = useTailwind();
+  // L3 fallback. Dark `bg-elevated1` is the provisional floating fill
+  // (`#222226`); see `app/util/theme/floatingSurface.ts`. The glass tray
+  // above this stays Liquid Glass.
   const surfaceClass = 'bg-elevated1';
-  const { colors } = useTheme();
+  const { colors, themeAppearance, shadows } = useTheme();
+  const opaqueFloatingStyle =
+    themeAppearance === AppThemeKey.light
+      ? { ...shadows.size.lg, elevation: 6 }
+      : null;
   // Assignment-only read: exposure is tracked where the experiment surface is
   // owned, the wallet header and the tab bar, so this must not emit it again.
   const { trailingNavBarAction } = useHomeNavBarConfig();
@@ -600,6 +608,7 @@ function TradeWalletActions() {
               ),
               // The notch's bottom edge is an SVG shape cut to the old corners.
               !hasBottomNotch && trayCorners,
+              opaqueFloatingStyle,
             ]}
           >
             {actionList}

@@ -5,7 +5,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { GlassView } from 'expo-glass-effect';
 import PredictPortfolioAction from './PredictPortfolioAction';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../../../component-library/components-temp/elevation/GroupedSurface';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 // The glass tests need the OS to draw glass, which Jest can't.
@@ -74,36 +74,31 @@ describe('PredictPortfolioAction', () => {
         <PredictPortfolioAction {...defaultProps} isGlass />,
       );
 
-      expect(UNSAFE_getByType(GlassView).props.isInteractive).toBe(true);
-      expect(screen.getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(screen.getByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId(defaultProps.testID));
 
       expect(defaultProps.onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('sizes the glass tile from its content instead of a zero flex basis', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
-        <PredictPortfolioAction {...defaultProps} isGlass />,
-      );
+    it('sizes the grouped tile from its content instead of a zero flex basis', () => {
+      renderWithProvider(<PredictPortfolioAction {...defaultProps} isGlass />);
 
-      const glassStyle = StyleSheet.flatten(
-        UNSAFE_getByType(GlassView).props.style,
+      const surfaceStyle = StyleSheet.flatten(
+        screen.getByTestId(GROUPED_SURFACE_TEST_ID).props.style,
       );
       const tileStyle = StyleSheet.flatten(
         screen.getByTestId(defaultProps.testID).props.style,
       );
 
-      expect(glassStyle.flexBasis).toBeUndefined();
+      expect(surfaceStyle.flexBasis).toBeUndefined();
       expect(tileStyle.flexBasis).toBeUndefined();
     });
 
-    it('stops the glass reacting to touch while disabled', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
+    it('does not press a disabled tile', () => {
+      renderWithProvider(
         <PredictPortfolioAction {...defaultProps} isGlass disabled />,
       );
-
-      expect(UNSAFE_getByType(GlassView).props.isInteractive).toBe(false);
 
       fireEvent.press(screen.getByTestId(defaultProps.testID));
 

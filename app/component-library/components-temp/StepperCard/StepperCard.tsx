@@ -16,7 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
-import BoxGlass from '../BoxGlass';
+import GroupedSurface from '../elevation/GroupedSurface';
 import ButtonGlass from '../ButtonGlass';
 
 const StepperCard = ({
@@ -134,15 +134,12 @@ const StepperCard = ({
   );
 
   return (
-    <BoxGlass
-      isGlass={isGlass}
+    <GroupedSurface
       radiusClassName="rounded-3xl"
-      hasSheen
-      style={tw.style('overflow-hidden')}
       testID={getTestId('container')}
     >
       {content}
-    </BoxGlass>
+    </GroupedSurface>
   );
 };
 

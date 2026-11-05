@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyActionButtonRow from './MoneyActionButtonRow';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { RAISED_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/elevation/RaisedSheenSurface';
 
 // The glass tests need the OS to draw glass, which Jest can't.
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -151,20 +151,20 @@ describe('MoneyActionButtonRow', () => {
   });
 
   describe('glass', () => {
-    it('keeps opaque tiles by default', () => {
-      const { queryAllByTestId } = render(
+    it('draws opaque raised plates by default', () => {
+      const { getAllByTestId } = render(
         <MoneyActionButtonRow {...defaultProps} />,
       );
 
-      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+      expect(getAllByTestId(RAISED_SHEEN_TEST_ID)).toHaveLength(3);
     });
 
-    it('draws every tile on glass when isGlass is set', () => {
+    it('draws every tile on a raised plate when isGlass is set', () => {
       const { getAllByTestId } = render(
         <MoneyActionButtonRow {...defaultProps} isGlass />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+      expect(getAllByTestId(RAISED_SHEEN_TEST_ID)).toHaveLength(3);
     });
 
     it('draws the details tile on glass too', () => {
@@ -176,7 +176,7 @@ describe('MoneyActionButtonRow', () => {
         />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(4);
+      expect(getAllByTestId(RAISED_SHEEN_TEST_ID)).toHaveLength(4);
     });
   });
 });

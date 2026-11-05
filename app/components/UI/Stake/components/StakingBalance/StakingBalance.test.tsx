@@ -13,7 +13,7 @@ import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
 import StakingBalance from './StakingBalance';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 // The glass test needs the OS to draw glass, which Jest can't.
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -455,12 +455,10 @@ describe('StakingBalance', () => {
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    expect(queryAllByTestId(GROUPED_SURFACE_TEST_ID).length).toBeGreaterThan(0);
 
     rerender(<StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} isGlass />);
 
-    expect(
-      queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID).length,
-    ).toBeGreaterThan(0);
+    expect(queryAllByTestId(GROUPED_SURFACE_TEST_ID).length).toBeGreaterThan(0);
   });
 });

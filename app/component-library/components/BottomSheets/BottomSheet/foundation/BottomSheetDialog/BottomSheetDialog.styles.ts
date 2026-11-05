@@ -4,6 +4,8 @@ import { Platform, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
+// Dark `background.elevated1` is overridden locally to the provisional
+// floating fill (`#222226`). See `app/util/theme/floatingSurface.ts`.
 
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';

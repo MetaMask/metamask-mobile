@@ -94,7 +94,7 @@ import {
   useVbaEligibility,
   type VbaEligibility,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import { RAISED_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/elevation/RaisedSheenSurface';
 
 let mockIsMoneyGlass = false;
 jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
@@ -719,12 +719,14 @@ describe('MoneyHomeView', () => {
     });
 
     it('keeps the JS header and opaque surfaces by default', () => {
-      const { getByTestId, queryAllByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+      expect(
+        within(getByTestId(MoneyActionButtonRowTestIds.CONTAINER)).getAllByTestId(
+          RAISED_SHEEN_TEST_ID,
+        ),
+      ).toHaveLength(3);
     });
 
     it('hands the header to the native bar and lets content scroll under it', () => {
@@ -775,7 +777,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('draws the action tiles on glass when brand refresh glass is on', () => {
+    it('draws the action tiles as raised plates when brand refresh glass is on', () => {
       mockIsMoneyGlass = true;
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -783,7 +785,7 @@ describe('MoneyHomeView', () => {
       expect(
         within(
           getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
-        ).getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID),
+        ).getAllByTestId(RAISED_SHEEN_TEST_ID),
       ).toHaveLength(3);
     });
   });

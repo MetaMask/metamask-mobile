@@ -60,7 +60,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
-  isGlass = false,
+  isGlass: _isGlass = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -174,7 +174,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isBuyingAvailable}
           testID={buyButtonActionID}
           containerStyle={styles.buttonContainer}
-          isGlass={isGlass}
+          isRaisedPlate
         />
       )}
       {displaySwapsButton && (
@@ -185,7 +185,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isSwapsEnabled}
           testID={swapButtonActionID}
           containerStyle={styles.buttonContainer}
-          isGlass={isGlass}
+          isRaisedPlate
         />
       )}
       <MainActionButton
@@ -195,7 +195,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={!canSignTransactions}
         testID={sendButtonActionID}
         containerStyle={styles.buttonContainer}
-        isGlass={isGlass}
+        isRaisedPlate
       />
       <MainActionButton
         iconName={IconName.Received}
@@ -204,7 +204,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={false}
         testID={receiveButtonActionID}
         containerStyle={styles.buttonContainer}
-        isGlass={isGlass}
+        isRaisedPlate
       />
     </View>
   );

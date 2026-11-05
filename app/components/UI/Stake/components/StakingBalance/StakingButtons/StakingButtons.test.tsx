@@ -17,7 +17,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 // The glass tests need the OS to draw glass, which Jest can't.
 jest.mock('../../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -374,7 +374,7 @@ describe('StakingButtons', () => {
         { state: mockInitialState },
       );
 
-      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+      expect(queryAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(2);
     });
 
     it('draws Unstake and Stake more on glass with the sheen', () => {
@@ -383,7 +383,7 @@ describe('StakingButtons', () => {
         { state: mockInitialState },
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+      expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(2);
       expect(getByText('Unstake')).toBeOnTheScreen();
       expect(getByText('Stake more')).toBeOnTheScreen();
     });

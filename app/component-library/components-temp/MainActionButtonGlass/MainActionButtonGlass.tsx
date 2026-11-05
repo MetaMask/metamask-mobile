@@ -5,45 +5,31 @@ import {
   type MainActionButtonProps,
 } from '@metamask/design-system-react-native';
 
-import BoxGlass from '../BoxGlass';
-import { useLiquidGlass } from '../../hooks/useLiquidGlass';
+import RaisedSheenSurface from '../elevation/RaisedSheenSurface';
 
-// Clears the button's own `bg-muted` so only the glass shows.
+// Clears the button's own `bg-muted` so only the plate shows.
 const transparentStyle = { backgroundColor: 'transparent' };
 
 export type MainActionButtonGlassProps = MainActionButtonProps & {
-  /** The screen's flag. False, or an OS without glass, renders the plain `MainActionButton`. */
+  /** Ignored. Money tiles always use the opaque raised plate. */
   isGlass?: boolean;
   /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */
   containerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
- * The design-system `MainActionButton` on a brand refresh glass surface, kept
- * out of the package until the design system takes it.
+ * Money action tile. The elevation prototype always draws an opaque L2 plate.
+ * `isGlass` is ignored: primary actions are not Liquid Glass.
  */
 const MainActionButtonGlass = ({
-  isGlass = true,
+  isGlass: _isGlass = true,
   containerStyle,
-  style,
+  style: _style,
   ...props
-}: MainActionButtonGlassProps) => {
-  const { isGlassEnabled } = useLiquidGlass();
-
-  if (!isGlass || !isGlassEnabled) {
-    return <MainActionButton {...props} style={style ?? containerStyle} />;
-  }
-
-  return (
-    <BoxGlass
-      radiusClassName="rounded-2xl"
-      isInteractive={!props.isDisabled}
-      hasSheen
-      containerStyle={containerStyle}
-    >
-      <MainActionButton {...props} style={transparentStyle} />
-    </BoxGlass>
-  );
-};
+}: MainActionButtonGlassProps) => (
+  <RaisedSheenSurface radiusClassName="rounded-2xl" style={containerStyle}>
+    <MainActionButton {...props} style={transparentStyle} />
+  </RaisedSheenSurface>
+);
 
 export default MainActionButtonGlass;

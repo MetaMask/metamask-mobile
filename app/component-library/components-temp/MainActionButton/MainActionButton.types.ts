@@ -26,10 +26,15 @@ export interface MainActionButtonProps extends PressableProps {
    */
   isDisabled?: boolean;
   /**
-   * Draws the surface as iOS 26 Liquid Glass. Callers resolve availability
-   * (see `useLiquidGlass`), so other platforms keep the opaque surface.
+   * Ignored by the elevation prototype. Primary actions are not glass.
+   * Home passes `isRaisedPlate` instead.
    */
   isGlass?: boolean;
+  /**
+   * L2 opaque plate with a sheen. Home Buy/Swap/Send/Receive only.
+   * Distinct from header Liquid Glass: solid fill, no `GlassView`.
+   */
+  isRaisedPlate?: boolean;
 }
 
 /**
@@ -40,5 +45,5 @@ export type MainActionButtonStyleSheetVars = Pick<
   'style'
 > & {
   isDisabled: boolean;
-  isGlass: boolean;
+  isRaisedPlate: boolean;
 };

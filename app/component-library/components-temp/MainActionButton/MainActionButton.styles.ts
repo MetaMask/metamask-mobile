@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: MainActionButtonStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, isDisabled, isGlass } = vars;
+  const { style, isDisabled, isRaisedPlate } = vars;
 
   let backgroundColor = theme.colors.background.muted;
 
@@ -38,9 +38,9 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        ...(isGlass ? {} : { backgroundColor, ...contentLayout }),
+        ...(isRaisedPlate ? {} : { backgroundColor, ...contentLayout }),
         borderRadius: 16,
-        opacity: isDisabled && !isGlass ? 0.5 : 1,
+        opacity: isDisabled && !isRaisedPlate ? 0.5 : 1,
       } as const,
       style,
     ),

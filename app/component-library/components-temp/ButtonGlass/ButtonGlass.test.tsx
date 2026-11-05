@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import ButtonGlass from './ButtonGlass';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../elevation/GroupedSurface';
 
 let mockIsGlassEnabled = true;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -43,7 +43,7 @@ describe('ButtonGlass', () => {
     );
 
     expect(getByText('Skip')).toBeOnTheScreen();
-    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
   });
 
   it('draws the button on the glass sheen and keeps it pressable', () => {
@@ -54,7 +54,7 @@ describe('ButtonGlass', () => {
       </ButtonGlass>,
     );
 
-    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
     expect(getByText('Skip')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('skip'));
@@ -80,7 +80,7 @@ describe('ButtonGlass', () => {
       <ButtonGlass onPress={jest.fn()}>Skip</ButtonGlass>,
     );
 
-    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders primary as the plain button, without glass', () => {
@@ -99,7 +99,7 @@ describe('ButtonGlass', () => {
 
     expect(getByText('Add funds')).toBeOnTheScreen();
     expect(UNSAFE_queryByType(GlassView)).toBeNull();
-    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId('add-funds'));
 
@@ -122,7 +122,7 @@ describe('ButtonGlass', () => {
 
     expect(getByText('Upgrade')).toBeOnTheScreen();
     expect(UNSAFE_queryByType(GlassView)).toBeNull();
-    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId('upgrade'));
 

@@ -19,7 +19,7 @@ import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboarding
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../../../component-library/components-temp/elevation/GroupedSurface';
 
 let mockIsGlass = false;
 jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
@@ -349,7 +349,7 @@ describe('WalletHomeOnboardingSteps', () => {
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
       });
 
-      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
+      expect(queryByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
     });
 
     it('draws Skip on glass when the home surfaces are glass', () => {
@@ -358,7 +358,7 @@ describe('WalletHomeOnboardingSteps', () => {
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
       });
 
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId(GROUPED_SURFACE_TEST_ID)).toBeOnTheScreen();
       expect(
         getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
       ).toBeOnTheScreen();

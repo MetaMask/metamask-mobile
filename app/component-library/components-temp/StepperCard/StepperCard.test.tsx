@@ -7,6 +7,7 @@ import StepperCard from './StepperCard';
 import type { StepperCardStep } from './StepperCard.types';
 import { GlassView } from 'expo-glass-effect';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../elevation/GroupedSurface';
 
 let mockIsGlassEnabled = false;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -283,8 +284,8 @@ describe('StepperCard', () => {
         <StepperCard steps={[step]} currentStep={0} testID="card" isGlass />,
       );
 
-      // One sheen for the card, one for the Skip button.
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+      // The card keeps its test id. Skip is the grouped secondary pill.
+      expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(1);
       expect(getByTestId('card-container')).toBeOnTheScreen();
 
       fireEvent.press(getByText('Skip'));
@@ -294,11 +295,11 @@ describe('StepperCard', () => {
 
     it('keeps the primary button off glass and pressable', () => {
       const step = makeStep();
-      const { UNSAFE_getAllByType, getByTestId } = render(
+      const { UNSAFE_queryAllByType, getByTestId } = render(
         <StepperCard steps={[step]} currentStep={0} testID="card" isGlass />,
       );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
 
       fireEvent.press(getByTestId('card-cta-button'));
 

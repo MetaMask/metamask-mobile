@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 
 import FooterGlass from './FooterGlass';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
+import { GROUPED_SURFACE_TEST_ID } from '../elevation/GroupedSurface';
 
 let mockIsGlassEnabled = true;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -96,7 +96,7 @@ describe('FooterGlass', () => {
   });
 
   it('draws glass on the secondary button only', () => {
-    const { getAllByTestId, getByText, UNSAFE_getAllByType } = render(
+    const { getAllByTestId, getByText, UNSAFE_queryAllByType } = render(
       <FooterGlass
         primaryButtonProps={{ children: 'Continue', onPress: jest.fn() }}
         secondaryButtonProps={{ children: 'Cancel', onPress: jest.fn() }}
@@ -104,8 +104,8 @@ describe('FooterGlass', () => {
       />,
     );
 
-    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
-    expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+    expect(getAllByTestId(GROUPED_SURFACE_TEST_ID)).toHaveLength(1);
     expect(getByText('Continue')).toBeOnTheScreen();
     expect(getByText('Skip')).toBeOnTheScreen();
   });

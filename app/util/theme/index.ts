@@ -11,6 +11,11 @@ import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
+import { applyPrototypeFloatingFill } from './floatingSurface';
+
+// Dark sheets read `background.elevated1`. Point that token at the provisional
+// floating fill before any surface snapshots the theme.
+applyPrototypeFloatingFill();
 
 /**
  * Darker success green used in light mode for better contrast on charts,

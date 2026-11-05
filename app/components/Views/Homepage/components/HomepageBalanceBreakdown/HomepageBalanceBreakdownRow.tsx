@@ -77,10 +77,12 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
       iconName={IconName.Add}
       iconProps={{ size: IconSize.Sm }}
       onPress={handleAddPress}
-      size={ButtonIconSize.Sm}
+      size={ButtonIconSize.Lg}
       testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
-      twClassName="w-10 mx-1"
-      variant={ButtonIconVariant.Filled}
+      // Lg is 40pt. The slop brings the target to 44pt without a filled plate.
+      hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
+      twClassName="mx-1 h-11 w-11"
+      variant={ButtonIconVariant.Default}
     />
   ) : (
     <Button
@@ -88,8 +90,10 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
       onPress={handleAddPress}
       size={ButtonSize.Sm}
       testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
-      twClassName="h-7 shrink-0 px-4"
-      variant={ButtonVariant.Secondary}
+      // Small label, 44pt target. Tertiary is the borderless MMDS button.
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      twClassName="min-h-11 shrink-0 px-4"
+      variant={ButtonVariant.Tertiary}
     >
       {label}
     </Button>

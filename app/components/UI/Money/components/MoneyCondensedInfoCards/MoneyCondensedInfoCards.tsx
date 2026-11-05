@@ -18,7 +18,7 @@ import musdCoinImage from '../../../../../images/mm_usd.png';
 import whatYouGetImage from '../../../../../images/mm_what_you_get.png';
 import { Image, ImageProps } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import GroupedSurface from '../../../../../component-library/components-temp/elevation/GroupedSurface';
 
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
@@ -32,13 +32,11 @@ const CondensedCard = ({
   title,
   onPress,
   testID,
-  isGlass,
 }: {
   image: Pick<ImageProps, 'source' | 'style' | 'testID'>;
   title: string;
   onPress?: () => void;
   testID: string;
-  isGlass: boolean;
 }) => {
   const tw = useTailwind();
 
@@ -72,15 +70,12 @@ const CondensedCard = ({
 
   return (
     <Pressable onPress={onPress} testID={testID}>
-      <BoxGlass
-        isGlass={isGlass}
+      <GroupedSurface
         radiusClassName="rounded-xl"
-        isInteractive
-        hasSheen
         style={tw.style('flex-row items-center p-4 gap-4')}
       >
         {content}
-      </BoxGlass>
+      </GroupedSurface>
     </Pressable>
   );
 };
@@ -89,14 +84,13 @@ const MoneyCondensedInfoCards = ({
   onHowItWorksPress,
   onMusdPress,
   onWhatYouGetPress,
-  isGlass = false,
+  isGlass: _isGlass = false,
 }: MoneyCondensedInfoCardsProps) => (
   <Box
     twClassName="px-4 py-3 gap-3"
     testID={MoneyCondensedInfoCardsTestIds.CONTAINER}
   >
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: howItWorksImage,
         style: { height: 58, width: 58 },
@@ -107,7 +101,6 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD}
     />
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: musdCoinImage,
         style: { height: 48, width: 48 },
@@ -118,7 +111,6 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.MUSD_CARD}
     />
     <CondensedCard
-      isGlass={isGlass}
       image={{
         source: whatYouGetImage,
         style: { height: 66, width: 66 },
