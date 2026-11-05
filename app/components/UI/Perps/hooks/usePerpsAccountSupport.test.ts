@@ -114,6 +114,30 @@ describe('usePerpsAccountSupport', () => {
     expect(result.current.isAccountUnsupportedModalVisible).toBe(true);
   });
 
+  it.each([
+    { name: 'account', change: { address: '0xdef' } },
+    { name: 'network', change: { isTestnet: true } },
+    { name: 'provider', change: { provider: 'lighter' as const } },
+  ])(
+    'hides the explanation when the $name changes while the next read is pending',
+    async ({ change }) => {
+      mockGetAccountSupport.mockResolvedValue({
+        isSupported: false,
+        reason: 'multi_sig_account',
+      });
+      const hook = renderAccountSupport();
+      await act(async () => {
+        await hook.result.current.checkAccountSupport();
+      });
+      expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(true);
+      holdNextSupportRead();
+
+      hook.changeContext(change);
+
+      expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+    },
+  );
+
   it('checks the requested execution provider instead of the default provider', async () => {
     mockGetAccountSupport.mockImplementation(
       async (params?: GetAccountSupportParams): Promise<PerpsAccountSupport> =>

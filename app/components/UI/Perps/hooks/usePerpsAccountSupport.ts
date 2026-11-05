@@ -58,16 +58,17 @@ const getSupportContextKey = (
  */
 export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   const store = useStore<RootState>();
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const provider = useSelector(selectPerpsProvider);
-  const network = useSelector(selectPerpsNetwork);
-  const contextKey = `${selectedAddress ?? ''}:${provider ?? ''}:${network}`;
+  const contextKey = useSelector((state: RootState) =>
+    getSupportContextKey(state),
+  );
   const isMountedRef = useRef(true);
 
-  const [
-    isAccountUnsupportedModalVisible,
-    setIsAccountUnsupportedModalVisible,
-  ] = useState(false);
+  // Keyed to the context it was shown for so a switch hides it at once,
+  // before the next support read settles.
+  const [unsupportedContextKey, setUnsupportedContextKey] = useState<
+    string | null
+  >(null);
+  const isAccountUnsupportedModalVisible = unsupportedContextKey === contextKey;
 
   const readAccountSupport = useCallback(
     async (providerId?: PerpsProviderType) => {
@@ -117,7 +118,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
       }
       if (!support.isSupported) {
         if (!unmounted) {
-          setIsAccountUnsupportedModalVisible(true);
+          setUnsupportedContextKey(getSupportContextKey(store.getState()));
         }
         return 'unsupported';
       }
@@ -130,7 +131,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   );
 
   const closeAccountUnsupportedModal = useCallback(() => {
-    setIsAccountUnsupportedModalVisible(false);
+    setUnsupportedContextKey(null);
   }, []);
 
   return {
