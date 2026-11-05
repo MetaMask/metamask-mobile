@@ -7,8 +7,7 @@ import React, {
 } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useReducedMotion } from 'react-native-reanimated';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
