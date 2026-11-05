@@ -361,19 +361,8 @@ export const PredictOrderFlowSheet = ({
     if (!preview) {
       return;
     }
-    const expiresAtMs = Date.parse(preview.expiresAt);
-    if (Number.isNaN(expiresAtMs)) {
-      return;
-    }
-    // `now` stays at the last quote until this effect moves it. Subtracting
-    // that stale clock from `expiresAt` waits out time that has already
-    // passed, so a short-lived quote never flips to expired inside the
-    // assertion window.
-    const remaining = expiresAtMs - Date.now();
+    const remaining = Date.parse(preview.expiresAt) - now;
     if (remaining <= 0) {
-      if (now < expiresAtMs) {
-        setNow(Date.now());
-      }
       return;
     }
     const timeout = setTimeout(() => setNow(Date.now()), remaining);

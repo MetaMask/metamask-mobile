@@ -617,12 +617,10 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-        ).toBeOnTheScreen(),
-      { timeout: 3000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+      ).toBeOnTheScreen(),
     );
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
