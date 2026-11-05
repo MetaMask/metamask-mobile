@@ -366,6 +366,14 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
   });
 
+  it('hides the tab divider until the feed is scrolled', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
+    ).toHaveStyle({ opacity: 0 });
+  });
+
   it('omits tab sub-navigation pills', () => {
     renderWithProvider(<SocialV1View />);
 
