@@ -453,28 +453,76 @@ describe('createMfaFlow', () => {
     });
   });
 
-  it('offers a picker when several accepted methods are active', async () => {
-    const fake = createFakeController([activeEmail, passkey]);
-    const { flow } = await startFlow(
-      {
-        kind: 'verifyOrEnroll',
-        methods: ['email_otp', 'passkey'],
-        verifyWith: ['email_otp', 'passkey'],
-      },
-      fake.controller,
-    );
-
-    expect(flow.getState().step).toStrictEqual({
-      name: 'picker',
-      purpose: 'verify',
-      options: ['passkey', 'email_otp'],
+  describe('when a passkey is one of several accepted methods', () => {
+    const createPasskeyAdapter = (): jest.Mocked<PasskeyAdapter> => ({
+      create: jest.fn().mockResolvedValue({}),
+      get: jest.fn().mockResolvedValue({}),
     });
 
-    await act(flow, { type: 'choose', method: 'email_otp' });
-    expect(flow.getState().step).toMatchObject({
-      name: 'otp',
-      purpose: 'verify',
-      email: 'a@b.co',
+    const PASSKEY_OR_EMAIL: MfaFlowRequest = {
+      kind: 'verifyOrEnroll',
+      methods: ['email_otp', 'passkey'],
+      verifyWith: ['email_otp', 'passkey'],
+    };
+
+    it('opens the passkey sheet without showing the picker', async () => {
+      const fake = createFakeController([activeEmail, passkey]);
+      const adapter = createPasskeyAdapter();
+      const { flow, outcome } = await startFlow(
+        PASSKEY_OR_EMAIL,
+        fake.controller,
+        { passkey: adapter },
+      );
+
+      expect(adapter.get).toHaveBeenCalledTimes(1);
+      expect(fake.controller.beginCredentialVerification).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'passkey' }),
+      );
+      expect(flow.getState().step.name).not.toBe('picker');
+      expect((await outcome).ok).toBe(true);
+    });
+
+    it('shows the picker without an error when the passkey sheet is cancelled', async () => {
+      const fake = createFakeController([activeEmail, passkey]);
+      const adapter = createPasskeyAdapter();
+      adapter.get.mockRejectedValueOnce(
+        new MfaFlowError('passkey_ceremony_cancelled'),
+      );
+      const { flow } = await startFlow(PASSKEY_OR_EMAIL, fake.controller, {
+        passkey: adapter,
+      });
+
+      expect(flow.getState()).toMatchObject({
+        step: {
+          name: 'picker',
+          purpose: 'verify',
+          options: ['passkey', 'email_otp'],
+        },
+        error: undefined,
+        busy: false,
+      });
+
+      await act(flow, { type: 'choose', method: 'email_otp' });
+      expect(flow.getState().step).toMatchObject({
+        name: 'otp',
+        purpose: 'verify',
+        email: 'a@b.co',
+      });
+    });
+
+    it('shows the picker with the error when the passkey is rejected', async () => {
+      const fake = createFakeController([activeEmail, passkey]);
+      fake.controller.completeCredentialVerification.mockRejectedValueOnce(
+        new MfaError('invalid_assertion', 'rejected'),
+      );
+      const { flow } = await startFlow(PASSKEY_OR_EMAIL, fake.controller, {
+        passkey: createPasskeyAdapter(),
+      });
+
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'picker', options: ['passkey', 'email_otp'] },
+        error: 'invalid_assertion',
+      });
     });
   });
 
