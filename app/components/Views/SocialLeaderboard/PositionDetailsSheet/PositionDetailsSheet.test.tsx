@@ -173,7 +173,6 @@ const buildSheetData = (
   timeAxisLabels: [],
   isTrendPositive: true,
   markers: [],
-  levels: [],
   isMarketCapMode: false,
   formatValue: (price) => `$${price}`,
   currentPrice: 120,
