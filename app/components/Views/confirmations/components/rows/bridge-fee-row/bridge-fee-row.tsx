@@ -211,9 +211,9 @@ function getNetworkFeeUsdBN({
 
 const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
   [TransactionType.perpsWithdraw]:
-    'confirm.tooltip.perps_withdraw.transaction_fee',
+    'confirm.tooltip.perps_withdraw.transaction_fee_v2',
   [TransactionType.predictWithdraw]:
-    'confirm.tooltip.predict_withdraw.transaction_fee',
+    'confirm.tooltip.predict_withdraw.transaction_fee_v2',
   [TransactionType.predictDeposit]:
     'confirm.tooltip.predict_deposit.transaction_fee',
   [TransactionType.moneyAccountWithdraw]:
