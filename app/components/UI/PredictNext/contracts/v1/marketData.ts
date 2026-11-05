@@ -77,10 +77,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(

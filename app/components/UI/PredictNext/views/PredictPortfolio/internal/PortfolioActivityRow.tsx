@@ -27,7 +27,7 @@ import {
   formatSharesAmount,
   formatUsdAmount,
   isNonZeroAmount,
-} from './portfolioFormatting';
+} from '../../../utils/portfolioFormatting';
 
 interface PortfolioActivityRowProps {
   entry: PredictActivityEntry;
