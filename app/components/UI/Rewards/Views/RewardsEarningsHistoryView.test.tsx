@@ -320,7 +320,10 @@ describe('RewardsEarningsHistoryView', () => {
           [PROFILE_ID]: {
             loading: false,
             error: false,
-            data: { localized_text: LOCALIZED_TEXT, roles: ['COPY_TRADING'] },
+            data: {
+              localized_text: LOCALIZED_TEXT,
+              roles: ['COPY_TRADING' as const],
+            },
           },
         },
       },
