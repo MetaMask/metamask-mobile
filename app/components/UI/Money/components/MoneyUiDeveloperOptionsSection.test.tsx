@@ -8,6 +8,10 @@ import {
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  getMoneyHomeCardDevOverride,
+  setMoneyHomeCardDevOverride,
+} from '../hooks/moneyHomeCardDevOverride';
 
 const mockNavigate = jest.fn();
 
@@ -88,6 +92,11 @@ describe('MoneyUiDeveloperOptionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupSelectorMocks();
+    setMoneyHomeCardDevOverride(null);
+  });
+
+  afterEach(() => {
+    setMoneyHomeCardDevOverride(null);
   });
 
   it('renders the "Money UI" heading', () => {
@@ -213,6 +222,33 @@ describe('MoneyUiDeveloperOptionsSection', () => {
 
       expect(mockSetString).toHaveBeenCalledTimes(1);
       expect(mockSetString).toHaveBeenCalledWith(MOCK_ADDRESS);
+    });
+
+    it('forces the VBA-region Get started card from the home card menu', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      try {
+        const { getByText } = render(<MoneyUiDeveloperOptionsSection />);
+
+        act(() => {
+          fireEvent.press(
+            getByText('2. VBA region, empty wallet — Get started'),
+          );
+        });
+
+        expect(getMoneyHomeCardDevOverride()?.id).toBe('get_started');
+        expect(
+          getByText(
+            'Home card override: 2. VBA region, empty wallet — Get started',
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        act(() => {
+          setMoneyHomeCardDevOverride(null);
+        });
+        devGlobal.__DEV__ = originalDev;
+      }
     });
 
     it('does not copy to clipboard when the address is unavailable', async () => {

@@ -50,6 +50,11 @@ import {
   type MoneyHomeVbaVariant,
 } from '../../hooks/getMoneyHomeCard';
 import { useWalletCryptoPresence } from '../../hooks/useWalletCryptoPresence';
+import {
+  getKycDecisionDismissDevOverride,
+  setMoneyHomeCardDevOverride,
+  useMoneyHomeCardDevOverride,
+} from '../../hooks/moneyHomeCardDevOverride';
 import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectOnboardingStepperProgress } from '../../../../../reducers/user/selectors';
 import {
@@ -218,6 +223,7 @@ const MoneyHomeView = () => {
     useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
     useWalletCryptoPresence();
+  const devOverride = useMoneyHomeCardDevOverride();
   const onboardingProgress = useSelector(selectOnboardingStepperProgress);
   const [dismissedVbaVariant, setDismissedVbaVariant] =
     useState<MoneyHomeVbaVariant | null>(null);
@@ -310,7 +316,7 @@ const MoneyHomeView = () => {
   const isCardStepSkipped =
     (onboardingProgress[STEPPER_IDS.MONEY] ?? 0) >=
     MONEY_ONBOARDING_TOTAL_STEPS;
-  const moneyHomeCard = getMoneyHomeCard({
+  const liveHomeCard = getMoneyHomeCard({
     isEligibilityLoading: isVbaEligibilityLoading,
     isMoneyBalanceLoading: isBalanceLoading,
     isCryptoBalanceLoading,
@@ -327,6 +333,7 @@ const MoneyHomeView = () => {
       dismissedVbaVariant === 'kyc_decision' &&
       vbaHomeCard.type === 'kyc_decision',
   });
+  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -1182,13 +1189,30 @@ const MoneyHomeView = () => {
         />
         {moneyHomeCard.type === 'vba' && (
           <MoneyVbaHomeCard
-            key={moneyHomeCard.variant}
+            key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
-            onDismiss={() => setDismissedVbaVariant(moneyHomeCard.variant)}
+            onDismiss={() => {
+              if (devOverride?.card.type === 'vba') {
+                if (devOverride.card.variant === 'kyc_decision') {
+                  setMoneyHomeCardDevOverride(
+                    getKycDecisionDismissDevOverride(isMoneyAccountFunded),
+                  );
+                }
+                return;
+              }
+              setDismissedVbaVariant(moneyHomeCard.variant);
+            }}
           />
         )}
         {moneyHomeCard.type === 'onboarding' && (
-          <MoneyOnboardingCard isGlass={isGlass} />
+          <MoneyOnboardingCard
+            isGlass={isGlass}
+            forcedStep={
+              devOverride?.card.type === 'onboarding'
+                ? devOverride.onboardingStep
+                : undefined
+            }
+          />
         )}
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

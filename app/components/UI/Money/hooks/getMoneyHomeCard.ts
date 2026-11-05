@@ -58,8 +58,9 @@ export interface MoneyHomeCardInputs {
  * else waits until the crypto and Money balances have loaded, so an empty
  * wallet cannot flash Get started and then swap to Add funds.
  *
- * Get started is the only crypto-gated VBA card: eligible, nothing started,
- * and no crypto. A wallet that already has crypto, or a user outside a VBA
+ * Get started is the only crypto-gated VBA card: a VBA-supported region,
+ * nothing started, and no crypto. "Eligible" in the rendering table means
+ * that region. A wallet that already has crypto, or a user outside a VBA
  * region, takes the onboarding stepper instead. Once a KYC-approved account
  * has an autoramp, or the Money account is funded, Account is ready gives
  * way to the card step (or to nothing, when that step is already done).
