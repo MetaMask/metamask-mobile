@@ -704,7 +704,7 @@ const SocialV1ViewContent: React.FC = () => {
                 twClassName="bg-transparent"
               />
               <ButtonIcon
-                iconName={IconName.Edit}
+                iconName={IconName.FeedPost}
                 iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
