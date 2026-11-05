@@ -30,10 +30,32 @@ jest.mock('../../Predict/homeSection', () => {
   };
 });
 
+const mockNextProps = jest.fn();
+const mockNextRefresh = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('./internal/next/NextPredictHomeSection', () => {
+  const { forwardRef: mockForwardRef, useImperativeHandle } =
+    jest.requireActual<typeof import('react')>('react');
+  const { Text: MockText } = jest.requireActual('react-native');
+  return {
+    NextPredictHomeSection: mockForwardRef<
+      SectionRefreshHandle,
+      { sectionIndex: number; totalSectionsLoaded: number }
+    >((props, ref) => {
+      mockNextProps(props);
+      useImperativeHandle(ref, () => ({ refresh: mockNextRefresh }));
+      return <MockText testID="next-section">next</MockText>;
+    }),
+  };
+});
+
 const givenActiveVenue = (resolution: ActiveVenueResolution) =>
   jest.mocked(useActiveVenue).mockReturnValue(resolution);
 
-const renderSection = (ref = createRef<SectionRefreshHandle>()) => {
+const renderSection = (
+  mode: 'default' | 'sports' = 'sports',
+  ref = createRef<SectionRefreshHandle>(),
+) => {
   render(
     <>
       <Text testID="homepage">homepage</Text>
@@ -41,7 +63,7 @@ const renderSection = (ref = createRef<SectionRefreshHandle>()) => {
         ref={ref}
         sectionIndex={2}
         totalSectionsLoaded={5}
-        mode="sports"
+        mode={mode}
       />
     </>,
   );
@@ -72,20 +94,41 @@ describe('PredictHomeSection', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it.each<[string, ActiveVenueResolution]>([
-    [
-      'Kalshi is active',
-      { status: 'ready', venue: 'kalshi', source: 'rollout' },
-    ],
-    ['the Active Venue is resolving', { status: 'resolving' }],
-  ])('renders nothing and leaves the ref empty while %s', (_, resolution) => {
-    givenActiveVenue(resolution);
+  it('renders the next section with the Homepage contract for Kalshi', async () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
-    const ref = renderSection();
+    const ref = renderSection('default');
 
-    expect(screen.getByTestId('homepage')).toBeOnTheScreen();
+    expect(screen.getByTestId('next-section')).toBeOnTheScreen();
     expect(screen.queryByTestId('legacy-section')).not.toBeOnTheScreen();
     expect(mockLegacyProps).not.toHaveBeenCalled();
-    expect(ref.current).toBeNull();
+    expect(mockNextProps).toHaveBeenCalledWith({
+      sectionIndex: 2,
+      totalSectionsLoaded: 5,
+    });
+    await ref.current?.refresh();
+    expect(mockNextRefresh).toHaveBeenCalledTimes(1);
   });
+
+  it.each<[string, ActiveVenueResolution, 'default' | 'sports']>([
+    [
+      'Kalshi is active in sports mode',
+      { status: 'ready', venue: 'kalshi', source: 'rollout' },
+      'sports',
+    ],
+    ['the Active Venue is resolving', { status: 'resolving' }, 'default'],
+  ])(
+    'renders nothing and leaves the ref empty while %s',
+    (_, resolution, mode) => {
+      givenActiveVenue(resolution);
+
+      const ref = renderSection(mode);
+
+      expect(screen.getByTestId('homepage')).toBeOnTheScreen();
+      expect(screen.queryByTestId('legacy-section')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('next-section')).not.toBeOnTheScreen();
+      expect(mockLegacyProps).not.toHaveBeenCalled();
+      expect(ref.current).toBeNull();
+    },
+  );
 });
