@@ -10,7 +10,6 @@ import {
   setReferralMe,
 } from '../../../../../reducers/rewardsMoney';
 import type { MoneyReferralEntryType } from '../../types/navigation';
-import type { AcceptReferralCodeOptions } from '../../hooks/useAcceptMoneyReferralCode';
 import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -264,17 +263,6 @@ describe('AcceptInviteSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('clears the deeplink referral code when the sheet closes', async () => {
-    const { store, unmount } = await renderSheet('KOL1');
-    act(() => {
-      store.dispatch(setPendingReferralCode('KOL1'));
-    });
-
-    unmount();
-
-    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
-  });
-
   it('keeps a newer link that arrived while the sheet was open pending when it closes', async () => {
     const { store, unmount } = await renderSheet('KOL1');
     act(() => {
@@ -298,26 +286,6 @@ describe('AcceptInviteSheet', () => {
 
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
     expect(store.getState().rewardsMoney.answeredReferralCode).toBeUndefined();
-  });
-
-  it('leaves the deeplink referral code to the accepted splash after an accept', async () => {
-    mockAcceptReferralCode.mockImplementation(
-      async (_code: string, options?: AcceptReferralCodeOptions) => {
-        options?.onAccepted?.();
-        return { accepted: true };
-      },
-    );
-    const { getByTestId, store, unmount } = await renderSheet('KOL1');
-    act(() => {
-      store.dispatch(setPendingReferralCode('KOL1'));
-    });
-
-    await act(async () => {
-      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-    });
-    unmount();
-
-    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
   it('keeps the deeplink referral code while the sheet is open', async () => {

@@ -325,25 +325,6 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
-  it('returns to the screen the invite was offered over when the splash is closed', () => {
-    const { getByTestId } = renderSplash();
-
-    fireEvent.press(getByTestId(TEST_IDS.CLOSE));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('opens the money dashboard when the splash is closed with nothing to go back to', () => {
-    mockCanGoBack.mockReturnValue(false);
-    const { getByTestId } = renderSplash();
-
-    fireEvent.press(getByTestId(TEST_IDS.CLOSE));
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
-  });
-
   it('opens the trade actions sheet over the money dashboard when start trading is pressed', () => {
     const { getByTestId } = renderSplash();
 

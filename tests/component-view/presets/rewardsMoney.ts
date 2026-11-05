@@ -455,6 +455,10 @@ export interface RewardsMoneyViewStateOptions {
   geoLocation?: string | null;
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
+  /** Session-only deeplink state for the invite-sheet lifecycle. */
+  pendingReferralCode?: string | null;
+  answeredReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
   /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
@@ -480,6 +484,9 @@ export function rewardsMoneyViewState({
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
+  pendingReferralCode = null,
+  answeredReferralCode = null,
+  isReferralLinkPending = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
@@ -528,6 +535,9 @@ export function rewardsMoneyViewState({
             data: summary,
           },
         },
+        pendingReferralCode,
+        answeredReferralCode,
+        isReferralLinkPending,
       },
       engine: {
         backgroundState: {
