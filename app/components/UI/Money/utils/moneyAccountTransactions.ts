@@ -380,23 +380,28 @@ export async function updateMoneyAccountWithdrawTokenAmount(
       .toFixed(0),
   );
 
-  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+  const { withdrawTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId: chainIdHex,
     tellerAddress: vaultConfig.tellerAddress as Hex,
     accountantAddress: vaultConfig.accountantAddress as Hex,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
-    recipient: getWithdrawTransferTarget(
-      transactionMeta,
-      recipient as Hex,
-      selectTransactionPaymentTokenByTransactionId(state, transactionMeta.id),
-    ),
+    recipient: recipient as Hex,
     provider,
   });
 
   const withdrawData = withdrawTx.params.data;
-  const transferData = transferTx.params.data;
-  if (!withdrawData || !transferData) return [];
+  if (!withdrawData) return [];
+
+  // Read after the rate await, since the receive token can change meanwhile.
+  const paymentToken = selectTransactionPaymentTokenByTransactionId(
+    ReduxService.store.getState() as RootState,
+    transactionMeta.id,
+  );
+  const transferData = buildErc20TransferData(
+    getWithdrawTransferTarget(transactionMeta, recipient as Hex, paymentToken),
+    amount,
+  );
 
   return [
     { nestedTransactionIndex: 0, transactionData: withdrawData },

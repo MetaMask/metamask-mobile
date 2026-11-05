@@ -678,6 +678,25 @@ describe('moneyAccountTransactions', () => {
         encodeTransfer(MOCK_RECIPIENT, 1000000n),
       );
     });
+
+    it('uses the receive token selected while the rate loads', async () => {
+      mockGetRate.mockImplementation(async () => {
+        mockSelectPaymentToken.mockReturnValue({
+          address: MOCK_OTHER_TOKEN_ADDRESS,
+          chainId: MOCK_CHAIN_ID,
+        } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
+        return ethers.BigNumber.from('1000000');
+      });
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result[1].transactionData).toBe(
+        encodeTransfer(MOCK_MONEY_ACCOUNT_ADDRESS, 1000000n),
+      );
+    });
   });
 
   describe('syncMoneyAccountWithdrawTransfer', () => {
