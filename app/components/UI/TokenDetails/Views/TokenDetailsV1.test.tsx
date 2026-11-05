@@ -51,6 +51,7 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useIsFocused: () => true,
 }));
 
 jest.mock('react-redux', () => ({
