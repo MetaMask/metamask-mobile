@@ -95,6 +95,47 @@ describe('MarketFooterCard', () => {
     expect(screen.queryByText('Pittsburgh')).not.toBeOnTheScreen();
   });
 
+  it('lists the away Team first when the Game sends no Team order', () => {
+    const drawYes = createOutcome('draw-yes', 'yes', '0.10', 'Tie');
+    const drawMarket = createMarket(
+      'draw-market',
+      drawYes,
+      createOutcome('draw-no', 'no'),
+    );
+
+    renderFooter({ drawQuote: createQuote(drawMarket, drawYes) });
+
+    expect(
+      screen.getAllByRole('button').map((button) => button.props.testID),
+    ).toEqual([
+      MarketFooterCardTestIds.button('away'),
+      MarketFooterCardTestIds.button('home'),
+      MarketFooterCardTestIds.button('draw'),
+    ]);
+  });
+
+  it('lists the home Team first for a home_first Game and keeps Draw last', () => {
+    const drawYes = createOutcome('draw-yes', 'yes', '0.10', 'Tie');
+    const drawMarket = createMarket(
+      'draw-market',
+      drawYes,
+      createOutcome('draw-no', 'no'),
+    );
+
+    renderFooter({
+      game: createGame({ teamOrder: 'home_first' }),
+      drawQuote: createQuote(drawMarket, drawYes),
+    });
+
+    expect(
+      screen.getAllByRole('button').map((button) => button.props.testID),
+    ).toEqual([
+      MarketFooterCardTestIds.button('home'),
+      MarketFooterCardTestIds.button('away'),
+      MarketFooterCardTestIds.button('draw'),
+    ]);
+  });
+
   it('falls back to the first three letters of the Team name', () => {
     renderFooter({
       game: createGame({
