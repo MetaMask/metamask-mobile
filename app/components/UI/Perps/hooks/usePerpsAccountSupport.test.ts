@@ -1,3 +1,6 @@
+import React from 'react';
+import { Provider } from 'react-redux';
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type {
   GetAccountSupportParams,
@@ -7,22 +10,6 @@ import type {
 import { usePerpsAccountSupport } from './usePerpsAccountSupport';
 
 const mockGetAccountSupport = jest.fn();
-let mockSelectedAddress: string | undefined = '0xabc';
-let mockNetwork = 'mainnet';
-let mockProvider: PerpsProviderType | undefined = 'hyperliquid';
-
-jest.mock('react-redux', () => ({
-  useSelector: (selector: () => unknown) => selector(),
-}));
-
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountAddress: () => mockSelectedAddress,
-}));
-
-jest.mock('../selectors/perpsController', () => ({
-  selectPerpsNetwork: () => mockNetwork,
-  selectPerpsProvider: () => mockProvider,
-}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -33,17 +20,75 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+interface SupportContext {
+  address: string;
+  provider: PerpsProviderType;
+  isTestnet: boolean;
+}
+
+const DEFAULT_CONTEXT: SupportContext = {
+  address: '0xabc',
+  provider: 'hyperliquid',
+  isTestnet: false,
+};
+
+const buildState = ({ address, provider, isTestnet }: SupportContext) => ({
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'account-1',
+          accounts: { 'account-1': { id: 'account-1', address } },
+        },
+      },
+      PerpsController: { activeProvider: provider, isTestnet },
+    },
+  },
+});
+
+const setContext = createAction<Partial<SupportContext>>('test/setContext');
+
+const renderAccountSupport = () => {
+  let context = DEFAULT_CONTEXT;
+  const store = configureStore({
+    reducer: createReducer(buildState(context), (builder) => {
+      builder.addCase(setContext, (_state, action) => {
+        context = { ...context, ...action.payload };
+        return buildState(context);
+      });
+    }),
+  });
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(Provider, { store }, children);
+  const hook = renderHook(() => usePerpsAccountSupport(), { wrapper });
+
+  return {
+    ...hook,
+    changeContext: (change: Partial<SupportContext>) =>
+      act(() => {
+        store.dispatch(setContext(change));
+      }),
+  };
+};
+
+const holdNextSupportRead = () => {
+  let resolveSupport: (support: PerpsAccountSupport) => void = () => undefined;
+  mockGetAccountSupport.mockReturnValueOnce(
+    new Promise<PerpsAccountSupport>((resolve) => {
+      resolveSupport = resolve;
+    }),
+  );
+  return (support: PerpsAccountSupport) => resolveSupport(support);
+};
+
 describe('usePerpsAccountSupport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectedAddress = '0xabc';
-    mockNetwork = 'mainnet';
-    mockProvider = 'hyperliquid';
     mockGetAccountSupport.mockResolvedValue({ isSupported: true });
   });
 
   it('prefetches account support without opening the modal', async () => {
-    const { result } = renderHook(() => usePerpsAccountSupport());
+    const { result } = renderAccountSupport();
 
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(1));
 
@@ -55,7 +100,7 @@ describe('usePerpsAccountSupport', () => {
       isSupported: false,
       reason: 'multi_sig_account',
     });
-    const { result } = renderHook(() => usePerpsAccountSupport());
+    const { result } = renderAccountSupport();
 
     let support = 'supported';
     await act(async () => {
@@ -76,7 +121,7 @@ describe('usePerpsAccountSupport', () => {
           ? { isSupported: true }
           : { isSupported: false, reason: 'multi_sig_account' },
     );
-    const { result } = renderHook(() => usePerpsAccountSupport());
+    const { result } = renderAccountSupport();
 
     let support = 'stale';
     await act(async () => {
@@ -91,50 +136,28 @@ describe('usePerpsAccountSupport', () => {
   });
 
   it.each([
-    {
-      name: 'account',
-      changeContext: () => {
-        mockSelectedAddress = '0xdef';
-      },
-    },
-    {
-      name: 'network',
-      changeContext: () => {
-        mockNetwork = 'testnet';
-      },
-    },
+    { name: 'account', change: { address: '0xdef' } },
+    { name: 'network', change: { isTestnet: true } },
     {
       name: 'default provider route',
-      changeContext: () => {
-        mockProvider = 'lighter';
-      },
+      change: { provider: 'lighter' as const },
     },
   ])(
     'returns stale when the $name changes during a default-route check',
-    async ({ changeContext }) => {
-      const hook = renderHook(() => usePerpsAccountSupport());
+    async ({ change }) => {
+      const hook = renderAccountSupport();
       await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-      let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
-      mockGetAccountSupport.mockReturnValueOnce(
-        new Promise<PerpsAccountSupport>((resolve) => {
-          resolveSupport = resolve;
-        }),
-      );
-      let support = 'supported';
+      const resolveSupport = holdNextSupportRead();
 
-      let checkPromise: Promise<unknown> | undefined;
+      let checkPromise: Promise<string> = Promise.resolve('supported');
       act(() => {
-        checkPromise = hook.result.current
-          .checkAccountSupport()
-          .then((result) => {
-            support = result;
-          });
+        checkPromise = hook.result.current.checkAccountSupport();
       });
-      changeContext();
-      hook.rerender({});
+      hook.changeContext(change);
+      let support = 'supported';
       await act(async () => {
-        resolveSupport?.({ isSupported: true });
-        await checkPromise;
+        resolveSupport({ isSupported: true });
+        support = await checkPromise;
       });
 
       expect(support).toBe('stale');
@@ -143,85 +166,57 @@ describe('usePerpsAccountSupport', () => {
   );
 
   it('keeps an explicit execution route current when only the default provider changes', async () => {
-    const hook = renderHook(() => usePerpsAccountSupport());
+    const hook = renderAccountSupport();
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
-    mockGetAccountSupport.mockReturnValueOnce(
-      new Promise<PerpsAccountSupport>((resolve) => {
-        resolveSupport = resolve;
-      }),
-    );
-    let support = 'stale';
+    const resolveSupport = holdNextSupportRead();
 
-    let checkPromise: Promise<unknown> | undefined;
+    let checkPromise: Promise<string> = Promise.resolve('stale');
     act(() => {
-      checkPromise = hook.result.current
-        .checkAccountSupport('lighter')
-        .then((result) => {
-          support = result;
-        });
+      checkPromise = hook.result.current.checkAccountSupport('lighter');
     });
-    mockProvider = 'lighter';
-    hook.rerender({});
+    hook.changeContext({ provider: 'lighter' });
+    let support = 'stale';
     await act(async () => {
-      resolveSupport?.({ isSupported: true });
-      await checkPromise;
+      resolveSupport({ isSupported: true });
+      support = await checkPromise;
     });
 
     expect(support).toBe('supported');
   });
 
   it('returns unmounted when the caller unmounts during a supported check', async () => {
-    const hook = renderHook(() => usePerpsAccountSupport());
+    const hook = renderAccountSupport();
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
-    mockGetAccountSupport.mockReturnValueOnce(
-      new Promise<PerpsAccountSupport>((resolve) => {
-        resolveSupport = resolve;
-      }),
-    );
-    let support = 'supported';
-    let checkPromise: Promise<void> | undefined;
+    const resolveSupport = holdNextSupportRead();
 
+    let checkPromise: Promise<string> = Promise.resolve('supported');
     act(() => {
-      checkPromise = hook.result.current
-        .checkAccountSupport()
-        .then((result) => {
-          support = result;
-        });
+      checkPromise = hook.result.current.checkAccountSupport();
     });
     hook.unmount();
+    let support = 'supported';
     await act(async () => {
-      resolveSupport?.({ isSupported: true });
-      await checkPromise;
+      resolveSupport({ isSupported: true });
+      support = await checkPromise;
     });
 
     expect(support).toBe('unmounted');
   });
 
   it('returns unsupported when the caller unmounts during an unsupported check', async () => {
-    const hook = renderHook(() => usePerpsAccountSupport());
+    const hook = renderAccountSupport();
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
-    mockGetAccountSupport.mockReturnValueOnce(
-      new Promise<PerpsAccountSupport>((resolve) => {
-        resolveSupport = resolve;
-      }),
-    );
-    let support = 'supported';
-    let checkPromise: Promise<void> | undefined;
+    const resolveSupport = holdNextSupportRead();
 
+    let checkPromise: Promise<string> = Promise.resolve('supported');
     act(() => {
-      checkPromise = hook.result.current
-        .checkAccountSupport()
-        .then((result) => {
-          support = result;
-        });
+      checkPromise = hook.result.current.checkAccountSupport();
     });
     hook.unmount();
+    let support = 'supported';
     await act(async () => {
-      resolveSupport?.({ isSupported: false, reason: 'multi_sig_account' });
-      await checkPromise;
+      resolveSupport({ isSupported: false, reason: 'multi_sig_account' });
+      support = await checkPromise;
     });
 
     expect(support).toBe('unsupported');
@@ -229,30 +224,40 @@ describe('usePerpsAccountSupport', () => {
   });
 
   it('returns stale when the account changes before the caller unmounts', async () => {
-    const hook = renderHook(() => usePerpsAccountSupport());
+    const hook = renderAccountSupport();
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
-    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
-    mockGetAccountSupport.mockReturnValueOnce(
-      new Promise<PerpsAccountSupport>((resolve) => {
-        resolveSupport = resolve;
-      }),
-    );
-    let support = 'supported';
-    let checkPromise: Promise<void> | undefined;
+    const resolveSupport = holdNextSupportRead();
 
+    let checkPromise: Promise<string> = Promise.resolve('supported');
     act(() => {
-      checkPromise = hook.result.current
-        .checkAccountSupport()
-        .then((result) => {
-          support = result;
-        });
+      checkPromise = hook.result.current.checkAccountSupport();
     });
-    mockSelectedAddress = '0xdef';
-    hook.rerender({});
+    hook.changeContext({ address: '0xdef' });
     hook.unmount();
+    let support = 'supported';
     await act(async () => {
-      resolveSupport?.({ isSupported: true });
-      await checkPromise;
+      resolveSupport({ isSupported: true });
+      support = await checkPromise;
+    });
+
+    expect(support).toBe('stale');
+  });
+
+  it('returns stale when the account changes after the caller unmounts', async () => {
+    const hook = renderAccountSupport();
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    const resolveSupport = holdNextSupportRead();
+
+    let checkPromise: Promise<string> = Promise.resolve('supported');
+    act(() => {
+      checkPromise = hook.result.current.checkAccountSupport();
+    });
+    hook.unmount();
+    hook.changeContext({ address: '0xdef' });
+    let support = 'supported';
+    await act(async () => {
+      resolveSupport({ isSupported: true });
+      support = await checkPromise;
     });
 
     expect(support).toBe('stale');
@@ -260,7 +265,7 @@ describe('usePerpsAccountSupport', () => {
 
   it('fails open when the support query fails', async () => {
     mockGetAccountSupport.mockRejectedValue(new Error('Network unavailable'));
-    const { result } = renderHook(() => usePerpsAccountSupport());
+    const { result } = renderAccountSupport();
 
     let support = 'stale';
     await act(async () => {
