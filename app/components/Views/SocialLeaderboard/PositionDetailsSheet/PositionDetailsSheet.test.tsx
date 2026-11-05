@@ -10,12 +10,20 @@ import {
   fireGestureHandler,
   getByGestureTestId,
 } from 'react-native-gesture-handler/jest-utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PositionSheetData } from './hooks/usePositionSheetData';
 import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 import { fireImpact, ImpactMoment } from '../../../../util/haptics';
+import {
+  AvatarTokenSize,
+  Icon,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import {
@@ -27,6 +35,17 @@ import {
   buildPosition,
   buildTrade,
 } from './positionDetailsSheet.fixtures';
+
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...actual,
+    formatAddressToAssetId: jest.fn(
+      (...args: Parameters<typeof actual.formatAddressToAssetId>) =>
+        actual.formatAddressToAssetId(...args),
+    ),
+  };
+});
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -153,10 +172,15 @@ jest.mock('./components/PositionSheetChart', () => {
   };
 });
 
-jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ size }: { size?: string }) => (
+      <View testID="position-token-avatar" accessibilityLabel={size} />
+    ),
+  };
+});
 
 jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => ({
   __esModule: true,
@@ -178,14 +202,14 @@ const buildSheetData = (
   timeAxisLabels: [],
   isTrendPositive: true,
   markers: [],
-  levels: [],
   isMarketCapMode: false,
   formatValue: (price) => `$${price}`,
   currentPrice: 120,
   dailyChangePercent: 3.49,
   marketCap: undefined,
   summaryTitle: '2 PEPE',
-  summarySubtitle: '$240.00',
+  summaryTagLabel: undefined,
+  summarySubtitle: 'Opened · 2 hr ago',
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
@@ -206,6 +230,13 @@ const perpData = (overrides: Partial<PositionSheetData> = {}) =>
 describe('PositionDetailsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(formatAddressToAssetId)
+      .mockImplementation((...args) =>
+        jest
+          .requireActual('@metamask/bridge-controller')
+          .formatAddressToAssetId(...args),
+      );
     mockParams = {
       positionId: 'position-1',
       position: buildPosition(),
@@ -228,6 +259,319 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens token details from the price header', () => {
+    render(<PositionDetailsSheet />);
+
+    const priceHeader = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.PRICE_HEADER,
+    );
+
+    expect(within(priceHeader).getByText('Pepe')).toBeOnTheScreen();
+    expect(priceHeader.props.accessibilityLabel).toBe(
+      'Pepe, $120, +3.49%, Today',
+    );
+    expect(priceHeader.props.accessibilityHint).toBe('Opens the asset page');
+    expect(within(priceHeader).UNSAFE_getByType(Icon).props).toMatchObject({
+      name: IconName.ArrowRight,
+      color: IconColor.IconAlternative,
+    });
+    expect(
+      within(priceHeader).getByTestId('position-token-avatar').props
+        .accessibilityLabel,
+    ).toBe(AvatarTokenSize.Xl);
+
+    fireEvent.press(priceHeader);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: '0x1',
+      address: '0xpepe',
+      symbol: 'PEPE',
+      name: 'Pepe',
+      isNative: false,
+    });
+  });
+
+  it('opens a native token as the chain asset', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        tokenAddress: '0x0000000000000000000000000000000000000000',
+        tokenSymbol: 'ETH',
+        tokenName: 'Ethereum',
+      }),
+    };
+    mockSheetData = buildSheetData({
+      symbol: 'ETH',
+      assetName: 'Ethereum',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: '0x1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      isNative: true,
+    });
+  });
+
+  it('labels a market cap so it is not read as a unit price', () => {
+    mockSheetData = buildSheetData({
+      isMarketCapMode: true,
+      formatValue: () => '$1.2M',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    const priceHeader = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.PRICE_HEADER,
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$1.2M');
+    expect(within(priceHeader).getByText('(MC)')).toBeOnTheScreen();
+    expect(priceHeader.props.accessibilityLabel).toContain('$1.2M, (MC)');
+  });
+
+  it('shows a dash without a token when the price and change are unknown', () => {
+    mockParams = {
+      ...mockParams,
+      position: undefined,
+    };
+    mockSheetData = buildSheetData({
+      currentPrice: undefined,
+      dailyChangePercent: undefined,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('\u2014');
+    expect(screen.queryByTestId('position-token-avatar')).toBeNull();
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toBe('Pepe, Today');
+  });
+
+  it('colors a falling daily change', () => {
+    mockSheetData = buildSheetData({ dailyChangePercent: -2.5 });
+
+    render(<PositionDetailsSheet />);
+
+    expect(screen.getByText('-2.50%')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toContain('-2.50%');
+  });
+
+  it('opens an EVM token as a contract when native lookup throws', () => {
+    jest.mocked(formatAddressToAssetId).mockImplementation(() => {
+      throw new Error('No native asset');
+    });
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        tokenAddress: '0x0000000000000000000000000000000000000000',
+        tokenSymbol: 'ETH',
+        tokenName: 'Ethereum',
+      }),
+    };
+    mockSheetData = buildSheetData({
+      symbol: 'ETH',
+      assetName: 'Ethereum',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: '0x1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      isNative: false,
+    });
+  });
+
+  it('opens a Solana token as a CAIP asset', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const mint = 'So11111111111111111111111111111111111111112';
+
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        chain: 'solana',
+        tokenAddress: mint,
+        tokenSymbol: 'SOL',
+        tokenName: 'Solana',
+      }),
+    };
+    mockSheetData = buildSheetData({
+      symbol: 'SOL',
+      assetName: 'Solana',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: solanaChainId,
+      address: `${solanaChainId}/token:${mint}`,
+      symbol: 'SOL',
+      name: 'Solana',
+      isNative: false,
+    });
+  });
+
+  it('opens a non-EVM slip44 id as the native asset', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const assetId = `${solanaChainId}/slip44:501`;
+
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        chain: 'solana',
+        tokenAddress: assetId,
+        tokenSymbol: 'SOL',
+        tokenName: 'Solana',
+      }),
+    };
+    mockSheetData = buildSheetData({
+      symbol: 'SOL',
+      assetName: 'Solana',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: solanaChainId,
+      address: assetId,
+      symbol: 'SOL',
+      name: 'Solana',
+      isNative: true,
+    });
+  });
+
+  it('keeps the sheet open when the token chain is unknown', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({ chain: 'not-a-chain' }),
+    };
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the sheet open when the token address is missing', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({ tokenAddress: '' }),
+    };
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens perps market details from the price header', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = buildSheetData({
+      isPerp: true,
+      symbol: 'BTC',
+      assetName: 'BTC',
+      leverage: 40,
+      perpDirection: 'short',
+      perpTradeSymbol: 'BTC',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: expect.objectContaining({ symbol: 'BTC' }),
+        source: 'trader_feed',
+      },
+    });
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toContain('40x');
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityHint,
+    ).toBe('Opens market details');
+  });
+
+  it('omits the leverage tag when a perp has none', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = perpData({ leverage: undefined });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toBe('BTC, $120, +3.49%, Today');
+    expect(screen.queryByText(/\dx/)).toBeNull();
+  });
+
+  it('keeps the sheet open when a perp has no trade symbol', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = perpData({ perpTradeSymbol: undefined });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens the trader profile from the header identity', () => {
@@ -693,7 +1037,45 @@ describe('PositionDetailsSheet', () => {
 
     fireEvent.press(summary);
 
-    expect(summary).toHaveTextContent(/2 PEPE/);
+    expect(within(summary).getByText('2 PEPE')).toBeOnTheScreen();
+    expect(within(summary).getByText('Opened · 2 hr ago')).toBeOnTheScreen();
+    expect(summary).toHaveTextContent(/\+\$40\.00/);
+    expect(within(summary).queryByTestId('position-token-avatar')).toBeNull();
+  });
+
+  it('shows a direction tag and colors a loss', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '40x Short',
+      perpDirection: 'short',
+      isPnlPositive: false,
+      pnlValueLabel: '-$1.86',
+      pnlPercentLabel: '-10.38%',
+      summarySubtitle: '',
+    });
+
+    render(<PositionDetailsSheet />);
+    const summary = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY,
+    );
+
+    expect(within(summary).getByText('40x Short')).toBeOnTheScreen();
+    expect(within(summary).getByText('-$1.86')).toBeOnTheScreen();
+    expect(within(summary).queryByText('Opened · 2 hr ago')).toBeNull();
+  });
+
+  it('shows a long tag', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '2x Long',
+      perpDirection: 'long',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      within(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY),
+      ).getByText('2x Long'),
+    ).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });

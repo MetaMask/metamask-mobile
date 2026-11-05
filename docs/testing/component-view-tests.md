@@ -66,7 +66,11 @@ yarn eslint <path/to/test.tsx>
 
 3. **Reuse presets and renderers** — never rebuild the full state manually from scratch.
 
-4. **No fake timers** — never use `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()`.
+4. **No fake timers, no real sleeps** — never use the jest fake-timer API (`jest.useFakeTimers()`, `jest.useRealTimers()`, `jest.advanceTimersByTime()`, `jest.runAllTimers()`, `jest.setSystemTime()`, their `*Async` variants, and the rest). ESLint enforces this in `*.view.test.*` files and in `tests/component-view/**`. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state (an expired quote, an ended game). Never widen a budget to cover a timer.
+   - **Real sleeps race the clock too.** `await new Promise((r) => setTimeout(r, 50))` to let time pass is the same race as a widened `waitFor`. Await the observable outcome with `waitFor` / `findBy*` instead. A zero-delay flush (`setTimeout(r, 0)`) before asserting that something did _not_ happen is fine. Existing sleeps are cleaned up when their test is next modified.
+   - `Date.now` is real in component-view tests. `testSetupView.js` does not load `testSetup.js`, which freezes `Date.now` for unit tests.
+   - `jest.spyOn(Date, 'now')` is allowed when the test reads that clock and leaves timers real. PredictHome and PredictPortfolioScreen return a time inside the 60-second Balance focus window, then a time past it. Restore the spy in the same test.
+   - Do not freeze `Date.now` on a screen that uses lodash `debounce`. The real timer still fires, `timeSinceLastCall` stays 0, and the trailing call never runs. BridgeView's `Date.now = () => new Date().getTime()` in `beforeEach` predates this setup and is a no-op now that `Date.now` is real; do not copy it.
 
 5. **Test behavior, not snapshots** — use `toBeOnTheScreen()`, `not.toBeOnTheScreen()`, interaction assertions.
 
@@ -79,6 +83,16 @@ yarn eslint <path/to/test.tsx>
 9. **Every view with async data needs one data-completeness test** — wait for the load and validate all significant fields of all items in the base mock using `within()` per row. One per independent async data flow.
 
 10. **Filter / segmentation tests must assert both sides** — after selecting a filter, assert both what appears (positive `findByTestId`) and what disappears (negative `queryByTestId(...).not.toBeOnTheScreen()`).
+
+11. **Clear call history before asserting call counts** — `toHaveBeenCalledTimes` on a shared Engine or `controllerMessenger.call` mock also counts calls made by earlier tests. Call `mockClear()` on that mock in `beforeEach` (`mockReset()` when a test changes implementations). Signature: `Expected number of calls: N, Received: M`; passes alone, fails after another test.
+
+12. **A `findBy*` result is valid only until the next state change** — if the component can remount between the `await` and the assertion (a query resolving, a loading branch swapping for the loaded one), the held node detaches. Await a marker that only the loaded tree renders, then re-query with `getBy*`. Signatures: `Unable to find node on an unmounted component` or `element could not be found in the element tree` right after an `await`.
+    - Remount signals: a skeleton or loading view that reuses the loaded view's testID (as in #38949), a loading → loaded branch switch, or a `key` change on the component or a parent.
+    - `expect(await findBy*(...))` carries the same risk: the node resolves before the next render commits. Prefer `await waitFor(() => expect(getBy*(...)).toBeOnTheScreen())`.
+
+13. **An explicit `{ timeout }` names its async boundary** — pass `{ timeout }` to `waitFor` or `findBy*` only with a comment that names the async boundary needing it (a debounce, a chained query). A raised budget alone is not a fix. This applies to new and modified waits. When a file shares one budget constant (for example `TIMEOUT_MS`), one comment where the constant is defined is enough if it names the boundary.
+
+14. **Fix a flake at its cause** — name the cause, reproduce it locally first (a `--randomize --seed` or CPU load), and show the fix passes under the same condition. A change whose only change is a longer timeout is not a fix. See [Fixing a flake](#fixing-a-flake).
 
 ---
 
@@ -183,15 +197,12 @@ it('calls quote API with custom slippage when user has set 5% and quote is reque
     store.dispatch(setSlippage('5'));
   });
 
-  await waitFor(
-    () => {
-      expect(updateQuoteSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ slippage: 5 }),
-        expect.anything(),
-      );
-    },
-    { timeout: 1000 },
-  );
+  await waitFor(() => {
+    expect(updateQuoteSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ slippage: 5 }),
+      expect.anything(),
+    );
+  });
 
   updateQuoteSpy.mockRestore();
 });
@@ -200,21 +211,19 @@ it('calls quote API with custom slippage when user has set 5% and quote is reque
 // field of every item. Valid because data arrival is async (findBy / waitFor).
 // One of these per view — proves the full data pipeline end-to-end.
 it('user sees all items with complete data after async load', async () => {
-  const { findByText, findByTestId } = renderMyFeatureWithRoutes();
+  const { getByText, getByTestId } = renderMyFeatureWithRoutes();
 
   // Wait for the first item to confirm data has loaded
-  await waitFor(async () => {
-    expect(await findByText('Token A')).toBeOnTheScreen();
-  });
+  await waitFor(() => expect(getByText('Token A')).toBeOnTheScreen());
 
   // Validate all fields of each item in the base mock dataset
-  const tokenARow = await findByTestId('token-row-item-eip155:1/erc20:0xAAA');
+  const tokenARow = getByTestId('token-row-item-eip155:1/erc20:0xAAA');
   const tokenAScope = within(tokenARow);
   expect(tokenAScope.getByText('Token A')).toBeOnTheScreen();
   expect(tokenAScope.getByText(/\+5\.2/)).toBeOnTheScreen(); // % change
   expect(tokenAScope.getByText(/\$/)).toBeOnTheScreen(); // price
 
-  const tokenBRow = await findByTestId('token-row-item-eip155:1/erc20:0xBBB');
+  const tokenBRow = getByTestId('token-row-item-eip155:1/erc20:0xBBB');
   const tokenBScope = within(tokenBRow);
   expect(tokenBScope.getByText('Token B')).toBeOnTheScreen();
   expect(tokenBScope.getByText(/-1\.8/)).toBeOnTheScreen();
@@ -751,10 +760,8 @@ afterEach(() => {
 });
 
 it('user sees trending tokens section with mocked data', async () => {
-  const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
-  await waitFor(async () => {
-    expect(await findByText('Ethereum')).toBeOnTheScreen();
-  });
+  const { getByText, queryByTestId } = renderTrendingViewWithRoutes();
+  await waitFor(() => expect(getByText('Ethereum')).toBeOnTheScreen());
   // assert rows with assertTrendingTokenRowsVisibility(...)
 });
 
@@ -801,17 +808,22 @@ expect(getByText('$2,000.00')).toBeOnTheScreen();
 
 Before declaring the task done, go through this checklist for every test written or modified. If any item fails, fix it and re-run.
 
-| #   | Check                                                                                                                                                                                                                                                        | What to do if it fails                                                 |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| 1   | **No render scenarios** — every test has at least one `fireEvent`, `waitFor`/`findBy`, `store.dispatch`, or Engine spy                                                                                                                                       | Rewrite the test to add a user interaction or system reaction          |
-| 2   | **No selector mocking** — no `(useSelector as jest.Mock).mockImplementation(...)` anywhere in the file                                                                                                                                                       | Remove; drive behavior through state overrides instead                 |
-| 3   | **No fake timers** — no `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()`                                                                                                                                                      | Remove fake timers; use `waitFor` / `findBy` for async flows           |
-| 4   | **Data-completeness test exists** — if the view loads data asynchronously (API, Engine polling), there is one test that waits for the load and validates all fields of all items in the full base mock using `within()` per row                              | Add the data-completeness test                                         |
-| 5   | **Filter/segmentation tests have paired assertions** — every test that selects a filter or changes a network asserts both what appears (`findByTestId`) AND what disappears (`queryByTestId(...).not.toBeOnTheScreen()`) for each item from the previous set | Add the missing negative assertions                                    |
-| 6   | **No raw strings in `getByTestId` / `findByTestId` / `queryByTestId`** — all test IDs reference constants from the component's `ComponentName.testIds.ts`                                                                                                    | Create or update the testIds file; replace raw strings with constants  |
-| 7   | **Any `jest.mock` for non-Engine modules is flagged** — if a service module is mocked directly, the `eslint-disable` comment is present and a tracking issue is linked                                                                                       | Add the comment and issue link                                         |
-| 8   | **AAA formatting** — blank lines between the Arrange, Act, and Assert blocks in every test                                                                                                                                                                   | Add the blank line separators                                          |
-| 9   | **Import order** — `mocks.ts` is first; remaining order follows project ESLint rules                                                                                                                                                                         | Ensure `mocks.ts` is the very first import; reorder the rest as needed |
+| #   | Check                                                                                                                                                                                                                                                        | What to do if it fails                                                                               |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 1   | **No render scenarios** — every test has at least one `fireEvent`, `waitFor`/`findBy`, `store.dispatch`, or Engine spy                                                                                                                                       | Rewrite the test to add a user interaction or system reaction                                        |
+| 2   | **No selector mocking** — no `(useSelector as jest.Mock).mockImplementation(...)` anywhere in the file                                                                                                                                                       | Remove; drive behavior through state overrides instead                                               |
+| 3   | **No fake timers** — no `jest` fake-timer API (`useFakeTimers`, `advanceTimersByTime`, `setSystemTime`, `*Async` variants)                                                                                                                                   | Remove fake timers; move time behaviour to a unit test or serve fixtures already in the target state |
+| 4   | **Data-completeness test exists** — if the view loads data asynchronously (API, Engine polling), there is one test that waits for the load and validates all fields of all items in the full base mock using `within()` per row                              | Add the data-completeness test                                                                       |
+| 5   | **Filter/segmentation tests have paired assertions** — every test that selects a filter or changes a network asserts both what appears (`findByTestId`) AND what disappears (`queryByTestId(...).not.toBeOnTheScreen()`) for each item from the previous set | Add the missing negative assertions                                                                  |
+| 6   | **No raw strings in `getByTestId` / `findByTestId` / `queryByTestId`** — all test IDs reference constants from the component's `ComponentName.testIds.ts`                                                                                                    | Create or update the testIds file; replace raw strings with constants                                |
+| 7   | **Any `jest.mock` for non-Engine modules is flagged** — if a service module is mocked directly, the `eslint-disable` comment is present and a tracking issue is linked                                                                                       | Add the comment and issue link                                                                       |
+| 8   | **AAA formatting** — blank lines between the Arrange, Act, and Assert blocks in every test                                                                                                                                                                   | Add the blank line separators                                                                        |
+| 9   | **Import order** — `mocks.ts` is first; remaining order follows project ESLint rules                                                                                                                                                                         | Ensure `mocks.ts` is the very first import; reorder the rest as needed                               |
+| 10  | **Call counts start clean** — every `toHaveBeenCalledTimes` on a shared Engine / messenger mock has `mockClear()` (or `mockReset()`) on that mock in `beforeEach`                                                                                            | Add the clear; check with `--randomize`                                                              |
+| 11  | **No `findBy*` result held across a remount** — when the tree can remount after the `await`, the test awaits a loaded-only marker and re-queries with `getBy*` before asserting                                                                              | Await the loaded marker, then re-query                                                               |
+| 12  | **No real timers raced** — countdown, debounce, and expiry behaviour lives in a unit test or in target-state fixtures, not in a widened `waitFor` or a real sleep                                                                                            | Move it to a unit test or change the fixture; replace sleeps with `waitFor` on the outcome           |
+| 13  | **Every `{ timeout }` names its async boundary** — a comment next to it says which debounce or chained query needs the extra time                                                                                                                            | Add the comment, or drop the timeout                                                                 |
+| 14  | **A flake fix names its cause** — the cause is reproduced locally (seed or load) and the fix passes under that condition; it is not only a longer timeout                                                                                                    | Reproduce first; see [Fixing a flake](#fixing-a-flake)                                               |
 
 ---
 
@@ -819,15 +831,25 @@ Before declaring the task done, go through this checklist for every test written
 
 ### Identify the error type first
 
-| Error pattern                                    | Likely cause                                       | Fix                                                               |
-| ------------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------------------- |
-| `jest.mock is not allowed in *.view.test.*`      | Arbitrary `jest.mock` added to test                | Remove it; drive via state instead                                |
-| `Unable to find an element with testID: xxx`     | State not providing needed data, or element hidden | Add the relevant state via overrides or check rendering condition |
-| `Cannot read property 'X' of undefined`          | Preset missing a required state slice              | Add `.withMinimalXController()` or override in preset             |
-| `Warning: An update was not wrapped in act(...)` | Async state update not awaited                     | Use `await waitFor(...)`                                          |
-| `No QueryClient set`                             | Missing provider — not in Engine mock              | Add to mocks.ts or wrap with QueryClientProvider in renderer      |
-| Flakey number assertions                         | Non-deterministic exchange rates                   | Add `deterministicFiat: true`                                     |
-| Test passes locally, fails in CI                 | Time-sensitive assertions                          | Use `waitFor` not inline assertions after interactions            |
+| Error pattern                                                                      | Likely cause                                                                                                              | Fix                                                                                                        |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `jest.mock is not allowed in *.view.test.*`                                        | Arbitrary `jest.mock` added to test                                                                                       | Remove it; drive via state instead                                                                         |
+| `Unable to find an element with testID: xxx`                                       | State not providing needed data, or element hidden                                                                        | Add the relevant state via overrides or check rendering condition                                          |
+| `Cannot read property 'X' of undefined`                                            | Preset missing a required state slice                                                                                     | Add `.withMinimalXController()` or override in preset                                                      |
+| `Warning: An update was not wrapped in act(...)`                                   | Async state update not awaited                                                                                            | Use `await waitFor(...)`                                                                                   |
+| `No QueryClient set`                                                               | Missing provider — not in Engine mock                                                                                     | Add to mocks.ts or wrap with QueryClientProvider in renderer                                               |
+| Flakey number assertions                                                           | Non-deterministic exchange rates                                                                                          | Add `deterministicFiat: true`                                                                              |
+| Test passes locally, fails in CI                                                   | "CI is slow" is not a cause. Look for a race the slower runner exposes: an order leak, a real timer, a remount            | See [Fixing a flake](#fixing-a-flake)                                                                      |
+| `Expected number of calls: N, Received: M`; passes alone, fails after another test | Shared Engine / `controllerMessenger.call` `jest.fn()` kept call history (or a `mockImplementation`) from an earlier test | `mockClear()` on that mock in `beforeEach`; `mockReset()` / restore if a case changed implementations      |
+| `Unable to find node on an unmounted component` right after an `await`             | The `findBy*` node detached when the component remounted (loading branch replaced by the loaded one)                      | Await a loaded-only marker, then re-query with `getBy*`                                                    |
+| `element could not be found in the element tree` after an `await`                  | Same remount: the held node is no longer part of the rendered tree                                                        | Await a loaded-only marker, then re-query with `getBy*`; never assert on a node held across a state change |
+
+### Fixing a flake
+
+1. **Name the cause** — map the failure to a row above. "CI is slow" is not a cause.
+2. **Reproduce it locally first** — order leaks with `--randomize --seed=<seed from the failing run>`, timing races under CPU load (for example a parallel full-suite run).
+3. **Show the fix holds under the same condition** — re-run with the same seed or load and report the result.
+4. **A longer timeout is not a fix** — do not merge a change whose only change is a raised budget. A `{ timeout }` that stays needs a comment naming its async boundary (Golden Rule 13).
 
 ### Inspect what's rendered
 
@@ -865,7 +887,8 @@ await waitFor(() => expect(getByText('Result')).toBeOnTheScreen());
 // Navigation assertion
 await findByTestId(`route-${Routes.SOME_SCREEN}`);
 
-// findByTestId 3rd-arg timeout (NOT 2nd arg)
+// findByTestId 3rd-arg timeout (NOT 2nd arg). Name the async boundary that needs it.
+// The quote refresh is debounced before the element renders.
 await findByTestId('my-element', {}, { timeout: 3000 });
 
 // Within a subtree — scope queries to avoid false positives when the same text or
@@ -898,8 +921,22 @@ jest.mock('../../some/hook', () => ({ useMyHook: jest.fn() }));
 // ❌ Mocking a selector
 (useSelector as jest.Mock).mockImplementation(...);
 
-// ❌ Fake timers
+// ❌ Fake timers — blocked by ESLint
 jest.useFakeTimers();
+// ✅ Instead: test the timer in a unit test, or serve a fixture already in the target state
+
+// ❌ Real sleep to let time pass — races the clock like a widened waitFor
+await new Promise((resolve) => setTimeout(resolve, 50));
+expect(getByText('Quote refreshed')).toBeOnTheScreen();
+// ✅ Await the outcome
+await waitFor(() => expect(getByText('Quote refreshed')).toBeOnTheScreen());
+
+// ❌ Hold a findBy* result across a remount
+const title = await findByText(marketTitle);
+expect(title).toBeOnTheScreen(); // node from the loading branch; detached after remount
+// ✅ Await a loaded-only marker, then re-query
+await findByTestId(MyViewSelectorsIDs.LOADED_CONTENT);
+expect(getByText(marketTitle)).toBeOnTheScreen();
 
 // ❌ Snapshot assertion
 expect(wrapper).toMatchSnapshot();

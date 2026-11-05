@@ -25,6 +25,21 @@ export type PerpsEntryAttribution = Pick<
  * Map navigation `source` / `source_section` onto TrackingData attribution fields.
  * Keeps legacy `source` callers intact — callers should still pass `source` when needed.
  */
+/**
+ * Push and deeplink origins must survive the market-details hop.
+ * Every other origin keeps the screen's own fallback (`perp_asset_screen`,
+ * `social_leaderboard`).
+ */
+export function resolvePerpsSocialOrderSource(
+  origin: string | undefined,
+  fallback: string,
+): string {
+  if (origin === 'notification' || origin === 'deep_link') {
+    return origin;
+  }
+  return fallback;
+}
+
 export function toPerpsEntryAttribution(
   input: PerpsEntryAttributionInput,
 ): PerpsEntryAttribution {
