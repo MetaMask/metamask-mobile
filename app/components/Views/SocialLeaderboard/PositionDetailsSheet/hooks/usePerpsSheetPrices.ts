@@ -41,6 +41,18 @@ export function usePerpsSheetPrices({
 }: UsePerpsSheetPricesParams): UsePerpsSheetPricesResult {
   const [prices, setPrices] = useState<TokenPrice[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
+  // Drop the previous series during render. The fetch effect runs after
+  // paint, and the old candles would otherwise draw on the new axis.
+  const [request, setRequest] = useState({ symbol, period, enabled });
+  if (
+    request.symbol !== symbol ||
+    request.period !== period ||
+    request.enabled !== enabled
+  ) {
+    setRequest({ symbol, period, enabled });
+    setPrices([]);
+    setIsLoading(Boolean(enabled && symbol));
+  }
 
   useEffect(() => {
     if (!enabled || !symbol) {

@@ -54,6 +54,35 @@ describe('usePerpsSheetPrices', () => {
     expect(result.current.prices).toEqual([]);
   });
 
+  it('drops the previous candles as soon as the period changes', async () => {
+    let resolveFetch: (prices: [string, number][]) => void = () => undefined;
+    mockFetch.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const { result, rerender } = renderHook(
+      ({ period }: { period: 'All' | '1D' }) =>
+        usePerpsSheetPrices({
+          symbol: 'BTC',
+          period,
+          nowMs: NOW_MS,
+          enabled: true,
+        }),
+      { initialProps: { period: 'All' } },
+    );
+
+    resolveFetch([['1', 100]]);
+    await waitFor(() => expect(result.current.prices).toEqual([['1', 100]]));
+
+    rerender({ period: '1D' });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.prices).toEqual([]);
+  });
+
   it('does nothing while disabled', () => {
     const { result } = renderHook(() =>
       usePerpsSheetPrices({
