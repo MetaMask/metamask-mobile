@@ -20,6 +20,11 @@ import { markPushNotificationOsPromptRequested } from '../../../actions/onboardi
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
+import {
+  cancelWalletHomeOnboardingFundFlow,
+  completeWalletHomeOnboardingFundFlow,
+  startWalletHomeOnboardingFundFlow,
+} from './walletHomeOnboardingFundFlow';
 
 let mockIsGlass = false;
 jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
@@ -81,6 +86,7 @@ describe('WalletHomeOnboardingSteps', () => {
     jest.useFakeTimers({ legacyFakeTimers: false });
     __resetRiveMocks();
     mockUseIsFocused.mockReturnValue(true);
+    cancelWalletHomeOnboardingFundFlow();
     animateProgressRatioSpy.mockClear();
     animateProgressRatioSpy.mockImplementation(
       jest.requireActual('./walletHomeOnboardingProgressAnimation')
@@ -126,7 +132,7 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBeNull();
   });
 
-  it('invokes onFundPrimaryPress and advances after return only when balance gate is true', async () => {
+  it('invokes onFundPrimaryPress and advances after returning from buy flow', async () => {
     const onFundPrimaryPress = jest.fn();
     const state = {
       onboarding: {
@@ -143,6 +149,7 @@ describe('WalletHomeOnboardingSteps', () => {
       { state },
     );
 
+    startWalletHomeOnboardingFundFlow();
     fireEvent.press(getByTestId(primaryTestId));
     expect(onFundPrimaryPress).toHaveBeenCalledTimes(1);
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
@@ -158,17 +165,14 @@ describe('WalletHomeOnboardingSteps', () => {
       />,
     );
     mockUseIsFocused.mockReturnValue(true);
+    completeWalletHomeOnboardingFundFlow();
     rerender(
       <WalletHomeOnboardingSteps
         testID="steps-root"
         onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance
+        canAdvanceFundStepAfterBalance={false}
       />,
     );
-
-    await act(async () => {
-      jest.advanceTimersByTime(700);
-    });
 
     await act(async () => {
       jest.advanceTimersByTime(
@@ -185,13 +189,74 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  it('keeps fund step gated until canAdvanceFundStepAfterBalance becomes true', async () => {
+  it('retains completed Fund return through a balance-loading rerender', async () => {
+    const onFundPrimaryPress = jest.fn();
+    const state = {
+      onboarding: {
+        ...baseOnboarding,
+      },
+      engine: { backgroundState },
+    };
+    const { getByTestId, store, rerender } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onFundPrimaryPress={onFundPrimaryPress}
+        isAwaitingBalance={false}
+      />,
+      { state },
+    );
+
+    startWalletHomeOnboardingFundFlow();
+    fireEvent.press(getByTestId(primaryTestId));
+
+    mockUseIsFocused.mockReturnValue(false);
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onFundPrimaryPress={onFundPrimaryPress}
+        isAwaitingBalance={false}
+      />,
+    );
+    mockUseIsFocused.mockReturnValue(true);
+    completeWalletHomeOnboardingFundFlow();
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onFundPrimaryPress={onFundPrimaryPress}
+        isAwaitingBalance={false}
+      />,
+    );
+
+    rerender(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onFundPrimaryPress={onFundPrimaryPress}
+        isAwaitingBalance
+      />,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS + 100,
+      );
+    });
+
+    await flushWalletHomeStepTransition();
+
+    await waitFor(() => {
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
+    });
+  });
+
+  it('does not advance the fund step before the buy flow returns', async () => {
     const onFundPrimaryPress = jest.fn();
     const state = {
       onboarding: { ...baseOnboarding },
       engine: { backgroundState },
     };
-    const { getByTestId, store, rerender } = renderWithProvider(
+    const { getByTestId, store } = renderWithProvider(
       <WalletHomeOnboardingSteps
         testID="steps-root"
         onFundPrimaryPress={onFundPrimaryPress}
@@ -201,12 +266,37 @@ describe('WalletHomeOnboardingSteps', () => {
     );
 
     fireEvent.press(getByTestId(primaryTestId));
+
+    await act(async () => {
+      jest.advanceTimersByTime(WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS);
+    });
+
+    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+      expect.objectContaining({ stepIndex: 0 }),
+    );
+  });
+
+  it('keeps the fund step active when the buy flow returns without completion', async () => {
+    const onFundPrimaryPress = jest.fn();
+    const state = {
+      onboarding: { ...baseOnboarding },
+      engine: { backgroundState },
+    };
+    const { getByTestId, store, rerender } = renderWithProvider(
+      <WalletHomeOnboardingSteps
+        testID="steps-root"
+        onFundPrimaryPress={onFundPrimaryPress}
+      />,
+      { state },
+    );
+
+    fireEvent.press(getByTestId(primaryTestId));
+
     mockUseIsFocused.mockReturnValue(false);
     rerender(
       <WalletHomeOnboardingSteps
         testID="steps-root"
         onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
       />,
     );
     mockUseIsFocused.mockReturnValue(true);
@@ -214,7 +304,6 @@ describe('WalletHomeOnboardingSteps', () => {
       <WalletHomeOnboardingSteps
         testID="steps-root"
         onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
       />,
     );
 
@@ -225,66 +314,7 @@ describe('WalletHomeOnboardingSteps', () => {
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
       expect.objectContaining({ stepIndex: 0 }),
     );
-
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance
-      />,
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS);
-    });
-    await flushWalletHomeStepTransition();
-
-    await waitFor(() => {
-      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-        expect.objectContaining({ stepIndex: 1 }),
-      );
-    });
-  });
-
-  it('allows another fund primary press after returning without funded balance', async () => {
-    const onFundPrimaryPress = jest.fn();
-    const state = {
-      onboarding: { ...baseOnboarding },
-      engine: { backgroundState },
-    };
-    const { getByTestId, rerender } = renderWithProvider(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-      { state },
-    );
-
-    fireEvent.press(getByTestId(primaryTestId));
-    mockUseIsFocused.mockReturnValue(false);
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-    );
-    mockUseIsFocused.mockReturnValue(true);
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(700);
-    });
-
-    fireEvent.press(getByTestId(primaryTestId));
-    expect(onFundPrimaryPress).toHaveBeenCalledTimes(2);
+    expect(getByTestId(primaryTestId)).not.toBeDisabled();
   });
 
   it('advances from fund when balance gate becomes true without deferred on-ramp navigation', async () => {

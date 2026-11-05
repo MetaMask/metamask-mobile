@@ -19,9 +19,10 @@ type RampsOrderWithPaymentDetails = RampsOrder & {
 };
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
 }));
 
 // Only `getNetworkImageSource` is stubbed: `toRampsOrderCaipChainId` resolves
@@ -84,7 +85,7 @@ describe('OrderContent', () => {
 
   function renderOrder(
     order: RampsOrder,
-    props?: { showCloseButton?: boolean },
+    props?: { showCloseButton?: boolean; onClose?: () => void },
   ) {
     return renderWithProvider(<OrderContent order={order} {...props} />, {
       state: { engine: { backgroundState } },
@@ -164,6 +165,18 @@ describe('OrderContent', () => {
   it('renders close button when showCloseButton is true', () => {
     renderOrder(mockOrder, { showCloseButton: true });
     expect(screen.getByText('Close')).toBeOnTheScreen();
+  });
+
+  it('calls the close callback before navigating back', () => {
+    const onClose = jest.fn();
+    renderOrder(mockOrder, { showCloseButton: true, onClose });
+
+    fireEvent.press(
+      screen.getByTestId(RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(onClose).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('does not render close button by default', () => {
