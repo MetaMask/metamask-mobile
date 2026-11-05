@@ -133,6 +133,40 @@ export const isHttpPageUrl = (url: string): boolean => {
 };
 
 /**
+ * Returns the origin a transaction deeplink opened from the browser is
+ * attributed to. Only a request from the top frame of a resolved page, with no
+ * cross-origin navigation in flight, gets that page's origin. Anything else
+ * gets the in-app browser placeholder, which never holds permissions, so the
+ * request is rejected downstream.
+ *
+ * @param options.isTopFrame - Whether the navigation came from the top frame
+ * @param options.resolvedUrl - URL of the page currently shown
+ * @param options.loadingUrl - URL of the navigation in flight, if any
+ * @returns The page origin or `ORIGIN_IN_APP_BROWSER`
+ */
+export const getTransactionDeeplinkOrigin = ({
+  isTopFrame,
+  resolvedUrl,
+  loadingUrl,
+}: {
+  isTopFrame?: boolean;
+  resolvedUrl: string;
+  loadingUrl: string;
+}): string => {
+  const unverifiedOrigin = AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
+
+  if (isTopFrame === false || !isHttpPageUrl(resolvedUrl)) {
+    return unverifiedOrigin;
+  }
+
+  if (isHttpPageUrl(loadingUrl) && !isSameOrigin(loadingUrl, resolvedUrl)) {
+    return unverifiedOrigin;
+  }
+
+  return new URLParse(resolvedUrl).origin;
+};
+
+/**
  * Checks if it is a ENS website
  */
 export const isENSUrl = (urlToCheck: string, ensIgnoreList: string[]) => {

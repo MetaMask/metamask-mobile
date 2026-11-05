@@ -2,6 +2,7 @@ import {
   isValidUrl,
   isENSUrl,
   getMaskedUrl,
+  getTransactionDeeplinkOrigin,
   isDisallowedExplicitPort,
   isHttpPageUrl,
   resolveCommittedDocumentUrl,
@@ -11,6 +12,70 @@ import AppConstants from '../../../core/AppConstants';
 import { SessionENSNames } from './types';
 
 describe('BrowserTab utils', () => {
+  describe('getTransactionDeeplinkOrigin', () => {
+    const { ORIGIN_IN_APP_BROWSER } = AppConstants.DEEPLINKS;
+
+    it.each([
+      {
+        name: 'returns the page origin for a top-frame request on a resolved page',
+        options: {
+          isTopFrame: true,
+          resolvedUrl: 'https://app.uniswap.org/swap',
+          loadingUrl: '',
+        },
+        expected: 'https://app.uniswap.org',
+      },
+      {
+        name: 'returns the page origin when the platform omits isTopFrame',
+        options: { resolvedUrl: 'https://app.uniswap.org/', loadingUrl: '' },
+        expected: 'https://app.uniswap.org',
+      },
+      {
+        name: 'returns the page origin while a same-origin navigation loads',
+        options: {
+          isTopFrame: true,
+          resolvedUrl: 'https://app.uniswap.org/',
+          loadingUrl: 'https://app.uniswap.org/pool',
+        },
+        expected: 'https://app.uniswap.org',
+      },
+      {
+        name: 'returns the placeholder for a request from an iframe',
+        options: {
+          isTopFrame: false,
+          resolvedUrl: 'https://app.uniswap.org/',
+          loadingUrl: '',
+        },
+        expected: ORIGIN_IN_APP_BROWSER,
+      },
+      {
+        name: 'returns the placeholder while a cross-origin navigation loads',
+        options: {
+          isTopFrame: true,
+          resolvedUrl: 'https://app.uniswap.org/',
+          loadingUrl: 'https://evil.example/redirect',
+        },
+        expected: ORIGIN_IN_APP_BROWSER,
+      },
+      {
+        name: 'returns the placeholder before any page resolves',
+        options: { isTopFrame: true, resolvedUrl: '', loadingUrl: '' },
+        expected: ORIGIN_IN_APP_BROWSER,
+      },
+      {
+        name: 'returns the placeholder for a non-http page',
+        options: {
+          isTopFrame: true,
+          resolvedUrl: 'about:blank',
+          loadingUrl: '',
+        },
+        expected: ORIGIN_IN_APP_BROWSER,
+      },
+    ])('$name', ({ options, expected }) => {
+      expect(getTransactionDeeplinkOrigin(options)).toBe(expected);
+    });
+  });
+
   describe('isValidUrl', () => {
     const testCases = [
       { url: 'https://google.com', expected: true },

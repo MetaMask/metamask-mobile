@@ -14,6 +14,19 @@ import {
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from '../legacy/handleApproveUrl';
 import switchNetwork from '../../../../util/networks/switchNetwork';
+import AppConstants from '../../../AppConstants';
+import NotificationManager from '../../../NotificationManager';
+import { getPermittedAccounts } from '../../../Permissions';
+
+jest.mock('../../../NotificationManager', () => ({
+  showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../../Permissions', () => ({
+  getPermittedAccounts: jest.fn(),
+}));
+
+const MOCK_SELECTED_ADDRESS = '0xAbCdEf0000000000000000000000000000000001';
 
 jest.mock('../../../NavigationService', () => ({
   navigation: {
@@ -47,6 +60,9 @@ jest.mock('../../../Engine', () => ({
       },
       setActiveNetwork: jest.fn(),
     },
+    AccountsController: {
+      getSelectedAccount: jest.fn(() => ({ address: MOCK_SELECTED_ADDRESS })),
+    },
   },
 }));
 
@@ -62,6 +78,10 @@ describe('handleEthereumUrl', () => {
   );
   const mockAddTransactionForDeeplink = jest.mocked(addTransactionForDeeplink);
   const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+  const mockGetPermittedAccounts = jest.mocked(getPermittedAccounts);
+  const mockShowSimpleNotification = jest.mocked(
+    NotificationManager.showSimpleNotification,
+  );
   const parsedUrl = (value: object) => value as ParseOutput;
 
   beforeEach(() => {
@@ -93,6 +113,12 @@ describe('handleEthereumUrl', () => {
     mockAddTransactionForDeeplink.mockResolvedValue(
       {} as ReturnType<typeof addTransactionForDeeplink>,
     );
+    jest
+      .mocked(Engine.context.AccountsController.getSelectedAccount)
+      .mockReturnValue({ address: MOCK_SELECTED_ADDRESS } as ReturnType<
+        typeof Engine.context.AccountsController.getSelectedAccount
+      >);
+    mockGetPermittedAccounts.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -413,5 +439,82 @@ describe('handleEthereumUrl', () => {
     const forwardedUint256 =
       mockAddTransactionForDeeplink.mock.calls[0][0].parameters?.uint256;
     expect(forwardedUint256).toBe('1000000000000000000000');
+  });
+
+  describe('in-app browser origins', () => {
+    const pageOrigin = 'https://dapp.example';
+
+    beforeEach(() => {
+      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    });
+
+    it.each([
+      { name: 'a page that is not connected', origin: pageOrigin },
+      {
+        name: 'a request the browser could not attribute to a page',
+        origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+      },
+    ])('rejects a transaction from $name', async ({ origin }) => {
+      await handleEthereumUrl({ url: 'ethereum:transfer', origin });
+
+      expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+      expect(mockSwitchNetwork).not.toHaveBeenCalled();
+      expect(mockShowSimpleNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'simple_notification_rejected',
+          title: 'deeplink.site_not_connected_title',
+          description: 'deeplink.site_not_connected_description',
+        }),
+      );
+    });
+
+    it('rejects a transaction when the page is connected to a different account', async () => {
+      mockGetPermittedAccounts.mockReturnValue([
+        '0x0000000000000000000000000000000000000002',
+      ]);
+
+      await handleEthereumUrl({ url: 'ethereum:transfer', origin: pageOrigin });
+
+      expect(mockGetPermittedAccounts).toHaveBeenCalledWith(pageOrigin);
+      expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+      expect(mockShowSimpleNotification).toHaveBeenCalled();
+    });
+
+    it('rejects an approval from a page that is not connected', async () => {
+      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(false);
+      mockParse.mockReturnValue(
+        parsedUrl({ function_name: ETH_ACTIONS.APPROVE, chain_id: 1 }),
+      );
+
+      await handleEthereumUrl({ url: 'ethereum:approve', origin: pageOrigin });
+
+      expect(mockHandleApproveUrl).not.toHaveBeenCalled();
+      expect(mockShowSimpleNotification).toHaveBeenCalled();
+    });
+
+    it('adds the transaction when the page is connected to the selected account', async () => {
+      mockGetPermittedAccounts.mockReturnValue([
+        MOCK_SELECTED_ADDRESS.toLowerCase(),
+      ]);
+
+      await handleEthereumUrl({ url: 'ethereum:transfer', origin: pageOrigin });
+
+      expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({ origin: pageOrigin }),
+      );
+      expect(mockShowSimpleNotification).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+    ])('does not require a connection for origin %s', async (origin) => {
+      await handleEthereumUrl({ url: 'ethereum:transfer', origin });
+
+      expect(mockGetPermittedAccounts).not.toHaveBeenCalled();
+      expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({ origin }),
+      );
+    });
   });
 });

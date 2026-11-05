@@ -16,6 +16,34 @@ import {
 import NavigationService from '../../NavigationService';
 import handleApproveUrl from './legacy/handleApproveUrl';
 import switchNetwork from '../../../util/networks/switchNetwork';
+import AppConstants from '../../AppConstants';
+import NotificationManager from '../../NotificationManager';
+import { getPermittedAccounts } from '../../Permissions';
+import Logger from '../../../util/Logger';
+
+/**
+ * Whether the request came from a page in the in-app browser, either with the
+ * page origin or with the placeholder used when the page cannot be verified.
+ */
+const isInAppBrowserOrigin = (origin: string) =>
+  origin === AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER ||
+  /^https?:\/\//i.test(origin);
+
+/**
+ * Transactions from deeplinks are sent from the selected account, so a page
+ * may only request one when that account is connected to it.
+ */
+const isSelectedAccountPermittedForOrigin = (origin: string) => {
+  try {
+    const { address } = Engine.context.AccountsController.getSelectedAccount();
+    return getPermittedAccounts(origin).some(
+      (account) => account.toLowerCase() === address.toLowerCase(),
+    );
+  } catch (error) {
+    Logger.error(error as Error, 'handleEthereumUrl: permission check failed');
+    return false;
+  }
+};
 
 async function handleEthereumUrl({
   url,
@@ -29,6 +57,19 @@ async function handleEthereumUrl({
     ethUrl = parse(url);
   } catch (e) {
     if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
+    return;
+  }
+
+  if (
+    isInAppBrowserOrigin(origin) &&
+    !isSelectedAccountPermittedForOrigin(origin)
+  ) {
+    NotificationManager.showSimpleNotification({
+      status: 'simple_notification_rejected',
+      duration: 5000,
+      title: strings('deeplink.site_not_connected_title'),
+      description: strings('deeplink.site_not_connected_description'),
+    });
     return;
   }
 

@@ -73,7 +73,10 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
-import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
+import {
+  isInternalDeepLink,
+  isTransactionDeepLink,
+} from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
   selectIpfsGateway,
@@ -122,6 +125,7 @@ import BrowserUrlBar, {
 import {
   createRequestId,
   getMaskedUrl,
+  getTransactionDeeplinkOrigin,
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
@@ -951,7 +955,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Return `true` to continue loading the request and `false` to stop loading.
      */
     const onShouldStartLoadWithRequest = useCallback(
-      ({ url: urlToLoad }: { url: string }) => {
+      ({
+        url: urlToLoad,
+        isTopFrame,
+      }: {
+        url: string;
+        isTopFrame?: boolean;
+      }) => {
         if (!isTabActive) return false;
 
         if (isDisallowedExplicitPort(urlToLoad)) {
@@ -968,23 +978,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Check if this is an internal MetaMask deeplink that should be handled within the app
         if (isInternalDeepLink(urlToLoad)) {
-          // ethereum: links come from the page, so the request origin is that page.
-          // Other in-app schemes stay on the browser placeholder origin.
-          let deeplinkOrigin: string =
-            AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
-          if (urlToLoad.toLowerCase().startsWith('ethereum:')) {
-            try {
-              const pageUrl =
-                resolvedUrlRef.current || webViewUriRef.current || '';
-              const pageOrigin = new URLParse(pageUrl).origin;
-              deeplinkOrigin =
-                pageOrigin && pageOrigin !== 'null'
-                  ? pageOrigin
-                  : AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
-            } catch {
-              deeplinkOrigin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
-            }
-          }
+          // Transaction requests are attributed to the page that sent them so
+          // they are checked against that page's permissions.
+          const deeplinkOrigin = isTransactionDeepLink(urlToLoad)
+            ? getTransactionDeeplinkOrigin({
+                isTopFrame,
+                resolvedUrl: resolvedUrlRef.current,
+                loadingUrl: loadingUrlRef.current,
+              })
+            : AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
           // Handle the deeplink internally instead of passing to OS
           SharedDeeplinkManager.getInstance()
             .parse(urlToLoad, {

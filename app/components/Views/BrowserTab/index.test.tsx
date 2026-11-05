@@ -452,33 +452,85 @@ describe('BrowserTab', () => {
       ).toBe(false);
     });
 
-    it('uses the page origin for ethereum links', async () => {
-      const parse = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(SharedDeeplinkManager, 'getInstance').mockReturnValue({
-        parse,
-      } as unknown as ReturnType<typeof SharedDeeplinkManager.getInstance>);
+    describe('internal deeplinks', () => {
+      const ethereumUrl = 'ethereum:0x0000000000000000000000000000000000000000';
 
-      renderWithProvider(<BrowserTab {...mockProps} />, {
-        state: mockInitialState,
+      const renderResolvedPage = async () => {
+        const parse = jest.fn().mockResolvedValue(undefined);
+        jest.spyOn(SharedDeeplinkManager, 'getInstance').mockReturnValue({
+          parse,
+        } as unknown as ReturnType<typeof SharedDeeplinkManager.getInstance>);
+
+        renderWithProvider(<BrowserTab {...mockProps} />, {
+          state: mockInitialState,
+        });
+
+        await waitFor(() =>
+          expect(screen.getByTestId('browser-webview')).toBeVisible(),
+        );
+
+        await act(async () => {
+          screen.getByTestId('browser-webview').props.onLoadEnd({
+            nativeEvent: {
+              url: 'https://metamask.io/page',
+              title: 'MetaMask',
+              canGoBack: false,
+              canGoForward: false,
+            },
+          });
+        });
+
+        return {
+          parse,
+          onShouldStartLoadWithRequest:
+            screen.getByTestId('browser-webview').props
+              .onShouldStartLoadWithRequest,
+        };
+      };
+
+      it('attributes a top-frame ethereum link to the page origin', async () => {
+        const { parse, onShouldStartLoadWithRequest } =
+          await renderResolvedPage();
+
+        expect(
+          onShouldStartLoadWithRequest({ url: ethereumUrl, isTopFrame: true }),
+        ).toBe(false);
+        expect(parse).toHaveBeenCalledWith(
+          ethereumUrl,
+          expect.objectContaining({ origin: 'https://metamask.io' }),
+        );
       });
 
-      await waitFor(() =>
-        expect(screen.getByTestId('browser-webview')).toBeVisible(),
-      );
+      it('attributes an ethereum link from an iframe to the in-app browser placeholder', async () => {
+        const { parse, onShouldStartLoadWithRequest } =
+          await renderResolvedPage();
 
-      const webView = screen.getByTestId('browser-webview');
-      const onShouldStartLoadWithRequest =
-        webView.props.onShouldStartLoadWithRequest;
+        expect(
+          onShouldStartLoadWithRequest({ url: ethereumUrl, isTopFrame: false }),
+        ).toBe(false);
+        expect(parse).toHaveBeenCalledWith(
+          ethereumUrl,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+          }),
+        );
+      });
 
-      expect(
-        onShouldStartLoadWithRequest({
-          url: 'ethereum:0x0000000000000000000000000000000000000000',
-        }),
-      ).toBe(false);
-      expect(parse).toHaveBeenCalledWith(
-        'ethereum:0x0000000000000000000000000000000000000000',
-        expect.objectContaining({ origin: 'https://metamask.io' }),
-      );
+      it('keeps the in-app browser origin for links that are not transactions', async () => {
+        const { parse, onShouldStartLoadWithRequest } =
+          await renderResolvedPage();
+        const buyUrl = 'https://link.metamask.io/buy';
+
+        expect(
+          onShouldStartLoadWithRequest({ url: buyUrl, isTopFrame: true }),
+        ).toBe(false);
+        expect(parse).toHaveBeenCalledWith(
+          buyUrl,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+          }),
+        );
+      });
     });
 
     it('shows alert for non-whitelisted protocol javascript:', async () => {
