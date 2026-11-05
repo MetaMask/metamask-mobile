@@ -61,6 +61,11 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
   },
 }));
 jest.mock(
+  '../../../UI/PredictNext/trending/usePredictTrendingSupported',
+  () => ({ usePredictTrendingSupported: () => true }),
+);
+
+jest.mock(
   '../../../UI/PredictNext/trending/usePredictSportsMarketsFeed',
   () => ({
     usePredictSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
