@@ -154,7 +154,10 @@ jobs:
             exit 1
           fi
 
-          if [[ "$head_ref" != release/* ]]; then
+          # Only these names are covered by the release branch rulesets (restricted creation and push).
+          RELEASE_BRANCH_PATTERN='^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$'
+
+          if [[ ! "$head_ref" =~ $RELEASE_BRANCH_PATTERN ]]; then
             {
               echo "### ❌ OTA push rejected"
               echo ""
@@ -164,11 +167,11 @@ jobs:
               echo "| --- | --- |"
               echo "| PR | #${PR_NUMBER} |"
               echo "| Head branch | \`${head_ref}\` |"
-              echo "| Required pattern | \`release/*\` |"
+              echo "| Required pattern | \`release/X.Y.Z\` or \`release/X.Y.Z-ota\` |"
               echo ""
-              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\`)."
+              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\` or \`release/7.78.1-ota\`)."
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::error title=Invalid branch for OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
+            echo "::error title=Invalid branch for OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must be 'release/X.Y.Z' or 'release/X.Y.Z-ota'"
             exit 1
           fi
 
