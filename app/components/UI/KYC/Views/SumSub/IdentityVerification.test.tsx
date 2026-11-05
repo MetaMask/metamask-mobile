@@ -40,8 +40,6 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance', () => ({
-  // `kycScreenPerformance` re-exports SCREEN_CONTENT_STATE from this module,
-  // so the real constants have to survive the mock.
   ...jest.requireActual('../../../../../hooks/useScreenPerformance'),
   useScreenPerformance: jest.fn(),
   withScreenPerformance: (Component: React.ComponentType) => Component,

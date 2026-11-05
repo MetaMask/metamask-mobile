@@ -52,7 +52,9 @@ import {
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import SentenceWithLinks from '../../components/SentenceWithLinks';
-import { IDENTITY_TERMS_TOTAL_PAGES } from './identityTermsPages';
+
+/** Pages the identity-verification terms are split across ("1 of 2"). */
+const TOTAL_PAGES = 2;
 
 const VERIFICATION_STEPS = [
   {
@@ -167,14 +169,14 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
         'wallet.home_onboarding_steps.progress_a11y',
         {
           current: 1,
-          total: IDENTITY_TERMS_TOTAL_PAGES,
+          total: TOTAL_PAGES,
         },
       )}
       testID={VbaVerifyIdentitySelectorsIDs.STEP_INDICATOR}
     >
       {strings('virtual_bank_account.verify_identity.step_indicator', {
         current: 1,
-        total: IDENTITY_TERMS_TOTAL_PAGES,
+        total: TOTAL_PAGES,
       })}
     </Text>
   );

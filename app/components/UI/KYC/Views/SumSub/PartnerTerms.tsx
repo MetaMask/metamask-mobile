@@ -42,7 +42,9 @@ import {
   findDisclaimerByKeyword,
   groupDisclaimers,
 } from './partnerDisclaimers';
-import { IDENTITY_TERMS_TOTAL_PAGES } from './identityTermsPages';
+
+/** Pages the identity-verification terms are split across ("2 of 2"). */
+const TOTAL_PAGES = 2;
 
 const DisclaimerRow = ({
   disclaimer,
@@ -154,15 +156,15 @@ const VbaPartnerTerms = ({
       accessibilityLabel={strings(
         'wallet.home_onboarding_steps.progress_a11y',
         {
-          current: IDENTITY_TERMS_TOTAL_PAGES,
-          total: IDENTITY_TERMS_TOTAL_PAGES,
+          current: TOTAL_PAGES,
+          total: TOTAL_PAGES,
         },
       )}
       testID={VbaPartnerTermsSelectorsIDs.STEP_INDICATOR}
     >
       {strings('virtual_bank_account.verify_identity.step_indicator', {
-        current: IDENTITY_TERMS_TOTAL_PAGES,
-        total: IDENTITY_TERMS_TOTAL_PAGES,
+        current: TOTAL_PAGES,
+        total: TOTAL_PAGES,
       })}
     </Text>
   );
