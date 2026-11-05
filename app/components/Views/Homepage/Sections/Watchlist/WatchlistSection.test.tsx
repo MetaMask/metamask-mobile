@@ -271,7 +271,9 @@ describe('WatchlistSection', () => {
     const { getByTestId, queryByTestId } = renderSection();
 
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
     expect(getByTestId('row-solana')).toBeOnTheScreen();
@@ -313,7 +315,9 @@ describe('WatchlistSection', () => {
     expect(
       getByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
     ).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
     expect(queryByTestId('row-bitcoin')).not.toBeOnTheScreen();
@@ -498,7 +502,9 @@ describe('WatchlistSection', () => {
     expect(getByTestId('row-eth')).toBeOnTheScreen();
     expect(getByTestId('row-ada')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 

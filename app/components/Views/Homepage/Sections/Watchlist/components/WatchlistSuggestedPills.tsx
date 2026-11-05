@@ -110,7 +110,7 @@ const WatchlistSuggestedPills: React.FC<WatchlistSuggestedPillsProps> = ({
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         twClassName="mb-2"
-        testID="watchlist-suggested-header"
+        testID={WatchlistSuggestedPillsTestIds.HEADER}
       >
         {strings('token_watchlist.suggested')}
       </Text>

@@ -164,6 +164,8 @@ const WatchlistSection = forwardRef<
 
   const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
   const showSuggestedSection = suggestedTokens.length > 0;
+  // Once the user has picked assets, keep suggestions compact (ASSETS-4186).
+  const showCompactSuggestions = displayTokens.length > 0;
   const showFallback =
     isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
 
@@ -202,8 +204,7 @@ const WatchlistSection = forwardRef<
           </WatchlistAnimatedRow>
         ))}
         {showSuggestedSection &&
-          (displayTokens.length > 0 ? (
-            // Once the user has picked assets, keep suggestions compact.
+          (showCompactSuggestions ? (
             <WatchlistSuggestedPills
               tokens={suggestedTokens}
               onAddPress={handleAddPress}

@@ -133,7 +133,9 @@ describeForPlatforms('WatchlistSection', () => {
     const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
     expect(suggestedRow).toBeOnTheScreen();
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     const addButton = await findByTestId(
       getAddButtonTestId('eip155:1/slip44:60'),
     );
@@ -216,7 +218,9 @@ describeForPlatforms('WatchlistSection', () => {
       getByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
     ).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
     for (const assetId of [
       'eip155:1/slip44:60',
