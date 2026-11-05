@@ -10,7 +10,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import type { TabItem } from '../../../../component-library/components-temp/Tabs';
 import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
-  getTokenDetailsV1TabBarInset,
+  isTokenDetailsV1TabBarPinned,
   resolveSwipeTargetTab,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
@@ -141,16 +141,36 @@ describe('TokenDetailsV1TabBar', () => {
       />,
     );
 
-    fireEvent(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID), 'layout', {
-      nativeEvent: { layout: { y: 350 } },
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+      paddingTop: 120,
     });
+  });
+
+  it('reserves no inset by default', () => {
+    const { getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).not.toHaveStyle({
       paddingTop: 120,
     });
+  });
 
-    expect(getTokenDetailsV1TabBarInset(0, 350, 120)).toBe(0);
-    expect(getTokenDetailsV1TabBarInset(350, 350, 120)).toBe(120);
+  it('gives the docked copy its own test IDs so it never collides with the in-flow bar', () => {
+    const onTabPress = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={onTabPress}
+        isPinnedCopy
+      />,
+    );
+
+    expect(getByTestId(TokenDetailsIds.pinnedTabBar)).toBeTruthy();
+    expect(queryByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.tab('security'))).toBeNull();
+
+    fireEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));
+
+    expect(onTabPress).toHaveBeenCalledWith('security');
   });
 
   it('forwards onLayout to the tab bar container', () => {
@@ -173,6 +193,18 @@ describe('TokenDetailsV1TabBar', () => {
         nativeEvent: { layout: { y: 350 } },
       }),
     );
+  });
+});
+
+describe('isTokenDetailsV1TabBarPinned', () => {
+  it('is pinned once the scroll reaches the tab bar offset', () => {
+    expect(isTokenDetailsV1TabBarPinned(349, 350)).toBe(false);
+    expect(isTokenDetailsV1TabBarPinned(350, 350)).toBe(true);
+    expect(isTokenDetailsV1TabBarPinned(900, 350)).toBe(true);
+  });
+
+  it('is never pinned before the tab bar has laid out', () => {
+    expect(isTokenDetailsV1TabBarPinned(10_000, null)).toBe(false);
   });
 });
 
