@@ -77,7 +77,9 @@ const Title = ({
       accessibilityRole="button"
       accessibilityLabel={typeof children === 'string' ? children : undefined}
       accessibilityHint={accessibilityHint}
-      hitSlop={{ top: 10, bottom: 10 }}
+      // Reaches 44 px around short titles such as "Tie". The bottom slop
+      // overlaps the inert volume line below on purpose.
+      hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
       onPress={onPress}
       style={({ pressed }) => ({
         alignSelf: 'flex-start',
