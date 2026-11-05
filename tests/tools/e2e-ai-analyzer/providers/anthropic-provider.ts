@@ -116,7 +116,7 @@ export class AnthropicProvider implements ILLMProvider {
     const anthropicRequest: Anthropic.MessageCreateParams = {
       model: request.model,
       max_tokens: request.maxTokens,
-      temperature: request.temperature,
+      // temperature is omitted: Claude Sonnet 5.5 rejects non-default sampling values with a 400.
       messages: toAnthropicMessages(request.messages),
     };
 
