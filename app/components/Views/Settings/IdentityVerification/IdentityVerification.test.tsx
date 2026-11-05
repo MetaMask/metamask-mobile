@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, within } from '@testing-library/react-native';
+import { Alert } from 'react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import type { KycDataShare } from '@metamask/kyc-controller';
 import IdentityVerification from './IdentityVerification';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -8,6 +9,23 @@ import { strings } from '../../../../../locales/i18n';
 import { formatTimestampToDateTime } from '../../../../util/date';
 import { IdentityVerificationSelectorsIDs } from './IdentityVerification.testIds';
 import { useIdentityDataShares } from './useIdentityDataShares';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KycController: { deleteEncryptedStorage: jest.fn() },
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+const mockDeleteEncryptedStorage = jest.mocked(
+  Engine.context.KycController.deleteEncryptedStorage,
+);
 
 const mockGoBack = jest.fn();
 
@@ -108,5 +126,69 @@ describe('IdentityVerification', () => {
     expect(
       getByTestId(IdentityVerificationSelectorsIDs.DELETE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('deleting identity data', () => {
+    const pressDeleteAndConfirm = (
+      getByTestId: ReturnType<typeof arrange>['getByTestId'],
+    ) => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+      fireEvent.press(
+        getByTestId(IdentityVerificationSelectorsIDs.DELETE_BUTTON),
+      );
+      const buttons = alertSpy.mock.calls[0][2] ?? [];
+      const confirm = buttons.find((b) => b.style === 'destructive');
+      return { alertSpy, confirm };
+    };
+
+    it('asks for confirmation without deleting yet', () => {
+      const { getByTestId } = arrange();
+
+      const { alertSpy } = pressDeleteAndConfirm(getByTestId);
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        strings('identity_verification.delete_confirm_title'),
+        strings('identity_verification.delete_confirm_message'),
+        expect.any(Array),
+      );
+      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
+    });
+
+    it('deletes the encrypted storage once confirmed and reports success', async () => {
+      mockDeleteEncryptedStorage.mockResolvedValue(undefined);
+      const { getByTestId } = arrange();
+      const { alertSpy, confirm } = pressDeleteAndConfirm(getByTestId);
+
+      act(() => {
+        confirm?.onPress?.();
+      });
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenLastCalledWith(
+          strings('identity_verification.delete_success_title'),
+          strings('identity_verification.delete_success_message'),
+        ),
+      );
+      expect(mockDeleteEncryptedStorage).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs and reports an error when deletion fails', async () => {
+      const error = new Error('boom');
+      mockDeleteEncryptedStorage.mockRejectedValue(error);
+      const { getByTestId } = arrange();
+      const { alertSpy, confirm } = pressDeleteAndConfirm(getByTestId);
+
+      act(() => {
+        confirm?.onPress?.();
+      });
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenLastCalledWith(
+          strings('identity_verification.delete_error_title'),
+          strings('identity_verification.delete_error_message'),
+        ),
+      );
+      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(String));
+    });
   });
 });

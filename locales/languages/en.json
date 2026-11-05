@@ -8555,7 +8555,13 @@
     "settings_description": "See your verification status and who your identity data is shared with.",
     "section_button": "View",
     "verification_for": "Identity verification for {{provider}}",
-    "delete_identity_data": "Delete identity data"
+    "delete_identity_data": "Delete identity data",
+    "delete_confirm_title": "Delete identity data?",
+    "delete_confirm_message": "This permanently deletes your encrypted identity verification data stored by MetaMask. Providers that already received your information may keep it. This can't be undone.",
+    "delete_success_title": "Identity data deleted",
+    "delete_success_message": "Your encrypted identity verification data has been deleted.",
+    "delete_error_title": "Couldn't delete identity data",
+    "delete_error_message": "Something went wrong. Please try again."
   },
   "mfa": {
     "method_email": "Email",

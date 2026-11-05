@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -17,6 +17,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { formatTimestampToDateTime } from '../../../../util/date';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { IdentityVerificationSelectorsIDs } from './IdentityVerification.testIds';
@@ -43,9 +45,48 @@ const IdentityVerification = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { shares } = useIdentityDataShares();
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const deleteIdentityData = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      await Engine.context.KycController.deleteEncryptedStorage();
+      Alert.alert(
+        strings('identity_verification.delete_success_title'),
+        strings('identity_verification.delete_success_message'),
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'IdentityVerification: failed to delete identity data',
+      );
+      Alert.alert(
+        strings('identity_verification.delete_error_title'),
+        strings('identity_verification.delete_error_message'),
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }, []);
+
+  const handleDeletePress = useCallback(() => {
+    Alert.alert(
+      strings('identity_verification.delete_confirm_title'),
+      strings('identity_verification.delete_confirm_message'),
+      [
+        { text: strings('navigation.cancel'), style: 'cancel' },
+        {
+          text: strings('identity_verification.delete_identity_data'),
+          style: 'destructive',
+          onPress: deleteIdentityData,
+        },
+      ],
+    );
+  }, [deleteIdentityData]);
 
   return (
     <SafeAreaView
@@ -92,6 +133,9 @@ const IdentityVerification = () => {
           <ButtonSemantic
             severity={ButtonSemanticSeverity.Danger}
             twClassName="w-full"
+            onPress={handleDeletePress}
+            isLoading={isDeleting}
+            isDisabled={isDeleting}
             testID={IdentityVerificationSelectorsIDs.DELETE_BUTTON}
           >
             {strings('identity_verification.delete_identity_data')}
