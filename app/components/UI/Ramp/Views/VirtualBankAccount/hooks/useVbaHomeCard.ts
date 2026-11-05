@@ -25,6 +25,10 @@ import {
 import { useVbaEligibility } from './useVbaEligibility';
 import { hasVbaWalletEvidence } from '../vbaWalletEvidence';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import {
+  hasViewedVbaAccountDetails,
+  subscribeVbaAccountDetailsViewed,
+} from '../vbaAccountDetailsViewedStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
 /**
@@ -38,7 +42,10 @@ export type VbaHomeCard =
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
+  /**
+   * ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. Once the account
+   * exists, shown only until its details have been viewed on this device.
+   */
   | { type: 'account_is_ready' }
   /**
    * IDENTITY_VERIFIED — KYC approved, but the Money account has no usable
@@ -78,6 +85,12 @@ export interface VbaHomeCardInputs {
    * Redux). Treated as `false` while the read is in flight.
    */
   hasAcceptedVendorTerms: boolean;
+  /**
+   * Whether this wallet's account details screen has shown its deposit
+   * details on this device (async storage, not Redux). `null` while the read
+   * is in flight, so a viewed account never flashes the ready card.
+   */
+  hasViewedAccountDetails: boolean | null;
   /** RampsController autoramp cursor. */
   autoramps: readonly AutorampAccount[];
   /** RampsController Money Account wallet registrations. */
@@ -113,7 +126,11 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
  * Relay approval alone stays pending while the provider makes its decision.
  *
  * A usable autoramp renders `account_is_ready` right after rule 1, ahead of
- * every session rule, whatever the eligibility gate says.
+ * every session rule, whatever the eligibility gate says, but only until the
+ * account details have been viewed once (unknown while loading counts as
+ * viewed). After that the Money home Details button is the way back, and the
+ * card is `none`. The flag only applies once a usable autoramp exists; an
+ * approved session without one falls through to the session rules unchanged.
  *
  * Rules 1–2 (none and get_started) short-circuit before the session rules, so
  * an approved session always reaches rule 3 and a fresh user without any
@@ -131,6 +148,7 @@ export function getVbaHomeCard({
   sessionStatus,
   providerFlowStatus,
   hasAcceptedVendorTerms,
+  hasViewedAccountDetails,
   autoramps,
   walletRegistrations,
   hasUsableAutoramp,
@@ -146,9 +164,13 @@ export function getVbaHomeCard({
     return { type: 'none' };
   }
 
-  // A stale session must not hide an existing account.
+  // A stale session must not hide an existing account. Once its details
+  // have been viewed (or while that is still unknown), the card has done its
+  // job: the Details button on Money home leads back to them.
   if (hasUsableAutoramp) {
-    return { type: 'account_is_ready' };
+    return hasViewedAccountDetails === false
+      ? { type: 'account_is_ready' }
+      : { type: 'none' };
   }
 
   // 2. Brand-new user: nothing started and no evidence of prior setup.
@@ -241,12 +263,51 @@ const readVendorTermsAcceptance = (
 };
 
 /**
+ * Reads whether `walletAddress` has viewed its account details and reports
+ * the result unless the caller has already cancelled. A failed read reports
+ * not viewed, so the card falls back to showing.
+ *
+ * @param walletAddress - Wallet the flag was stored under.
+ * @param onViewed - Receives whether that wallet has viewed its details.
+ * @returns Cleanup that ignores a late resolution.
+ */
+const readAccountDetailsViewed = (
+  walletAddress: string,
+  onViewed: (viewed: boolean) => void,
+): (() => void) => {
+  let isCancelled = false;
+  hasViewedVbaAccountDetails(walletAddress)
+    .then((viewed) => {
+      if (!isCancelled) {
+        onViewed(viewed);
+      }
+    })
+    .catch((error) => {
+      if (!isCancelled) {
+        onViewed(false);
+      }
+      Logger.error(error as Error, {
+        tags: { feature: 'money-home' },
+        context: {
+          name: 'useVbaHomeCard',
+          data: { step: 'hasViewedVbaAccountDetails' },
+        },
+      });
+    });
+  return () => {
+    isCancelled = true;
+  };
+};
+
+/**
  * Source of truth for the single VBA identity-status card on Money home.
  * Reads Redux only — no navigation, no UI, and no network on load.
  *
  * The local vendor-terms acceptance lives in async storage, not Redux. It is
  * read on mount and on wallet change, and treated as not accepted while that
- * read is in flight.
+ * read is in flight. The account-details-viewed flag is read the same way,
+ * treated as unknown (card hidden) while in flight, and flips to viewed as
+ * soon as the details screen records it.
  *
  * @example
  * const card = useVbaHomeCard();
@@ -296,9 +357,13 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   // an effect) and the first render for a new wallet never sees the
   // previous wallet's value.
   const [termsWalletAddress, setTermsWalletAddress] = useState(walletAddress);
+  const [hasViewedAccountDetails, setHasViewedAccountDetails] = useState<
+    boolean | null
+  >(null);
   if (termsWalletAddress !== walletAddress) {
     setTermsWalletAddress(walletAddress);
     setHasAcceptedVendorTerms(false);
+    setHasViewedAccountDetails(null);
   }
 
   useEffect(() => {
@@ -310,6 +375,28 @@ export const useVbaHomeCard = (): VbaHomeCard => {
     return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
   }, [walletAddress]);
 
+  useEffect(() => {
+    // Unknown while the first read for this wallet is in flight.
+    setHasViewedAccountDetails(null);
+    if (!walletAddress) {
+      return undefined;
+    }
+    const normalizedWallet = walletAddress.toLowerCase();
+    const unsubscribe = subscribeVbaAccountDetailsViewed((viewedWallet) => {
+      if (viewedWallet === normalizedWallet) {
+        setHasViewedAccountDetails(true);
+      }
+    });
+    const cancelRead = readAccountDetailsViewed(walletAddress, (viewed) => {
+      // A mark that landed while the read was in flight wins.
+      setHasViewedAccountDetails((current) => current === true || viewed);
+    });
+    return () => {
+      unsubscribe();
+      cancelRead();
+    };
+  }, [walletAddress]);
+
   return useMemo(
     () =>
       getVbaHomeCard({
@@ -319,6 +406,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         sessionStatus: effectiveSessionStatus,
         providerFlowStatus,
         hasAcceptedVendorTerms,
+        hasViewedAccountDetails,
         autoramps,
         walletRegistrations,
         hasUsableAutoramp,
@@ -330,6 +418,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       effectiveSessionStatus,
       providerFlowStatus,
       hasAcceptedVendorTerms,
+      hasViewedAccountDetails,
       autoramps,
       walletRegistrations,
       hasUsableAutoramp,

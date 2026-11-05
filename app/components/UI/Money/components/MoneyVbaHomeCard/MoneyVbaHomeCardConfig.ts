@@ -45,6 +45,8 @@ type MoneyVbaHomeCardCta =
       className: string;
       /** Tailwind classes for the button text. */
       textClassName: string;
+      /** Opens the MetaMask support article through the consent sheet. */
+      opensSupportArticle?: boolean;
     }
   | { isDisabled: true };
 
@@ -175,9 +177,10 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     },
     isDismissible: true,
     cta: {
-      buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      buttonIntent: MONEY_BUTTON_INTENTS.LEARN_MORE,
       className: 'bg-muted',
       textClassName: 'text-default',
+      opensSupportArticle: true,
     },
   },
 };

@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import {
@@ -32,10 +33,13 @@ import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import {
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import {
@@ -74,7 +78,8 @@ const HERO_GRADIENT_ANGLE = 224;
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
- * This avoids flashing a standalone full-screen loading route.
+ * This avoids flashing a standalone full-screen loading route. The failed-KYC card opens the MetaMask support article through
+ * the support consent sheet instead of that flow.
  */
 const MoneyVbaHomeCard = ({
   variant,
@@ -85,6 +90,7 @@ const MoneyVbaHomeCard = ({
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const navigation = useNavigation<AppNavigationProp>();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const { openSupportWithConsent } = useSupportConsent();
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: config.componentName,
@@ -113,6 +119,19 @@ const MoneyVbaHomeCard = ({
   const handleCtaPress = useCallback(async () => {
     // A status-only CTA (KYC_PENDING) is disabled and never fires.
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
+      return;
+    }
+    if (config.cta.opensSupportArticle) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: config.cta.buttonIntent,
+        label_key: `${config.i18nPrefix}.cta`,
+        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+      });
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
       return;
     }
     trackButtonClicked({
@@ -196,7 +215,14 @@ const MoneyVbaHomeCard = ({
         setIsRouting(false);
       }
     }
-  }, [chooseCurrency, config, navigation, trackButtonClicked, variant]);
+  }, [
+    chooseCurrency,
+    config,
+    navigation,
+    openSupportWithConsent,
+    trackButtonClicked,
+    variant,
+  ]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({

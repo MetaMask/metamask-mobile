@@ -231,6 +231,122 @@ const MESSENGER_EXPOSED_METHODS = [
 ] as const;
 
 /**
+ * Bookkeeping for one cached read. The caller owns the maps and the state
+ * field. A later start wins the cache even when an earlier read finishes last.
+ * A normal read joins one already running. `forceFresh` does not.
+ */
+interface LatestReadTrackers<T> {
+  generation: Map<string, number>;
+  inFlight: Map<string, Promise<T>>;
+}
+
+function createLatestReadTrackers<T>(): LatestReadTrackers<T> {
+  return {
+    generation: new Map(),
+    inFlight: new Map(),
+  };
+}
+
+function bumpLatestReadGeneration<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+): number {
+  const generation = (trackers.generation.get(key) ?? 0) + 1;
+  trackers.generation.set(key, generation);
+  return generation;
+}
+
+/**
+ * Forget one cache entry. The generation moves first so a read that already
+ * started cannot write the entry back. The in-flight promise is dropped so a
+ * later read does not join it.
+ */
+function invalidateLatestRead<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+  dropCache: (key: string) => void,
+): void {
+  bumpLatestReadGeneration(trackers, key);
+  trackers.inFlight.delete(key);
+  dropCache(key);
+}
+
+function writeLatestReadIfCurrent<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+  requestGeneration: number,
+  write: () => void,
+): void {
+  if (trackers.generation.get(key) !== requestGeneration) {
+    return;
+  }
+  write();
+}
+
+/**
+ * Read through `wrapWithCache`, or past it when `forceFresh` is set.
+ * The fetch writes the payload itself. `wrapWithCache` must not write again,
+ * or an older shared read could replace a newer one that finished first.
+ */
+async function readLatest<T>({
+  trackers,
+  key,
+  forceFresh,
+  ttl,
+  readCache,
+  load,
+  write,
+}: {
+  trackers: LatestReadTrackers<T>;
+  key: string;
+  forceFresh: boolean;
+  ttl: number;
+  readCache: (key: string) => { payload: T; lastFetched?: number } | undefined;
+  load: () => Promise<T>;
+  write: (key: string, payload: T) => void;
+}): Promise<T> {
+  const fetchTracked = (): Promise<T> => {
+    if (!forceFresh) {
+      const inFlight = trackers.inFlight.get(key);
+      if (inFlight) {
+        return inFlight;
+      }
+    }
+
+    const requestGeneration = bumpLatestReadGeneration(trackers, key);
+    const pending = load()
+      .then((payload) => {
+        writeLatestReadIfCurrent(trackers, key, requestGeneration, () =>
+          write(key, payload),
+        );
+        return payload;
+      })
+      .finally(() => {
+        if (trackers.inFlight.get(key) === pending) {
+          trackers.inFlight.delete(key);
+        }
+      });
+
+    if (!forceFresh) {
+      trackers.inFlight.set(key, pending);
+    }
+    return pending;
+  };
+
+  if (forceFresh) {
+    return fetchTracked();
+  }
+
+  return wrapWithCache<T>({
+    key,
+    ttl,
+    readCache,
+    fetchFresh: fetchTracked,
+    writeCache: () => undefined,
+  });
+}
+
+/**
  * Controller for the Rewards Money consumer surface: bootstrap referral reads,
  * scoped earnings summary, unified ledger history (`include_claims` by default),
  * and claim detail / in-flight claim-history reads.
@@ -241,10 +357,8 @@ export class RewardsMoneyController extends BaseController<
   RewardsMoneyControllerMessenger
 > {
   readonly #isDisabled: () => boolean;
-  readonly #referralMeRequestGeneration = new Map<string, number>();
-  readonly #referralMeInFlight = new Map<string, Promise<ReferralMeDto>>();
-  readonly #claimHistoryRequestGeneration = new Map<string, number>();
-  readonly #claimHistoryWrittenGeneration = new Map<string, number>();
+  readonly #referralMeReads = createLatestReadTrackers<ReferralMeDto>();
+  readonly #claimHistoryReads = createLatestReadTrackers<ClaimHistoryPageDto>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -336,53 +450,15 @@ export class RewardsMoneyController extends BaseController<
 
     const profileId = await this.#getProfileId();
 
-    // A forceFresh asks for data newer than a read already running, and its
-    // result has to win if that older read lands last. It does not join.
-    if (params.forceFresh) {
-      const requestGeneration = this.#startReferralMeRequest(profileId);
-      const fresh = await this.messenger.call(
-        'RewardsMoneyDataService:getReferralMe',
-      );
-      this.#writeReferralMeIfLatest(profileId, fresh, requestGeneration);
-      return fresh;
-    }
-
-    return wrapWithCache<ReferralMeDto>({
+    return readLatest({
+      trackers: this.#referralMeReads,
       key: profileId,
+      forceFresh: params.forceFresh === true,
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.referralMe[key],
-      fetchFresh: () => this.#fetchReferralMe(profileId),
-      // #fetchReferralMe writes under the generation that started the shared
-      // read. Writing again here would let that older payload replace a
-      // forceFresh that finished first.
-      writeCache: () => undefined,
+      load: () => this.messenger.call('RewardsMoneyDataService:getReferralMe'),
+      write: (key, payload) => this.#writeReferralMe(key, payload),
     });
-  }
-
-  /**
-   * One network read per profile. The unlock warm-up and a Rewards open that
-   * arrives while it is running share this promise.
-   */
-  #fetchReferralMe(profileId: string): Promise<ReferralMeDto> {
-    const inFlight = this.#referralMeInFlight.get(profileId);
-    if (inFlight) {
-      return inFlight;
-    }
-
-    const requestGeneration = this.#startReferralMeRequest(profileId);
-    const pending = this.messenger
-      .call('RewardsMoneyDataService:getReferralMe')
-      .then((payload) => {
-        this.#writeReferralMeIfLatest(profileId, payload, requestGeneration);
-        return payload;
-      })
-      .finally(() => {
-        if (this.#referralMeInFlight.get(profileId) === pending) {
-          this.#referralMeInFlight.delete(profileId);
-        }
-      });
-    this.#referralMeInFlight.set(profileId, pending);
-    return pending;
   }
 
   async getReferralFunnel(
@@ -541,7 +617,11 @@ export class RewardsMoneyController extends BaseController<
       'RewardsMoneyDataService:registerReferee',
       params,
     );
-    this.#invalidateReferralMe(profileId);
+    invalidateLatestRead(this.#referralMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.referralMe[key];
+      });
+    });
   }
 
   async getEarningsSummary(
@@ -641,39 +721,16 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    let generation = 0;
-    const fetchFresh = () => {
-      generation =
-        (this.#claimHistoryRequestGeneration.get(profileId) ?? 0) + 1;
-      this.#claimHistoryRequestGeneration.set(profileId, generation);
-      return this.messenger.call(
-        'RewardsMoneyDataService:getClaimHistory',
-        null,
-      );
-    };
-    // Overlapping fetches can answer out of order. Keep the newest page.
-    const writeIfLatest = (payload: ClaimHistoryPageDto) => {
-      if (
-        generation <= (this.#claimHistoryWrittenGeneration.get(profileId) ?? 0)
-      ) {
-        return;
-      }
-      this.#claimHistoryWrittenGeneration.set(profileId, generation);
-      this.#writeClaimHistoryFirstPage(profileId, payload);
-    };
 
-    if (forceFresh) {
-      const fresh = await fetchFresh();
-      writeIfLatest(fresh);
-      return fresh;
-    }
-
-    return wrapWithCache<ClaimHistoryPageDto>({
+    return readLatest({
+      trackers: this.#claimHistoryReads,
       key: profileId,
+      forceFresh: forceFresh === true,
       ttl: CLAIM_HISTORY_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.claimHistoryFirstPage[key],
-      fetchFresh,
-      writeCache: (_key, payload) => writeIfLatest(payload),
+      load: () =>
+        this.messenger.call('RewardsMoneyDataService:getClaimHistory', null),
+      write: (key, payload) => this.#writeClaimHistoryFirstPage(key, payload),
     });
   }
 
@@ -734,11 +791,20 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    return this.messenger.call(
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
       'RewardsMoneyDataService:initiateClaim',
       route,
       body,
     );
+    if (result.kind === 'authorized') {
+      invalidateLatestRead(this.#claimHistoryReads, profileId, (key) => {
+        this.update((draft) => {
+          delete draft.claimHistoryFirstPage[key];
+        });
+      });
+    }
+    return result;
   }
 
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
@@ -804,39 +870,6 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
-  }
-
-  #startReferralMeRequest(profileId: string): number {
-    const generation =
-      (this.#referralMeRequestGeneration.get(profileId) ?? 0) + 1;
-    this.#referralMeRequestGeneration.set(profileId, generation);
-    return generation;
-  }
-
-  /**
-   * Forget a profile's referral me. The generation moves first so a read that
-   * started before registration cannot refill the entry after it is removed.
-   * The in-flight promise is dropped so a later read does not join it.
-   */
-  #invalidateReferralMe(profileId: string): void {
-    this.#startReferralMeRequest(profileId);
-    this.#referralMeInFlight.delete(profileId);
-    this.update((draft) => {
-      delete draft.referralMe[profileId];
-    });
-  }
-
-  #writeReferralMeIfLatest(
-    profileId: string,
-    payload: ReferralMeDto,
-    requestGeneration: number,
-  ): void {
-    if (
-      this.#referralMeRequestGeneration.get(profileId) !== requestGeneration
-    ) {
-      return;
-    }
-    this.#writeReferralMe(profileId, payload);
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {
