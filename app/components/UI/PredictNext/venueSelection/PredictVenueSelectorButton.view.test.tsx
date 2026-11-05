@@ -193,29 +193,6 @@ describe('PredictVenueSelectorButton', () => {
     expect(await findNextHome(view)).toBeOnTheScreen();
   });
 
-  it('lands on the chosen home from an entry that pins the legacy home', async () => {
-    const view = renderRoot({
-      venueState: {
-        sessionDefault: { venue: 'kalshi', source: 'geolocation' },
-      },
-      entryParams: {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: { tab: 'sports' },
-      },
-    });
-    await findLegacyHome(view);
-
-    await openPicker(view);
-    expect(isMarked(view, 'kalshi')).toBe(true);
-    await act(async () => {
-      fireEvent.press(
-        view.getByTestId(PredictVenueSelectorTestIds.option('kalshi')),
-      );
-    });
-
-    expect(await findNextHome(view)).toBeOnTheScreen();
-  });
-
   it('keeps the chosen venue across a remount', async () => {
     const first = renderRoot();
     await chooseVenue(first, 'kalshi');

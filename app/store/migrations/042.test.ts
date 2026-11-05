@@ -3,6 +3,7 @@ import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { EthMethod } from '@metamask/keyring-api';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -361,7 +362,7 @@ describe('Migration #042', () => {
     const newState = migrate({});
     expect(newState).toStrictEqual({});
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       `FATAL ERROR: Migration 42: Invalid engine state error: 'undefined'`,
     );
   });
@@ -379,7 +380,7 @@ describe('Migration #042', () => {
       },
     });
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       "Migration 42: Invalid AccountsController state: 'undefined'",
     );
   });
@@ -401,7 +402,7 @@ describe('Migration #042', () => {
       },
     });
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       "Migration 42: Missing internalAccounts property from AccountsController: 'object'",
     );
   });
@@ -420,7 +421,7 @@ describe('Migration #042', () => {
       },
     };
     migrate(oldState);
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       'Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined. selectedAddress: undefined, addressMap[selectedAddress]: undefined',
     );
   });
