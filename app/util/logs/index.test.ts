@@ -20,6 +20,11 @@ import {
   type AuthenticationControllerMessenger,
   type AuthenticationControllerState,
 } from '@metamask/profile-sync-controller/auth';
+import {
+  AssetsController,
+  type AssetsControllerMessenger,
+  type AssetsControllerOptions,
+} from '@metamask/assets-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import {
   Messenger,
@@ -906,7 +911,38 @@ describe('logs :: generateStateLogs', () => {
       });
     });
 
-    it('exports full AssetsController state even when its metadata excludes fields', () => {
+    it('exports AssetsController asset fields using real controller metadata', () => {
+      const rootMessenger = new Messenger<
+        MockAnyNamespace,
+        MessengerActions<AssetsControllerMessenger>,
+        MessengerEvents<AssetsControllerMessenger>
+      >({ namespace: MOCK_ANY_NAMESPACE });
+      rootMessenger.registerActionHandler(
+        'NetworkEnablementController:getState',
+        () => ({
+          enabledNetworkMap: {},
+          nativeAssetIdentifiers: {},
+        }),
+      );
+      const messenger: AssetsControllerMessenger = new Messenger({
+        namespace: 'AssetsController',
+        parent: rootMessenger,
+      });
+      rootMessenger.delegate({
+        actions: ['NetworkEnablementController:getState'],
+        events: [],
+        messenger,
+      });
+
+      const controller = new AssetsController({
+        messenger,
+        queryApiClient: {
+          queryClient: { fetchQuery: jest.fn().mockResolvedValue(undefined) },
+          setCachedData: jest.fn(),
+        } as unknown as AssetsControllerOptions['queryApiClient'],
+      });
+      Reflect.set(Engine.context, 'AssetsController', controller);
+
       const assetsControllerState = {
         assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
         assetsBalance: {
@@ -918,23 +954,31 @@ describe('logs :: generateStateLogs', () => {
         selectedCurrency: 'usd',
         assetsLoadingStatus: { isLoading: false },
       };
-      Reflect.set(Engine.context, 'AssetsController', {
-        metadata: {
-          assetsInfo: stateLogsMetadata(false),
-          assetsBalance: stateLogsMetadata(false),
-          assetsPrice: stateLogsMetadata(false),
-          customAssets: stateLogsMetadata(false),
-          assetPreferences: stateLogsMetadata(false),
-          selectedCurrency: stateLogsMetadata(false),
-          assetsLoadingStatus: stateLogsMetadata(true),
-        },
-      });
 
       const logs = generateParsedLogs({
         AssetsController: assetsControllerState,
       });
 
       expect(logs.AssetsController).toStrictEqual(assetsControllerState);
+      expect(logs.AssetsController.assetsInfo).toStrictEqual(
+        assetsControllerState.assetsInfo,
+      );
+      expect(logs.AssetsController.assetsBalance).toStrictEqual(
+        assetsControllerState.assetsBalance,
+      );
+      expect(logs.AssetsController.assetsPrice).toStrictEqual(
+        assetsControllerState.assetsPrice,
+      );
+      expect(logs.AssetsController.customAssets).toStrictEqual(
+        assetsControllerState.customAssets,
+      );
+      expect(logs.AssetsController.assetPreferences).toStrictEqual(
+        assetsControllerState.assetPreferences,
+      );
+      expect(logs.AssetsController.selectedCurrency).toBe(
+        assetsControllerState.selectedCurrency,
+      );
+      controller.destroy();
     });
 
     it('keeps controller state unchanged when the controller has no metadata', () => {
