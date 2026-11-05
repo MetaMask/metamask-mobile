@@ -543,6 +543,9 @@ describe('VbaVerificationPartners', () => {
         HIDDEN_FROM_SCREEN_READERS,
       );
 
+      // No iOS grey press highlight on the words, matching the link.
+      expect(sentence.props.suppressHighlighting).toBe(true);
+      expect(sentence.props.selectable).toBeFalsy();
       fireEvent.press(sentence);
       expect(isTicked(getByTestId)).toBe(true);
       fireEvent.press(sentence);

@@ -403,6 +403,9 @@ const VbaVerificationPartners = ({
               variant={TextVariant.BodyMd}
               twClassName="ml-3 flex-1"
               onPress={toggleBiometricConsent}
+              // iOS greys out pressed Text by default; the checkbox shows the
+              // change instead. The link (MMDS TextButton) already opts out.
+              suppressHighlighting
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               testID={
