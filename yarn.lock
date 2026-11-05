@@ -11102,6 +11102,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-mfa-whitelist@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/money-account-mfa-whitelist@npm:0.2.0"
+  dependencies:
+    "@metamask/abi-utils": "npm:^2.0.4"
+    "@metamask/delegation-core": "npm:^2.2.1"
+    "@metamask/utils": "npm:^12.0.1"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/431140cb5abaa56c2d60ed290e6805ed8d261919f12518044779d3e57fc01ca57282ef375e6240d2875c9b0f1334b02018898e2b42e8f0b29ce69a2dce4a9ed8
+  languageName: node
+  linkType: hard
+
 "@metamask/money-account-upgrade-controller@npm:^5.1.0":
   version: 5.1.0
   resolution: "@metamask/money-account-upgrade-controller@npm:5.1.0"
@@ -38428,6 +38440,7 @@ __metadata:
     "@metamask/money-account-api-data-service": "npm:^2.3.1"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
+    "@metamask/money-account-mfa-whitelist": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
     "@metamask/money-account-utils": "npm:^2.1.0"
     "@metamask/multichain-account-service": "npm:^14.1.0"
