@@ -311,9 +311,7 @@ describe('handleRewardsUrl', () => {
       await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET_VIEW, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
     });
 
     it('falls back to wallet view when dispatch fails', async () => {
@@ -323,9 +321,7 @@ describe('handleRewardsUrl', () => {
 
       await handleRewardsUrl({ rewardsPath: '?page=campaigns' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('logs error details when handling fails', async () => {

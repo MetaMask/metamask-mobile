@@ -339,11 +339,8 @@ describe('TrendingView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-            fromTrending: true,
-          }),
+          newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+          fromTrending: true,
         }),
       );
     });
@@ -361,20 +358,15 @@ describe('TrendingView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            showTabsView: true,
-            fromTrending: true,
-          }),
+          showTabsView: true,
+          fromTrending: true,
         }),
       );
       // Should NOT pass newTabUrl when tabs exist
       expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          params: expect.objectContaining({
-            newTabUrl: expect.anything(),
-          }),
+          newTabUrl: expect.anything(),
         }),
       );
     });
