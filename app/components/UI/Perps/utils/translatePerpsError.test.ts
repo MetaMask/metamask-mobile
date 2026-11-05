@@ -610,6 +610,93 @@ describe('post-only rejections', () => {
   );
 });
 
+describe('normalized post-only rejections from Core', () => {
+  const WOULD_CROSS_CODE = 'ORDER_POST_ONLY_WOULD_CROSS';
+  const WINDOW_CODE = 'ORDER_POST_ONLY_WINDOW';
+  const normalizedResult = (
+    code: typeof WOULD_CROSS_CODE | typeof WINDOW_CODE,
+  ) => ({
+    success: false,
+    error: code,
+    errorCode: code,
+    errorDetails: { code, provider: 'hyperliquid' as const },
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each<[string, typeof WOULD_CROSS_CODE | typeof WINDOW_CODE, string]>([
+    ['would-cross', WOULD_CROSS_CODE, 'perps.errors.postOnlyWouldCross'],
+    ['window', WINDOW_CODE, 'perps.errors.postOnlyWindow'],
+  ])(
+    'translates the %s code from a provider result without venue text',
+    (_label, code, expectedKey) => {
+      expect(translatePerpsError(normalizedResult(code))).toBe(expectedKey);
+      expect(translatePerpsError(code)).toBe(expectedKey);
+      expect(
+        handlePerpsError({
+          error: normalizedResult(code),
+          fallbackMessage: 'Fallback message',
+        }),
+      ).toBe(expectedKey);
+    },
+  );
+
+  it('classifies the window code and not the would-cross code as the post-only window', () => {
+    expect(isPostOnlyWindowError(normalizedResult(WINDOW_CODE))).toBe(true);
+    expect(isPostOnlyWindowError(WINDOW_CODE)).toBe(true);
+    expect(isPostOnlyWindowError(normalizedResult(WOULD_CROSS_CODE))).toBe(
+      false,
+    );
+  });
+
+  it('classifies the would-cross code and not the window code as a would-cross rejection', () => {
+    expect(isPostOnlyWouldCrossError(normalizedResult(WOULD_CROSS_CODE))).toBe(
+      true,
+    );
+    expect(isPostOnlyWouldCrossError(WOULD_CROSS_CODE)).toBe(true);
+    expect(isPostOnlyWouldCrossError(normalizedResult(WINDOW_CODE))).toBe(
+      false,
+    );
+  });
+
+  it('reports a cancelled original for a normalized would-cross edit result', () => {
+    const result = normalizeOrderEditRejection(
+      normalizedResult(WOULD_CROSS_CODE),
+    );
+
+    expect(result).toEqual({
+      reason: 'post_only_would_cross',
+      originalOrder: 'cancelled',
+      error: WOULD_CROSS_CODE,
+    });
+  });
+
+  it('reports a retained original for a normalized window edit result', () => {
+    const result = normalizeOrderEditRejection(normalizedResult(WINDOW_CODE));
+
+    expect(result).toEqual({
+      reason: 'other',
+      originalOrder: 'retained',
+      error: WINDOW_CODE,
+    });
+  });
+
+  it('reports a retained original for a normalized unknown edit result', () => {
+    const result = normalizeOrderEditRejection({
+      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+    });
+
+    expect(result).toEqual({
+      reason: 'other',
+      originalOrder: 'retained',
+      error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+    });
+  });
+});
+
 describe('handlePerpsError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
