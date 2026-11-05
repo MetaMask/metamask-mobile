@@ -2167,8 +2167,38 @@ describe('EventMarketList', () => {
       );
     });
 
-    it('titles a player prop with its Player and threshold', async () => {
+    // A `choice` card whose outcomes each name a line, titled with its
+    // label (or not). Player prop thresholds are now `threshold` lines;
+    // titling their Positions is PRED-1471.
+    const makeChoiceCardEvent = (label?: string): PredictEvent => {
       const event = makePredictNextPlayerPropsEvent();
+      return {
+        ...event,
+        markets: event.markets.map((candidate) =>
+          candidate.group?.marketType === 'threshold'
+            ? {
+                ...candidate,
+                outcomes: [
+                  {
+                    ...candidate.outcomes[0],
+                    label: `${candidate.group.option?.value}+`,
+                  },
+                  candidate.outcomes[1],
+                ],
+                group: {
+                  key: candidate.group.key,
+                  groupType: 'choice',
+                  displayOrder: candidate.group.displayOrder,
+                  label,
+                },
+              }
+            : candidate,
+        ),
+      };
+    };
+
+    it('titles a Position on a titled choice card with its label and outcome', async () => {
+      const event = makeChoiceCardEvent('Rhamondre Stevenson');
       const market = event.markets.find((candidate) => candidate.group?.label);
       const position = makePredictNextPosition({
         marketId: market?.id,
@@ -2178,34 +2208,24 @@ describe('EventMarketList', () => {
 
       expect(
         cardOf(view, position).getByText(
-          positionTitle(position, `${market?.group?.label} 60+ yards`),
+          positionTitle(position, 'Rhamondre Stevenson 60+'),
         ),
       ).toBeOnTheScreen();
     });
 
-    it('titles an unlabelled player prop with its threshold alone', async () => {
-      const event = makePredictNextPlayerPropsEvent();
-      const markets = event.markets.map((candidate) =>
-        candidate.group?.label
-          ? {
-              ...candidate,
-              group: { ...candidate.group, label: undefined },
-            }
-          : candidate,
-      );
-      const market = markets.find((candidate) =>
-        candidate.outcomes[0].label.endsWith('yards'),
+    it('titles a Position on an untitled choice card with its outcome alone', async () => {
+      const event = makeChoiceCardEvent();
+      const market = event.markets.find(
+        (candidate) => candidate.outcomes[0].label === '60+',
       );
       const position = makePredictNextPosition({
         marketId: market?.id,
         context: undefined,
       });
-      const { view } = await renderPositions({ ...event, markets }, [position]);
+      const { view } = await renderPositions(event, [position]);
 
       expect(
-        cardOf(view, position).getByText(
-          positionTitle(position, market?.outcomes[0].label),
-        ),
+        cardOf(view, position).getByText(positionTitle(position, '60+')),
       ).toBeOnTheScreen();
     });
 
