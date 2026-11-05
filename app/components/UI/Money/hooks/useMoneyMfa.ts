@@ -10,7 +10,10 @@ import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useMfa } from '../../../../util/identity/mfa';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
@@ -38,11 +41,11 @@ export type MoneyMfaStatus =
   | 'enabled'
   | 'off';
 
-const getReason = () => ({
+const getReason = (): MfaReason => ({
   operation: 'money.mfa.setup',
 });
 
-const getTurnOffReason = () => ({
+const getTurnOffReason = (): MfaReason => ({
   operation: 'money.mfa.turnOff',
   verifyDescription: strings('money.mfa.turn_off_verify_description'),
 });
