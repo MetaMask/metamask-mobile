@@ -50,6 +50,12 @@ describe('formatMarketGroupOption', () => {
     expect(formatMarketGroupOption(market, 'no')).toBe('60+');
   });
 
+  it('prints a fractional threshold value as sent', () => {
+    const market = createMarket(PREDICT_MARKET_TYPES.THRESHOLD, 59.5);
+
+    expect(formatMarketGroupOption(market)).toBe('59.5+');
+  });
+
   it('returns no value when the market has no numeric group option', () => {
     const market = {
       ...createMarket(PREDICT_MARKET_TYPES.TOTAL, 220.5),
