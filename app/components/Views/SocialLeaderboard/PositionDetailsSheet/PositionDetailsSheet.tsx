@@ -241,8 +241,9 @@ const PositionDetailsSheet = () => {
       <View>
         <Box twClassName="px-4 py-3" gap={2}>
           <PositionSheetTradeSummary
-            position={position}
             title={data.summaryTitle}
+            tagLabel={data.summaryTagLabel}
+            direction={data.perpDirection}
             subtitle={data.summarySubtitle}
             pnlPercentLabel={data.pnlPercentLabel}
             pnlValueLabel={data.pnlValueLabel}

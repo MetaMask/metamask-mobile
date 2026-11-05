@@ -180,7 +180,8 @@ const buildSheetData = (
   dailyChangePercent: 3.49,
   marketCap: undefined,
   summaryTitle: '2 PEPE',
-  summarySubtitle: '$240.00',
+  summaryTagLabel: undefined,
+  summarySubtitle: 'Opened · 2 hr ago',
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
@@ -667,7 +668,10 @@ describe('PositionDetailsSheet', () => {
 
     fireEvent.press(summary);
 
-    expect(summary).toHaveTextContent(/2 PEPE/);
+    expect(within(summary).getByText('2 PEPE')).toBeOnTheScreen();
+    expect(within(summary).getByText('Opened · 2 hr ago')).toBeOnTheScreen();
+    expect(summary).toHaveTextContent(/\+\$40\.00/);
+    expect(within(summary).queryByTestId('position-token-avatar')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
