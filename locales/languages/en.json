@@ -3737,6 +3737,10 @@
   },
   "predict_next": {
     "available_balance": "Available balance",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Balance unavailable",
       "description": "Unable to load your available balance.",
