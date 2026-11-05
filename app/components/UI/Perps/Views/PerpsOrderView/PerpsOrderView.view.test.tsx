@@ -94,19 +94,13 @@ const eligibleOverrides = {
 };
 
 const setMockPerpsControllerState = (state: PerpsControllerState) => {
-  const engineState: unknown = Reflect.get(Engine, 'state');
-  if (
-    engineState !== undefined &&
-    (typeof engineState !== 'object' ||
-      engineState === null ||
-      Array.isArray(engineState))
-  ) {
-    throw new Error('Expected the component-view Engine mock to expose state');
-  }
-  Reflect.set(Engine, 'state', {
-    ...(engineState ?? {}),
+  const engineWithState = Engine as unknown as {
+    state: Record<string, unknown>;
+  };
+  engineWithState.state = {
+    ...engineWithState.state,
     PerpsController: state,
-  });
+  };
 };
 
 const marketDetailsRoute: PerpsExtraRoute = {
@@ -437,8 +431,9 @@ describe('PerpsOrderView', () => {
       }),
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(placeOrderButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     fireEvent.press(
       screen.getByTestId(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON),
     );
@@ -485,8 +480,9 @@ describe('PerpsOrderView', () => {
       }),
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(placeOrderButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     fireEvent.press(screen.getByTestId(`tab-${Routes.WALLET_VIEW}`));
     expect(
       await screen.findByTestId(`route-${Routes.WALLET_VIEW}`),
@@ -534,8 +530,9 @@ describe('PerpsOrderView', () => {
       }),
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(submitButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     fireEvent.press(
       await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
     );
@@ -548,7 +545,7 @@ describe('PerpsOrderView', () => {
     expect(placeOrder).not.toHaveBeenCalled();
   });
 
-  it('does not place an order that became invalid during the account-support check', async () => {
+  it('does not place an order after the balance falls below the order size during the account-support check', async () => {
     const getAccountSupport = jest.mocked(
       Engine.context.PerpsController.getAccountSupport,
     );
@@ -580,8 +577,9 @@ describe('PerpsOrderView', () => {
       }),
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(placeOrderButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     act(() => {
       stream.emitAccount(accountWithBalance('1'));
     });
@@ -629,8 +627,9 @@ describe('PerpsOrderView', () => {
       }),
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(submitButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     unmount();
     await act(async () => {
       resolveAccountSupport({ isSupported: true });
@@ -677,8 +676,9 @@ describe('PerpsOrderView', () => {
       PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
     );
 
+    getAccountSupport.mockClear();
     fireEvent.press(submitButton);
-    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(1));
     const currentPerpsState =
       store.getState().engine.backgroundState.PerpsController;
     act(() => {
