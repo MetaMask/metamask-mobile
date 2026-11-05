@@ -16,6 +16,11 @@ export interface MoneyMetaMaskCardModeInput {
   hasMoneyAccountRequirements: boolean;
   isCardStateResolved: boolean;
   isMoneyCardSectionAvailable?: boolean;
+  /**
+   * When false, the provider has no Baanx-style verification status. Skip the
+   * unresolved loading gate and show the card upsell until the user has a card.
+   */
+  reportsVerificationStatus?: boolean;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -29,12 +34,15 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountRequirements,
   isCardStateResolved,
   isMoneyCardSectionAvailable = true,
+  reportsVerificationStatus = true,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
   if (!isMoneyCardSectionAvailable) {
     return null;
   }
 
-  if (!isCardStateResolved) {
+  // A provider with no verification status never resolves the shared gate.
+  // Continue to manage, link, or upsell.
+  if (!isCardStateResolved && reportsVerificationStatus) {
     return isMoneyAccountVisible ? 'loading' : null;
   }
 
@@ -55,7 +63,13 @@ export const deriveMoneyMetaMaskCardMode = ({
   }
 
   // Authenticated but identity not yet verified -> verification in progress.
-  if (isCardAuthenticated) return isMoneyAccountVisible ? 'verifying' : null;
+  // A provider that does not report verification offers the card upsell.
+  if (isCardAuthenticated) {
+    if (!reportsVerificationStatus) {
+      return isMoneyAccountVisible ? 'upsell' : null;
+    }
+    return isMoneyAccountVisible ? 'verifying' : null;
+  }
 
   // Brand-new user -> upsell.
   return isMoneyAccountVisible ? 'upsell' : null;

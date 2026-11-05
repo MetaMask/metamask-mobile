@@ -414,6 +414,13 @@ const MoneyOnboardingView = () => {
   }, [analyticsContext, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+      navigation.navigate(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      return;
+    }
     if (
       postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
     ) {
@@ -442,7 +449,12 @@ const MoneyOnboardingView = () => {
         '[Money Account] Failed to initiate deposit after onboarding',
       );
     }
-  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+  }, [
+    initiateDeposit,
+    navigateToMoneyHome,
+    navigation,
+    postOnboardingRedirect,
+  ]);
 
   const postOnboardingRedirectTarget =
     postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
@@ -695,6 +707,13 @@ const MoneyOnboardingViewE2E = () => {
   }, [navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+      navigation.navigate(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      return;
+    }
     if (
       postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
     ) {
@@ -723,7 +742,12 @@ const MoneyOnboardingViewE2E = () => {
         '[Money Account] Failed to initiate deposit after onboarding',
       );
     }
-  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+  }, [
+    initiateDeposit,
+    navigateToMoneyHome,
+    navigation,
+    postOnboardingRedirect,
+  ]);
 
   const completeOnboardingAndRedirect = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(true));

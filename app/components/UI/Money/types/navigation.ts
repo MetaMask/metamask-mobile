@@ -14,6 +14,8 @@ import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositInte
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
+  /** Return to Card after the Money account exists. */
+  CARD = 'card',
 }
 
 export interface MoneyPreferredPaymentToken {

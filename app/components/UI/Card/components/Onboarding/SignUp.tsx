@@ -40,6 +40,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import {
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
+} from '../../../../../selectors/featureFlagController/card';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
+import {
+  MoneyAccountRequired,
+  MoneyAccountIdentity,
+} from '../MoneyAccountRow/MoneyAccountRow';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { safeToChecksumAddress } from '../../../../../util/address';
@@ -68,10 +78,6 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { UK_MIGRATION_COUNTRY_CODE } from '../../util/countryPrefill';
 import { useSignUpCountryPrefill } from '../../hooks/useSignUpCountryPrefill';
 import type { Region } from '../../types';
-import {
-  selectCardImmersveCountries,
-  selectCardImmersveEnabled,
-} from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
@@ -175,8 +181,14 @@ const SignUp = () => {
     selectSelectedInternalAccountByScope,
   );
   const selectedImmersveAccount = selectAccountByScope('eip155:0');
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(
+    selectedCountry?.key,
+  );
   const immersveAddress = safeToChecksumAddress(
-    selectedImmersveAccount?.address,
+    isMoneyAccountMode
+      ? primaryMoneyAccount?.address
+      : selectedImmersveAccount?.address,
   );
   const resumeImmersveOnboarding = useImmersveResumeOnboarding();
   const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
@@ -726,21 +738,34 @@ const SignUp = () => {
             <Label>
               {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
-            <SelectField
-              value={accountName ?? undefined}
-              onPress={openAccountSelector}
-              testID="signup-immersve-account-select"
-              startAccessory={
-                immersveAddress ? (
-                  <AvatarAccount
-                    address={immersveAddress}
-                    variant={getAvatarAccountVariant(avatarAccountType)}
-                    size={AvatarBaseSize.Sm}
-                    testID="signup-immersve-account-avatar"
-                  />
-                ) : undefined
-              }
-            />
+            {isMoneyAccountMode ? (
+              immersveAddress ? (
+                <Box
+                  twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+                  testID="signup-immersve-money-account-row"
+                >
+                  <MoneyAccountIdentity testID="signup-immersve-money-account" />
+                </Box>
+              ) : (
+                <MoneyAccountRequired testID="signup-money-account-required" />
+              )
+            ) : (
+              <SelectField
+                value={accountName ?? undefined}
+                onPress={openAccountSelector}
+                testID="signup-immersve-account-select"
+                startAccessory={
+                  immersveAddress ? (
+                    <AvatarAccount
+                      address={immersveAddress}
+                      variant={getAvatarAccountVariant(avatarAccountType)}
+                      size={AvatarBaseSize.Sm}
+                      testID="signup-immersve-account-avatar"
+                    />
+                  ) : undefined
+                }
+              />
+            )}
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"

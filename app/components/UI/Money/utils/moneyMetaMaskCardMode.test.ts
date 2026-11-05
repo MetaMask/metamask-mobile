@@ -195,6 +195,57 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBeNull();
   });
 
+  it('shows the card upsell for an authenticated Money account user who is not verified', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardholder: false,
+        reportsVerificationStatus: false,
+      }),
+    ).toBe('upsell');
+  });
+
+  it('returns manage for a linked Money account card while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardLinkedToMoneyAccount: true,
+        isCardAuthenticated: true,
+        reportsVerificationStatus: false,
+      }),
+    ).toBe('manage');
+  });
+
+  it('returns link for a Money account cardholder while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardholder: true,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        hasMoneyAccountRequirements: true,
+        reportsVerificationStatus: false,
+      }),
+    ).toBe('link');
+  });
+
+  it('returns upsell for an authenticated Money account non-cardholder while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardholder: false,
+        reportsVerificationStatus: false,
+      }),
+    ).toBe('upsell');
+  });
+
   it('returns null when the money card section is unavailable, even if card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({

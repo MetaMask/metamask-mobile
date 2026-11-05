@@ -2,7 +2,11 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { setImmersveFundingSourceId } from '../../../../core/redux/slices/card';
-import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
+import {
+  isMoneyAccountFundingChannel,
+  selectCardImmersveConfig,
+  selectCardImmersveCountryFunding,
+} from '../../../../selectors/featureFlagController/card';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -32,6 +36,7 @@ export const useImmersveResumeOnboarding = () => {
   const handoffMfa = useImmersveMfaHandoff();
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
+  const countryFunding = useSelector(selectCardImmersveCountryFunding);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
@@ -97,9 +102,17 @@ export const useImmersveResumeOnboarding = () => {
             .catch(() => undefined);
         }
 
+        const fundingChannel = countryFunding?.[country.toUpperCase()];
+        const isMoneyAccountChannel =
+          isMoneyAccountFundingChannel(fundingChannel);
         const id = await resolveImmersveFundingSourceId({
-          fundingChannelId: immersveConfig.fundingChannelId,
-          existingId: resume?.fundingSourceIds?.[0],
+          fundingChannelId:
+            fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId,
+          // A previously stored Base source must not be reused for the Money
+          // account channel.
+          existingId: isMoneyAccountChannel
+            ? undefined
+            : resume?.fundingSourceIds?.[0],
         });
         dispatch(setImmersveFundingSourceId(id));
 
@@ -156,6 +169,7 @@ export const useImmersveResumeOnboarding = () => {
       handoffMfa,
       route,
       immersveConfig,
+      countryFunding,
       trackEvent,
       createEventBuilder,
     ],

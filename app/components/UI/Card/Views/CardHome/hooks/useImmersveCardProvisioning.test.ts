@@ -29,9 +29,13 @@ jest.mock('../../../../../../selectors/cardController', () => ({
   selectCardSelectedCountry: () => mockSelectedCountry,
 }));
 jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
+  isMoneyAccountFundingChannel: (
+    channel: { source?: string } | null | undefined,
+  ) => channel?.source === 'moneyAccount',
   selectCardImmersveConfig: () => ({
     fundingChannelId: mockFundingChannelId,
   }),
+  selectCardImmersveCountryFunding: () => ({}),
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({
   selectImmersveFundingSourceId: () => mockReduxFundingSourceId,

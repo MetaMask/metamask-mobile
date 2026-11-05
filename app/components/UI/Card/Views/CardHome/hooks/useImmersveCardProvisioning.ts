@@ -7,7 +7,11 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
 } from '../../../../../../selectors/cardController';
-import { selectCardImmersveConfig } from '../../../../../../selectors/featureFlagController/card';
+import {
+  isMoneyAccountFundingChannel,
+  selectCardImmersveConfig,
+} from '../../../../../../selectors/featureFlagController/card';
+import { useImmersveFundingChannel } from '../../../hooks/useImmersveFundingChannel';
 import {
   selectImmersveFundingSourceId,
   setImmersveFundingSourceId,
@@ -43,9 +47,11 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(
-    selectCardImmersveConfig,
-  ).fundingChannelId;
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const fundingChannel = useImmersveFundingChannel(kycRegion);
+  const isMoneyAccountChannel = isMoneyAccountFundingChannel(fundingChannel);
+  const fundingChannelId =
+    fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -103,7 +109,7 @@ export function useImmersveCardProvisioning(
         const controller = Engine.context.CardController;
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
-          existingId,
+          existingId: isMoneyAccountChannel ? undefined : existingId,
         });
         if (cancelled) return;
         if (!existingId) {
@@ -248,7 +254,13 @@ export function useImmersveCardProvisioning(
       cancelled = true;
       handled.current = false;
     };
-  }, [isProvisioning, kycRegion, fundingChannelId, dispatch]);
+  }, [
+    isProvisioning,
+    kycRegion,
+    fundingChannelId,
+    isMoneyAccountChannel,
+    dispatch,
+  ]);
 
   const resumePendingAction = useCallback(() => {
     if (!pendingAction) return;

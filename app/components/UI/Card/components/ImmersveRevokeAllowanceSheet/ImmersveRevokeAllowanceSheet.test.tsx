@@ -43,6 +43,13 @@ jest.mock('../../hooks/useImmersveFunding', () => ({
   useImmersveFunding: jest.fn(),
 }));
 
+const mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
+jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: () => ({
+    confirmLinkInBackground: mockConfirmLinkInBackground,
+  }),
+}));
+
 jest.mock('../../hooks/useFundingAccountName', () => ({
   useFundingAccountName: () => 'Account 1',
 }));
