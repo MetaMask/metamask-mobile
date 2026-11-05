@@ -1,5 +1,5 @@
 import { useIsFocused } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { hasAcceptedSocialTerms } from '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { useSocialTermsGate } from '../../../../Views/SocialLeaderboard/terms/useSocialTermsGate';
 
@@ -9,15 +9,22 @@ import { useSocialTermsGate } from '../../../../Views/SocialLeaderboard/terms/us
  * existing terms / profile onboarding flow. Returns `undefined` once the
  * terms are accepted, so the content keeps its normal behaviour.
  *
- * The acceptance is a sync MMKV read; focus changes re-render the caller so
- * the result refreshes when the user comes back from onboarding.
+ * Onboarding is a pushed screen, so accepting the terms there blurs this
+ * screen; the acceptance (a sync MMKV read) is re-read each time it regains
+ * focus.
  */
 export const useSocialOnboardingPress = (): (() => void) | undefined => {
-  useIsFocused();
+  const isFocused = useIsFocused();
+  const [termsAccepted, setTermsAccepted] = useState(hasAcceptedSocialTerms);
+  useEffect(() => {
+    if (isFocused) {
+      setTermsAccepted(hasAcceptedSocialTerms());
+    }
+  }, [isFocused]);
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const openOnboarding = useCallback(() => {
     ensureSocialTermsAccepted();
   }, [ensureSocialTermsAccepted]);
 
-  return hasAcceptedSocialTerms() ? undefined : openOnboarding;
+  return termsAccepted ? undefined : openOnboarding;
 };
