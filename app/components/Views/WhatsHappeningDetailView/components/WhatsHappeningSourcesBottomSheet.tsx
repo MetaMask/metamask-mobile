@@ -57,13 +57,10 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
           .build(),
       );
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-          fromTrending: true,
-          fromWhatsHappening: true,
-        },
+        newTabUrl: url,
+        timestamp: Date.now(),
+        fromTrending: true,
+        fromWhatsHappening: true,
       });
     },
     [item, cardIndex, source, trackEvent, createEventBuilder, navigation],
