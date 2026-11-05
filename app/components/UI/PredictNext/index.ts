@@ -23,7 +23,12 @@ export {
   type PredictPortfolioValue,
 } from './portfolio';
 export {
+  usePredictCampaignEligibility,
+  type PredictCampaign,
+} from './campaigns';
+export {
   createLegacyPredictEventRef,
+  createPredictCampaignEventRef,
   openPredict,
   usePredictEntryActions,
   type PredictEntryActions,
@@ -37,3 +42,16 @@ export {
   PredictHomeSection,
   type PredictHomeSectionProps,
 } from './homeSection';
+export {
+  PredictTrendingCarousel,
+  PredictTrendingMarketCard,
+  PredictTrendingSearchRow,
+  PredictTrendingSkeleton,
+  getPredictTrendingMarketAnalyticsProperties,
+  usePredictSportsMarketsFeed,
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
+  type PredictSportsMarketsFeed,
+  type PredictTrendingMarket,
+  type PredictTrendingVariant,
+} from './trending';

@@ -37,6 +37,7 @@ import {
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
+import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { createStateFixture } from '../stateFixture';
 
@@ -438,6 +439,39 @@ export function renderSocialV1ViewWithRoutes(
  * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
  * No external API mock is required; the default Engine mock is sufficient.
  */
+export const gifPickerSheetHarness = {
+  onSelect: jest.fn(),
+  onClose: jest.fn(),
+};
+
+function GifPickerSheetHarness() {
+  return (
+    <GifPickerSheet
+      onSelect={gifPickerSheetHarness.onSelect}
+      onClose={gifPickerSheetHarness.onClose}
+    />
+  );
+}
+
+/**
+ * Renders the composer GIF picker through real Redux flag state.
+ * Tests spy on Engine.controllerMessenger for the social GIF actions.
+ */
+export function renderGifPickerSheet(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+  const state = builder.build();
+
+  return renderComponentViewScreen(
+    GifPickerSheetHarness as unknown as React.ComponentType,
+    { name: 'GifPickerSheet' },
+    { state },
+  );
+}
+
 export function renderSettingsTopTradersSection(
   options: RenderSocialLeaderboardOptions = {},
 ) {

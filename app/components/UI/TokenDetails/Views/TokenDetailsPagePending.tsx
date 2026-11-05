@@ -3,24 +3,20 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
-  FontWeight,
   Skeleton,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { useTokenPrice } from '../hooks/useTokenPrice';
 import { TokenDetailsIds } from '../testIds';
 
 /**
  * Shown while `/v2/assets` is still deciding the new page versus the legacy
- * page. The header uses the route token so it is visible immediately. The
- * sticky footer is intentionally omitted here: the final page holds its footer
- * back until the trader position settles, so showing one now would make it
- * appear, disappear on the page swap, then reappear.
+ * page. The header uses the route token so it is visible immediately.
+ *
+ * The subtitle intentionally hides the contract address and omits the live
+ * price: we do not yet know whether the token resolves to the memecoin TDP
+ * (which hides the address) or the legacy TDP (which shows it). Displaying
+ * either one here would cause a visible flicker on the transition.
  */
 const TokenDetailsPagePending = ({
   token,
@@ -28,23 +24,6 @@ const TokenDetailsPagePending = ({
   token: TokenDetailsRouteParams;
 }) => {
   const navigation = useNavigation();
-  const { currentPrice, currentCurrency, isLoading } = useTokenPrice({
-    token,
-  });
-  const priceLabel =
-    !isLoading && Number.isFinite(currentPrice) && currentPrice > 0
-      ? formatPriceWithSubscriptNotation(currentPrice, currentCurrency ?? 'usd')
-      : null;
-  const priceDescription = priceLabel ? (
-    <Text
-      variant={TextVariant.BodySm}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextAlternative}
-      numberOfLines={1}
-    >
-      {priceLabel}
-    </Text>
-  ) : undefined;
 
   return (
     <Box
@@ -56,7 +35,7 @@ const TokenDetailsPagePending = ({
         token={token}
         securityData={null}
         onBackPress={() => navigation.goBack()}
-        description={priceDescription}
+        hideContractAddress
       />
       <Box twClassName="flex-1 gap-4 px-4 pt-6">
         <Skeleton height={180} width="100%" twClassName="rounded-xl" />

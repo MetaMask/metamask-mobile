@@ -3,6 +3,7 @@ import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -56,7 +57,7 @@ describe('Migration #89 - Replace BSC Network RPC URL', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });
@@ -288,7 +289,7 @@ describe('Migration #89 - Replace BSC Network RPC URL', () => {
 
     expect(newState).toStrictEqual(oldState);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       'Migration 89: NetworkController or networkConfigurationsByChainId not found in expected state structure. Skipping BSC RPC endpoint migration.',
     );
   });

@@ -306,7 +306,7 @@ describe('ProfilePositionsTab', () => {
     },
   );
 
-  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+  it('notifies when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
     renderTab([flagged], { showFlaggedState: true });
@@ -327,7 +327,8 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(row);
 
-    expect(onPositionPress).not.toHaveBeenCalled();
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
   });
 
   it('uses a singular accessibility label for one uncounted position', () => {

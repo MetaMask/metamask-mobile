@@ -27,6 +27,7 @@ import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
+import { selectMoneyAccountAccessBlockReason } from '../../../../UI/Money/selectors/visibility';
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -53,6 +54,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 let mockPrivacyMode = false;
 let mockIsWalletHomeOnboardingActive = false;
 let mockIsMoneyAccountGeoEligible = true;
+let mockMoneyAccountAccessBlockReason: 'geo_blocked' | undefined;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
 
@@ -216,10 +218,14 @@ describe('HomepageBalanceBreakdown', () => {
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
     mockIsMoneyAccountGeoEligible = true;
+    mockMoneyAccountAccessBlockReason = undefined;
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectPrivacyMode) return mockPrivacyMode;
       if (selector === selectIsMoneyAccountGeoEligible) {
         return mockIsMoneyAccountGeoEligible;
+      }
+      if (selector === selectMoneyAccountAccessBlockReason) {
+        return mockMoneyAccountAccessBlockReason;
       }
       if (selector === selectEvmChainId) return '0x1';
       if (selector === selectAccountGroupBalanceForEmptyState) {
@@ -534,6 +540,7 @@ describe('HomepageBalanceBreakdown', () => {
 
   it('opens the geo-block sheet when Add is pressed by an ineligible user', () => {
     mockIsMoneyAccountGeoEligible = false;
+    mockMoneyAccountAccessBlockReason = 'geo_blocked';
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
