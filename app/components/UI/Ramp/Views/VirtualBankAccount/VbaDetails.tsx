@@ -795,7 +795,8 @@ const VbaDetails = () => {
   // account-ready card for this wallet. Every entry point lands here, so this
   // is the one place that records it. The ref keeps polling re-renders quiet.
   const detailsMarkedForWalletRef = useRef<string | null>(null);
-  const hasShownDetails = hasCurrentAccountState && rows.length > 0;
+  const hasShownDetails =
+    isApproved && hasCurrentAccountState && rows.length > 0;
   useEffect(() => {
     if (
       !hasShownDetails ||
