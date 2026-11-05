@@ -14,8 +14,37 @@ import {
   IconName,
   SelectButton,
 } from '@metamask/design-system-react-native';
+// Test-only: this regression runs the real account-state queryFn, which is not
+// part of the PredictNext public API. The app does not import it from here.
+// eslint-disable-next-line import-x/no-restricted-paths
+import { predictAccountStateOptions } from '../../Predict/queries/accountState';
 
 // Mock dependencies
+const mockPredictGetAccountState = jest.fn();
+const mockPredictEnableNetwork = jest.fn();
+const mockPredictAddNetwork = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      getAccountState: (...args: unknown[]) =>
+        mockPredictGetAccountState(...args),
+    },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x89': { chainId: '0x89', name: 'Polygon' },
+        },
+      },
+      addNetwork: (...args: unknown[]) => mockPredictAddNetwork(...args),
+    },
+    NetworkEnablementController: {
+      enableNetwork: (...args: unknown[]) => mockPredictEnableNetwork(...args),
+      enableNetworkInNamespace: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(),
 }));
@@ -333,6 +362,53 @@ describe('BaseControlBar', () => {
     it('shows "Popular Networks" when multiple networks are enabled', () => {
       const { getByText } = renderComponent();
       expect(getByText('wallet.popular_networks')).toBeTruthy();
+    });
+
+    it('keeps the Ethereum label after a Predict account-state fetch resolves', async () => {
+      // Unit fallback: BaseControlBar already mocks useCurrentNetworkInfo, and
+      // the regression is that the account-state query must not exclusively
+      // enable Polygon. A component-view would mock the same Engine boundary.
+      let enabledChainId = '0x1';
+      mockPredictGetAccountState.mockResolvedValue({
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        isDeployed: true,
+      });
+      mockPredictEnableNetwork.mockImplementation((caipChainId: string) => {
+        if (caipChainId === 'eip155:137') {
+          enabledChainId = '0x89';
+        }
+      });
+      mockUseCurrentNetworkInfo.mockImplementation(() => ({
+        ...defaultNetworkInfo,
+        enabledNetworks: [{ chainId: enabledChainId, enabled: true }],
+        getNetworkInfo: () =>
+          enabledChainId === '0x1'
+            ? { caipChainId: 'eip155:1', networkName: 'Ethereum' }
+            : { caipChainId: 'eip155:137', networkName: 'Polygon' },
+      }));
+      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockImplementation(
+        () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+          networkCount: 10,
+          selectedCount: 1,
+        }),
+      );
+
+      const { queryFn } = predictAccountStateOptions();
+      if (!queryFn) {
+        throw new Error('predict account-state queryFn is missing');
+      }
+      await (queryFn as () => Promise<unknown>)();
+
+      const { getByText, queryByText } = renderComponent();
+
+      expect(mockPredictGetAccountState).toHaveBeenCalledWith({});
+      expect(mockPredictEnableNetwork).not.toHaveBeenCalled();
+      expect(mockPredictAddNetwork).not.toHaveBeenCalled();
+      expect(getByText('Ethereum')).toBeTruthy();
+      expect(queryByText('Polygon')).toBeNull();
+      expect(queryByText('wallet.popular_networks')).toBeNull();
     });
 
     it('shows current network name when only one network is enabled', () => {

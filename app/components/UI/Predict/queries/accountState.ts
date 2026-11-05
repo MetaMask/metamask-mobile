@@ -1,6 +1,5 @@
 import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { CaipChainId } from '@metamask/utils';
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -16,28 +15,20 @@ const InfuraKey = process.env.MM_INFURA_PROJECT_ID ?? '';
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
- * Enable a network unconditionally via NetworkEnablementController.
- * Matches the behavior of useNetworkEnablement.enableNetwork.
- */
-function enablePolygonNetwork(caipChainId: CaipChainId): void {
-  const { NetworkEnablementController } = Engine.context;
-  NetworkEnablementController.enableNetwork(caipChainId);
-}
-
-/**
- * Ensures the Polygon network exists before querying account state.
- * Runs inside queryFn so it executes sequentially before getAccountState.
+ * Ensures Polygon is configured so Predict account-state reads can resolve a
+ * network client. Adds the chain when it is missing.
+ *
+ * Does not update NetworkEnablementController. `enableNetwork` disables every
+ * other network, so a call from this query would replace the wallet filter
+ * (for example Ethereum) with Polygon on foreground refetch and cold start.
+ * Account state, balance, and activity already read via the Polygon network
+ * client id or the Polymarket API and do not need the chain enabled.
  */
 async function ensurePolygonNetwork(): Promise<void> {
   const chainId = toHex(POLYGON_MAINNET_CHAIN_ID);
   const { NetworkController } = Engine.context;
 
   if (NetworkController.state.networkConfigurationsByChainId[chainId]) {
-    try {
-      enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
-    } catch (_enableError) {
-      // Swallow so getAccountState can still proceed.
-    }
     return;
   }
 
@@ -57,8 +48,6 @@ async function ensurePolygonNetwork(): Promise<void> {
         },
       ],
     });
-
-    enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
   } catch (error) {
     Logger.error(ensureError(error), {
       tags: {
@@ -76,13 +65,6 @@ async function ensurePolygonNetwork(): Promise<void> {
         },
       },
     });
-
-    // Still try to enable — network may already exist.
-    try {
-      enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
-    } catch (_enableError) {
-      // Swallow so getAccountState can still proceed.
-    }
   }
 }
 

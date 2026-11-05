@@ -14,9 +14,10 @@ jest.mock('../../../../core/Engine', () => ({
     NetworkController: {
       state: {
         networkConfigurationsByChainId: {
-          '0x89': {},
+          '0x89': { name: 'Polygon' },
         },
       },
+      addNetwork: jest.fn(),
     },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
@@ -50,6 +51,19 @@ jest.mock('../utils/predictErrorHandler', () => {
 const mockGetAccountState = Engine.context.PredictController
   .getAccountState as jest.Mock;
 
+const mockEnableNetwork = Engine.context.NetworkEnablementController
+  .enableNetwork as jest.Mock;
+
+const mockEnableNetworkInNamespace = Engine.context.NetworkEnablementController
+  .enableNetworkInNamespace as jest.Mock;
+
+const networkController = Engine.context.NetworkController as unknown as {
+  state: {
+    networkConfigurationsByChainId: Record<string, { name?: string }>;
+  };
+  addNetwork: jest.Mock;
+};
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -69,6 +83,10 @@ describe('usePredictAccountState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAccountState.mockResolvedValue(mockAccountState);
+    networkController.state.networkConfigurationsByChainId = {
+      '0x89': { name: 'Polygon' },
+    };
+    networkController.addNetwork.mockResolvedValue(undefined);
   });
 
   describe('initialization', () => {
@@ -254,6 +272,77 @@ describe('usePredictAccountState', () => {
       await waitFor(() => {
         expect(result.current.data?.address).toBe(updatedState.address);
       });
+    });
+  });
+
+  describe('polygon network enablement', () => {
+    it('leaves network enablement unchanged when Polygon is already configured', async () => {
+      const { Wrapper } = createWrapper();
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(networkController.addNetwork).not.toHaveBeenCalled();
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockEnableNetworkInNamespace).not.toHaveBeenCalled();
+    });
+
+    it('adds Polygon without changing network enablement when Polygon is missing', async () => {
+      networkController.state.networkConfigurationsByChainId = {};
+      const { Wrapper } = createWrapper();
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data?.address).toEqual(mockAccountState.address);
+      });
+
+      expect(networkController.addNetwork).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x89',
+          name: 'Polygon',
+          nativeCurrency: 'POL',
+        }),
+      );
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockEnableNetworkInNamespace).not.toHaveBeenCalled();
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
+    });
+
+    it('leaves network enablement unchanged when adding Polygon fails', async () => {
+      networkController.state.networkConfigurationsByChainId = {};
+      networkController.addNetwork.mockRejectedValue(
+        new Error('Network addition failed'),
+      );
+      const { Wrapper } = createWrapper();
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data?.address).toEqual(mockAccountState.address);
+      });
+
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockEnableNetworkInNamespace).not.toHaveBeenCalled();
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Network addition failed' }),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            component: 'ensurePolygonNetwork',
+          }),
+        }),
+      );
     });
   });
 

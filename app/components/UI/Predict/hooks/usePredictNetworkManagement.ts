@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import {
@@ -18,18 +17,20 @@ const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
- * Hook for managing Polygon network for predict trading
- * Handles network existence check and automatic addition if needed
+ * Ensures Polygon is configured for Predict reads (balance, positions, activity).
+ * Adds the chain when it is missing and does not change the wallet network filter.
  */
 export const usePredictNetworkManagement = () => {
-  const { enableNetwork } = useNetworkEnablement();
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
 
   /**
-   * Ensures the Polygon network exists and is enabled
-   * @returns Promise that resolves when network is ready
+   * Ensures the Polygon network exists.
+   * Does not call NetworkEnablementController. Enabling Polygon from a read
+   * would clear every other enabled network and persist that as the filter.
+   * @returns Promise that resolves when the network is configured, or rejects
+   * when adding it fails.
    */
   const ensurePolygonNetworkExists = useCallback(async () => {
     const chainId = toHex(POLYGON_MAINNET_CHAIN_ID);
@@ -43,7 +44,7 @@ export const usePredictNetworkManagement = () => {
     const { NetworkController } = Engine.context;
 
     try {
-      // Add the network
+      // Add the network without selecting it in the wallet filter.
       await Promise.resolve(
         NetworkController.addNetwork({
           chainId,
@@ -61,9 +62,6 @@ export const usePredictNetworkManagement = () => {
           ],
         }),
       );
-
-      // Enable the newly added network
-      enableNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
     } catch (error) {
       // Log to Sentry but don't show user-facing error
       Logger.error(ensureError(error), {
@@ -83,11 +81,9 @@ export const usePredictNetworkManagement = () => {
         },
       });
 
-      // Still try to enable the network (it might already exist)
-      enableNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
       throw error;
     }
-  }, [networkConfigurations, enableNetwork]);
+  }, [networkConfigurations]);
 
   return {
     ensurePolygonNetworkExists,

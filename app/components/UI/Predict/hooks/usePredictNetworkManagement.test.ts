@@ -25,6 +25,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockEnableNetwork = jest.fn();
+const mockControllerEnableNetwork = jest.fn();
 const mockAddNetwork = jest.fn();
 const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
@@ -34,6 +35,9 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 interface MockEngineContext {
   NetworkController: {
     addNetwork: jest.Mock;
+  };
+  NetworkEnablementController: {
+    enableNetwork: jest.Mock;
   };
 }
 
@@ -50,6 +54,9 @@ describe('usePredictNetworkManagement', () => {
     (Engine.context as unknown as MockEngineContext) = {
       NetworkController: {
         addNetwork: mockAddNetwork,
+      },
+      NetworkEnablementController: {
+        enableNetwork: mockControllerEnableNetwork,
       },
     };
 
@@ -74,6 +81,7 @@ describe('usePredictNetworkManagement', () => {
 
       expect(mockAddNetwork).not.toHaveBeenCalled();
       expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockControllerEnableNetwork).not.toHaveBeenCalled();
     });
 
     it('adds Polygon network when network does not exist', async () => {
@@ -104,7 +112,7 @@ describe('usePredictNetworkManagement', () => {
       });
     });
 
-    it('enables Polygon network after adding network', async () => {
+    it('leaves network enablement unchanged after adding Polygon', async () => {
       mockAddNetwork.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePredictNetworkManagement());
@@ -113,10 +121,9 @@ describe('usePredictNetworkManagement', () => {
         await result.current.ensurePolygonNetworkExists();
       });
 
-      expect(mockEnableNetwork).toHaveBeenCalledWith(
-        POLYGON_MAINNET_CAIP_CHAIN_ID,
-      );
-      expect(mockEnableNetwork).toHaveBeenCalledTimes(1);
+      expect(mockAddNetwork).toHaveBeenCalled();
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockControllerEnableNetwork).not.toHaveBeenCalled();
     });
 
     it('uses correct chain ID hex value', async () => {
@@ -165,7 +172,7 @@ describe('usePredictNetworkManagement', () => {
       });
     });
 
-    it('attempts to enable network even when addition fails', async () => {
+    it('leaves network enablement unchanged when adding Polygon fails', async () => {
       mockAddNetwork.mockRejectedValue(new Error('Network addition failed'));
 
       const { result } = renderHook(() => usePredictNetworkManagement());
@@ -176,9 +183,8 @@ describe('usePredictNetworkManagement', () => {
         ).rejects.toThrow('Network addition failed');
       });
 
-      expect(mockEnableNetwork).toHaveBeenCalledWith(
-        POLYGON_MAINNET_CAIP_CHAIN_ID,
-      );
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockControllerEnableNetwork).not.toHaveBeenCalled();
     });
 
     it('handles non-Error exceptions when logging to Sentry', async () => {
@@ -197,6 +203,8 @@ describe('usePredictNetworkManagement', () => {
         new Error('String error message'),
         expect.any(Object),
       );
+      expect(mockEnableNetwork).not.toHaveBeenCalled();
+      expect(mockControllerEnableNetwork).not.toHaveBeenCalled();
     });
 
     it('uses Infura project ID in RPC endpoint URL', async () => {
