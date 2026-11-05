@@ -230,7 +230,9 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           </TermsCard>
         </ScrollView>
 
-        <Box twClassName="gap-4 px-4 pb-2 pt-4">
+        {/* Sticky footer: a top border separates it from the scrolling
+            content, as on other full-screen flows with a fixed CTA. */}
+        <Box twClassName="gap-4 border-t border-muted bg-default px-4 pb-2 pt-4">
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
