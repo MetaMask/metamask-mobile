@@ -5,6 +5,7 @@ import {
   REFEREE_INVITED_BENEFIT_TITLE,
   referralMeWithInvitedBenefit,
 } from '../../component-view/presets/rewardsMoney';
+import type { EarningsSummaryDto } from '../../../app/core/Engine/controllers/rewards-money-controller/types';
 
 export { REFEREE_INVITED_BENEFIT_TITLE, referralMeWithInvitedBenefit };
 
@@ -35,7 +36,10 @@ const EMPTY_LEDGER = {
  * Authenticated Money reads plus the Rewards login the opted-in account
  * attempts. An empty campaigns list keeps `?campaign=money` on the dashboard.
  */
-export async function mockRewardsMoneyApi(mockServer: Mockttp): Promise<void> {
+export async function mockRewardsMoneyApi(
+  mockServer: Mockttp,
+  summary: EarningsSummaryDto = CLAIMABLE_EARNINGS_SUMMARY,
+): Promise<void> {
   const referralMe = referralMeWithInvitedBenefit();
 
   await setupMockRequest(mockServer, {
@@ -85,7 +89,7 @@ export async function mockRewardsMoneyApi(mockServer: Mockttp): Promise<void> {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/earnings\\/summary(?:\\?.*)?$`),
     responseCode: 200,
-    response: CLAIMABLE_EARNINGS_SUMMARY,
+    response: summary,
   });
 
   await setupMockRequest(mockServer, {
@@ -93,5 +97,14 @@ export async function mockRewardsMoneyApi(mockServer: Mockttp): Promise<void> {
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/earnings\\/ledger(?:\\?.*)?$`),
     responseCode: 200,
     response: EMPTY_LEDGER,
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: new RegExp(
+      `^${REWARDS_MONEY_HOST}\\/earnings\\/claim\\/me(?:\\?.*)?$`,
+    ),
+    responseCode: 200,
+    response: { results: [], has_more: false, cursor: null },
   });
 }

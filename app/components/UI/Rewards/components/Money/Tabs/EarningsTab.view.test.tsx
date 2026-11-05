@@ -6,6 +6,7 @@
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RewardsMoneyClaimRefusalError } from '../../../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
@@ -13,6 +14,7 @@ import {
   CLAIMED_EARNINGS_SUMMARY,
   EXACT_DOLLAR_EARNINGS_SUMMARY,
   PAUSED_EARNINGS_SUMMARY,
+  referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
   REFUSAL_REFRESH_SUMMARY,
   REWARDS_MONEY_ACCOUNT_ADDRESS,
@@ -146,6 +148,90 @@ describe('EarningsTab', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
   });
+
+  const WAIT_MINUTES_TOAST = 'Claim again in {minutes} minutes';
+
+  it.each([
+    {
+      caseId: 'G1',
+      label: 'payout address is not a Money account',
+      status: 422,
+      reason: 'PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureUnavailableToast,
+    },
+    {
+      caseId: 'G4',
+      label: 'address is blocked',
+      status: 422,
+      reason: 'ADDRESS_BLOCKED',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureAddressBlockedToast,
+    },
+    {
+      caseId: 'G5',
+      label: 'Money account check is unavailable',
+      status: 503,
+      reason: 'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureRetryToast,
+    },
+    {
+      caseId: 'G6',
+      label: 'release is still waiting',
+      status: 409,
+      reason: 'AWAITING_RELEASE',
+      retryAfterSeconds: 120,
+      message: () => 'Claim again in 2 minutes',
+    },
+    {
+      caseId: 'G6',
+      label: 'claim is rate limited',
+      status: 429,
+      reason: 'RATE_LIMITED',
+      retryAfterSeconds: 90,
+      message: () => 'Claim again in 2 minutes',
+    },
+  ])(
+    'shows the $label toast and stays on earnings when a claim is refused ($caseId)',
+    async ({ status, reason, retryAfterSeconds, message }) => {
+      const view = renderEarningsTab({
+        persona: 'referee',
+        summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
+        claimReady: true,
+        referralMe: {
+          ...referralMeFixture('referee'),
+          localized_text: {
+            ...REFERRAL_LOCALIZED_TEXT,
+            claimFailureWaitMinutesToast: WAIT_MINUTES_TOAST,
+          },
+        },
+        handlers: {
+          'RewardsMoneyController:initiateClaim': () =>
+            Promise.reject(
+              new RewardsMoneyClaimRefusalError(
+                status,
+                reason,
+                retryAfterSeconds,
+              ),
+            ),
+        },
+      });
+
+      fireEvent.press(
+        await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      expect(await view.findByText(message())).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          getRouteParamsProbeTestId(
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
 
   it('opens the claims paused sheet with the summary a refusal refresh returns', async () => {
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({

@@ -217,6 +217,29 @@ describe('RewardsMoneyDashboard settings', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps Ways to earn, Earnings, and Performance visible in an excluded region (A4)', async () => {
+    const { getByTestId, queryByTestId } = await openDashboard({
+      geoLocation: 'GB',
+      referralMe: {
+        ...referralMeFixture('plain'),
+        excluded_regions: ['GB'],
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    ).toBeOnTheScreen();
+  });
+
   it('opens settings when subscribed even if the profile is a referrer', async () => {
     const { getByTestId, findByTestId } = await openDashboard({
       ...subscribed,

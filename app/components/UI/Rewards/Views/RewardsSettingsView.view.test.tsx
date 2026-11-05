@@ -8,6 +8,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
+import { REWARDS_SETTINGS_SAFE_AREA_TEST_ID } from './RewardsSettingsView';
 import { OPT_OUT_SECTION_TEST_IDS } from '../components/Settings/OptOutSection.testIds';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from '../components/Settings/ReferredByCodeSection.testIds';
 import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from '../components/Settings/RewardSettingsAccountGroupList.testIds';
@@ -214,4 +215,41 @@ describe('RewardsSettingsView', () => {
       );
     },
   );
+
+  it('hides the referral section when Rewards Money is disabled', async () => {
+    const { findByTestId, queryByTestId } = renderRewardsSettingsView({
+      persona: 'plain',
+      moneyControllerEnabled: false,
+    });
+
+    expect(
+      await findByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the generic error when registration reports Rewards Money is disabled', async () => {
+    const view = renderRewardsSettingsView({
+      persona: 'plain',
+      handlers: {
+        'RewardsMoneyController:registerReferee': () =>
+          Promise.reject(new Error('Rewards Money is disabled')),
+      },
+    });
+
+    await typeCode(view, 'AB12CD');
+    await waitUntilApplyEnabled(view);
+    fireEvent.press(view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY));
+
+    expect(
+      await view.findByText(
+        strings('rewards.error_messages.something_went_wrong'),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(ACCEPTED_SPLASH)).not.toBeOnTheScreen();
+  });
 });
