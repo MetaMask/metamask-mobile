@@ -1,60 +1,75 @@
 import { hashKey } from '@tanstack/query-core';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
-import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import {
+  buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
+  routePredictApi,
+} from '../../../../../tests/integration/harnesses/predict-next';
+import missingQuote from '../contracts/v1/fixtures/portfolio-contract/missing-quote.json';
+import multiPageHoldings from '../contracts/v1/fixtures/portfolio-contract/multi-page-holdings.json';
+import sellBuyAndSettlement from '../contracts/v1/fixtures/portfolio-contract/sell-buy-and-settlement.json';
+import { PredictErrorCode } from '../errors';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+
+const POSITIONS_PATH = '/v1/venues/kalshi/positions';
+const SUMMARY_PATH = '/v1/venues/kalshi/portfolio/summary';
+const ACTIVITY_PATH = '/v1/venues/kalshi/activity';
 
 const position = {
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
   side: 'yes',
+  status: 'open',
   shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50',
-  feesPaid: '0.14',
-  totalTraded: '41.25',
-  updatedAt: '2026-09-01T12:00:00.000Z',
+  averagePrice: '0.55',
+  costBasis: '41.25',
+  currentValue: '45.00',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
   context: {
     eventId: 'KXNBAGAME-26MAY12-LALBOS',
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES',
     outcomeLabel: 'Lakers',
   },
 };
 
-const fill = {
-  type: 'fill',
-  id: 'fill-1',
+const trade = {
+  type: 'trade',
+  id: '0199e2b4-1f0d-7c55-8a10-6b7c8d9e0f1a',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
-  outcomeSide: 'yes',
+  side: 'yes',
+  action: 'buy',
   shares: '75.00',
   price: '0.55',
+  amount: '41.35',
   fee: '0.10',
   timestamp: '2026-09-01T12:00:00.000Z',
   context: {
     eventId: 'KXNBAGAME-26MAY12-LALBOS',
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
+    outcomeLabel: 'Lakers',
   },
 };
 
 const settlement = {
   type: 'settlement',
-  id: 'KXNBAGAME-20MAY01-LALBOS-LAL:2026-05-21T00:00:00.000Z',
+  id: 'settlement-KXNBAGAME-20MAY01-LALBOS-LAL-yes',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL',
-  result: 'yes',
   side: 'yes',
   shares: '10.00',
+  result: 'yes',
   proceeds: '10.00',
-  costBasis: '5.20',
+  realizedPnl: '4.80',
   timestamp: '2026-05-21T00:00:00.000Z',
   context: {
     eventId: 'KXNBAGAME-20MAY01-LALBOS',
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
+    outcomeLabel: 'Lakers',
   },
 };
 
@@ -104,7 +119,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
         ? {
             body: {
               venueId: 'kalshi',
-              activity: [fill, settlement],
+              activity: [trade, settlement],
               nextCursor: 'next-page',
             },
           }
@@ -117,7 +132,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       { limit: 20 },
     );
 
-    expect(result.activity).toEqual([fill, settlement]);
+    expect(result.activity).toEqual([trade, settlement]);
     expect(result.nextCursor).toBe('next-page');
     expect(harness.fetchMock).toHaveBeenCalledWith(
       'https://predict.example/v1/venues/kalshi/activity?limit=20',
@@ -135,7 +150,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       return {
         body: {
           venueId: 'kalshi',
-          activity: isSecondPage ? [settlement] : [fill],
+          activity: isSecondPage ? [settlement] : [trade],
           nextCursor: isSecondPage ? undefined : 'next-page',
         },
       };
@@ -146,7 +161,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       KALSHI_VENUE_ID,
       { limit: 20 },
     );
-    expect(firstPage.activity).toEqual([fill]);
+    expect(firstPage.activity).toEqual([trade]);
 
     const secondPage = await harness.messenger.call(
       'PredictPortfolioService:getActivity',
@@ -219,6 +234,191 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
 
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('C1 contract fixtures', () => {
+    it('pages the C1 holdings by status and newest first, then reads the Summary', async () => {
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [POSITIONS_PATH]: (url) => ({
+            body: url.searchParams.get('cursor')
+              ? multiPageHoldings.secondPage
+              : multiPageHoldings.firstPage,
+          }),
+          [SUMMARY_PATH]: { body: multiPageHoldings.summary },
+        }),
+      );
+
+      const firstPage = await harness.messenger.call(
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 2 },
+      );
+      const secondPage = await harness.messenger.call(
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 2 },
+        firstPage.nextCursor,
+      );
+      const summary = await harness.messenger.call(
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      );
+
+      expect(
+        [...firstPage.positions, ...secondPage.positions].map(
+          ({ marketId, status }) => `${status}:${marketId}`,
+        ),
+      ).toEqual([
+        'open:KXNFLGAME-26OCT25KCBUF-KC',
+        'open:KXNCAAFGAME-25OCT25PSUOSU-PSU',
+        'settled:KXNFLGAME-19OCT25LVKC-KC',
+      ]);
+      expect(secondPage.nextCursor).toBeUndefined();
+      expect(summary).toEqual(multiPageHoldings.summary);
+      expect(harness.fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+        'https://predict.example/v1/venues/kalshi/positions?limit=2',
+        'https://predict.example/v1/venues/kalshi/positions?limit=2&cursor=opaque-positions-cursor',
+        'https://predict.example/v1/venues/kalshi/portfolio/summary',
+      ]);
+    });
+
+    it('reads the top open Positions by value as one unpaginated page', async () => {
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [POSITIONS_PATH]: { body: multiPageHoldings.topByValue },
+        }),
+      );
+
+      const result = await harness.messenger.call(
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 3, status: ['open'], sort: 'value' },
+      );
+
+      expect(result).toEqual(multiPageHoldings.topByValue);
+      expect(String(harness.fetchMock.mock.calls[0][0])).toBe(
+        'https://predict.example/v1/venues/kalshi/positions?limit=3&sort=value&status=open',
+      );
+    });
+
+    it('keeps an unquoted Position valueless and the Summary flagged incomplete', async () => {
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [POSITIONS_PATH]: { body: missingQuote.positions },
+          [SUMMARY_PATH]: { body: missingQuote.summary },
+        }),
+      );
+
+      const page = await harness.messenger.call(
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      );
+      const summary = await harness.messenger.call(
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      );
+
+      const unquoted = page.positions[1];
+      expect(unquoted.costBasis).toBe('2.17');
+      expect(unquoted.currentValue).toBeUndefined();
+      expect(unquoted.unrealizedPnl).toBeUndefined();
+      expect(summary.complete).toBe(false);
+      expect(summary.totalValue).toBe('74.40');
+    });
+
+    it('serves the C1 trades and Settlement in the pinned order with the archive horizon', async () => {
+      const horizon = '2026-08-27T00:00:00.000Z';
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [ACTIVITY_PATH]: {
+            body: {
+              ...sellBuyAndSettlement.activity,
+              settlementsCompleteFrom: horizon,
+            },
+          },
+        }),
+      );
+
+      const page = await harness.messenger.call(
+        'PredictPortfolioService:getActivity',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      );
+
+      expect(
+        page.activity.map((entry) =>
+          entry.type === 'trade' ? `trade:${entry.action}` : entry.type,
+        ),
+      ).toEqual(['trade:sell', 'settlement', 'trade:buy']);
+      expect(page.settlementsCompleteFrom).toBe(horizon);
+      expect(page.nextCursor).toBe('opaque-activity-cursor');
+    });
+
+    it('rejects a misordered Activity page without retrying it', async () => {
+      const [sell, settledEntry, buy] = sellBuyAndSettlement.activity.activity;
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [ACTIVITY_PATH]: {
+            body: { venueId: 'kalshi', activity: [buy, settledEntry, sell] },
+          },
+        }),
+      );
+
+      const result = harness.messenger.call(
+        'PredictPortfolioService:getActivity',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      );
+
+      await expect(result).rejects.toMatchObject({
+        code: PredictErrorCode.INVALID_RESPONSE,
+      });
+      expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects a Summary whose total is not the sum of its parts', async () => {
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({
+          [SUMMARY_PATH]: {
+            body: { ...multiPageHoldings.summary, totalValue: '153.49' },
+          },
+        }),
+      );
+
+      const result = harness.messenger.call(
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      );
+
+      await expect(result).rejects.toMatchObject({
+        code: PredictErrorCode.INVALID_RESPONSE,
+      });
+    });
+
+    it('refreshes a cached Summary when its family is invalidated', async () => {
+      let summaryBody: unknown = missingQuote.summary;
+      const harness = buildPredictNextIntegrationHarness(
+        routePredictApi({ [SUMMARY_PATH]: () => ({ body: summaryBody }) }),
+      );
+      await harness.messenger.call(
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      );
+      summaryBody = multiPageHoldings.summary;
+
+      await harness.portfolioService.invalidateQueries({
+        queryKey: portfolioQueryFamilies(KALSHI_VENUE_ID)[3],
+      });
+      const summary = await harness.messenger.call(
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      );
+
+      expect(summary).toEqual(multiPageHoldings.summary);
+      expect(harness.fetchMock).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('invalidation', () => {
@@ -463,7 +663,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
         available: '100.00',
       });
       positions.release({ venueId: 'kalshi', positions: [position] });
-      activity.release({ venueId: 'kalshi', activity: [fill] });
+      activity.release({ venueId: 'kalshi', activity: [trade] });
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const late = updates.slice(publishedBefore);

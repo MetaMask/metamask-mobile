@@ -11,6 +11,7 @@ import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -158,7 +159,7 @@ describe('EmptyShellTabPage profile navigation', () => {
         positionId: 'position-1',
         position,
         author: livePost.item.author,
-        comment: livePost.item.comment,
+        isSnapshotLive: false,
       }),
     );
   });

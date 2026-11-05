@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectProfileControllerXProfile } from '../../../../../selectors/profileController';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../../util/social/useSocialProfileId';
 import { useProfileController } from '../../ManageProfileView/hooks/useProfileController';
 import {
   getLocalSocialProfileSnapshot,
@@ -32,7 +32,6 @@ export interface MySocialProfile {
   connectedToX?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
-  shareUrl: string;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
   winRatePercent?: number | null;
   /** Realized P&L in USD. */
@@ -75,7 +74,7 @@ export const useMyProfile = ({
   enabled = true,
 }: UseMyProfileOptions = {}): UseMyProfileResult => {
   const { profileId: sessionProfileId, isLoading: isSessionLoading } =
-    useSessionProfileId();
+    useSocialProfileId();
   const {
     profile: controllerProfile,
     fetchAndUpdateProfile,

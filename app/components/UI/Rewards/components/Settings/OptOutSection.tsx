@@ -9,6 +9,7 @@ import {
   SectionDivider,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { OPT_OUT_SECTION_TEST_IDS } from './OptOutSection.testIds';
 
 interface OptOutSectionProps {
   onErasePress: () => void;
@@ -18,7 +19,10 @@ const OptOutSection: React.FC<OptOutSectionProps> = ({ onErasePress }) => (
   <>
     <SectionDivider marginVertical={8} />
 
-    <Box testID="opt-out-section" twClassName="flex-col px-4">
+    <Box
+      testID={OPT_OUT_SECTION_TEST_IDS.CONTAINER}
+      twClassName="flex-col px-4"
+    >
       <Box twClassName="gap-2 pb-2">
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.optout.title')}

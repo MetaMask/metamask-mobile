@@ -14,6 +14,7 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
@@ -142,6 +143,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
   ...jest.requireActual('../../../../../selectors/moneyAccountController'),
   selectPrimaryMoneyAccount: jest.fn(() => mockPrimaryMoneyAccount),
@@ -229,6 +235,7 @@ const flushAsync = async () => {
 describe('MoneyTransferSheet — Between accounts with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
     global.requestAnimationFrame = jest.fn((callback) => {
       callback(0);
       return 0;

@@ -16,11 +16,10 @@ import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
  */
 export type SocialFeedScrollMode = 'content' | 'virtualized';
 
-export interface SocialFeedHeaderProps {
-  /** New posts waiting behind a pill. Always 0 without realtime. */
-  pendingNewCount: number;
-  /** Shows the waiting posts and scrolls to the top. A no-op without realtime. */
-  onRevealPending: () => void;
+/** What the feed knows about a tapped post's position. */
+export interface SocialFeedPositionPressContext {
+  /** True when the feed was streaming socket revisions while showing the post. */
+  isSnapshotLive: boolean;
 }
 
 /** A host row spliced into the list between posts. */
@@ -51,15 +50,24 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   isActive?: boolean;
   /** Optional heading above the posts. */
   title?: string;
-  /** Rendered below the title, scrolling with the posts. */
-  renderHeader?: (props: SocialFeedHeaderProps) => React.ReactNode;
+  /**
+   * Rendered below the title, scrolling with the posts. In virtualized mode it
+   * can hold `SocialFeedLiveButton`.
+   */
+  renderHeader?: () => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
   filterPost?: (post: SocialV1FeedPost) => boolean;
   /** Replaces the default empty line when the filtered feed has no posts. */
   emptyState?: React.ReactNode;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
-  onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** `context` is passed only by the virtualized feed. */
+  onPositionPress?: (
+    post: SocialV1FeedPost,
+    context?: SocialFeedPositionPressContext,
+  ) => void;
+  /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   testID?: string;
 }
 
@@ -69,9 +77,12 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   scrollMode: 'virtualized';
-  /** Streams new posts in. Ignored for sources without a socket channel. */
+  /**
+   * Streams new posts in. Ignored for sources without a socket channel. Held
+   * posts show a floating "N new posts" pill that reveals them.
+   */
   realtime?: boolean;
-  /** Holds new posts behind `pendingNewCount`. */
+  /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
   /**
    * Host rows between posts, hidden while the first page loads. With no

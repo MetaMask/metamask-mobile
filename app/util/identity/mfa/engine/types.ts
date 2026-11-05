@@ -15,6 +15,7 @@ import type {
   VerificationChallenge,
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
+import type { MfaErrorCta, MfaTrackEvent } from './analytics';
 
 export type MfaMethod = MfaCredentialType;
 
@@ -57,6 +58,8 @@ export type SessionSnapshot = Pick<VerificationToken, 'obtainedAt'> & {
  * - `cooldown`: the server is rate limiting; wait before the next request.
  * - `failure`: the flow ends on the failure screen, or rejects upfront if
  * nothing was shown.
+ * - `support`: only support can help; the flow always ends on the failure
+ * screen, which offers to contact support.
  * - `transient`: a server or network error; the user can try again.
  */
 export type MfaErrorHandling =
@@ -65,6 +68,7 @@ export type MfaErrorHandling =
   | 'restart'
   | 'cooldown'
   | 'failure'
+  | 'support'
   | 'transient';
 
 /**
@@ -85,9 +89,18 @@ export type MfaKitErrorCode =
  */
 export type MfaFlowErrorCode = MfaErrorCode | MfaKitErrorCode;
 
+/**
+ * The features that use the kit. A new one is added here, and to
+ * `entry_point` in segment-schema's `metamask-mfa-base.yaml`.
+ */
+export type MfaEntryPoint = 'vba' | 'ukyc' | 'settings' | 'qa';
+
 export interface MfaReason {
-  /** Sent to the controller (trace tags). */
-  operation: string;
+  /**
+   * The feature and what it does, as in `vba.verifyEmail`. Sent to the
+   * controller (trace tags); analytics report the feature as `entry_point`.
+   */
+  operation: `${MfaEntryPoint}.${string}`;
   /** Mobile presentation for full-screen steps. Defaults to a modal. */
   presentation?: 'card' | 'modal';
   /**
@@ -244,8 +257,9 @@ export type MfaFlowAction =
   | { type: 'choose'; method: MfaMethod }
   | { type: 'submitEmail'; email: string }
   | { type: 'submitCode'; code: string }
-  | { type: 'resend' }
+  | { type: 'resend'; trigger?: 'user' | 'auto' }
   | { type: 'retry' }
+  | { type: 'errorCtaClicked'; cta: MfaErrorCta }
   | { type: 'dismiss' }
   | { type: 'cancel' }
   | { type: 'back' };
@@ -267,6 +281,11 @@ export interface MfaFlowOptions {
    * for error reporting. The context never holds an email address.
    */
   reportError?: (error: unknown, context: MfaErrorContext) => void;
+  /**
+   * Sends the kit's analytics events. Never receives an email address, a
+   * code or a secret.
+   */
+  trackEvent?: MfaTrackEvent;
 }
 
 export interface MfaErrorContext {

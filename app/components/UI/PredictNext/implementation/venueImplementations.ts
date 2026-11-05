@@ -1,6 +1,5 @@
 import type { PredictVenueId } from '../types';
 import type {
-  ActiveVenueResolution,
   PredictConfiguredVenue,
   PredictImplementation,
   PredictImplementationResolution,
@@ -15,13 +14,19 @@ const VENUE_IMPLEMENTATIONS: Record<
   kalshi: 'next',
 };
 
+export const getVenueImplementation = (
+  venue: PredictConfiguredVenue,
+): PredictImplementation => VENUE_IMPLEMENTATIONS[venue];
+
 export const resolveVenueImplementation = (
-  activeVenue: ActiveVenueResolution,
+  activeVenue:
+    | { status: 'resolving' }
+    | { status: 'ready'; venue: PredictConfiguredVenue },
 ): PredictImplementationResolution => {
   if (activeVenue.status === 'resolving') {
     return activeVenue;
   }
-  return VENUE_IMPLEMENTATIONS[activeVenue.venue] === 'legacy'
+  return getVenueImplementation(activeVenue.venue) === 'legacy'
     ? { status: 'ready', implementation: 'legacy' }
     : {
         status: 'ready',

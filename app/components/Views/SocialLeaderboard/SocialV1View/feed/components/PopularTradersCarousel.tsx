@@ -39,7 +39,10 @@ type PopularTradersCarouselItem =
 const PopularTradersCarousel: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+    requireSocialProfile: true,
+  });
   const title = strings('social_leaderboard.popular_traders');
 
   const { traders, isLoading, isFetching, hasFetched, toggleFollow } =
@@ -138,6 +141,7 @@ const PopularTradersCarousel: React.FC = () => {
         title={title}
         isInteractive
         onPress={handleViewAll}
+        twClassName="py-0"
         testID={PopularTradersCarouselSelectorsIDs.HEADER}
       />
       <Box paddingTop={3}>

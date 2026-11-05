@@ -31,8 +31,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const noop = () => undefined;
-
 /**
  * Asks for the next page once the footer is inside the host scroll.
  *
@@ -106,6 +104,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  requireSocialProfile,
   testID,
 }) => {
   const query = useMemo(
@@ -143,12 +142,14 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
+        requireSocialTerms
+        requireSocialProfile={requireSocialProfile}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
       />
     ),
-    [onAuthorPress, onCopyTrade, onPositionPress],
+    [onAuthorPress, onCopyTrade, onPositionPress, requireSocialProfile],
   );
 
   return (
@@ -159,7 +160,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
-        {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
+        {renderHeader?.()}
         <SocialFeedPlaceholder state={state} emptyState={emptyState} />
         {posts.length > 0 ? (
           <SocialV1FeedPostList

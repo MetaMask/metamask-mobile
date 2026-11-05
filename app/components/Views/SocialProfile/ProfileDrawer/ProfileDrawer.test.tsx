@@ -8,10 +8,13 @@ import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications/constants/config';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
+jest.mock('../../SocialLeaderboard/terms/socialTermsAcceptance');
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -21,9 +24,41 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({ name: 'test-event' })),
+}));
+const mockOpenSupportWithConsent = jest.fn();
+const mockGetBetaSupportUrl = jest.fn();
+const mockSelectGlassHeadersEnabled = jest.fn(() => false);
 
 jest.mock('../../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => mockSelectGlassHeadersEnabled(),
+}));
+
+jest.mock('../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
+// Mocking the helper (rather than the inline `///: ONLY_INCLUDE_IF(beta)` fence)
+// lets Jest exercise both the beta and consent branches, since babel-jest
+// leaves the fence as a comment. Mirrors AccountsMenu.test.
+jest.mock('../../../../util/support/betaSupportUrl', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
 
 const mockIsNotificationsFeatureEnabled = jest.mocked(
@@ -56,12 +91,9 @@ jest.mock('../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUsePlusAccess = jest.fn(() => ({
-  isPlusSubscriber: false,
-  isPlusAccessUnknown: false,
-}));
-jest.mock('../../../../hooks/usePlusAccess', () => ({
-  usePlusAccess: () => mockUsePlusAccess(),
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
 }));
 
 const mockTrackButtonClicked = jest.fn();
@@ -106,15 +138,13 @@ const stateWithNotifications = (
 describe('ProfileDrawer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectGlassHeadersEnabled.mockReturnValue(false);
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -132,6 +162,19 @@ describe('ProfileDrawer', () => {
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('uses transparent icon buttons for glass headers', () => {
+    mockSelectGlassHeadersEnabled.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    expect(getByTestId(ProfileDrawerSelectorsIDs.CLOSE_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
+    expect(getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
   });
 
   it('insets the header buttons from the screen edges', () => {
@@ -253,7 +296,6 @@ describe('ProfileDrawer', () => {
         imageUrl: null,
         avatarPresetId: 'astronaut',
         avatarBackgroundId: 'sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
@@ -278,7 +320,6 @@ describe('ProfileDrawer', () => {
         displayName: 'Bonk Player',
         handle: 'bonk-player',
         imageUrl: 'foxicon://astronaut/sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
@@ -454,15 +495,105 @@ describe('ProfileDrawer', () => {
     expect(within(notificationsRow).queryByText('0')).toBeNull();
   });
 
-  it('leaves the not-yet-wired help and support row inert', () => {
-    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+  describe('Help and support row', () => {
+    beforeEach(() => {
+      mockGetBetaSupportUrl.mockReturnValue('');
+    });
 
-    fireEvent.press(
-      getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
-    );
+    // Mirrors the Accounts Menu support row so both surfaces behave the same.
+    it('opens the consent flow instead of navigating directly', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+        expect.any(Function),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('defers NAVIGATION_TAPS_GET_HELP tracking until support opens', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      // Pressing the row only opens the consent sheet; tracking waits until the
+      // user confirms/rejects and support actually opens.
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+      );
+
+      const onOpenSupport = mockOpenSupportWithConsent.mock.calls[0][2];
+      onOpenSupport();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('opens the enriched support URL in the simple webview once consented', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      const open = mockOpenSupportWithConsent.mock.calls[0][0];
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: 'https://support.metamask.io/?customer_service_token=jwt-token',
+          title: strings('app_settings.contact_support'),
+        },
+      });
+    });
+
+    describe('on a beta build', () => {
+      beforeEach(() => {
+        mockGetBetaSupportUrl.mockReturnValue(
+          'https://intercom.help/internal-beta-testing/en/',
+        );
+      });
+
+      it('skips the consent sheet and opens the beta help center', () => {
+        const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+        fireEvent.press(
+          getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+        );
+
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: 'https://intercom.help/internal-beta-testing/en/',
+            title: strings('app_settings.contact_support'),
+          },
+        });
+      });
+
+      it('tracks NAVIGATION_TAPS_GET_HELP on press', () => {
+        const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+        fireEvent.press(
+          getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+        );
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+        );
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('MetaMask Orange row', () => {
@@ -474,20 +605,24 @@ describe('ProfileDrawer', () => {
       ).toBeNull();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
+      mockUseHasProMembership.mockReturnValue(false);
 
-      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
 
       expect(
-        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
-      ).toBeNull();
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
@@ -520,10 +655,7 @@ describe('ProfileDrawer', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
+      mockUseHasProMembership.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 

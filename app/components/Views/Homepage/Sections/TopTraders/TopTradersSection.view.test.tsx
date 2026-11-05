@@ -51,6 +51,12 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { LEADERBOARD_LANDING_FEED_AB_KEY } from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- test-only: drives the A/B assignments this entry point forwards
 import { SOCIAL_V1_AB_KEY } from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
+/* eslint-disable import-x/no-restricted-paths -- test-only: exercises the post-consent V1 navigation path */
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../SocialLeaderboard/terms/socialTermsAcceptance';
+/* eslint-enable import-x/no-restricted-paths */
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,6 +85,10 @@ const readRouteParams = async (routeName: string) => {
   const probe = await screen.findByTestId(getRouteParamsProbeTestId(routeName));
   return JSON.parse(probe.props.children as string) as Record<string, unknown>;
 };
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -302,6 +312,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   });
 
   it('switches to the Social tab without a landing tab when the Social V1 treatment is assigned', async () => {
+    await acceptSocialTerms();
     renderHomeTopTradersSection(
       [
         { name: Routes.SOCIAL.V0 },
@@ -312,11 +323,22 @@ describeForPlatforms('Homepage TopTradersSection', () => {
         },
       ],
       {
-        overrides: abTestOverrides({
-          [SOCIAL_V1_AB_KEY]: 'treatment',
-          // Even with a feed landing assigned, V1 owns its own landing.
-          [LEADERBOARD_LANDING_FEED_AB_KEY]: 'treatment',
-        }),
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [SOCIAL_V1_AB_KEY]: 'treatment',
+                  // Even with a feed landing assigned, V1 owns its own landing.
+                  [LEADERBOARD_LANDING_FEED_AB_KEY]: 'treatment',
+                },
+              },
+              ProfileController: {
+                profile: { profileId: 'profile-1' },
+              },
+            },
+          },
+        },
       },
     );
     await findAlphaCard();
@@ -332,6 +354,30 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V0)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens profile onboarding from the header when Social terms are accepted and no profile exists', async () => {
+    await acceptSocialTerms();
+    renderHomeTopTradersSection(
+      [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }, { name: Routes.HOME_TABS }],
+      {
+        overrides: abTestOverrides({
+          [SOCIAL_V1_AB_KEY]: 'treatment',
+        }),
+      },
+    );
+    await findAlphaCard();
+
+    fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).not.toBeOnTheScreen();
   });
 

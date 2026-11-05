@@ -53,7 +53,11 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   const { isEntryHidden } = useSocialEntryModeration();
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
-      <SocialFeedPostShell post={post} onCopyTrade={onCopyTrade} />
+      <SocialFeedPostShell
+        post={post}
+        requireSocialTerms
+        onCopyTrade={onCopyTrade}
+      />
     ),
     [onCopyTrade],
   );
@@ -76,6 +80,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, posts],

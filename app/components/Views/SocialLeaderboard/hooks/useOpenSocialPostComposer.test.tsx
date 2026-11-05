@@ -80,7 +80,6 @@ describe('useOpenSocialPostComposer', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale',
-        shareUrl: 'https://metamask.io/social/giga-whale',
         linkedAccountId: LINKED_ID,
         linkedAccountAddress: LINKED_ADDRESS,
       },
