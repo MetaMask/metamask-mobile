@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   AvatarTokenSize,
@@ -33,10 +33,9 @@ export interface PositionSheetTradeSummaryProps {
   pnlPercentLabel: string;
   pnlValueLabel: string;
   isPnlPositive: boolean;
-  onPress: () => void;
 }
 
-/** The trade row; tapping it opens the full trade details screen. */
+/** The trade row: size, value and PnL of the position. */
 const PositionSheetTradeSummary = ({
   position,
   title,
@@ -44,7 +43,6 @@ const PositionSheetTradeSummary = ({
   pnlPercentLabel,
   pnlValueLabel,
   isPnlPositive,
-  onPress,
 }: PositionSheetTradeSummaryProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -53,16 +51,11 @@ const PositionSheetTradeSummary = ({
     : TextColor.ErrorDefault;
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
+    <View
       testID={PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY}
-      style={({ pressed }) =>
-        tw.style(
-          'flex-row items-center gap-3 rounded-xl border border-muted p-3 overflow-hidden',
-          pressed && 'opacity-70',
-        )
-      }
+      style={tw.style(
+        'flex-row items-center gap-3 rounded-xl border border-muted p-3 overflow-hidden',
+      )}
     >
       <LinearGradient
         colors={GRADIENT_ALPHA_HEX.map(
@@ -107,7 +100,7 @@ const PositionSheetTradeSummary = ({
           {pnlValueLabel}
         </Text>
       </Box>
-    </Pressable>
+    </View>
   );
 };
 

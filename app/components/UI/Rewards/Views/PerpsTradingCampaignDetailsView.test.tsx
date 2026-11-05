@@ -55,7 +55,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, Pressable } = jest.requireActual('react-native');

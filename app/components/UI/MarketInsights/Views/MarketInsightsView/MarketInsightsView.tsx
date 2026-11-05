@@ -520,7 +520,7 @@ const MarketInsightsView: React.FC = () => {
         return;
       }
       trackMarketInsightsInteraction('source_click', { source_url: url });
-      Linking.openURL(url);
+      Linking.openURL(url).catch(() => undefined);
     },
     [trackMarketInsightsInteraction],
   );

@@ -1240,11 +1240,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
 
   const handleLongPress = () => {
-    handleTradeAction('long');
+    handleTradeAction('long').catch(() => undefined);
   };
 
   const handleShortPress = () => {
-    handleTradeAction('short');
+    handleTradeAction('short').catch(() => undefined);
   };
 
   const handleTradingViewPress = useCallback(() => {
@@ -2126,20 +2126,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           </View>
 
           {/* Price Deviation Warning - outside chart section so px-4 isn't doubled with section padding */}
-          {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
-            <Box twClassName="px-4 mb-4">
-              <PerpsPriceDeviationWarning
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
-              />
-            </Box>
-          )}
+          {Boolean(market?.symbol) &&
+            isTradingHalted &&
+            !isLoadingTradingHalted && (
+              <Box twClassName="px-4 mb-4">
+                <PerpsPriceDeviationWarning
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+                />
+              </Box>
+            )}
 
           {/* OI Cap Warning - Shows when market is at capacity */}
-          {market?.symbol && isAtOICap && (
+          {isAtOICap && market.symbol ? (
             <Box twClassName="px-4 mb-4">
               <PerpsOICapWarning symbol={market.symbol} variant="banner" />
             </Box>
-          )}
+          ) : null}
 
           {/* Market Hours Banner - Hidden when OI cap warning is showing */}
           {!isAtOICap && isEquityAsset(market?.marketType) && (

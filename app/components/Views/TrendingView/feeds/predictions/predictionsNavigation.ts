@@ -1,40 +1,38 @@
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import type { PredictEntryPoint } from '../../../../UI/Predict/types/navigation';
-import type { PredictCategory } from '../../../../UI/Predict/types';
+import {
+  PredictEventValues,
+  type PredictEntryActions,
+  type PredictEntryPoint,
+  type PredictFeedCategory,
+} from '../../../../UI/PredictNext';
 import type { PredictionsVariant } from './usePredictionsFeed';
 
-const VARIANT_TO_TAB: Record<PredictionsVariant, PredictCategory> = {
+const VARIANT_TO_FEED: Record<PredictionsVariant, PredictFeedCategory> = {
   trending: 'trending',
   sports: 'sports',
   crypto: 'crypto',
   politics: 'politics',
 };
 
-/** Navigate to the Predict market list, optionally pre-selecting a tab. */
+/** Open the Predict feed for a variant. */
 export const navigateToPredictionsList = (
-  navigation: AppNavigationProp,
+  openPredict: PredictEntryActions['openPredict'],
   variant: PredictionsVariant,
   entryPoint: PredictEntryPoint = PredictEventValues.ENTRY_POINT.EXPLORE,
 ): void => {
-  const tab = VARIANT_TO_TAB[variant];
-  navigation.navigate(Routes.PREDICT.ROOT, {
-    screen: Routes.PREDICT.MARKET_LIST,
-    params: {
-      entryPoint,
-      tab,
-    },
+  openPredict({
+    type: 'feed',
+    category: VARIANT_TO_FEED[variant],
+    entryPoint,
   });
 };
 
-/** Navigate from Explore prediction sections to the Predict market list. */
+/** Open the Predict feed from Explore prediction sections. */
 export const navigateToExplorePredictionsList = (
-  navigation: AppNavigationProp,
+  openPredict: PredictEntryActions['openPredict'],
   variant: PredictionsVariant,
 ): void => {
   navigateToPredictionsList(
-    navigation,
+    openPredict,
     variant,
     PredictEventValues.ENTRY_POINT.EXPLORE,
   );
