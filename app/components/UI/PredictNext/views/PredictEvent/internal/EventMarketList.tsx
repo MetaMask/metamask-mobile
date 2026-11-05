@@ -27,7 +27,7 @@ import type {
   PredictOutcome,
   PredictPosition,
 } from '../../../types';
-import { EventPositionRow } from './EventPositionRow';
+import { EventPositionCard } from './EventPositionCard';
 import {
   createMarketGroupProjection,
   type MarketGroupProjection,
@@ -64,6 +64,15 @@ const OPEN_SECTION_COUNT = 3;
 /** Cards a section shows before "View all N markets". */
 const COLLAPSED_CARD_COUNT = 3;
 const POSITIONS_TAB = 'positions';
+
+const positionCardTestIds = ({ marketId, side }: PredictPosition) => ({
+  root: EventMarketListTestIds.positionRow(marketId, side),
+  value: EventMarketListTestIds.positionValue(marketId, side),
+  pnl: EventMarketListTestIds.positionPnl(marketId, side),
+  chance: EventMarketListTestIds.positionChance(marketId, side),
+  buy: EventMarketListTestIds.positionBuy(marketId, side),
+  cashOut: EventMarketListTestIds.positionCashOut(marketId, side),
+});
 const MARKETS_TAB = 'markets';
 
 export interface EventMarketListProps {
@@ -400,6 +409,10 @@ const EventMarketListContent = ({
     [],
   );
   const game = getEventGame(event);
+  const marketsById = useMemo(
+    () => new Map(event.markets.map((market) => [market.id, market])),
+    [event.markets],
+  );
   const renderMarket = useCallback(
     (projection: Exclude<ContentRow, { type: 'position' }>) => {
       if (projection.type === 'sectionHeader') {
@@ -520,23 +533,19 @@ const EventMarketListContent = ({
   const renderRow = useCallback(
     (row: ContentRow) =>
       row.type === 'position' ? (
-        <EventPositionRow
+        <EventPositionCard
           position={row.position}
+          market={marketsById.get(row.position.marketId)}
+          game={game}
           isPrivacyMode={isPrivacyMode}
+          onOrder={onOrder}
           onCashOut={onCashOut}
-          testID={EventMarketListTestIds.positionRow(
-            row.position.marketId,
-            row.position.side,
-          )}
-          cashOutTestID={EventMarketListTestIds.positionCashOut(
-            row.position.marketId,
-            row.position.side,
-          )}
+          testIds={positionCardTestIds(row.position)}
         />
       ) : (
         renderMarket(row)
       ),
-    [isPrivacyMode, onCashOut, renderMarket],
+    [game, isPrivacyMode, marketsById, onCashOut, onOrder, renderMarket],
   );
 
   return (
