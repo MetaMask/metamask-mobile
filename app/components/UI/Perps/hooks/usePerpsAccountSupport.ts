@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useStore } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import type {
-  GetAccountSupportParams,
   PerpsAccountSupport,
   PerpsProviderType,
 } from '@metamask/perps-controller';
@@ -19,20 +18,6 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-
-interface AccountSupportController {
-  getAccountSupport: (
-    params?: GetAccountSupportParams,
-  ) => Promise<PerpsAccountSupport>;
-}
-
-const hasAccountSupport = (
-  controller: unknown,
-): controller is AccountSupportController =>
-  typeof controller === 'object' &&
-  controller !== null &&
-  'getAccountSupport' in controller &&
-  typeof controller.getAccountSupport === 'function';
 
 export type PerpsAccountSupportCheckResult =
   | 'supported'
@@ -59,9 +44,8 @@ const getSupportContextKey = (
 /**
  * Reads provider-owned account support before actions that can sign.
  *
- * The controller owns detection and caching. Missing support on an older
- * controller and transient errors fail open; Core still enforces the check
- * immediately before supported providers sign.
+ * The controller owns detection and caching. A failed read fails open; Core
+ * still enforces the check immediately before supported providers sign.
  */
 export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   const store = useStore<RootState>();
@@ -78,18 +62,13 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   const isAccountUnsupportedModalVisible = unsupportedContextKey === contextKey;
 
   const readAccountSupport = useCallback(
-    async (providerId?: PerpsProviderType) => {
-      const controller = Engine.context?.PerpsController;
-      if (!hasAccountSupport(controller)) {
-        return { isSupported: true } as const;
-      }
-
+    async (providerId?: PerpsProviderType): Promise<PerpsAccountSupport> => {
       try {
-        return await controller.getAccountSupport(
+        return await Engine.context.PerpsController.getAccountSupport(
           providerId ? { providerId } : undefined,
         );
       } catch {
-        return { isSupported: true } as const;
+        return { isSupported: true };
       }
     },
     [],
