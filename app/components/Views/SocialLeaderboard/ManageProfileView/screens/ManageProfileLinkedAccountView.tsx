@@ -26,6 +26,7 @@ import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
+import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
@@ -74,9 +75,10 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       try {
         await updateProfile({ linked_addresses: nextLinkedAddresses });
         trackProfileEdited();
-      } catch {
+      } catch (error) {
         setErrorMessage(
-          strings('social_leaderboard.manage_profile.save_error'),
+          getLinkedAccountUpdateError(error) ??
+            strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {
         setIsUpdating(false);

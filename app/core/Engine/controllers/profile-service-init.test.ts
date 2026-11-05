@@ -78,4 +78,36 @@ describe('profileServiceInit', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     controller.destroy();
   });
+
+  it('surfaces the API error message so the UI can name the reason', async () => {
+    const apiMessage =
+      'Linked addresses can only be updated once every 30 days';
+    jest.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          message: apiMessage,
+          error: 'Forbidden',
+          statusCode: 403,
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    const baseMessenger = createBaseMessenger();
+    baseMessenger.registerActionHandler(
+      'AuthenticationController:getBearerToken',
+      async () => 'token',
+    );
+    const request = getInitRequestMock(baseMessenger);
+    const { controller } = profileServiceInit(request);
+
+    await expect(
+      request.controllerMessenger.call('ProfileService:updateProfile', 'p-1', {
+        linked_addresses: [MOCK_PROFILE_API_RESPONSE.linked_addresses[0]],
+      }),
+    ).rejects.toThrow(
+      `ProfileService: failed to update profile: 403: ${apiMessage}`,
+    );
+
+    controller.destroy();
+  });
 });

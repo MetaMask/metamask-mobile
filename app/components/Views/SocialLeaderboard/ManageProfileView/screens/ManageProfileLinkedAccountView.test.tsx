@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -172,5 +173,97 @@ describe('ManageProfileLinkedAccountView', () => {
         `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
       ],
     });
+  });
+
+  it('explains the 30-day limit when the server refuses the change', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(
+        Object.assign(
+          new Error(
+            'ProfileService: failed to update profile: 403: Linked addresses can only be updated once every 30 days',
+          ),
+          { httpStatus: 403 },
+        ),
+      );
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+          days: 30,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.save_error'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the generic save error for a 403 that is not the cooldown', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(
+        Object.assign(
+          new Error('ProfileService: failed to update profile: 403: Forbidden'),
+          { httpStatus: 403 },
+        ),
+      );
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+          days: 30,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the generic save error for a failure that is not a refusal', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('Network request failed'));
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+          days: 30,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
   });
 });

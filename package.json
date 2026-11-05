@@ -289,6 +289,7 @@
     "@ethereumjs/util@npm:^9.0.2": "patch:@ethereumjs/util@npm%3A9.1.0#~/.yarn/patches/@ethereumjs-util-npm-9.1.0-7e85509408.patch",
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
+    "@metamask/profile-controller": "npm:@metamask-previews/profile-controller@1.2.1-preview-9a6250503",
     "reactotron-core-client@npm:2.9.7": "patch:reactotron-core-client@npm%3A2.9.7#~/.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch",
     "qs": "6.16.1",
     "viem": "2.31.3",
