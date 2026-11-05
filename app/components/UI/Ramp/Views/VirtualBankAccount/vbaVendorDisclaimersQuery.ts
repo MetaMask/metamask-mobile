@@ -39,21 +39,22 @@ const withTimeout = async <T>(promise: Promise<T>): Promise<T> => {
   }
 };
 
-export type VbaVendorDisclaimersSource = 'prefetch' | 'screen';
+interface VbaVendorDisclaimersError extends Error {
+  country?: string;
+}
 
 /**
  * Looks up the user's country, then loads the Iron / MoonPay Enterprise vendor
  * disclaimers for it. An empty list is thrown as an error so callers can offer
  * a retry instead of an incomplete legal line.
  *
- * @param source - Which caller started the load. Only the screen reports
- * failures to Sentry: a failed prefetch has no user impact, and if the user
- * reaches the screen its own load reports the failure there.
+ * Failures are not reported here. Callers decide whether the user saw the
+ * failure: the prefetch swallows it, while the terms screen reports it through
+ * {@link reportVbaVendorDisclaimersError} when it shows the error.
+ *
  * @returns The non-empty vendor disclaimer list.
  */
-export const fetchVbaVendorDisclaimers = async (
-  source: VbaVendorDisclaimersSource,
-): Promise<KycDisclaimer[]> => {
+export const fetchVbaVendorDisclaimers = async (): Promise<KycDisclaimer[]> => {
   let country: string | undefined;
   try {
     return await withTimeout(
@@ -77,26 +78,39 @@ export const fetchVbaVendorDisclaimers = async (
       })(),
     );
   } catch (error) {
-    if (source === 'screen') {
-      const isTimeout = error instanceof Error && error.name === 'TimeoutError';
-      // The screen collapses every failure into one generic string, so the
-      // underlying cause is only recoverable from here. For an empty catalog
-      // the geo is the usual cause, so it is recorded with the error.
-      Logger.error(error as Error, {
-        tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
-        context: {
-          name: 'useKycDisclaimers',
-          data: { source, isTimeout, country },
-        },
-      });
-    }
-    throw error;
+    const failure = error instanceof Error ? error : new Error(String(error));
+    // The screen collapses every failure into one generic string, so the
+    // underlying cause is only recoverable from here. For an empty catalog the
+    // geo is the usual cause, so it is kept with the error.
+    (failure as VbaVendorDisclaimersError).country = country;
+    throw failure;
   }
+};
+
+/**
+ * Reports a vendor disclaimer failure that the terms screen is showing. A
+ * failed prefetch is not reported because the user never saw it; if the user
+ * does reach the screen, the screen's error state calls this.
+ *
+ * @param error - The error from the shared query.
+ */
+export const reportVbaVendorDisclaimersError = (error: Error): void => {
+  const isTimeout = error.name === 'TimeoutError';
+  Logger.error(error, {
+    tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
+    context: {
+      name: 'useKycDisclaimers',
+      data: {
+        isTimeout,
+        country: (error as VbaVendorDisclaimersError).country,
+      },
+    },
+  });
 };
 
 export const vbaVendorDisclaimersQueryOptions = {
   queryKey: vbaVendorDisclaimersQueryKey,
-  queryFn: () => fetchVbaVendorDisclaimers('screen'),
+  queryFn: fetchVbaVendorDisclaimers,
   staleTime: VBA_VENDOR_DISCLAIMERS_STALE_TIME_MS,
   // The screen offers its own retry, so a failure shows straight away.
   retry: false,
@@ -117,11 +131,7 @@ export const prefetchVbaVendorDisclaimers = (
   queryClient: QueryClient = reactQueryService.queryClient,
 ): Promise<void> =>
   queryClient
-    .query({
-      ...vbaVendorDisclaimersQueryOptions,
-      // A failed prefetch is invisible to the user, so it stays out of Sentry.
-      // If the user reaches the screen, its own load reports the failure.
-      queryFn: () => fetchVbaVendorDisclaimers('prefetch'),
-    })
+    .query(vbaVendorDisclaimersQueryOptions)
     .then(() => undefined)
+    // The screen reports this failure if it ever surfaces it.
     .catch(() => undefined);

@@ -156,7 +156,30 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.error).toBe('server error'));
     expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
-    expect(Logger.error).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(Logger.error).toHaveBeenCalledTimes(1));
+  });
+
+  it('reports an in-flight prefetch failure once the screen shows the error', async () => {
+    let rejectFetch: (error: Error) => void = () => undefined;
+    mockFetchVendorDisclaimers.mockReturnValue(
+      new Promise((_, reject) => {
+        rejectFetch = reject;
+      }),
+    );
+    const prefetch = prefetchVbaVendorDisclaimers(queryClient);
+
+    const { result } = renderUseKycDisclaimers();
+    expect(result.current.isLoading).toBe(true);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    await act(async () => {
+      rejectFetch(new Error('server error'));
+      await prefetch;
+    });
+
+    await waitFor(() => expect(result.current.error).toBe('server error'));
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(Logger.error).toHaveBeenCalledTimes(1));
   });
 
   it('surfaces an error when KycService is unavailable', async () => {

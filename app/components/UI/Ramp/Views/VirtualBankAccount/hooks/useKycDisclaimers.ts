@@ -1,11 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import ReduxService from '../../../../../../core/redux';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { saveVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
-import { vbaVendorDisclaimersQueryOptions } from '../vbaVendorDisclaimersQuery';
+import {
+  reportVbaVendorDisclaimersError,
+  vbaVendorDisclaimersQueryOptions,
+} from '../vbaVendorDisclaimersQuery';
 
 export type { KycDisclaimer };
 
@@ -63,10 +66,41 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
   }
   const error = acceptError ?? loadError;
 
+  const reportLoadFailure = useCallback(
+    (result: { data?: KycDisclaimer[]; error: Error | null }) => {
+      if (!result.data?.length && result.error) {
+        reportVbaVendorDisclaimersError(result.error);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    // A cached failure is not automatically a visible one. Join the screen's
+    // own load (including an in-flight prefetch) and report only its result,
+    // so failures the user never saw stay out of Sentry.
+    if (data?.length) {
+      return undefined;
+    }
+    let active = true;
+    refetch({ cancelRefetch: false })
+      .then((result) => {
+        if (active) {
+          reportLoadFailure(result);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [data, refetch, reportLoadFailure]);
+
   const retry = useCallback(() => {
     setAcceptError(null);
-    refetch().catch(() => undefined);
-  }, [refetch]);
+    refetch({ cancelRefetch: false })
+      .then(reportLoadFailure)
+      .catch(() => undefined);
+  }, [refetch, reportLoadFailure]);
 
   const acceptDisclaimers = useCallback(async (): Promise<boolean> => {
     if (!disclaimers?.length || isAccepting) {
