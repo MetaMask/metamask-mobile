@@ -15,6 +15,7 @@ import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import Logger from '../../../../util/Logger';
 import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
+import { navigateToHomeUrl } from '../legacy/handleHomeUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
 import { handleSocialTraderUrl } from '../legacy/handleSocialTraderUrl';
@@ -167,6 +168,9 @@ describe('handleUniversalLink', () => {
   const mockBrowserCallBack = jest.fn();
   const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
     typeof handleBrowserUrl
+  >;
+  const mockNavigateToHomeUrl = navigateToHomeUrl as jest.MockedFunction<
+    typeof navigateToHomeUrl
   >;
   const mockHandleMoneyDeposit = handleMoneyDeposit as jest.MockedFunction<
     typeof handleMoneyDeposit
@@ -2501,6 +2505,29 @@ describe('handleUniversalLink', () => {
       expect(handled).toHaveBeenCalled();
     });
 
+    it('does not show interstitial modal for HOME action (whitelisted)', async () => {
+      const homeUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}`;
+      const homeUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: homeUrl,
+        pathname: `/${ACTIONS.HOME}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: homeUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: homeUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(mockNavigateToHomeUrl).toHaveBeenCalledWith({ homePath: '' });
+      expect(handled).toHaveBeenCalled();
+    });
+
     it('shows interstitial modal for non-whitelisted URLs', async () => {
       const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SEND}`;
       const nonWhitelistedUrlObj = {
@@ -3795,6 +3822,27 @@ describe('handleUniversalLink', () => {
         setPendingReferralCode('KOL123'),
       );
       expect(handleRewardsUrl).toHaveBeenCalled();
+    });
+
+    it('stores the code for a whitelisted HOME link without an interstitial', async () => {
+      const link = buildLink(ACTIONS.HOME, '?ref=kol123');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingReferralCode('KOL123'),
+      );
+      expect(mockNavigateToHomeUrl).toHaveBeenCalledWith({
+        homePath: '?ref=kol123',
+      });
     });
 
     it('stores the code in resolve mode before returning the startup intent', async () => {

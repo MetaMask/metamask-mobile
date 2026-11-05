@@ -173,9 +173,9 @@ Unless the action is whitelisted or bypassed, users see an interstitial:
 
 **Modal Bypass Conditions:**
 
-- Action is in `WHITELISTED_ACTIONS` (WC, enable-card-button)
-- URL starts with `interstitialWhitelistUrls` (e.g., perps-asset links)
-- Link is private AND originated from in-app sources (carousel, notification, qr-code, in-app-browser)
+- Action is in `WHITELISTED_ACTIONS` (see [Security Considerations](#4-action-whitelisting); includes `HOME`, `WC`, `SWAP`, and others)
+- URL starts with `interstitialWhitelistUrls` (currently empty; if configured, these bypass regardless of action)
+- Link is PUBLIC or PRIVATE AND originated from a trusted in-app source (carousel, notification, push notification, Braze, perps outreach). QR-code and in-app-browser origins are **not** trusted.
 
 ### 5. Action Routing
 
@@ -668,26 +668,34 @@ if (!isSupportedDomain) {
 
 ### 4. Action Whitelisting
 
-```typescript
-// Some actions bypass interstitial for UX
-const WHITELISTED_ACTIONS = [
-  SUPPORTED_ACTIONS.WC, // WalletConnect needs immediate handling
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
-];
+Actions in `WHITELISTED_ACTIONS` in
+`app/core/DeeplinkManager/handlers/handleUniversalLink.ts` skip the
+interstitial. That list is the source of truth and currently includes:
 
-// Some URLs bypass interstitial regardless of action
-const interstitialWhitelistUrls = [
-  `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-];
+- Navigation and trading: `HOME`, `DAPP`, `SWAP`, `BATCH_SELL`, `BUY`,
+  `BUY_CRYPTO`, `SELL`, `SELL_CRYPTO`, `ASSET`, `ON_RAMP`
+- Perps: `PERPS`, `PERPS_MARKETS`, `PERPS_ASSET`, `PERPS_OUTREACH`
+- Rewards and Money: `REWARDS`, `MONEY`, `MONEY_ACCOUNT_DEPOSIT`, `EARN_MUSD`
+- Trading and social: `PREDICT`, `TRENDING`, `WHATS_HAPPENING`, `TOP_TRADERS`,
+  `SOCIAL`, `SOCIAL_TRADER`, `SOCIAL_TRADER_POSITION`
+- Card: `CARD_ONBOARDING`, `CARD_HOME`, `CARD_KYC_NOTIFICATION`
+- Other: `WC`, `SHIELD`, `AGENTIC_CLI`, `NOTIFICATIONS_SETTINGS`
 
-// In-app sources can bypass modal when combined with valid signature
-const inAppLinkSources = [
-  'carousel',
-  'notifications',
-  'qr-code',
-  'in-app-browser',
-];
-```
+`HOME` is whitelisted for the Money referral share link
+(`https://link.metamask.io/home?ref=...`). The home handler always navigates
+to `Routes.WALLET.HOME`; `homePath` is only read for `previewToken` and
+`openNetworkSelector`. It does not route to a token, swap, dapp, or other
+action. `ref` only stores a session-only pending referral code, and the user
+must accept the invite for a referral to be created.
+
+`interstitialWhitelistUrls` is currently empty. If you add an entry, prefer an
+exact URL match over `startsWith`; the current `startsWith` check can be
+widened by extra query parameters.
+
+Trusted in-app sources (`trustedInAppSources`) skip the modal only when the
+link is also PUBLIC or PRIVATE. They are the carousel, notification, push
+notification, Braze, and perps outreach origins. QR-code and in-app-browser
+origins are **not** trusted.
 
 ## Best Practices
 
