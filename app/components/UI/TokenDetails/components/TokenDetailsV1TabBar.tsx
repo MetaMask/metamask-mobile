@@ -10,6 +10,11 @@ import { Gesture, type PanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Box } from '@metamask/design-system-react-native';
 import {
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
+import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
@@ -60,6 +65,105 @@ export const resolveSwipeTargetTab = (
   }
   const targetIndex = translationX > 0 ? activeIndex - 1 : activeIndex + 1;
   return tabs[targetIndex] ?? null;
+};
+
+interface TabBarCopyProps {
+  pointerEvents: 'auto' | 'none';
+  importantForAccessibility: 'auto' | 'no-hide-descendants';
+  accessibilityElementsHidden: boolean;
+}
+
+const getTabBarCopyProps = (isActive: boolean): TabBarCopyProps => ({
+  pointerEvents: isActive ? 'auto' : 'none',
+  importantForAccessibility: isActive ? 'auto' : 'no-hide-descendants',
+  accessibilityElementsHidden: !isActive,
+});
+
+export interface UsePinnedTokenDetailsV1TabBarResult {
+  /** Whether the docked copy is the one taking taps. */
+  isPinned: boolean;
+  /** Call from the page's scroll handler with the vertical offset. */
+  onScrollOffset: (scrollOffset: number) => void;
+  /** Call from the in-flow bar's slot with its y inside the scroll content. */
+  onTabBarOffsetY: (tabBarOffsetY: number) => void;
+  /** Spread on the view wrapping the in-flow bar. */
+  inFlowProps: TabBarCopyProps;
+  /** Spread on the view wrapping the docked copy. */
+  pinnedProps: TabBarCopyProps;
+  /** UI-thread opacity for the docked copy. */
+  pinnedStyle: ReturnType<typeof useAnimatedStyle>;
+}
+
+/**
+ * Owns the hand-off between the in-flow tab bar and its docked copy, so the
+ * docking rule, which copy takes taps and which one screen readers see all
+ * come from one place.
+ *
+ * The docked copy exists because a `stickyHeaderIndices` header is drawn by a
+ * native translateY but hit-tested from a ShadowTree position committed
+ * later, so on Android taps on a docked sticky tab bar landed in the content
+ * under it. The copy is laid over the page outside the ScrollView and never
+ * moves, so where it is drawn is where it is touched.
+ *
+ * Taps follow React state, which only changes when the bar crosses the
+ * docking point. Visibility follows `scrollY` on the UI thread so the copy
+ * appears in the same frame the in-flow bar reaches the top. Both use
+ * `isTokenDetailsV1TabBarPinned`.
+ */
+export const usePinnedTokenDetailsV1TabBar = (
+  scrollY: SharedValue<number>,
+): UsePinnedTokenDetailsV1TabBarResult => {
+  const tabBarOffsetY = useSharedValue<number | null>(null);
+  const tabBarOffsetYRef = useRef<number | null>(null);
+  const scrollOffsetRef = useRef(0);
+  const isPinnedRef = useRef(false);
+  const [isPinned, setIsPinned] = useState(false);
+
+  const update = useCallback(() => {
+    const next = isTokenDetailsV1TabBarPinned(
+      scrollOffsetRef.current,
+      tabBarOffsetYRef.current,
+    );
+    if (next !== isPinnedRef.current) {
+      isPinnedRef.current = next;
+      setIsPinned(next);
+    }
+  }, []);
+
+  const onScrollOffset = useCallback(
+    (scrollOffset: number) => {
+      scrollOffsetRef.current = scrollOffset;
+      update();
+    },
+    [update],
+  );
+
+  const onTabBarOffsetY = useCallback(
+    (offsetY: number) => {
+      tabBarOffsetY.set(offsetY);
+      tabBarOffsetYRef.current = offsetY;
+      update();
+    },
+    [tabBarOffsetY, update],
+  );
+
+  const pinnedStyle = useAnimatedStyle(() => ({
+    opacity: isTokenDetailsV1TabBarPinned(scrollY.value, tabBarOffsetY.value)
+      ? 1
+      : 0,
+  }));
+
+  const inFlowProps = useMemo(() => getTabBarCopyProps(!isPinned), [isPinned]);
+  const pinnedProps = useMemo(() => getTabBarCopyProps(isPinned), [isPinned]);
+
+  return {
+    isPinned,
+    onScrollOffset,
+    onTabBarOffsetY,
+    inFlowProps,
+    pinnedProps,
+    pinnedStyle,
+  };
 };
 
 export interface UseTokenDetailsV1TabsResult {

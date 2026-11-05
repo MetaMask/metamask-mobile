@@ -12,9 +12,11 @@ import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
   isTokenDetailsV1TabBarPinned,
   resolveSwipeTargetTab,
+  usePinnedTokenDetailsV1TabBar,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from './TokenDetailsV1TabBar';
+import { makeMutable } from 'react-native-reanimated';
 import { TokenDetailsIds } from '../testIds';
 
 const TOKEN_DETAILS_V1_TAB_BAR_TEST_ID = TokenDetailsIds.tabBar;
@@ -205,6 +207,66 @@ describe('isTokenDetailsV1TabBarPinned', () => {
 
   it('is never pinned before the tab bar has laid out', () => {
     expect(isTokenDetailsV1TabBarPinned(10_000, null)).toBe(false);
+  });
+});
+
+describe('usePinnedTokenDetailsV1TabBar', () => {
+  const renderPinnedHook = () =>
+    renderHook(() => usePinnedTokenDetailsV1TabBar(makeMutable(0)));
+
+  it('lets only the in-flow bar take taps and be announced before docking', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+      result.current.onScrollOffset(399);
+    });
+
+    expect(result.current.isPinned).toBe(false);
+    expect(result.current.inFlowProps).toStrictEqual({
+      pointerEvents: 'auto',
+      importantForAccessibility: 'auto',
+      accessibilityElementsHidden: false,
+    });
+    expect(result.current.pinnedProps).toStrictEqual({
+      pointerEvents: 'none',
+      importantForAccessibility: 'no-hide-descendants',
+      accessibilityElementsHidden: true,
+    });
+  });
+
+  it('hands taps and announcements to the docked copy once scrolled past the bar', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+      result.current.onScrollOffset(400);
+    });
+
+    expect(result.current.isPinned).toBe(true);
+    expect(result.current.inFlowProps.pointerEvents).toBe('none');
+    expect(result.current.inFlowProps.accessibilityElementsHidden).toBe(true);
+    expect(result.current.pinnedProps.pointerEvents).toBe('auto');
+    expect(result.current.pinnedProps.accessibilityElementsHidden).toBe(false);
+  });
+
+  it('re-evaluates when the tab bar moves under a fixed scroll offset', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onScrollOffset(500);
+    });
+    expect(result.current.isPinned).toBe(false);
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+    });
+    expect(result.current.isPinned).toBe(true);
+
+    act(() => {
+      result.current.onTabBarOffsetY(600);
+    });
+    expect(result.current.isPinned).toBe(false);
   });
 });
 

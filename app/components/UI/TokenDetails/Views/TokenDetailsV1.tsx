@@ -18,10 +18,7 @@ import {
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
@@ -86,7 +83,7 @@ import { useTokenHolders } from '../components/tabs/holders/useTokenHolders';
 import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
-  isTokenDetailsV1TabBarPinned,
+  usePinnedTokenDetailsV1TabBar,
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
@@ -454,50 +451,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
-  // The docked tab bar is a separate copy laid over the page rather than a
-  // `stickyHeaderIndices` child. A sticky header is drawn by a native
-  // translateY but hit-tested from a ShadowTree position committed later
-  // (and its height used to change as it docked), so on Android taps on the
-  // docked tabs landed in the content under them. The overlay never moves,
-  // so where it is drawn is where it is touched. `isTabBarPinned` decides
-  // which copy takes taps; the overlay's opacity follows the scroll on the
-  // UI thread so the hand-off is not a frame late on screen.
-  const tabBarOffsetY = useSharedValue<number | null>(null);
-  const tabBarOffsetYRef = useRef<number | null>(null);
-  const scrollOffsetRef = useRef(0);
-  const [isTabBarPinned, setIsTabBarPinned] = useState(false);
-  const isTabBarPinnedRef = useRef(false);
-  // Runs on every scroll event, so it only touches React state when the bar
-  // actually crosses the docking point.
-  const updateTabBarPinned = useCallback(() => {
-    const next = isTokenDetailsV1TabBarPinned(
-      scrollOffsetRef.current,
-      tabBarOffsetYRef.current,
-    );
-    if (next !== isTabBarPinnedRef.current) {
-      isTabBarPinnedRef.current = next;
-      setIsTabBarPinned(next);
-    }
-  }, []);
-  const pinnedTabBarStyle = useAnimatedStyle(() => ({
-    opacity: isTokenDetailsV1TabBarPinned(
-      headerScrollY.value,
-      tabBarOffsetY.value,
-    )
-      ? 1
-      : 0,
-  }));
+  // The docked tab bar is a copy laid over the page, outside the ScrollView,
+  // rather than a sticky header. See `usePinnedTokenDetailsV1TabBar`.
+  const pinnedTabBar = usePinnedTokenDetailsV1TabBar(headerScrollY);
+  const { onScrollOffset: onPinnedTabBarScroll, onTabBarOffsetY } =
+    pinnedTabBar;
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollOffset = event.nativeEvent.contentOffset.y;
       headerScrollY.set(scrollOffset);
-      scrollOffsetRef.current = scrollOffset;
-      updateTabBarPinned();
+      onPinnedTabBarScroll(scrollOffset);
       onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [headerScrollY, onPageScroll, onScrollOffset, updateTabBarPinned],
+    [headerScrollY, onPageScroll, onPinnedTabBarScroll, onScrollOffset],
   );
 
   const {
@@ -527,12 +495,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     (event: LayoutChangeEvent) => {
       const { y, height } = event.nativeEvent.layout;
       setTabBarHeight(height);
-      tabBarOffsetY.set(y);
-      tabBarOffsetYRef.current = y;
-      updateTabBarPinned();
+      onTabBarOffsetY(y);
       handleTabBarLayout(event);
     },
-    [handleTabBarLayout, tabBarOffsetY, updateTabBarPinned],
+    [handleTabBarLayout, onTabBarOffsetY],
   );
   const tabContentStyle = useMemo(() => {
     const minHeight =
@@ -897,7 +863,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         {/* The in-flow tab bar scrolls with the page and takes taps until it
             reaches the top. From there a copy laid over the page, outside the
             ScrollView, docks it below the nav header and takes the taps
-            instead. See `isTabBarPinned` above. */}
+            instead. See `usePinnedTokenDetailsV1TabBar`. */}
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <View style={styles.scrollArea}>
@@ -963,11 +929,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 />
 
                 <View
-                  pointerEvents={isTabBarPinned ? 'none' : 'auto'}
-                  importantForAccessibility={
-                    isTabBarPinned ? 'no-hide-descendants' : 'auto'
-                  }
-                  accessibilityElementsHidden={isTabBarPinned}
+                  {...pinnedTabBar.inFlowProps}
                   onLayout={handleTabBarContainerLayout}
                   testID={TokenDetailsIds.tabBarSlot}
                 >
@@ -1004,12 +966,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 </GestureDetector>
               </ScrollView>
               <Animated.View
-                style={[styles.pinnedTabBar, pinnedTabBarStyle]}
-                pointerEvents={isTabBarPinned ? 'auto' : 'none'}
-                importantForAccessibility={
-                  isTabBarPinned ? 'auto' : 'no-hide-descendants'
-                }
-                accessibilityElementsHidden={!isTabBarPinned}
+                style={[styles.pinnedTabBar, pinnedTabBar.pinnedStyle]}
+                {...pinnedTabBar.pinnedProps}
                 testID={TokenDetailsIds.pinnedTabBarOverlay}
               >
                 <TokenDetailsV1TabBar
