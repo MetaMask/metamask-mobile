@@ -274,6 +274,12 @@ describe('findRouteNameFromNavigatorState', () => {
     );
   });
 
+  it('maps BrowserTabHome to BrowserView', () => {
+    expect(findRouteNameFromNavigatorState([{ name: 'BrowserTabHome' }])).toBe(
+      'BrowserView',
+    );
+  });
+
   it('maps TransactionsHome to TransactionsView', () => {
     expect(
       findRouteNameFromNavigatorState([{ name: 'TransactionsHome' }]),

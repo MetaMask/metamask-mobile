@@ -30,7 +30,6 @@ import type {
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
-  BrowserTabHomeParamList,
   HomeTabsParamList,
   RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
@@ -38,7 +37,6 @@ import type {
   SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
-  WalletTabHomeParamList,
   WalletTabStackParamList,
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
@@ -501,7 +499,7 @@ export type RootStackParamList = {
   // Top-level routes
   ReviewModal: undefined;
   WalletView: undefined;
-  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  BrowserTabHome: HomeTabsParamList['BrowserTabHome'];
   BrowserView: BrowserParams | undefined;
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
@@ -884,7 +882,7 @@ export type RootStackParamList = {
   SimpleWebview: WebviewStackParamList['SimpleWebview'];
 
   // Wallet routes
-  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
+  WalletTabHome: HomeTabsParamList['WalletTabHome'];
   WalletTabStackFlow:
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
