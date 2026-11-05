@@ -502,6 +502,7 @@ import {
   ProfileMetricsControllerState,
   ProfileMetricsService,
   ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
   ProofOfOwnershipService,
   ProofOfOwnershipServiceActions,
 } from '@metamask/profile-metrics-controller';
@@ -875,6 +876,7 @@ export type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents
   | RampsControllerEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
