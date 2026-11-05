@@ -1,6 +1,12 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -450,6 +456,18 @@ describe('SocialV1View', () => {
 
   it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
+
+    const composerButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (node) => node.props.testID === SocialV1ViewSelectorsIDs.PLUS_BUTTON,
+      );
+
+    expect(composerButton?.props.iconName).toBe(IconName.FeedPost);
+    expect(composerButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(composerButton?.props.iconProps).toEqual({
+      color: IconColor.IconDefault,
+    });
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 

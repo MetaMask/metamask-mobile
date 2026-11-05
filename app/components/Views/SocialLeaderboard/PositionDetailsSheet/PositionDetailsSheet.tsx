@@ -31,7 +31,9 @@ import { useOpenPerpsOrder } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrde
 import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
 import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { playSelection } from '../../../../util/haptics';
 import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
@@ -144,7 +146,12 @@ const PositionDetailsSheet = () => {
   );
 
   useEffect(() => {
-    if (!isTabsExpanded) return undefined;
+    if (!isTabsExpanded) {
+      // Collapsing locks the scroll. Leave it at the top so the header
+      // and footer are not stuck off screen.
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+      return undefined;
+    }
     const y = pendingScrollY.current;
     if (y <= 0) return undefined;
     const timer = setTimeout(() => {
@@ -161,6 +168,21 @@ const PositionDetailsSheet = () => {
       next();
     }
   }, []);
+
+  const handleOpenTraderProfile = useCallback(() => {
+    void playSelection()?.catch(() => undefined);
+    closeThen(() => {
+      navigateToSocialV1Profile(navigation, {
+        traderId: author.id,
+        traderName: author.username,
+        traderAddress: author.address,
+        traderAvatarUri: author.avatarUri ?? undefined,
+        source: 'trader_feed',
+        viewerProfileId: profile?.profileId ?? undefined,
+        viewerAddress: profile?.linkedAccountAddress ?? undefined,
+      });
+    });
+  }, [author, closeThen, navigation, profile]);
 
   // Quick Buy lives in this route, so a spot action hides the sheet but keeps
   // the route until Quick Buy closes. Popping it then lets the post-trade and
@@ -284,8 +306,8 @@ const PositionDetailsSheet = () => {
         >
           <PositionSheetHeader
             author={author}
-            position={position}
             isOwnPost={isOwnPost}
+            onPressTrader={handleOpenTraderProfile}
           />
           {/* Collapsed, an upward swipe expands the tabs. The next movement
               scrolls. Overlay taps dismiss through the design-system sheet. */}
@@ -314,7 +336,6 @@ const PositionDetailsSheet = () => {
                 isLoading={isChartLoading}
                 isTrendPositive={data.isTrendPositive}
                 markers={data.markers}
-                levels={data.levels}
                 timeAxisLabels={data.timeAxisLabels}
                 lineProgress={reveal.lineProgress}
                 overlayStyle={reveal.overlayStyle}
