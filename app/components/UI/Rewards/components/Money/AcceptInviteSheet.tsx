@@ -139,7 +139,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // code it was opened for must not prompt again. A newer link that arrived
   // meanwhile was never shown, so it stays pending. After an accept, the
   // accepted splash clears it instead, so the push pre-prompt waits for the
-  // splash too.
+  // splash too. A sheet opened without a code (manual entry) answers nothing,
+  // so a concurrent deeplink code must stay pending.
   const hasAcceptedRef = useRef(false);
   const handleAccepted = useCallback(() => {
     hasAcceptedRef.current = true;
@@ -147,7 +148,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const offeredReferralCode = route.params?.referralCode;
   useEffect(
     () => () => {
-      if (!hasAcceptedRef.current) {
+      if (!hasAcceptedRef.current && offeredReferralCode) {
         dispatch(clearPendingReferralCode(offeredReferralCode));
       }
     },

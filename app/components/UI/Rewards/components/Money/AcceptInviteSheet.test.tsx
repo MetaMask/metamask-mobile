@@ -288,6 +288,18 @@ describe('AcceptInviteSheet', () => {
     expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL1');
   });
 
+  it('leaves a pending deeplink code untouched when a sheet opened without a code closes', async () => {
+    const { store, unmount } = await renderSheet();
+    act(() => {
+      store.dispatch(setPendingReferralCode('KOL1'));
+    });
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBeUndefined();
+  });
+
   it('leaves the deeplink referral code to the accepted splash after an accept', async () => {
     mockAcceptReferralCode.mockImplementation(
       async (_code: string, options?: AcceptReferralCodeOptions) => {
