@@ -11,53 +11,52 @@ export const ON_SCREEN_MARGIN = 40;
 
 /** Pills slide away from the pressed one, nearest first, as they fade. */
 export const DISPERSE = {
-  duration: 440,
-  delayPerPixel: 0.32,
-  maxDelay: 280,
-  shiftX: 22,
+  duration: 220,
+  delayPerPixel: 0.12,
+  maxDelay: 100,
+  shiftX: 18,
   shiftY: 4,
-  scale: 0.84,
+  scale: 0.86,
   easing: Easing.bezier(0.4, 0, 0.2, 1),
 };
 
 /** Pills rise back in, left to right across the viewport. */
 export const REASSEMBLE = {
-  duration: 560,
-  baseDelay: 120,
-  spreadDelay: 340,
-  shiftY: 10,
-  scale: 0.9,
+  duration: 300,
+  baseDelay: 0,
+  spreadDelay: 140,
+  shiftY: 8,
+  scale: 0.92,
   easing: Easing.bezier(0.2, 0.9, 0.25, 1),
 };
 
 /** Low-end hardware fades the pills without the stagger or the motion. */
-export const LIGHT_FADE_DURATION = 200;
+export const LIGHT_FADE_DURATION = 150;
 
 /** The selected chip's flight to the dock, with a touch of overshoot. */
 export const FLY_SPRING: WithSpringConfig = {
-  stiffness: 210,
-  damping: 21,
+  stiffness: 420,
+  damping: 30,
   mass: 1,
 };
 
 /** The selected chip takes its fill while it flies. */
 export const SELECTED_FILL = {
-  duration: 350,
+  duration: 180,
   easing: Easing.bezier(0.25, 0.1, 0.25, 1),
 };
 
-/** The close icon slides open once the chip lands. */
+/** The close icon slides open alongside the flight. */
 export const CLOSE_SLOT = {
-  duration: 450,
+  duration: 240,
   easing: Easing.bezier(0.2, 0.9, 0.3, 1),
 };
 
 /** The docked chip drops back and fades when the filter clears. */
 export const DOCK_EXIT = {
-  delay: 80,
-  duration: 320,
-  shiftX: -12,
-  scale: 0.88,
+  duration: 160,
+  shiftX: -10,
+  scale: 0.9,
   easing: Easing.bezier(0.4, 0, 1, 1),
 };
 
@@ -65,5 +64,5 @@ export const DOCK_EXIT = {
  * Marquee speed eases toward its target: it brakes quickly when a chip is
  * selected and picks back up gently when the filter clears.
  */
-export const MARQUEE_BRAKE_RATE = 7;
-export const MARQUEE_ACCELERATE_RATE = 1.6;
+export const MARQUEE_BRAKE_RATE = 10;
+export const MARQUEE_ACCELERATE_RATE = 2;

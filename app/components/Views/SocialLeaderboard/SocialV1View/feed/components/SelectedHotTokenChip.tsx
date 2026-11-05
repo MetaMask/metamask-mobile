@@ -13,7 +13,6 @@ import Animated, {
   type SharedValue,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -89,8 +88,8 @@ export interface SelectedHotTokenChipProps {
 
 /**
  * The chip the feed is filtered on, docked at the rail's left edge. It flies
- * out of the pressed pill on a spring while taking the selected fill, then
- * slides its close icon open. Pressing it clears the filter.
+ * out of the pressed pill on a spring while taking the selected fill and
+ * sliding its close icon open. Pressing it clears the filter.
  *
  * The fill change is a cross-fade: an unselected copy sits over the real chip
  * and fades out. Both copies share the close slot, so they keep one width.
@@ -111,50 +110,36 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
   const fill = useSharedValue(animatesIn ? 0 : 1);
   const closeSlot = useSharedValue(animatesIn ? 0 : 1);
   const exit = useSharedValue(0);
-  const exiting = useSharedValue(false);
 
   useEffect(() => {
     if (!animatesIn) {
       return;
     }
-    const openCloseSlot = (finished?: boolean) => {
-      'worklet';
-      if (finished && !exiting.value) {
-        closeSlot.value = withTiming(1, CLOSE_SLOT);
-      }
-    };
     fill.value = withTiming(1, SELECTED_FILL);
+    closeSlot.value = withTiming(1, CLOSE_SLOT);
     if (fliesIn) {
-      flightX.value = withSpring(0, FLY_SPRING, openCloseSlot);
+      flightX.value = withSpring(0, FLY_SPRING);
     } else {
-      enter.value = withTiming(
-        1,
-        { duration: REASSEMBLE.duration, easing: REASSEMBLE.easing },
-        openCloseSlot,
-      );
+      enter.value = withTiming(1, {
+        duration: REASSEMBLE.duration,
+        easing: REASSEMBLE.easing,
+      });
     }
-  }, [animatesIn, closeSlot, enter, exiting, fill, flightX, fliesIn]);
+  }, [animatesIn, closeSlot, enter, fill, flightX, fliesIn]);
 
   useEffect(() => {
     if (!isExiting) {
       return;
     }
-    exiting.value = true;
-    closeSlot.value = withTiming(0, CLOSE_SLOT);
-    exit.value = withDelay(
-      DOCK_EXIT.delay,
-      withTiming(
-        1,
-        { duration: DOCK_EXIT.duration, easing: DOCK_EXIT.easing },
-        (finished) => {
-          'worklet';
-          if (finished) {
-            scheduleOnRN(onExited, dockKey);
-          }
-        },
-      ),
-    );
-  }, [closeSlot, dockKey, exit, exiting, isExiting, onExited]);
+    const config = { duration: DOCK_EXIT.duration, easing: DOCK_EXIT.easing };
+    closeSlot.value = withTiming(0, config);
+    exit.value = withTiming(1, config, (finished) => {
+      'worklet';
+      if (finished) {
+        scheduleOnRN(onExited, dockKey);
+      }
+    });
+  }, [closeSlot, dockKey, exit, isExiting, onExited]);
 
   const chipStyle = useAnimatedStyle(() => {
     const enterScale = REASSEMBLE.scale + (1 - REASSEMBLE.scale) * enter.value;

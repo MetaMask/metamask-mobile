@@ -247,7 +247,22 @@ describe('HotTokensCarousel', () => {
     );
   });
 
-  it('docks the pressed chip once the selection lands', () => {
+  it('docks the pressed chip before the page answers', () => {
+    const onTokenPress = jest.fn();
+    arrange([mockHotToken(), NVIDIA]);
+    renderWithProvider(<HotTokensCarousel onTokenPress={onTokenPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    );
+
+    expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
+    expect(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the chip docked once the page confirms the selection', () => {
     const onTokenPress = jest.fn();
     arrange([mockHotToken(), NVIDIA]);
     const { rerender } = renderWithProvider(
@@ -264,13 +279,12 @@ describe('HotTokensCarousel', () => {
       />,
     );
 
-    expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
     expect(
       screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
     ).toBeOnTheScreen();
   });
 
-  it('clears the filter when the docked chip is pressed', () => {
+  it('starts clearing the moment the docked chip is pressed', () => {
     const onTokenPress = jest.fn();
     arrange([mockHotToken(), NVIDIA]);
 
@@ -285,6 +299,9 @@ describe('HotTokensCarousel', () => {
     );
 
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props.pointerEvents,
+    ).toBe('auto');
   });
 
   it('gives the rail back its taps while the docked chip leaves', () => {

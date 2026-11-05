@@ -5,6 +5,7 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import React, {
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -346,11 +347,24 @@ const HotTokenTrack: React.FC<
 const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   tokens = EMPTY_TOKENS,
   isLoading = false,
-  selectedTokenId = null,
+  selectedTokenId: committedSelectedTokenId = null,
   onTokenPress,
   isActive = true,
 }) => {
   const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
+  // A press moves the rail at once and hands the feed's filter to a
+  // transition, so the animation does not wait on the feed re-rendering. The
+  // guess is dropped as soon as the page answers with a new selection.
+  const [optimistic, setOptimistic] = useState<{
+    fromId: string | null;
+    toId: string | null;
+  } | null>(null);
+  if (optimistic && optimistic.fromId !== committedSelectedTokenId) {
+    setOptimistic(null);
+  }
+  const selectedTokenId = optimistic
+    ? optimistic.toId
+    : committedSelectedTokenId;
   const rankedToken = useMemo(
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
@@ -537,9 +551,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
-      onTokenPress(token);
+      setOptimistic({
+        fromId: committedSelectedTokenId,
+        toId: token.id === selectedTokenId ? null : token.id,
+      });
+      startTransition(() => onTokenPress(token));
     },
-    [onTokenPress],
+    [committedSelectedTokenId, onTokenPress, selectedTokenId],
   );
 
   const handlePillPress = useCallback(
