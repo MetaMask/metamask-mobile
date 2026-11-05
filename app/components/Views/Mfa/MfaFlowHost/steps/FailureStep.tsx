@@ -25,12 +25,16 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
   const { title, description } = getFailureCopy(step.code);
 
   const contactSupport = () => {
+    onAction({ type: 'errorCtaClicked', cta: 'contact_support' });
     const url = new URL(METAMASK_SUPPORT_URL);
     url.searchParams.set('mfa_error', step.code);
     openSupportWithConsent((link) => Linking.openURL(link), url.toString());
   };
   const dismiss = () => onAction({ type: 'dismiss' });
-  const retry = () => onAction({ type: 'retry' });
+  const retry = () => {
+    onAction({ type: 'errorCtaClicked', cta: 'try_again' });
+    onAction({ type: 'retry' });
+  };
 
   const renderFooter = () => {
     if (getErrorHandling(step.code) === 'support') {
@@ -84,6 +88,7 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
 
   return (
     <StepLayout
+      onAction={onAction}
       isVerticallyCentered
       top={
         <Box twClassName="items-center">

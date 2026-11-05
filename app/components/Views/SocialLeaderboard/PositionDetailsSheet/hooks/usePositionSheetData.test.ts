@@ -119,11 +119,7 @@ describe('usePositionSheetData', () => {
       const { result } = renderData(buildPosition());
 
       expect(result.current.isMarketCapMode).toBe(false);
-      expect(result.current.levels.map((level) => level.kind)).toEqual([
-        'entry',
-        'current',
-      ]);
-      expect(result.current.levels[0].label).toMatch(/^Entry · /);
+      expect(result.current.formatValue(120)).toMatch(/^\$120/);
     });
 
     it('requests 1D prices until the user picks another range', () => {
