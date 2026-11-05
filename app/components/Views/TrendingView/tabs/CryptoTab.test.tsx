@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -28,6 +29,7 @@ const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useIsFocused: () => mockUseIsFocused(),
 }));
@@ -123,7 +125,10 @@ const arrangeMocks = ({
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   });
 
   mockUseTokensFeed.mockReturnValue({

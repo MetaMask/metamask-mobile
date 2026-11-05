@@ -5,8 +5,7 @@ import { Tag, TagSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useElapsedTime } from '../../../hooks/useElapsedTime';
 import { formatTokenAge } from '../../../utils/formatTokenAge';
-
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
+import { TokenDetailsIds } from '../../../testIds';
 
 interface TokenAgeChipProps {
   launchedAtSeconds: number | null | undefined;
@@ -32,7 +31,7 @@ const TokenAgeChip = ({ launchedAtSeconds, onPress }: TokenAgeChipProps) => {
       accessibilityLabel={strings('token_details_v1.age.accessibility_label', {
         age: label,
       })}
-      testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
+      testID={TokenDetailsIds.ageChip}
     >
       <Tag severity={TagSeverity.Neutral} twClassName="self-center shrink-0">
         {label}

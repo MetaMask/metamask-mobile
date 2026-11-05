@@ -459,6 +459,8 @@ export interface RewardsMoneyViewStateOptions {
   pendingReferralCode?: string | null;
   answeredReferralCode?: string | null;
   isReferralLinkPending?: boolean;
+  /** Remote `glassHeaders`: the header floats over the content on glass. */
+  glassHeaders?: boolean;
   /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
@@ -487,6 +489,7 @@ export function rewardsMoneyViewState({
   pendingReferralCode = null,
   answeredReferralCode = null,
   isReferralLinkPending = false,
+  glassHeaders = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
@@ -505,6 +508,12 @@ export function rewardsMoneyViewState({
   }
   if (moneyControllerEnabled) {
     remoteFeatureFlags.rewardsMoneyControllerEnabled = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+  }
+  if (glassHeaders) {
+    remoteFeatureFlags.glassHeaders = {
       enabled: true,
       minimumVersion: '1.0.0',
     };

@@ -179,7 +179,7 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import {
   MoneyConfirmationScreenStack,
-  MoneyModalStack,
+  MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
@@ -200,9 +200,8 @@ import {
 import {
   PredictModalStack,
   PredictPreviewSheetProvider,
-  selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { PredictRoot } from '../../UI/PredictNext';
+import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1065,12 +1064,9 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
-  // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => predictEnabledFlag,
-    [predictEnabledFlag],
-  );
+  // Predict routes are registered while Predict is available for the
+  // Active Venue, the same gate its entry points use.
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1262,7 +1258,6 @@ const MainNavigator = () => {
           component={RWATokensFullView}
         />
       </NativeStack.Group>
-
       <NativeStack.Screen name="Webview" component={Webview} />
       <NativeStack.Screen
         name="Send"
@@ -1415,17 +1410,20 @@ const MainNavigator = () => {
             }}
           />
           <NativeStack.Screen
-            name={Routes.MONEY.MODALS.ROOT}
-            component={MoneyModalStack}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={slideFromRightNativeOptions}
           />
         </>
       )}
+      {/* Always register this gateway so Money sheets opened from other app
+          screens, such as Card Home, show the unavailable notice when the
+          feature is disabled. */}
+      <NativeStack.Screen
+        name={Routes.MONEY.MODALS.ROOT}
+        component={MoneyModalGateway}
+        options={transparentModalStackOptions}
+      />
       {/*
        * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
        * - Maintenance modal when the feature is disabled.

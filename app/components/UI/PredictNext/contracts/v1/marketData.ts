@@ -77,10 +77,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(
@@ -133,6 +135,9 @@ const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
   );
 };
 
+/** A group's card title, such as a Player's name; never blank when sent. */
+const groupLabel = optional(nonEmptyGroupString('PredictMarketGroupLabel'));
+
 const displayOrder = optional(
   refine(
     number(),
@@ -148,6 +153,7 @@ const marketSelectorGroupSchema = coerce(
     marketType: nonEmptyGroupString('PredictMarketType'),
     option: PredictMarketOptionSchema,
     displayOrder,
+    label: groupLabel,
   }),
   unknown(),
   (value) =>
@@ -157,18 +163,24 @@ const marketSelectorGroupSchema = coerce(
       'marketType',
       'option',
       'displayOrder',
+      'label',
     ]),
 );
 
-/** One option per Market, such as a moneyline's teams and tie. */
+/**
+ * A card of rows, one Market per row priced by its yes side: a moneyline's
+ * options, or a Player's thresholds titled with `label`.
+ */
 const choiceGroupSchema = coerce(
   structType({
     key: nonEmptyGroupString('PredictMarketGroupKey'),
     groupType: literal('choice'),
     displayOrder,
+    label: groupLabel,
   }),
   unknown(),
-  (value) => pickGroupProperties(value, ['key', 'groupType', 'displayOrder']),
+  (value) =>
+    pickGroupProperties(value, ['key', 'groupType', 'displayOrder', 'label']),
 );
 
 const unsupportedMarketGroupSchema = coerce(
@@ -179,9 +191,10 @@ const unsupportedMarketGroupSchema = coerce(
       'PredictMarketGroupType',
       (value) => value.trim().length > 0 && value !== 'marketSelector',
     ),
+    label: groupLabel,
   }),
   unknown(),
-  (value) => pickGroupProperties(value, ['key', 'groupType']),
+  (value) => pickGroupProperties(value, ['key', 'groupType', 'label']),
 );
 
 export const PredictMarketGroupSchema = union([

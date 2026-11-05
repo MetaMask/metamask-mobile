@@ -47,6 +47,11 @@ export interface DeeplinkUrlParams {
   expiresInMinutes?: string;
   priceTolerance?: string;
 
+  // Recurring Buy-specific parameters
+  every?: string;
+  unit?: string;
+  repeatCount?: string;
+
   // Perps-specific parameters
   symbol?: string;
   screen?: string;

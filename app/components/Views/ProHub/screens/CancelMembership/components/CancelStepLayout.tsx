@@ -1,13 +1,12 @@
 import React, { type ReactNode } from 'react';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Button,
   ButtonVariant,
-  ButtonIcon,
   ButtonSize,
-  HeaderBase,
   IconName,
   Text,
   TextColor,
@@ -16,6 +15,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
+import HeaderBaseGlass from '../../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface CancelStepLayoutProps {
   title: string;
@@ -43,20 +44,21 @@ const CancelStepLayout = ({
   errorMessage,
 }: CancelStepLayoutProps) => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   return (
     <>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={onBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={CancelMembershipTestIds.BACK_BUTTON}
-            isDisabled={isSubmitting}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: onBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: CancelMembershipTestIds.BACK_BUTTON,
+          isDisabled: isSubmitting,
+        }}
       />
 
       <ScrollView
