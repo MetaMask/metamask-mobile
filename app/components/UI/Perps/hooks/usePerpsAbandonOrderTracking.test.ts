@@ -131,4 +131,53 @@ describe('usePerpsAbandonOrderTracking', () => {
 
     expect(mockTrack).toHaveBeenCalledTimes(1);
   });
+
+  describe('onExit', () => {
+    const hasCommittedRef = { current: false };
+    const renderWithExit = () => {
+      const onExit = jest.fn();
+      renderHook(() =>
+        usePerpsAbandonOrderTracking({
+          getAbandonProperties: () => ({}),
+          hasCommittedRef,
+          onExit,
+        }),
+      );
+      return onExit;
+    };
+
+    it('reports a back, gesture or programmatic removal as an exit', () => {
+      const onExit = renderWithExit();
+
+      fire(nav, 'beforeRemove');
+
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports a tab switch away as an exit', () => {
+      const onExit = renderWithExit();
+
+      fire(nav, 'blur');
+
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report a pushed child route as an exit', () => {
+      const onExit = renderWithExit();
+      nav.routes = [{ key: 'trade' }, { key: 'child' }];
+
+      fire(nav, 'blur');
+
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('reports an exit after the flow is committed', () => {
+      const onExit = renderWithExit();
+      hasCommittedRef.current = true;
+
+      fire(nav, 'beforeRemove');
+
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+  });
 });
