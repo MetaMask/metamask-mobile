@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -21,7 +22,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { isPositiveBaseUnits } from '../../utils/formatUtils';
-import { SHOW_REFERRER_CLAIMABLE_AMOUNT } from './constants';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
 export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
@@ -61,8 +62,7 @@ export interface ClaimableRewardsCardProps {
   /** Formatted claimable balance. */
   claimableAmount: string;
   /**
-   * A referrer hides the claimable amount row while
-   * `SHOW_REFERRER_CLAIMABLE_AMOUNT` is false.
+   * A referrer shows the claimable amount row while Social V1 is enabled.
    */
   isReferrer?: boolean;
   /**
@@ -171,7 +171,8 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   onBalanceBreakdown,
 }) => {
   const tw = useTailwind();
-  const showClaimableAmount = !isReferrer || SHOW_REFERRER_CLAIMABLE_AMOUNT;
+  const showReferrerClaimableAmount = useSelector(selectIsSocialV1Enabled);
+  const showClaimableAmount = !isReferrer || showReferrerClaimableAmount;
 
   if (isSummaryLoading) {
     return (
