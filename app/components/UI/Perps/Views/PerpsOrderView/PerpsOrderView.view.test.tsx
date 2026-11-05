@@ -480,27 +480,24 @@ describe('PerpsOrderView', () => {
       });
       await waitForDeferredOrderData();
       emitEthPrice(stream);
-      // Protocol validation and the pending take-profit restore both have to
-      // settle before the sheet CTA enables. The default one-second wait loses
-      // that race when the suite is under load.
-      await waitForEnabledPlaceOrderButton(
-        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled();
+      });
       // The separate TP/SL update runs only after pending take-profit is on
       // the form. The place button can enable first; pressing then leaves the
       // in-progress "Order submitted" toast up and never shows the error.
-      await waitFor(
-        () => {
-          expect(
-            screen.getByText(
-              new RegExp(
-                `${strings('perps.order.tp')} (?!${strings('perps.order.off')})`,
-              ),
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            new RegExp(
+              `${strings('perps.order.tp')} (?!${strings('perps.order.off')})`,
             ),
-          ).toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+          ),
+        ).toBeOnTheScreen();
+      });
 
       await act(async () => {
         fireEvent.press(
