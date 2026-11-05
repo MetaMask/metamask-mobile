@@ -176,6 +176,8 @@ interface ActivityListProps {
    * offset, for driving scroll-linked animations in the parent.
    */
   scrollY?: SharedValue<number>;
+  /** Height of a header floating over the list; the content and refresh spinner start below it. */
+  contentTopInset?: number;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
@@ -196,6 +198,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       header,
       chainId,
       scrollY,
+      contentTopInset = 0,
       typeFilter,
       networkFilter,
       subFilterKinds,
@@ -954,9 +957,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const floatingTabBarInset = useFloatingTabBarInset();
     const listContentStyle = useMemo(
       () => ({
+        paddingTop: contentTopInset,
         paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
       }),
-      [floatingTabBarInset, tabBarHeight, bottomInset],
+      [contentTopInset, floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
     const isPerpsLoading = perps.isLoading;
@@ -1171,6 +1175,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   onRefresh={onRefresh}
                   colors={[colors.primary.default]}
                   tintColor={colors.icon.default}
+                  progressViewOffset={contentTopInset}
                 />
               }
               onScroll={scrollHandler}
@@ -1205,6 +1210,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                       onRefresh={onRefresh}
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={contentTopInset}
                     />
                   }
                   onScroll={scrollHandler}

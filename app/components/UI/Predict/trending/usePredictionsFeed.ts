@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
-import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { usePredictSearchMarketData } from '../../../../UI/Predict/hooks/usePredictSearchMarketData';
-import { useFeedRefresh } from '../../hooks/useFeedRefresh';
-import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import { fuseSearch, PREDICTIONS_FUSE_OPTIONS } from '../search-utils';
+import type { PredictMarket as PredictMarketType } from '../types';
+import { usePredictMarketData } from '../hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../hooks/usePredictSearchMarketData';
+import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh';
+import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
+import { fuseSearch } from '../../../Views/TrendingView/feeds/fuseSearch';
+import { PREDICTIONS_FUSE_OPTIONS } from './predictionsFuseOptions';
 
 export type PredictionsVariant = 'trending' | 'sports' | 'crypto' | 'politics';
 
@@ -46,7 +47,7 @@ export const usePredictionsFeed = ({
 
   const activeResult = hasQuery ? search : feed;
 
-  useFeedRefresh(enabled ? refresh : undefined, activeResult.refetch);
+  useFeedRefresh(refresh, activeResult.refetch, enabled);
 
   // When a search query is active, results are already server-ranked by
   // relevance — skip Fuse re-ranking to preserve server order across pages.

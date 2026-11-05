@@ -123,6 +123,14 @@ The Homepage Predictions section becomes a Predict-owned component, `PredictHome
 
 The BalanceBreakdown Predict slice stays Homepage code and calls `usePredictPortfolioValue()`.
 
+## Explore (TrendingView) prediction sections
+
+PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. Explore renders it through `trending/`:
+
+- `usePredictTrendingFeed` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. The legacy branch passes the moved hooks through. While the Active Venue resolves, and for next Venues until PRED-1408, they return nothing and keep the legacy hooks disabled.
+- `usePredictTrendingSupported` tells a caller to leave a section out rather than render it empty: the Sports tab's All Sports list and the search Predictions pill. Predict availability stays the caller's own gate, as before.
+- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets.
+
 ## Canonical decisions that remain
 
 These apply to PredictNext's own contract and to the eventual Polymarket backend mapping. They do not require client-side Polymarket conversion now.
