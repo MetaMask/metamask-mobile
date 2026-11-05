@@ -1,5 +1,5 @@
 import React from 'react';
-import PredictMarketSkeleton from '../../../../UI/Predict/components/PredictMarketSkeleton';
+import PredictMarketSkeleton from '../components/PredictMarketSkeleton';
 
 const PredictionsSkeleton: React.FC = () => (
   <PredictMarketSkeleton isCarousel />

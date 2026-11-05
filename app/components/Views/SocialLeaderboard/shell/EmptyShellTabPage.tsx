@@ -142,7 +142,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const {
     onAuthorPress: handleAuthorPress,
     onPositionPress: handlePositionPress,
-  } = useSocialFeedPostNavigation();
+  } = useSocialFeedPostNavigation(
+    tab === 'trending'
+      ? 'social_trending'
+      : tab === 'following'
+        ? 'social_following'
+        : undefined,
+  );
   const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
