@@ -2434,6 +2434,10 @@ describe('PerpsOrderView', () => {
       return { ...rendered, placeOrder, settleAccountSupport };
     };
 
+    // Unit fallback. The Trade sheet closes through its overlay or a swipe,
+    // and neither is addressable in the component-view renderer. Unmount,
+    // header back and tab-away exits are covered in
+    // PerpsOrderView.view.test.tsx.
     it('does not place an order once the sheet reported it closed', async () => {
       const { placeOrder, settleAccountSupport } =
         await arrangePendingAccountSupport();
@@ -2442,16 +2446,6 @@ describe('PerpsOrderView', () => {
         mockTradeSheetOnClose?.();
       });
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      await settleAccountSupport();
-
-      expect(placeOrder).not.toHaveBeenCalled();
-    });
-
-    it('does not place an order once the view unmounted', async () => {
-      const { placeOrder, settleAccountSupport, unmount } =
-        await arrangePendingAccountSupport();
-
-      unmount();
       await settleAccountSupport();
 
       expect(placeOrder).not.toHaveBeenCalled();
