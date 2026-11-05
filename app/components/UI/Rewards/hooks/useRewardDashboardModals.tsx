@@ -253,7 +253,7 @@ export const useRewardDashboardModals = () => {
           'rewards.dashboard_modal_info.account_not_supported.confirm',
         ),
         onPress: () => {
-          navigation.navigate(Routes.WALLET_VIEW);
+          navigation.navigate(Routes.WALLET.HOME);
         },
         variant: ButtonVariant.Primary,
       },
