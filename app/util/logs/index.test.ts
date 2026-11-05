@@ -20,11 +20,8 @@ import {
   type AuthenticationControllerMessenger,
   type AuthenticationControllerState,
 } from '@metamask/profile-sync-controller/auth';
-import {
-  AssetsController,
-  type AssetsControllerMessenger,
-  type AssetsControllerOptions,
-} from '@metamask/assets-controller';
+import { BaseController } from '@metamask/base-controller';
+import { AssetsController } from '@metamask/assets-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import {
   Messenger,
@@ -911,55 +908,57 @@ describe('logs :: generateStateLogs', () => {
       });
     });
 
+    const getAssetsControllerMetadata = () => {
+      let capturedMetadata: Record<string, unknown> | undefined;
+      class MetadataExtractor extends BaseController<never, never, never> {
+        constructor(opts: { metadata: Record<string, unknown> }) {
+          super(opts as never);
+          capturedMetadata = opts.metadata;
+          throw new Error('METADATA_EXTRACTED');
+        }
+      }
+
+      Object.setPrototypeOf(AssetsController, MetadataExtractor);
+      try {
+        // eslint-disable-next-line no-new
+        new (AssetsController as unknown as new (opts: unknown) => unknown)({
+          messenger: {
+            registerActionHandler: () => undefined,
+            registerInitialEventPayload: () => undefined,
+          },
+        });
+      } catch (error) {
+        if ((error as Error).message !== 'METADATA_EXTRACTED') {
+          throw error;
+        }
+      } finally {
+        Object.setPrototypeOf(AssetsController, BaseController);
+      }
+
+      return capturedMetadata;
+    };
+
     it('exports AssetsController asset fields using real controller metadata', () => {
-      const rootMessenger = new Messenger<
-        MockAnyNamespace,
-        MessengerActions<AssetsControllerMessenger>,
-        MessengerEvents<AssetsControllerMessenger>
-      >({ namespace: MOCK_ANY_NAMESPACE });
-      rootMessenger.registerActionHandler(
-        'NetworkEnablementController:getState',
-        () => ({
-          enabledNetworkMap: {},
-          nativeAssetIdentifiers: {},
+      const metadata = getAssetsControllerMetadata();
+      expect(metadata).toMatchObject({
+        assetsInfo: expect.objectContaining({ includeInStateLogs: true }),
+        assetsBalance: expect.objectContaining({ includeInStateLogs: true }),
+        assetsPrice: expect.objectContaining({ includeInStateLogs: true }),
+        customAssets: expect.objectContaining({ includeInStateLogs: true }),
+        assetPreferences: expect.objectContaining({
+          includeInStateLogs: true,
         }),
-      );
-      const messenger: AssetsControllerMessenger = new Messenger({
-        namespace: 'AssetsController',
-        parent: rootMessenger,
-      });
-      rootMessenger.delegate({
-        actions: ['NetworkEnablementController:getState'],
-        events: [],
-        messenger,
+        selectedCurrency: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
+        assetsLoadingStatus: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
       });
 
-      const controller = new AssetsController({
-        messenger,
-        queryApiClient: {
-          queryClient: { fetchQuery: jest.fn().mockResolvedValue(undefined) },
-          setCachedData: jest.fn(),
-        } as unknown as AssetsControllerOptions['queryApiClient'],
-      });
-      Reflect.set(Engine.context, 'AssetsController', controller);
+      Reflect.set(Engine.context, 'AssetsController', { metadata });
 
       try {
-        expect(controller.metadata).toMatchObject({
-          assetsInfo: expect.objectContaining({ includeInStateLogs: true }),
-          assetsBalance: expect.objectContaining({ includeInStateLogs: true }),
-          assetsPrice: expect.objectContaining({ includeInStateLogs: true }),
-          customAssets: expect.objectContaining({ includeInStateLogs: true }),
-          assetPreferences: expect.objectContaining({
-            includeInStateLogs: true,
-          }),
-          selectedCurrency: expect.objectContaining({
-            includeInStateLogs: true,
-          }),
-          assetsLoadingStatus: expect.objectContaining({
-            includeInStateLogs: true,
-          }),
-        });
-
         const assetsControllerState = {
           assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
           assetsBalance: {
@@ -978,7 +977,6 @@ describe('logs :: generateStateLogs', () => {
 
         expect(logs.AssetsController).toStrictEqual(assetsControllerState);
       } finally {
-        controller.destroy();
         Reflect.deleteProperty(Engine.context, 'AssetsController');
       }
     });
