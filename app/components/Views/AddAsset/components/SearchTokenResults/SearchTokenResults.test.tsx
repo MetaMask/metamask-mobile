@@ -148,10 +148,16 @@ describe('SearchTokenResults', () => {
 
     expect(
       within(findRowByTokenName('Token A')).getByRole('checkbox'),
-    ).toBeOnTheScreen();
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ checked: true }),
+    );
     expect(
-      within(findRowByTokenName('Token B')).queryByRole('checkbox'),
-    ).toBeNull();
+      within(findRowByTokenName('Token B')).getByRole('checkbox'),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ checked: false }),
+    );
 
     rerender(
       <SearchTokenResults
@@ -164,9 +170,15 @@ describe('SearchTokenResults', () => {
 
     expect(
       within(findRowByTokenName('Token A')).getByRole('checkbox'),
-    ).toBeOnTheScreen();
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ checked: true }),
+    );
     expect(
-      within(findRowByTokenName('Token B')).queryByRole('checkbox'),
-    ).toBeNull();
+      within(findRowByTokenName('Token B')).getByRole('checkbox'),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ checked: false }),
+    );
   });
 });
