@@ -41,13 +41,18 @@ function getNavigationStackDepth(navigation: NavigationDepthNode): number {
  * increases) nor after the caller marks the flow committed via `hasCommittedRef`.
  * A one-shot guard (reset on focus) prevents double emission from overlapping
  * `beforeRemove`/`blur` events.
+ *
+ * `onExit` runs on the same real exits, committed or not, so the caller can
+ * retire work still in flight for a screen the user has left.
  */
 export function usePerpsAbandonOrderTracking({
   getAbandonProperties,
   hasCommittedRef,
+  onExit,
 }: {
   getAbandonProperties: () => Record<string, unknown>;
   hasCommittedRef: MutableRefObject<boolean>;
+  onExit?: () => void;
 }): void {
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
@@ -80,12 +85,19 @@ export function usePerpsAbandonOrderTracking({
     }, [navigation, hasCommittedRef]),
   );
 
+  const onExitRef = useRef(onExit);
+  onExitRef.current = onExit;
+
   useEffect(() => {
-    const onBeforeRemove = () => emitAbandon();
+    const onBeforeRemove = () => {
+      onExitRef.current?.();
+      emitAbandon();
+    };
     const onBlur = () => {
       // Unchanged depth => tab switch / backgrounding (a push increases it, a
       // pop decreases it), which is also an abandonment.
       if (getNavigationStackDepth(navigation) === focusDepthRef.current) {
+        onExitRef.current?.();
         emitAbandon();
       }
     };
