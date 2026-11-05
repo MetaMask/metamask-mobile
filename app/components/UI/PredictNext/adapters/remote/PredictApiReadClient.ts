@@ -720,7 +720,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   /** Reads the canonical error code, and `next` when the step moved. */
   async #readError(response: Response): Promise<{
     code?: string;
-    next?: PredictHttpError['next'];
+    next?: Required<PredictHttpError['next']>;
   }> {
     try {
       const body = (await response.json()) as {
