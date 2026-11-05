@@ -643,25 +643,32 @@ describe('useVbaHomeCard', () => {
     );
   });
 
-  it('does not hit the network on load', () => {
+  it('does not hit the network on load', async () => {
     setupSelectors();
 
     renderHook(() => useVbaHomeCard());
+    // Let the local storage reads settle so their state updates stay in act().
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('resolves the card from Redux state', () => {
+  it('resolves the card from Redux state', async () => {
     setupSelectors({
       sessionStatus: makeSession(),
     });
 
     const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(result.current).toEqual({ type: 'kyc_pending' });
   });
 
-  it('honors the dev KYC status override for the card decision', () => {
+  it('honors the dev KYC status override for the card decision', async () => {
     mockGetVbaKycStatusOverride.mockReturnValue('rejected');
     setupSelectors({
       sessionStatus: makeSession({
@@ -671,6 +678,9 @@ describe('useVbaHomeCard', () => {
     });
 
     const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
   });

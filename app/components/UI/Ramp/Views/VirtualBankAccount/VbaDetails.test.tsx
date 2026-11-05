@@ -1542,7 +1542,7 @@ describe('VbaDetails', () => {
       expect(mockMarkVbaAccountDetailsViewed).toHaveBeenCalledWith('0xabc');
     });
 
-    it('does not record anything while details are loading or failed to load', async () => {
+    it('does not record anything when details fail to load', async () => {
       mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
 
       const { getByTestId } = renderWithProvider(<VbaDetails />);
