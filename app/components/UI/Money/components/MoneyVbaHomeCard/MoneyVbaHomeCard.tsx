@@ -120,7 +120,7 @@ const MoneyVbaHomeCard = ({
     if (config.cta.opensSupportArticle) {
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: config.buttonIntent,
+        button_intent: config.cta.buttonIntent,
         label_key: `${config.i18nPrefix}.cta`,
         redirect_target: MONEY_URLS.METAMASK_SUPPORT,
       });

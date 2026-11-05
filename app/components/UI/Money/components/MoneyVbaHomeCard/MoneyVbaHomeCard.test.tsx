@@ -167,10 +167,8 @@ const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'kyc_decision',
 ];
 
-/** Variants whose CTA opens onboarding; KYC_PENDING's CTA is disabled. */
-const CTA_VARIANTS = VARIANTS.filter(
-  (variant) => variant !== 'kyc_pending' || variant !== 'kyc_decision',
-);
+/** Variants with a pressable CTA. KYC_PENDING's CTA is disabled. */
+const CTA_VARIANTS = VARIANTS.filter((variant) => variant !== 'kyc_pending' || variant !== 'kyc_decision');
 
 /**
  * Literal per-variant expectations, independent of `MONEY_VBA_HOME_CARD_CONFIG`,
@@ -532,17 +530,18 @@ describe('MoneyVbaHomeCard', () => {
   });
 
   it('offers Dismiss only on the kyc_decision card', () => {
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.opensSupportArticle).toBe(
-      true,
-    );
+    expect(
+      MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.cta.opensSupportArticle,
+    ).toBe(true);
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
     const otherVariants = VARIANTS.filter(
       (variant) => variant !== 'kyc_decision',
     );
     otherVariants.forEach((variant) => {
+      const { cta } = MONEY_VBA_HOME_CARD_CONFIG[variant];
       expect(MONEY_VBA_HOME_CARD_CONFIG[variant].isDismissible).toBeUndefined();
       expect(
-        MONEY_VBA_HOME_CARD_CONFIG[variant].opensSupportArticle,
+        cta.isDisabled ? undefined : cta.opensSupportArticle,
       ).toBeUndefined();
     });
   });
