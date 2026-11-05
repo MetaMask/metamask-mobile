@@ -10,7 +10,11 @@ import {
 } from '@metamask/transaction-controller';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import type { WalletOptions } from '@metamask/wallet';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  ORIGIN_METAMASK,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
+import { getPermittedAccounts } from '../../../Permissions';
 import type { Hex } from '@metamask/utils';
 
 import {
@@ -81,6 +85,24 @@ export function getTransactionControllerInstanceOptions({
       isSimulationEnabled(transactionMeta, initMessenger),
     getSavedGasFees: (chainIdOrTransactionMeta) =>
       getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
+    getPermittedAccounts: async (origin?: string) => {
+      if (!origin) {
+        return [];
+      }
+
+      const accounts = getPermittedAccounts(origin);
+      const permitted = new Set<string>();
+      accounts.forEach((account) => {
+        permitted.add(account);
+        permitted.add(account.toLowerCase());
+        try {
+          permitted.add(toChecksumHexAddress(account));
+        } catch {
+          // Ignore addresses that cannot be checksummed.
+        }
+      });
+      return [...permitted];
+    },
     publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
     // Expected type mismatch with TransactionControllerOptions['trace']
     trace: trace as unknown as TransactionControllerOptions['trace'],
