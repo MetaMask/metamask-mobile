@@ -14,6 +14,7 @@ jest.mock('@metamask/perps-controller', () => {
       BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
       WITHDRAW_FAILED: 'WITHDRAW_FAILED',
       POSITIONS_FAILED: 'POSITIONS_FAILED',
+      POSITION_NOT_FOUND: 'POSITION_NOT_FOUND',
       ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
@@ -207,6 +208,28 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
+
+    it.each([
+      [
+        PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        'perps.errors.insufficientMargin',
+      ],
+      [PERPS_ERROR_CODES.IOC_CANCEL, 'perps.errors.iocCancelUnknownTolerance'],
+    ])(
+      'translates a normalized Hyperliquid %s result with provider details',
+      (errorCode, expectedMessage) => {
+        const result = translatePerpsError({
+          error: errorCode,
+          errorCode,
+          errorDetails: {
+            code: errorCode,
+            provider: 'hyperliquid',
+          },
+        });
+
+        expect(result).toBe(expectedMessage);
+      },
+    );
   });
 
   describe('with Error objects', () => {
@@ -390,6 +413,19 @@ describe('isNoPositionFoundError', () => {
     const result = isNoPositionFoundError(error);
 
     // Assert
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a normalized POSITION_NOT_FOUND result', () => {
+    const result = isNoPositionFoundError({
+      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      errorDetails: {
+        code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+        provider: 'hyperliquid',
+      },
+    });
+
     expect(result).toBe(true);
   });
 
