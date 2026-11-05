@@ -107,8 +107,7 @@ function useRecipient(): Hex | undefined {
     const parsed = parseStandardTokenTransactionData(data);
     const recipient = parsed?.args?._to?.toString() as Hex | undefined;
 
-    // A quoted Money Account withdrawal keeps the mUSD on the money account
-    // and Pay sends the output, so the transfer does not name the destination.
+    // Quoted withdrawals transfer to the money account, not the destination.
     const isTransferToMoneyAccount =
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountWithdraw,
