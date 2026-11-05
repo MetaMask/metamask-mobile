@@ -2,6 +2,7 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import { store } from '../../../store';
 import SDKConnect from '../SDKConnect';
@@ -135,20 +136,22 @@ describe('asyncInit', () => {
     expect(mockInstance.state.connections.channel1).toBeUndefined();
   });
 
-  it('keeps an expired connection when revoking permissions throws', async () => {
+  it('keeps an expired connection when its permissions cannot be revoked', async () => {
     (Engine.context as { PermissionController: unknown }).PermissionController =
       {
-        getPermissions: jest.fn(() => {
+        getPermissions: jest.fn().mockReturnValue({ eth_accounts: {} }),
+        revokeAllPermissions: jest.fn(() => {
           throw new Error('revoke failed');
         }),
-        revokeAllPermissions: jest.fn(),
       };
     (store.getState as jest.Mock).mockReturnValueOnce({
       sdk: {
         connections: {
           channel1: { validUntil: Date.now() - 1000 },
         },
-        approvedHosts: { channel1: 1 },
+        approvedHosts: {
+          [`${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}channel1`]: 1,
+        },
         dappConnections: {},
       },
     });
@@ -159,6 +162,11 @@ describe('asyncInit', () => {
     });
 
     expect(mockInstance.state.connections.channel1).toBeDefined();
+    expect(
+      mockInstance.state.approvedHosts[
+        `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}channel1`
+      ],
+    ).toBe(1);
   });
 
   it('should set the initialized state to true after successful initialization', async () => {

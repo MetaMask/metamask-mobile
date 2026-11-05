@@ -13,23 +13,12 @@ import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
-import { PermissionController } from '@metamask/permission-controller';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import AppConstants from '../../../../app/core/AppConstants';
-import Engine from '../../Engine';
 
 function revokeExpiredChannel(channelId: string): boolean {
   try {
-    const permissionsController = (
-      Engine.context as {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
-    if (permissionsController.getPermissions(channelId)) {
-      permissionsController.revokeAllPermissions(channelId);
-    }
+    revokeChannelPermissions(channelId);
     return true;
   } catch (error) {
     Logger.log(
