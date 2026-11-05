@@ -369,7 +369,7 @@ describe('getPaymentOverrideData', () => {
       });
     });
 
-    it('returns empty object when vault config is missing', async () => {
+    it('returns empty calls when vault config is missing', async () => {
       selectMoneyAccountVaultConfigMock.mockReturnValue(undefined as never);
 
       const result = await getPaymentOverrideData(
@@ -416,6 +416,52 @@ describe('getPaymentOverrideData', () => {
         );
 
         expect(getDelegationTransactionMock).not.toHaveBeenCalled();
+      });
+
+      it('returns the money account recipient when vault config is missing', async () => {
+        selectMoneyAccountVaultConfigMock.mockReturnValue(undefined as never);
+
+        const result = await getPaymentOverrideData(
+          buildNonAtomicPostQuoteRequest(),
+          mockMessenger,
+        );
+
+        expect(result).toStrictEqual({
+          calls: [],
+          recipient: MONEY_ACCOUNT_ADDRESS,
+        });
+      });
+
+      it('returns the money account recipient when the Monad provider is unavailable', async () => {
+        getProviderByChainIdMock.mockImplementation(() => {
+          throw new Error('No network client for chain');
+        });
+
+        const result = await getPaymentOverrideData(
+          buildNonAtomicPostQuoteRequest(),
+          mockMessenger,
+        );
+
+        expect(result).toStrictEqual({
+          calls: [],
+          recipient: MONEY_ACCOUNT_ADDRESS,
+        });
+      });
+
+      it('returns the money account recipient when deposit call construction fails', async () => {
+        buildMoneyAccountDepositBatchMock.mockRejectedValue(
+          new Error('previewDeposit failed'),
+        );
+
+        const result = await getPaymentOverrideData(
+          buildNonAtomicPostQuoteRequest(),
+          mockMessenger,
+        );
+
+        expect(result).toStrictEqual({
+          calls: [],
+          recipient: MONEY_ACCOUNT_ADDRESS,
+        });
       });
     });
   });
