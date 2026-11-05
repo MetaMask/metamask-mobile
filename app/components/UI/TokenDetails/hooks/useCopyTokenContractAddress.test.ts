@@ -1,5 +1,4 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTokenContractAddress } from './useCopyTokenContractAddress';
 
@@ -43,9 +42,7 @@ describe('useCopyTokenContractAddress', () => {
       title: strings(
         'account_details.token_contract_address_copied_to_clipboard',
       ),
-      severity: ToastSeverity.Success,
       hasNoTimeout: false,
-      showCloseButton: false,
     });
   });
 

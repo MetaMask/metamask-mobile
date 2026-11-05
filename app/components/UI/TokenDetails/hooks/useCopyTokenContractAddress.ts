@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { toast } from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
 
@@ -19,8 +19,6 @@ export const useCopyTokenContractAddress = (
       title: strings(
         'account_details.token_contract_address_copied_to_clipboard',
       ),
-      severity: ToastSeverity.Success,
       hasNoTimeout: false,
-      showCloseButton: false,
     });
   }, [contractAddress, onCopyAddress]);
