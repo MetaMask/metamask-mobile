@@ -151,14 +151,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const { includeNotificationsStep, steps: visibleSteps } =
     useWalletHomeOnboardingVisibleSteps();
   const totalSteps = visibleSteps.length;
+  /**
+   * A completed Fund return can advance the checklist before balance selectors finish loading.
+   * Keep the loading shell for all other onboarding paths.
+   */
+  const [isOptimisticFundReturn, setIsOptimisticFundReturn] = useState(false);
+  const isBalanceShellVisible = isAwaitingBalance && !isOptimisticFundReturn;
 
   useWalletHomeOnboardingChecklistHomeViewed({
-    isAwaitingBalance,
+    isAwaitingBalance: isBalanceShellVisible,
     stepIndex,
     isFocused,
     steps: visibleSteps,
   });
-  const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
+  const displayStepIndex = isBalanceShellVisible ? 0 : stepIndex;
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
   const visualStepIndexForProgress = walletHomeOnboardingCappedVisualStepIndex(
     displayStepIndex,
@@ -229,6 +235,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     useState(false);
   const stepIndexRef = useRef(stepIndex);
   const isLastStepRef = useRef(stepIndex >= totalSteps - 1);
+  const isOptimisticFundReturnRef = useRef(isOptimisticFundReturn);
+  isOptimisticFundReturnRef.current = isOptimisticFundReturn;
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
   const currentStepKindRef = useRef<WalletHomeOnboardingStepKind>(
     visibleSteps[visualStepIndexForProgress].kind,
@@ -236,13 +244,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   useEffect(() => {
     stepIndexRef.current = stepIndex;
     isLastStepRef.current = stepIndex >= totalSteps - 1;
-    const displayIdx = isAwaitingBalance ? 0 : stepIndex;
+    const displayIdx = isBalanceShellVisible ? 0 : stepIndex;
     const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(
       displayIdx,
       totalSteps,
     );
     currentStepKindRef.current = visibleSteps[cappedVisual].kind;
-  }, [isAwaitingBalance, stepIndex, totalSteps, visibleSteps]);
+  }, [isBalanceShellVisible, stepIndex, totalSteps, visibleSteps]);
 
   useEffect(
     () => () => {
@@ -330,7 +338,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     if (
       !skipIntroAfterDeferredNavReturn ||
       hasTestOverrides ||
-      isAwaitingBalance
+      isBalanceShellVisible
     ) {
       return;
     }
@@ -359,7 +367,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn, checklistRiveRef]);
+  }, [
+    isBalanceShellVisible,
+    skipIntroAfterDeferredNavReturn,
+    checklistRiveRef,
+  ]);
 
   const currentStep = visibleSteps[visualStepIndexForProgress];
 
@@ -390,7 +402,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
   const goNextOrComplete = useCallback(
     (options?: { bypassBalance?: boolean }): boolean => {
-      if (isAwaitingBalance && !options?.bypassBalance) {
+      if (
+        isAwaitingBalance &&
+        !options?.bypassBalance &&
+        !isOptimisticFundReturnRef.current
+      ) {
         return false;
       }
       if (advanceLockRef.current) {
@@ -549,6 +565,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     deferAdvanceUntilReturnRef.current = false;
     deferFromFundStepRef.current = false;
     fundReturnAuthorizedRef.current = false;
+    setIsOptimisticFundReturn(false);
     sawBlurWhileDeferredRef.current = false;
     setSkipIntroAfterDeferredNavReturn(false);
     setIsAwaitingDeferredNavResumeHold(false);
@@ -599,6 +616,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           return;
         }
         fundReturnAuthorizedRef.current = true;
+        setIsOptimisticFundReturn(true);
       }
     }
 
@@ -635,7 +653,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     if (hasTestOverrides) {
       return;
     }
-    if (!isFocused || isAwaitingBalance || stepIndex !== 0) {
+    if (
+      !isFocused ||
+      isBalanceShellVisible ||
+      isOptimisticFundReturn ||
+      stepIndex !== 0
+    ) {
       return;
     }
     if (canAdvanceFundStepAfterBalance !== true) {
@@ -668,8 +691,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, [
     canAdvanceFundStepAfterBalance,
     goNextOrComplete,
-    isAwaitingBalance,
+    isBalanceShellVisible,
     isFocused,
+    isOptimisticFundReturn,
     stepIndex,
   ]);
 
@@ -765,7 +789,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
+          {!isBalanceShellVisible && !hasTestOverrides && checklistRiveFile ? (
             <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               hybridRef={setChecklistHybridRef}
@@ -817,7 +841,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             isFullWidth
             isDisabled={
               isStepTransitioning ||
-              isAwaitingBalance ||
+              isBalanceShellVisible ||
               isAwaitingDeferredNavResumeHold
             }
             testID={primaryTestID}
@@ -839,7 +863,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               containerStyle={tw.style('min-w-0 flex-1')}
               isDisabled={
                 isStepTransitioning ||
-                isAwaitingBalance ||
+                isBalanceShellVisible ||
                 isAwaitingDeferredNavResumeHold
               }
               testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
@@ -852,7 +876,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               twClassName="min-w-0 flex-1"
               isDisabled={
                 isStepTransitioning ||
-                isAwaitingBalance ||
+                isBalanceShellVisible ||
                 isAwaitingDeferredNavResumeHold
               }
               testID={primaryTestID}

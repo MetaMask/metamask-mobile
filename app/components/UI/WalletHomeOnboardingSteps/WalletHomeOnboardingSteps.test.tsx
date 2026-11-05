@@ -186,6 +186,8 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
         expect.objectContaining({ stepIndex: 1 }),
       );
+      expect(getByTestId('steps-root-hero-trade')).toBeOnTheScreen();
+      expect(getByTestId(primaryTestId)).not.toBeDisabled();
     });
   });
 
