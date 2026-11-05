@@ -93,6 +93,14 @@ const createMultiMarketEvent = (): PredictEvent => ({
   id: eventId,
 });
 
+type GameTeamLogoUrl = NonNullable<
+  NonNullable<
+    NonNullable<PredictEvent['sports']>['game']
+  >['homeTeam']['logoUrl']
+>;
+const headerAwayLogoUrl = 'https://example.com/ari.png' as GameTeamLogoUrl;
+const headerHomeLogoUrl = 'https://example.com/car.png' as GameTeamLogoUrl;
+
 const createGameEvent = (
   overrides: Partial<
     NonNullable<NonNullable<PredictEvent['sports']>['game']>
@@ -118,11 +126,13 @@ const createGameEvent = (
               NonNullable<PredictEvent['sports']>['game']
             >['awayTeam']['logoUrl']
           >,
+          logoFacing: 'right',
         },
         homeTeam: {
           name: 'Carolina Panthers',
           abbreviation: 'CAR',
           primaryColor: homeTeamColor,
+          logoFacing: 'right',
         },
         score: { away: '17', home: '21' },
         period: 'Q4',
@@ -1841,6 +1851,7 @@ describe('PredictEventScreen', () => {
               NonNullable<PredictEvent['sports']>['game']
             >['homeTeam']['logoUrl']
           >,
+          logoFacing: 'right',
         },
       }),
     );
@@ -1878,6 +1889,114 @@ describe('PredictEventScreen', () => {
         includeHiddenElements: true,
       }),
     ).toHaveStyle({ transform: [{ scaleX: -1 }] });
+  });
+
+  it('lists the home Team first in the header of a home_first Game', async () => {
+    resolveEvent(
+      createGameEvent({
+        teamOrder: 'home_first',
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+          logoFacing: 'right',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    expect(
+      within(header)
+        .getAllByTestId(/^predict-next-event-team-(away|home)$/)
+        .map((team) => team.props.testID),
+    ).toEqual([
+      PredictEventScreenTestIds.team('home'),
+      PredictEventScreenTestIds.team('away'),
+    ]);
+    // Right-facing helmets: the right slot (away) is mirrored.
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
+        includeHiddenElements: true,
+      }),
+    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
+  });
+
+  it('never mirrors a header logo without a facing', async () => {
+    resolveEvent(
+      createGameEvent({
+        awayTeam: {
+          name: 'Arizona Cardinals',
+          abbreviation: 'ARI',
+          logoUrl: headerAwayLogoUrl,
+        },
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+  });
+
+  it('shows an unmirrored abbreviation when a mirrored header logo fails to load', async () => {
+    resolveEvent(
+      createGameEvent({
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+          logoFacing: 'right',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    fireEvent(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+      'error',
+    );
+
+    const fallback = within(header).getByTestId(
+      PredictEventScreenTestIds.teamLogoFallback('home'),
+      { includeHiddenElements: true },
+    );
+    expect(fallback).toHaveTextContent('CAR');
+    expect(fallback).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).queryByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toBeOnTheScreen();
   });
 
   it('applies live Game updates to the Event header', async () => {
@@ -2445,6 +2564,7 @@ describe('PredictEventScreen', () => {
             marketId: 'market-1',
             side: 'yes',
             shares: '37.50',
+            currentValue: '22.50',
             context: {
               eventId: 'unrelated-event',
               eventTitle: 'Unrelated Event title',
@@ -2461,7 +2581,11 @@ describe('PredictEventScreen', () => {
       fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
 
       await waitFor(() =>
-        expect(view.getByText('Lakers · 37.5 shares')).toBeOnTheScreen(),
+        expect(
+          view.getByTestId(
+            EventMarketListTestIds.positionValue('market-1', 'yes'),
+          ),
+        ).toHaveTextContent('$22.50'),
       );
     });
 
