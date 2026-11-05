@@ -492,9 +492,10 @@ const parseImmersveCountryConfig = (
  * Country code -> funding channel, from `cardImmersveCountries`.
  *
  * An object maps each country to a named channel in `fundingChannels`. A
- * country below its `minimumVersion`, or whose channel does not resolve, is
- * dropped. A legacy string array, and a missing or invalid value, use the
- * top-level wallet channel (defaulting to GB when the value is not a list).
+ * country below its `minimumVersion`, with a `minimumVersion` that is not a
+ * version, or whose channel does not resolve, is dropped. A legacy string
+ * array, and a missing or invalid value, use the top-level wallet channel
+ * (defaulting to GB when the value is not a list).
  */
 export function readImmersveCountryFunding(
   flags: CardRemoteFeatureFlags,
@@ -514,11 +515,19 @@ export function readImmersveCountryFunding(
         );
         continue;
       }
-      if (
-        entry.minimumVersion &&
-        !hasMinimumRequiredVersion(entry.minimumVersion)
-      ) {
-        continue;
+      if (entry.minimumVersion) {
+        let meetsMinimum = false;
+        try {
+          meetsMinimum = hasMinimumRequiredVersion(entry.minimumVersion);
+        } catch {
+          logImmersveFundingFlag(
+            `Immersve country ${normalized} has an invalid minimumVersion`,
+          );
+          continue;
+        }
+        if (!meetsMinimum) {
+          continue;
+        }
       }
       const channel = channels[entry.fundingChannel];
       if (!channel) {
