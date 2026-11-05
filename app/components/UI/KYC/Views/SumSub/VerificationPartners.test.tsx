@@ -26,6 +26,14 @@ jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
   trackVbaEvent: jest.fn(),
 }));
 
+// The label crossfade is covered in CrossfadeButton.test.tsx; here the button
+// switches instantly, as it does with Reduce Motion on.
+jest.mock('react-native-reanimated', () => ({
+  __esModule: true,
+  ...jest.requireActual('react-native-reanimated'),
+  useReducedMotion: jest.fn(() => true),
+}));
+
 jest.mock('../../hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 jest.mock('../../../../../hooks/useScreenPerformance');

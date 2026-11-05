@@ -277,21 +277,24 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
       ).toBeDisabled();
       revealConsent(result);
+      // The visible label crossfades; its accessible name switches at once.
       expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-      ).toHaveTextContent('Agree to consent above', { exact: true });
-      expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+        getByRole('button', { name: 'Agree to consent above' }),
       ).toBeDisabled();
+      await waitFor(() =>
+        expect(
+          getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+        ).toHaveTextContent('Agree to consent above', { exact: true }),
+      );
 
       tickBiometricConsent(result);
 
-      expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-      ).toHaveTextContent('Agree and continue', { exact: true });
-      expect(
-        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-      ).toBeEnabled();
+      expect(getByRole('button', { name: 'Agree and continue' })).toBeEnabled();
+      await waitFor(() =>
+        expect(
+          getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+        ).toHaveTextContent('Agree and continue', { exact: true }),
+      );
     });
 
     it('keeps the tick when going back to screen 1 and forward again', async () => {

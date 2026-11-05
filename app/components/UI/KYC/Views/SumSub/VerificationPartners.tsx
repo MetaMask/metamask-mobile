@@ -12,7 +12,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
   ButtonSize,
   ButtonVariant,
   Checkbox,
@@ -52,6 +51,7 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { VbaVerificationPartnersSelectorsIDs } from './VerifyIdentity.testIds';
 import { useBiometricConsent } from './BiometricConsentContext';
+import CrossfadeButton from './CrossfadeButton';
 import {
   InlineLink,
   TermsCard,
@@ -414,18 +414,16 @@ const VbaVerificationPartners = ({
             </InlineLink>
             {verifyIdentityString('footer_agreement_idos_end')}
           </Text>
-          <Button
+          <CrossfadeButton
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={!hasBiometricConsent || !hasTerms}
             isLoading={isLoading}
             onPress={handleAgree}
-            accessibilityLabel={ctaLabel}
+            label={ctaLabel}
             testID={VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON}
-          >
-            {ctaLabel}
-          </Button>
+          />
         </Box>
       </SafeAreaView>
     </Box>
