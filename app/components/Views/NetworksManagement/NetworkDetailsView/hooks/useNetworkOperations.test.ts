@@ -311,7 +311,7 @@ describe('useNetworkOperations', () => {
       await result.current.saveNetwork(baseForm, defaultSaveOpts());
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
   });
 
   it('navigates to OptinMetrics when isCustomMainnet is true', async () => {

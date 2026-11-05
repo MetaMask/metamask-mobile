@@ -132,10 +132,7 @@ describe('UnsupportedStateModal (V2)', () => {
   it('navigates to wallet home on try another option press', () => {
     const { getByText } = render(UnsupportedStateModal);
     fireEvent.press(getByText('Try another option'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: { screen: Routes.WALLET_VIEW },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('falls back to country name when stateName param is missing', () => {

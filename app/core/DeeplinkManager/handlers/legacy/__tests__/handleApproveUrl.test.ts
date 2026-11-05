@@ -213,7 +213,7 @@ describe('handleApproveUrl', () => {
     });
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'WalletView',
+      'WalletTabHome',
     );
   });
 

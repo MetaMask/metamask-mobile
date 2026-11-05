@@ -151,11 +151,8 @@ describe('SitesList', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            newTabUrl: 'https://example.com',
-            fromTrending: true,
-          }),
+          newTabUrl: 'https://example.com',
+          fromTrending: true,
         }),
       );
     });

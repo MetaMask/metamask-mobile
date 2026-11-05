@@ -56,10 +56,7 @@ export default function useGoToPortfolioBridge(location: string) {
       params.newTabUrl = bridgeUrl.href;
     }
 
-    navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params,
-    });
+    navigate(Routes.BROWSER.HOME, params);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BRIDGE_LINK_CLICKED)
         .addProperties({

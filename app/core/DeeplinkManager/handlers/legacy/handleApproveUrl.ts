@@ -57,7 +57,7 @@ async function handleApproveUrl({
       title: strings('transaction.invalid_recipient'),
       description: strings('transaction.invalid_recipient_description'),
     });
-    NavigationService.navigation.navigate('WalletView');
+    NavigationService.navigation.navigate('WalletTabHome');
   }
 
   const selectedAccount = AccountsController.getSelectedAccount();
