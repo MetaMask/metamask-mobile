@@ -2564,6 +2564,7 @@ describe('PredictEventScreen', () => {
             marketId: 'market-1',
             side: 'yes',
             shares: '37.50',
+            currentValue: '22.50',
             context: {
               eventId: 'unrelated-event',
               eventTitle: 'Unrelated Event title',
@@ -2580,7 +2581,11 @@ describe('PredictEventScreen', () => {
       fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
 
       await waitFor(() =>
-        expect(view.getByText('Lakers · 37.5 shares')).toBeOnTheScreen(),
+        expect(
+          view.getByTestId(
+            EventMarketListTestIds.positionValue('market-1', 'yes'),
+          ),
+        ).toHaveTextContent('$22.50'),
       );
     });
 
