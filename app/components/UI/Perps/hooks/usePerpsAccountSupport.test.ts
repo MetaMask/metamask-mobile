@@ -10,6 +10,14 @@ import type {
 import { usePerpsAccountSupport } from './usePerpsAccountSupport';
 
 const mockGetAccountSupport = jest.fn();
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -286,6 +294,56 @@ describe('usePerpsAccountSupport', () => {
 
     expect(support).toBe('stale');
   });
+
+  it('does not trace the background prefetch', async () => {
+    renderAccountSupport();
+
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(1));
+
+    expect(mockTrace).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      outcome: 'unsupported',
+      read: () =>
+        mockGetAccountSupport.mockResolvedValue({
+          isSupported: false,
+          reason: 'multi_sig_account',
+        }),
+    },
+    {
+      outcome: 'supported',
+      read: () =>
+        mockGetAccountSupport.mockRejectedValue(new Error('Unavailable')),
+    },
+  ])(
+    'measures an action-time check that ends $outcome in a named trace',
+    async ({ outcome, read }) => {
+      read();
+      const { result } = renderAccountSupport();
+      await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+
+      await act(async () => {
+        await result.current.checkAccountSupport('lighter');
+      });
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      const [traceRequest] = mockTrace.mock.calls[0];
+      expect(traceRequest).toEqual(
+        expect.objectContaining({
+          name: 'Perps Account Support Check',
+          op: 'perps.operation',
+          tags: { provider: 'lighter' },
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Perps Account Support Check',
+        id: traceRequest.id,
+        data: { result: outcome },
+      });
+    },
+  );
 
   it('fails open when the support query fails', async () => {
     mockGetAccountSupport.mockRejectedValue(new Error('Network unavailable'));
