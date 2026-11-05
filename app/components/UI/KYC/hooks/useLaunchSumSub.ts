@@ -153,7 +153,7 @@ export const useLaunchSumSub = (
         marked = true;
         appStateSubscription = AppState.addEventListener('change', (state) => {
           if (state === 'background') {
-            markKycResume();
+            void markKycResume();
           }
         });
 
