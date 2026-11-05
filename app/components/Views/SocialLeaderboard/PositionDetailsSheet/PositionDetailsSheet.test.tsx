@@ -208,7 +208,8 @@ const buildSheetData = (
   dailyChangePercent: 3.49,
   marketCap: undefined,
   summaryTitle: '2 PEPE',
-  summarySubtitle: '$240.00',
+  summaryTagLabel: undefined,
+  summarySubtitle: 'Opened · 2 hr ago',
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
@@ -1036,7 +1037,45 @@ describe('PositionDetailsSheet', () => {
 
     fireEvent.press(summary);
 
-    expect(summary).toHaveTextContent(/2 PEPE/);
+    expect(within(summary).getByText('2 PEPE')).toBeOnTheScreen();
+    expect(within(summary).getByText('Opened · 2 hr ago')).toBeOnTheScreen();
+    expect(summary).toHaveTextContent(/\+\$40\.00/);
+    expect(within(summary).queryByTestId('position-token-avatar')).toBeNull();
+  });
+
+  it('shows a direction tag and colors a loss', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '40x Short',
+      perpDirection: 'short',
+      isPnlPositive: false,
+      pnlValueLabel: '-$1.86',
+      pnlPercentLabel: '-10.38%',
+      summarySubtitle: '',
+    });
+
+    render(<PositionDetailsSheet />);
+    const summary = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY,
+    );
+
+    expect(within(summary).getByText('40x Short')).toBeOnTheScreen();
+    expect(within(summary).getByText('-$1.86')).toBeOnTheScreen();
+    expect(within(summary).queryByText('Opened · 2 hr ago')).toBeNull();
+  });
+
+  it('shows a long tag', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '2x Long',
+      perpDirection: 'long',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      within(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY),
+      ).getByText('2x Long'),
+    ).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
