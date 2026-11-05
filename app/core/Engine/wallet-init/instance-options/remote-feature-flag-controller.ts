@@ -9,12 +9,36 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../controllers/remote-feature-flag-controller';
-import { getBaseSemVerVersion } from '../../../../util/version';
+import {
+  getBaseSemVerVersion,
+  getEffectiveAppVersion,
+} from '../../../../util/version';
 import AppConstants from '../../../AppConstants';
 import type { RootMessenger } from '../../types';
 
 type RemoteFeatureFlagControllerInstanceOptions =
   WalletOptions['instanceOptions']['remoteFeatureFlagController'];
+
+/**
+ * `AppMetadataController` persists the native app version, which an OTA
+ * hotfix does not change. When it still matches the current native version,
+ * map it to the effective (OTA-aware) version so the controller does not see
+ * a version change, and drop its flag cache, on every launch.
+ *
+ * @param persistedAppVersion - `AppMetadataController.currentAppVersion`.
+ * @returns The previous client version to compare against `clientVersion`.
+ */
+function getPrevClientVersion(
+  persistedAppVersion: unknown,
+): string | undefined {
+  if (typeof persistedAppVersion !== 'string') {
+    return undefined;
+  }
+
+  return persistedAppVersion === getBaseSemVerVersion()
+    ? getEffectiveAppVersion()
+    : persistedAppVersion;
+}
 
 /**
  * @param options.messenger - Root messenger; resolves the MetaMetrics id and
@@ -61,14 +85,13 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
           ?.canonicalProfileId ?? ''
       );
     },
-    clientVersion: getBaseSemVerVersion(),
+    clientVersion: getEffectiveAppVersion(),
     fetchInterval: __DEV__
       ? 1000
       : AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
-    prevClientVersion:
-      typeof state?.AppMetadataController?.currentAppVersion === 'string'
-        ? state.AppMetadataController.currentAppVersion
-        : undefined,
+    prevClientVersion: getPrevClientVersion(
+      state?.AppMetadataController?.currentAppVersion,
+    ),
     // Initial value only (set once at construction); the startup fetch lives
     // in Engine. `selectBasicFunctionalityEnabled` reads Redux settings, not
     // wallet `state`.
