@@ -13091,6 +13091,7 @@
       "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "This operation is not supported",
       "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
+      "multiple_devices": "You can only connect one {{device}} at a time. To use a different {{device}}, remove the connected {{device}}'s accounts from MetaMask first",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
@@ -13115,6 +13116,7 @@
       "scan_failed": "Scan Failed",
       "camera_permission_denied": "Camera Permission Required",
       "unsupported_signature": "Signature not supported",
+      "multiple_devices_title": "{{device}} Already Connected",
       "something_went_wrong": "Something went wrong"
     },
     "qr_scan_errors": {

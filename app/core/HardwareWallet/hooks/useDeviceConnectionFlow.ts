@@ -9,6 +9,8 @@ import {
 
 import { HardwareWalletAdapter } from '../types';
 import { createHardwareWalletError } from '../errors';
+import { withLedgerDeviceIdLookupTimeout } from '../helpers';
+import { getDeviceId } from '../../Ledger/Ledger';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -47,6 +49,40 @@ interface UseDeviceConnectionFlowResult {
   closeFlow: () => void;
   handleConnectionSuccess: () => void;
 }
+
+/**
+ * Reject connecting a Ledger device when a different Ledger is already bound.
+ *
+ * A single LedgerKeyring owns one deviceId and one transport slot, so
+ * connecting another device would silently rebind signing to the wrong
+ * device. Fails open when the bound device id cannot be read (keyring
+ * contention / timeout) so a lookup failure never blocks a legitimate
+ * connect.
+ */
+const assertNoDifferentLedgerDeviceBound = async (
+  walletType: HardwareWalletType,
+  targetDeviceId: string,
+): Promise<void> => {
+  let boundDeviceId: string | undefined;
+
+  try {
+    boundDeviceId = await withLedgerDeviceIdLookupTimeout(getDeviceId());
+  } catch (error) {
+    DevLogger.log(
+      '[HardwareWallet] Ledger device id lookup failed — allowing connect:',
+      error,
+    );
+    return;
+  }
+
+  if (boundDeviceId && boundDeviceId !== targetDeviceId) {
+    throw createHardwareWalletError(
+      ErrorCode.DeviceMultipleConnected,
+      walletType,
+      'A different Ledger is already bound; multi-device is not supported',
+    );
+  }
+};
 
 /**
  * Manages the device connection flow: the consumer calls `ensureDeviceReady`
@@ -291,6 +327,13 @@ export const useDeviceConnectionFlow = ({
             ErrorCode.DeviceNotReady,
             walletType,
             'No adapter available',
+          );
+        }
+
+        if (adapter.walletType === HardwareWalletType.Ledger) {
+          await assertNoDifferentLedgerDeviceBound(
+            adapter.walletType,
+            targetDeviceId,
           );
         }
 

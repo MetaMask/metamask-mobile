@@ -16,6 +16,12 @@ jest.mock('../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
+const mockGetDeviceId = jest.fn();
+
+jest.mock('../../Ledger/Ledger', () => ({
+  getDeviceId: () => mockGetDeviceId(),
+}));
+
 const createMockAdapter = (overrides = {}) => ({
   walletType: HardwareWalletType.Ledger,
   requiresDeviceDiscovery: true,
@@ -925,6 +931,210 @@ describe('useDeviceConnectionFlow', () => {
         result.current.closeFlow();
         await readyPromise;
       });
+    });
+  });
+
+  describe('connect multi-Ledger gate', () => {
+    /**
+     * Ledger adapter that keeps the flow pending so `connect` runs a full
+     * pass instead of bailing out on an already-resolved readiness flow.
+     */
+    const createBlockingLedgerAdapter = (overrides = {}) =>
+      createMockAdapter({
+        walletType: HardwareWalletType.Ledger,
+        isConnected: jest.fn().mockReturnValue(false),
+        getConnectedDeviceId: jest.fn().mockReturnValue(null),
+        backgroundReconnect: jest.fn().mockResolvedValue(false),
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+        ...overrides,
+      });
+
+    it('blocks a different Ledger device and surfaces DeviceMultipleConnected', async () => {
+      mockGetDeviceId.mockResolvedValue('other-device');
+      const mockAdapter = createBlockingLedgerAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+      expect(options.flowActiveRef.current).toBe(true);
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(mockAdapter.connect).not.toHaveBeenCalled();
+      expect(options.setters.setDeviceId).not.toHaveBeenCalled();
+      expect(options.handleError).toHaveBeenCalledTimes(1);
+
+      const surfacedError = (options.handleError as jest.Mock).mock.calls[0][0];
+      expect(surfacedError).toBeInstanceOf(HardwareWalletError);
+      expect(surfacedError).toMatchObject({
+        code: ErrorCode.DeviceMultipleConnected,
+        message:
+          'A different Ledger is already bound; multi-device is not supported',
+      });
+      expect(refs.isConnectingRef.current).toBe(false);
+
+      await act(async () => {
+        result.current.closeFlow();
+        await expect(readyPromise).resolves.toBe(false);
+      });
+    });
+
+    it('connects when the bound device id matches the target', async () => {
+      mockGetDeviceId.mockResolvedValue('device-123');
+      const mockAdapter = createBlockingLedgerAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
+      expect(options.setters.setDeviceId).toHaveBeenCalledWith('device-123');
+      expect(options.handleError).not.toHaveBeenCalled();
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it.each(['', undefined])(
+      'connects when no device is bound (%p)',
+      async (boundDeviceId) => {
+        mockGetDeviceId.mockResolvedValue(boundDeviceId);
+        const mockAdapter = createBlockingLedgerAdapter();
+        const refs = createMockRefs();
+        refs.adapterRef.current = mockAdapter;
+        const options = createDefaultOptions({ refs });
+
+        const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+        const { readyPromise } = await capturePendingReadiness(() =>
+          result.current.ensureDeviceReady('device-123'),
+        );
+
+        await act(async () => {
+          await result.current.connect('device-123');
+        });
+
+        expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
+        expect(options.handleError).not.toHaveBeenCalled();
+
+        await act(async () => {
+          result.current.closeFlow();
+          await readyPromise;
+        });
+      },
+    );
+
+    it('skips the gate for non-Ledger adapters', async () => {
+      mockGetDeviceId.mockResolvedValue('other-device');
+      const mockAdapter = createBlockingLedgerAdapter({
+        walletType: HardwareWalletType.Qr,
+        requiresDeviceDiscovery: false,
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        walletType: HardwareWalletType.Qr,
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
+      expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
+      expect(options.handleError).not.toHaveBeenCalled();
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it('fails open when the device id lookup rejects', async () => {
+      mockGetDeviceId.mockRejectedValue(new Error('keyring busy'));
+      const mockAdapter = createBlockingLedgerAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady('device-123'),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
+      expect(options.handleError).not.toHaveBeenCalled();
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it('fails open when the device id lookup times out', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetDeviceId.mockReturnValue(new Promise<string>(() => undefined));
+
+        const mockAdapter = createBlockingLedgerAdapter();
+        const refs = createMockRefs();
+        refs.adapterRef.current = mockAdapter;
+        const options = createDefaultOptions({ refs });
+
+        const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+        let readyPromise: Promise<boolean> | undefined;
+        await act(async () => {
+          readyPromise = result.current.ensureDeviceReady('device-123');
+          await jest.advanceTimersByTimeAsync(0);
+        });
+
+        await act(async () => {
+          const connectPromise = result.current.connect('device-123');
+          await jest.advanceTimersByTimeAsync(5000);
+          await connectPromise;
+        });
+
+        expect(mockAdapter.connect).toHaveBeenCalledWith('device-123');
+        expect(options.handleError).not.toHaveBeenCalled();
+
+        await act(async () => {
+          result.current.closeFlow();
+          await readyPromise;
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

@@ -26,7 +26,7 @@ const createLedgerDeviceIdLookupTimeoutError = () =>
     },
   });
 
-const withLedgerDeviceIdLookupTimeout = async <Result>(
+export const withLedgerDeviceIdLookupTimeout = async <Result>(
   promise: Promise<Result>,
 ): Promise<Result> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;

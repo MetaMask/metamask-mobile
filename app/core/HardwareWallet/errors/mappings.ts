@@ -121,6 +121,21 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
         device: getHardwareWalletTypeName(walletType),
       }),
   },
+  [ErrorCode.DeviceMultipleConnected]: {
+    // Retrying cannot succeed: a different device is already bound and
+    // multi-device is not supported, so the user should just acknowledge.
+    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    icon: IconName.Danger,
+    iconColor: IconColor.Default,
+    getLocalizedTitle: (walletType) =>
+      strings('hardware_wallet.error.multiple_devices_title', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+    getLocalizedMessage: (walletType) =>
+      strings('hardware_wallet.errors.multiple_devices', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+  },
   [ErrorCode.DeviceUnresponsive]: {
     recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Clock,
