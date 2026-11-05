@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-export { formatSharesAmount } from '../../../utils/formatShares';
+export { formatSharesAmount } from './formatShares';
 
 /** Formats a non-negative decimal-string amount as USD, e.g. "1250.45" → "$1,250.45". */
 export const formatUsdAmount = (value: string): string => {
