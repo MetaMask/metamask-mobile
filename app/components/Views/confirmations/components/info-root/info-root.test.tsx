@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -186,6 +187,37 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.PERSONAL_SIGN),
     ).toBeDefined();
+  });
+
+  it('renders nothing when the pending approval type has no info component', () => {
+    const state = {
+      ...personalSignatureConfirmationState,
+      engine: {
+        ...personalSignatureConfirmationState.engine,
+        backgroundState: {
+          ...personalSignatureConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              'permissions-approval-id': {
+                id: 'permissions-approval-id',
+                origin: 'wc-channel-id',
+                type: ApprovalType.WalletRequestPermissions,
+                time: 1727282253049,
+                requestData: {},
+                requestState: null,
+                expectsResult: true,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+        },
+      },
+    };
+
+    const { toJSON } = renderWithProvider(<Info />, { state });
+
+    expect(toJSON()).toBeNull();
   });
 
   it('renders QRInfo if user is signing using QR hardware and has confirmed', () => {

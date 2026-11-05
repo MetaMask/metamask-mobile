@@ -1,1 +1,1 @@
-export { default } from './info-root';
+export { default, hasConfirmationInfo } from './info-root';
