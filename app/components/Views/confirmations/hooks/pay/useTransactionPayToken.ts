@@ -59,9 +59,7 @@ export function useTransactionPayToken(): {
           chainId: newPayToken.chainId,
         });
 
-        syncMoneyAccountWithdrawTransfer(transactionMeta, {
-          paymentToken: newPayToken,
-        });
+        syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
       }

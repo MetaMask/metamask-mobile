@@ -170,28 +170,10 @@ describe('useTransactionPayToken', () => {
     expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
       {
-        paymentToken: {
-          address: PAY_TOKEN_MOCK.address,
-          chainId: PAY_TOKEN_MOCK.chainId,
-        },
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId,
       },
     );
-  });
-
-  it('does not sync the withdrawal transfer when the payment token update fails', async () => {
-    updatePaymentTokenMock.mockImplementation(() => {
-      throw new Error('Update failed');
-    });
-    const { result } = runHook();
-
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-    });
-
-    await flushPromises();
-
-    expect(syncMoneyAccountWithdrawTransferMock).not.toHaveBeenCalled();
   });
 
   it('returns isNative true when pay token is native address', () => {

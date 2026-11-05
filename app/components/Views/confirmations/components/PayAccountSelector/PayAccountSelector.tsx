@@ -10,10 +10,8 @@ import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import EngineService from '../../../../../core/EngineService';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { isHardwareAccount } from '../../../../../util/address';
-import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -76,18 +74,12 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         return;
       }
 
-      if (isMoneyAccountWithdraw) {
-        syncMoneyAccountWithdrawTransfer(transactionMeta, {
-          recipient: address as Hex,
-        });
-      } else {
-        replaceAccountInNestedTransactions({
-          transactionId,
-          nestedTransactions: transactionMeta?.nestedTransactions,
-          oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-          newAddress: address,
-        });
-      }
+      replaceAccountInNestedTransactions({
+        transactionId,
+        nestedTransactions: transactionMeta?.nestedTransactions,
+        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+        newAddress: address,
+      });
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
@@ -95,10 +87,8 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
           config.accountOverride = address as Hex;
         },
       );
-
-      EngineService.flushState();
     },
-    [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta],
+    [accountOverride, transactionId, transactionMeta],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {

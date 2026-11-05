@@ -241,33 +241,38 @@ describe('money-account-override', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
-    it('does not rewrite nested calls for a moneyAccountWithdraw transaction', () => {
+    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
       );
 
-      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        nestedTransactions: undefined,
+        oldAddress: '0x123',
+        newAddress: EVM_ADDRESS_MOCK,
+      });
     });
 
-    it('sets the selected account only as the recipient for a batch containing a nested moneyAccountWithdraw', () => {
+    it('calls replaceAccountInNestedTransactions for a batch containing a nested moneyAccountWithdraw', () => {
+      const nestedTransactions = [
+        { type: TransactionType.tokenMethodApprove },
+        { type: TransactionType.moneyAccountWithdraw },
+      ];
+
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({
           type: TransactionType.batch,
-          nestedTransactions: [
-            { type: TransactionType.moneyAccountWithdraw },
-            { type: TransactionType.tokenMethodTransfer },
-          ],
+          nestedTransactions,
         } as never),
       );
 
-      const callback = setTransactionConfigMock.mock.calls[0][1];
-      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
-        {};
-      callback(config as never);
-
-      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
-      expect(config.isQuoteRequired).toBeUndefined();
-      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        nestedTransactions,
+        oldAddress: '0x123',
+        newAddress: EVM_ADDRESS_MOCK,
+      });
     });
 
     it('does not call replaceAccountInNestedTransactions for a moneyAccountDeposit transaction', () => {
