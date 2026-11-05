@@ -178,6 +178,7 @@ describe('translatePerpsError', () => {
     it('translates a provider-tagged UNKNOWN_ERROR result to the retryable fallback', () => {
       const rawDiagnostic =
         'Hyperliquid signer 0xabc returned an internal stack trace';
+
       const result = translatePerpsError({
         error: rawDiagnostic,
         errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
@@ -235,14 +236,16 @@ describe('translatePerpsError', () => {
     ])(
       'translates a normalized Hyperliquid %s result with provider details',
       (errorCode, expectedMessage) => {
-        const result = translatePerpsError({
+        const failure = {
           error: errorCode,
           errorCode,
           errorDetails: {
             code: errorCode,
-            provider: 'hyperliquid',
+            provider: 'hyperliquid' as const,
           },
-        });
+        };
+
+        const result = translatePerpsError(failure);
 
         expect(result).toBe(expectedMessage);
       },
@@ -263,6 +266,7 @@ describe('translatePerpsError', () => {
 
     it('replaces an unrecognized Error message with the retryable fallback', () => {
       const error = new Error('Custom error message');
+
       const result = translatePerpsError(error);
 
       expect(result).toBe('perps.errors.unknownError');
@@ -292,10 +296,12 @@ describe('translatePerpsError', () => {
 
   describe('with string errors', () => {
     it('replaces an unrecognized string with the retryable fallback', () => {
-      const result = translatePerpsError('Some random error string');
+      const error = 'Some random error string';
+
+      const result = translatePerpsError(error);
 
       expect(result).toBe('perps.errors.unknownError');
-      expect(result).not.toContain('Some random error string');
+      expect(result).not.toContain(error);
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
@@ -437,14 +443,16 @@ describe('isNoPositionFoundError', () => {
   });
 
   it('returns true for a normalized POSITION_NOT_FOUND result', () => {
-    const result = isNoPositionFoundError({
+    const error = {
       error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
       errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
       errorDetails: {
         code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-        provider: 'hyperliquid',
+        provider: 'hyperliquid' as const,
       },
-    });
+    };
+
+    const result = isNoPositionFoundError(error);
 
     expect(result).toBe(true);
   });

@@ -805,9 +805,9 @@ describe('usePerpsClosePosition', () => {
             errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
             errorDetails: {
               code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-              provider: 'hyperliquid',
+              provider: 'hyperliquid' as const,
             },
-          } as unknown as OrderResult;
+          };
           mockClosePosition.mockResolvedValue(normalizedResult);
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>
