@@ -223,17 +223,6 @@ export function selectCommissions(
   return state.rewardsMoney.commissions?.[profileId];
 }
 
-/** Claim-route flags from the latest commissions first page. */
-export function selectCommissionMechanisms(
-  state: RootState,
-  profileId: string | undefined,
-): MechanismsView | undefined {
-  if (!profileId) {
-    return undefined;
-  }
-  return state.rewardsMoney.commissionMechanisms?.[profileId];
-}
-
 export function selectCashbackLedger(
   state: RootState,
   profileId: string | undefined,
