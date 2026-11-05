@@ -34,6 +34,7 @@ import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/s
 import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import AppConstants from '../../core/AppConstants';
 import {
+  CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
@@ -56,7 +57,10 @@ import {
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
-import { setReferralLinkPending } from '../../reducers/rewardsMoney';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
 import { parseMoneyReferralCodeFromUrl } from '../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
@@ -209,7 +213,27 @@ export function* parseDeeplinkAfterOnboarding(
   onHandled?: () => void,
 ) {
   if (!hasMainNavigatorMounted) {
-    yield take(NavigationActionType.MAIN_NAVIGATOR_READY);
+    const { walletReset } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      walletReset: take(CLEAR_ONBOARDING),
+    });
+
+    if (walletReset) {
+      // Drop the stale destination: a reset creates a new wallet and the old
+      // swap/dapp/home target must not fire into it. Keep the referral code:
+      // social-login/SRP retries call deleteWallet() -> CLEAR_ONBOARDING, and
+      // the user should still be offered the code they opened the app with.
+      const referralCode = parseMoneyReferralCodeFromUrl(deeplink);
+      if (referralCode) {
+        yield put(setPendingReferralCode(referralCode));
+      }
+
+      Logger.log(
+        'parseDeeplinkAfterOnboarding: wallet reset before MainNavigator mounted, dropping deeplink destination',
+      );
+      return false;
+    }
+
     hasMainNavigatorMounted = true;
   }
 

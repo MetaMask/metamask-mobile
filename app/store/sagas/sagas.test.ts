@@ -37,14 +37,20 @@ import Engine from '../../core/Engine';
 import AppLockService from '../../core/AppLock/AppLockService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  CLEAR_ONBOARDING,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
-import { setReferralLinkPending } from '../../reducers/rewardsMoney';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
 import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
   getUtmAttributesFromDeeplinkUrl: jest.fn(),
@@ -1498,6 +1504,15 @@ describe('parseDeeplinkAfterOnboarding', () => {
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
       origin: TEST_ORIGIN,
     });
+  });
+
+  it('drops the destination but keeps the referral code when the wallet is reset before MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: CLEAR_ONBOARDING })
+      .put(setPendingReferralCode('WEYRTZ'))
+      .run();
+
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
   });
 });
 

@@ -343,6 +343,11 @@ opens its own destination; the code never changes routing.
   between), so main-stack destinations such as Swap still open. SDK and
   WalletConnect links are excluded: they only need an unlocked keychain and
   keep the usual ready timeout.
+- If the wallet is reset before `MainNavigator` mounts — including the
+  social-login or SRP creation retry buttons, which call `deleteWallet()` — the
+  stale destination is dropped, but the validated `ref` is kept so the invite
+  can still be offered for the new wallet. Only the acquisition code survives,
+  not the old swap/dapp/home destination.
 - The link's destination, the invite sheet, and the push notification
   pre-prompt follow each other, never overlapping:
   1. While `handleDeeplinkSaga` parses a link carrying `ref`, it sets
