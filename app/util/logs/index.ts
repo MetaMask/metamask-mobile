@@ -1,3 +1,8 @@
+import {
+  deriveStateFromMetadata,
+  type StateConstraint,
+  type StateMetadata,
+} from '@metamask/base-controller';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -76,6 +81,16 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
   };
 };
 
+/**
+ * Controllers whose full state is exported in state logs regardless of their
+ * `includeInStateLogs` metadata. AssetsController marks its fields as
+ * excluded, but support relies on balances, prices and token metadata to
+ * investigate user issues (this matches state logs prior to 8.18.0).
+ */
+const CONTROLLERS_EXEMPT_FROM_STATE_LOGS_METADATA = new Set([
+  'AssetsController',
+]);
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
@@ -83,7 +98,6 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   delete fullState.engine.backgroundState.NftController;
   delete fullState.engine.backgroundState.TokensController;
-  delete fullState.engine.backgroundState.TokenDetectionController;
   delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
@@ -91,9 +105,25 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
 
+  const { backgroundState } = fullState.engine;
+  const rawCardControllerState = backgroundState.CardController;
+  for (const [name, controller] of Object.entries(Engine.context)) {
+    if (CONTROLLERS_EXEMPT_FROM_STATE_LOGS_METADATA.has(name)) {
+      continue;
+    }
+    if (backgroundState[name] && 'metadata' in controller) {
+      backgroundState[name] = deriveStateFromMetadata(
+        backgroundState[name],
+        controller.metadata as StateMetadata<StateConstraint>,
+        'includeInStateLogs',
+        (error) => Logger.error(error, `State logs: ${name}`),
+      );
+    }
+  }
+
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {
-    const { cardHomeData, cardHomeDataAddress } = cardControllerState;
+    const { cardHomeData, cardHomeDataAddress } = rawCardControllerState;
     cardControllerState.cardHomeData = cardHomeData
       ? {
           hasCard: Boolean(cardHomeData.card),

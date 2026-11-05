@@ -6,16 +6,25 @@ import {
   resetRewardsState,
   setCandidateSubscriptionId,
 } from '../../../../../reducers/rewards';
+import { resetRewardsMoneyState } from '../../../../../reducers/rewardsMoney';
 
 const DEV_URL = 'https://rewards.dev-api.cx.metamask.io';
 const UAT_URL = 'https://rewards.uat-api.cx.metamask.io';
 const PRD_URL = 'https://rewards.api.cx.metamask.io';
+const MONEY_DEV_URL = 'https://rewards-money.dev-api.cx.metamask.io';
+const MONEY_UAT_URL = 'https://rewards-money.uat-api.cx.metamask.io';
+const MONEY_PRD_URL = 'https://rewards-money.api.cx.metamask.io';
 
 jest.mock('../../../../../core/AppConstants', () => ({
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
+  },
+  REWARDS_MONEY_API_URL: {
+    DEV: 'https://rewards-money.dev-api.cx.metamask.io',
+    UAT: 'https://rewards-money.uat-api.cx.metamask.io',
+    PRD: 'https://rewards-money.api.cx.metamask.io',
   },
 }));
 
@@ -34,11 +43,9 @@ jest.mock('../../../../../store/sagas/rewardsBulkLinkAccountGroups', () => ({
   cancelBulkLink: jest.fn(() => ({ type: 'BULK_LINK_CANCEL' })),
 }));
 
-jest.mock('../../../../../reducers/rewards', () => ({
-  resetRewardsState: jest.fn(() => ({ type: 'rewards/resetRewardsState' })),
-  setCandidateSubscriptionId: jest.fn((payload) => ({
-    type: 'rewards/setCandidateSubscriptionId',
-    payload,
+jest.mock('../../../../../reducers/rewardsMoney', () => ({
+  resetRewardsMoneyState: jest.fn(() => ({
+    type: 'rewardsMoney/resetRewardsMoneyState',
   })),
 }));
 
@@ -76,6 +83,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.settings.environment_selector': 'Environment',
+      'bottom_nav.rewards': 'Rewards',
+      'bottom_nav.money': 'Money',
       'rewards.settings.environment_default': 'Default',
     };
     return translations[key] || key;
@@ -335,5 +344,132 @@ describe('RewardsEnvironmentToggle', () => {
   it('exports a valid React component', () => {
     expect(RewardsEnvironmentToggle).toBeDefined();
     expect(typeof RewardsEnvironmentToggle).toBe('function');
+  });
+
+  describe('Money environment field', () => {
+    const mockMoneyAllowed = (
+      current = MONEY_UAT_URL,
+      fallback = MONEY_UAT_URL,
+    ) => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
+        if (action === 'RewardsController:getRewardsEnvUrl') return UAT_URL;
+        if (action === 'RewardsController:getDefaultRewardsEnvUrl')
+          return UAT_URL;
+        if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
+          return true;
+        if (action === 'RewardsMoneyController:getRewardsMoneyEnvUrl')
+          return current;
+        if (action === 'RewardsMoneyController:getDefaultRewardsMoneyEnvUrl')
+          return fallback;
+        return undefined;
+      });
+    };
+
+    it('renders the Money field when the money env may be changed', () => {
+      mockMoneyAllowed();
+
+      const { getByTestId, getByText } = render(<RewardsEnvironmentToggle />);
+
+      expect(getByText('Money')).toBeOnTheScreen();
+      expect(
+        getByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Money field when the money env may not be changed', () => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
+        if (action === 'RewardsController:getRewardsEnvUrl') return UAT_URL;
+        if (action === 'RewardsController:getDefaultRewardsEnvUrl')
+          return UAT_URL;
+        if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
+          return false;
+        return undefined;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardsEnvironmentToggle />,
+      );
+
+      expect(
+        getByTestId('rewards-environment-toggle-trigger'),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeNull();
+    });
+
+    it('renders only the Money field when Rewards env changes are closed', () => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsController:canChangeRewardsEnvUrl') return false;
+        if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
+          return true;
+        if (action === 'RewardsMoneyController:getRewardsMoneyEnvUrl')
+          return MONEY_DEV_URL;
+        if (action === 'RewardsMoneyController:getDefaultRewardsMoneyEnvUrl')
+          return MONEY_DEV_URL;
+        return undefined;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardsEnvironmentToggle />,
+      );
+
+      expect(
+        getByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('rewards-environment-toggle-trigger')).toBeNull();
+    });
+
+    it('lists the money hosts after opening the Money sheet', () => {
+      mockMoneyAllowed(MONEY_PRD_URL, MONEY_PRD_URL);
+
+      const { getByTestId } = render(<RewardsEnvironmentToggle />);
+
+      fireEvent.press(getByTestId('rewards-money-environment-toggle-trigger'));
+
+      expect(
+        getByTestId(`money-environment-option-${MONEY_DEV_URL}`),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`money-environment-option-${MONEY_UAT_URL}`),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`money-environment-option-${MONEY_PRD_URL}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls setRewardsMoneyEnvUrl and resets the money slice when a different host is pressed', async () => {
+      mockMoneyAllowed(MONEY_PRD_URL, MONEY_PRD_URL);
+
+      const { getByTestId } = render(<RewardsEnvironmentToggle />);
+
+      fireEvent.press(getByTestId('rewards-money-environment-toggle-trigger'));
+      fireEvent.press(getByTestId(`money-environment-option-${MONEY_DEV_URL}`));
+
+      await waitFor(() => {
+        expect(mockCall).toHaveBeenCalledWith(
+          'RewardsMoneyController:setRewardsMoneyEnvUrl',
+          MONEY_DEV_URL,
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(resetRewardsMoneyState());
+      });
+    });
+
+    it('does not call setRewardsMoneyEnvUrl when the current money host is pressed', async () => {
+      mockMoneyAllowed(MONEY_PRD_URL, MONEY_PRD_URL);
+
+      const { getByTestId } = render(<RewardsEnvironmentToggle />);
+
+      fireEvent.press(getByTestId('rewards-money-environment-toggle-trigger'));
+      fireEvent.press(getByTestId(`money-environment-option-${MONEY_PRD_URL}`));
+
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:setRewardsMoneyEnvUrl',
+        expect.anything(),
+      );
+      expect(mockDispatch).not.toHaveBeenCalledWith(resetRewardsMoneyState());
+    });
   });
 });

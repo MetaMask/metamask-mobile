@@ -8,6 +8,10 @@ import {
   selectCardholderAccounts,
   selectHasCardholderAccounts,
   selectIsCardholder,
+  selectCardLinks,
+  selectHasLinkedCard,
+  selectHasCard,
+  selectLinkedCardProvider,
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
@@ -41,6 +45,9 @@ import { selectSelectedInternalAccountByScope } from './multichainAccounts/accou
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '10.0.0'),
+}));
 jest.mock('./multichainAccounts/accounts');
 jest.mock('../core/Multichain/utils');
 jest.mock('./moneyAccountController', () => ({
@@ -319,6 +326,161 @@ describe('selectHasCardholderAccounts', () => {
       cardholderAccounts: ['eip155:0:0xabc'],
     });
     expect(selectHasCardholderAccounts(state)).toBe(true);
+  });
+});
+
+describe('card link selectors', () => {
+  const row = (
+    provider: 'baanx' | 'immersve',
+    status: 'onboarding' | 'active' | 'closed',
+    updatedAt = '2026-09-01T00:00:00.000Z',
+  ) => ({
+    provider,
+    status,
+    linkedAccountRef: null,
+    closedReason: status === 'closed' ? ('migrated' as const) : null,
+    migratedToProvider: null,
+    linkedAt: '2026-09-01T00:00:00.000Z',
+    updatedAt,
+  });
+  const flagOn = { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } };
+  const withLinks = (
+    cardLinks: ReturnType<typeof row>[] | null,
+    overrides: Partial<CardControllerState> = {},
+    flags: Record<string, unknown> = flagOn,
+  ) => createMockRootState({ cardLinks, ...overrides }, undefined, flags);
+
+  it('returns null links when basic functionality is off', () => {
+    const state = withLinks([row('immersve', 'active')]);
+    (state as { settings?: { basicFunctionalityEnabled: boolean } }).settings =
+      { basicFunctionalityEnabled: false };
+
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
+  it('returns null links before the first fetch', () => {
+    const state = withLinks(null);
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
+  });
+
+  it('reports no linked card for an empty array', () => {
+    const state = withLinks([]);
+    expect(selectCardLinks(state)).toStrictEqual([]);
+    expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
+  it('returns the provider of an onboarding row', () => {
+    const state = withLinks([row('immersve', 'onboarding')]);
+    expect(selectHasLinkedCard(state)).toBe(true);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('prefers an active row over an onboarding row', () => {
+    const state = withLinks([
+      row('baanx', 'onboarding'),
+      row('immersve', 'active'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('ignores a closed row, routing a migrated user to the active provider', () => {
+    const state = withLinks([
+      row('baanx', 'closed'),
+      row('immersve', 'active'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('reports no linked card when every row is closed', () => {
+    const state = withLinks([row('baanx', 'closed')]);
+    expect(selectHasLinkedCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
+  });
+
+  it('breaks a tie between two active rows on the newest updatedAt', () => {
+    const state = withLinks([
+      row('baanx', 'active', '2026-09-02T00:00:00.000Z'),
+      row('immersve', 'active', '2026-09-05T00:00:00.000Z'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('hides stored links while cardLinkApi is off', () => {
+    const state = withLinks(
+      [row('immersve', 'active')],
+      {},
+      {
+        cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+      },
+    );
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
+  });
+
+  it('hides stored links after Card API refused this client', () => {
+    const state = withLinks([row('immersve', 'active')], {
+      cardLinkApiBlocked: true,
+    });
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
+  describe('selectHasCard', () => {
+    const selectedAccount = {
+      address: '0xabc',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+    } as unknown as InternalAccount;
+
+    beforeEach(() => {
+      mockIsEthAccount.mockReturnValue(true);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(selectedAccount),
+      );
+    });
+
+    it('uses the selected account while routing is legacy', () => {
+      const flagOff = {
+        cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+      };
+      const selected = withLinks(
+        null,
+        { cardholderAccounts: ['eip155:0:0xabc'] },
+        flagOff,
+      );
+      const otherAccount = withLinks(
+        null,
+        { cardholderAccounts: ['eip155:0:0xother'] },
+        flagOff,
+      );
+
+      expect(selectHasCard(selected)).toBe(true);
+      expect(selectHasCard(otherAccount)).toBe(false);
+    });
+
+    it('uses the stored links once Card API returned any', () => {
+      const linked = withLinks([row('immersve', 'active')], {
+        cardholderAccounts: [],
+      });
+      const closedOnly = withLinks([row('baanx', 'closed')], {
+        cardholderAccounts: ['eip155:0:0xabc'],
+      });
+
+      expect(selectHasCard(linked)).toBe(true);
+      expect(selectHasCard(closedOnly)).toBe(false);
+    });
+
+    it('falls back to the selected account when the link list is empty', () => {
+      const state = withLinks([], {
+        cardholderAccounts: ['eip155:0:0xabc'],
+      });
+
+      expect(selectHasCard(state)).toBe(true);
+    });
   });
 });
 

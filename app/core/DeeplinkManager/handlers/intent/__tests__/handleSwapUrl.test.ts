@@ -3,6 +3,8 @@ import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
 import { resetBridgeState } from '../../../../redux/slices/bridge';
 import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES } from '../../../../../components/UI/Bridge/constants/limitOrders';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -213,6 +215,316 @@ describe('handleSwapUrl', () => {
       },
     });
     expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
+  });
+
+  it('opens the Limit tab with processed swap parameters', async () => {
+    const swapPath =
+      'tab=limit&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000&expiresInMinutes=10080&priceTolerance=0.5';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: '1.0',
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+      },
+    });
+  });
+
+  it('opens the Recurring tab with processed swap and schedule parameters', async () => {
+    const swapPath =
+      'tab=recurring&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000&every=2&unit=week&repeatCount=8';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: '1.0',
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+        initialRecurringSchedule: {
+          everyValue: '2',
+          everyUnit: 'week',
+          repeatCount: '8',
+        },
+      },
+    });
+  });
+
+  it.each(SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES)(
+    'opens the Limit tab with a %i-minute expiration',
+    async (expiresInMinutes) => {
+      const swapPath = `tab=limit&expiresInMinutes=${expiresInMinutes}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Limit,
+          initialLimitOrderExpirationMinutes: expiresInMinutes,
+        }),
+      });
+    },
+  );
+
+  it.each([
+    ['0.01', '0.01'],
+    ['0.5', '0.5'],
+    ['2', '2'],
+    ['2.50', '2.5'],
+    ['99.99', '99.99'],
+  ])(
+    'opens the Limit tab with price tolerance %s normalized to %s',
+    async (priceTolerance, expectedPriceTolerance) => {
+      const swapPath = `tab=limit&priceTolerance=${priceTolerance}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Limit,
+          initialLimitOrderPriceTolerance: expectedPriceTolerance,
+        }),
+      });
+    },
+  );
+
+  it.each(['', '0', '30', '60.5', 'invalid'])(
+    'ignores unsupported expiration value "%s"',
+    async (expiresInMinutes) => {
+      const swapPath = `tab=limit&expiresInMinutes=${expiresInMinutes}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          initialTab: BridgeTabKey.Limit,
+        },
+      });
+    },
+  );
+
+  it.each(['', '0', '-1', '100', '100.1', '2.555', '.5', 'invalid'])(
+    'ignores unsupported price tolerance value "%s"',
+    async (priceTolerance) => {
+      const swapPath = `tab=limit&priceTolerance=${priceTolerance}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          initialTab: BridgeTabKey.Limit,
+        },
+      });
+    },
+  );
+
+  it('ignores Limit Order settings without the Limit tab', async () => {
+    const swapPath = 'expiresInMinutes=10080&priceTolerance=0.5';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
+  });
+
+  it('opens the Limit tab without token parameters', async () => {
+    const swapPath = 'tab=limit';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
+      },
+    });
+  });
+
+  it('opens the Recurring tab without token or schedule parameters', async () => {
+    const swapPath = 'tab=recurring';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+      },
+    });
+  });
+
+  it.each([
+    ['omitted', 'every=2&unit=week'],
+    ['empty', 'every=2&unit=week&repeatCount='],
+    ['zero', 'every=2&unit=week&repeatCount=0'],
+    ['negative', 'every=2&unit=week&repeatCount=-1'],
+    ['non-integer', 'every=2&unit=week&repeatCount=2.5'],
+    ['non-numeric', 'every=2&unit=week&repeatCount=invalid'],
+  ])(
+    'uses the default repeat count when it is %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Recurring,
+          initialRecurringSchedule: {
+            everyValue: '2',
+            everyUnit: 'week',
+            repeatCount: '10',
+          },
+        }),
+      });
+    },
+  );
+
+  it.each([
+    ['missing every', 'unit=week&repeatCount=8'],
+    ['missing unit', 'every=2&repeatCount=8'],
+    ['missing interval pair', 'repeatCount=8'],
+    ['unknown unit', 'every=2&unit=year&repeatCount=8'],
+    ['zero every', 'every=0&unit=week&repeatCount=8'],
+    ['non-integer every', 'every=2.5&unit=week&repeatCount=8'],
+    ['unit maximum exceeded', 'every=5&unit=week&repeatCount=8'],
+  ])(
+    'uses the default interval and preserves repeat count when %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          initialTab: BridgeTabKey.Recurring,
+          initialRecurringSchedule: {
+            everyValue: '1',
+            everyUnit: 'hour',
+            repeatCount: '8',
+          },
+        }),
+      });
+    },
+  );
+
+  it.each([
+    ['maximum duration exceeded', 'every=6&unit=month&repeatCount=2'],
+    ['default repeat count exceeds the maximum duration', 'every=1&unit=month'],
+  ])(
+    'ignores the complete schedule when %s',
+    async (_description, schedule) => {
+      const swapPath = `tab=recurring&${schedule}`;
+
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          initialTab: BridgeTabKey.Recurring,
+        },
+      });
+    },
+  );
+
+  it.each([
+    ['every=2&unit=week&repeatCount=8', undefined],
+    ['tab=limit&every=2&unit=week&repeatCount=8', BridgeTabKey.Limit],
+  ])(
+    'ignores Recurring schedule parameters outside the Recurring tab',
+    async (swapPath, initialTab) => {
+      await handleSwapUrl({ swapPath });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          ...(initialTab && { initialTab }),
+        },
+      });
+    },
+  );
+
+  it('ignores unknown tab parameters', async () => {
+    const swapPath = 'tab=dca';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
   });
 
   it('navigates to Bridge view with partial parameters (only source token)', async () => {
@@ -536,6 +848,53 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+      },
+    });
+  });
+
+  it('preserves the Limit tab when amount parsing falls back', async () => {
+    const swapPath =
+      'tab=limit&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=invalid&expiresInMinutes=10080&priceTolerance=0.5';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+      },
+    });
+  });
+
+  it('preserves the Recurring tab and schedule when amount parsing falls back', async () => {
+    const swapPath =
+      'tab=recurring&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=invalid&every=2&unit=week&repeatCount=8';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Recurring,
+        initialRecurringSchedule: {
+          everyValue: '2',
+          everyUnit: 'week',
+          repeatCount: '8',
+        },
       },
     });
   });

@@ -25,7 +25,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -96,7 +95,9 @@ import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellT
 import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
 import type { BatchSellTokenSelectRouteParams } from './types';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -245,6 +246,7 @@ interface TokenPriceDisplay {
 const EMPTY_TOKEN_PRICE_DISPLAY: TokenPriceDisplay = {};
 
 export function BatchSellTokenSelect() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<
     RouteProp<
@@ -639,7 +641,7 @@ export function BatchSellTokenSelect() {
         onPress={() => handleChainSelect(chainId)}
         isDisabled={isDisabled}
         size={ButtonToggleSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-4')}
         testID={`${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
       />
     ),
@@ -691,7 +693,13 @@ export function BatchSellTokenSelect() {
       edges={['bottom', 'left', 'right']}
     >
       <Box twClassName="flex-1">
-        <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title=""
+          onBack={handleBackPress}
+          includesTopInset
+        />
         {sortedEligibleChains.length === 0 ? (
           <BatchSellEmptyState
             onExploreTokensPress={handleExploreTokensPress}

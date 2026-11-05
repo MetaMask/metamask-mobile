@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   resetOnboardingState,
+  setApplePaySplashSeen,
   setCardArrivalAnimationSeen,
   setCardArrivalPreviewRequested,
 } from '../../../../../core/redux/slices/card';
@@ -53,6 +54,10 @@ const CardDeveloperOptionsSection = () => {
   const handleResetCardArrivalAnimation = useCallback(() => {
     dispatch(setCardArrivalAnimationSeen(false));
     dispatch(setCardArrivalPreviewRequested(true));
+  }, [dispatch]);
+
+  const handleResetApplePaySplash = useCallback(() => {
+    dispatch(setApplePaySplashSeen(false));
   }, [dispatch]);
 
   return (
@@ -135,6 +140,27 @@ const CardDeveloperOptionsSection = () => {
       >
         {strings(
           'app_settings.developer_options.card.reset_card_arrival_button',
+        )}
+      </Button>
+      <Text
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
+        style={tw.style('mt-6')}
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_apple_pay_splash_description',
+        )}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleResetApplePaySplash}
+        isFullWidth
+        style={tw.style('mt-4')}
+        testID="card-dev-reset-apple-pay-splash-button"
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_apple_pay_splash_button',
         )}
       </Button>
     </Box>

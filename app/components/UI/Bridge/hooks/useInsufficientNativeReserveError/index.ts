@@ -16,7 +16,6 @@ import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
-import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
 type ActiveQuote = QuoteResponse | null | undefined;
@@ -27,27 +26,16 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
   [key in ChainIdHexOrCaip]?: string;
 } = {
   '0x8f': '10',
-  // Arc: reserve pays gas only for ONE swap-or-bridge + its approve
-  // (~528k gas worst case). The 0.875% MetaMask fee is taken from the swap
-  // amount, not this native balance, so it's excluded here.
-  // 0.05 = ~5x base-fee-spike headroom over the 20 gwei floor.
-  '0x13b2': '0.05',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
 const getMinimumReserveBalanceForTokenChainAndAddress = ({
   chainId,
   tokenAddress,
-  token,
 }: {
   chainId: ChainIdHexOrCaip;
   tokenAddress: string;
-  token: BridgeToken;
 }): string => {
-  if (isArcTokenUSDC(token)) {
-    return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
-  }
-
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
     return '0';
   }
@@ -93,6 +81,12 @@ export const useInsufficientNativeReserveError = ({
   const isBitcoinReserveChain = Boolean(
     token?.chainId && isBitcoinChainId(token.chainId),
   );
+  const isNativeSourceToken = Boolean(
+    token?.address && isNativeAddress(token.address),
+  );
+  const quoteNativeReserve = isNativeSourceToken
+    ? sumAmounts(activeQuote?.quote.feeData.reserve)?.normalizedAmount
+    : undefined;
 
   if (
     !amount ||
@@ -100,7 +94,9 @@ export const useInsufficientNativeReserveError = ({
     !token?.chainId ||
     !latestAtomicBalance ||
     !walletAddress ||
-    (isNonEvmChainId(token.chainId) && !isBitcoinReserveChain)
+    (isNonEvmChainId(token.chainId) &&
+      !isBitcoinReserveChain &&
+      !quoteNativeReserve)
   ) {
     return undefined;
   }
@@ -126,15 +122,14 @@ export const useInsufficientNativeReserveError = ({
       isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
-  const isArcUSDCReserveToken = isArcTokenUSDC(token);
   const minimumNativeBalanceToBeKeptInAccount =
-    isNetworkGasSponsored || isBitcoinReserveChain || isArcUSDCReserveToken
+    quoteNativeReserve ??
+    (isNetworkGasSponsored || isBitcoinReserveChain
       ? getMinimumReserveBalanceForTokenChainAndAddress({
           chainId: chainIdWithNativeReserve,
           tokenAddress: token.address,
-          token,
         })
-      : '0';
+      : '0');
 
   const minimumNativeBalanceToBeKeptInAccountBaseUnits =
     minimumNativeBalanceToBeKeptInAccount !== '0'
@@ -148,13 +143,21 @@ export const useInsufficientNativeReserveError = ({
     return undefined;
   }
 
-  let btcQuoteNetworkFeeBaseUnits = BigNumberJS(0);
-  let btcQuoteSourceOverheadBaseUnits = BigNumberJS(0);
-  if (isBitcoinReserveChain && activeQuote) {
-    const networkFeeAmount = sumAmounts(
-      activeQuote.quote.feeData.network,
-      activeQuote.quote.feeData.relayer,
-    )?.normalizedAmount;
+  let quoteNetworkFeeBaseUnits = BigNumberJS(0);
+  let quoteSourceOverheadBaseUnits = BigNumberJS(0);
+  if ((isBitcoinReserveChain || quoteNativeReserve) && activeQuote) {
+    const isQuoteGasSeparatelyFunded = Boolean(
+      activeQuote.quote.gasIncluded ||
+        activeQuote.quote.gasIncluded7702 ||
+        activeQuote.quote.gasSponsored,
+    );
+    const defaultNetworkFeeAmount = quoteNativeReserve ? '0' : undefined;
+    const networkFeeAmount = isQuoteGasSeparatelyFunded
+      ? '0'
+      : (sumAmounts(
+          activeQuote.quote.feeData.network,
+          activeQuote.quote.feeData.relayer,
+        )?.normalizedAmount ?? defaultNetworkFeeAmount);
     const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
@@ -168,7 +171,9 @@ export const useInsufficientNativeReserveError = ({
       !networkFeeBaseUnits ||
       !sentAmountBaseUnits ||
       !inputAmountBaseUnits ||
-      networkFeeBaseUnits.lte(0)
+      (!quoteNativeReserve &&
+        !isQuoteGasSeparatelyFunded &&
+        networkFeeBaseUnits.lte(0))
     ) {
       return undefined;
     }
@@ -176,13 +181,13 @@ export const useInsufficientNativeReserveError = ({
     if (
       networkFeeBaseUnits
         .plus(sentAmountBaseUnits)
-        .gte(BigNumberJS(latestAtomicBalance.toString()))
+        .gt(BigNumberJS(latestAtomicBalance.toString()))
     ) {
       return undefined;
     }
 
-    btcQuoteNetworkFeeBaseUnits = networkFeeBaseUnits;
-    btcQuoteSourceOverheadBaseUnits = BigNumberJS.max(
+    quoteNetworkFeeBaseUnits = networkFeeBaseUnits;
+    quoteSourceOverheadBaseUnits = BigNumberJS.max(
       sentAmountBaseUnits.minus(inputAmountBaseUnits),
       0,
     );
@@ -191,8 +196,8 @@ export const useInsufficientNativeReserveError = ({
   const maxSwappableNativeBalanceBaseUnits = BigNumberJS.max(
     new BigNumberJS(latestAtomicBalance.toString() ?? '0')
       .minus(minimumNativeBalanceToBeKeptInAccountBaseUnits)
-      .minus(btcQuoteNetworkFeeBaseUnits)
-      .minus(btcQuoteSourceOverheadBaseUnits),
+      .minus(quoteNetworkFeeBaseUnits)
+      .minus(quoteSourceOverheadBaseUnits),
     0,
   );
 

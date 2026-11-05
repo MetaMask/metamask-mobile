@@ -1,9 +1,9 @@
 import type { MySocialProfile } from './useMyProfile';
 import {
+  clearLocalSocialProfile,
   getLocalSocialProfileSnapshot,
-  resetLocalSocialProfile,
-  restoreDefaultLocalSocialProfile,
   saveLocalSocialProfile,
+  subscribeLocalSocialProfile,
 } from './localSocialProfileStore';
 
 const onboardedProfile: MySocialProfile = {
@@ -12,38 +12,36 @@ const onboardedProfile: MySocialProfile = {
   handle: 'wen-cat',
   bio: null,
   imageUrl: null,
-  avatarPresetId: 'fox-emoji',
+  avatarPresetId: 'zombie',
   rankingTag: null,
   xHandle: null,
   followerCount: 0,
-  shareUrl: 'https://metamask.io/wen-cat',
   linkedAccountId: 'acc-1',
   shareTradingActivity: true,
 };
 
 describe('localSocialProfileStore', () => {
   afterEach(() => {
-    restoreDefaultLocalSocialProfile();
+    clearLocalSocialProfile();
   });
 
-  it('starts with the giga-whale mock', () => {
-    const { profile } = getLocalSocialProfileSnapshot();
-
-    expect(profile?.handle).toBe('giga-whale');
-    expect(profile?.displayName).toBe('Giga Whale');
-  });
-
-  it('clears the profile on reset', () => {
-    resetLocalSocialProfile();
-
+  it('starts empty', () => {
     expect(getLocalSocialProfileSnapshot().profile).toBeNull();
   });
 
-  it('replaces the mock when onboarding saves a profile', () => {
-    resetLocalSocialProfile();
-
+  it('stores the profile saved by onboarding', () => {
     saveLocalSocialProfile(onboardedProfile);
 
     expect(getLocalSocialProfileSnapshot().profile).toEqual(onboardedProfile);
+  });
+
+  it('notifies subscribers when a profile is saved', () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeLocalSocialProfile(listener);
+
+    saveLocalSocialProfile(onboardedProfile);
+    unsubscribe();
+
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });

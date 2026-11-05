@@ -17,13 +17,11 @@ export interface ChartScale {
   indexAtX: (x: number) => number;
 }
 
-/** Headroom above and below the data range, as a share of the range. */
-const RANGE_PADDING_RATIO = 0.08;
-
 /**
  * Linear index → x and value → y mapping. The y domain covers the line and
  * every reference level, so an entry far from the current price still lands
- * on the chart instead of off its edge.
+ * on the chart instead of off its edge. Vertical breathing room comes from
+ * the frame insets, not from padding the domain.
  */
 export function buildChartScale({
   values,
@@ -45,9 +43,6 @@ export function buildChartScale({
     min -= flatPad;
     max += flatPad;
   }
-  const pad = (max - min) * RANGE_PADDING_RATIO;
-  min -= pad;
-  max += pad;
 
   const plotHeight = frame.height - frame.insetTop - frame.insetBottom;
   const lastIndex = count - 1;
@@ -92,45 +87,6 @@ export function measurePolylineLength(points: readonly ChartPoint[]): number {
     );
   }
   return length;
-}
-
-/**
- * Centre y for each level's pill. Pills keep their line's y when they fit,
- * and are pushed apart (then pulled back inside the chart) when two levels
- * sit closer than one pill height — e.g. Exit and Current right after a close.
- */
-export function layoutLevelPills(
-  ys: readonly number[],
-  pillHeight: number,
-  chartHeight: number,
-): number[] {
-  const half = pillHeight / 2;
-  const order = ys.map((y, index) => ({ y, index })).sort((a, b) => a.y - b.y);
-
-  const placed = order.map(({ y }) =>
-    Math.min(Math.max(y, half), chartHeight - half),
-  );
-  for (let i = 1; i < placed.length; i++) {
-    placed[i] = Math.max(placed[i], placed[i - 1] + pillHeight);
-  }
-  const lastPlaced = placed.at(-1);
-  const overflow =
-    lastPlaced === undefined ? 0 : lastPlaced - (chartHeight - half);
-  if (overflow > 0) {
-    for (let i = placed.length - 1; i >= 0; i--) {
-      const ceiling =
-        i === placed.length - 1
-          ? chartHeight - half
-          : placed[i + 1] - pillHeight;
-      placed[i] = Math.max(Math.min(placed[i], ceiling), half);
-    }
-  }
-
-  const result = new Array<number>(ys.length);
-  order.forEach(({ index }, i) => {
-    result[index] = placed[i];
-  });
-  return result;
 }
 
 /** Index of the marker closest to `x` within `threshold`, else `-1`. */

@@ -1,3 +1,4 @@
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
@@ -5,7 +6,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionBottomSheetSelectorsIDs,
-  PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
   defaultMinimumOrderAmountMock,
@@ -27,6 +27,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockSheetClose = jest.fn();
 
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -54,6 +57,13 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+}));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
@@ -110,7 +120,7 @@ jest.mock(
   '../../components/LivePriceDisplay/LivePriceHeader',
   () => 'LivePriceHeader',
 );
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -203,7 +213,6 @@ describe('PerpsClosePositionBottomSheet', () => {
   const usePerpsRewardsMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsRewards,
   );
-
   beforeEach(() => {
     jest.clearAllMocks();
     resetLastCloseOrderType();
@@ -320,36 +329,31 @@ describe('PerpsClosePositionBottomSheet', () => {
       );
     });
 
-    it('renders margin and total rows without a separate fees row', () => {
+    it('renders receive and P&L rows without a margin or separate fees row', () => {
       const { getByTestId, getByText, queryByText } = renderSheet();
 
-      expect(
-        getByText(strings('perps.close_position.margin')),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG),
-      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+      expect(queryByText(strings('perps.close_position.margin'))).toBeNull();
       expect(queryByText(strings('perps.close_position.fees'))).toBeNull();
       expect(
-        getByText(strings('perps.close_position.total_inc_pnl')),
+        getByText(strings('perps.close_position.total_receive')),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE),
+        getByText(strings('perps.close_position.included_pnl')),
       ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE),
       ).toBeOnTheScreen();
     });
 
-    it('shows a gain in the net P&L delta alongside the total', () => {
+    it('shows a gain and its return percentage in the P&L row', () => {
       const { getByTestId } = renderSheet();
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('(+$150)');
+      ).toHaveTextContent('+$150 (+10.34%)');
     });
 
-    it('shows a loss in the net P&L delta alongside the total', () => {
+    it('shows a loss and its return percentage in the P&L row', () => {
       const losingPosition = {
         ...defaultPerpsPositionMock,
         unrealizedPnl: '-150.00',
@@ -364,7 +368,53 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('(-$150)');
+      ).toHaveTextContent('-$150 (-10.34%)');
+    });
+
+    it('keeps the percentage sign aligned with the loss when a limit price wipes out the effective margin', () => {
+      mockKeypadValue = '1000';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
+    });
+
+    it('omits the percentage when a limit price exhausts the effective margin exactly', () => {
+      const zeroMarginPosition = {
+        ...defaultPerpsPositionMock,
+        entryPrice: '2000.00',
+        size: '1',
+        marginUsed: '500.00',
+        unrealizedPnl: '0.00',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: zeroMarginPosition },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [zeroMarginPosition],
+        isInitialLoading: false,
+      });
+      // Effective margin (marginUsed - unrealizedPnl + effectivePnL) lands on
+      // exactly 0 at this limit price, so the true percentage is undefined
+      // (division by zero) rather than actually 0.
+      mockKeypadValue = '1500';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$500');
+      expect(pnlRow).not.toHaveTextContent('%');
     });
 
     it('renders the fiat/token display toggle', () => {
@@ -464,7 +514,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
       const unit = () =>
         queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
-      const fiatFirst = amount().props.children;
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
 
       fireEvent.press(
@@ -472,9 +522,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      const tokenFirst = amount().props.children;
-
-      expect(tokenFirst).not.toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('1.5');
       expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
@@ -482,7 +530,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      expect(amount().props.children).toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
     });
 
@@ -657,17 +705,24 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveTextContent(strings('perps.order.set_price'));
     });
 
-    it('explains the disabled Close button while the limit price is unset', () => {
+    it('colors Set price as an error when the limit price is unset', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
       fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
       expect(
-        utils.getByText(
+        utils.queryByText(
           strings('perps.order.validation.please_set_a_limit_price'),
         ),
-      ).toBeOnTheScreen();
+      ).toBeNull();
+      const setPriceText = utils
+        .UNSAFE_getAllByType(Text)
+        .find(
+          (text) => text.props.children === strings('perps.order.set_price'),
+        );
+
+      expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
     });
 
     it('shows the review state when the limit order flag is off despite a remembered limit type', () => {
@@ -696,7 +751,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('reopens the limit price keypad when the limit price row is pressed after Done', () => {
+    it('reopens the limit price keypad when Set price is pressed after Done', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
@@ -704,13 +759,36 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(utils.queryByTestId('mock-keypad')).toBeNull();
 
-      fireEvent.press(
-        utils.getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
-        ),
-      );
+      fireEvent.press(utils.getByText(strings('perps.order.set_price')));
 
       expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
+    });
+
+    it("announces the row's state to assistive tech, not just its label", () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ).props.accessibilityLabel,
+      ).toBe(
+        `${strings('perps.order.limit_price')}, ${strings(
+          'perps.order.set_price',
+        )}`,
+      );
+
+      fireEvent.press(utils.getByText(strings('perps.order.set_price')));
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ).props.accessibilityLabel,
+      ).toBe(`${strings('perps.order.limit_price')}, $3,100`);
     });
 
     it('reopens on the last selected order type', () => {
@@ -903,6 +981,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
         feeDiscountPercentage: 15,
+        feeDiscountKind: 'vip',
       });
 
       const { getByTestId } = renderSheet();
@@ -927,9 +1006,27 @@ describe('PerpsClosePositionBottomSheet', () => {
       toggleOrderType(utils);
       fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
+      const confirmButton = getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.accessibilityHint).toBe(
+        strings('perps.order.validation.please_set_a_limit_price'),
+      );
+    });
+
+    it('has no accessibility hint once a limit price is entered', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
-      ).toBeDisabled();
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ).props.accessibilityHint,
+      ).toBeUndefined();
     });
 
     it('submits the close and dismisses the sheet', async () => {
@@ -991,34 +1088,6 @@ describe('PerpsClosePositionBottomSheet', () => {
           }),
         );
       });
-    });
-  });
-
-  describe('tooltips', () => {
-    it('opens the margin tooltip inside the current sheet', () => {
-      const { getByTestId, queryByTestId } = renderSheet();
-
-      fireEvent.press(
-        getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_TOOLTIP_BUTTON,
-        ),
-      );
-
-      expect(
-        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
-      ).toBeOnTheScreen();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
-      ).toBeNull();
-
-      fireEvent.press(
-        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
-      );
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
-      ).toBeOnTheScreen();
     });
   });
 

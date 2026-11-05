@@ -23,7 +23,7 @@ const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
  * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
  * exports.
  */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+export const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   SUBSCRIPTION_STATUSES.active,
   SUBSCRIPTION_STATUSES.trialing,
   SUBSCRIPTION_STATUSES.provisional,
@@ -36,6 +36,19 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
 const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   ...ACTIVE_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_STATUSES.paused,
+]);
+/**
+ * Plus statuses Pro Hub can render. Matches `getMembershipBannerModel`:
+ * active, trialing, provisional, and awaiting funds show Active; past due
+ * shows Overdue; paused and unpaid show Deactivated. Canceled, incomplete,
+ * and incomplete-expired stay on the join label and Benefits.
+ */
+const MEMBERSHIP_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  ...ACTIVE_SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_STATUSES.awaitingFunds,
+  SUBSCRIPTION_STATUSES.pastDue,
+  SUBSCRIPTION_STATUSES.paused,
+  SUBSCRIPTION_STATUSES.unpaid,
 ]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
@@ -126,6 +139,26 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
       (subscription) =>
         ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+    ),
+);
+
+/**
+ * Selects whether the Plus subscription should open Pro Hub.
+ *
+ * Active, trialing, provisional, awaiting funds, past due, paused, and unpaid
+ * use the MetaMask Orange label and Pro Hub. Canceled, incomplete, and
+ * incomplete-expired plans stay on the join label and Benefits.
+ *
+ * @param state - The root Redux state.
+ * @returns True when the Orange row should label the membership and open Pro Hub.
+ */
+export const selectHasMoneyAccountPlusMembership = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS) &&
+        MEMBERSHIP_SUBSCRIPTION_STATUSES.has(subscription.status),
     ),
 );
 
@@ -248,17 +281,53 @@ export const selectMoneyAccountPlusSubscription = (
   selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
 
 /**
- * Selects whether the current Money Account Plus subscription is trialing.
+ * Selects the Money Account Plus subscription to show on Pro Hub.
  *
- * `trialedProducts` is the historical list of products this user has already
- * trialed. It stays populated after a trial converts to paid, so current
- * trial state is `SUBSCRIPTION_STATUSES.trialing` on the Plus subscription.
+ * Prefers the current subscription at any status. When that list has none,
+ * falls back to the last subscription so a cancelled plan can still render.
+ *
+ * @param state - The root Redux state.
+ * @returns The displayed Plus subscription, or undefined when the user has none.
+ */
+export const selectDisplayedMoneyAccountPlusSubscription = (
+  state: RootState,
+): Subscription | undefined =>
+  selectMoneyAccountPlusSubscription(state) ??
+  selectLastSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
+/**
+ * Whether this Plus subscription should use the free-trial Pro Hub treatment.
+ *
+ * A free trial is `provisional` until CHOMP mints and the subscription moves
+ * to `trialing`. `trialPeriodDays` is what separates that provisional plan
+ * from a paid one. After the trial ends the paid plan can still carry
+ * `trialPeriodDays`, so the field only counts while the status is
+ * `provisional`. `trialedProducts` stays populated after conversion and is
+ * not current trial state.
+ *
+ * @param subscription - The current Plus subscription, when one exists.
+ * @returns Whether the hub should show the free-trial label, lock, and card.
+ */
+export function isMoneyAccountPlusFreeTrial(
+  subscription: Subscription | undefined,
+): boolean {
+  if (subscription?.status === SUBSCRIPTION_STATUSES.trialing) {
+    return true;
+  }
+
+  return (
+    subscription?.status === SUBSCRIPTION_STATUSES.provisional &&
+    (subscription.trialPeriodDays ?? 0) > 0
+  );
+}
+
+/**
+ * Selects whether the current Money Account Plus subscription is a free trial.
  *
  * @param state - The root Redux state.
  * @returns Whether Plus is currently in a trial.
  */
 export const selectIsMoneyAccountPlusTrialing = createSelector(
   selectMoneyAccountPlusSubscription,
-  (subscription): boolean =>
-    subscription?.status === SUBSCRIPTION_STATUSES.trialing,
+  isMoneyAccountPlusFreeTrial,
 );

@@ -27,6 +27,8 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#E1A9FF',
   gettingStartedTextColor: '#360853',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  // Card welcome gradient. The nearest brand purple, indigo900, reads blue.
+  cardWelcomeGradientDark: '#1D002E',
   // Provider iframe backgrounds — these colors are set by each provider and
   // outside our control. We match them in the checkout BottomSheet so the
   // native chrome feels seamless with the embedded webview. Update only if

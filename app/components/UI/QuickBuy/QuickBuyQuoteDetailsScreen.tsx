@@ -21,7 +21,7 @@ import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
 import { DiscountType } from '@metamask/bridge-controller';
-import RewardsVipBadge from '../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
@@ -108,23 +108,12 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
       ) : (
         <Box twClassName="px-4 pt-3" gap={2}>
           <QuickBuyQuoteDetailRow
-            label={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.rate')}
-                </Text>
-                <QuickBuyQuoteCountdown
-                  quotesLastFetchedAt={quotesLastFetchedAt}
-                  quoteRefreshRateMs={quoteRefreshRateMs}
-                />
-              </Box>
+            label={strings('social_leaderboard.quick_buy.rate')}
+            labelAccessory={
+              <QuickBuyQuoteCountdown
+                quotesLastFetchedAt={quotesLastFetchedAt}
+                quoteRefreshRateMs={quoteRefreshRateMs}
+              />
             }
             tooltipTitle={strings('bridge.quote_info_title')}
             tooltipContent={strings('bridge.quote_info_content')}
@@ -213,7 +202,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
               >
                 {discountBadge ? (
                   isRewardsTierBadge ? (
-                    <RewardsVipBadge
+                    <MembershipVipBadge
                       hasProEntitlement={
                         discountBadge.type === DiscountType.SUBSCRIPTION
                       }

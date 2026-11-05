@@ -126,7 +126,7 @@ export const SecurityAttribution: React.FC<SecurityAttributionProps> = ({
 
   return (
     <Wrapper
-      style={tw.style('flex-row items-center gap-2', twClassName)}
+      style={tw.style('flex-row items-center gap-1', twClassName)}
       testID={testID}
       accessible
       accessibilityRole={onPress ? 'button' : undefined}

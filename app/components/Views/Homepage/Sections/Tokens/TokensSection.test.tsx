@@ -377,6 +377,32 @@ describe('TokensSection', () => {
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
 
+  it('only notifies Homepage after primary content becomes ready', () => {
+    const onContentReadyChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).not.toHaveBeenCalled();
+
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+
+    rerender(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
   it('renders "Tokens" title for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
@@ -649,7 +675,7 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('error-state')).toBeNull();
   });
 
-  it('renders ErrorState when account has balance but selector returns no tokens', () => {
+  it('keeps the token list when the account has balance but no homepage tokens', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockAccountGroupBalance.mockReturnValue({
@@ -661,29 +687,10 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
-  });
-
-  it('retries data fetch when retry is pressed on heuristic error', async () => {
-    mockUseIsZeroBalanceAccount.mockReturnValue(false);
-    mockSortedTokenKeys.mockReturnValue([]);
-    mockAccountGroupBalance.mockReturnValue({
-      totalBalanceInUserCurrency: 100,
-      userCurrency: 'usd',
-    });
-
-    renderWithProvider(
-      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('error-state-retry-button'));
-    });
-
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('error-state')).toBeNull();
+    expect(
+      screen.getByTestId(homepageSectionTitleTestId('tokens')),
+    ).toBeOnTheScreen();
   });
 
   it('does not show RemoveTokenBottomSheet by default', () => {

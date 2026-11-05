@@ -34,11 +34,12 @@ _api_prod: &api_prod
   PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
-  IDOS_ENCLAVE_URL: 'https://enclave.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.idos.network'
   IDOS_RELAY_URL: 'https://relay.idos.network'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
+  PROFILE_API_URL: 'https://profile.api.cx.metamask.io'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
@@ -82,6 +83,7 @@ _api_dev: &api_dev
   CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+  PROFILE_API_URL: 'https://profile.dev-api.cx.metamask.io'
   PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
@@ -102,6 +104,7 @@ _api_uat: &api_uat
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+  PROFILE_API_URL: 'https://profile.uat-api.cx.metamask.io'
   PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
@@ -129,6 +132,7 @@ _secrets: &secrets # Infrastructure
   # API Keys
   MM_INFURA_PROJECT_ID: 'MM_INFURA_PROJECT_ID'
   WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
+  MM_KLIPY_API_KEY: 'MM_KLIPY_API_KEY'
   MM_FOX_CODE: 'MM_FOX_CODE'
   MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
   MM_BRANCH_KEY_TEST: 'MM_BRANCH_KEY_TEST'
@@ -296,7 +300,6 @@ builds:
   # It also arms Hermes CPU profiling from index.js and dumps a trace to app-scoped
   # storage whenever the app is backgrounded (see docs/readme/release-build-profiler.md).
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
-  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
     github_environment: build-e2e
     signing: *signing_uat
@@ -315,7 +318,9 @@ builds:
       # selector override so Telegram seedless onboarding performance coverage
       # (TO-916) can see the button without depending on remote test flags.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets: *secrets
+    secrets:
+      <<: *secrets
+      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
     code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
@@ -364,7 +369,6 @@ builds:
 
   # Release candidate without pre-imported wallet — seedless onboarding (OAuthLoginHandlers mocked)
   # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
-  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-rc-without-srp:
     script_name: main-rc
     github_environment: build-rc
@@ -381,7 +385,9 @@ builds:
       # Keep Telegram seedless onboarding available for RC without-srp perf runs
       # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets: *secrets
+    secrets:
+      <<: *secrets
+      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
     code_fencing: *code_fencing_main
 
   # Test builds
@@ -453,7 +459,6 @@ builds:
     code_fencing: *code_fencing_experimental
 
   # BrowserStack experimental builds — seedless onboarding (OAuthLoginHandlers mocked)
-  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-exp-without-srp:
     github_environment: build-exp
     signing: *signing_uat
@@ -468,7 +473,9 @@ builds:
       OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets: *secrets
+    secrets:
+      <<: *secrets
+      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
     code_fencing: *code_fencing_experimental
 
   # Local development / Expo development build (Runway .app for simulator)
@@ -476,7 +483,8 @@ builds:
   main-dev:
     github_environment: build-dev
     signing: *signing_dev
-    env: *main_dev_env
+    env:
+      <<: *main_dev_env
     secrets: *secrets
     code_fencing: *code_fencing_main
 

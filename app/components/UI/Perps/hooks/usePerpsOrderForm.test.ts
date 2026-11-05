@@ -239,6 +239,7 @@ describe('usePerpsOrderForm', () => {
       },
       refetch: jest.fn(),
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
     });
   });
@@ -989,6 +990,108 @@ describe('usePerpsOrderForm', () => {
       ).toHaveBeenCalledWith('limit');
     });
 
+    it('clears the active price field when the order type changes', () => {
+      // A field tied to the previous type (e.g. a Scale rung) no longer
+      // exists once the type changes, so a stale selection must not persist.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('scaleStart');
+      });
+      expect(result.current.activePriceField).toBe('scaleStart');
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('clears the active price field when the asset changes', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('limit');
+      });
+      expect(result.current.activePriceField).toBe('limit');
+
+      act(() => {
+        result.current.setAsset('SOL');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('commits an order-book price to the limit field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('limit', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+    });
+
+    it('commits an order-book price to the trigger field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('trigger', '51000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
+    });
+
+    it('returns false for a Pro-only field with no registered handler', () => {
+      // Lite never registers Scale/Chase handlers, so the caller (an
+      // order-book tap) knows to fall back to its own default field.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = true;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(false);
+    });
+
+    it('routes to a handler registered for a Pro-only field', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      const scaleStartHandler = jest.fn();
+      act(() => {
+        result.current.registerPriceFieldHandlers({
+          scaleStart: scaleStartHandler,
+        });
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(scaleStartHandler).toHaveBeenCalledWith('50000');
+    });
+
     it('persists leverage via saveTradeConfiguration', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1098,6 +1201,23 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
+    it('caps an amount set above the margin max at that max', () => {
+      // The Pro order-book size fill (TAT-4085) relies on this cap.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setAmount(String(marginMax * 10));
+      });
+
+      expect(marginMax).toBeGreaterThan(0);
+      expect(result.current.orderForm.amount).toBe(
+        String(Math.floor(marginMax)),
+      );
+    });
+
     it('does not clamp typed amounts while a max override is set', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1154,6 +1274,70 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('fee-adjusted max amount', () => {
+    const feeRate = 0.0045;
+
+    it('reserves the trading fee so margin plus fee fits the balance at 100%', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      expect(result.current.maxPossibleAmount).toBeLessThan(unreservedMax);
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+        1000,
+      );
+    });
+
+    it('lowers an amount held at max when the quoted fee rate rises', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0.001);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+      const lowFeeMax = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.setEstimatedFeeRate(0.02);
+      });
+
+      expect(result.current.maxPossibleAmount).toBeLessThan(lowFeeMax);
+      expect(Number(result.current.orderForm.amount)).toBe(
+        result.current.maxPossibleAmount,
+      );
+    });
+
+    it('restores the unreserved max when the quote is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(unreservedMax);
+    });
+  });
+
   describe('limit order price adjustment', () => {
     it('uses limit price for maxPossibleAmount when order type is limit', () => {
       // Use low-precision asset where price difference causes rounding differences
@@ -1166,6 +1350,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 
@@ -1244,6 +1429,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 
@@ -1385,6 +1571,9 @@ describe('usePerpsOrderForm', () => {
       'setLimitPrice',
       'setTriggerPrice',
       'setOrderType',
+      'setActivePriceField',
+      'registerPriceFieldHandlers',
+      'commitPriceToField',
       'handlePercentageAmount',
       'handleMaxAmount',
       'handleMinAmount',

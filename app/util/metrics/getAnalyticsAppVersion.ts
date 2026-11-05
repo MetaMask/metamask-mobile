@@ -21,7 +21,7 @@ const UNOFFICIAL_RC_SUFFIX = 'rc-unofficial';
  * release candidates that share the same METAMASK_ENVIRONMENT.
  *
  * `rc` emits `-release-candidate` only when attribution is `official`. Any
- * other rc build (local, BrowserStack, ad-hoc CI) emits `-rc-unofficial`.
+ * other rc build (local, cloud device, or ad-hoc CI) emits `-rc-unofficial`.
  */
 export const formatAnalyticsAppVersion = (
   baseVersion: string,

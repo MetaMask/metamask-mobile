@@ -495,6 +495,20 @@ const mockUsePerpsMarketsImpl = jest.fn<
   isRefreshing: false,
 }));
 
+jest.mock('../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({
+    sharePosition: jest.fn(),
+    findSocialPosition: () => undefined,
+  }),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: (
@@ -5622,6 +5636,50 @@ describe('PerpsMarketDetailsView', () => {
         expect(getByText('5x')).toBeOnTheScreen();
       });
       expect(queryByText('100')).toBeNull();
+    });
+
+    it('enriches a route symbol that differs from the market only in case', async () => {
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      mockRouteParams.market = {
+        symbol: 'KPEPE',
+        name: 'KPEPE',
+        price: '0',
+        change24h: '0',
+        change24hPercent: '0',
+        volume: '0',
+        maxLeverage: '100',
+      };
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'kPEPE',
+            providerId: 'hyperliquid',
+            name: 'kPEPE',
+            price: '$0.01',
+            change24h: '+$0.00',
+            change24hPercent: '+1.00%',
+            volume: '$1M',
+            maxLeverage: '10x',
+            volumeNumber: 1_000_000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(getByText('10x')).toBeOnTheScreen();
+      });
+      expect(usePerpsMarketData).toHaveBeenLastCalledWith({ asset: 'kPEPE' });
     });
 
     it('passes enriched SPCX leverage defaults to order screen', async () => {

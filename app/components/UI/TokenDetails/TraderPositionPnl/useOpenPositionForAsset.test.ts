@@ -91,6 +91,48 @@ describe('useOpenPositionForAsset', () => {
     await expect(queryOptions().queryFn({})).resolves.toBeNull();
   });
 
+  it('retries with the wallet when the profile id is not found', async () => {
+    mockGetOpenPosition
+      .mockRejectedValueOnce(new TraderPositionHttpError(404))
+      .mockResolvedValueOnce({
+        pnl: {
+          positionAmount: 1,
+          isOpen: true,
+          boughtUsd: 10,
+          soldUsd: 0,
+          realizedPnl: 0,
+          costBasis: 10,
+          currentValueUSD: 12,
+          pnlValueUsd: 2,
+          pnlPercent: 20,
+          pnlStatus: 'ready',
+        },
+        position: null,
+      });
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'dfab10bf-9412-40fe-b018-96d28376d4d7',
+        '0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await queryOptions().queryFn({});
+
+    expect(mockGetOpenPosition).toHaveBeenNthCalledWith(
+      1,
+      'dfab10bf-9412-40fe-b018-96d28376d4d7',
+      '0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      undefined,
+    );
+    expect(mockGetOpenPosition).toHaveBeenNthCalledWith(
+      2,
+      '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      '0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      undefined,
+    );
+  });
+
   it('returns null when the wallet is not owned', async () => {
     mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(403));
     renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));

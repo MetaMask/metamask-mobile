@@ -22,6 +22,7 @@ import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
+import { usePredictEntryActions } from '../../../PredictNext';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -35,10 +36,11 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
-const MoneyTransferSheet = () => {
+const MoneyTransferSheetContent = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -49,6 +51,10 @@ const MoneyTransferSheet = () => {
     useMoneyPredictDeposit();
   const isPerpsEligible = useSelector(selectPerpsEligibility);
   const { isEligible: isPredictEligible } = usePredictEligibility();
+  // The Predictions account transfer is a legacy Polymarket deposit. It is
+  // offered only while the Active Venue supports Predict funding.
+  const { canOpenPredict } = usePredictEntryActions();
+  const isPredictFundingSupported = canOpenPredict({ type: 'addFunds' });
 
   // External mUSD send is available only for a settled balance containing
   // liquid mUSD and no vmUSD-backed balance. Loading/error/missing values and
@@ -203,7 +209,7 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    ...(isPredictEligible
+    ...(isPredictEligible && isPredictFundingSupported
       ? [
           {
             label: strings('money.transfer_sheet.predictions_account'),
@@ -214,17 +220,19 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    {
-      label: strings('money.transfer_sheet.back_to_account'),
-      icon: IconName.Arrow2UpRight,
-      // The design system has no up-left arrow: the up-right "send" arrow is
-      // mirrored horizontally to point up-left ("send back").
-      iconProps: { style: { transform: [{ scaleX: -1 }] } },
-      testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
-      onPress: isRescueSendAvailable ? handleSendExternal : undefined,
-      disabled: !isRescueSendAvailable,
-      comingSoon: !isRescueSendAvailable,
-    },
+    ...(isRescueSendAvailable
+      ? [
+          {
+            label: strings('money.transfer_sheet.back_to_account'),
+            icon: IconName.Arrow2UpRight,
+            // The design system has no up-left arrow: the up-right "send" arrow is
+            // mirrored horizontally to point up-left ("send back").
+            iconProps: { style: { transform: [{ scaleX: -1 }] } },
+            testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
+            onPress: handleSendExternal,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
       icon: IconName.Bank,
@@ -251,6 +259,16 @@ const MoneyTransferSheet = () => {
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyTransferSheet = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyTransferSheetContent />;
 };
 
 export default MoneyTransferSheet;

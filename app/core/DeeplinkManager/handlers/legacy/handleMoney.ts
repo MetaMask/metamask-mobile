@@ -1,12 +1,13 @@
 /* eslint-disable jsdoc/check-indentation */
 import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { getVbaEligibility } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { VbaOnboardingRoutes } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import {
   isVbaGeoBypassEnabled,
-  selectMoneyMovementBrazilNeobankEnabled,
+  selectMoneyMovementNeobank,
   selectMoneyOnboardingStepperAnimationEnabled,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
@@ -17,11 +18,7 @@ import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import {
-  hasMinimumRequiredVersion,
-  isVersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../util/remoteFeatureFlag';
+import { isVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
@@ -85,8 +82,7 @@ const getMoneyAccountFlagStatus = (
     selectRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
 
   if (!Array.isArray(rawFlag)) {
-    // Standard flags must use the resolved selector to match Money stack registration.
-    return validatedVersionGatedFeatureFlag(resolvedFlag)
+    return selectMoneyEnableMoneyAccountFlag(state)
       ? MoneyAccountFlagStatus.Enabled
       : MoneyAccountFlagStatus.Disabled;
   }
@@ -104,8 +100,7 @@ const getMoneyAccountFlagStatus = (
     return MoneyAccountFlagStatus.NotInRollout; // in the "disabled" cohort
   }
 
-  // In the "enabled" cohort, but still version-gated
-  return hasMinimumRequiredVersion(resolvedFlag.minimumVersion)
+  return selectMoneyEnableMoneyAccountFlag(state)
     ? MoneyAccountFlagStatus.Enabled
     : MoneyAccountFlagStatus.Disabled;
 };
@@ -120,13 +115,18 @@ const navigateToDeeplinkModal = (title: string, description: string) =>
 export const MONEY_ACCOUNT_SCREEN = 'account';
 
 // Same gate as the Add money sheet's bank account row (`useVbaEligibility`).
-const isVbaEligible = (state: RootState): boolean =>
-  getVbaEligibility({
-    isFlagEnabled: selectMoneyMovementBrazilNeobankEnabled(state),
-    location: selectGeolocationLocation(state),
+const isVbaEligible = (state: RootState): boolean => {
+  const { isEnabled, regions, regionOverride } =
+    selectMoneyMovementNeobank(state);
+
+  return getVbaEligibility({
+    isFlagEnabled: isEnabled,
+    location: regionOverride ?? selectGeolocationLocation(state),
     geolocationStatus: selectGeolocationStatus(state),
     isDevBypassEnabled: isVbaGeoBypassEnabled(),
+    regions,
   }).isEligible;
+};
 
 /**
  * Handles the /money universal link.

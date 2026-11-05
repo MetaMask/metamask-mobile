@@ -56,15 +56,14 @@ describe('TraderPositionPnlDetails', () => {
     });
   });
 
-  it('disables sharing until a share handler is provided', () => {
-    const { getByTestId } = render(<TraderPositionPnlDetails {...details} />);
-
-    const shareButton = getByTestId(
-      'token-details-trader-position-pnl-expanded-details-share',
+  it('hides sharing until a share handler is provided', () => {
+    const { queryByTestId, queryByText } = render(
+      <TraderPositionPnlDetails {...details} />,
     );
 
-    expect(shareButton.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: true }),
-    );
+    expect(
+      queryByTestId('token-details-trader-position-pnl-expanded-details-share'),
+    ).toBeNull();
+    expect(queryByText('Share to feed')).toBeNull();
   });
 });

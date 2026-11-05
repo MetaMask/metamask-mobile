@@ -22,7 +22,7 @@ interface Preset {
 }
 
 const reason = (operation: string) => ({
-  operation: `qa.${operation}`,
+  operation: `qa.${operation}` as const,
   enrollDescription: `QA preset: ${operation}`,
   verifyDescription: `QA preset: ${operation}`,
 });
@@ -87,6 +87,20 @@ const PRESETS: Preset[] = [
         reason: reason('emailAndPasskey'),
       }),
   },
+  {
+    label: 'Enroll authenticator app',
+    run: (mfa) =>
+      mfa.enroll({ method: 'totp', reason: reason('enrollAuthenticatorApp') }),
+  },
+  {
+    label: 'Verify with authenticator app',
+    run: (mfa) =>
+      mfa.verifyOrEnroll({
+        methods: ['totp'],
+        verifyWith: 'totp',
+        reason: reason('verifyAuthenticatorApp'),
+      }),
+  },
 ];
 
 const describeResult = ({ credentials, token }: MfaFlowResult) =>
@@ -123,7 +137,10 @@ const MfaQaPresets = () => {
   };
 
   return (
-    <Box twClassName="gap-3" testID={MfaSettingsSelectorsIDs.QA_PRESETS}>
+    <Box
+      twClassName="px-4 pt-4 gap-3"
+      testID={MfaSettingsSelectorsIDs.QA_PRESETS}
+    >
       <Text variant={TextVariant.HeadingSm}>QA presets (non-production)</Text>
       {PRESETS.map((preset) => (
         <Button

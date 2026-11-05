@@ -20,6 +20,10 @@ export interface ExplorePillProps
   /** Icon or logo on the left (e.g. token logo, with or without a network badge wrapper). */
   leading: React.ReactNode;
   title: string;
+  titleTextColor?: TextColor;
+  titleVariant?: TextVariant;
+  /** Defaults to the 40px pill. Trending chips use the 32px size. */
+  size?: ButtonSize;
   changeLabel?: string;
   changeTextColor?: TextColor;
   /** Accessory after the label (e.g. a check on the active filter). */
@@ -35,6 +39,9 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   testID,
   leading,
   title,
+  titleTextColor = TextColor.TextDefault,
+  titleVariant = TextVariant.BodyMd,
+  size = ButtonSize.Md,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
   trailing,
@@ -46,7 +53,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
     <Button
       onPress={onPress}
       testID={testID}
-      size={ButtonSize.Md}
+      size={size}
       variant={ButtonVariant.Secondary}
       startAccessory={leading}
       endAccessory={trailing}
@@ -58,9 +65,9 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         gap={2}
       >
         <Text
-          variant={TextVariant.BodyMd}
+          variant={titleVariant}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
+          color={titleTextColor}
           numberOfLines={1}
         >
           {title}

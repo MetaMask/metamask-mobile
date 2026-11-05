@@ -11,46 +11,82 @@ import {
   getOpenPositionForAsset,
   TraderPositionHttpError,
 } from './traderPositionService';
-import type { OpenPositionPnl } from './types';
+import type { OpenPositionPnl, TraderPosition } from './types';
 import { TRADER_POSITION_POLL_INTERVAL_MS } from './useTraderPosition';
 
 export interface UseOpenPositionForAssetResult {
   position: OpenPositionPnl | null;
+  /** Full list row, used to attach the position card in the post composer. */
+  sharePosition: TraderPosition | null;
+  /** Set only when the open route never answered. */
+  earliestTradeAt?: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-const queryKey = (address: string | undefined, assetId: string | undefined) =>
-  ['TraderPositionPnl', 'open-position', address, assetId] as const;
+const queryKey = (
+  traderId: string | undefined,
+  tokenAddress: string | undefined,
+  walletAddress: string | undefined,
+) =>
+  [
+    'TraderPositionPnl',
+    'open-positions',
+    traderId,
+    tokenAddress,
+    walletAddress,
+  ] as const;
+
+const isMissingTrader = (error: unknown): boolean =>
+  error instanceof TraderPositionHttpError &&
+  (error.status === 404 || error.status === 403);
 
 /**
- * This wallet's open position in one CAIP-19 asset.
+ * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
+ * `{assetId}` is the CAIP-19 id of the token on screen.
  * Polled on the same interval as `useTraderPosition` while the screen is focused.
- * 404 and 403 are "no ready position" (`null`), not an error.
+ * 404 and 403 are "no ready position" (`null`), not an error. A different
+ * wallet is tried once when the first address is not the one the caller holds.
  */
 export const useOpenPositionForAsset = (
-  address: string | undefined,
-  assetId: string | undefined,
+  traderId: string | undefined,
+  tokenAddress: string | undefined,
+  walletAddress?: string,
 ): UseOpenPositionForAssetResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const isFocused = useIsFocused();
-  const enabled = Boolean(address && assetId) && isUnlocked;
+  const enabled = Boolean(traderId && tokenAddress) && isUnlocked;
 
   const query = useQuery({
-    queryKey: queryKey(address, assetId),
+    queryKey: queryKey(traderId, tokenAddress, walletAddress),
     queryFn: async ({ signal }) => {
       try {
         return await getOpenPositionForAsset(
-          address ?? '',
-          assetId ?? '',
+          traderId ?? '',
+          tokenAddress ?? '',
           signal,
         );
       } catch (error) {
-        if (
-          error instanceof TraderPositionHttpError &&
-          (error.status === 404 || error.status === 403)
-        ) {
+        const fallback =
+          walletAddress && walletAddress !== traderId
+            ? walletAddress
+            : undefined;
+        if (isMissingTrader(error) && fallback) {
+          try {
+            return await getOpenPositionForAsset(
+              fallback,
+              tokenAddress ?? '',
+              signal,
+            );
+          } catch (retryError) {
+            if (isMissingTrader(retryError)) {
+              return null;
+            }
+            throw retryError;
+          }
+        }
+        if (isMissingTrader(error)) {
           return null;
         }
         throw error;
@@ -68,9 +104,8 @@ export const useOpenPositionForAsset = (
     extraMessage: 'Open position PnL fetch failed',
     source: 'useOpenPositionForAsset',
     endpoint: 'open_positions',
-    // The wallet address is deliberately left out: these extras reach Sentry,
-    // and the asset id is enough to locate a failing route.
-    queryParams: { assetId: assetId ?? '' },
+    // The trader id is deliberately left out: these extras reach Sentry.
+    queryParams: { tokenAddress: tokenAddress ?? '' },
   });
 
   const refetchPosition = useCallback(async () => {
@@ -78,7 +113,9 @@ export const useOpenPositionForAsset = (
   }, [refetch]);
 
   return {
-    position: data ?? null,
+    position: data?.pnl ?? null,
+    sharePosition: data?.position ?? null,
+    earliestTradeAt: data?.earliestTradeAt,
     isLoading: enabled && isLoading,
     error: formatSocialQueryErrorMessage(error),
     refetch: refetchPosition,

@@ -94,7 +94,7 @@ export const SocialLeaderboardEventValues = {
     FOLLOWING: 'tab_following',
     TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
-    LIVE_TRADES: 'tab_live_trades',
+    LIVE: 'tab_live',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {

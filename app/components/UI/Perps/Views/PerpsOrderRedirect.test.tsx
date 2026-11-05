@@ -426,6 +426,54 @@ describe('PerpsOrderRedirect', () => {
     );
   });
 
+  it('forwards the copy-trade origin onto the confirmation screen', async () => {
+    const copyTradeOrigin = { commentId: 'comment-1', asset: 'BTC' };
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'BTC',
+        source: 'trader_feed',
+        useBottomSheet: true,
+        copyTradeOrigin,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({ copyTradeOrigin }),
+      );
+    });
+  });
+
+  it('omits the copy-trade origin when the route has none', async () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.not.objectContaining({ copyTradeOrigin: expect.anything() }),
+      );
+    });
+  });
+
   it('dismisses a sheet entry when the Perps connection never becomes ready', () => {
     jest.useFakeTimers();
     try {

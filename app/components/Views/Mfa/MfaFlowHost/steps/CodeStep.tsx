@@ -1,12 +1,21 @@
-import React, { useCallback, useEffect, useReducer, useState } from 'react';
-import { Keyboard, TextInput, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { Keyboard, Pressable, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
   HelpText,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -18,7 +27,10 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { strings } from '../../../../../../locales/i18n';
-import { getErrorHandling } from '../../../../../util/identity/mfa/engine/errors';
+import {
+  getErrorHandling,
+  isCooldownCountdown,
+} from '../../../../../util/identity/mfa/engine/errors';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 import { maskEmail } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
@@ -33,8 +45,6 @@ const CELL_COUNT = 6;
  */
 const getCodeDigits = (text: string) =>
   text.replace(/\D/g, '').slice(0, CELL_COUNT);
-
-const COOLDOWN_CODES = new Set(['otp_resend_cooldown', 'rate_limited']);
 
 // The clock is state, as the React Compiler caches what render computes:
 // `Date.now()` read during render would never move. Being up to a second
@@ -64,22 +74,34 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   const secondsLeft = useSecondsUntil(state.resendAvailableAt);
   const { busy, error, codeResent, resendAvailableAt } = state;
   const { codeSent } = step;
+  // Authenticator app codes are on the user's app, so nothing is sent or
+  // resent.
+  const isTotp = step.method === 'totp';
   const isCoolingDown = secondsLeft > 0;
+  // Every OTP method uses this shared screen, so email and future phone/SMS
+  // codes get the same progress state as authenticator app codes.
+  const isVerifying = busy && codeSent && code.length === CELL_COUNT;
 
-  // iOS can leave the input focused with no keyboard (for example when it
-  // was focused during the modal transition); a tap alone does not reopen it.
-  const focusInput = useCallback(() => {
-    const input = inputRef.current;
-    if (!input) {
-      return;
-    }
-    if (input.isFocused() && !Keyboard.isVisible()) {
-      input.blur();
-      requestAnimationFrame(() => input.focus());
-      return;
-    }
-    input.focus();
-  }, [inputRef]);
+  // React Native ignores focus() on an input it considers focused, so a
+  // keyboard hidden without a blur (Android's back button, switching apps to
+  // copy the code, a modal transition on iOS) only comes back after one. A tap
+  // always reopens it: `Keyboard.isVisible()` can be stale after an app
+  // switch.
+  const focusInput = useCallback(
+    (isTap = false) => {
+      const input = inputRef.current;
+      if (!input) {
+        return;
+      }
+      if (input.isFocused() && (isTap || !Keyboard.isVisible())) {
+        input.blur();
+        requestAnimationFrame(() => input.focus());
+        return;
+      }
+      input.focus();
+    },
+    [inputRef],
+  );
 
   useEffect(() => {
     if (error || codeResent) {
@@ -88,12 +110,18 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     }
   }, [error, codeResent, focusInput]);
 
-  // The first code of a flow can hit the cooldown left by the previous one.
+  // The first email code of a flow can hit the cooldown left by the previous
+  // one.
   useEffect(() => {
-    if (!codeSent && resendAvailableAt !== undefined && secondsLeft === 0) {
-      onAction({ type: 'resend' });
+    if (
+      !isTotp &&
+      !codeSent &&
+      resendAvailableAt !== undefined &&
+      secondsLeft === 0
+    ) {
+      onAction({ type: 'resend', trigger: 'auto' });
     }
-  }, [codeSent, resendAvailableAt, secondsLeft, onAction]);
+  }, [isTotp, codeSent, resendAvailableAt, secondsLeft, onAction]);
 
   // Submits a complete code once it was sent, so digits typed or pasted while
   // it was still sending are not left on screen.
@@ -116,15 +144,44 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     setCode(getCodeDigits(text));
   };
 
-  const paste = async () => handleChange(await Clipboard.getString());
+  const paste = async () => {
+    const clipboardText = await Clipboard.getString();
+    handleChange(clipboardText);
+  };
 
-  // A cooldown with a wait time shows as the countdown, also once it ended.
-  const showError =
-    error !== undefined &&
-    !(resendAvailableAt !== undefined && COOLDOWN_CODES.has(error));
+  // A long press on the boxes pastes, like a regular text field.
+  const isLongPress = useRef(false);
+  const handleLongPress = () => {
+    isLongPress.current = true;
+    // An unreadable clipboard leaves the boxes as they are.
+    paste().catch(() => undefined);
+  };
+  // Releasing a long press would otherwise clear the pasted digits from the
+  // pressed box onward.
+  const handlePressOut: typeof cellProps.onPressOut = (event) => {
+    if (isLongPress.current) {
+      isLongPress.current = false;
+      return;
+    }
+    cellProps.onPressOut(event);
+  };
+
+  // An email cooldown with a wait time shows as the countdown on the resend
+  // button, also once it ended. Authenticator app errors always show.
+  const showError = error !== undefined && !isCooldownCountdown(state);
   // The code on screen can no longer be used: the main action is a new one.
   const needsNewCode =
     showError && error !== undefined && getErrorHandling(error) === 'restart';
+  // A wrong code clears the boxes; the error goes once the user types again.
+  const showErrorState = showError && code.length === 0;
+  // Matches the design system's text field: red on an error, else darker
+  // when focused.
+  const getCellBorder = (isFocused: boolean) => {
+    if (showErrorState) {
+      return 'border-error-default';
+    }
+    return isFocused ? 'border-default' : 'border-muted';
+  };
 
   const getResendLabel = () => {
     if (isCoolingDown) {
@@ -136,67 +193,123 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   };
   const canResend = !isCoolingDown && !busy;
 
+  const getDescription = () => {
+    if (isTotp) {
+      return strings('mfa.otp.description_totp');
+    }
+    return step.email
+      ? strings('mfa.otp.description_with_email', {
+          email: maskEmail(step.email),
+        })
+      : strings('mfa.otp.description');
+  };
+
   return (
     <StepLayout
+      onAction={onAction}
       title={strings('mfa.otp.title')}
-      description={
-        step.email
-          ? strings('mfa.otp.description_with_email', {
-              email: maskEmail(step.email),
-            })
-          : strings('mfa.otp.description')
-      }
+      description={getDescription()}
       footer={
-        <Button
-          variant={canResend ? ButtonVariant.Primary : ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          // No submit button: this shows the code being checked.
-          isLoading={busy && codeSent}
-          onPress={canResend ? () => onAction({ type: 'resend' }) : undefined}
-          testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
-        >
-          {needsNewCode ? strings('mfa.otp.get_new_code') : getResendLabel()}
-        </Button>
+        isTotp && !codeSent && !busy ? (
+          // The verification failed to start: start it again, after any
+          // cooldown. A started verification has no button: a complete code
+          // submits itself.
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={isCoolingDown}
+            onPress={() => {
+              onAction({ type: 'errorCtaClicked', cta: 'try_again' });
+              onAction({ type: 'resend' });
+            }}
+            testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
+          >
+            {isCoolingDown
+              ? strings('mfa.otp.retry_in', { seconds: secondsLeft })
+              : strings('mfa.otp.retry')}
+          </Button>
+        ) : isTotp ? undefined : (
+          <Button
+            variant={
+              canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
+            size={ButtonSize.Lg}
+            isFullWidth
+            // A complete code submits itself; the line under the boxes shows
+            // it being checked.
+            isDisabled={!canResend}
+            onPress={() => {
+              onAction({ type: 'resend' });
+            }}
+            testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
+          >
+            {needsNewCode ? strings('mfa.otp.get_new_code') : getResendLabel()}
+          </Button>
+        )
       }
     >
-      <Box twClassName="gap-2">
-        <Button
-          variant={ButtonVariant.Tertiary}
-          // The button aligns itself to the start; the design puts it at the end.
-          twClassName="self-end px-0"
-          onPress={paste}
-          testID={MfaFlowSelectorsIDs.PASTE_BUTTON}
-        >
-          {strings('mfa.otp.paste')}
-        </Button>
-        <CodeField
-          ref={inputRef as React.RefObject<TextInput>}
-          {...cellProps}
-          value={code}
-          onChangeText={handleChange}
-          cellCount={CELL_COUNT}
-          rootStyle={tw.style('gap-2')}
-          keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          onPressIn={focusInput}
-          testID={MfaFlowSelectorsIDs.CODE_INPUT}
-          renderCell={({ index, symbol, isFocused }) => (
-            <View
-              key={index}
-              onLayout={getCellOnLayoutHandler(index)}
-              style={tw.style(
-                'flex-1 h-14 items-center justify-center rounded-xl border-[1.5px] bg-muted',
-                isFocused ? 'border-primary-default' : 'border-muted',
-              )}
-            >
-              <Text variant={TextVariant.HeadingMd} twClassName="text-[22px]">
-                {symbol || (isFocused && !hasTestOverrides ? <Cursor /> : null)}
-              </Text>
-            </View>
-          )}
-        />
-        {showError && error ? <StepError code={error} /> : null}
+      {/* Keep this container and the code field at the screen's available
+          width so entering digits cannot change the row's measurements. */}
+      <Box twClassName="w-full gap-2">
+        <Box twClassName="w-full">
+          <CodeField
+            ref={inputRef as React.RefObject<TextInput>}
+            {...cellProps}
+            // The hidden input covers the boxes and keeps the tap without
+            // reopening the keyboard. The press layer below takes the tap.
+            pointerEvents="none"
+            value={code}
+            onChangeText={handleChange}
+            cellCount={CELL_COUNT}
+            rootStyle={tw.style('w-full gap-2')}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            // Lets Android offer the code from a message, as iOS does above.
+            autoComplete="one-time-code"
+            testID={MfaFlowSelectorsIDs.CODE_INPUT}
+            renderCell={({ index, symbol, isFocused }) => (
+              <Box
+                key={index}
+                onLayout={getCellOnLayoutHandler(index)}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName={`h-14 flex-1 rounded-xl border bg-muted ${getCellBorder(
+                  isFocused,
+                )}`}
+              >
+                <Text variant={TextVariant.HeadingLg}>
+                  {symbol ||
+                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
+                </Text>
+              </Box>
+            )}
+          />
+          <Pressable
+            accessible={false}
+            style={tw.style('absolute inset-0')}
+            onPress={() => focusInput(true)}
+            onLongPress={handleLongPress}
+            onPressOut={handlePressOut}
+            testID={MfaFlowSelectorsIDs.CODE_TAP_AREA}
+          />
+        </Box>
+        {isVerifying ? (
+          <Box
+            twClassName="flex-row items-center justify-center gap-2 pt-2"
+            accessibilityRole="progressbar"
+            accessibilityLabel={strings('mfa.otp.verifying')}
+            testID={MfaFlowSelectorsIDs.VERIFYING_INDICATOR}
+          >
+            <Spinner />
+            <Text variant={TextVariant.BodySm}>
+              {strings('mfa.otp.verifying')}
+            </Text>
+          </Box>
+        ) : null}
+        {showErrorState && error ? (
+          <StepError code={error} method={step.method} onAction={onAction} />
+        ) : null}
         {codeResent && !error ? (
           <HelpText>{strings('mfa.otp.resent')}</HelpText>
         ) : null}

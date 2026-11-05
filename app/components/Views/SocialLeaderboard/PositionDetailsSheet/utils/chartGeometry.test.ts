@@ -3,7 +3,6 @@ import {
   buildLinePath,
   buildLinePoints,
   findNearestMarkerIndex,
-  layoutLevelPills,
   measurePolylineLength,
 } from './chartGeometry';
 
@@ -36,7 +35,7 @@ describe('chartGeometry', () => {
       });
 
       const y = scale?.toY(20) ?? -1;
-      expect(y).toBeGreaterThan(0);
+      expect(y).toBeGreaterThanOrEqual(0);
       expect(y).toBeLessThan(100);
       expect(scale?.toY(10)).toBeGreaterThan(y);
     });
@@ -60,20 +59,6 @@ describe('chartGeometry', () => {
           { x: 3, y: 4 },
         ]),
       ).toBe(5);
-    });
-  });
-
-  describe('layoutLevelPills', () => {
-    it('keeps pills that already fit at their line', () => {
-      expect(layoutLevelPills([20, 60], 10, 100)).toEqual([20, 60]);
-    });
-
-    it('pushes overlapping pills apart, preserving input order', () => {
-      expect(layoutLevelPills([52, 50], 10, 100)).toEqual([60, 50]);
-    });
-
-    it('pulls pills back inside the chart', () => {
-      expect(layoutLevelPills([98, 99], 10, 100)).toEqual([85, 95]);
     });
   });
 

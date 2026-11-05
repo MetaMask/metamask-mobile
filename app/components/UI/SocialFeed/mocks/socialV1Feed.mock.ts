@@ -48,8 +48,8 @@ export const mockOpenPerpsFeedItem = (
   isPnlPositive: true,
   leverage: 40,
   leverageLabel: '40X',
-  autoCloseLabel: 'TP $101,214 / SL $110,905',
   entryPriceLabel: '$107,675',
+  holdTimeLabel: '1d 18h',
   ...overrides,
 });
 

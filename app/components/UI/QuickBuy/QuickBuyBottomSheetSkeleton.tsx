@@ -33,14 +33,19 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-4 pb-3"
+        twClassName="px-4 pt-1 pb-3"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={3}
+          gap={4}
         >
-          <Skeleton width={32} height={32} style={tw.style('rounded-full')} />
+          <Skeleton
+            width={40}
+            height={40}
+            style={tw.style('rounded-full')}
+            testID="quick-buy-skeleton-token"
+          />
           <Box>
             <Box twClassName="h-6" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={80} height={16} style={tw.style('rounded-md')} />
@@ -58,22 +63,21 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
       {/* QuickBuyAmountSection — centered in the remaining space */}
       <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
-        <Box
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          twClassName="px-4 pt-6 pb-4"
-        >
-          <Box twClassName="h-[70px]" justifyContent={BoxJustifyContent.Center}>
+        <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pt-6 pb-4">
+          <Box twClassName="h-[88px]" justifyContent={BoxJustifyContent.Center}>
             <Skeleton width={120} height={52} style={tw.style('rounded-xl')} />
           </Box>
-          <Box twClassName="h-[22px]" justifyContent={BoxJustifyContent.Center}>
-            <Skeleton width={64} height={14} style={tw.style('rounded-md')} />
+          <Box twClassName="mt-2">
+            <Box twClassName="h-6" justifyContent={BoxJustifyContent.Center}>
+              <Skeleton width={64} height={16} style={tw.style('rounded-md')} />
+            </Box>
           </Box>
         </Box>
       </Box>
 
-      {/* QuickBuyActionFooter — Pay with row + quick-amount pills */}
+      {/* QuickBuyActionFooter — Est. receive row, Pay with row + quick-amount pills */}
       <Box twClassName="px-4">
+        <Box twClassName="mb-4 min-h-6" />
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

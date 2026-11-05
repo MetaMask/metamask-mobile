@@ -5,8 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   useTokenTransactions,
   type UseTokenTransactionsResult,
@@ -37,35 +35,8 @@ jest.mock('../../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
-
 jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
-}));
-
-let mockUnifiedTxActions = {
-  speedUpIsOpen: false,
-  cancelIsOpen: false,
-  confirmDisabled: false,
-  existingTx: null as unknown,
-  onSpeedUpAction: jest.fn(),
-  onCancelAction: jest.fn(),
-  onSpeedUpCancelCompleted: jest.fn(),
-  speedUpTransaction: jest.fn(),
-  cancelTransaction: jest.fn(),
-};
-
-jest.mock('../../../../Views/ActivityList/useUnifiedTxActions', () => ({
-  useUnifiedTxActions: () => mockUnifiedTxActions,
 }));
 
 jest.mock('../../../../Views/Asset/ActivityHeader', () => {
@@ -75,16 +46,6 @@ jest.mock('../../../../Views/Asset/ActivityHeader', () => {
     default: () => <View testID="mock-activity-header" />,
   };
 });
-
-jest.mock(
-  '../../../../Views/confirmations/components/modals/cancel-speedup-modal',
-  () => ({
-    CancelSpeedupModal: () => {
-      const { View } = jest.requireActual('react-native');
-      return <View testID="mock-cancel-speedup-modal" />;
-    },
-  }),
-);
 
 jest.mock('../../../Transactions/AssetDetailsActivityListItem', () => {
   const { View } = jest.requireActual('react-native');
@@ -183,17 +144,6 @@ const mockTransactionsResult = (
 describe('ActivitySection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUnifiedTxActions = {
-      speedUpIsOpen: false,
-      cancelIsOpen: false,
-      confirmDisabled: false,
-      existingTx: null,
-      onSpeedUpAction: jest.fn(),
-      onCancelAction: jest.fn(),
-      onSpeedUpCancelCompleted: jest.fn(),
-      speedUpTransaction: jest.fn(),
-      cancelTransaction: jest.fn(),
-    };
     mockUseSelector.mockImplementation((selector: unknown) =>
       (selector as (state: undefined) => unknown)(undefined),
     );
@@ -263,18 +213,6 @@ describe('ActivitySection', () => {
 
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
-  });
-
-  it('renders the CancelSpeedupModal when existingTx is present', () => {
-    mockUnifiedTxActions.existingTx = { id: 'tx-1' };
-    mockUseTokenTransactions.mockReturnValue(
-      mockTransactionsResult({
-        transactions: [makeTransaction('tx-1', 60)],
-      }),
-    );
-
-    const { getByTestId } = render(<ActivitySection token={token} />);
-    expect(getByTestId('mock-cancel-speedup-modal')).toBeTruthy();
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {

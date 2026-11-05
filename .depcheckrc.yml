@@ -140,6 +140,9 @@ ignores:
   - 'expo-font'
 
   ## react native
+  # Native core for @react-native-firebase/messaging. Autolinked as RNFBApp;
+  # app code only imports the messaging package.
+  - '@react-native-firebase/app'
   - '@react-native-community/cli'
   - '@react-native-community/cli-platform-android'
   - '@react-native-community/cli-platform-ios'

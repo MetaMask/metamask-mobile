@@ -9,24 +9,12 @@ import {
   AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
-import type {
-  TraceCallback as ControllerTraceCallback,
-  TraceContext as ControllerTraceContext,
-  TraceRequest as ControllerTraceRequest,
-} from '@metamask/controller-utils';
-import {
-  isAssetsUnifyStateFeatureEnabled,
-  isAssetsUnifyStateTracesEnabled,
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 import type { MessengerClientInitFunction } from '../../types';
 import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
-import { trace, type TraceRequest } from '../../../../util/trace';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -74,6 +62,42 @@ function safeGetTokenDetectionEnabled(
 }
 
 /**
+ * Reads the Basic functionality setting from Redux.
+ *
+ * @returns True when external services are allowed.
+ */
+function isBasicFunctionality(): boolean {
+  return selectBasicFunctionalityEnabled(store.getState());
+}
+
+/**
+ * Subscribes to Redux changes of the Basic functionality setting.
+ * Mobile stores the setting in `settings.basicFunctionalityEnabled`, so the
+ * controller is notified through the store. The returned unsubscribe is called
+ * when the controller is destroyed.
+ *
+ * @param onChange - Called with the new value when the setting changes.
+ * @returns Unsubscribe function.
+ */
+function subscribeToBasicFunctionalityChange(
+  onChange: (isBasic: boolean) => void,
+): () => void {
+  let previousBasicFunctionalityEnabled = isBasicFunctionality();
+
+  return store.subscribe(() => {
+    const currentBasicFunctionalityEnabled = isBasicFunctionality();
+    if (
+      currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+    ) {
+      return;
+    }
+
+    previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+    onChange(currentBasicFunctionalityEnabled);
+  });
+}
+
+/**
  * Gets or creates the API platform client.
  *
  * @param initMessenger - The initialization messenger.
@@ -94,129 +118,32 @@ function getApiClient(
 }
 
 /**
- * Whether AssetsController Sentry tracing is enabled via
- * `assetsUnifyState.tracesEnabled` (requires unify itself to be enabled).
- *
- * @param initMessenger - The initialization messenger.
- * @returns True when tracing should run, false otherwise.
- */
-function isAssetsControllerTracesEnabled(
-  initMessenger: AssetsControllerInitMessenger,
-): boolean {
-  try {
-    const { remoteFeatureFlags } = initMessenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    return isAssetsUnifyStateTracesEnabled(
-      remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG],
-      ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Adapter that wraps mobile's synchronous {@link trace} into the async
- * {@link ControllerTraceCallback} signature expected by AssetsController.
- *
- * @param req - The controller trace request.
- * @param fn - Optional work to run inside the span.
- * @returns The result of `fn`, resolved as a Promise.
- */
-const traceAsControllerCallback: ControllerTraceCallback = <Result>(
-  req: ControllerTraceRequest,
-  fn?: (ctx?: ControllerTraceContext) => Result,
-): Promise<Result> => {
-  // Controller TraceContext is `unknown`; mobile TraceContext is a Sentry Span.
-  const taggedRequest: TraceRequest = {
-    ...req,
-    name: req.name as TraceRequest['name'],
-    parentContext: req.parentContext as TraceRequest['parentContext'],
-  };
-  return Promise.resolve(
-    fn ? trace(taggedRequest, fn) : trace(taggedRequest),
-  ) as Promise<Result>;
-};
-
-/**
- * Trace callback gated by `assetsUnifyState.tracesEnabled`.
- * When the flag is off, runs `fn` (if provided) without creating a Sentry span.
- *
- * @param initMessenger - The initialization messenger used to read the flag.
- * @returns A {@link ControllerTraceCallback} suitable for AssetsController.
- */
-function createAssetsControllerTrace(
-  initMessenger: AssetsControllerInitMessenger,
-): ControllerTraceCallback {
-  return <Result>(
-    req: ControllerTraceRequest,
-    fn?: (ctx?: ControllerTraceContext) => Result,
-  ): Promise<Result> => {
-    if (!isAssetsControllerTracesEnabled(initMessenger)) {
-      return Promise.resolve(fn?.() as Result);
-    }
-    return traceAsControllerCallback(req, fn);
-  };
-}
-
-/**
  * Init function for the AssetsController.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
 export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
-> = ({
-  controllerMessenger,
-  persistedState,
-  initMessenger,
-  getMessengerClient: _getController,
-}) => {
+> = ({ controllerMessenger, persistedState, initMessenger }) => {
   /**
-   * Check if the AssetsController feature is enabled based on the remote feature flag.
-   * Uses initMessenger.call('RemoteFeatureFlagController:getState') to get the flag.
+   * The controller only runs while the wallet is unlocked.
    *
-   * @returns True if the feature is enabled, false otherwise.
+   * @returns True if the controller is enabled.
    */
-  const isEnabled = (): boolean => {
-    try {
-      if (!selectIsUnlocked(store.getState())) {
-        return false;
-      }
-      const remoteFeatureFlagState = initMessenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const featureFlag =
-        remoteFeatureFlagState?.remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG];
-
-      return isAssetsUnifyStateFeatureEnabled(
-        featureFlag,
-        ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-      );
-    } catch {
-      // When getState isn't ready, fall back to flag check with undefined
-      // so that forcing isAssetsUnifyStateFeatureEnabled to true still enables the controller
-      return isAssetsUnifyStateFeatureEnabled(
-        undefined,
-        ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-      );
-    }
-  };
+  const isEnabled = (): boolean => selectIsUnlocked(store.getState());
 
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
     state: persistedState?.AssetsController,
-    isBasicFunctionality: () =>
-      selectBasicFunctionalityEnabled(store.getState()),
+    isBasicFunctionality,
+    subscribeToBasicFunctionalityChange,
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: {
@@ -232,7 +159,6 @@ export const assetsControllerInit: MessengerClientInitFunction<
       enabled: true,
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
-    trace: createAssetsControllerTrace(initMessenger),
     // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
     tempMigrateAssetsInfoMetadataAssets3346: () => ({
       TokensController: persistedState?.TokensController,

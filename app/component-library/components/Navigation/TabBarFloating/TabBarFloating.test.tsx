@@ -70,6 +70,7 @@ interface TestTabDescriptor {
     isHidden?: boolean;
     isSelected?: (rootScreenName: string) => boolean;
     onLeave?: () => void;
+    showNewBadge?: boolean;
   };
 }
 
@@ -81,7 +82,7 @@ const navigation = {
 
 const mockInitialState = { engine: { backgroundState } };
 
-// Treatment tab set: Home / Explore / Money / Social. No Trade "+".
+// Treatment tab set. No Trade "+" route; the trailing button owns Trade.
 const state = {
   index: 0,
   routeNames: ['Home', 'Explore', 'Money', 'Social'],
@@ -116,6 +117,7 @@ const descriptors: Record<string, TestTabDescriptor> = {
     options: {
       tabBarIconKey: TabBarIconKey.Social,
       rootScreenName: Routes.SOCIAL.TAB,
+      showNewBadge: true,
     },
   },
 };
@@ -158,6 +160,14 @@ describe('TabBarFloating', () => {
     expect(FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Social]).toBe(
       IconName.PeopleFilled,
     );
+  });
+
+  it('shows the Social discovery badge when the tab is new', () => {
+    const { getByTestId } = renderBar();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.SOCIAL_NEW_BADGE),
+    ).toBeOnTheScreen();
   });
 
   it('renders the pill, the four treatment tabs, and the search button', () => {

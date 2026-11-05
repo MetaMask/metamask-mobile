@@ -58,6 +58,8 @@ const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
+const mockShowEarnToast = jest.fn();
+const mockMissingTokenToast = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -83,6 +85,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: mockShowEarnToast,
+    EarnToastOptions: {
+      earnWithdrawal: {
+        detailsUnavailable: mockMissingTokenToast,
+      },
+    },
+  })),
+}));
+
 const baseProps: EarnWithdrawInputViewProps = {
   route: {
     params: {
@@ -95,9 +109,9 @@ const baseProps: EarnWithdrawInputViewProps = {
 
 function render(
   Component: React.ComponentType,
-  mockToken: TokenI | EarnTokenDetails = MOCK_ETH_MAINNET_ASSET,
+  mockToken?: TokenI | EarnTokenDetails,
 ) {
-  mockRouteToken = mockToken;
+  mockRouteToken = arguments.length > 1 ? mockToken : MOCK_ETH_MAINNET_ASSET;
 
   return renderScreen(
     Component,
@@ -465,12 +479,24 @@ describe('EarnWithdrawInputView', () => {
     );
   });
 
-  it('renders withdraw input view with review button', async () => {
+  it('renders quick amounts and hides the review button when the amount is zero', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByTestId('review-button')).not.toBeOnTheScreen();
     });
+  });
+
+  it('shows an error toast and returns when route token is missing', async () => {
+    render(EarnWithdrawInputView, undefined);
+
+    await waitFor(() => {
+      expect(mockShowEarnToast).toHaveBeenCalledWith(mockMissingTokenToast);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByTestId('review-button')).toBeNull();
   });
 
   describe('service interruption banners', () => {
@@ -590,14 +616,6 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      render(EarnWithdrawInputView);
-
-      fireEvent.press(screen.getByText('25%'));
-
-      expect(screen.getByText('1.44783')).toBeOnTheScreen();
-    });
-
     it('handles Max button press and sets full balance', async () => {
       render(EarnWithdrawInputView);
 
@@ -605,7 +623,9 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: '5.79133 ETH' }),
+      ).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {
@@ -633,25 +653,28 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('withdraw button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
+      expect(screen.queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on withdraw button if input is valid', () => {
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('1'));
 
       expect(screen.getByText('Review')).toBeOnTheScreen();
+      expect(screen.queryByText('25%')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('8'));
-      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 
@@ -1034,7 +1057,7 @@ describe('EarnWithdrawInputView', () => {
       await waitFor(() => {
         expect(
           screen.queryAllByText('Amount exceeds safe withdrawal limit'),
-        ).toHaveLength(2);
+        ).toHaveLength(1);
       });
     });
   });
@@ -1083,7 +1106,7 @@ describe('EarnWithdrawInputView', () => {
 
       // Reveal the TRON unstake preview, which renders the "Unstake" button.
       await act(async () => {
-        fireEvent.press(screen.getByText('Done'));
+        fireEvent.press(screen.getByText('Review'));
       });
 
       await waitFor(() => {
@@ -1091,7 +1114,7 @@ describe('EarnWithdrawInputView', () => {
       });
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       const tronToken: TokenI = {
         name: 'Tron',
         symbol: 'TRX',
@@ -1117,8 +1140,35 @@ describe('EarnWithdrawInputView', () => {
 
       await waitFor(() => {
         expect(queryByText('Max')).not.toBeOnTheScreen();
-        expect(getByText('Done')).toBeOnTheScreen();
+        expect(queryByText('25%')).not.toBeOnTheScreen();
+        expect(getByText('Review')).toBeOnTheScreen();
       });
+    });
+
+    it('disables the button when the amount exceeds the staked TRX balance', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '0.5',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      const { getByRole, getByText } = render(EarnWithdrawInputView, tronToken);
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
     });
 
     it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {

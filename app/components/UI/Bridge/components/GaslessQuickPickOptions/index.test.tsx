@@ -409,7 +409,7 @@ describe('GaslessQuickPickOptions', () => {
       mockUseShouldRenderMaxOption.mockReturnValue(true);
 
       const { getByText } = renderWithRedux(
-        <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_BUY}>
+        <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_ORDER}>
           <GaslessQuickPickOptions
             onAmountSelect={mockOnAmountSelect}
             token={mockToken}
@@ -425,7 +425,7 @@ describe('GaslessQuickPickOptions', () => {
 
       expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
         UnifiedSwapBridgeEventName.InputChanged,
-        expect.objectContaining({ feature_id: FeatureId.RECURRING_BUY }),
+        expect.objectContaining({ feature_id: FeatureId.RECURRING_ORDER }),
       );
     });
   });

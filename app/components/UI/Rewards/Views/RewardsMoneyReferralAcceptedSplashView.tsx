@@ -1,0 +1,300 @@
+import React, { useCallback, useMemo } from 'react';
+import {
+  CommonActions,
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { RootState } from '../../../../reducers';
+import Routes from '../../../../constants/navigation/Routes';
+import ErrorBoundary from '../../../Views/ErrorBoundary';
+import RewardsThemeImageComponent from '../components/ThemeImageComponent/RewardsThemeImageComponent';
+import { selectSessionProfileId } from '../../../../selectors/identity';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import { formatRewardsDateLabel } from '../utils/formatUtils';
+
+export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
+  CONTAINER: 'rewards-money-referral-accepted-splash',
+  CLOSE: 'rewards-money-referral-accepted-close',
+  TITLE: 'rewards-money-referral-accepted-title',
+  BODY: 'rewards-money-referral-accepted-body',
+  HERO: 'rewards-money-referral-accepted-hero',
+  START_TRADING: 'rewards-money-referral-accepted-start-trading',
+  VIEW_REWARDS: 'rewards-money-referral-accepted-view-rewards',
+} as const;
+
+// The preset has no tracking-* utilities, and the uppercase eyebrow needs the
+// extra letter spacing to stay legible at BodySm.
+const eyebrowTrackingStyle = { letterSpacing: 0.8 };
+
+/**
+ * Screens at and below Home. Accept already popped Settings or the invite
+ * sheet, so the pre-accept Rewards home and the rewards flow can still sit
+ * above Home. Keeping those would make Back return to the old persona.
+ */
+function routesAtOrBelowHome(
+  routes: NavigationState['routes'] | undefined,
+): PartialState<NavigationState>['routes'] {
+  if (routes == null) {
+    return [];
+  }
+  const homeIndex = routes.findIndex(
+    (route) => route.name === Routes.HOME_TABS,
+  );
+  if (homeIndex === -1) {
+    return [];
+  }
+  // Home's nested state is a full NavigationState (`stale: false`). Reset
+  // accepts that at runtime, and its PartialState type only allows `stale: true`.
+  return routes.slice(
+    0,
+    homeIndex + 1,
+  ) as PartialState<NavigationState>['routes'];
+}
+
+/**
+ * Formats a cashback window timestamp for the current locale.
+ *
+ * @param earningAt - ISO timestamp, or missing.
+ * @returns The locale date, or null when the timestamp is missing or invalid.
+ */
+function formatCashbackEarningDate(
+  earningAt: string | null | undefined,
+): string | null {
+  if (!earningAt) {
+    return null;
+  }
+  const parsed = new Date(earningAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return formatRewardsDateLabel(parsed);
+}
+
+/**
+ * Activated body copy. A usable cashback window fills `{date}` in the
+ * localized `inviteAcceptedBody` as `from <start> through <end>`. Without
+ * both dates, the whole body is `fallback` (`inviteMessageBody`) so we do
+ * not inject English.
+ *
+ * @param acceptedBody - `localized_text.inviteAcceptedBody`.
+ * @param fallback - Copy used when either date is missing or invalid.
+ * @param earningStart - `earn_rates.cashback_earning_start`.
+ * @param earningEnd - `earn_rates.cashback_earning_end`.
+ * @returns The body to show.
+ */
+export function fillInviteAcceptedBodyDate(
+  acceptedBody: string | undefined,
+  fallback: string | undefined,
+  earningStart: string | null | undefined,
+  earningEnd: string | null | undefined,
+): string {
+  const formattedStart = formatCashbackEarningDate(earningStart);
+  const formattedEnd = formatCashbackEarningDate(earningEnd);
+  if (!formattedStart || !formattedEnd) {
+    return fallback ?? '';
+  }
+  const template = acceptedBody ?? '';
+  if (!template.includes('{date}')) {
+    return template;
+  }
+  return template.replaceAll(
+    '{date}',
+    `from ${formattedStart} through ${formattedEnd}`,
+  );
+}
+
+const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMeEntry = useSelector((state: RootState) =>
+    selectReferralMeEntry(state, profileId),
+  );
+  const referralMe = referralMeEntry?.data;
+  const localizedText = referralMe?.localized_text;
+  const inviteHero = referralMe?.invite_hero;
+
+  const body = useMemo(
+    () =>
+      fillInviteAcceptedBodyDate(
+        localizedText?.inviteAcceptedBody,
+        localizedText?.inviteMessageBody,
+        referralMe?.earn_rates.cashback_earning_start,
+        referralMe?.earn_rates.cashback_earning_end,
+      ),
+    [
+      localizedText?.inviteAcceptedBody,
+      localizedText?.inviteMessageBody,
+      referralMe?.earn_rates.cashback_earning_start,
+      referralMe?.earn_rates.cashback_earning_end,
+    ],
+  );
+
+  // Rewards home is the root RewardsView stack. Drop the splash and every
+  // rewards screen above Home, then open the Money dashboard. Back leaves
+  // Rewards instead of returning to the pre-accept persona.
+  const showMoneyDashboard = useCallback(() => {
+    const kept = routesAtOrBelowHome(navigation.getState()?.routes);
+    const routes: PartialState<NavigationState>['routes'] = [
+      ...kept,
+      {
+        name: Routes.REWARDS_VIEW,
+        params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
+      },
+    ];
+    navigation.dispatch(
+      CommonActions.reset({
+        index: routes.length - 1,
+        routes,
+      }),
+    );
+  }, [navigation]);
+
+  const handleDismiss = useCallback(() => {
+    showMoneyDashboard();
+  }, [showMoneyDashboard]);
+
+  const handleStartTrading = useCallback(() => {
+    showMoneyDashboard();
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+      params: { hasBottomNotch: false },
+    });
+  }, [navigation, showMoneyDashboard]);
+
+  return (
+    <SafeAreaView
+      edges={['top', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
+      testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.CONTAINER}
+    >
+      <Box alignItems={BoxAlignItems.End} twClassName="px-4 pt-3">
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Sm}
+          onPress={handleDismiss}
+          accessibilityLabel={localizedText?.inviteAcceptedCloseA11y ?? ''}
+          testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.CLOSE}
+        />
+      </Box>
+
+      <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-2">
+        {Boolean(localizedText?.inviteAcceptedEyebrow) && (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+            twClassName="uppercase text-center"
+            style={eyebrowTrackingStyle}
+          >
+            {localizedText?.inviteAcceptedEyebrow}
+          </Text>
+        )}
+        {Boolean(localizedText?.inviteAcceptedTitle) && (
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="mt-2 text-center"
+            testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.TITLE}
+          >
+            {localizedText?.inviteAcceptedTitle}
+          </Text>
+        )}
+        {Boolean(body) && (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-3 text-center"
+            testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.BODY}
+          >
+            {body}
+          </Text>
+        )}
+      </Box>
+
+      {/*
+       * The theme image wraps its Image in a Box sized to its child, so this
+       * container must stretch that wrapper (no alignItems center) and the
+       * Image needs a fixed height: w-full/h-full against a shrink-wrapped
+       * parent resolve to 0.
+       */}
+      <Box
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-1 w-full px-6 py-8"
+        testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.HERO}
+      >
+        {inviteHero && (
+          <RewardsThemeImageComponent
+            themeImage={inviteHero}
+            style={tw.style('h-[320px] w-full')}
+            accessibilityLabel={localizedText?.inviteIllustrationLabel ?? ''}
+          />
+        )}
+      </Box>
+
+      <Box twClassName="gap-3 px-4 pb-4">
+        {Boolean(localizedText?.inviteAcceptedStartTrading) && (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleStartTrading}
+            testID={
+              REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.START_TRADING
+            }
+          >
+            {localizedText?.inviteAcceptedStartTrading}
+          </Button>
+        )}
+        {Boolean(localizedText?.inviteAcceptedViewRewards) && (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleDismiss}
+            testID={
+              REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.VIEW_REWARDS
+            }
+          >
+            {localizedText?.inviteAcceptedViewRewards}
+          </Button>
+        )}
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+const RewardsMoneyReferralAcceptedSplashView: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  return (
+    <ErrorBoundary
+      navigation={navigation}
+      view="RewardsMoneyReferralAcceptedSplashView"
+    >
+      <RewardsMoneyReferralAcceptedSplashViewContent />
+    </ErrorBoundary>
+  );
+};
+
+export default RewardsMoneyReferralAcceptedSplashView;

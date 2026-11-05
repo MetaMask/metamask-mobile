@@ -277,33 +277,6 @@ export const selectPerpsPayWithAnyTokenAllowlistAssets = createSelector(
 );
 
 /**
- * Selector for Rewards Referral Code feature flag
- * Controls visibility of referral code in PnL hero card
- * Supports both boolean and version-gated JSON flag formats
- *
- * @returns boolean - true if referral code should be shown, false otherwise
- */
-export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag = remoteFeatureFlags?.rewardsReferralCodeEnabled;
-
-    if (remoteFlag === undefined || remoteFlag === null) {
-      return false;
-    }
-
-    // Handle simple boolean flag
-    if (typeof remoteFlag === 'boolean') {
-      return remoteFlag;
-    }
-
-    // Handle version-gated JSON flag
-    const versionGatedFlag = remoteFlag as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
-  },
-);
-
-/**
  * Selector for Perps Products section feature flag
  * Controls visibility of the category pills grid on Perps home screen
  *
@@ -611,6 +584,25 @@ export const selectPerpsPriceAlertsEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsPriceAlertsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config key for perps percent-change price alerts.
+ * Defaults to false so percent-change alerts can be rolled out independently
+ * from threshold price alerts.
+ */
+export const PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY =
+  'perpsPriceAlertsPercentChangeEnabled' as const;
+
+export const selectPerpsPriceAlertsPercentChangeEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

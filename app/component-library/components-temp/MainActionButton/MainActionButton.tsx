@@ -12,7 +12,7 @@ import { useAnimatedPressable, useStyles } from '../../hooks';
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
 import styleSheet from './MainActionButton.styles';
-import GlassSurface from '../GlassSurface';
+import BoxGlass from '../BoxGlass';
 import {
   MAINACTIONBUTTON_CONTENT_TEST_ID,
   MAINACTIONBUTTON_GLASS_TEST_ID,
@@ -84,7 +84,7 @@ const MainActionButton = ({
         {...props}
       >
         {isGlass ? (
-          <GlassSurface
+          <BoxGlass
             radiusClassName="rounded-2xl"
             isInteractive={!isDisabled}
             hasSheen
@@ -92,7 +92,7 @@ const MainActionButton = ({
             testID={MAINACTIONBUTTON_GLASS_TEST_ID}
           >
             {content}
-          </GlassSurface>
+          </BoxGlass>
         ) : (
           content
         )}

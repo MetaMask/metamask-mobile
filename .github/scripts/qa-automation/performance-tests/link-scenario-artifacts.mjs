@@ -25,7 +25,7 @@ import path from 'path';
 
 const SCENARIO_ARTIFACT_PREFIX = 'hermes-profile-';
 // Mirrors the ownership tags on tests/performance/**/*.spec.ts. Slack group
-// ids come from tests/scripts/weekly-app-profiling-report.mjs, plus Earn's id
+// ids come from .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs, plus Earn's id
 // documented in tests/teams-config.js. `githubLabel` is the repo `team-*`
 // label that routes an issue to that team; `githubTeam` is the MetaMask org
 // team slug mentioned in the issue body.

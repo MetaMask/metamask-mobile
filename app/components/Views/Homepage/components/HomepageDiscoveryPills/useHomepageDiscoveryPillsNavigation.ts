@@ -5,7 +5,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  usePredictEntryActions,
+} from '../../../../UI/PredictNext';
 import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
@@ -30,6 +33,7 @@ const trackDiscoveryPillExploreNavigate = (
 export function useHomepageDiscoveryPillsNavigation() {
   const navigation = useNavigation<AppNavigationProp>();
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { openPredict } = usePredictEntryActions();
 
   const navigateToPill = useCallback(
     (pillId: HomepageDiscoveryPillId) => {
@@ -45,12 +49,7 @@ export function useHomepageDiscoveryPillsNavigation() {
           break;
         }
         case 'predictions':
-          navigation.navigate(Routes.PREDICT.ROOT, {
-            screen: Routes.PREDICT.MARKET_LIST,
-            params: {
-              entryPoint: HOMESCREEN_PILL_SOURCE,
-            },
-          });
+          openPredict({ type: 'home', entryPoint: HOMESCREEN_PILL_SOURCE });
           break;
         case 'crypto':
           trackDiscoveryPillExploreNavigate({
@@ -76,7 +75,7 @@ export function useHomepageDiscoveryPillsNavigation() {
         }
       }
     },
-    [navigation, getPerpsHomeNavigationTarget],
+    [navigation, getPerpsHomeNavigationTarget, openPredict],
   );
 
   return { navigateToPill };

@@ -666,6 +666,22 @@ describe('mapFeedItem', () => {
     expect(result?.valueLabel).toContain('12,500');
   });
 
+  it('uses a closed USD PnL to determine the positive tone without a percent', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        isOpen: false,
+        pnlValueUsd: 12_500,
+        pnlPercent: undefined,
+        realizedPnl: 12_500,
+        boughtUsd: null,
+      }),
+    );
+
+    expect(result?.hasPnlData).toBe(false);
+    expect(result?.valueLabel).toContain('12,500');
+    expect(result?.isPnlPositive).toBe(true);
+  });
+
   it('marks negative PnL as not positive', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({ pnlValueUsd: -500, realizedPnl: -500 }),

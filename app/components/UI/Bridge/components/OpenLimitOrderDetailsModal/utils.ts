@@ -1,15 +1,24 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import {
+  LIMIT_ORDER_DIRECTION,
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
-import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { getLimitOrderFiatPriceDecimals } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { formatLimitOrderFiatUnitPrice } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
+import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import type { TriggerPriceDisplay } from './types';
 
 /**
- * Formats a USD trigger price in the given currency, to two decimal places.
- * Without a rate to convert with, the price shows in USD as is rather than a
- * guessed one.
+ * Formats a USD trigger price in the given currency with the precision it was
+ * placed with: cents, or more for a cheap token's sub-dollar price. Without a
+ * rate to convert with, the price shows in USD as is rather than a guessed
+ * one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
@@ -20,25 +29,30 @@ function getFiatTriggerPrice(
     const displayPrice = new BigNumber(usdPrice).dividedBy(fiatToUsdRate);
 
     if (displayPrice.isFinite() && displayPrice.gt(0)) {
-      return formatLimitOrderFiatValue(
+      return formatLimitOrderFiatUnitPrice(
         displayPrice.toNumber(),
         currentCurrency,
+        getLimitOrderFiatPriceDecimals(displayPrice),
       );
     }
   }
 
-  return formatLimitOrderFiatValue(usdPrice, 'usd');
+  return formatLimitOrderFiatUnitPrice(
+    usdPrice,
+    'usd',
+    getLimitOrderFiatPriceDecimals(usdPrice),
+  );
 }
 
 /**
- * Whether a `ratio` price is quoted per unit of the source token, i.e. as an
- * amount of the destination token, as a sell is. A buy quotes it the other way
- * round, per unit of the destination token.
+ * Whether a `ratio` price reads per unit of the source token, i.e. as an
+ * amount of the destination token, rather than the other way round.
  *
- * The order doesn't record which side it was placed on, but its amounts were
- * derived from the price, so the price reads the way the order's own rate
- * does: both above 1, or both below it. At parity the two sides read alike,
- * and the order is taken as the buy a pair starts on.
+ * The API reports a `ratio` as source tokens per destination token whichever
+ * side the order was placed on, so it isn't necessarily the price as entered.
+ * The order's amounts were derived from the price, so the price reads the way
+ * the order's own rate does: both above 1, or both below it. At parity the
+ * two readings can't be told apart, so neither is.
  */
 function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
   const price = new BigNumber(trigger.price);
@@ -55,11 +69,23 @@ function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
   );
 }
 
+function invertPrice(price: string): string {
+  const value = new BigNumber(price);
+  const reciprocal = new BigNumber(1).dividedBy(value);
+
+  if (reciprocal.multipliedBy(value).eq(1)) {
+    return reciprocal.toFixed();
+  }
+
+  return reciprocal.precision(Math.max(value.sd() - 1, 1)).toFixed();
+}
+
 /**
  * Resolves how the trigger row reads: a price shown against the token it
- * prices, in fiat, or for a `ratio` as an amount of the counter token. A fiat
- * price shows in USD, the currency the order is placed in, unless a display
- * currency and its rate are given to convert it with.
+ * prices, in fiat, or for a `ratio` as an amount of the counter token, along
+ * with which side of that price fills the order. A fiat price shows in USD,
+ * the currency the order is placed in, unless a display currency and its rate
+ * are given to convert it with.
  */
 export function getTriggerPrice(
   order: LimitOrder,
@@ -69,6 +95,12 @@ export function getTriggerPrice(
   fiatToUsdRate?: number,
 ): TriggerPriceDisplay {
   const { trigger } = order;
+  const reportedDirection = Object.values(
+    LimitOrderPriceComparisonDirection,
+  ).find(
+    (direction) =>
+      LIMIT_ORDER_DIRECTION[direction].threshold === trigger.threshold,
+  );
 
   switch (trigger.kind) {
     case 'src_price':
@@ -79,6 +111,7 @@ export function getTriggerPrice(
           fiatToUsdRate,
         ),
         triggerToken: sourceToken,
+        triggerDirection: reportedDirection,
       };
     case 'dest_price':
       return {
@@ -88,21 +121,39 @@ export function getTriggerPrice(
           fiatToUsdRate,
         ),
         triggerToken: destinationToken,
+        triggerDirection: reportedDirection,
       };
     default: {
-      // A `ratio` price is an amount of the counter token per unit of the
-      // quoted token, e.g. 2200 USDC per ETH on both ETH to USDC and USDC to
-      // ETH orders.
-      const [quotedToken, counterToken] = isRatioQuotedPerSourceToken(order)
+      // A `ratio` price shows as an amount of the counter token per unit of
+      // the quoted token, e.g. 2200 USDC per ETH on both ETH to USDC and USDC
+      // to ETH orders. The order doesn't record which side it was placed on,
+      // so it's quoted on the side its pair starts on.
+      const isSell =
+        getSwapsLimitOrderDefaultPriceMode({
+          sourceToken,
+          destToken: destinationToken,
+        }).executionType === LimitOrderExecutionType.SELL;
+      const [quotedToken, counterToken] = isSell
         ? [sourceToken, destinationToken]
         : [destinationToken, sourceToken];
+      const isShownAsReported =
+        new BigNumber(trigger.price).eq(1) ||
+        isRatioQuotedPerSourceToken(order) === isSell;
+      const price = isShownAsReported
+        ? trigger.price
+        : invertPrice(trigger.price);
+      const amount = formatLimitOrderQuickPrice(price) ?? price;
 
       return {
         triggerPrice: strings('bridge.limit.quote_unit', {
-          amount: formatLimitOrderQuickPrice(trigger.price) ?? trigger.price,
+          amount: formatSubscriptNotation(Number(amount)) ?? amount,
           symbol: counterToken.symbol,
         }),
         triggerToken: quotedToken,
+        triggerDirection: isShownAsReported
+          ? reportedDirection
+          : reportedDirection &&
+            LIMIT_ORDER_DIRECTION[reportedDirection].opposite,
       };
     }
   }

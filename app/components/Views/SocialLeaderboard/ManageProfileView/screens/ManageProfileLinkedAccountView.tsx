@@ -5,11 +5,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Checkbox,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  RadioButton,
   Text,
   TextColor,
   TextVariant,
@@ -20,18 +20,13 @@ import { Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-import {
-  selectInternalEvmAccounts,
-  selectSelectedInternalAccount,
-} from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import { renderShortAddress } from '../../../../../util/address';
+import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
-
-const accountLabel = (name: string | undefined, address: string): string =>
-  name?.trim() ? name : renderShortAddress(address);
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
   try {
@@ -45,18 +40,21 @@ const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
 };
 
 const ManageProfileLinkedAccountView: React.FC = () => {
-  const accounts = useSelector(selectInternalEvmAccounts);
+  const accounts = useLinkableSocialAccounts();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { isControllerBacked, linkedAddresses, updateProfile } =
     useProfileController();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const linkedAddress = linkedAddresses[0]
-    ? getLinkedEvmAddress(linkedAddresses[0])
-    : undefined;
+  // The stored order is not guaranteed, so take the first EVM entry wherever
+  // it sits; that is the address each row is matched on.
+  const linkedAddress = linkedAddresses
+    .map(getLinkedEvmAddress)
+    .find((address) => address !== undefined);
   const selectedAccountId = isControllerBacked
     ? accounts.find(
         (account) =>
@@ -65,7 +63,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
     : selectedAccount?.id;
 
   const handleAccountPress = useCallback(
-    async (address: string): Promise<void> => {
+    async (nextLinkedAddresses: CaipAccountId[]): Promise<void> => {
       if (!isControllerBacked) {
         return;
       }
@@ -74,9 +72,8 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       setErrorMessage(null);
 
       try {
-        await updateProfile({
-          linked_addresses: [`eip155:1:${address}` as CaipAccountId],
-        });
+        await updateProfile({ linked_addresses: nextLinkedAddresses });
+        trackProfileEdited();
       } catch {
         setErrorMessage(
           strings('social_leaderboard.manage_profile.save_error'),
@@ -85,7 +82,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, updateProfile],
+    [isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (
@@ -99,14 +96,13 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         <Box twClassName="mx-4 mt-2 bg-muted rounded-2xl overflow-hidden">
           {accounts.map((account, index) => {
             const isSelected = selectedAccountId === account.id;
-            const label = accountLabel(account.metadata.name, account.address);
 
             return (
               <Pressable
                 key={account.id}
                 accessibilityRole="button"
                 disabled={!isControllerBacked || isUpdating}
-                onPress={() => handleAccountPress(account.address)}
+                onPress={() => handleAccountPress(account.linkedAddresses)}
                 testID={`${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
               >
                 <Box
@@ -128,15 +124,28 @@ const ManageProfileLinkedAccountView: React.FC = () => {
                       size={AvatarAccountSize.Md}
                       variant={avatarVariant}
                     />
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      numberOfLines={1}
-                      twClassName="flex-shrink"
-                    >
-                      {label}
-                    </Text>
+                    <Box twClassName="flex-1 min-w-0">
+                      <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+                        {account.name}
+                      </Text>
+                      {account.balanceLabel ? (
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                          numberOfLines={1}
+                        >
+                          {account.balanceLabel}
+                        </Text>
+                      ) : null}
+                    </Box>
                   </Box>
-                  <RadioButton isChecked={isSelected} isReadOnly />
+                  <Checkbox
+                    isSelected={isSelected}
+                    pointerEvents="none"
+                    onChange={() => {
+                      void handleAccountPress(account.linkedAddresses);
+                    }}
+                  />
                 </Box>
               </Pressable>
             );
@@ -153,13 +162,15 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         ) : null}
         <Box
           flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
           twClassName="mx-4 mt-4 px-3 py-3 rounded-2xl border border-muted"
-          gap={2}
+          gap={1}
         >
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            twClassName="mt-0.5"
           />
           <Text
             variant={TextVariant.BodySm}

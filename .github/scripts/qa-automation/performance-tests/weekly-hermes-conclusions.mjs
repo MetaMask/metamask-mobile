@@ -873,7 +873,7 @@ export function buildWeeklyParentSlack(report) {
   lines.push(...weeklyIssuesSlackLines(report));
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+    '_Source:_ Hermes CPU sampling only; TestMu app-profiling data excluded.',
     '_"JS work":_ JS self time attributed from those samples (GC, idle and native waits excluded) — not the wall-clock duration of the test.',
   );
   if (!report.meta.comparable) {

@@ -219,6 +219,29 @@ describe('CandlePeriodSelector', () => {
       );
     });
 
+    it('scales period labels so the unit stays visible in the shared row', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          textVariant={TextVariant.BodySm}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      UNSAFE_getAllByType(FilterButton).forEach((periodButton) => {
+        expect(periodButton.props.textProps).toEqual(
+          expect.objectContaining({
+            variant: TextVariant.BodySm,
+            adjustsFontSizeToFit: true,
+            minimumFontScale: 0.7,
+            numberOfLines: 1,
+          }),
+        );
+      });
+    });
+
     it('marks the selected period as selected for assistive technology', () => {
       const { UNSAFE_getAllByType } = renderWithProvider(
         <CandlePeriodSelector

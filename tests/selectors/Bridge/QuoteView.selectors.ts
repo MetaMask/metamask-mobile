@@ -52,6 +52,7 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
   CONFIRM_BUTTON: 'bridge-confirm-button',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',

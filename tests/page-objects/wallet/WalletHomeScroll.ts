@@ -2,23 +2,31 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { type AppiumElement, getDriver, wrapElement } from '../../framework';
+import Utilities from '../../framework/Utilities';
+import {
+  type AppiumElement,
+  createLogger,
+  getDriver,
+  wrapElement,
+} from '../../framework';
 import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
 import {
   getPerformanceLocatorRecovery,
   isPerformanceSuiteActive,
 } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { getWindowSize } from '../../framework/DeviceInfoCache.ts';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import TabBarComponent from './TabBarComponent';
+import { pixelsToClearTabBar } from './tabBarClearance';
 
-/**
- * WDIO derives the swipe coordinates from the scrollable element and defaults
- * to 0.95, which starts the gesture 2.5% above the bottom of the scroll view.
- * The floating tab bar overlays that strip and swallows the touch, so the
- * homepage never scrolls. 0.5 starts it at 75% of the container, clear of the
- * bar on both gesture and three-button navigation.
- */
 const WALLET_HOME_SWIPE_PERCENT = 0.5;
+const MAX_TAB_BAR_CLEARANCE_SCROLLS = 3;
+// The wallet tab button's top sits inside the floating bar, so measuring only
+// that edge leaves the header under the bar and the tap hits Money.
+const TAB_BAR_TOUCH_SLOP_PX = 96;
+
+const logger = createLogger({ name: 'WalletHomeScroll' });
 
 export class WalletHomeScroll {
   get walletScrollContainer(): string {
@@ -108,6 +116,7 @@ export class WalletHomeScroll {
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
+    options: { fullyVisible?: boolean } = {},
   ): Promise<void> {
     await Assertions.expectElementToBeVisible(this.walletScrollView, {
       timeout: resolveE2EWaitTimeoutMs(10_000),
@@ -119,22 +128,33 @@ export class WalletHomeScroll {
         this.walletScrollView,
       )) as AppiumElement;
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
-      const scrollDirection = direction === 'down' ? 'up' : 'down';
+      const scrollDirection: 'up' | 'down' =
+        direction === 'down' ? 'up' : 'down';
       if (isPerformanceSuiteActive()) {
-        // Android reports a header behind the floating tab bar as displayed, so
-        // scrollIntoView alone stops with it unreachable.
-        await Gestures.scrollIntoViewFullyVisible(freshTarget, {
+        // WDIO scrollIntoView swipes from 75% of this ScrollView. The view
+        // runs under the floating tab bar, so that gesture is swallowed and
+        // the list never moves. It also skips the swipe entirely once Android
+        // reports the header as displayed. Drag from mid-screen instead.
+        await this.scrollUntilVisible(
+          target,
+          description,
+          direction,
+          maxAttempts,
+        );
+      } else {
+        const scrollOptions = {
           scrollableElement: scrollView,
           direction: scrollDirection,
           percent: WALLET_HOME_SWIPE_PERCENT,
           maxScrolls: maxAttempts,
-        });
-      } else {
-        await Gestures.scrollIntoView(freshTarget, {
-          scrollableElement: scrollView,
-          direction: scrollDirection,
-          maxScrolls: maxAttempts,
-        });
+        };
+        // scrollIntoView stops on the first visible pixel, which leaves rows
+        // clipped under the floating tab bar. Fully-visible is the shared nudge.
+        if (options.fullyVisible) {
+          await Gestures.scrollIntoViewFullyVisible(freshTarget, scrollOptions);
+        } else {
+          await Gestures.scrollIntoView(freshTarget, scrollOptions);
+        }
       }
       await Assertions.expectElementToBeVisible(
         await this.resolveFreshWalletHomeTarget(target),
@@ -170,6 +190,82 @@ export class WalletHomeScroll {
     );
   }
 
+  /**
+   * Scrolls the home list until `target` is not covered by the floating tab
+   * bar. A header that peeks out from behind the bar counts as displayed, but
+   * tapping its center hits the bar (e.g. Money) instead. A swipe can travel
+   * less than requested, so the position is measured again after each scroll.
+   * Leaves the target untouched when the tab bar is not on screen.
+   */
+  async scrollUntilVisible(
+    target: Promise<AppiumElement>,
+    description: string,
+    direction: 'up' | 'down',
+    maxAttempts: number,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        await Assertions.expectElementToBeVisible(
+          await this.resolveFreshWalletHomeTarget(target),
+          {
+            timeout: 1_500,
+            description,
+          },
+        );
+        return;
+      } catch {
+        logger.info(
+          `Scrolling wallet home ${direction} to reveal "${description}" (${attempt + 1}/${maxAttempts})`,
+        );
+        await this.scrollWalletHome(direction, 0.45);
+      }
+    }
+  }
+
+  async scrollClearOfTabBar(
+    target: Promise<AppiumElement>,
+    description: string,
+  ): Promise<AppiumElement> {
+    const windowHeight = getWindowSize().height;
+    let tabBarTop = Math.floor(windowHeight * 0.82);
+    const tabBarButton = TabBarComponent.tabBarWalletButton;
+    if (await Utilities.isElementVisible(tabBarButton, 1_000)) {
+      tabBarTop = (await (await tabBarButton).unwrap().getLocation()).y;
+    } else {
+      logger.info(
+        `Wallet tab button not found; clearing "${description}" against y=${tabBarTop}`,
+      );
+    }
+
+    let current = await this.resolveFreshWalletHomeTarget(target);
+    for (let scroll = 1; scroll <= MAX_TAB_BAR_CLEARANCE_SCROLLS; scroll += 1) {
+      const [location, size, scrollView] = await Promise.all([
+        current.unwrap().getLocation(),
+        current.unwrap().getSize(),
+        Promise.resolve(this.walletScrollView),
+      ]);
+      const needed = pixelsToClearTabBar(
+        { y: location.y, height: size.height },
+        tabBarTop - TAB_BAR_TOUCH_SLOP_PX,
+      );
+      if (needed === 0) {
+        logger.info(
+          `"${description}" is clear of the tab bar (bottom=${location.y + size.height}, barTop=${tabBarTop})`,
+        );
+        return current;
+      }
+
+      const viewHeight = (await scrollView.unwrap().getSize()).height;
+      logger.info(
+        `Scrolling ${needed}px so "${description}" clears the floating tab bar (${scroll}/${MAX_TAB_BAR_CLEARANCE_SCROLLS})`,
+      );
+      await this.scrollWalletHome('down', Math.max(needed / viewHeight, 0.22));
+      current = await this.resolveFreshWalletHomeTarget(target);
+    }
+
+    return current;
+  }
+
   async tapIfAlreadyVisible(
     target: Promise<AppiumElement>,
     description: string,
@@ -181,16 +277,28 @@ export class WalletHomeScroll {
        * so the first tap misses and this nudge clears it.
        */
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+      /** Scroll clear of the floating tab bar before the first tap. */
+      clearTabBar?: boolean;
     } = {},
   ): Promise<boolean> {
-    const { tapTimeout = 30_000, overshootSwipe } = options;
+    const {
+      tapTimeout = 30_000,
+      overshootSwipe,
+      clearTabBar = false,
+    } = options;
 
     try {
-      const freshTarget = await this.resolveFreshWalletHomeTarget(target);
+      let freshTarget = await this.resolveFreshWalletHomeTarget(target);
       await Assertions.expectElementToBeVisible(freshTarget, {
         timeout: 2000,
         description,
       });
+      if (clearTabBar) {
+        freshTarget = await this.scrollClearOfTabBar(
+          Promise.resolve(freshTarget),
+          description,
+        );
+      }
       try {
         await Gestures.waitAndTap(freshTarget, {
           elemDescription: description,
@@ -256,6 +364,10 @@ export class WalletHomeScroll {
       /** Overrides the attempt count derived from `timeout`, including below 8. */
       maxAttempts?: number;
       tapTimeout?: number;
+      /** Scroll clear of the floating tab bar before tapping. */
+      clearTabBar?: boolean;
+      /** Use scrollIntoViewFullyVisible so the row clears the tab bar. */
+      fullyVisible?: boolean;
     } = {},
   ): Promise<void> {
     const {
@@ -263,6 +375,8 @@ export class WalletHomeScroll {
       timeout = 15_000,
       maxAttempts: maxAttemptsOverride,
       tapTimeout = 30_000,
+      clearTabBar = false,
+      fullyVisible = false,
     } = options;
     const maxAttempts =
       maxAttemptsOverride ?? Math.max(8, Math.ceil(timeout / 2_000));
@@ -277,8 +391,11 @@ export class WalletHomeScroll {
         description,
         scrollDirection,
         maxAttempts,
+        { fullyVisible },
       );
-      if (overshootSwipe) {
+      // Android fully-visible already nudges clear of the tab bar.
+      // iOS ignores fullyVisible, so it still needs the overshoot swipe.
+      if (overshootSwipe && !(fullyVisible && this.isAndroidAppium())) {
         await this.applySectionOvershoot(overshootSwipe, description);
       }
       return this.resolveFreshWalletHomeTarget(sectionTarget);
@@ -310,7 +427,11 @@ export class WalletHomeScroll {
       onRecovered: recovery?.onRecovered,
     });
 
-    await Gestures.waitAndTap(element, {
+    const tapTarget = clearTabBar
+      ? await this.scrollClearOfTabBar(Promise.resolve(element), description)
+      : element;
+
+    await Gestures.waitAndTap(tapTarget, {
       elemDescription: description,
       timeout: tapTimeout,
     });

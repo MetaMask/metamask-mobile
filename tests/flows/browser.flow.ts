@@ -35,6 +35,10 @@ const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
  * re-fetches that failure. Assign `location.href` (keeps `?contract=` /
  * `scrollTo=`) like `waitForTestDappButtonReady`, then fall back to a native
  * URL-bar navigation if CDP recovery is still stuck.
+ *
+ * Post-#37581 residual: one href + one native re-navigate can still leave
+ * `#logo-text` null when the local dapp accepts connections a beat late.
+ * Run a second recovery cycle with a shorter CDP poll and a brief settle.
  */
 const waitForAndroidTestDappHeadingViaCdp = async (
   pageUrl: string,
@@ -42,43 +46,59 @@ const waitForAndroidTestDappHeadingViaCdp = async (
   const headingId = TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE;
   const headingOptions = { includes: TEST_DAPP_LOAD_LABEL };
 
-  const pollHeading = async (): Promise<string | null> =>
+  const pollHeading = async (
+    timeoutMs: number = TEST_DAPP_LOAD_TIMEOUT_MS,
+  ): Promise<string | null> =>
     ChromeCdpHelpers.waitForElementTextInWebView(
       pageUrl,
       headingId,
-      TEST_DAPP_LOAD_TIMEOUT_MS,
+      timeoutMs,
       headingOptions,
     );
 
   const headingReady = (text: string | null): boolean =>
     Boolean(text?.trim().includes(TEST_DAPP_LOAD_LABEL));
 
+  const recoverViaHrefThenNative = async (
+    pollTimeoutMs: number,
+  ): Promise<string | null> => {
+    await ChromeCdpHelpers.evaluateInWebView(
+      pageUrl,
+      `(() => { location.href = ${JSON.stringify(pageUrl)}; return true; })()`,
+    );
+    // Drop stale webview_devtools_remote after navigation so the next session
+    // re-resolves the CDP endpoint instead of probing a dead forward.
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+
+    const text = await pollHeading(pollTimeoutMs);
+    if (headingReady(text)) {
+      return text;
+    }
+
+    // Native URL bar re-entry recovers when the WebView stays on the connection
+    // refused interstitial and CDP assign did not replace the document.
+    await BrowserView.navigateToURL(pageUrl, {
+      skipUrlEditorDismissal: true,
+    });
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    await sleep(1_000);
+
+    return pollHeading(pollTimeoutMs);
+  };
+
   let text = await pollHeading();
   if (headingReady(text)) {
     return;
   }
 
-  await ChromeCdpHelpers.evaluateInWebView(
-    pageUrl,
-    `(() => { location.href = ${JSON.stringify(pageUrl)}; return true; })()`,
-  );
-  // Drop stale webview_devtools_remote after navigation so the next session
-  // re-resolves the CDP endpoint instead of probing a dead forward.
-  ChromeCdpHelpers.resetMetaMaskWebViewCache();
-
-  text = await pollHeading();
+  text = await recoverViaHrefThenNative(TEST_DAPP_LOAD_TIMEOUT_MS);
   if (headingReady(text)) {
     return;
   }
 
-  // Native URL bar re-entry recovers when the WebView stays on the connection
-  // refused interstitial and CDP assign did not replace the document.
-  await BrowserView.navigateToURL(pageUrl, {
-    skipUrlEditorDismissal: true,
-  });
-  ChromeCdpHelpers.resetMetaMaskWebViewCache();
-
-  text = await pollHeading();
+  // Second cycle: local dapp may have become reachable after the first refused
+  // document; shorter polls keep the total budget bounded.
+  text = await recoverViaHrefThenNative(15_000);
   if (headingReady(text)) {
     return;
   }

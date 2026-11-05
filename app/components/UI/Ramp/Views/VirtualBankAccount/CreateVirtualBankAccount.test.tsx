@@ -7,6 +7,14 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { trackVbaEvent } from './vbaAnalytics';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
+
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -15,6 +23,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
 }));
 
 jest.mock('./hooks/useKycDisclaimers');
@@ -31,15 +44,15 @@ const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 jest.mock('./hooks/useVbaArrivalTime');
 const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
 
-const privacyDisclaimer = {
-  id: 'd-1',
-  url: 'https://moonpay.example/privacy',
-  display_name: "MoonPay's Privacy Policy",
-};
+jest.mock('../../../../../hooks/useScreenPerformance');
+const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
+
+// Iron sends only the MoonPay Enterprise T&C, and its `display_name` does not
+// say "MoonPay" — the screen rewords the label client-side.
 const termsDisclaimer = {
   id: 'd-2',
   url: 'https://moonpay.example/terms',
-  display_name: "MoonPay's Terms and Conditions",
+  display_name: 'Terms and Conditions',
 };
 
 describe('CreateVirtualBankAccount', () => {
@@ -47,7 +60,7 @@ describe('CreateVirtualBankAccount', () => {
     jest.clearAllMocks();
     jest.resetAllMocks();
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [privacyDisclaimer, termsDisclaimer],
+      disclaimers: [termsDisclaimer],
       isLoading: false,
       isAccepting: false,
       error: null,
@@ -81,6 +94,12 @@ describe('CreateVirtualBankAccount', () => {
     ).toBeOnTheScreen();
     expect(getByText('Get account details')).toBeOnTheScreen();
     expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
+    });
   });
 
   it('shows the earn copy without a number when APY is unavailable', () => {
@@ -155,7 +174,59 @@ describe('CreateVirtualBankAccount', () => {
       resolveSuccess?.();
     });
 
+    // Component-view and integration tests cannot observe Fabric's Android
+    // removal transition. Success leaves the CTA busy so a second tap cannot
+    // start another advance while this screen is leaving.
     await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('keeps the button label from being re-parented while the screen is removed', () => {
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    // Loading toggles whether Fabric flattens the button content row. Pinning
+    // that row stops the label moving during the Android removal transition.
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ).findAllByProps({ collapsable: false }),
+    ).not.toHaveLength(0);
+  });
+
+  it('reenables the CTA when vendor terms are not accepted', async () => {
+    mockAcceptDisclaimers.mockResolvedValue(false);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockAcceptDisclaimers).toHaveBeenCalledTimes(1);
+      expect(button).toBeEnabled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reenables the CTA when advancing throws', async () => {
+    mockOnSuccess.mockRejectedValue(new Error('navigation failed'));
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(button).toBeEnabled();
     });
   });
@@ -170,13 +241,15 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByText } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(
       getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
+    // The hardcoded Privacy Policy waits for the Iron catalog too.
+    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
     expect(
       getByTestId(
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
@@ -194,7 +267,7 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
 
-    const { queryByTestId, getByTestId } = renderWithProvider(
+    const { queryByTestId, queryByText, getByTestId } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
@@ -206,24 +279,73 @@ describe('CreateVirtualBankAccount', () => {
         `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-d-1`,
       ),
     ).not.toBeOnTheScreen();
+    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
     expect(
       getByTestId(
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ),
     ).toBeDisabled();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
+    });
   });
 
-  it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
+  it('renders the hardcoded MoonPay Privacy Policy link and opens the MoonPay privacy URL when pressed', () => {
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByText, queryByText } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
+    // The Iron T&C comes reworded, so the raw vendor name must not leak through.
+    expect(queryByText('Terms and Conditions')).toBeNull();
+
+    fireEvent.press(getByText("MoonPay's Privacy Policy"));
+
+    expect(spy).toHaveBeenCalledWith(
+      'https://www.moonpay.com/legal/privacy_policy',
+    );
+  });
+
+  it('renders the Iron T&C link with the MoonPay label and opens the Iron URL when pressed', () => {
     const spy = jest.spyOn(Linking, 'openURL');
     const { getByText } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
+    expect(getByText("MoonPay's Terms and Conditions")).toBeOnTheScreen();
 
-    fireEvent.press(getByText("MoonPay's Privacy Policy"));
+    fireEvent.press(getByText("MoonPay's Terms and Conditions"));
 
-    expect(spy).toHaveBeenCalledWith('https://moonpay.example/privacy');
+    expect(spy).toHaveBeenCalledWith('https://moonpay.example/terms');
+  });
+
+  it('labels multiple Iron links by their vendor display name instead of the single-T&C rewording', () => {
+    mockUseKycDisclaimers.mockReturnValue({
+      disclaimers: [
+        termsDisclaimer,
+        {
+          id: 'd-3',
+          url: 'https://moonpay.example/other',
+          display_name: 'Other Document',
+        },
+      ],
+      isLoading: false,
+      isAccepting: false,
+      error: null,
+      acceptDisclaimers: mockAcceptDisclaimers,
+      retry: mockRetry,
+    });
+
+    const { getByText } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    expect(getByText('Terms and Conditions')).toBeOnTheScreen();
+    expect(getByText('Other Document')).toBeOnTheScreen();
   });
 
   it('renders the full agreement sentence with a closing period', () => {
@@ -248,20 +370,112 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(
       getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
+    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
     expect(
       getByTestId(
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ),
     ).toBeDisabled();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  describe('analytics', () => {
+    const vendorTermsProperties = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'Money VBA Vendor Terms Updated',
+        )
+        .map(([, buildProperties]) => buildProperties());
+    const vendorTermsStatuses = () =>
+      vendorTermsProperties().map((properties) => properties.status);
+
+    it('tracks viewed once when the screen opens', () => {
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed']);
+    });
+
+    it('tracks failed with a failure reason when the terms are unavailable', () => {
+      mockUseKycDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: false,
+        isAccepting: false,
+        error: 'No KYC disclaimers returned',
+        acceptDisclaimers: mockAcceptDisclaimers,
+        retry: mockRetry,
+      });
+
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_unavailable',
+      });
+    });
+
+    it('tracks accepted after the terms are saved and before advancing', async () => {
+      const { getByTestId } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() =>
+        expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'accepted']),
+      );
+      const acceptedCall = jest
+        .mocked(trackVbaEvent)
+        .mock.invocationCallOrder.at(-1) as number;
+      expect(acceptedCall).toBeLessThan(
+        mockOnSuccess.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('tracks a submission failure when the terms loaded but were not saved', async () => {
+      mockAcceptDisclaimers.mockResolvedValue(false);
+      const { getByTestId } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_submission_failed',
+      });
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
   });
 });

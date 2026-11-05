@@ -11,7 +11,6 @@ import {
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   SectionDivider,
   Text,
   TextVariant,
@@ -44,6 +43,7 @@ import { TokenAmountValue } from '../../components/LimitOrderConfirmationModal/T
 import { getUsdTriggerPrice } from '../../components/OpenLimitOrderDetailsModal/utils';
 import { useLimitOrder } from '../../hooks/useLimitOrder';
 import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
@@ -56,6 +56,9 @@ import {
   getLimitOrderActivityTransaction,
   getLimitOrderActivityUsdValue,
 } from './SwapsLimitOrderActivityPage.utils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 function LimitOrderFeesAndTotal({
   chainId,
@@ -128,13 +131,14 @@ function LimitOrderFeesAndTotal({
 }
 
 function SwapsLimitOrderActivityPage() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<SwapsLimitOrderActivityPageRouteParams>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
   const networkName = useActivityNetworkName(chainId);
-  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getUsdTriggerPrice(
     order,
     sourceToken,
     destinationToken,
@@ -182,7 +186,9 @@ function SwapsLimitOrderActivityPage() {
       testID={SwapsLimitOrderActivityPageSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={getLimitOrderActivityTitle(
             order.state,
@@ -200,6 +206,10 @@ function SwapsLimitOrderActivityPage() {
           showsVerticalScrollIndicator={false}
         >
           <ActivityDetailsTemplateFrame
+            heroDividerMarginVertical={2}
+            heroDividerTestID={
+              SwapsLimitOrderActivityPageSelectorsIDs.AMOUNT_DIVIDER
+            }
             hero={
               <ActivityDetailsDualAmountHeader
                 sentToken={sentToken}
@@ -207,6 +217,7 @@ function SwapsLimitOrderActivityPage() {
                 // An order that never filled sent nothing, which reads as
                 // `0 ETH` rather than an outgoing `-0 ETH`.
                 signZeroAmounts={false}
+                useSubscriptNotation
               />
             }
             metadata={
@@ -259,7 +270,14 @@ function SwapsLimitOrderActivityPage() {
                     value={
                       <TokenAmountValue
                         amount={triggerPrice}
+                        prefix={
+                          triggerDirection &&
+                          strings(
+                            LIMIT_ORDER_DIRECTION[triggerDirection].signKey,
+                          )
+                        }
                         token={triggerToken}
+                        fontWeight={FontWeight.Medium}
                       />
                     }
                     testID={

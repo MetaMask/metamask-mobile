@@ -37,6 +37,7 @@ jest.mock('@metamask/perps-controller', () => {
       TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
       ORDER_REJECTED: 'ORDER_REJECTED',
       SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
+      PRICE_MOVED: 'PRICE_MOVED',
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
@@ -50,6 +51,9 @@ import {
   translatePerpsError,
   isPerpsErrorCode,
   isNoPositionFoundError,
+  isPostOnlyWindowError,
+  isPostOnlyWouldCrossError,
+  normalizeOrderEditRejection,
   handlePerpsError,
 } from './translatePerpsError';
 
@@ -168,6 +172,40 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.unknownError');
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
+    });
+
+    it('formats structured PRICE_MOVED details for localized copy', () => {
+      const result = translatePerpsError({
+        error: 'Price moved too much',
+        errorCode: PERPS_ERROR_CODES.PRICE_MOVED,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PRICE_MOVED,
+          priceDeltaBps: 336,
+          maxSlippageBps: 300,
+          expectedPrice: 788.71,
+          currentPrice: 815.22,
+        },
+      });
+
+      expect(result).toBe(
+        'perps.errors.priceMoved [priceDelta:3.36] [maxSlippage:3]',
+      );
+    });
+
+    it('formats IOC_CANCEL copy with the submitted slippage tolerance', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+        maxSlippageBps: 500,
+      });
+
+      expect(result).toBe('perps.errors.iocCancel [maxSlippage:5]');
+    });
+
+    it('uses non-numeric IOC_CANCEL copy when tolerance is unavailable', () => {
+      const result = translatePerpsError(PERPS_ERROR_CODES.IOC_CANCEL);
+
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
   });
 
@@ -376,6 +414,136 @@ describe('isNoPositionFoundError', () => {
     // Assert
     expect(result).toBe(false);
   });
+});
+
+describe('post-only rejections', () => {
+  const POST_ONLY_WINDOW_ERROR =
+    'order 0: Only post-only orders allowed immediately after network upgrade';
+  // bbo digits include "503" to guard against the generic service-unavailable pattern
+  const POST_ONLY_WOULD_CROSS_MODIFY_ERROR =
+    'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('translatePerpsError maps the post-only window rejection to restriction copy', () => {
+    // Act
+    const result = translatePerpsError(POST_ONLY_WINDOW_ERROR);
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('translatePerpsError maps the post-only would-cross rejection without bbo details', () => {
+    // Act
+    const result = translatePerpsError(
+      new Error(POST_ONLY_WOULD_CROSS_MODIFY_ERROR),
+    );
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it('handlePerpsError maps the post-only window rejection instead of the fallback', () => {
+    // Act
+    const result = handlePerpsError({
+      error: { error: POST_ONLY_WINDOW_ERROR },
+      fallbackMessage: 'Your funds have been returned to you',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('handlePerpsError maps the post-only would-cross rejection before generic patterns', () => {
+    // Act
+    const result = handlePerpsError({
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+      fallbackMessage: 'Fallback message',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it.each([
+    ['a string', POST_ONLY_WINDOW_ERROR],
+    ['an Error', new Error(POST_ONLY_WINDOW_ERROR)],
+    ['a structured failure', { error: POST_ONLY_WINDOW_ERROR }],
+  ])(
+    'isPostOnlyWindowError detects the post-only window in %s',
+    (_label, error) => {
+      // Act
+      const result = isPostOnlyWindowError(error);
+
+      // Assert
+      expect(result).toBe(true);
+    },
+  );
+
+  it('isPostOnlyWindowError ignores the post-only would-cross rejection', () => {
+    // Act
+    const result = isPostOnlyWindowError(POST_ONLY_WOULD_CROSS_MODIFY_ERROR);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('isPostOnlyWouldCrossError detects the post-only would-cross modify rejection', () => {
+    // Act
+    const result = isPostOnlyWouldCrossError(
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    );
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['undefined', undefined],
+  ])('isPostOnlyWouldCrossError ignores %s', (_label, error) => {
+    // Act
+    const result = isPostOnlyWouldCrossError(error);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('normalizeOrderEditRejection reports a cancelled original for a post-only would-cross modify', () => {
+    // Act
+    const result = normalizeOrderEditRejection(
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    );
+
+    // Assert
+    expect(result).toEqual({
+      reason: 'post_only_would_cross',
+      originalOrder: 'cancelled',
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    });
+  });
+
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['no error', undefined],
+  ])(
+    'normalizeOrderEditRejection reports a retained original for %s',
+    (_label, error) => {
+      // Act
+      const result = normalizeOrderEditRejection(error);
+
+      // Assert
+      expect(result).toEqual({
+        reason: 'other',
+        originalOrder: 'retained',
+        error,
+      });
+    },
+  );
 });
 
 describe('handlePerpsError', () => {
@@ -681,7 +849,7 @@ describe('handlePerpsError', () => {
         error: 'Insufficient liquidity for this trade',
       });
 
-      expect(result).toBe('perps.errors.insufficientLiquidity');
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
 
     it('translates transfer failed error pattern', () => {

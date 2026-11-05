@@ -7,12 +7,9 @@ import { darkTheme } from '@metamask/design-tokens';
  * We intentionally use darkTheme in this file to ensure consistent styling regardless of device theme.
  * This way exported P&L cards are uniform.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isLong: boolean; hasReferralCode: boolean };
-}) => {
+const styleSheet = (params: { theme: Theme; vars: { isLong: boolean } }) => {
   const { theme, vars } = params;
-  const { isLong, hasReferralCode } = vars;
+  const { isLong } = vars;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -111,7 +108,7 @@ const styleSheet = (params: {
       color: darkTheme.colors.error.default,
     },
     priceRowsContainer: {
-      marginBottom: hasReferralCode ? 16 : 0,
+      marginBottom: 0,
     },
     priceRow: {
       flexDirection: 'row',
@@ -134,20 +131,7 @@ const styleSheet = (params: {
       paddingTop: 16,
       gap: 4,
     },
-    referralCodeTagContainer: {
-      position: 'absolute',
-      bottom: 60,
-      left: 20,
-    },
-    referralCodeContentContainer: {
-      position: 'absolute',
-      bottom: 20,
-      left: 20,
-    },
-    referralCodeText: {
-      color: darkTheme.colors.accent04.light,
-      width: 175,
-      lineHeight: 16,
+    pnlContentContainer: {
       position: 'absolute',
       bottom: 20,
       left: 20,

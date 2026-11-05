@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
-  useWindowDimensions,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -10,6 +9,11 @@ import {
 import { Gesture, type PanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Box } from '@metamask/design-system-react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
 import {
   TabsBar,
   type TabItem,
@@ -19,10 +23,11 @@ import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import { TokenDetailsIds } from '../testIds';
 
 export { TOKEN_DETAILS_V1_TABS } from '../constants/constants';
 
-export const TOKEN_DETAILS_V1_TAB_BAR_TEST_ID = 'token-details-v1-tab-bar';
+const AnimatedBox = Animated.createAnimatedComponent(Box);
 
 export const SWIPE_ACTIVATION_OFFSET_PX = 50;
 export const SWIPE_FAIL_OFFSET_PX = 15;
@@ -31,12 +36,22 @@ export const SWIPE_VELOCITY_THRESHOLD_PX = 500;
 
 export const HIDDEN_TAB_PAGE_STYLE: ViewStyle = { display: 'none' };
 
+export const getTokenDetailsV1TabBarInset = (
+  scrollOffset: number,
+  tabBarOffset: number,
+  topInset: number,
+): number => {
+  'worklet';
+  return topInset > 0 && scrollOffset >= tabBarOffset ? topInset : 0;
+};
+
 export const resolveSwipeTargetTab = (
   activeTab: TokenDetailsV1TabKey,
   translationX: number,
   velocityX: number,
+  tabs: readonly TokenDetailsV1TabKey[] = TOKEN_DETAILS_V1_TABS,
 ): TokenDetailsV1TabKey | null => {
-  const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+  const activeIndex = tabs.indexOf(activeTab);
   if (activeIndex < 0) {
     return null;
   }
@@ -47,7 +62,7 @@ export const resolveSwipeTargetTab = (
     return null;
   }
   const targetIndex = translationX > 0 ? activeIndex - 1 : activeIndex + 1;
-  return TOKEN_DETAILS_V1_TABS[targetIndex] ?? null;
+  return tabs[targetIndex] ?? null;
 };
 
 export interface UseTokenDetailsV1TabsResult {
@@ -59,6 +74,8 @@ export interface UseTokenDetailsV1TabsResult {
 
 export interface UseTokenDetailsV1TabsOptions {
   initialTab?: TokenDetailsV1TabKey;
+  /** Tabs currently shown. Swipes stay inside this list. */
+  tabs?: readonly TokenDetailsV1TabKey[];
   onTabChange?: (
     targetTab: TokenDetailsV1TabKey,
     currentTab: TokenDetailsV1TabKey,
@@ -81,6 +98,7 @@ export const useTokenDetailsV1Tabs = (
       ? initialTabOrOptions
       : (options?.initialTab ?? TOKEN_DETAILS_V1_TABS[0]);
   const onTabChange = options?.onTabChange ?? options?.onTabWillChange;
+  const tabs = options?.tabs ?? TOKEN_DETAILS_V1_TABS;
 
   const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>(initialTab);
   const [mountedTabs, setMountedTabs] = useState<Set<TokenDetailsV1TabKey>>(
@@ -112,12 +130,13 @@ export const useTokenDetailsV1Tabs = (
         activeTab,
         translationX,
         velocityX,
+        tabs,
       );
       if (targetTab) {
         activateTab(targetTab);
       }
     },
-    [activeTab, activateTab],
+    [activeTab, activateTab, tabs],
   );
 
   const swipeGesture = useMemo(
@@ -153,8 +172,6 @@ export interface UseTokenDetailsV1ScrollStabilizationResult {
   scrollViewRef: React.RefObject<ScrollView | null>;
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   handleTabBarLayout: (event: LayoutChangeEvent) => void;
-  handleScrollViewLayout: (event: LayoutChangeEvent) => void;
-  tabContentContainerStyle: ViewStyle;
   /**
    * Pulls the page back down to the tab bar when a tab change would otherwise
    * leave the reader below the new tab's content. Only ever scrolls up.
@@ -178,25 +195,8 @@ export const useTokenDetailsV1ScrollStabilization = (
   const currentScrollYRef = useRef(0);
   const tabBarOffsetYRef = useRef<number | null>(null);
 
-  const { height: windowHeight } = useWindowDimensions();
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
-
-  const minTabContentHeight = useMemo(
-    () => Math.max(scrollViewHeight, windowHeight),
-    [scrollViewHeight, windowHeight],
-  );
-
-  const tabContentContainerStyle = useMemo<ViewStyle>(
-    () => ({ minHeight: minTabContentHeight }),
-    [minTabContentHeight],
-  );
-
   const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
     tabBarOffsetYRef.current = event.nativeEvent.layout.y;
-  }, []);
-
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    setScrollViewHeight(event.nativeEvent.layout.height);
   }, []);
 
   const onScroll = options?.onScroll;
@@ -231,8 +231,6 @@ export const useTokenDetailsV1ScrollStabilization = (
     scrollViewRef,
     handleScroll,
     handleTabBarLayout,
-    handleScrollViewLayout,
-    tabContentContainerStyle,
     clampScrollToTabBar,
     scrollToTabBar,
   };
@@ -242,37 +240,66 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Reserves space for a floating header only while this bar is sticky. */
+  topInset?: number;
+  /** Scroll offset used to detect when the bar has docked. */
+  scrollY?: SharedValue<number>;
+  /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
+  tabs?: readonly TokenDetailsV1TabKey[];
 }
 
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
   strings(`token_details_v1.tabs.${tab}`);
 
-const getTabTestID = (tab: TokenDetailsV1TabKey): string =>
-  `token-details-v1-tab-${tab}`;
-
 const TokenDetailsV1TabBar = memo(
-  ({ activeTab, onTabPress, onLayout }: TokenDetailsV1TabBarProps) => {
-    const tabs = useMemo<TabItem[]>(
+  ({
+    activeTab,
+    onTabPress,
+    onLayout,
+    topInset = 0,
+    scrollY,
+    tabs = TOKEN_DETAILS_V1_TABS,
+  }: TokenDetailsV1TabBarProps) => {
+    const tabBarOffsetY = useSharedValue(Number.POSITIVE_INFINITY);
+    const handleLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        tabBarOffsetY.value = event.nativeEvent.layout.y;
+        onLayout?.(event);
+      },
+      [onLayout, tabBarOffsetY],
+    );
+    const stickyInsetStyle = useAnimatedStyle(
+      () => ({
+        paddingTop: getTokenDetailsV1TabBarInset(
+          scrollY?.value ?? 0,
+          tabBarOffsetY.value,
+          topInset,
+        ),
+      }),
+      [scrollY, topInset],
+    );
+
+    const tabItems = useMemo<TabItem[]>(
       () =>
-        TOKEN_DETAILS_V1_TABS.map((tab) => ({
+        tabs.map((tab) => ({
           key: tab,
           label: getTabLabel(tab),
           content: null,
-          testID: getTabTestID(tab),
+          testID: TokenDetailsIds.tab(tab),
         })),
-      [],
+      [tabs],
     );
 
-    const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+    const activeIndex = tabs.indexOf(activeTab);
 
     const handleTabPress = useMemo(
       () => (index: number) => {
-        const tab = TOKEN_DETAILS_V1_TABS[index];
+        const tab = tabs[index];
         if (tab) {
           onTabPress(tab);
         }
       },
-      [onTabPress],
+      [onTabPress, tabs],
     );
 
     return (
@@ -283,17 +310,20 @@ const TokenDetailsV1TabBar = memo(
       // track belongs to the caller. It sits here rather than on `TabsBar`'s
       // own container because both edges land in the same place, and this is
       // the element that already identifies the tab bar.
-      <Box
-        twClassName="border-b border-muted bg-default pt-3"
-        testID={TOKEN_DETAILS_V1_TAB_BAR_TEST_ID}
-        onLayout={onLayout}
+      <AnimatedBox
+        twClassName="border-b border-muted bg-default"
+        style={stickyInsetStyle}
+        testID={TokenDetailsIds.tabBar}
+        onLayout={handleLayout}
       >
-        <TabsBar
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-        />
-      </Box>
+        <Box twClassName="pt-3">
+          <TabsBar
+            tabs={tabItems}
+            activeIndex={activeIndex}
+            onTabPress={handleTabPress}
+          />
+        </Box>
+      </AnimatedBox>
     );
   },
 );

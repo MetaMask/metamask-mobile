@@ -6,7 +6,6 @@ import {
   FIAT_ORDER_STATES as fiatOrderStates,
 } from '#app/constants/on-ramp';
 import type { FiatOrder } from '#app/reducers/fiatOrders/types';
-import { getOrders } from '#app/reducers/fiatOrders';
 import { useRampsOrders } from '#app/components/UI/Ramp/hooks/useRampsOrders';
 import { useRampsDetailsOrder } from './useRampsDetailsOrder';
 

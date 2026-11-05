@@ -140,4 +140,12 @@ describe('EventCard.OutcomeRow', () => {
 
     expect(onOrder).toHaveBeenCalledWith(value, value.markets[0], valueOutcome);
   });
+
+  it('disables the price without an order handler', () => {
+    renderRow('0.42');
+
+    expect(
+      screen.getByTestId('predict-next-outcome-event-1-yes'),
+    ).toBeDisabled();
+  });
 });

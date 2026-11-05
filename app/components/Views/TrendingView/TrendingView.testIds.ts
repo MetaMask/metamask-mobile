@@ -10,6 +10,8 @@ export const TrendingViewSelectorsIDs = {
   EXPLORE_VIEW_SEARCH_BUTTON: 'explore-view-search-button',
   EXPLORE_VIEW_SEARCH_INPUT: 'explore-view-search-input',
   EXPLORE_VIEW_SEARCH_TEXT_INPUT: 'explore-view-search-text-input',
+  EXPLORE_SEARCH_BAR_GLASS: 'explore-search-bar-glass',
+  BROWSER_TABS_BUTTON_GLASS: 'browser-tabs-button-glass',
   TRENDING_SEARCH_RESULTS_LIST: 'trending-search-results-list',
   ALL_NETWORKS_BUTTON: 'all-networks-button',
   CLOSE_BUTTON: 'close-button',

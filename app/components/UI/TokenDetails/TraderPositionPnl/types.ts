@@ -25,6 +25,7 @@ export interface TraderPosition {
   marginUsd: number | null;
   trades: TraderPositionTrade[];
   lastTradeAt: number;
+  tokenImageUrl?: string | null;
 }
 
 export interface TraderPositionTrade {

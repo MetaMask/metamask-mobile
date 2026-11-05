@@ -7,7 +7,6 @@ import {
   selectSourceToken,
   setDestToken,
   setSourceAmount,
-  setSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -133,74 +132,30 @@ describe('useRecurringBuySwapInputs', () => {
     mockIsHardwareWallet = false;
   });
 
-  it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
-    // Simulates a token selected on another tab (e.g. Market order) whose
-    // chain isn't part of this flow's allowed chains. The view mounting fresh
-    // (tab switch) is what triggers the reset.
-    const staleSourceToken = createMockToken({
-      chainId: '0xa4b1', // Arbitrum, not in ENABLED_CHAIN_IDS
-      symbol: 'ARB-TOKEN',
-    });
-    const staleDestToken = createMockToken({
-      chainId: '0xa4b1',
-      symbol: 'ARB-DEST',
+  it('preserves a same-chain token pair and source amount on mount', () => {
+    const sourceToken = getNativeSourceToken('eip155:1');
+    const destToken = createMockToken({
+      chainId: '0x1',
       address: '0xdest',
+      symbol: 'mUSD',
     });
 
-    renderRecurringBuySwapInputsHook(
+    const { result } = renderRecurringBuySwapInputsHook(
       {
-        sourceToken: staleSourceToken,
-        destToken: staleDestToken,
-        sourceAmount: undefined,
+        sourceToken,
+        destToken,
+        sourceAmount: '1',
       },
       ENABLED_CHAIN_IDS,
     );
 
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:1');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
+    expect(result.current.sourceToken).toEqual(sourceToken);
+    expect(result.current.destToken).toEqual(destToken);
+    expect(result.current.sourceAmount).toBe('1');
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setDestToken(expect.anything()),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
-    );
-  });
-
-  it('falls back to the first enabled chain default pair when Ethereum is not enabled', () => {
-    const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
-
-    renderRecurringBuySwapInputsHook(
-      {
-        sourceToken: staleSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
-      ['eip155:56', 'eip155:8453'],
-    );
-
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:56');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
-    );
-  });
-
-  it('resets to the default pair even when the current selection is already within the enabled chains', () => {
-    // Intentional: the reset always fires on mount (tab entry), so the
-    // picker starts from a predictable default every time rather than
-    // depending on whatever was left selected from a prior visit.
-    const validSourceToken = getNativeSourceToken('eip155:1');
-
-    renderRecurringBuySwapInputsHook(
-      {
-        sourceToken: validSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
-      ENABLED_CHAIN_IDS,
-    );
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(getNativeSourceToken('eip155:1')),
-    );
+    expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
   });
 
   describe('handleSourcePresetAmountSelect', () => {
@@ -396,7 +351,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
   });
 
-  it('does not reset tokens when the recurring buy feature flag is missing', () => {
+  it('does not update tokens when the recurring buy feature flag is missing', () => {
     const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
 
     renderRecurringBuySwapInputsHook(
@@ -408,9 +363,7 @@ describe('useRecurringBuySwapInputs', () => {
       undefined,
     );
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      setSourceToken(expect.anything()),
-    );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('requests quotes without a Recurring slippage override', () => {

@@ -2,6 +2,7 @@ import useConfirmationAlerts from './useConfirmationAlerts';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { Alert, Severity } from '../../types/alerts';
+import { AlertKeys } from '../../constants/alerts';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   getAppStateForConfirmation,
@@ -16,6 +17,7 @@ import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -29,6 +31,7 @@ import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -43,6 +46,7 @@ jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useFiatBuyLimitAlert');
+jest.mock('./useTransactionDepositLimitAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
@@ -53,6 +57,7 @@ jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
 jest.mock('./useMMPayHardwareAccountAlert');
+jest.mock('./useSuggestedGasFeeHighAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -215,6 +220,7 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useFiatBuyLimitAlert as jest.Mock).mockReturnValue([]);
+    (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
@@ -225,6 +231,7 @@ describe('useConfirmationAlerts', () => {
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
     (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
+    (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -247,6 +254,23 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockGasLimitBelowMinimumAlert);
+  });
+
+  it('returns suggested gas fee high alerts', () => {
+    const mockSuggestedGasFeeHighAlert: Alert[] = [
+      {
+        key: 'suggestedGasFeeHigh',
+        title: 'High site fee',
+        message: ALERT_MESSAGE_MOCK,
+        severity: Severity.Warning,
+      },
+    ];
+    (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue(
+      mockSuggestedGasFeeHighAlert,
+    );
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockSuggestedGasFeeHighAlert);
   });
 
   it('returns domain mismatch alerts', () => {
@@ -331,5 +355,24 @@ describe('useConfirmationAlerts', () => {
       ...mockOriginTrustSignalAlerts,
       ...mockAddressTrustSignalAlerts,
     ]);
+  });
+
+  it('returns deposit limit alerts so the cap is captured in alert metrics', () => {
+    const mockDepositLimitAlert: Alert[] = [
+      {
+        key: AlertKeys.DepositLimit,
+        title: 'Max deposit: $100,000',
+        message: 'Max deposit: $100,000',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useTransactionDepositLimitAlert as jest.Mock).mockReturnValue(
+      mockDepositLimitAlert,
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockDepositLimitAlert);
   });
 });

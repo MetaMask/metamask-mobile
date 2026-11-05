@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -23,9 +22,13 @@ import {
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { useTheme } from '../../../../util/theme';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+  usePredictEntryActions,
+  type PredictEntryActions,
+} from '../../../UI/PredictNext';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import {
@@ -41,7 +44,6 @@ import {
   trackExploreInteracted,
   type ExploreSectionName,
 } from '../search/analytics';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
   soccer: 'predictions_football',
@@ -56,7 +58,7 @@ interface SportsListHeaderProps {
   sportsMarkets: UseSportsMarketsFeedResult;
   showAllSportsSkeleton: boolean;
   showAllSportsEmpty: boolean;
-  navigation: AppNavigationProp;
+  openPredict: PredictEntryActions['openPredict'];
 }
 
 const SportsListHeader: React.FC<SportsListHeaderProps> = ({
@@ -66,7 +68,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   sportsMarkets,
   showAllSportsSkeleton,
   showAllSportsEmpty,
-  navigation,
+  openPredict,
 }) => (
   <>
     <Box twClassName={showSportsPredictions ? 'pb-3' : undefined}>
@@ -80,7 +82,9 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
         title={strings('trending.predictions')}
         testIdPrefix="predict-sports-market-row-item"
         idPrefix="sports_predictions"
-        onViewAll={() => navigateToExplorePredictionsList(navigation, 'sports')}
+        onViewAll={() =>
+          navigateToExplorePredictionsList(openPredict, 'sports')
+        }
         isEnabled={showSportsPredictions}
       />
     </Box>
@@ -125,8 +129,8 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
 const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
-  const navigation = useNavigation<AppNavigationProp>();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const { openPredict } = usePredictEntryActions();
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const { colors } = useTheme();
 
   const sportsPredictions = usePredictionsFeed({
@@ -190,7 +194,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       sportsMarkets={sportsMarkets}
       showAllSportsSkeleton={showAllSportsSkeleton}
       showAllSportsEmpty={showAllSportsEmpty}
-      navigation={navigation}
+      openPredict={openPredict}
     />
   );
 
