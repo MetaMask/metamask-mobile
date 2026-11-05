@@ -158,7 +158,12 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
-type PredictMarketType = 'spread' | 'total' | 'team_total' | (string & {});
+type PredictMarketType =
+  | 'spread'
+  | 'total'
+  | 'team_total'
+  | 'threshold'
+  | (string & {});
 type PredictMarketGroupType = 'marketSelector' | 'choice' | (string & {});
 
 interface PredictMarketOption {
@@ -311,10 +316,17 @@ interface PredictFeed {
   one line-picker card per Team.
 - `marketType: 'threshold'` is a generic "at least N" ladder, such as one
   Player's prop: `option.value` is the whole N, shown as "N+", and each line's
-  Outcomes are "Yes" and "No". Its card is titled with `label` and the selected
+  Outcomes are "Yes" and "No". Mobile prints `option.value` as sent, so a
+  fractional value shows as "59.5+"; whole numbers are the backend's job. Lines
+  within a group are unique: a repeated `option.value` makes the group
+  inconsistent, and its lines fall back to standard cards. The picker follows
+  `displayOrder` (then response order), never `option.value`, so the backend
+  sends lines ascending. Its card is titled with `label` and the selected
   line ("Josh Jacobs: 60+") and shows the line's chance, Yes and No, and a
-  picker of its lines. It knows nothing about the sport, stat or unit. Outside
-  the card, such as in the Order flow, a line is named "Yes · Josh Jacobs 60+".
+  picker of its lines. It knows nothing about the sport, stat or unit. The Event
+  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs 60+".
+  Screens that read a Position's `context.outcomeLabel` (Home, Portfolio,
+  Activity) show the Outcome label alone, "Yes" or "No".
 - `Market.layout` is optional. The backend places a Market on the Event screen
   as tab › section › optional subgroup, each a key and an `order` among its
   siblings. Unknown keys are valid. A malformed `layout` is dropped and the
