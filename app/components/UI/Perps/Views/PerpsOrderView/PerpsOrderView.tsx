@@ -1950,28 +1950,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
-  const buildDataMonitoringIntent = useCallback(() => {
-    const asset = orderForm.asset;
-    const initialPosition = stream.positions
-      .getSnapshot()
-      ?.find((position) => position.symbol === asset);
-
-    return {
-      asset,
-      monitorOrders: true,
-      monitorPositions: true,
-      initialOrderCount: (stream.orders.getSnapshot() ?? []).filter(
-        (order) => order.symbol === asset,
-      ).length,
-      initialPosition: initialPosition
-        ? {
-            size: initialPosition.size,
-            entryPrice: initialPosition.entryPrice,
-          }
-        : null,
-    };
-  }, [orderForm.asset, stream]);
-
   const navigateToMarketAfterOrder = useCallback(() => {
     if (stayOnCurrentScreen) {
       // A pay-token deposit already dismissed back to the presenting screen.
@@ -1992,17 +1970,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           symbol: orderForm.asset,
           name: orderForm.asset,
         },
-        monitoringIntent: buildDataMonitoringIntent(),
+        monitoringIntent: {
+          asset: orderForm.asset,
+          monitorOrders: true,
+          monitorPositions: true,
+        },
       },
       pop: true,
     });
-  }, [
-    buildDataMonitoringIntent,
-    navigation,
-    navigationMarketData,
-    orderForm.asset,
-    stayOnCurrentScreen,
-  ]);
+  }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
   // The post-deposit re-entry calls handlePlaceOrder again; a callback cannot
   // reference itself under React Compiler, so it goes through this ref.
@@ -2246,7 +2222,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       symbol: orderForm.asset,
                       name: orderForm.asset,
                     },
-                    monitoringIntent: buildDataMonitoringIntent(),
+                    monitoringIntent: {
+                      asset: orderForm.asset,
+                      monitorOrders: true,
+                      monitorPositions: true,
+                    },
                   },
                 },
               ],
@@ -2514,7 +2494,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       assetData.price,
       navigation,
       navigationMarketData,
-      buildDataMonitoringIntent,
       navigateToMarketAfterOrder,
       currentMarketPosition,
       executeOrder,

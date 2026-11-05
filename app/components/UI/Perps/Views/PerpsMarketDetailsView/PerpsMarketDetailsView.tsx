@@ -819,8 +819,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     asset: monitoringIntent?.asset,
     monitorOrders: monitoringIntent?.monitorOrders,
     monitorPositions: monitoringIntent?.monitorPositions,
-    initialOrderCount: monitoringIntent?.initialOrderCount,
-    initialPosition: monitoringIntent?.initialPosition,
     timeoutMs: monitoringIntent?.timeoutMs,
     onDataDetected: handleDataDetected,
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
