@@ -32,7 +32,7 @@ The controller does not store the location or any other PII. On hydration it dro
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `predictConfig.enabled`                      | Chooses between lanes. `false` means the legacy Polymarket lane. It is **not** a kill switch: Predict stays available under `predictTradingEnabled`. This is the production default. |
 | `predictConfig.venues.<venue>.enabled`       | Per-Venue rollout and that Venue's kill switch. Turning a Venue off removes it from the candidates, so its users resolve to another Venue and are not hidden.                        |
-| `predictConfig.venueSelection.enabled`       | Whether a Venue Selection Preference is honored (and whether B2's picker shows). Turning it off ignores stored preferences without deleting them.                                    |
+| `predictConfig.venueSelection.enabled`       | Whether a Venue Selection Preference is honored and whether the venue picker shows. Turning it off ignores stored preferences without deleting them.                                 |
 | `predictTradingEnabled`                      | Availability of the **legacy lane**. It is version-gated and defaults to `true` when absent or invalid. It does not gate a `next` Venue.                                             |
 | `selectPredictEnabledFlag` (legacy selector) | Reads `predictTradingEnabled`. Legacy code keeps using it. External gates move to `selectPredictAvailability` in D1 (PRED-1392).                                                     |
 
@@ -61,3 +61,18 @@ None of the three is folded into availability.
 - `PredictVenueController:stateChanged` publishes preference and history changes.
 
 While the Active Venue is `resolving`, the root route and the legacy market-list route render nothing. Venue changes remount the active branch (`PredictImplementationSwitch`). Cross-Venue lifecycle handling belongs to B3 (PRED-1383).
+
+## Venue picker
+
+PRED-1401. `PredictVenueSelectorButton` (`venueSelection/`) sits next to the search icon on the PredictNext home and on both legacy Polymarket homes (`PredictFeed` and the redesigned `PredictHome`, through `PredictHeaderStacked`). It renders nothing unless `selectSelectableVenues` offers a choice. The picker is therefore absent, not disabled, while `predictConfig.venueSelection.enabled` is off or fewer than two Venues are rolled out.
+
+Its bottom sheet lists the selectable Venues and marks the Active Venue. Choosing one does two things, in order:
+
+1. It navigates to the root `Predict` route without legacy market-list parameters. Otherwise an entry that pinned Polymarket (`resolvePinnedVenue`, for example Explore's "view all") would stay on the legacy home.
+2. It calls `PredictVenueController:setVenueSelectionPreference`. The root route then remounts on the chosen Venue's home.
+
+The picker only writes the preference. Availability, Account Readiness, eligibility, rollout and kill switches keep applying unchanged, and a preference that is no longer honored is ignored as described above. The selection is the point where B3 (PRED-1383) hooks cross-Venue lifecycle handling.
+
+The module imports nothing from legacy `Predict/`. The legacy headers import it from its module boundary (`PredictNext/venueSelection`), not from the PredictNext entry point: the entry point exports `PredictRoot`, which imports the legacy stack, so importing it from a legacy header would close a dependency cycle.
+
+Analytics: until PRED-1273 defines the Predict venue-selection events, a selection fires the generic `SETTINGS_UPDATED` event (`settings_group: 'predict'`, `settings_type: 'venue_selection'`, `old_value`, `new_value`).

@@ -133,7 +133,7 @@ describe('useXAuth', () => {
           }),
       );
 
-      let connectPromise!: Promise<void>;
+      let connectPromise!: Promise<XProfile | undefined>;
       act(() => {
         connectPromise = result.current.connect();
       });
@@ -149,6 +149,38 @@ describe('useXAuth', () => {
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.connectError).toBeUndefined();
       expect(mockConnectX).toHaveBeenCalledTimes(2);
+    });
+
+    it('resolves with the X profile on success', async () => {
+      mockConnectX.mockResolvedValueOnce(X_PROFILE);
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        const res = await result.current.connect();
+        expect(res).toStrictEqual(X_PROFILE);
+      });
+
+      expect(result.current.connectError).toBeUndefined();
+      expect(result.current.isConnecting).toBe(false);
+    });
+
+    it('resolves undefined and records the error on failure', async () => {
+      mockConnectX.mockRejectedValueOnce(
+        new XAuthError(XAuthErrorType.BackendError, 'boom'),
+      );
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        const res = await result.current.connect();
+        expect(res).toBeUndefined();
+      });
+
+      expect(result.current.connectError?.type).toBe(
+        XAuthErrorType.BackendError,
+      );
+      expect(result.current.isConnecting).toBe(false);
     });
 
     it('records the XAuthError when connectX rejects', async () => {

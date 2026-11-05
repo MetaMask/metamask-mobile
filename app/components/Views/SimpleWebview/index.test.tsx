@@ -9,6 +9,11 @@ import Logger from '../../../util/Logger';
 import { getHardwareTier } from '../../../util/deviceCapability';
 import { useNetworkTier } from '../../../hooks/useNetworkTier';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => 'HIGH'),
 }));
