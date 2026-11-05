@@ -570,6 +570,22 @@ describe('card feature flag readers', () => {
       ]);
     });
 
+    it('drops a country with an invalid minimumVersion and keeps the rest', () => {
+      const flags = {
+        ...fundingFlags,
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          NZ: {
+            fundingChannel: 'moneyAccount',
+            minimumVersion: 'not-a-version',
+          },
+        },
+      };
+
+      expect(() => readImmersveCountryFunding(flags)).not.toThrow();
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual(['GB']);
+    });
+
     it('finds a channel by its Immersve funding channel id', () => {
       expect(
         findImmersveFundingChannelById(fundingFlags, moneyChannelId)?.source,
