@@ -13,8 +13,10 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import {
+  calculatePositionSize,
   CandlePeriod,
   PERPS_ERROR_CODES,
+  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type CandleData,
   type PriceUpdate,
@@ -22,8 +24,11 @@ import {
   type OrderBookLevel,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   defaultPositionForViews,
   renderPerpsOrderView,
@@ -46,11 +51,14 @@ import {
 import {
   formatPercentage,
   formatPerpsFiat,
+  formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
 const TIMEOUT_MS = 5000;
 
@@ -519,6 +527,60 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     },
   );
+
+  it('explains the post-only network-upgrade window when a market order is rejected', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    placeOrder.mockResolvedValue({
+      success: false,
+      error:
+        'order 0: Only post-only orders allowed immediately after network upgrade',
+    });
+    const { stream } = renderPerpsOrderView({
+      includeToasts: true,
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [marketDetailsRoute],
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.errors.postOnlyWindow'),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(strings('perps.order.order_failed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.order.your_funds_have_been_returned_to_you'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryAllByText(/only post-only orders allowed/i),
+    ).toHaveLength(0);
+    expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+  });
 
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
@@ -1683,6 +1745,347 @@ describe('PerpsOrderView', () => {
       expect(
         screen.queryByText(strings('perps.slippage.cannot_fill')),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('saved size unit on the real Trade sheet', () => {
+    const savedCoinSettings = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            orderBookPreferences: {
+              currency: 'base' as const,
+              metric: 'total' as const,
+            },
+          },
+        },
+      },
+    };
+
+    const sizeUnitEvents = (
+      events: { name: string; properties: Record<string, unknown> }[],
+      name: string,
+    ) => events.filter((event) => event.name === name);
+
+    const orderBookCurrency = (store: {
+      getState: () => {
+        engine: {
+          backgroundState: {
+            PerpsController?: {
+              orderBookPreferences?: { currency?: string };
+            };
+          };
+        };
+      };
+    }) =>
+      store.getState().engine.backgroundState.PerpsController
+        ?.orderBookPreferences?.currency;
+
+    it('shows USD and reports usd before the price, then coin once the price can project it', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(considered[0].properties[PERPS_ANALYTICS_SIZE_UNIT]).toBe(
+            'usd',
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_fiat_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await waitFor(() => {
+        expect(placeOrderButton).not.toBeDisabled();
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('reports usd on Considered after a pre-price USD edit once the price arrives', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '0',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      fireEvent.press(await screen.findByTestId(KeypadTestIds.KEY_5));
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(
+            considered.every(
+              (event) => event.properties[PERPS_ANALYTICS_SIZE_UNIT] === 'usd',
+            ),
+          ).toBe(true);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('keeps coin sizing after leaving the trade sheet for a tooltip', async () => {
+      const amount = '100';
+      const price = 2500;
+      const szDecimals = 2;
+      const coinAmount = formatPositionSize(
+        calculatePositionSize({
+          amount,
+          price,
+          szDecimals,
+        }),
+      );
+      const { stream, store } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount,
+          leverage: 4,
+          useBottomSheet: true,
+          defaultSzDecimals: szDecimals,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+      const unwire = wirePerpsControllerForStore(store);
+
+      try {
+        emitEthPrice(stream, '2', String(price));
+        // The header can paint a cached mid before order sizing has a price.
+        // The coin subtitle appears only once that price can project USD, which
+        // is also when the toggle is allowed to persist coin.
+        await screen.findByText(
+          `${coinAmount} ETH`,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW),
+        );
+
+        expect(
+          await screen.findByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+        expect(
+          screen.queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).not.toBeOnTheScreen();
+      } finally {
+        unwire();
+      }
+    });
+
+    it('reports usd on the full-screen form when coin is saved', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await waitFor(() => {
+        expect(placeOrderButton).not.toBeDisabled();
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
     });
   });
 });

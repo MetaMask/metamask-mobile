@@ -24,6 +24,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { playSelection } from '../../../../../../util/haptics';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
@@ -310,6 +311,18 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     [shouldMarquee, railTokens],
   );
 
+  // Selecting a chip and closing the selected one are both this press.
+  const handleTokenPress = useCallback(
+    (token: SocialV1HotToken) => {
+      if (!onTokenPress) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onTokenPress(token);
+    },
+    [onTokenPress],
+  );
+
   // Returning null instead of an empty wrapper lets the page's gap collapse,
   // rather than leaving a rail-shaped hole above the first post.
   if (!isLoading && railTokens.length === 0) {
@@ -330,7 +343,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         <Animated.View style={[styles.row, trackStyle]}>
           <HotTokenTrack
             tokens={railTokens}
-            onPress={onTokenPress}
+            onPress={handleTokenPress}
             onLayout={handleTrackLayout}
             testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
             selectedTokenId={selectedTokenId}
@@ -338,7 +351,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
           {loopTokens.length > 0 ? (
             <HotTokenTrack
               tokens={loopTokens}
-              onPress={onTokenPress}
+              onPress={handleTokenPress}
               idSuffix="-loop"
               selectedTokenId={selectedTokenId}
             />

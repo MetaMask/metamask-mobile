@@ -108,11 +108,20 @@ describe('MoneyDepositDeeplinkBridge', () => {
 
     render(<MoneyDepositDeeplinkBridge />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    const dispatchCallback = mockDispatch.mock.calls[0]?.[0] as
+      | ((state: { key: string }) => unknown)
+      | undefined;
+
+    expect(dispatchCallback).toEqual(expect.any(Function));
+    expect(dispatchCallback?.({ key: 'money-stack' })).toEqual({
+      ...StackActions.replace(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      }),
+      target: 'money-stack',
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('redirects unseen users to onboarding with a deposit continuation', () => {
