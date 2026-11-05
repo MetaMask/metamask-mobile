@@ -43,7 +43,6 @@ import {
   InlineLink,
   TermsCard,
   TermsLinkRow,
-  TermsParty,
   TermsSectionTitle,
   TermsStepCounter,
 } from './IdentityTermsComponents';
@@ -88,7 +87,7 @@ interface VbaVerifyIdentityProps {
 /**
  * Screen 1 of 2 of the identity terms: MetaMask's own consent. It names idOS
  * only (idOS engages Sumsub), links MetaMask's Terms of Use and Privacy Notice,
- * and Agree and Continue (always enabled) opens Our verification partners,
+ * and Agree and continue (always enabled) opens Our verification partners,
  * where idOS and Sumsub are agreed to before the camera opens. Back exits the
  * flow to Money home.
  */
@@ -129,12 +128,6 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             accessibilityLabel: strings('navigation.back'),
             testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
-          endAccessory={
-            <TermsStepCounter
-              current={1}
-              testID={VbaVerifyIdentitySelectorsIDs.STEP_COUNTER}
-            />
-          }
           includesTopInset
         />
         <ScrollView
@@ -142,6 +135,12 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
         >
           <TitleStandard
+            topAccessory={
+              <TermsStepCounter
+                step={1}
+                testID={VbaVerifyIdentitySelectorsIDs.STEP_COUNTER}
+              />
+            }
             title={verifyIdentityString('title')}
             bottomLabel={verifyIdentityString('description')}
             twClassName="px-4 pb-4"
@@ -213,7 +212,8 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             {verifyIdentityString('terms_section_title_metamask')}
           </TermsSectionTitle>
           <TermsCard>
-            <TermsParty name={verifyIdentityString('party_metamask')}>
+            {/* No party label: the section title already names MetaMask. */}
+            <Box twClassName="py-2">
               <TermsLinkRow
                 title={verifyIdentityString('footer_terms')}
                 url={METAMASK_TERMS_URL}
@@ -226,7 +226,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                   VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW
                 }
               />
-            </TermsParty>
+            </Box>
           </TermsCard>
         </ScrollView>
 

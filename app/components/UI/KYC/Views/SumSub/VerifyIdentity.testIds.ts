@@ -32,6 +32,8 @@ export const VbaVerificationPartnersSelectorsIDs = {
   BIOMETRIC_CONSENT_CHECKBOX:
     'vba-verification-partners-biometric-consent-checkbox',
   BIOMETRIC_CONSENT_LINK: 'vba-verification-partners-biometric-consent-link',
+  BIOMETRIC_CONSENT_ROW: 'vba-verification-partners-biometric-consent-row',
+  CHECKBOX_HINT: 'vba-verification-partners-checkbox-hint',
   IDOS_AGREEMENT: 'vba-verification-partners-idos-agreement',
   IDOS_TERMS_LINK: 'vba-verification-partners-idos-terms-link',
   AGREE_BUTTON: 'vba-verification-partners-agree-button',

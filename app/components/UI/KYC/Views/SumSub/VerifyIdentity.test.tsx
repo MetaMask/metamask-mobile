@@ -42,7 +42,7 @@ const renderScreen = () =>
   renderWithProvider(<VbaVerifyIdentity onContinue={mockOnContinue} />);
 
 const METAMASK_CONSENT_LINE =
-  'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.';
+  'By tapping Agree and continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.';
 
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
@@ -54,11 +54,11 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('renders screen 1 of 2 with the steps, the idOS benefits and the MetaMask terms', () => {
-    const { getByText, getByTestId } = renderScreen();
+    const { getByText, getByTestId, queryByText } = renderScreen();
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.STEP_COUNTER),
-    ).toHaveTextContent('1 of 2');
+    ).toHaveTextContent('Step 1 of 2', { exact: true });
     [
       'Verify your identity',
       "This usually takes a few minutes. You'll need a government-issued ID.",
@@ -73,8 +73,15 @@ describe('VbaVerifyIdentity', () => {
       'We share your verified identity with a partner only when you agree.',
       'Delete anytime.',
       'MetaMask terms',
-      'MetaMask',
     ].forEach((text) => expect(getByText(text)).toBeOnTheScreen());
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_ROW),
+    ).toHaveTextContent('Terms of Use', { exact: true });
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW),
+    ).toHaveTextContent('Privacy Notice', { exact: true });
+    // The section title names MetaMask, so the card has no party label.
+    expect(queryByText('MetaMask')).toBeNull();
     expect(
       getByTestId(`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-delete`),
     ).toHaveTextContent(
@@ -96,7 +103,7 @@ describe('VbaVerifyIdentity', () => {
     ).toHaveTextContent(METAMASK_CONSENT_LINE, { exact: true });
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-    ).toHaveTextContent('Agree and Continue', { exact: true });
+    ).toHaveTextContent('Agree and continue', { exact: true });
   });
 
   it('names neither Sumsub nor the idOS terms and has no consent checkbox', () => {
@@ -108,7 +115,7 @@ describe('VbaVerifyIdentity', () => {
     expect(queryAllByRole('checkbox')).toHaveLength(0);
   });
 
-  it('keeps Agree and Continue enabled and goes to screen 2 when pressed', () => {
+  it('keeps Agree and continue enabled and goes to screen 2 when pressed', () => {
     const { getByTestId } = renderScreen();
     const continueButton = getByTestId(
       VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,

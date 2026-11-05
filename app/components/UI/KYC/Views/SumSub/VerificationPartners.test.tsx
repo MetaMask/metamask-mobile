@@ -119,7 +119,7 @@ describe('VbaVerificationPartners', () => {
 
     expect(
       getByTestId(VbaVerificationPartnersSelectorsIDs.STEP_COUNTER),
-    ).toHaveTextContent('2 of 2');
+    ).toHaveTextContent('Step 2 of 2', { exact: true });
     [
       'Our verification partners',
       'idOS verifies your identity. idOS engages Sumsub to complete verification.',
@@ -215,6 +215,79 @@ describe('VbaVerificationPartners', () => {
     );
 
     expect(openUrlSpy).toHaveBeenCalledWith(IDOS_TERMS_URL);
+  });
+
+  describe('tick hint in the footer', () => {
+    const CHECKBOX_HINT = 'Scroll to check the consent to continue.';
+
+    // A 600pt viewport with the consent row 900pt down the scroll content.
+    const layOutScreen = (getByTestId: GetByTestId) => {
+      fireEvent(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
+        'layout',
+        { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 600 } } },
+      );
+      fireEvent(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW),
+        'layout',
+        { nativeEvent: { layout: { x: 16, y: 900, width: 368, height: 140 } } },
+      );
+    };
+
+    const scrollTo = (getByTestId: GetByTestId, y: number) =>
+      fireEvent.scroll(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
+        {
+          nativeEvent: {
+            contentOffset: { x: 0, y },
+            contentSize: { width: 400, height: 1100 },
+            layoutMeasurement: { width: 400, height: 600 },
+          },
+        },
+      );
+
+    it('shows the hint above the idOS line while the box is unticked and off screen', () => {
+      const { getByTestId } = renderScreen();
+      layOutScreen(getByTestId);
+
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
+      ).toHaveTextContent(CHECKBOX_HINT, { exact: true });
+    });
+
+    it('hides the hint once the box has scrolled into view', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+      layOutScreen(getByTestId);
+
+      scrollTo(getByTestId, 400);
+
+      expect(
+        queryByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
+      ).toBeNull();
+    });
+
+    it('shows the hint again if the box scrolls back off screen while unticked', () => {
+      const { getByTestId } = renderScreen();
+      layOutScreen(getByTestId);
+
+      scrollTo(getByTestId, 400);
+      scrollTo(getByTestId, 0);
+
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the hint once the box is ticked, even when it is off screen', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+      layOutScreen(getByTestId);
+
+      tickBiometricConsent(getByTestId);
+
+      expect(
+        queryByTestId(VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT),
+      ).toBeNull();
+    });
   });
 
   it('keeps Agree disabled until the biometric consent is ticked, then starts Sumsub', async () => {

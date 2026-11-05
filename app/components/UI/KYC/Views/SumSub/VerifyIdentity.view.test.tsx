@@ -140,11 +140,11 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
 
       expect(
         getByTestId(VbaVerifyIdentitySelectorsIDs.STEP_COUNTER),
-      ).toHaveTextContent('1 of 2');
+      ).toHaveTextContent('Step 1 of 2', { exact: true });
       expect(
         getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_AGREEMENT),
       ).toHaveTextContent(
-        'By tapping Agree and Continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.',
+        'By tapping Agree and continue, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask transferring my information to idOS.',
         { exact: true },
       );
       fireEvent.press(
@@ -160,7 +160,7 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       ]);
     });
 
-    it('opens screen 2 with Agree and Continue, which is always enabled', async () => {
+    it('opens screen 2 with Agree and continue, which is always enabled', async () => {
       const { getByTestId } = renderFlow();
       const continueButton = getByTestId(
         VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,
@@ -175,7 +175,7 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       await waitFor(() =>
         expect(
           getByTestId(VbaVerificationPartnersSelectorsIDs.STEP_COUNTER),
-        ).toHaveTextContent('2 of 2'),
+        ).toHaveTextContent('Step 2 of 2', { exact: true }),
       );
       expect(mockLaunchProviderFlow).not.toHaveBeenCalled();
     });

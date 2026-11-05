@@ -42,7 +42,7 @@ export const replaceProviderTermsWithProvider = (
   });
 };
 
-// Screen 1 of 2: MetaMask's terms. Agree and Continue opens screen 2.
+// Screen 1 of 2: MetaMask's terms. Agree and continue opens screen 2.
 const ProviderTermsStep = () => {
   const navigation = useNavigation<IdentityVerificationNavigation>();
   const handleContinue = useCallback(

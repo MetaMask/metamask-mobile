@@ -1,11 +1,13 @@
 import React, { useCallback, type ReactNode } from 'react';
 import {
   Box,
+  Card,
   ContentVariant,
   FontWeight,
   Icon,
   IconName,
   ListItem,
+  SectionHeader,
   Text,
   TextButton,
   TextColor,
@@ -73,46 +75,41 @@ export const TermsLinkRow = ({
   );
 };
 
-/** "1 of 2" in the header of the two identity terms screens. */
+const STEP_COUNTER_KEYS = {
+  1: 'virtual_bank_account.verify_identity.step_counter_screen_1',
+  2: 'virtual_bank_account.verify_identity.step_counter_screen_2',
+} as const;
+
+/** "Step 1 of 2" above the title, for TitleStandard's topAccessory. */
 export const TermsStepCounter = ({
-  current,
+  step,
   testID,
 }: {
-  current: 1 | 2;
+  step: 1 | 2;
   testID: string;
 }) => (
   <Text
     variant={TextVariant.BodySm}
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
-    twClassName="pr-2"
     testID={testID}
   >
-    {strings('virtual_bank_account.verify_identity.step_counter', {
-      current,
-      total: 2,
-    })}
+    {strings(STEP_COUNTER_KEYS[step])}
   </Text>
 );
 
-/** Section label above a terms card, e.g. "MetaMask terms". */
+/** Section header above a terms card, e.g. "MetaMask terms". */
 export const TermsSectionTitle = ({ children }: { children: string }) => (
-  <Text
-    variant={TextVariant.BodySm}
-    fontWeight={FontWeight.Medium}
-    color={TextColor.TextAlternative}
-    twClassName="px-4 pb-2 pt-6 uppercase"
+  <SectionHeader
+    title={children}
+    twClassName="pt-6"
     accessibilityRole="header"
-  >
-    {children}
-  </Text>
+  />
 );
 
-/** Bordered card that groups each party's documents. */
+/** Filled card that groups each party's documents. */
 export const TermsCard = ({ children }: { children: ReactNode }) => (
-  <Box twClassName="mx-4 overflow-hidden rounded-xl border border-muted">
-    {children}
-  </Box>
+  <Card twClassName="mx-4 overflow-hidden p-0">{children}</Card>
 );
 
 /** One party (MetaMask, idOS, Sumsub) inside a {@link TermsCard}. */

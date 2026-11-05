@@ -1,5 +1,10 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ScrollView,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -60,6 +65,13 @@ const verifyIdentityString = (key: string) =>
   strings(`virtual_bank_account.verify_identity.${key}`);
 
 const IDOS_TERMS_DISCLAIMER_ID = 'idOS:end_user_agreement';
+
+/**
+ * How much of the consent row must be on screen to count as seen: the
+ * checkbox itself plus a little room, so the hint hides once the tick target
+ * is visible rather than only when the whole sentence is.
+ */
+const CHECKBOX_VISIBLE_HEIGHT = 24;
 
 interface TermsLink {
   id: string;
@@ -124,6 +136,33 @@ const VbaVerificationPartners = ({
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [hasBiometricConsent, setHasBiometricConsent] = useBiometricConsent();
 
+  // Where the consent row sits in the scroll content, and what's on screen.
+  // Until both are measured the row counts as off screen, so the hint shows.
+  const [consentRowY, setConsentRowY] = useState<number>();
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  const handleViewportLayout = useCallback(
+    (event: LayoutChangeEvent) =>
+      setViewportHeight(event.nativeEvent.layout.height),
+    [],
+  );
+  const handleConsentRowLayout = useCallback(
+    (event: LayoutChangeEvent) => setConsentRowY(event.nativeEvent.layout.y),
+    [],
+  );
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) =>
+      setScrollOffset(event.nativeEvent.contentOffset.y),
+    [],
+  );
+
+  const isConsentRowInView =
+    consentRowY !== undefined &&
+    viewportHeight > 0 &&
+    consentRowY + CHECKBOX_VISIBLE_HEIGHT <= scrollOffset + viewportHeight;
+  const showCheckboxHint = !hasBiometricConsent && !isConsentRowInView;
+
   let contentState: KycScreenContentState = KYC_SCREEN_CONTENT_STATE.EMPTY;
   if (error) {
     contentState = KYC_SCREEN_CONTENT_STATE.ERROR;
@@ -183,19 +222,22 @@ const VbaVerificationPartners = ({
             accessibilityLabel: strings('navigation.back'),
             testID: VbaVerificationPartnersSelectorsIDs.BACK_BUTTON,
           }}
-          endAccessory={
-            <TermsStepCounter
-              current={2}
-              testID={VbaVerificationPartnersSelectorsIDs.STEP_COUNTER}
-            />
-          }
           includesTopInset
         />
         <ScrollView
           contentContainerStyle={tw.style('flex-grow pb-6')}
+          onLayout={handleViewportLayout}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           testID={VbaVerificationPartnersSelectorsIDs.CONTAINER}
         >
           <TitleStandard
+            topAccessory={
+              <TermsStepCounter
+                step={2}
+                testID={VbaVerificationPartnersSelectorsIDs.STEP_COUNTER}
+              />
+            }
             title={verifyIdentityString('partners_title')}
             bottomLabel={verifyIdentityString('partners_description')}
             twClassName="px-4"
@@ -266,10 +308,13 @@ const VbaVerificationPartners = ({
             </TermsParty>
           </TermsCard>
 
+          {/* Plain MMDS Checkbox row, as on the Card onboarding consents
+              (PhysicalAddress). The label is plain text; the privacy notice
+              link is a separate button below so both stay reachable. */}
           <Box
-            twClassName={`mx-4 mt-4 gap-2 rounded-xl border p-4 ${
-              hasBiometricConsent ? 'border-primary-default' : 'border-default'
-            }`}
+            twClassName="mx-4 mt-6 gap-2"
+            onLayout={handleConsentRowLayout}
+            testID={VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_ROW}
           >
             <Checkbox
               isSelected={hasBiometricConsent}
@@ -278,23 +323,26 @@ const VbaVerificationPartners = ({
               testID={
                 VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX
               }
+              twClassName="items-start"
               label={
                 <Box twClassName="ml-3 flex-1">
                   <Text variant={TextVariant.BodyMd}>{consentSentence}</Text>
                 </Box>
               }
             />
-            <InlineLink
-              url={IDOS_PRIVACY_NOTICE_URL}
-              testID={
-                VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK
-              }
-              accessibilityLabel={`${verifyIdentityString(
-                'biometric_consent_link',
-              )}, ${verifyIdentityString('opens_in_browser_hint')}`}
-            >
-              {verifyIdentityString('biometric_consent_link')}
-            </InlineLink>
+            <Box twClassName="pl-8">
+              <InlineLink
+                url={IDOS_PRIVACY_NOTICE_URL}
+                testID={
+                  VbaVerificationPartnersSelectorsIDs.BIOMETRIC_CONSENT_LINK
+                }
+                accessibilityLabel={`${verifyIdentityString(
+                  'biometric_consent_link',
+                )}, ${verifyIdentityString('opens_in_browser_hint')}`}
+              >
+                {verifyIdentityString('biometric_consent_link')}
+              </InlineLink>
+            </Box>
           </Box>
         </ScrollView>
 
@@ -327,6 +375,16 @@ const VbaVerificationPartners = ({
                 </TextButton>
               </Text>
             </Box>
+          ) : null}
+          {showCheckboxHint ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+              testID={VbaVerificationPartnersSelectorsIDs.CHECKBOX_HINT}
+            >
+              {verifyIdentityString('partners_checkbox_hint')}
+            </Text>
           ) : null}
           <Text
             variant={TextVariant.BodySm}
