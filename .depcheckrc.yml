@@ -125,7 +125,6 @@ ignores:
   - 'url'
   - 'vm-browserify'
   - 'react-native-cli'
-  - 'babel-plugin-module-resolver'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'
