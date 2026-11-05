@@ -157,6 +157,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const amountLineHeight = Math.round(fontSize * 1.25);
     const amountTextStyle = tw.style({
       fontSize,
+      fontFamily: 'Inter-Medium',
       lineHeight: amountLineHeight,
       height: amountLineHeight,
       marginTop: -Math.round(fontSize * AMOUNT_TOP_INSET_RATIO),
@@ -164,6 +165,10 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       paddingVertical: 0,
       includeFontPadding: false,
       textAlignVertical: 'center',
+    });
+    // 4px gap between the secondary value and its toggle icon.
+    const amountTypeToggleIconStyle = tw.style('ml-1', {
+      transform: [{ translateY: 2 }],
     });
     const marketComparisonColor =
       marketComparison?.isNegative === true
@@ -252,7 +257,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           </Text>
         </Box>
         <Box
-          twClassName="w-full min-w-0"
+          twClassName="w-full min-w-0 mt-1"
           marginBottom={shouldShowSecondaryRow ? 2 : 3}
           onLayout={onContainerLayout}
         >
@@ -298,7 +303,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mb-3 leading-[16px]"
+            twClassName="mb-4 leading-[16px]"
           >
             {shouldShowAmountTypeToggle ? (
               <Text
@@ -316,7 +321,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     testID={
                       LimitOrderPriceAdjustInputSectionSelectorsIDs.SECONDARY_VALUE
                     }
-                    variant={TextVariant.BodyMd}
+                    variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     twClassName="leading-[16px]"
                   >
@@ -330,7 +335,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     onPress={handleAmountTypeTogglePress}
                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                    style={{ transform: [{ translateY: 2 }] }}
+                    style={amountTypeToggleIconStyle}
                   >
                     <Icon
                       name={IconName.SwapVertical}
