@@ -521,6 +521,18 @@ export const formatSignedUsd = (
   return `${sign}${formatUsd(value, options)}`;
 };
 
+/** True for a positive integer string of base units. Zero and junk are not. */
+export function isPositiveBaseUnits(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
  * base-unit integer strings, because they exceed what a JSON number holds
