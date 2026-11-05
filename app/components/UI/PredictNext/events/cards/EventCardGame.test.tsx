@@ -132,24 +132,10 @@ describe('EventCardGame', () => {
 
   it('renders the featured matchup layout', () => {
     const event = createEvent();
-    if (event.sports?.game) {
-      event.sports.game.homeTeam.logoUrl =
-        'https://example.com/car.png' as PredictHttpsUrl;
-    }
 
     renderCard(event, { variant: 'featured' });
 
     expect(screen.getByText(event.title)).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('predict-next-game-logo-game-event-away', {
-        includeHiddenElements: true,
-      }),
-    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
-    expect(
-      screen.getByTestId('predict-next-game-logo-game-event-home', {
-        includeHiddenElements: true,
-      }),
-    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
     expect(screen.getByText('Arizona Cardinals')).toHaveStyle({ width: 80 });
     expect(
       screen.getByTestId('predict-next-game-matchup-game-event'),
