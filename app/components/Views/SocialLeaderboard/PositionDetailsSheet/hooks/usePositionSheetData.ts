@@ -4,7 +4,6 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   formatAbbreviatedUsd,
-  formatFeedPostAge,
   formatPercent,
   formatSignedUsd,
   formatTokenAmount,
@@ -21,11 +20,6 @@ import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimesta
 import { useTraderPositionData } from '../../TraderPositionView/useTraderPositionData';
 import { mapTradesToMarkers } from '../../TraderPositionView/utils/tradeMarkers';
 import {
-  deriveChartLevels,
-  type ChartLevel,
-  type ChartLevelKind,
-} from '../utils/chartLevels';
-import {
   buildTimeAxisLabels,
   deriveDailyChangePercent,
   getFirstTradeMs,
@@ -37,14 +31,6 @@ import { formatTradeTooltipLabel } from '../utils/tradeTooltipLabel';
 import { usePerpsSheetPrices } from './usePerpsSheetPrices';
 
 const TIME_AXIS_LABEL_COUNT = 4;
-
-const LEVEL_LABEL_KEYS: Record<ChartLevelKind, string> = {
-  entry: 'social_leaderboard.position_sheet.level.entry',
-  exit: 'social_leaderboard.position_sheet.level.exit',
-  current: 'social_leaderboard.position_sheet.level.current',
-  takeProfit: 'social_leaderboard.position_sheet.level.take_profit',
-  stopLoss: 'social_leaderboard.position_sheet.level.stop_loss',
-};
 
 const DIRECTION_KEYS: Record<PerpDirection, string> = {
   long: 'social_leaderboard.trader_position.long',
@@ -58,11 +44,6 @@ export interface PositionSheetMarker {
   intent: 'enter' | 'exit';
   timestampMs: number;
   tooltipLabel: string;
-}
-
-export interface PositionSheetLevel extends ChartLevel {
-  label: string;
-  valueLabel: string;
 }
 
 export interface PositionSheetData {
@@ -81,7 +62,6 @@ export interface PositionSheetData {
   timeAxisLabels: string[];
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
-  levels: PositionSheetLevel[];
 
   /** Spot values read as market cap when one is known, otherwise as price. */
   isMarketCapMode: boolean;
@@ -209,29 +189,6 @@ export function usePositionSheetData(
     perpDirection,
   ]);
 
-  const levels = useMemo((): PositionSheetLevel[] => {
-    if (!position) return [];
-    return deriveChartLevels({
-      position,
-      isClosed: base.isClosed,
-      isPerp,
-      currentPrice,
-    }).map((level) => {
-      const name = strings(LEVEL_LABEL_KEYS[level.kind]);
-      return {
-        ...level,
-        label:
-          level.timestampMs !== undefined
-            ? strings('social_leaderboard.position_sheet.level.with_age', {
-                level: name,
-                age: formatFeedPostAge(level.timestampMs, nowMs),
-              })
-            : name,
-        valueLabel: formatValue(level.price),
-      };
-    });
-  }, [position, base.isClosed, isPerp, currentPrice, formatValue, nowMs]);
-
   const symbol = base.symbol;
   const assetName =
     position?.tokenName && position.tokenName !== position.tokenSymbol
@@ -282,7 +239,6 @@ export function usePositionSheetData(
     timeAxisLabels: buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT),
     isTrendPositive,
     markers,
-    levels,
     isMarketCapMode,
     formatValue,
     currentPrice,
