@@ -78,6 +78,19 @@ const resolveRealtimeAuthorComment = (
   return realtime;
 };
 
+const resolveRefreshedAuthorComment = (
+  realtime: AuthorComment | null | undefined,
+  known: AuthorComment | null | undefined,
+): AuthorComment | null | undefined => {
+  if (realtime != null && known != null && realtime.uid === known.uid) {
+    return {
+      ...realtime,
+      engagement: known.engagement,
+    };
+  }
+  return resolveRealtimeAuthorComment(realtime, known);
+};
+
 /**
  * Full realtime events are normalized by Core and can hydrate a row without
  * an HTTP snapshot. The event's data overrides the HTTP row's fields, except
@@ -199,7 +212,7 @@ export const foldRealtimeRows = (
         ...row,
         core: {
           ...row.core,
-          authorComment: resolveRealtimeAuthorComment(
+          authorComment: resolveRefreshedAuthorComment(
             row.core.authorComment,
             serverRow.core.authorComment,
           ),
@@ -225,7 +238,7 @@ export const foldRealtimeRows = (
         ...row,
         core: {
           ...row.core,
-          authorComment: resolveRealtimeAuthorComment(
+          authorComment: resolveRefreshedAuthorComment(
             row.core.authorComment,
             serverRow.core.authorComment,
           ),

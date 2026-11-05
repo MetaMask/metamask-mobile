@@ -336,7 +336,7 @@ describe('socialFeedRealtime', () => {
       );
     });
 
-    it('keeps server userReaction while accepting promoted socket engagement', () => {
+    it('uses refreshed server engagement for a promoted socket copy', () => {
       const serverCall = buildCall('call-shared', {
         reactions: [{ emotion: '👍', count: 1, profiles: [] }],
         userReaction: '👍',
@@ -366,10 +366,7 @@ describe('socialFeedRealtime', () => {
 
       expect(
         folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
-      ).toEqual({
-        ...socketCall.engagement,
-        userReaction: serverCall.engagement.userReaction,
-      });
+      ).toEqual(serverCall.engagement);
     });
 
     it('refreshes engagement on a newer revised row from the server copy', () => {
@@ -402,10 +399,7 @@ describe('socialFeedRealtime', () => {
 
       expect(
         folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
-      ).toEqual({
-        ...staleCall.engagement,
-        userReaction: liveCall.engagement.userReaction,
-      });
+      ).toEqual(liveCall.engagement);
       expect(folded.changed).toBe(true);
     });
 
