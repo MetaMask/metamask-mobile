@@ -77,6 +77,16 @@ describe('getMoneyHomeCard', () => {
     expect(result).toEqual({ type: 'onboarding' });
   });
 
+  it('returns the card onboarding step when an empty wallet has funded the Money account', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      isMoneyAccountFunded: true,
+      vbaCard: card('get_started'),
+    });
+
+    expect(result).toEqual({ type: 'onboarding' });
+  });
+
   it('returns the card onboarding step when a crypto wallet has funded the Money account', () => {
     const result = getMoneyHomeCard({
       ...baseInputs,

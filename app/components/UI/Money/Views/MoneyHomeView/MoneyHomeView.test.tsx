@@ -1007,6 +1007,12 @@ describe('MoneyHomeView', () => {
     };
 
     it('renders the get_started card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
@@ -1154,6 +1160,12 @@ describe('MoneyHomeView', () => {
     });
 
     it('remounts the card with fresh dismiss state when the variant changes', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
       } as VbaHomeCard);

@@ -59,8 +59,10 @@ export interface MoneyHomeCardInputs {
  * wallet cannot flash Get started and then swap to Add funds.
  *
  * Get started is the only crypto-gated VBA card: a VBA-supported region,
- * nothing started, and no crypto. "Eligible" in the rendering table means
- * that region. A wallet that already has crypto, or a user outside a VBA
+ * nothing started, and no crypto. It also gives way once the Money account
+ * is funded, so depositing the whole wallet into Money shows the card step
+ * instead of Get started. "Eligible" in the rendering table means that
+ * region. A wallet that already has crypto, or a user outside a VBA
  * region, takes the onboarding stepper instead. Identity verified is the
  * KYC-approved card with no usable autoramp, and it shows only while the
  * Money account is unfunded. A usable autoramp does not render You're all
@@ -100,7 +102,11 @@ export function getMoneyHomeCard(inputs: MoneyHomeCardInputs): MoneyHomeCard {
     return { type: 'vba', variant: 'identity_verified' };
   }
 
-  if (vbaCard.type === 'get_started' && !inputs.hasCrypto) {
+  if (
+    vbaCard.type === 'get_started' &&
+    !inputs.hasCrypto &&
+    !inputs.isMoneyAccountFunded
+  ) {
     return { type: 'vba', variant: 'get_started' };
   }
 
