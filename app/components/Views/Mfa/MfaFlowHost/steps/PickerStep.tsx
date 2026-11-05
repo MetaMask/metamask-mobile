@@ -49,7 +49,9 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
             })
           : undefined
       }
-      onPress={() => onAction({ type: 'choose', method })}
+      onPress={() => {
+        onAction({ type: 'choose', method });
+      }}
       testID={`${MfaFlowSelectorsIDs.PICKER_OPTION}-${method}`}
     >
       {strings(PICKER_LABEL_KEYS[method])}
@@ -66,7 +68,9 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
         }
         isCentered
       />
-      {state.error ? <StepError code={state.error} /> : null}
+      {state.error ? (
+        <StepError code={state.error} onAction={onAction} />
+      ) : null}
       <Box twClassName="pt-4 gap-4">
         {hasPasskey ? renderOption('passkey', true) : null}
         {hasPasskey && others.length > 0 ? (

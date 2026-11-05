@@ -733,7 +733,7 @@
     "rewards": "Recompensas",
     "trending": "Explorar",
     "money": "Money",
-    "social": "Redes sociais"
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Enviar",
@@ -10275,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Trocaremos seus tokens por pUSD na Polygon, a rede usada pela Predictions. Provedores de trocas talvez cobrem taxas, mas a MetaMask não cobra."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "A MetaMask fará a conversão para o token desejado para você. A MetaMask não aplica taxas quando você converte para mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "A MetaMask fará a conversão para o token desejado para você. A MetaMask não aplica taxas quando você converte para mUSD."
       },
       "musd_conversion": {
         "transaction_fee": "As taxas de conversão de mUSD incluem custos de rede e podem incluir taxas do provedor. A MetaMask não aplica taxas quando você converte para mUSD."

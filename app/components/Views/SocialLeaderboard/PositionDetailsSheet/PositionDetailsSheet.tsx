@@ -14,11 +14,19 @@ import {
   Box,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import { parseCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
 } from '../../../UI/QuickBuy';
@@ -28,10 +36,13 @@ import type { QuickBuyTradeMode } from '../../../UI/QuickBuy/types';
 import { EnsureAccessRestricted } from '../../../UI/Compliance/contexts/AccessRestrictedContext';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import { useOpenPerpsOrder } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
 import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { playSelection } from '../../../../util/haptics';
 import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
@@ -77,6 +88,7 @@ const PositionDetailsSheet = () => {
     author,
     isClosed: isClosedParam,
     isSnapshotLive,
+    orderSource,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -147,6 +159,86 @@ const PositionDetailsSheet = () => {
     }
   }, []);
 
+  const handleOpenAsset = useCallback(() => {
+    if (data.isPerp) {
+      if (!data.perpTradeSymbol) {
+        return;
+      }
+      const symbol = data.perpTradeSymbol;
+      void playSelection()?.catch(() => undefined);
+      closeThen(() => {
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: {
+              symbol,
+              name: getPerpsDisplaySymbol(symbol),
+            } as PerpsMarketData,
+            source: 'trader_feed',
+          },
+        });
+      });
+      return;
+    }
+
+    if (!position?.tokenAddress) {
+      return;
+    }
+    const caipChainId = chainNameToId(position.chain);
+    if (!caipChainId) {
+      return;
+    }
+    const { namespace, reference } = parseCaipChainId(caipChainId);
+    const isEvm = namespace === 'eip155';
+    const chainId = isEvm
+      ? `0x${Number.parseInt(reference, 10).toString(16)}`
+      : caipChainId;
+    const address = isEvm
+      ? position.tokenAddress
+      : (toAssetId(position.tokenAddress, caipChainId) ??
+        position.tokenAddress);
+    let isNative = !isEvm && address.includes('/slip44:');
+    if (isEvm) {
+      try {
+        // The zero address is how social records ETH and other native coins.
+        // The asset page treats that as an ERC-20 unless this flag is set.
+        isNative =
+          formatAddressToAssetId(position.tokenAddress, caipChainId)?.includes(
+            '/slip44:',
+          ) ?? false;
+      } catch {
+        isNative = false;
+      }
+    }
+    const { tokenSymbol } = position;
+    const { assetName } = data;
+    void playSelection()?.catch(() => undefined);
+    closeThen(() => {
+      navigation.navigate('Asset', {
+        chainId,
+        address,
+        symbol: tokenSymbol,
+        name: assetName,
+        isNative,
+      });
+    });
+  }, [closeThen, data, navigation, position]);
+
+  const handleOpenTraderProfile = useCallback(() => {
+    void playSelection()?.catch(() => undefined);
+    closeThen(() => {
+      navigateToSocialV1Profile(navigation, {
+        traderId: author.id,
+        traderName: author.username,
+        traderAddress: author.address,
+        traderAvatarUri: author.avatarUri ?? undefined,
+        source: 'trader_feed',
+        viewerProfileId: profile?.profileId ?? undefined,
+        viewerAddress: profile?.linkedAccountAddress ?? undefined,
+      });
+    });
+  }, [author, closeThen, navigation, profile]);
+
   // Quick Buy lives in this route, so a spot action hides the sheet but keeps
   // the route until Quick Buy closes. Popping it then lets the post-trade and
   // failure sheets, hosted at the app root, show above.
@@ -162,6 +254,7 @@ const PositionDetailsSheet = () => {
 
   const { openPerpsOrder, geoBlockSheet } = useOpenPerpsOrder({
     runNavigation: closeThen,
+    source: orderSource,
   });
 
   const quickBuyTarget = useMemo(
@@ -241,8 +334,9 @@ const PositionDetailsSheet = () => {
       <View>
         <Box twClassName="px-4 py-3" gap={2}>
           <PositionSheetTradeSummary
-            position={position}
             title={data.summaryTitle}
+            tagLabel={data.summaryTagLabel}
+            direction={data.perpDirection}
             subtitle={data.summarySubtitle}
             pnlPercentLabel={data.pnlPercentLabel}
             pnlValueLabel={data.pnlValueLabel}
@@ -271,8 +365,8 @@ const PositionDetailsSheet = () => {
         >
           <PositionSheetHeader
             author={author}
-            position={position}
             isOwnPost={isOwnPost}
+            onPressTrader={handleOpenTraderProfile}
           />
           {/* Collapsed, everything fits and drags move the sheet instead. */}
           <ScrollView
@@ -293,13 +387,14 @@ const PositionDetailsSheet = () => {
               isMarketCapMode={data.isMarketCapMode}
               changePercent={headerChange}
               changeCaption={headerCaption}
+              position={position}
+              onPressAsset={handleOpenAsset}
             />
             <PositionSheetChart
               prices={data.prices}
               isLoading={isChartLoading}
               isTrendPositive={data.isTrendPositive}
               markers={data.markers}
-              levels={data.levels}
               timeAxisLabels={data.timeAxisLabels}
               lineProgress={reveal.lineProgress}
               overlayStyle={reveal.overlayStyle}
@@ -334,7 +429,7 @@ const PositionDetailsSheet = () => {
           onClose={navigation.goBack}
           traderAddress={author.address}
           marketCap={data.marketCap}
-          source="trader_feed"
+          source={orderSource ?? 'trader_feed'}
           originalEntryPoint="trader_feed"
           isTraderPositionClosed={data.isClosed}
           postTradeShare
