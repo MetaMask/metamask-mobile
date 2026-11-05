@@ -16,13 +16,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type LayoutChangeEvent, StyleSheet } from 'react-native';
+import {
+  Animated,
+  Easing,
+  type LayoutChangeEvent,
+  StyleSheet,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useFrameCallback,
-  useSharedValue,
-} from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { playSelection } from '../../../../../../util/haptics';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
 });
 
 const wrapOffset = (x: number, width: number): number => {
-  'worklet';
   if (width <= 0) {
     return 0;
   }
@@ -155,14 +154,15 @@ const HotTokenTrack: React.FC<{
  * the chips overflow the viewport they crawl like a news ticker, until a chip is
  * selected: that one moves to the front, takes a check, and the rail holds still.
  *
- * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
- * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
- * scroll gesture alive on PagerView page 0 and cancels taps on the rest of
- * Trending (reactions, overflow menu, Popular traders). A pan on this rail
- * still wins over the pager so scrubbing the chips does not change tabs.
+ * The crawl is a native-driver `Animated.timing` on `translateX`, not
+ * `ScrollView.scrollTo`. A gesture-handler ScrollView that `scrollTo`s every
+ * frame keeps a native scroll gesture alive on PagerView page 0 and cancels
+ * taps on the rest of Trending (reactions, overflow menu, Popular traders). A
+ * pan on this rail still wins over the pager so scrubbing the chips does not
+ * change tabs.
  *
- * The crawl runs a callback every frame, so low-end hardware keeps the rail
- * still. The pan stays, so the chips can still be scrubbed.
+ * Low-end hardware keeps the rail still. The pan stays, so the chips can still
+ * be scrubbed.
  *
  * Icons go through `PositionTokenAvatar`, the same resolution the position
  * cards use.
@@ -199,13 +199,15 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     () => (selectedToken ? [selectedToken] : tokens),
     [selectedToken, tokens],
   );
-  const offset = useSharedValue(0);
-  const dragStartOffset = useSharedValue(0);
-  const paused = useSharedValue(false);
-  const trackWidthSv = useSharedValue(0);
-  const viewportWidthSv = useSharedValue(0);
+
+  const offset = useRef(new Animated.Value(0)).current;
   const [trackWidth, setTrackWidth] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
+  const trackWidthRef = useRef(0);
+  // Invalidates a stop or wrap callback once a newer one has been issued.
+  const runIdRef = useRef(0);
+  const dragStartRef = useRef(0);
+  const shouldRunRef = useRef(false);
 
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
@@ -215,96 +217,108 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   // to read the rest of the rail is the user's call, and nothing re-starts the
   // crawl behind them.
   const isParked = Boolean(selectedTokenId);
-  const parked = useSharedValue(isParked);
+
+  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
+    setViewportWidth(event.nativeEvent.layout.width);
+  }, []);
+
+  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    trackWidthRef.current = width;
+    setTrackWidth(width);
+  }, []);
+
+  // One native timing per lap. JS wakes only at the wrap, which the `-loop`
+  // track hides. `runIdRef` drops the callback if a stop landed during the lap.
+  const runFrom = useCallback(
+    (from: number) => {
+      const id = ++runIdRef.current;
+      const travel = (position: number) => {
+        const width = trackWidthRef.current;
+        if (width <= 0) {
+          return;
+        }
+        offset.setValue(position);
+        Animated.timing(offset, {
+          toValue: width,
+          duration: ((width - position) / MARQUEE_PIXELS_PER_SECOND) * 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }).start(({ finished }) => {
+          if (finished && id === runIdRef.current) {
+            travel(0);
+          }
+        });
+      };
+      travel(wrapOffset(from, trackWidthRef.current));
+    },
+    [offset],
+  );
+
+  const stopAndThen = useCallback(
+    (after?: (value: number) => void) => {
+      const id = ++runIdRef.current;
+      offset.stopAnimation((value) => {
+        if (id === runIdRef.current) {
+          after?.(value);
+        }
+      });
+    },
+    [offset],
+  );
+
+  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isParked;
 
   useEffect(() => {
-    parked.value = isParked;
-    if (isParked) {
-      offset.value = 0;
-    }
-  }, [isParked, offset, parked]);
-
-  const handleViewportLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      viewportWidthSv.value = width;
-      setViewportWidth(width);
-    },
-    [viewportWidthSv],
-  );
-
-  const handleTrackLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      trackWidthSv.value = width;
-      setTrackWidth(width);
-    },
-    [trackWidthSv],
-  );
+    shouldRunRef.current = shouldRun;
+    stopAndThen((value) => {
+      if (isParked) {
+        offset.setValue(0);
+        return;
+      }
+      if (shouldRun) {
+        runFrom(value);
+      }
+    });
+    return () => {
+      runIdRef.current += 1;
+      offset.stopAnimation();
+    };
+  }, [isParked, offset, runFrom, shouldRun, stopAndThen, trackWidth]);
 
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .runOnJS(true)
         .activeOffsetX([-10, 10])
         .failOffsetY([-12, 12])
         .onBegin(() => {
-          'worklet';
-          paused.value = true;
-          dragStartOffset.value = offset.value;
+          stopAndThen((value) => {
+            dragStartRef.current = value;
+          });
         })
         .onUpdate((event) => {
-          'worklet';
-          const width = trackWidthSv.value;
+          const width = trackWidthRef.current;
           if (width <= 0) {
             return;
           }
-          offset.value = wrapOffset(
-            dragStartOffset.value - event.translationX,
-            width,
+          offset.setValue(
+            wrapOffset(dragStartRef.current - event.translationX, width),
           );
         })
         .onFinalize(() => {
-          'worklet';
-          paused.value = false;
+          stopAndThen((value) => {
+            if (shouldRunRef.current) {
+              runFrom(value);
+            }
+          });
         }),
-    [dragStartOffset, offset, paused, trackWidthSv],
+    [offset, runFrom, stopAndThen],
   );
 
-  const tickMarquee = useCallback(
-    (frame: { timeSincePreviousFrame: number | null }) => {
-      'worklet';
-      const width = trackWidthSv.value;
-      const viewport = viewportWidthSv.value;
-      if (
-        parked.value ||
-        paused.value ||
-        width <= 0 ||
-        viewport <= 0 ||
-        width <= viewport
-      ) {
-        return;
-      }
-      const dtMs = frame.timeSincePreviousFrame ?? 0;
-      if (dtMs <= 0) {
-        return;
-      }
-      offset.value = wrapOffset(
-        offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
-        width,
-      );
-    },
-    [offset, parked, paused, trackWidthSv, viewportWidthSv],
-  );
-
-  const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
-
-  useEffect(() => {
-    marqueeFrameCallback.setActive(isActive && !isLowHardware);
-  }, [isActive, isLowHardware, marqueeFrameCallback]);
-
-  const trackStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: -offset.value }],
-  }));
+  const trackStyle = {
+    transform: [{ translateX: Animated.multiply(offset, -1) }],
+  };
 
   const loopTokens = useMemo(
     () => (shouldMarquee ? railTokens : []),
