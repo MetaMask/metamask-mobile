@@ -979,6 +979,7 @@ describe('logs :: generateStateLogs', () => {
         expect(logs.AssetsController).toStrictEqual(assetsControllerState);
       } finally {
         controller.destroy();
+        Reflect.deleteProperty(Engine.context, 'AssetsController');
       }
     });
 
