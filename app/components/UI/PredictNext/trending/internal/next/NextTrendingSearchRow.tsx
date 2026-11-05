@@ -28,7 +28,8 @@ export interface NextTrendingSearchRowProps {
  * row (`PredictMarketRowItem`): image, title, and the most likely Outcome's
  * chance. A Game without an Event image shows that Outcome's Team logo. A
  * press opens the Event through the `event` intent, attributed to
- * `explore_search`; Explore tracks the tap itself.
+ * `explore_search`; Explore tracks the tap itself. Screen readers announce
+ * it as a button named by its title and chance.
  */
 export const NextTrendingSearchRow = ({
   event,
@@ -41,6 +42,12 @@ export const NextTrendingSearchRow = ({
   const handlePress = useCallback(() => {
     openEvent(event);
   }, [event, openEvent]);
+  const chance = topOutcome
+    ? strings('predict_next.trending.search_row_chance', {
+        probability: formatPercentage(topOutcome.percent, { truncate: true }),
+        outcome: topOutcome.label,
+      })
+    : undefined;
 
   let leading: React.ReactNode = null;
   if (event.imageUrl) {
@@ -66,6 +73,8 @@ export const NextTrendingSearchRow = ({
     <TouchableOpacity
       style={tw.style('flex-row items-center self-stretch py-2')}
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={chance ? `${event.title}, ${chance}` : event.title}
       testID={PredictTrendingTestIds.searchRow(event.id)}
     >
       <Box twClassName="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
@@ -81,7 +90,7 @@ export const NextTrendingSearchRow = ({
         >
           {event.title}
         </Text>
-        {topOutcome ? (
+        {chance ? (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
@@ -89,12 +98,7 @@ export const NextTrendingSearchRow = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {strings('predict_next.trending.search_row_chance', {
-              probability: formatPercentage(topOutcome.percent, {
-                truncate: true,
-              }),
-              outcome: topOutcome.label,
-            })}
+            {chance}
           </Text>
         ) : null}
       </View>

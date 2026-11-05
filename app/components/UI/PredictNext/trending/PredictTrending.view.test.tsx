@@ -501,15 +501,15 @@ describeForPlatforms('Explore prediction sections', () => {
       const row = await view.findByTestId(
         PredictTrendingTestIds.searchRow(NFL_1.id),
       );
+      const chance = strings('predict_next.trending.search_row_chance', {
+        probability: '59%',
+        outcome: 'Steelers',
+      });
       expect(within(row).getByText(NFL_1.title)).toBeOnTheScreen();
+      expect(within(row).getByText(chance)).toBeOnTheScreen();
       expect(
-        within(row).getByText(
-          strings('predict_next.trending.search_row_chance', {
-            probability: '59%',
-            outcome: 'Steelers',
-          }),
-        ),
-      ).toBeOnTheScreen();
+        view.getByRole('button', { name: `${NFL_1.title}, ${chance}` }),
+      ).toBe(row);
       expect(
         view.getByTestId(PredictTrendingTestIds.searchRow('nfl-2')),
       ).toBeOnTheScreen();
