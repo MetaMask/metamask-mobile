@@ -573,9 +573,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
     // Defer the two extra fetches (and their state updates) to idle so they
     // don't contend with scrolling or taps right after the active tab paints.
-    return scheduleIdleTask(() => {
+    // The idle callback can still run after cleanup when cancelIdleCallback
+    // is missing, which would turn the perps query on for a screen that has
+    // already moved on. The flag drops that callback.
+    let cancelled = false;
+    const cancelIdle = scheduleIdleTask(() => {
+      if (cancelled) {
+        return;
+      }
       setQueryEnabledTabs({ all: true, tokens: true, perps: true });
     });
+    return () => {
+      cancelled = true;
+      cancelIdle();
+    };
   }, [shouldPrefetchSecondaryTabs]);
 
   useEffect(() => {
