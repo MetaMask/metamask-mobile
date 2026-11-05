@@ -439,8 +439,9 @@ module.exports = {
       },
     },
     {
-      // Shared component-view helpers get the fake-timer ban only. The
-      // jest.mock ban above does not apply here (mocks.ts mocks Engine).
+      // Shared component-view helpers keep the base no-restricted-syntax bans
+      // and add the fake-timer ban. The jest.mock ban above does not apply
+      // here (mocks.ts mocks Engine).
       files: ['tests/component-view/**/*.{ts,tsx}'],
       rules: {
         'no-restricted-syntax': [
