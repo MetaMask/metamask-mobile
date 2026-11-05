@@ -1,5 +1,11 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { bytesToHex, numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  bytesToHex,
+  numberToHex,
+  parseCaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -81,8 +87,10 @@ import {
   type CreditWithdrawEstimationResponse,
   type CreditWithdrawParams,
   type CreditWithdrawResponse,
+  type CompleteMoneyAccountLinkParams,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
+  type PrepareMoneyAccountLinkParams,
   type ICardProvider,
   isCardAuthTokenError,
   CardProviderIds,
@@ -107,12 +115,8 @@ import {
   ExternalTransactionReceiptTimeoutError,
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
-import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { capRedeemAmount } from './utils/redeemAmount';
-import {
-  MONEY_ACCOUNT_DELEGATION_NETWORK,
-  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-} from '../../../../components/UI/Card/util/vedaToken';
+import { MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID } from '../../../../components/UI/Card/util/vedaToken';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -140,6 +144,9 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
+const MONEY_ACCOUNT_CHAIN_ID = Number(
+  parseCaipChainId(MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID).reference,
+);
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
@@ -3025,32 +3032,25 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Links a primary Money Account to Card by approving a Monad USDC allowance
-   * to the active provider's delegation contract and completing the provider's
-   * funding flow. The approval transaction is submitted via
+   * Links a primary Money account to Card by approving the provider's spender
+   * from the Money account and completing that provider's funding flow.
+   *
+   * Provider-specific work (Baanx delegation challenge and post-approval,
+   * Immersve funding source and card creation) lives in
+   * `prepareMoneyAccountLink` / `completeMoneyAccountLink`. The approval
+   * itself is always a gas-sponsored ERC-20 approve via
    * `TransactionController:addTransactionBatch` with `requireApproval: false`
-   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
-   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
-   * fee. This is the background linkage path UI hooks consume.
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal.
    *
-   * Pre-flight enforces one invariant before submission: the Monad gas
-   * sponsorship feature flag must be enabled (the relay must accept
-   * sponsorship for this chain).
+   * Pre-flight enforces one invariant before any provider call: Monad gas
+   * sponsorship must be enabled.
    *
-   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
-   * when the Money Account has no existing delegation, the hook auto-signs a
-   * 7702 authorization and bundles it in the same Sentinel relay request as
-   * the approve. No separate upgrade step is required here.
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`
+   * when the Money account has no existing delegation.
    *
-   * Race-safe by construction: subscribes to
-   * `TransactionController:transactionConfirmed` BEFORE submitting the
-   * transaction (see `awaitTransactionConfirmed`).
-   *
-   *
-   * @param params.moneyAccountAddress - The primary Money Account address.
-   * @param params.delegationAmountHuman - Allowance in human-readable units
-   * (e.g. `"2199023255551"`); converted to minimal units using the token's
-   * decimals. Pass `"0"` to revoke.
+   * @param params.moneyAccountAddress - The primary Money account address.
+   * @param params.delegationAmountHuman - Allowance in human-readable units.
+   * Pass `"0"` to revoke.
    */
   async linkMoneyAccountCard(params: {
     moneyAccountAddress: string;
@@ -3104,9 +3104,8 @@ export class CardController extends BaseController<
     await this.requireValidTokens();
     const provider = this.getActiveProvider();
     if (
-      !provider.fetchDelegationChallenge ||
-      !provider.approveFunding ||
-      !provider.generateCardDelegationSignatureMessage
+      !provider.prepareMoneyAccountLink ||
+      !provider.completeMoneyAccountLink
     ) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
@@ -3114,83 +3113,56 @@ export class CardController extends BaseController<
       );
     }
 
-    const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
-    if (!cardToken) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token unavailable',
-      );
+    // Money account approve is always on Monad. Refuse before provider calls
+    // when the relay will not sponsor this chain.
+    this.#assertMonadGasSponsorship();
+
+    const delegationSettings =
+      await this.#resolveMoneyAccountDelegationSettingsOrRefetch();
+    const preparation = await this.#withAuthRetry((tokens) =>
+      (
+        provider.prepareMoneyAccountLink as NonNullable<
+          ICardProvider['prepareMoneyAccountLink']
+        >
+      )(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          delegationSettings,
+        } satisfies PrepareMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
+
+    const chainNumber = Number(
+      parseCaipChainId(preparation.caipChainId).reference,
+    );
+    if (chainNumber !== MONEY_ACCOUNT_CHAIN_ID) {
+      this.#assertMonadGasSponsorship(chainNumber);
     }
 
-    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
-    if (!tokenAddress) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token address missing',
-      );
-    }
-    if (!cardToken.delegationContract) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card delegation contract missing',
-      );
-    }
+    const signatureMessage = preparation.context.signatureMessage;
+    const sigHash = signatureMessage
+      ? await this.messenger.call('KeyringController:signPersonalMessage', {
+          data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+          from: fromAddress,
+        })
+      : undefined;
 
     const amountInMinimalUnits = toTokenMinimalUnit(
       delegationAmountHuman,
-      cardToken.decimals ?? 6,
+      preparation.decimals,
     ).toString();
     const data = encodeErc20ApproveCalldata(
-      cardToken.delegationContract,
+      preparation.spender,
       amountInMinimalUnits,
-    );
-
-    const chainNumber = parseInt(
-      cardToken.caipChainId?.split(':')[1] ?? '143',
-      10,
     );
     const hexChainId = numberToHex(chainNumber) as Hex;
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       hexChainId,
     );
-
-    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
-    // link approve is submitted with `isGasFeeSponsored: true`, so if the
-    // server-side sponsorship is disabled we must refuse before the relay
-    // call — otherwise the publish hook would reject and the user would see
-    // a generic link-failed toast with no actionable reason.
-    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
-      ReduxService.store.getState() as RootState,
-    )(hexChainId);
-    if (!isMonadSponsorshipEnabled) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Monad gas sponsorship unavailable',
-      );
-    }
-
-    // Public wrappers carry the 401 refresh-retry; the transaction flow in
-    // between can outlive the access token that passed the guard above.
-    const { delegationToken, nonce } = await this.fetchDelegationChallenge({
-      network: 'monad',
-      address: fromAddress,
-    });
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
+    const tokenAddress = preparation.tokenAddress;
 
     const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
       messenger: this
@@ -3229,16 +3201,22 @@ export class CardController extends BaseController<
 
     const txHash = confirmedMeta.hash ?? '';
 
-    await this.approveFunding({
-      address: fromAddress,
-      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
-      currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-      amount: delegationAmountHuman,
-      txHash,
-      sigHash,
-      sigMessage: signatureMessage,
-      token: delegationToken,
-    });
+    await this.#withAuthRetry((tokens) =>
+      (
+        provider.completeMoneyAccountLink as NonNullable<
+          ICardProvider['completeMoneyAccountLink']
+        >
+      )(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          txHash,
+          sigHash,
+          context: preparation.context,
+        } satisfies CompleteMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
 
     try {
       await this.fetchCardHomeData({ force: true });
@@ -3250,10 +3228,23 @@ export class CardController extends BaseController<
     }
   }
 
-  async #resolveMoneyAccountCardTokenOrRefetch() {
+  #assertMonadGasSponsorship(chainNumber = MONEY_ACCOUNT_CHAIN_ID): void {
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const isEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Monad gas sponsorship unavailable',
+      );
+    }
+  }
+
+  async #resolveMoneyAccountDelegationSettingsOrRefetch() {
     const fromState = () => {
       const data = this.state.cardHomeData as unknown as CardHomeData | null;
-      return resolveMoneyAccountCardToken(data?.delegationSettings ?? null);
+      return data?.delegationSettings ?? null;
     };
     const existing = fromState();
     if (existing) return existing;
