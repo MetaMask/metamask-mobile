@@ -56,7 +56,8 @@ async function readWindowSizeOrRebootIosAccessibilityServer({
 }: {
   drv: WebdriverIO.Browser;
   implicitMs: number;
-  platform: WebDriverConfig['platform'];
+  // Playwright project `use` fields are optional even when WebDriverConfig requires them.
+  platform: WebDriverConfig['platform'] | undefined;
   deviceProvider: WorkerLevelFixtures['deviceProvider'];
   sharedSession: SharedAppiumSession;
   testTitle: string;
