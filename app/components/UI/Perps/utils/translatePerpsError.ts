@@ -537,7 +537,10 @@ export function translatePerpsError(
     );
   }
 
-  return errorInput.error;
+  // Unrecognized text is never shown. It can be a venue diagnostic that Core
+  // has not classified yet, so the user gets the same retryable fallback as
+  // UNKNOWN_ERROR.
+  return strings('perps.errors.unknownError');
 }
 
 /**

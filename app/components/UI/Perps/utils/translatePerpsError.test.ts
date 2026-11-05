@@ -175,6 +175,23 @@ describe('translatePerpsError', () => {
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
     });
 
+    it('translates a provider-tagged UNKNOWN_ERROR result to the retryable fallback', () => {
+      const rawDiagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+      const result = translatePerpsError({
+        error: rawDiagnostic,
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid',
+        },
+      });
+
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain(rawDiagnostic);
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
+    });
+
     it('formats structured PRICE_MOVED details for localized copy', () => {
       const result = translatePerpsError({
         error: 'Price moved too much',
@@ -244,12 +261,13 @@ describe('translatePerpsError', () => {
       );
     });
 
-    it('returns Error message if not an error code', () => {
+    it('replaces an unrecognized Error message with the retryable fallback', () => {
       const error = new Error('Custom error message');
       const result = translatePerpsError(error);
 
-      expect(result).toBe('Custom error message');
-      expect(strings).not.toHaveBeenCalled();
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain('Custom error message');
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('translates Error with API pattern matching message', () => {
@@ -273,10 +291,12 @@ describe('translatePerpsError', () => {
   });
 
   describe('with string errors', () => {
-    it('returns string as-is if not an error code', () => {
+    it('replaces an unrecognized string with the retryable fallback', () => {
       const result = translatePerpsError('Some random error string');
 
-      expect(result).toBe('Some random error string');
+      expect(result).toBe('perps.errors.unknownError');
+      expect(result).not.toContain('Some random error string');
+      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('translates string error codes', () => {

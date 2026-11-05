@@ -237,7 +237,8 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('Insufficient funds');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(mockOnError).not.toHaveBeenCalledWith('Insufficient funds');
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           category: 'Perp Margin Adjustment Transaction',
@@ -245,7 +246,7 @@ describe('usePerpsMarginAdjustment', () => {
         {
           action: 'add',
           asset: 'ETH',
-          error_message: 'Insufficient funds',
+          error_message: 'perps.errors.unknownError',
           status: 'failed',
         },
       );
@@ -308,7 +309,10 @@ describe('usePerpsMarginAdjustment', () => {
           type: 'error',
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('Cannot reduce below minimum');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
+      expect(mockOnError).not.toHaveBeenCalledWith(
+        'Cannot reduce below minimum',
+      );
     });
   });
 

@@ -2865,7 +2865,7 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unsupportedCollateral": "This market's collateral is not supported",
-      "unknownError": "Unknown error occurred",
+      "unknownError": "Something went wrong. Please try again.",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
