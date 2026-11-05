@@ -37,6 +37,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
@@ -58,10 +59,11 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
 
 const log = createProjectLogger('money-add-money-sheet');
 
-const MoneyAddMoneySheet: React.FC = () => {
+const MoneyAddMoneySheetContent: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
@@ -79,7 +81,11 @@ const MoneyAddMoneySheet: React.FC = () => {
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
-  const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    ...vbaEligibility,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -330,6 +336,16 @@ const MoneyAddMoneySheet: React.FC = () => {
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyAddMoneySheet: React.FC = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyAddMoneySheetContent />;
 };
 
 export default MoneyAddMoneySheet;

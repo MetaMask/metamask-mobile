@@ -16,7 +16,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconAlertSeverity,
   IconName,
   Text,
@@ -35,11 +34,16 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
@@ -68,7 +72,7 @@ const COPY: Record<
     lastTitle: string;
     lastDescription: string;
     removed: string;
-    operation: string;
+    operation: MfaReason['operation'];
   }
 > = {
   passkey: {
@@ -119,6 +123,7 @@ const MfaMethodDetails = () => {
     useRoute<RouteProp<RootStackParamList, 'MfaMethodDetails'>>().params;
   const { credentials, verifyOrEnroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [sheet, setSheet] = useState<'confirm' | 'lastMethod'>();
@@ -202,7 +207,9 @@ const MfaMethodDetails = () => {
       style={tw.style('flex-1 bg-default')}
       testID={MfaMethodDetailsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings(copy.title)}
         onBack={() => navigation.goBack()}
         includesTopInset

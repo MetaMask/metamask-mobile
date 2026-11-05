@@ -140,7 +140,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 }));
 
 // Mock FlashList
-const mockScrollToIndex = jest.fn();
+const mockScrollToIndex = jest.fn().mockResolvedValue(undefined);
 jest.mock('@shopify/flash-list', () => {
   const React = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');

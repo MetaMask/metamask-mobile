@@ -1,3 +1,4 @@
+import type { ModerationStatusResponse } from '@metamask/social-controllers';
 import Engine from '../../../core/Engine';
 
 /**
@@ -14,6 +15,12 @@ export const BLOCKED_COMMENT_IDS_QUERY_KEY = [
   'social',
   'moderation',
   'blockedCommentIds',
+] as const;
+
+export const MODERATION_STATUS_QUERY_KEY = [
+  'social',
+  'moderation',
+  'status',
 ] as const;
 
 /** A runaway cursor must not page forever; 250 per page × 20 is plenty. */
@@ -57,6 +64,23 @@ export const fetchBlockedCommentIds = async (): Promise<string[]> => {
     ),
   );
   return items.filter((item) => item.type === 'comment').map((item) => item.id);
+};
+
+/** Whether the moderation team banned the viewer, and the reason to show. */
+export const fetchModerationStatus = (): Promise<ModerationStatusResponse> =>
+  Engine.controllerMessenger.call('SocialService:fetchModerationStatus');
+
+/**
+ * Refetches the viewer's ban status, after the social API refused one of their
+ * writes. Imported lazily, like {@link invalidateBlockLists}.
+ */
+export const invalidateModerationStatus = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: MODERATION_STATUS_QUERY_KEY,
+  });
 };
 
 /** Blocks a trader for the viewer. */

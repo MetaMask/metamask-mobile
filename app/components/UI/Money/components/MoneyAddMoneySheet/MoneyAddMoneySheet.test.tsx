@@ -4,6 +4,8 @@ import { fireEvent } from '@testing-library/react-native';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
@@ -13,6 +15,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -23,6 +26,7 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -107,6 +111,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.requireActual('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/geolocationController', () => ({
   ...jest.requireActual('../../../../../selectors/geolocationController'),
   selectGeolocationLocation: jest.fn(),
@@ -115,6 +124,11 @@ jest.mock('../../../../../selectors/geolocationController', () => ({
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -176,8 +190,48 @@ describe('MoneyAddMoneySheet', () => {
       isEnabled: true,
       regions: ['BR'],
     });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    (
+      selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+    ).mockReturnValue(undefined);
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+  });
+
+  describe('Money account availability', () => {
+    it('redirects to the feature-unavailable modal when Money is disabled', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('feature_disabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(queryByTestId(MoneyAddMoneySheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+    });
+
+    it('redirects to the geo-block sheet when Money is geo-ineligible', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('geo_blocked');
+
+      const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(queryByTestId(MoneyAddMoneySheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
+    });
   });
 
   it('renders all options', () => {
@@ -252,6 +306,26 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the Bank account row for a usable autoramp even when the flag is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
+      id: 'ar-1',
+    });
+
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeEnabled();
+    // Only External address is coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
   it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
