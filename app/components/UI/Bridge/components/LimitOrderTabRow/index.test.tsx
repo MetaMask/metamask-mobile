@@ -91,7 +91,7 @@ describe('LimitOrderRow', () => {
       ),
     ).toBeOnTheScreen();
     // Selling ETH for USDC at 2200 USDC per ETH.
-    expect(getByText('2200 USDC')).toBeOnTheScreen();
+    expect(getByText('≥ 2200 USDC')).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.limit.limit_price', { symbol: 'ETH' })),
     ).toBeOnTheScreen();
@@ -127,7 +127,7 @@ describe('LimitOrderRow', () => {
 
     const { getByText, queryByText } = renderLimitOrderRow(buyOrder);
 
-    expect(getByText('11.36567 USDT')).toBeOnTheScreen();
+    expect(getByText('≤ 11.36567 USDT')).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.limit.limit_price', { symbol: 'LINK' })),
     ).toBeOnTheScreen();
@@ -169,7 +169,7 @@ describe('LimitOrderRow', () => {
 
     const { getByText, queryByText } = renderLimitOrderRow(sellOrder);
 
-    expect(getByText('817.501762 USDT')).toBeOnTheScreen();
+    expect(getByText('≤ 817.501762 USDT')).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.limit.limit_price', { symbol: 'BNB' })),
     ).toBeOnTheScreen();
@@ -212,7 +212,7 @@ describe('LimitOrderRow', () => {
 
       const { getByText } = renderLimitOrderRow(sellOrder);
 
-      expect(getByText(`${limitPrice} USDT`)).toBeOnTheScreen();
+      expect(getByText(`≤ ${limitPrice} USDT`)).toBeOnTheScreen();
     },
   );
 
@@ -246,7 +246,7 @@ describe('LimitOrderRow', () => {
     const { getByText, queryByText } = renderLimitOrderRow(fiatBuyOrder);
 
     expect(
-      getByText(formatLimitOrderFiatValue('11.382233', 'usd')),
+      getByText(`≤ ${formatLimitOrderFiatValue('11.382233', 'usd')}`),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.limit.limit_price', { symbol: 'LINK' })),
