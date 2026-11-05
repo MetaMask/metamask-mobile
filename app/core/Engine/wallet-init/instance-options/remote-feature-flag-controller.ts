@@ -20,27 +20,6 @@ type RemoteFeatureFlagControllerInstanceOptions =
   WalletOptions['instanceOptions']['remoteFeatureFlagController'];
 
 /**
- * `AppMetadataController` persists the native app version, which an OTA
- * hotfix does not change. When it still matches the current native version,
- * map it to the effective (OTA-aware) version so the controller does not see
- * a version change, and drop its flag cache, on every launch.
- *
- * @param persistedAppVersion - `AppMetadataController.currentAppVersion`.
- * @returns The previous client version to compare against `clientVersion`.
- */
-function getPrevClientVersion(
-  persistedAppVersion: unknown,
-): string | undefined {
-  if (typeof persistedAppVersion !== 'string') {
-    return undefined;
-  }
-
-  return persistedAppVersion === getBaseSemVerVersion()
-    ? getEffectiveAppVersion()
-    : persistedAppVersion;
-}
-
-/**
  * @param options.messenger - Root messenger; resolves the MetaMetrics id and
  * canonical profile id lazily at fetch / init time.
  * @param options.state - Initial wallet state; `prevClientVersion` is read from
@@ -97,4 +76,25 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
     // wallet `state`.
     disabled: !selectBasicFunctionalityEnabled(store.getState()),
   };
+}
+
+/**
+ * `AppMetadataController` persists the native app version, which an OTA
+ * hotfix does not change. When it still matches the current native version,
+ * map it to the effective (OTA-aware) version so the controller does not see
+ * a version change, and drop its flag cache, on every launch.
+ *
+ * @param persistedAppVersion - `AppMetadataController.currentAppVersion`.
+ * @returns The previous client version to compare against `clientVersion`.
+ */
+function getPrevClientVersion(
+  persistedAppVersion: unknown,
+): string | undefined {
+  if (typeof persistedAppVersion !== 'string') {
+    return undefined;
+  }
+
+  return persistedAppVersion === getBaseSemVerVersion()
+    ? getEffectiveAppVersion()
+    : persistedAppVersion;
 }
