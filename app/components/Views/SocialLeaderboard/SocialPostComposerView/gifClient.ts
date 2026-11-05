@@ -5,6 +5,7 @@
  * GIF proxy. The app does not hold a GIF provider API key.
  */
 
+import type { GifQueryParams } from '@metamask/social-controllers';
 import Engine from '../../../../core/Engine';
 
 const GIF_PAGE_SIZE = 16;
@@ -38,8 +39,6 @@ export interface FetchGifsParams {
   page: number;
   locale: string;
 }
-
-type GifQueryParams = Record<string, string | number | boolean | undefined>;
 
 interface GifMessenger {
   call: (

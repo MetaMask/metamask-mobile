@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Route composer GIF trending and search through the social API, and stop bundling a GIF provider API key
+- Load composer GIFs through the social API when the `aiSocialGifApi` flag is on
 - Kept Money Account identity verification pending until the provider gives final approval
 - Spam NFTs already in your wallet are now removed automatically when detected
 
