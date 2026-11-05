@@ -1169,11 +1169,6 @@ describe('PredictEventScreen', () => {
     expect(
       within(header).queryByTestId(PredictEventScreenTestIds.LIVE_DOT),
     ).not.toBeOnTheScreen();
-    expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
-        includeHiddenElements: true,
-      }),
-    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
   });
 
   it('renders complete Market data in backend order', async () => {
@@ -1863,7 +1858,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the abbreviation unmirrored when a football Team has no logo', async () => {
+  it('shows the abbreviation when a football Team has no logo', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
@@ -1938,16 +1933,6 @@ describe('PredictEventScreen', () => {
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toHaveTextContent('Q4 · 12:22');
-    expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
-        includeHiddenElements: true,
-      }),
-    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
-    expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
-        includeHiddenElements: true,
-      }),
-    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
   });
 
   it('applies live Game updates to the Event header', async () => {

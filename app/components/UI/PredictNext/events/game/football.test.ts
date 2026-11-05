@@ -3,7 +3,7 @@ import type {
   PredictEvent,
   PredictVenueId,
 } from '../../types';
-import { isFootballEvent, isMirroredTeamLogo } from './football';
+import { isFootballEvent } from './football';
 
 const createEvent = (
   venueId: string,
@@ -15,25 +15,6 @@ const createEvent = (
       ? { sport: { id: sportId as PredictEntityId, label: sportId } }
       : undefined,
   }) as PredictEvent;
-
-describe('isMirroredTeamLogo', () => {
-  it('mirrors the home logo of a Kalshi football Game', () => {
-    const event = createEvent('kalshi', 'american-football');
-
-    expect(isMirroredTeamLogo(event, 'home')).toBe(true);
-    expect(isMirroredTeamLogo(event, 'away')).toBe(false);
-  });
-
-  it.each([
-    ['another sport', 'kalshi', 'basketball'],
-    ['another venue', 'polymarket', 'american-football'],
-    ['no sport', 'kalshi', undefined],
-  ])('keeps the home logo as sent for %s', (_, venueId, sportId) => {
-    expect(isMirroredTeamLogo(createEvent(venueId, sportId), 'home')).toBe(
-      false,
-    );
-  });
-});
 
 describe('isFootballEvent', () => {
   it('matches football on any venue and nothing else', () => {

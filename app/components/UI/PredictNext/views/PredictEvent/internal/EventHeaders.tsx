@@ -13,7 +13,6 @@ import {
   createGamePresentation,
   getEventGame,
   isFootballEvent,
-  isMirroredTeamLogo,
   type GameSelection,
   type GameStatusLine,
 } from '../../../events/game';
@@ -81,14 +80,11 @@ const TeamLogo = ({
   abbreviation,
   selection,
   size,
-  flipped,
 }: {
   team: PredictTeam;
   abbreviation: string;
   selection: GameSelection;
   size: keyof typeof LOGO_SIZE_CLASS_NAMES;
-  /** Mirror horizontally so a helmet on the right faces its opponent. */
-  flipped: boolean;
 }) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
@@ -105,11 +101,7 @@ const TeamLogo = ({
           source={team.logoUrl}
           recyclingKey={team.logoUrl}
           contentFit="contain"
-          style={
-            flipped
-              ? [tw.style(sizeClassName), { transform: [{ scaleX: -1 }] }]
-              : tw.style(sizeClassName)
-          }
+          style={tw.style(sizeClassName)}
           onError={() => setImageFailed(true)}
         />
       ) : (
@@ -134,19 +126,12 @@ interface GameTeamProps {
   abbreviation: string;
   score?: string;
   selection: GameSelection;
-  flipped: boolean;
 }
 
 const teamAccessibilityLabel = (team: PredictTeam, score?: string) =>
   score === undefined ? team.name : `${team.name}, ${score}`;
 
-const GameTeam = ({
-  team,
-  abbreviation,
-  score,
-  selection,
-  flipped,
-}: GameTeamProps) => (
+const GameTeam = ({ team, abbreviation, score, selection }: GameTeamProps) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
     accessible
@@ -158,7 +143,6 @@ const GameTeam = ({
       abbreviation={abbreviation}
       selection={selection}
       size="large"
-      flipped={flipped}
     />
     {score !== undefined ? (
       <Text
@@ -186,7 +170,6 @@ const FootballTeam = ({
   abbreviation,
   score,
   selection,
-  flipped,
 }: GameTeamProps) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
@@ -199,7 +182,6 @@ const FootballTeam = ({
       abbreviation={abbreviation}
       selection={selection}
       size="medium"
-      flipped={flipped}
     />
     <Text
       testID={PredictEventScreenTestIds.teamAbbreviation(selection)}
@@ -292,7 +274,6 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
     ...presentation.teams[selection],
     score: game.score?.[selection],
     selection,
-    flipped: isMirroredTeamLogo(event, selection),
   });
   const status = (layout: 'football' | 'default') => (
     <GameStatus

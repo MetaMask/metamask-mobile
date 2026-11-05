@@ -166,27 +166,6 @@ describe('EventCardGame', () => {
     expect(screen.queryByText('2.13x')).not.toBeOnTheScreen();
   });
 
-  it('keeps the featured home logo as sent outside Kalshi football', () => {
-    const event = createEvent();
-    if (!event.sports?.game) {
-      throw new Error('Game fixture missing');
-    }
-    event.sports.sport = {
-      id: 'basketball' as PredictEntityId,
-      label: 'Basketball',
-    };
-    event.sports.game.homeTeam.logoUrl =
-      'https://example.com/car.png' as PredictHttpsUrl;
-
-    renderCard(event, { variant: 'featured' });
-
-    expect(
-      screen.getByTestId('predict-next-game-logo-game-event-home', {
-        includeHiddenElements: true,
-      }),
-    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
-  });
-
   it('splits the featured scheduled date and time', () => {
     const event = createEvent();
     if (!event.sports?.game) {
