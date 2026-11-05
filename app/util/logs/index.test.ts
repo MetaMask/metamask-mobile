@@ -943,42 +943,43 @@ describe('logs :: generateStateLogs', () => {
       });
       Reflect.set(Engine.context, 'AssetsController', controller);
 
-      const assetsControllerState = {
-        assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
-        assetsBalance: {
-          'account-1': { 'eip155:1/slip44:60': { amount: '1.5' } },
-        },
-        assetsPrice: { 'eip155:1/slip44:60': { price: 3000 } },
-        customAssets: { 'account-1': ['eip155:1/erc20:0xabc'] },
-        assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
-        selectedCurrency: 'usd',
-        assetsLoadingStatus: { isLoading: false },
-      };
+      try {
+        expect(controller.metadata).toMatchObject({
+          assetsInfo: expect.objectContaining({ includeInStateLogs: true }),
+          assetsBalance: expect.objectContaining({ includeInStateLogs: true }),
+          assetsPrice: expect.objectContaining({ includeInStateLogs: true }),
+          customAssets: expect.objectContaining({ includeInStateLogs: true }),
+          assetPreferences: expect.objectContaining({
+            includeInStateLogs: true,
+          }),
+          selectedCurrency: expect.objectContaining({
+            includeInStateLogs: true,
+          }),
+          assetsLoadingStatus: expect.objectContaining({
+            includeInStateLogs: true,
+          }),
+        });
 
-      const logs = generateParsedLogs({
-        AssetsController: assetsControllerState,
-      });
+        const assetsControllerState = {
+          assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
+          assetsBalance: {
+            'account-1': { 'eip155:1/slip44:60': { amount: '1.5' } },
+          },
+          assetsPrice: { 'eip155:1/slip44:60': { price: 3000 } },
+          customAssets: { 'account-1': ['eip155:1/erc20:0xabc'] },
+          assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
+          selectedCurrency: 'usd',
+          assetsLoadingStatus: { isLoading: false },
+        };
 
-      expect(logs.AssetsController).toStrictEqual(assetsControllerState);
-      expect(logs.AssetsController.assetsInfo).toStrictEqual(
-        assetsControllerState.assetsInfo,
-      );
-      expect(logs.AssetsController.assetsBalance).toStrictEqual(
-        assetsControllerState.assetsBalance,
-      );
-      expect(logs.AssetsController.assetsPrice).toStrictEqual(
-        assetsControllerState.assetsPrice,
-      );
-      expect(logs.AssetsController.customAssets).toStrictEqual(
-        assetsControllerState.customAssets,
-      );
-      expect(logs.AssetsController.assetPreferences).toStrictEqual(
-        assetsControllerState.assetPreferences,
-      );
-      expect(logs.AssetsController.selectedCurrency).toBe(
-        assetsControllerState.selectedCurrency,
-      );
-      controller.destroy();
+        const logs = generateParsedLogs({
+          AssetsController: assetsControllerState,
+        });
+
+        expect(logs.AssetsController).toStrictEqual(assetsControllerState);
+      } finally {
+        controller.destroy();
+      }
     });
 
     it('keeps controller state unchanged when the controller has no metadata', () => {
