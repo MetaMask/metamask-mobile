@@ -23,9 +23,9 @@ describe('getFooterMotion', () => {
     expect(FOOTER_COLLAPSE_MS).toBeLessThan(FOOTER_EXPAND_MS);
   });
 
-  it('keeps one identity across Swap, Perps, and Predictions, and changes it when the footer set changes', () => {
+  it('keeps one identity across Explore, Swap, Perps, and Predictions, and changes it when the footer set changes', () => {
     expect(getFooterTransitionId(null, null)).toBe('default');
-    expect(getFooterTransitionId('trading', 'dashboard')).toBe('trade');
+    expect(getFooterTransitionId('trading', 'explore')).toBe('trade');
     expect(getFooterTransitionId('trading', 'swap')).toBe('trade');
     expect(getFooterTransitionId('trading', 'perps')).toBe('trade');
     expect(getFooterTransitionId('trading', 'predictions')).toBe('trade');
@@ -43,7 +43,7 @@ describe('getFooterMotion', () => {
 });
 
 describe('animateFooterTransition', () => {
-  it('morphs width down to Home and back up for hub entries, including Reduce Motion as a crossfade', () => {
+  it('morphs the pill width down and back up, and crossfades for Reduce Motion', () => {
     const clip = { value: 320 };
     const opacity = { value: 1 };
     const translate = { value: 0 };

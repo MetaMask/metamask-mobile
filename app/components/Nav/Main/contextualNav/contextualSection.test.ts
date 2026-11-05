@@ -5,6 +5,8 @@ import {
   enterPerpsSection,
   enterPredictSection,
   enterRewardsSection,
+  enterTradeDashboard,
+  enterTradeExplore,
   enterTradingHub,
   exitContextualSection,
   getContextualCircleAction,
@@ -97,6 +99,27 @@ describe('contextualSection', () => {
     expect(getContextualCircleAction(getContextualNavState().section)).toBe(
       'home',
     );
+  });
+
+  it('opens Trade on Explore and does not reset an open hub', () => {
+    enterTradeDashboard();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'trading',
+      tab: 'explore',
+    });
+
+    enterTradingHub('swap');
+    enterTradeDashboard();
+
+    expect(getContextualNavState().tab).toBe('swap');
+
+    enterTradeExplore();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'trading',
+      tab: 'explore',
+    });
   });
 
   it('enters a trading hub on the selected way to trade', () => {

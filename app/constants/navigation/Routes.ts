@@ -115,7 +115,7 @@ const Routes = {
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   COLLECTIBLES_VIEW: 'CollectiblesView',
-  /** Trade tab. Links to Swap, Perps, Predictions, and Collectibles. */
+  /** Trade tab. Opens on Explore, with Swap, Perps, and Predictions. */
   TRADE_DASHBOARD: 'TradeDashboard',
   /** Placeholder trading hub when Perps or Predictions is not registered. */
   TRADE_HUB: 'TradeHub',

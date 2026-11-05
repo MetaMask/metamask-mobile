@@ -11,9 +11,6 @@ export type ContextualSection =
 
 export type TradingHubTab = 'swap' | 'perps' | 'predictions';
 
-/** Trade tab body. The trade footer is showing and no hub is selected. */
-export type TradeDashboardTab = 'dashboard';
-
 export type ContextualTab =
   | 'explore'
   | 'live'
@@ -31,8 +28,7 @@ export type ContextualTab =
   | 'card'
   | 'news'
   | 'browser'
-  | TradingHubTab
-  | TradeDashboardTab;
+  | TradingHubTab;
 
 /** Round button beside the pill. + on Home, Home in every section. */
 export type ContextualCircleAction = 'add' | 'home';
@@ -81,13 +77,16 @@ export const enterRewardsSection = (): void => {
   emit();
 };
 
-/** Collectibles section: footer becomes Popular, Packs, Collection, Market. */
+/**
+ * Collectibles section, opened from the default footer.
+ * Footer is Popular, Packs, Collection, and Market. Home sits beside the pill.
+ */
 export const enterCollectiblesSection = (): void => {
   state = { section: 'collectibles', tab: 'popular' };
   emit();
 };
 
-/** Money section: footer becomes Home, Account, Card, and Earn. */
+/** Money section. Footer is Account, Card, and Earn. Home sits beside the pill. */
 export const enterMoneySection = (): void => {
   if (state.section === 'money') {
     return;
@@ -97,14 +96,26 @@ export const enterMoneySection = (): void => {
 };
 
 /**
- * Trade tab. Footer becomes Home, Swap, Perps, Predictions, and Collectibles.
- * Nothing is selected until a hub is opened. Does not reset a hub already open.
+ * Trade landing. Explore is selected and the trade overview is showing.
+ * Also used when Explore is pressed from Swap, Perps, or Predictions.
+ */
+export const enterTradeExplore = (): void => {
+  if (state.section === 'trading' && state.tab === 'explore') {
+    return;
+  }
+  state = { section: 'trading', tab: 'explore' };
+  emit();
+};
+
+/**
+ * Trade tab. Footer is Explore, Swap, Perps, and Predictions.
+ * Explore is selected. Does not reset a hub that is already open.
  */
 export const enterTradeDashboard = (): void => {
   if (state.section === 'trading') {
     return;
   }
-  state = { section: 'trading', tab: 'dashboard' };
+  state = { section: 'trading', tab: 'explore' };
   emit();
 };
 
@@ -132,16 +143,11 @@ export const enterExploreSection = (): void => {
   emit();
 };
 
-/** Sections opened from the + menu. Their circle is Home. */
+/** Sections opened from the + menu. Collectibles is a default-footer tab. */
 export const isPlusMenuSection = (section: ContextualSection | null): boolean =>
-  section === 'perps' ||
-  section === 'predict' ||
-  section === 'rewards' ||
-  section === 'collectibles';
+  section === 'perps' || section === 'predict' || section === 'rewards';
 
-/**
- * + on the home footer. Home in + menu sections and on Money and Explore.
- */
+/** + when no section is open. Home once a section footer is showing. */
 export const getContextualCircleAction = (
   section: ContextualSection | null,
 ): ContextualCircleAction => (section === null ? 'add' : 'home');
@@ -154,7 +160,7 @@ export const setContextualTab = (tab: ContextualTab): void => {
   emit();
 };
 
-/** Back to the default Home, Explore, Money, Social footer. */
+/** Back to the default Home, Trending, Trade, Collectibles, Money, Social footer. */
 export const exitContextualSection = (): void => {
   if (state.section === null && state.tab === 'explore') {
     return;

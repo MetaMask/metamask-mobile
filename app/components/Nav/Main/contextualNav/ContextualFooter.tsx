@@ -13,14 +13,16 @@ import { TAB_BAR_FLOATING_HORIZONTAL_INSET } from '../../../../component-library
 import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import AnimatedFooterShell from './AnimatedFooterShell';
 import ContextualCollectiblesTabBar from './ContextualCollectiblesTabBar';
+import ContextualHomeCircle from './ContextualHomeCircle';
 import ContextualMoneyTabBar from './ContextualMoneyTabBar';
 import { setActiveHomeTab } from './footerPresence';
 import { getFooterTransitionId } from './footerMotion';
-import TradeHubFooter from './TradeHubFooter';
+import TradeHubFooter, { type TradeFooterTab } from './TradeHubFooter';
 import {
   enterCollectiblesSection,
   enterMoneySection,
   enterTradeDashboard,
+  enterTradeExplore,
   enterTradingHub,
   exitContextualSection,
   useContextualNavState,
@@ -77,7 +79,13 @@ const DEFAULT_TABS: DefaultTab[] = [
     id: 'trade',
     route: Routes.TRADE_DASHBOARD,
     label: strings('bottom_nav.trade'),
-    iconName: IconName.SwapVertical,
+    iconName: IconName.Chart,
+  },
+  {
+    id: 'collectibles',
+    route: Routes.COLLECTIBLES_VIEW,
+    label: 'Collectibles',
+    iconName: IconName.Card,
   },
   {
     id: 'money',
@@ -95,6 +103,8 @@ const DEFAULT_TABS: DefaultTab[] = [
   },
 ];
 
+const HOME_TAB = DEFAULT_TABS[0];
+
 export interface ContextualFooterProps {
   /** Route of the visible home tab. Used to mark the default footer. */
   homeRouteName?: string;
@@ -104,8 +114,8 @@ export interface ContextualFooterProps {
 }
 
 /**
- * The one footer pill. Default, Trade, Money, and Collectibles are sets of
- * the same bar, so a set change can collapse and expand in place.
+ * The one footer pill. The default set keeps Home as its first tab.
+ * Trade, Money, and Collectibles keep Home as a circle on the right.
  */
 const ContextualFooter = ({
   homeRouteName,
@@ -118,14 +128,12 @@ const ContextualFooter = ({
   const transitionId = getFooterTransitionId(section, tab);
   const homeSelected =
     setId === 'default' && homeRouteName === Routes.WALLET.HOME;
-  const homeTestId =
+  const sectionHomeTestId =
     setId === 'trade'
-      ? 'trade-hub-tab-home'
+      ? 'trade-hub-home-button'
       : setId === 'money'
-        ? 'contextual-money-tab-home'
-        : setId === 'collectibles'
-          ? 'contextual-collectibles-tab-home'
-          : 'footer-tab-home';
+        ? 'contextual-money-home-button'
+        : 'contextual-collectibles-home-button';
 
   const stayOnTradeTab = useCallback(() => {
     setActiveHomeTab(Routes.TRADE_DASHBOARD);
@@ -154,13 +162,17 @@ const ContextualFooter = ({
     [stayOnTradeTab],
   );
 
-  const openCollectibles = useCallback(() => {
+  const openExplore = useCallback(() => {
     stayOnTradeTab();
-    enterCollectiblesSection();
+    enterTradeExplore();
   }, [stayOnTradeTab]);
 
   const pressDefault = useCallback(
     (item: DefaultTab) => {
+      if (item.id === 'collectibles') {
+        enterCollectiblesSection();
+        return;
+      }
       setActiveHomeTab(item.route);
       if (item.route === Routes.TRADE_DASHBOARD) {
         enterTradeDashboard();
@@ -199,11 +211,14 @@ const ContextualFooter = ({
     [onHeightChange],
   );
 
-  const tradeActive: TradingHubTab | null =
+  const tradeActive: TradeFooterTab =
     section === 'trading' &&
-    (tab === 'swap' || tab === 'perps' || tab === 'predictions')
+    (tab === 'explore' ||
+      tab === 'swap' ||
+      tab === 'perps' ||
+      tab === 'predictions')
       ? tab
-      : null;
+      : 'explore';
 
   const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
   const frameStyle = useMemo(
@@ -220,16 +235,16 @@ const ContextualFooter = ({
   const rest =
     setId === 'trade' ? (
       <TradeHubFooter
-        omitHome
+        itemsOnly
         active={tradeActive}
         onHomePress={goHome}
+        onExplorePress={openExplore}
         onHubPress={openHub}
-        onCollectiblesPress={openCollectibles}
       />
     ) : setId === 'money' ? (
-      <ContextualMoneyTabBar omitHome onHomePress={goHome} />
+      <ContextualMoneyTabBar itemsOnly onHomePress={goHome} />
     ) : setId === 'collectibles' ? (
-      <ContextualCollectiblesTabBar omitHome onHomePress={goHome} />
+      <ContextualCollectiblesTabBar itemsOnly onHomePress={goHome} />
     ) : (
       <>
         {DEFAULT_TABS.filter((item) => item.id !== 'home').map((item) => {
@@ -252,6 +267,19 @@ const ContextualFooter = ({
       </>
     );
 
+  const home =
+    setId === 'default' ? (
+      <TabBarFloatingItem
+        testID="footer-tab-home"
+        iconName={homeSelected ? IconName.HomeFilled : IconName.Home}
+        label={strings('bottom_nav.home')}
+        isActive={homeSelected}
+        onPress={() => pressDefault(HOME_TAB)}
+      />
+    ) : (
+      <ContextualHomeCircle testID={sectionHomeTestId} onPress={goHome} />
+    );
+
   return (
     <View
       style={frameStyle}
@@ -261,24 +289,8 @@ const ContextualFooter = ({
     >
       <AnimatedFooterShell
         transitionId={transitionId}
-        home={
-          <TabBarFloatingItem
-            testID={homeTestId}
-            iconName={homeSelected ? IconName.HomeFilled : IconName.Home}
-            label={strings('bottom_nav.home')}
-            isActive={homeSelected}
-            fullContrast={setId !== 'default'}
-            onPress={
-              setId === 'default'
-                ? () =>
-                    pressDefault(
-                      DEFAULT_TABS.find((item) => item.id === 'home') ??
-                        DEFAULT_TABS[0],
-                    )
-                : goHome
-            }
-          />
-        }
+        homePlacement={setId === 'default' ? 'pill-start' : 'circle-end'}
+        home={home}
         rest={rest}
       />
     </View>

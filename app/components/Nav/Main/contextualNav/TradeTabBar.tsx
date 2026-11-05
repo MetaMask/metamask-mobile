@@ -15,6 +15,7 @@ import TabBarFloatingItem from '../../../../component-library/components/Navigat
 import TabBarFloatingSurface from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingSurface';
 import { useBlurMaterial } from '../../../../component-library/hooks/useBlurMaterial';
 import {
+  TAB_BAR_FLOATING_GAP,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_HORIZONTAL_INSET,
 } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
@@ -36,6 +37,8 @@ export interface TradeTabBarProps<T extends string> {
   inline?: boolean;
   /** Render the tab buttons only, so the shared pill can own the surface. */
   itemsOnly?: boolean;
+  /** Round control rendered to the right of the pill. Ignored with `itemsOnly`. */
+  trailing?: React.ReactNode;
 }
 
 const OVERLAY_STYLE: ViewStyle = {
@@ -45,9 +48,15 @@ const OVERLAY_STYLE: ViewStyle = {
 
 const PILL_STYLE: ViewStyle = { height: TAB_BAR_FLOATING_HEIGHT };
 
+const TRAILING_ROW: ViewStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: TAB_BAR_FLOATING_GAP,
+};
+
 /**
- * Contextual footer pill. Home is one of `tabs`, in the same container as the
- * rest. There is no circle beside the pill.
+ * Contextual footer pill. Section bars can pass a trailing Home circle.
+ * `itemsOnly` leaves the surface and that circle to the shared shell.
  *
  * The pill is 62pt tall, above the 44pt / 48dp touch floor. Selection uses a
  * filled platter and a heavier label, plus `accessibilityState.selected`.
@@ -60,6 +69,7 @@ const TradeTabBar = <T extends string>({
   onHeightChange,
   inline = false,
   itemsOnly = false,
+  trailing,
 }: TradeTabBarProps<T>) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -123,16 +133,28 @@ const TradeTabBar = <T extends string>({
     return <>{items}</>;
   }
 
-  const pill = (
+  const surface = (
     <TabBarFloatingSurface
       isBlurAvailable={isBlurAvailable}
       colorScheme={colorScheme}
-      twClassName="flex-row items-center rounded-full p-1"
+      twClassName={
+        trailing
+          ? 'flex-1 flex-row items-center rounded-full p-1'
+          : 'flex-row items-center rounded-full p-1'
+      }
       style={PILL_STYLE}
       testID={`${testIDPrefix}-tab-pill`}
     >
       {items}
     </TabBarFloatingSurface>
+  );
+  const pill = trailing ? (
+    <View style={TRAILING_ROW}>
+      {surface}
+      {trailing}
+    </View>
+  ) : (
+    surface
   );
 
   if (inline) {

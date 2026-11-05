@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 
-import { strings } from '../../../../../locales/i18n';
+import ContextualHomeCircle from './ContextualHomeCircle';
 import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import {
   setContextualTab,
@@ -12,65 +12,66 @@ import {
 export interface ContextualCollectiblesTabBarProps {
   onHomePress: () => void;
   inline?: boolean;
-  omitHome?: boolean;
+  /** Leave the Home circle to the shared shell. */
+  itemsOnly?: boolean;
 }
 
-type CollectiblesFooterTab =
-  | 'home'
-  | 'popular'
-  | 'packs'
-  | 'collection'
-  | 'market';
+type CollectiblesFooterTab = 'popular' | 'packs' | 'collection' | 'market';
 
 const TABS: TradeTab<CollectiblesFooterTab>[] = [
-  { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
   { id: 'popular', label: 'Popular', iconName: IconName.TrendUp },
   { id: 'packs', label: 'Packs', iconName: IconName.Copy },
   { id: 'collection', label: 'Collection', iconName: IconName.Card },
   { id: 'market', label: 'Market', iconName: IconName.Bank },
 ];
 
-const COLLECTIBLES_TABS: readonly ContextualTab[] = [
+const COLLECTIBLES_TABS = [
   'popular',
   'packs',
   'collection',
   'market',
-];
+] as const satisfies readonly CollectiblesFooterTab[];
+
+const isCollectiblesFooterTab = (
+  value: ContextualTab,
+): value is CollectiblesFooterTab =>
+  COLLECTIBLES_TABS.some((collectiblesTab) => collectiblesTab === value);
 
 /**
- * Collectibles footer. Popular, Packs, Collection, and Market stay. Home is
- * the first tab and leaves the section.
+ * Collectibles footer. Popular, Packs, Collection, and Market stay in the
+ * pill. Home is the circle on the right and leaves the section.
  */
 const ContextualCollectiblesTabBar = ({
   onHomePress,
   inline = false,
-  omitHome = false,
+  itemsOnly = false,
 }: ContextualCollectiblesTabBarProps) => {
   const { section, tab } = useContextualNavState();
   const activeTab: CollectiblesFooterTab =
-    section === 'collectibles' && COLLECTIBLES_TABS.includes(tab)
+    section === 'collectibles' && isCollectiblesFooterTab(tab)
       ? tab
       : 'popular';
 
-  const handleTabPress = useCallback(
-    (nextTab: CollectiblesFooterTab) => {
-      if (nextTab === 'home') {
-        onHomePress();
-        return;
-      }
-      setContextualTab(nextTab);
-    },
-    [onHomePress],
-  );
+  const handleTabPress = useCallback((nextTab: CollectiblesFooterTab) => {
+    setContextualTab(nextTab);
+  }, []);
 
   return (
     <TradeTabBar
-      tabs={omitHome ? TABS.filter((item) => item.id !== 'home') : TABS}
+      tabs={TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
       testIDPrefix="contextual-collectibles"
       inline={inline}
-      itemsOnly={omitHome}
+      itemsOnly={itemsOnly}
+      trailing={
+        itemsOnly ? undefined : (
+          <ContextualHomeCircle
+            onPress={onHomePress}
+            testID="contextual-collectibles-home-button"
+          />
+        )
+      }
     />
   );
 };

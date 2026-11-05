@@ -126,7 +126,7 @@ describe('contextual home and Money footers', () => {
   it('selects Card and marks it selected', () => {
     enterMoneySection();
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualMoneyTabBar onHomePress={onHomePress} />,
     );
 
@@ -142,27 +142,30 @@ describe('contextual home and Money footers', () => {
     expect(
       getByTestId('contextual-money-tab-account').props.accessibilityState,
     ).toEqual({ selected: false });
+    expect(queryByTestId('contextual-money-tab-home')).toBeNull();
     expect(
-      getByTestId('contextual-money-tab-home').props.accessibilityState,
+      getByTestId('contextual-money-home-button').props.accessibilityState,
     ).toEqual({ selected: false });
     expect(
       getByTestId('contextual-money-tab-card').props.accessibilityLabel,
     ).toBe('Card');
   });
 
-  it('returns to the default footer from the Money Home tab', () => {
+  it('returns to the default footer from the Money Home button', () => {
     enterMoneySection();
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualMoneyTabBar onHomePress={onHomePress} />,
     );
-    const homeTab = getByTestId('contextual-money-tab-home');
+    const homeButton = getByTestId('contextual-money-home-button');
 
-    expect(queryByTestId('contextual-money-home-button')).toBeNull();
-    expect(homeTab.props.accessibilityLabel).toBe(strings('bottom_nav.home'));
-    expect(homeTab.props.accessibilityState).toEqual({ selected: false });
+    expect(queryByTestId('contextual-money-tab-home')).toBeNull();
+    expect(homeButton.props.accessibilityLabel).toBe(
+      strings('bottom_nav.home'),
+    );
+    expect(homeButton.props.accessibilityState).toEqual({ selected: false });
 
-    fireEvent.press(homeTab);
+    fireEvent.press(homeButton);
 
     expect(onHomePress).toHaveBeenCalledTimes(1);
   });
@@ -197,25 +200,31 @@ describe('contextual home and Money footers', () => {
     expect(queryByTestId('contextual-section-placeholder')).toBeNull();
   });
 
-  it('keeps Trending on the default footer and opens the trade set with nothing selected', () => {
+  it('keeps Trending on the default footer and opens Trade with Explore selected', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(homeFooter());
 
     expect(getByTestId('footer-tab-trending')).toBeOnTheScreen();
+    expect(getByTestId('footer-tab-collectibles')).toBeOnTheScreen();
+    expect(getByTestId('footer-tab-home')).toBeOnTheScreen();
     expect(queryByTestId('trade-hub-tab-swap')).toBeNull();
+    expect(queryByTestId('footer-home-button')).toBeNull();
     expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toBeNull();
 
     fireEvent.press(getByTestId('footer-tab-trade'));
 
     expect(getContextualNavState()).toEqual({
       section: 'trading',
-      tab: 'dashboard',
+      tab: 'explore',
     });
+    expect(getByTestId('trade-hub-tab-explore')).toBeOnTheScreen();
     expect(getByTestId('trade-hub-tab-swap')).toBeOnTheScreen();
-    expect(getByTestId('trade-hub-tab-collectibles')).toBeOnTheScreen();
+    expect(queryByTestId('trade-hub-tab-collectibles')).toBeNull();
+    expect(queryByTestId('trade-hub-tab-home')).toBeNull();
+    expect(getByTestId('trade-hub-home-button')).toBeOnTheScreen();
+    expect(
+      getByTestId('trade-hub-tab-explore').props.accessibilityState,
+    ).toEqual({ selected: true });
     expect(getByTestId('trade-hub-tab-swap').props.accessibilityState).toEqual({
-      selected: false,
-    });
-    expect(getByTestId('trade-hub-tab-home').props.accessibilityState).toEqual({
       selected: false,
     });
     expect(getByTestId('trade-hub-tab-perps').props.accessibilityState).toEqual(
@@ -224,17 +233,17 @@ describe('contextual home and Money footers', () => {
   });
 
   it('swaps the home pill when Money is pressed, before the tab route changes', () => {
-    const { getByTestId, getByText, queryByTestId } =
-      renderWithProvider(homeFooter());
+    const { getByTestId, queryByTestId } = renderWithProvider(homeFooter());
 
     fireEvent.press(getByTestId('footer-tab-money'));
 
     expect(getContextualNavState().section).toBe('money');
-    expect(getByTestId('contextual-money-tab-home')).toBeOnTheScreen();
+    expect(queryByTestId('contextual-money-tab-home')).toBeNull();
+    expect(getByTestId('contextual-money-home-button')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-account')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-card')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-earn')).toBeOnTheScreen();
-    expect(queryByTestId('contextual-money-home-button')).toBeNull();
+    expect(queryByTestId('footer-tab-home')).toBeNull();
   });
 
   it('draws the Money pill over the native tab bar after that section is entered', () => {
@@ -252,7 +261,7 @@ describe('contextual home and Money footers', () => {
       getByTestId('contextual-money-tab-account').props.accessibilityState,
     ).toEqual({ selected: true });
 
-    fireEvent.press(getByTestId('contextual-money-tab-home'));
+    fireEvent.press(getByTestId('contextual-money-home-button'));
 
     expect(getContextualNavState().section).toBeNull();
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(

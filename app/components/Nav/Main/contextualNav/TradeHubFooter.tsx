@@ -1,25 +1,25 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 
-import { strings } from '../../../../../locales/i18n';
+import ContextualHomeCircle from './ContextualHomeCircle';
 import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import type { TradingHubTab } from './contextualSection';
 
-export type TradeFooterTab = 'home' | TradingHubTab | 'collectibles';
+export type TradeFooterTab = 'explore' | TradingHubTab;
 
 export interface TradeHubFooterProps {
-  /** `null` on the Trade dashboard: no hub is selected, and neither is Home. */
-  active: TradingHubTab | null;
+  /** Explore on the landing page. A hub once one is open. */
+  active: TradeFooterTab;
   onHomePress: () => void;
+  onExplorePress: () => void;
   onHubPress: (hub: TradingHubTab) => void;
-  onCollectiblesPress: () => void;
   inline?: boolean;
-  /** Leave Home to the shared shell so it stays put during the morph. */
-  omitHome?: boolean;
+  /** Leave the Home circle to the shared shell. */
+  itemsOnly?: boolean;
 }
 
 const TABS: TradeTab<TradeFooterTab>[] = [
-  { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
+  { id: 'explore', label: 'Explore', iconName: IconName.Explore },
   { id: 'swap', label: 'Swap', iconName: IconName.SwapVertical },
   { id: 'perps', label: 'Perps', iconName: IconName.Infinity },
   {
@@ -27,29 +27,28 @@ const TABS: TradeTab<TradeFooterTab>[] = [
     label: 'Predictions',
     iconName: IconName.Predictions,
   },
-  { id: 'collectibles', label: 'Collectibles', iconName: IconName.Card },
 ];
 
 /**
- * Trade footer. Home, Swap, Perps, Predictions, and Collectibles. The open
- * hub is selected. The dashboard leaves every item unselected.
+ * Trade footer. Explore, Swap, Perps, and Predictions. Explore is selected
+ * on the landing page. Home is the circle on the right, unless the shared
+ * shell is drawing that circle.
  */
 const TradeHubFooter = ({
   active,
   onHomePress,
+  onExplorePress,
   onHubPress,
-  onCollectiblesPress,
   inline = false,
-  omitHome = false,
+  itemsOnly = false,
 }: TradeHubFooterProps) => {
   const handleTabPress = useCallback(
     (nextTab: TradeFooterTab) => {
-      if (nextTab === 'home') {
-        onHomePress();
-        return;
-      }
-      if (nextTab === 'collectibles') {
-        onCollectiblesPress();
+      if (nextTab === 'explore') {
+        if (active === 'explore') {
+          return;
+        }
+        onExplorePress();
         return;
       }
       if (nextTab === active) {
@@ -57,19 +56,25 @@ const TradeHubFooter = ({
       }
       onHubPress(nextTab);
     },
-    [active, onCollectiblesPress, onHomePress, onHubPress],
+    [active, onExplorePress, onHubPress],
   );
-
-  const tabs = omitHome ? TABS.filter((item) => item.id !== 'home') : TABS;
 
   return (
     <TradeTabBar
-      tabs={tabs}
+      tabs={TABS}
       activeTab={active}
       onTabPress={handleTabPress}
       testIDPrefix="trade-hub"
       inline={inline}
-      itemsOnly={omitHome}
+      itemsOnly={itemsOnly}
+      trailing={
+        itemsOnly ? undefined : (
+          <ContextualHomeCircle
+            onPress={onHomePress}
+            testID="trade-hub-home-button"
+          />
+        )
+      }
     />
   );
 };

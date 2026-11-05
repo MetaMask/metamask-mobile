@@ -34,11 +34,11 @@ describe('CollectiblesView', () => {
     expect(getByText('Placeholder')).toBeOnTheScreen();
   });
 
-  it('renders the centered Collectibles header when embedded in Trade', () => {
-    const EmbeddedCollectibles = () => <CollectiblesView embedded />;
+  it('renders the centered Collectibles header', () => {
+    const Screen = () => <CollectiblesView />;
 
     const { getByText } = renderScreen(
-      EmbeddedCollectibles,
+      Screen,
       { name: 'CollectiblesView' },
       { state: {} },
     );

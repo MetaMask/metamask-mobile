@@ -14,18 +14,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  ButtonAnimated,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 
-import { strings } from '../../../../../locales/i18n';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import TabBarFloatingItem from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingItem';
 import TabBarFloatingSurface from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingSurface';
@@ -34,12 +24,9 @@ import {
   TAB_BAR_FLOATING_GAP,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_HORIZONTAL_INSET,
-  TAB_BAR_FLOATING_ICON_DIMENSION,
-  TAB_BAR_FLOATING_ICON_SIZE,
-  TAB_BAR_FLOATING_LABEL_FONT_SIZE,
-  TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
 } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
+import ContextualHomeCircle from './ContextualHomeCircle';
 import type { ContextualTab } from './contextualSection';
 
 export interface ContextualFloatingTab<T extends string = ContextualTab> {
@@ -61,12 +48,6 @@ export interface ContextualFloatingTabBarProps<
   onHeightChange?: (height: number) => void;
 }
 
-/**
- * Extends the 62pt circle past 44pt / 48dp. The circle already clears both
- * floors; the slop keeps a short miss on the rim.
- */
-const CIRCLE_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
-
 const ROW_STYLE: ViewStyle = {
   flexDirection: 'row',
   alignItems: 'center',
@@ -79,11 +60,6 @@ const OVERLAY_STYLE: ViewStyle = {
 };
 
 const PILL_STYLE: ViewStyle = { height: TAB_BAR_FLOATING_HEIGHT };
-
-const CIRCLE_STYLE: ViewStyle = {
-  height: TAB_BAR_FLOATING_HEIGHT,
-  width: TAB_BAR_FLOATING_HEIGHT,
-};
 
 /**
  * Section footer. Same surface, item, and circle as the home floating bar.
@@ -125,11 +101,6 @@ const ContextualFloatingTabBar = <T extends string>({
     },
     [onTabPress],
   );
-
-  const handleHomePress = useCallback(() => {
-    playImpact(ImpactMoment.TabChange);
-    onHomePress();
-  }, [onHomePress]);
 
   const handleFrameLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -181,49 +152,10 @@ const ContextualFloatingTabBar = <T extends string>({
           />
         ))}
       </TabBarFloatingSurface>
-      <TabBarFloatingSurface
-        isBlurAvailable={isBlurAvailable}
-        colorScheme={colorScheme}
-        twClassName="items-center justify-center rounded-full"
-        style={CIRCLE_STYLE}
-      >
-        <ButtonAnimated
-          onPress={handleHomePress}
-          hitSlop={CIRCLE_HIT_SLOP}
-          style={tw.style(
-            'h-full w-full items-center justify-center rounded-full bg-transparent',
-          )}
-          testID={`${testIDPrefix}-home-button`}
-          accessibilityLabel={strings('bottom_nav.home')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: false }}
-          accessible
-        >
-          <Icon
-            name={IconName.Home}
-            size={TAB_BAR_FLOATING_ICON_SIZE}
-            color={IconColor.IconDefault}
-            style={{
-              width: TAB_BAR_FLOATING_ICON_DIMENSION,
-              height: TAB_BAR_FLOATING_ICON_DIMENSION,
-            }}
-          />
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="mt-0.5 text-center"
-            style={{
-              fontSize: TAB_BAR_FLOATING_LABEL_FONT_SIZE,
-              lineHeight: TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
-            }}
-            maxFontSizeMultiplier={1}
-          >
-            {strings('bottom_nav.home')}
-          </Text>
-        </ButtonAnimated>
-      </TabBarFloatingSurface>
+      <ContextualHomeCircle
+        onPress={onHomePress}
+        testID={`${testIDPrefix}-home-button`}
+      />
     </View>
   );
 

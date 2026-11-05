@@ -16,19 +16,10 @@ const PAGE_STYLE: ViewStyle = { flex: 1 };
 
 const TITLE = 'Collectibles';
 
-export interface CollectiblesViewProps {
-  /**
-   * Drawn inside the Trade tab.
-   */
-  embedded?: boolean;
-}
-
 /**
  * Collectibles page with a centered title matching other standard page headers.
  */
-export const CollectiblesView = ({
-  embedded = false,
-}: CollectiblesViewProps) => {
+export const CollectiblesView = () => {
   const isGlass = useIsGlassSurfaceEnabled(selectMoneyBrandRefreshEnabled);
 
   return (
@@ -55,8 +46,8 @@ export const CollectiblesView = ({
 };
 
 /**
- * Collectibles opened from Trade. The pill is drawn in this screen so it
- * stays above the pushed page.
+ * Collectibles pushed on the root stack. The pill is drawn in this screen so
+ * it stays above the page. The default footer opens the same section in place.
  */
 const CollectiblesSectionScreen = () => {
   const [isSection] = useState(

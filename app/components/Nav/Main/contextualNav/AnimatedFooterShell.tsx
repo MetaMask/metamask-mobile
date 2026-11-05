@@ -20,29 +20,64 @@ import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import TabBarFloatingSurface from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingSurface';
 import { useBlurMaterial } from '../../../../component-library/hooks/useBlurMaterial';
-import { TAB_BAR_FLOATING_HEIGHT } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import {
+  TAB_BAR_FLOATING_GAP,
+  TAB_BAR_FLOATING_HEIGHT,
+} from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { footerAnimator, type FooterMotion } from './footerMotion';
 
+/** Home stays inside the pill, as the first tab. Used by the default footer. */
+export type FooterHomePlacement = 'pill-start' | 'circle-end';
+
 export interface AnimatedFooterShellProps {
-  /** Changes when the footer set changes. Selecting Swap, Perps, or Predictions does not. */
+  /** Changes when the footer set changes. Selecting a tab in the same set does not. */
   transitionId: string;
-  /** Home stays mounted here so it never joins the shrink. */
+  /**
+   * `pill-start` keeps Home as the first tab. `circle-end` renders `home`
+   * outside the pill, on the right. Defaults to `pill-start`.
+   */
+  homePlacement?: FooterHomePlacement;
+  /** Home tab, or the round Home button when `homePlacement` is `circle-end`. */
   home: React.ReactNode;
-  /** Every tab except Home. These fade and slide a few pixels. */
+  /** Tabs that share the pill with Home, or the whole pill when Home is outside. */
   rest: React.ReactNode;
   /** Tests opt in. Production always runs the motion. */
   runMotion?: boolean;
 }
 
-/** Same Home slot in every footer, so the pill always collapses to this width. */
+/** Width of the Home tab on the default footer. The morph collapses toward this. */
 const HOME_SLOT_WIDTH = 76;
-/** `p-1` on the pill, both sides. The clip includes it so Home stays fully visible. */
+/** `p-1` on the pill, both sides, so a collapsed default pill still shows Home. */
 const PILL_HORIZONTAL_PADDING = 8;
+const COLLAPSE_WIDTH = HOME_SLOT_WIDTH + PILL_HORIZONTAL_PADDING;
+/** Circle diameter plus the gap before it. Section pills give up this much width. */
+const CIRCLE_BLOCK = TAB_BAR_FLOATING_HEIGHT + TAB_BAR_FLOATING_GAP;
 
 const PILL_STYLE: ViewStyle = { height: TAB_BAR_FLOATING_HEIGHT };
-const CLIP_BASE: ViewStyle = { overflow: 'hidden', alignSelf: 'flex-start' };
+const CLIP_BASE: ViewStyle = { overflow: 'hidden' };
 const HOME_SLOT: ViewStyle = { width: HOME_SLOT_WIDTH };
 const REST_ROW: ViewStyle = { flex: 1, flexDirection: 'row' };
+const FRAME: ViewStyle = { width: '100%' };
+const ROW: ViewStyle = { flexDirection: 'row', alignItems: 'center' };
+const PILL_SLOT: ViewStyle = {
+  flex: 1,
+  flexDirection: 'row',
+  overflow: 'hidden',
+};
+const SECTION_GAP: ViewStyle = { gap: TAB_BAR_FLOATING_GAP };
+
+const pillWidthFor = (
+  placement: FooterHomePlacement,
+  frame: number,
+): number => {
+  if (frame <= 0) {
+    return 0;
+  }
+  if (placement === 'circle-end') {
+    return Math.max(frame - CIRCLE_BLOCK, 0);
+  }
+  return frame;
+};
 
 /**
  * Reduce Motion selects the crossfade. Tests skip the listener so they do
@@ -78,11 +113,13 @@ const useReduceMotion = (): boolean | null => {
 };
 
 /**
- * Pill that collapses to the Home tab, then expands to the right. Home keeps
- * its place, size, icon, and label. Width is one sequenced motion.
+ * Pill that collapses, swaps its tabs, then expands. The default footer
+ * anchors that collapse on the left Home tab. A section footer anchors it
+ * on the right, toward the Home circle, which stays outside the clip.
  */
 const AnimatedFooterShell = ({
   transitionId,
+  homePlacement = 'pill-start',
   home,
   rest,
   runMotion = process.env.NODE_ENV !== 'test',
@@ -93,9 +130,13 @@ const AnimatedFooterShell = ({
   const { isBlurAvailable, colorScheme } = useBlurMaterial();
   const motion = footerAnimator.getMotion(hardware, network, reduceMotion);
   const [shownId, setShownId] = useState(transitionId);
+  const [shownPlacement, setShownPlacement] = useState(homePlacement);
+  const [anchorEnd, setAnchorEnd] = useState(homePlacement === 'circle-end');
   const [fullWidth, setFullWidth] = useState(0);
   const restSnapshot = useRef(rest);
+  const homeSnapshot = useRef(home);
   const transitionRef = useRef(transitionId);
+  const placementRef = useRef(homePlacement);
   const motionRef = useRef<FooterMotion>(motion);
   const fullWidthRef = useRef(0);
   const phase = useRef<'idle' | 'running'>('idle');
@@ -105,13 +146,16 @@ const AnimatedFooterShell = ({
   const swapClock = useSharedValue(0);
 
   transitionRef.current = transitionId;
+  placementRef.current = homePlacement;
   motionRef.current = motion;
   if (shownId === transitionId && phase.current === 'idle') {
     restSnapshot.current = rest;
+    homeSnapshot.current = home;
   }
 
   const revealNext = useCallback(() => {
     setShownId(transitionRef.current);
+    setShownPlacement(placementRef.current);
     phase.current = 'idle';
     if (motionRef.current === 'crossfade') {
       restOpacity.value = 1;
@@ -119,26 +163,35 @@ const AnimatedFooterShell = ({
   }, [restOpacity]);
 
   useEffect(() => {
+    const destination = placementRef.current;
     if (transitionId === shownId) {
       return;
     }
+    setAnchorEnd(destination === 'circle-end');
     if (!runMotion || fullWidthRef.current <= 0) {
       setShownId(transitionId);
+      setShownPlacement(destination);
       return;
     }
     phase.current = 'running';
+    const expandWidth = pillWidthFor(destination, fullWidthRef.current);
+    const collapseWidth = Math.min(
+      COLLAPSE_WIDTH,
+      expandWidth > 0 ? expandWidth : COLLAPSE_WIDTH,
+    );
     footerAnimator.animate(
       clipWidth,
       restOpacity,
       restTranslateX,
       swapClock,
-      fullWidthRef.current,
-      HOME_SLOT_WIDTH + PILL_HORIZONTAL_PADDING,
+      expandWidth,
+      collapseWidth,
       motionRef.current,
       revealNext,
     );
   }, [
     clipWidth,
+    homePlacement,
     restOpacity,
     restTranslateX,
     revealNext,
@@ -156,7 +209,7 @@ const AnimatedFooterShell = ({
     fullWidthRef.current = width;
     setFullWidth(width);
     if (phase.current === 'idle') {
-      clipWidth.value = width;
+      clipWidth.value = pillWidthFor(placementRef.current, width);
     }
   };
 
@@ -167,31 +220,62 @@ const AnimatedFooterShell = ({
     opacity: restOpacity.value,
     transform: [{ translateX: restTranslateX.value }],
   }));
-  const innerStyle = useMemo(
-    (): ViewStyle => ({ width: fullWidth > 0 ? fullWidth : '100%' }),
-    [fullWidth],
-  );
 
   const visibleRest = shownId === transitionId ? rest : restSnapshot.current;
+  const visibleHome = shownId === transitionId ? home : homeSnapshot.current;
+  const visiblePlacement =
+    shownId === transitionId ? homePlacement : shownPlacement;
+  const innerWidth = pillWidthFor(visiblePlacement, fullWidth);
+  const innerStyle = useMemo(
+    (): ViewStyle => ({ width: innerWidth > 0 ? innerWidth : '100%' }),
+    [innerWidth],
+  );
+  const slotStyle = useMemo(
+    (): ViewStyle => ({
+      ...PILL_SLOT,
+      justifyContent: anchorEnd ? 'flex-end' : 'flex-start',
+    }),
+    [anchorEnd],
+  );
+  const contentAlign = useMemo(
+    (): ViewStyle => ({
+      flexDirection: 'row',
+      justifyContent: anchorEnd ? 'flex-end' : 'flex-start',
+    }),
+    [anchorEnd],
+  );
 
   return (
-    <View onLayout={onFrameLayout} testID={`footer-set-${shownId}`}>
-      <Animated.View style={[CLIP_BASE, clipStyle]}>
-        <View style={innerStyle}>
-          <TabBarFloatingSurface
-            isBlurAvailable={isBlurAvailable}
-            colorScheme={colorScheme}
-            twClassName="flex-row items-center rounded-full p-1"
-            style={PILL_STYLE}
-            testID="footer-pill-surface"
-          >
-            <View style={HOME_SLOT}>{home}</View>
-            <Animated.View style={[REST_ROW, restStyle]}>
-              {visibleRest}
-            </Animated.View>
-          </TabBarFloatingSurface>
-        </View>
-      </Animated.View>
+    <View
+      onLayout={onFrameLayout}
+      testID={`footer-set-${shownId}`}
+      style={[
+        FRAME,
+        ROW,
+        visiblePlacement === 'circle-end' ? SECTION_GAP : null,
+      ]}
+    >
+      <View style={slotStyle}>
+        <Animated.View style={[CLIP_BASE, contentAlign, clipStyle]}>
+          <View style={innerStyle}>
+            <TabBarFloatingSurface
+              isBlurAvailable={isBlurAvailable}
+              colorScheme={colorScheme}
+              twClassName="flex-row items-center rounded-full p-1"
+              style={PILL_STYLE}
+              testID="footer-pill-surface"
+            >
+              {visiblePlacement === 'pill-start' ? (
+                <View style={HOME_SLOT}>{visibleHome}</View>
+              ) : null}
+              <Animated.View style={[REST_ROW, restStyle]}>
+                {visibleRest}
+              </Animated.View>
+            </TabBarFloatingSurface>
+          </View>
+        </Animated.View>
+      </View>
+      {visiblePlacement === 'circle-end' ? visibleHome : null}
     </View>
   );
 };

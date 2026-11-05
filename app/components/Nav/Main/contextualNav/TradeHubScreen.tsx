@@ -5,8 +5,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import Routes from '../../../../constants/navigation/Routes';
 import ContextualSectionPlaceholder from './ContextualSectionPlaceholder';
-import TradeHubFooter from './TradeHubFooter';
+import TradeHubFooter, { type TradeFooterTab } from './TradeHubFooter';
 import {
+  enterTradeExplore,
   exitContextualSection,
   getContextualNavState,
   useContextualNavState,
@@ -15,7 +16,8 @@ import {
 import { replaceTradingHub } from './tradeHubRoutes';
 import { useTradingHubAvailability } from './useTradingHubAvailability';
 
-const TITLE_BY_HUB: Record<TradingHubTab, string> = {
+const TITLE_BY_TAB: Record<TradeFooterTab, string> = {
+  explore: 'Explore',
   swap: 'Swap',
   perps: 'Perps',
   predictions: 'Predictions',
@@ -31,11 +33,14 @@ const TradeHubScreen = () => {
   const availability = useTradingHubAvailability();
   const leavingForHub = useRef(false);
   const { section, tab } = useContextualNavState();
-  const active: TradingHubTab =
+  const active: TradeFooterTab =
     section === 'trading' &&
-    (tab === 'swap' || tab === 'perps' || tab === 'predictions')
+    (tab === 'explore' ||
+      tab === 'swap' ||
+      tab === 'perps' ||
+      tab === 'predictions')
       ? tab
-      : 'swap';
+      : 'explore';
 
   const handleHomePress = useCallback(() => {
     exitContextualSection();
@@ -43,6 +48,16 @@ const TradeHubScreen = () => {
       StackActions.popTo(Routes.HOME_TABS, {
         screen: Routes.WALLET.HOME,
         params: { screen: Routes.WALLET_VIEW },
+      }),
+    );
+  }, [navigation]);
+
+  const handleExplorePress = useCallback(() => {
+    leavingForHub.current = true;
+    enterTradeExplore();
+    navigation.dispatch(
+      StackActions.popTo(Routes.HOME_TABS, {
+        screen: Routes.TRADE_DASHBOARD,
       }),
     );
   }, [navigation]);
@@ -69,10 +84,11 @@ const TradeHubScreen = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="trade-hub-screen">
-      <ContextualSectionPlaceholder title={TITLE_BY_HUB[active]} />
+      <ContextualSectionPlaceholder title={TITLE_BY_TAB[active]} />
       <TradeHubFooter
         active={active}
         onHomePress={handleHomePress}
+        onExplorePress={handleExplorePress}
         onHubPress={handleHubPress}
       />
     </View>

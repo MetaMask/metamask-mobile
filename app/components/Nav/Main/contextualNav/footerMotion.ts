@@ -41,9 +41,9 @@ export const FOOTER_CROSSFADE_MS = 140;
 export const FOOTER_REST_TRANSLATE = -8;
 
 /**
- * Identity of the footer set. Swap, Perps, Predictions, and the Trade
- * dashboard share one footer, so selecting them does not change this.
- * It changes only when the set itself changes.
+ * Identity of the footer set. Explore, Swap, Perps, and Predictions share
+ * the trade footer, so selecting them does not change this. It changes
+ * only when the set itself changes.
  */
 export const getFooterTransitionId = (
   section: string | null,
@@ -64,9 +64,9 @@ export const getFooterTransitionId = (
 const EASE_IN_OUT = Easing.inOut(Easing.cubic);
 
 /**
- * One continuous width change: collapse to the Home tab, then expand, with
- * no wait between the two. Home itself is not scaled. Reduce Motion only
- * fades the other items and leaves the width alone.
+ * One continuous width change: collapse the pill, then expand, with no
+ * wait between the two. The collapsed width is the caller's anchor slot.
+ * Reduce Motion only fades the other items and leaves the width alone.
  */
 export const animateFooterTransition = (
   clipWidth: SharedValue<number>,

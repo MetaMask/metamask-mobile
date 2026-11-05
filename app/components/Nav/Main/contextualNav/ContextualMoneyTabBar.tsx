@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 
-import { strings } from '../../../../../locales/i18n';
+import ContextualHomeCircle from './ContextualHomeCircle';
 import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import {
   enterMoneySection,
@@ -15,57 +15,65 @@ export interface ContextualMoneyTabBarProps {
   onHomePress: () => void;
   onHeightChange?: (height: number) => void;
   inline?: boolean;
-  omitHome?: boolean;
+  /** Leave the Home circle to the shared shell. */
+  itemsOnly?: boolean;
 }
 
-type MoneyFooterTab = 'home' | 'account' | 'card' | 'earn';
+type MoneyFooterTab = 'account' | 'card' | 'earn';
 
 const TABS: TradeTab<MoneyFooterTab>[] = [
-  { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
   { id: 'account', label: 'Account', iconName: IconName.UserCircle },
   { id: 'card', label: 'Card', iconName: IconName.Card },
   { id: 'earn', label: 'Earn', iconName: IconName.Gift },
 ];
 
-const MONEY_TABS: readonly ContextualTab[] = ['account', 'card', 'earn'];
+const MONEY_TABS = [
+  'account',
+  'card',
+  'earn',
+] as const satisfies readonly MoneyFooterTab[];
+
+const isMoneyFooterTab = (value: ContextualTab): value is MoneyFooterTab =>
+  MONEY_TABS.some((moneyTab) => moneyTab === value);
 
 /**
  * Money footer. Account is the existing Money screen. Card and Earn open
- * their screens in place. Home returns to the default footer.
+ * their screens in place. Home is the circle on the right.
  */
 const ContextualMoneyTabBar = ({
   onHomePress,
   onHeightChange,
   inline = false,
-  omitHome = false,
+  itemsOnly = false,
 }: ContextualMoneyTabBarProps) => {
   const { section, tab } = useContextualNavState();
   const activeTab: MoneyFooterTab =
-    section === 'money' && MONEY_TABS.includes(tab) ? tab : 'account';
+    section === 'money' && isMoneyFooterTab(tab) ? tab : 'account';
 
-  const handleTabPress = useCallback(
-    (nextTab: MoneyFooterTab) => {
-      if (nextTab === 'home') {
-        onHomePress();
-        return;
-      }
-      if (getContextualNavState().section !== 'money') {
-        enterMoneySection();
-      }
-      setContextualTab(nextTab);
-    },
-    [onHomePress],
-  );
+  const handleTabPress = useCallback((nextTab: MoneyFooterTab) => {
+    if (getContextualNavState().section !== 'money') {
+      enterMoneySection();
+    }
+    setContextualTab(nextTab);
+  }, []);
 
   return (
     <TradeTabBar
-      tabs={omitHome ? TABS.filter((item) => item.id !== 'home') : TABS}
+      tabs={TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
       onHeightChange={onHeightChange}
       testIDPrefix="contextual-money"
       inline={inline}
-      itemsOnly={omitHome}
+      itemsOnly={itemsOnly}
+      trailing={
+        itemsOnly ? undefined : (
+          <ContextualHomeCircle
+            onPress={onHomePress}
+            testID="contextual-money-home-button"
+          />
+        )
+      }
     />
   );
 };

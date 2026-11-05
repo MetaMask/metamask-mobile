@@ -2,10 +2,6 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  exitContextualSection,
-  getContextualNavState,
-} from '../../Nav/Main/contextualNav/contextualSection';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -1634,7 +1630,7 @@ describe('TradeWalletActions', () => {
       });
     });
 
-    it('opens Collectibles from the menu between Perps and Predictions', async () => {
+    it('does not list Collectibles in the trade menu', () => {
       (
         selectPerpsEnabledFlag as jest.MockedFunction<
           typeof selectPerpsEnabledFlag
@@ -1646,32 +1642,17 @@ describe('TradeWalletActions', () => {
         >
       ).mockReturnValue(true);
 
-      const { getByTestId, getByText, toJSON } = renderScreen(
+      const { queryByTestId, queryByText } = renderScreen(
         TradeWalletActions,
         { name: 'TradeWalletActions' },
         { state: mockInitialState },
       );
 
-      const rendered = JSON.stringify(toJSON());
-      const perpsIndex = rendered.indexOf('"Perps"');
-      const collectiblesIndex = rendered.indexOf('"Collectibles"');
-      const predictionsIndex = rendered.indexOf('"Predictions"');
-      expect(perpsIndex).toBeGreaterThanOrEqual(0);
-      expect(collectiblesIndex).toBeGreaterThan(perpsIndex);
-      expect(predictionsIndex).toBeGreaterThan(collectiblesIndex);
-      expect(getByText('Explore packs and cards')).toBeOnTheScreen();
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON,
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.COLLECTIBLES_VIEW);
-      expect(getContextualNavState()).toEqual({
-        section: 'collectibles',
-        tab: 'popular',
-      });
-      exitContextualSection();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON),
+      ).toBeNull();
+      expect(queryByText('Collectibles')).toBeNull();
+      expect(queryByText('Explore packs and cards')).toBeNull();
     });
 
     it('does not offer Rewards from the add menu', () => {

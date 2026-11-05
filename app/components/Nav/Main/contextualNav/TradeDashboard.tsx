@@ -7,7 +7,6 @@ import { useFloatingTabBarInset } from '../../../../component-library/components
 import { BridgeScreenStack } from '../../../UI/Bridge/routes';
 import PerpsScreenStack from '../../../UI/Perps/routes';
 import { PredictRoot } from '../../../UI/PredictNext';
-import { CollectiblesView } from '../../../Views/Collectibles/CollectiblesView';
 import ContextualSectionPlaceholder from './ContextualSectionPlaceholder';
 import { useContextualNavState } from './contextualSection';
 import { useTradingHubAvailability } from './useTradingHubAvailability';
@@ -16,8 +15,9 @@ const PAGE: ViewStyle = { flex: 1 };
 
 /**
  * Footer destinations render here, in the Trade tab, so they replace the
- * page in place. Screens opened inside a hub still push on that hub's stack.
- * These roots are not root-stack pushes, so they have no header back button.
+ * page in place. Explore shows the trade landing. Screens opened inside a
+ * hub still push on that hub's stack. These roots are not root-stack pushes,
+ * so they have no header back button.
  */
 const TradeDashboard = () => {
   const { section, tab } = useContextualNavState();
@@ -28,14 +28,6 @@ const TradeDashboard = () => {
     () => ({ paddingTop: topInset, paddingBottom: tabBarInset }),
     [tabBarInset, topInset],
   );
-
-  if (section === 'collectibles') {
-    return (
-      <View style={PAGE} testID="trade-inplace-collectibles">
-        <CollectiblesView embedded />
-      </View>
-    );
-  }
 
   if (section === 'trading' && tab === 'swap') {
     return (

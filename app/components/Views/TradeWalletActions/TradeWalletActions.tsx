@@ -92,10 +92,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import {
-  enterCollectiblesSection,
-  enterTradingHub,
-} from '../../Nav/Main/contextualNav/contextualSection';
+import { enterTradingHub } from '../../Nav/Main/contextualNav/contextualSection';
 import {
   MORPH_COLLAPSE,
   MORPH_CONTENT_FADE_IN,
@@ -404,14 +401,6 @@ function TradeWalletActions() {
     getPerpsHomeNavigationTarget,
   ]);
 
-  const onCollectibles = useCallback(() => {
-    postCallback.current = () => {
-      enterCollectiblesSection();
-      navigate(Routes.COLLECTIBLES_VIEW);
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
-
   const onPredict = useCallback(() => {
     postCallback.current = () => {
       enterTradingHub('predictions');
@@ -494,14 +483,6 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      <ActionListItem
-        label="Collectibles"
-        description="Explore packs and cards"
-        iconName={IconName.Card}
-        onPress={onCollectibles}
-        testID={WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON}
-        isDisabled={!canSignTransactions}
-      />
       {isPredictEnabled && (
         <ActionListItem
           label={strings('asset_overview.predict_button')}

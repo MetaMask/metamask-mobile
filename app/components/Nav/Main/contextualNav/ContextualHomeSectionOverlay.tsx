@@ -8,6 +8,7 @@ import CardHome from '../../../UI/Card/Views/CardHome/CardHome';
 import { CardSDKProvider } from '../../../UI/Card/sdk';
 import { EarnEmbeddedProvider } from '../../../UI/Earn/EarnEmbeddedContext';
 import EarnSectionListView from '../../../UI/Earn/Views/EarnSectionListView/EarnSectionListView';
+import { CollectiblesView } from '../../../Views/Collectibles/CollectiblesView';
 import { useContextualNavState } from './contextualSection';
 
 const OVERLAY_STYLE: ViewStyle = {
@@ -18,13 +19,27 @@ const OVERLAY_STYLE: ViewStyle = {
 const FILL_STYLE: ViewStyle = { flex: 1 };
 
 /**
- * Covers the Money screen while Card or Earn is selected.
+ * Covers the current tab while Card, Earn, or Collectibles is open.
  * Card is the card home itself, not the card navigator. A nested native
  * stack would change the Money tab's header, which native tabs reject.
+ * Collectibles stays on this footer so the pill can morph in place.
  */
 const ContextualHomeSectionOverlay = () => {
   const { section, tab } = useContextualNavState();
   const tabBarInset = useFloatingTabBarInset();
+
+  if (section === 'collectibles') {
+    return (
+      <Box
+        twClassName="absolute left-0 right-0 top-0"
+        style={[OVERLAY_STYLE, { bottom: tabBarInset }]}
+        accessibilityViewIsModal
+        testID="contextual-collectibles-screen"
+      >
+        <CollectiblesView />
+      </Box>
+    );
+  }
 
   if (section !== 'money' || (tab !== 'card' && tab !== 'earn')) {
     return null;

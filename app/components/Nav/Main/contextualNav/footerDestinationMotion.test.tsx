@@ -37,8 +37,8 @@ describe('footer morph for hub destinations', () => {
     ['swap', 'perps'],
     ['perps', 'predictions'],
     ['predictions', 'swap'],
-    ['dashboard', 'swap'],
-    ['swap', 'dashboard'],
+    ['explore', 'swap'],
+    ['swap', 'explore'],
   ] as const)(
     'does not morph when the trade footer stays put from %s to %s',
     (fromTab, toTab) => {
@@ -104,5 +104,33 @@ describe('footer morph for hub destinations', () => {
     expect(motion).toBe('morph');
     expect(view.getByText('Home')).toBeOnTheScreen();
     expect(view.getByText(from)).toBeOnTheScreen();
+  });
+
+  it('keeps Home mounted when the anchor moves to the circle', () => {
+    const view = render(
+      <AnimatedFooterShell
+        runMotion
+        transitionId="default"
+        homePlacement="pill-start"
+        home={<Text>Home</Text>}
+        rest={<Text>default</Text>}
+      />,
+    );
+
+    fireEvent(view.getByTestId('footer-set-default'), 'layout', layout);
+
+    view.rerender(
+      <AnimatedFooterShell
+        runMotion
+        transitionId="trade"
+        homePlacement="circle-end"
+        home={<Text>Home</Text>}
+        rest={<Text>trade</Text>}
+      />,
+    );
+
+    expect(animate).toHaveBeenCalled();
+    expect(view.getByText('Home')).toBeOnTheScreen();
+    expect(view.getByText('default')).toBeOnTheScreen();
   });
 });

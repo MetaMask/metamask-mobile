@@ -314,7 +314,7 @@ describe('useHomeTabDefinitions', () => {
       expect(getContextualNavState().section).toBeNull();
     });
 
-    it('records the Trade dashboard from the native focus listener without selecting a hub', () => {
+    it('records the Trade landing on Explore from the native focus listener', () => {
       const { result } = renderDefinitions();
       const trade = result.current.tabs.find((tab) => tab.key === 'trade');
       if (!trade) {
@@ -327,7 +327,7 @@ describe('useHomeTabDefinitions', () => {
 
       expect(getContextualNavState()).toEqual({
         section: 'trading',
-        tab: 'dashboard',
+        tab: 'explore',
       });
       exitContextualSection();
     });
