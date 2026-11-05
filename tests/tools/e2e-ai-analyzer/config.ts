@@ -15,7 +15,7 @@ export const MODEL_PRICING: Record<
   { inputPerM: number; outputPerM: number }
 > = {
   'gpt-5.2-chat-latest': { inputPerM: 1.75, outputPerM: 14.0 },
-  'claude-sonnet-5-5': { inputPerM: 2.0, outputPerM: 10.0 },
+  'claude-sonnet-4-6': { inputPerM: 3.0, outputPerM: 15.0 },
   'gemini-2.5-flash': { inputPerM: 0.1, outputPerM: 0.4 },
 };
 
@@ -37,7 +37,7 @@ export const LLM_CONFIG = {
    */
   providers: {
     anthropic: {
-      model: 'claude-sonnet-5-5',
+      model: 'claude-sonnet-4-6',
       envKey: 'E2E_CLAUDE_API_KEY',
     } as ProviderConfig,
     openai: {
