@@ -120,12 +120,9 @@ const PerpsOutreachDetailsView = () => {
     (url: string) => {
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.BROWSER.HOME, {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: url,
-            linkType: EXTERNAL_LINK_TYPE,
-            timestamp: Date.now(),
-          },
+          newTabUrl: url,
+          linkType: EXTERNAL_LINK_TYPE,
+          timestamp: Date.now(),
         });
       });
     },
