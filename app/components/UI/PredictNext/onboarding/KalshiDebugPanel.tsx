@@ -117,43 +117,49 @@ export const KalshiDebugPanel = ({
       a2t: {},
     };
     try {
-      next.lastEmail = await readKalshiDemoEmail();
-      next.a2t = summarizeA2t(
-        await Engine.controllerMessenger.call(
-          'PredictDeviceAuthService:getA2t',
-        ),
-      );
+      try {
+        next.lastEmail = await readKalshiDemoEmail();
+        next.a2t = summarizeA2t(
+          await Engine.controllerMessenger.call(
+            'PredictDeviceAuthService:getA2t',
+          ),
+        );
+      } catch (error) {
+        next.statusError = `a2t: ${describeError(error)}`;
+      }
+      // Status reads Kalshi's balance and drops the amount. The figure below is
+      // the portfolio query, which stays put until it is invalidated. Start both
+      // together so they share one Kalshi read.
+      const [statusResult, balanceResult] = await Promise.allSettled([
+        createKalshiOnboardingClient().getStatus(),
+        Engine.context.PredictPortfolioService.invalidateQueries({
+          queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).queryKey,
+        }),
+      ]);
+      if (statusResult.status === 'fulfilled') {
+        next.status = {
+          state: statusResult.value.state,
+          intentStatus: statusResult.value.intentStatus,
+          expireTs: statusResult.value.expireTs,
+        };
+      } else {
+        next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}status: ${describeError(statusResult.reason)}`;
+      }
+      if (balanceResult.status === 'rejected') {
+        next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}balance: ${describeError(balanceResult.reason)}`;
+      }
+      setSnapshot(next);
     } catch (error) {
-      next.statusError = `a2t: ${describeError(error)}`;
+      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}${describeError(error)}`;
+      setSnapshot(next);
+    } finally {
+      setLoading(false);
     }
-    // Status reads Kalshi's balance and drops the amount. The figure below is
-    // the portfolio query, which stays put until it is invalidated. Start both
-    // together so they share one Kalshi read.
-    const [statusResult, balanceResult] = await Promise.allSettled([
-      createKalshiOnboardingClient().getStatus(),
-      Engine.context.PredictPortfolioService.invalidateQueries({
-        queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).queryKey,
-      }),
-    ]);
-    if (statusResult.status === 'fulfilled') {
-      next.status = {
-        state: statusResult.value.state,
-        intentStatus: statusResult.value.intentStatus,
-        expireTs: statusResult.value.expireTs,
-      };
-    } else {
-      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}status: ${describeError(statusResult.reason)}`;
-    }
-    if (balanceResult.status === 'rejected') {
-      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}balance: ${describeError(balanceResult.reason)}`;
-    }
-    setSnapshot(next);
-    setLoading(false);
   }, []);
 
   const open = useCallback(() => {
     setVisible(true);
-    refresh();
+    refresh().catch(() => undefined);
   }, [refresh]);
 
   // Close this sheet first so two sheets are not presented at once.

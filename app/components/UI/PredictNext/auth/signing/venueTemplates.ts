@@ -209,11 +209,11 @@ export class TemplateError extends Error {
 }
 
 const has = (record: object, key: string): boolean =>
-  Object.prototype.hasOwnProperty.call(record, key);
+  Object.hasOwn(record, key);
 
 const UUID_V4 =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
-const DECIMAL = /^(0|[1-9][0-9]*)(\.[0-9]+)?$/u;
+const DECIMAL = /^(0|[1-9]\d*)(\.\d+)?$/u;
 
 /** A decimal string as an integer count of 10^-scale, or undefined. */
 const scaled = (text: string, scale: number): bigint | undefined => {
@@ -225,7 +225,13 @@ const scaled = (text: string, scale: number): bigint | undefined => {
   if (fraction.length > scale) {
     return undefined;
   }
-  return BigInt(whole + fraction.padEnd(scale, '0'));
+  // `\d` under the `u` flag also matches non-ASCII digits, which `BigInt`
+  // refuses. Those are not an allowed decimal.
+  try {
+    return BigInt(whole + fraction.padEnd(scale, '0'));
+  } catch {
+    return undefined;
+  }
 };
 
 const checkShape = (
@@ -290,7 +296,10 @@ const checkShape = (
       }
       return;
     case 'oneOf':
-      if (!shape.values.some((allowed) => allowed === value)) {
+      if (
+        (typeof value !== 'string' && typeof value !== 'number') ||
+        !shape.values.includes(value)
+      ) {
         fail('is not one of the allowed values');
       }
       return;
@@ -403,7 +412,7 @@ const encode = (text: string, rule: 'path' | 'query'): string => {
   }
   return encoded.replace(
     /[!'()*]/gu,
-    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+    (char) => `%${(char.codePointAt(0) as number).toString(16).toUpperCase()}`,
   );
 };
 
@@ -469,7 +478,7 @@ const renderQuery = (
   return pairs.join('&');
 };
 
-const INTEGER_LIKE_KEY = /^(0|[1-9][0-9]*)$/u;
+const INTEGER_LIKE_KEY = /^(0|[1-9]\d*)$/u;
 
 const renderBody = (
   template: RequestTemplate,
@@ -558,8 +567,7 @@ const checkBinaryLimitOrder = (
   const outcomeInput = params?.outcomeInput;
   const feeCeilingCentsPerContract = params?.feeCeilingCentsPerContract;
   if (
-    !params ||
-    params.pricing !== 'yes-leg' ||
+    params?.pricing !== 'yes-leg' ||
     typeof feeCeilingCentsPerContract !== 'number' ||
     !Number.isSafeInteger(feeCeilingCentsPerContract) ||
     feeCeilingCentsPerContract < 0 ||

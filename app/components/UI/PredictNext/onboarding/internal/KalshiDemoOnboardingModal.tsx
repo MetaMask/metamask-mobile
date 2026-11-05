@@ -163,7 +163,7 @@ export const KalshiDemoOnboardingModal = ({
               size={ButtonSize.Lg}
               isFullWidth
               isLoading={state.busy}
-              isDisabled={disabled || !/^[0-9]{6,8}$/u.test(code.trim())}
+              isDisabled={disabled || !/^\d{6,8}$/u.test(code.trim())}
               onPress={() => onboarding.verifyCode(code)}
               testID={TestIds.VERIFY}
             >
@@ -205,7 +205,7 @@ export const KalshiDemoOnboardingModal = ({
               size={ButtonSize.Lg}
               isFullWidth
               isLoading={state.busy}
-              isDisabled={disabled || !/^[0-9]{6,8}$/u.test(mfaCode.trim())}
+              isDisabled={disabled || !/^\d{6,8}$/u.test(mfaCode.trim())}
               onPress={() => onboarding.verifyCode(mfaCode)}
               testID={TestIds.MFA_VERIFY}
             >

@@ -39,7 +39,7 @@ export const summarizeA2t = (token: string | undefined): A2tSummary => {
     return {};
   }
   try {
-    const base64 = payload.replace(/-/gu, '+').replace(/_/gu, '/');
+    const base64 = payload.replaceAll('-', '+').replaceAll('_', '/');
     const claims = JSON.parse(
       // eslint-disable-next-line no-restricted-globals
       Buffer.from(base64, 'base64').toString('utf8'),

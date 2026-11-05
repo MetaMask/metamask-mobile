@@ -163,8 +163,7 @@ const claimInOrder = async (
   refuseIfCleared();
   const current = entries[claim.idempotencyKey];
   const live =
-    current !== undefined &&
-    current.operation === claim.operation &&
+    current?.operation === claim.operation &&
     claim.nowMs - current.pinnedAt <= APPROVED_INTENT_TTL_MS
       ? current
       : undefined;
@@ -177,7 +176,7 @@ const claimInOrder = async (
   }
 
   const digest = contentDigest(claim.body);
-  if (live && live.bodyDigest === digest && live.signCount < claim.signLimit) {
+  if (live?.bodyDigest === digest && live.signCount < claim.signLimit) {
     entries[claim.idempotencyKey] = {
       ...live,
       signCount: live.signCount + 1,
