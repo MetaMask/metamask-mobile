@@ -18,7 +18,9 @@ import HotTokensCarouselView, {
 import {
   getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
+  getSocialV1HotTokenSelectedChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
@@ -140,7 +142,7 @@ describe('HotTokensCarousel', () => {
       />,
     );
     fireEvent.press(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
     );
 
     expect(playSelection).toHaveBeenCalledTimes(1);
@@ -169,7 +171,7 @@ describe('HotTokensCarousel', () => {
     rerender(<HotTokensCarousel selectedTokenId={token.id} />);
 
     expect(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-btc')),
     ).toBeOnTheScreen();
   });
 
@@ -189,21 +191,24 @@ describe('HotTokensCarousel', () => {
     rerender(<HotTokensCarousel selectedTokenId={token.id} />);
 
     expect(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-pump')),
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-pump')),
     ).toBeOnTheScreen();
   });
 
-  it('marks the selected asset chip', () => {
+  it('docks the selected asset chip', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
 
+    const chip = screen.getByTestId(
+      getSocialV1HotTokenSelectedChipTestId('hot-nvda'),
+    );
+    expect(chip).toHaveTextContent('NVIDIA');
+    expect(chip.props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
     expect(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props
-        .accessibilityState,
-    ).toEqual(expect.objectContaining({ selected: true }));
-    expect(
-      screen.queryByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
+      screen.queryByTestId(getSocialV1HotTokenSelectedChipTestId('hot-btc')),
     ).toBeNull();
   });
 
@@ -222,17 +227,81 @@ describe('HotTokensCarousel', () => {
     expect(closeIcon).toBeTruthy();
   });
 
-  it('hides unselected chips while a chip is selected', () => {
+  // The rail stays mounted under the docked chip so its pills can scatter
+  // and return, but it takes no taps and is hidden from screen readers.
+  it('hides the rest of the rail while a chip is selected', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
 
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID, {
+        includeHiddenElements: true,
+      }).props,
+    ).toEqual(
+      expect.objectContaining({
+        pointerEvents: 'none',
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants',
+      }),
+    );
+  });
+
+  it('docks the pressed chip once the selection lands', () => {
+    const onTokenPress = jest.fn();
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel onTokenPress={onTokenPress} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    );
+    rerender(
+      <HotTokensCarousel
+        selectedTokenId={NVIDIA.id}
+        onTokenPress={onTokenPress}
+      />,
+    );
+
+    expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
+    expect(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+  });
+
+  it('clears the filter when the docked chip is pressed', () => {
+    const onTokenPress = jest.fn();
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={NVIDIA.id}
+        onTokenPress={onTokenPress}
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenSelectedChipTestId('hot-nvda')),
+    );
+
+    expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
+  });
+
+  it('gives the rail back its taps while the docked chip leaves', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel selectedTokenId={NVIDIA.id} />,
+    );
+
+    rerender(<HotTokensCarousel selectedTokenId={null} />);
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID).props.pointerEvents,
+    ).toBe('auto');
     expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-btc'),
       getSocialV1HotTokenChipTestId('hot-nvda'),
     ]);
-    expect(
-      screen.queryByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
-    ).toBeNull();
   });
 
   it('keeps frequency order while nothing is selected', () => {

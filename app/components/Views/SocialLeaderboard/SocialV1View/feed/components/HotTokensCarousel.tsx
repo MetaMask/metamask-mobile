@@ -3,11 +3,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -16,12 +11,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type LayoutChangeEvent, StyleSheet } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  type SharedValue,
   useAnimatedStyle,
   useFrameCallback,
   useSharedValue,
+  withDelay,
+  withTiming,
 } from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { playSelection } from '../../../../../../util/haptics';
@@ -30,11 +28,21 @@ import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
 import type { SocialV1HotToken } from '../types';
 import {
-  getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
+import {
+  DISPERSE,
+  DOCK_LEFT,
+  LIGHT_FADE_DURATION,
+  MARQUEE_ACCELERATE_RATE,
+  MARQUEE_BRAKE_RATE,
+  ON_SCREEN_MARGIN,
+  REASSEMBLE,
+} from './hotTokenRailMotion';
+import SelectedHotTokenChip from './SelectedHotTokenChip';
 
 const EMPTY_TOKENS: SocialV1HotToken[] = [];
 
@@ -46,6 +54,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  pill: {
+    flexShrink: 0,
+  },
+  dock: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: DOCK_LEFT,
+  },
 });
 
 const wrapOffset = (x: number, width: number): number => {
@@ -56,6 +77,31 @@ const wrapOffset = (x: number, width: number): number => {
   const wrapped = x % width;
   return wrapped < 0 ? wrapped + width : wrapped;
 };
+
+/** Where a pressed pill sat in the viewport, so its docked copy can fly out of it. */
+interface PillOrigin {
+  tokenId: string;
+  chipId: string;
+  left: number;
+  center: number;
+}
+
+/** The rail's pills scatter while a chip is docked, away from this point. */
+interface PillDispersal {
+  originCenter: number;
+  /** Hidden at once: the docked chip covers its spot as it takes off. */
+  sourceChipId: string | null;
+  /** Low-end hardware: a plain fade, no stagger or motion. */
+  isLight: boolean;
+}
+
+interface DockedChip {
+  key: number;
+  token: SocialV1HotToken;
+  origin: PillOrigin | null;
+  animatesIn: boolean;
+  isExiting: boolean;
+}
 
 export interface HotTokensCarouselProps {
   /** Ranked chips, most frequent first. */
@@ -73,60 +119,186 @@ export interface HotTokensCarouselProps {
   isActive?: boolean;
 }
 
-const HotTokenChip: React.FC<{
+interface HotTokenPillProps {
   token: SocialV1HotToken;
-  onPress?: (token: SocialV1HotToken) => void;
-  testID: string;
-  closeTestID: string;
-  isSelected?: boolean;
-}> = ({ token, onPress, testID, closeTestID, isSelected = false }) => (
-  // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
-  // ticker must keep each chip at intrinsic width or the track never overflows
-  // the viewport and the marquee never starts.
-  <Box twClassName="shrink-0">
-    <ExplorePill
-      testID={testID}
-      accessibilityState={{ selected: isSelected }}
-      twClassName={
-        isSelected ? 'bg-icon-default border-transparent' : undefined
+  chipId: string;
+  /** 0 for the primary track, 1 for the marquee's loop copy. */
+  trackIndex: number;
+  dispersal: PillDispersal | null;
+  offset: SharedValue<number>;
+  trackWidth: SharedValue<number>;
+  viewportWidth: SharedValue<number>;
+  onPress?: (token: SocialV1HotToken, origin: PillOrigin | null) => void;
+}
+
+const HotTokenPill: React.FC<HotTokenPillProps> = ({
+  token,
+  chipId,
+  trackIndex,
+  dispersal,
+  offset,
+  trackWidth,
+  viewportWidth,
+  onPress,
+}) => {
+  const layoutRef = useRef<{ x: number; width: number } | null>(null);
+  const [startsHidden] = useState(dispersal !== null);
+  const opacity = useSharedValue(startsHidden ? 0 : 1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const previousDispersalRef = useRef(dispersal);
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout;
+    layoutRef.current = { x, width };
+  }, []);
+
+  const measureInViewport = useCallback(() => {
+    const layout = layoutRef.current;
+    if (!layout) {
+      return null;
+    }
+    const left = trackIndex * trackWidth.value + layout.x - offset.value;
+    return { left, width: layout.width };
+  }, [offset, trackIndex, trackWidth]);
+
+  useEffect(() => {
+    const previous = previousDispersalRef.current;
+    previousDispersalRef.current = dispersal;
+    if (previous === dispersal) {
+      return;
+    }
+    const placement = measureInViewport();
+    const viewport = viewportWidth.value;
+    const isOnScreen =
+      placement !== null &&
+      placement.left + placement.width > -ON_SCREEN_MARGIN &&
+      placement.left < viewport + ON_SCREEN_MARGIN;
+
+    if (dispersal) {
+      if (chipId === dispersal.sourceChipId || !placement || !isOnScreen) {
+        opacity.value = 0;
+        return;
       }
-      leading={
-        <Box twClassName="mr-1">
-          <PositionTokenAvatar
-            position={token.avatar}
-            size={AvatarTokenSize.Sm}
-          />
-        </Box>
+      if (dispersal.isLight) {
+        opacity.value = withTiming(0, { duration: LIGHT_FADE_DURATION });
+        return;
       }
-      title={token.label}
-      titleTextColor={
-        isSelected ? TextColor.InfoInverse : TextColor.TextDefault
-      }
-      onPress={() => onPress?.(token)}
-      trailing={
-        isSelected ? (
-          <Box twClassName="ml-1">
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Sm}
-              color={IconColor.IconInverse}
-              testID={closeTestID}
+      const distance =
+        placement.left + placement.width / 2 - dispersal.originCenter;
+      const direction = distance < 0 ? -1 : 1;
+      const delay = Math.min(
+        Math.abs(distance) * DISPERSE.delayPerPixel,
+        DISPERSE.maxDelay,
+      );
+      const config = { duration: DISPERSE.duration, easing: DISPERSE.easing };
+      opacity.value = withDelay(delay, withTiming(0, config));
+      translateX.value = withDelay(
+        delay,
+        withTiming(direction * DISPERSE.shiftX, config),
+      );
+      translateY.value = withDelay(delay, withTiming(DISPERSE.shiftY, config));
+      scale.value = withDelay(delay, withTiming(DISPERSE.scale, config));
+      return;
+    }
+
+    if (!placement || !isOnScreen) {
+      opacity.value = 1;
+      translateX.value = 0;
+      translateY.value = 0;
+      scale.value = 1;
+      return;
+    }
+    if (previous?.isLight) {
+      translateX.value = 0;
+      translateY.value = 0;
+      scale.value = 1;
+      opacity.value = withTiming(1, { duration: LIGHT_FADE_DURATION });
+      return;
+    }
+    // A fully scattered pill restarts from below; one caught mid-scatter
+    // turns back from where it is.
+    if (opacity.value < 0.01) {
+      translateX.value = 0;
+      translateY.value = REASSEMBLE.shiftY;
+      scale.value = REASSEMBLE.scale;
+    }
+    const delay =
+      REASSEMBLE.baseDelay +
+      (viewport > 0 ? Math.max(0, placement.left / viewport) : 0) *
+        REASSEMBLE.spreadDelay;
+    const config = { duration: REASSEMBLE.duration, easing: REASSEMBLE.easing };
+    opacity.value = withDelay(delay, withTiming(1, config));
+    translateX.value = withDelay(delay, withTiming(0, config));
+    translateY.value = withDelay(delay, withTiming(0, config));
+    scale.value = withDelay(delay, withTiming(1, config));
+  }, [
+    chipId,
+    dispersal,
+    measureInViewport,
+    opacity,
+    scale,
+    translateX,
+    translateY,
+    viewportWidth,
+  ]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  const handlePress = useCallback(() => {
+    const placement = measureInViewport();
+    onPress?.(
+      token,
+      placement
+        ? {
+            tokenId: token.id,
+            chipId,
+            left: placement.left,
+            center: placement.left + placement.width / 2,
+          }
+        : null,
+    );
+  }, [chipId, measureInViewport, onPress, token]);
+
+  return (
+    // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
+    // ticker must keep each chip at intrinsic width or the track never
+    // overflows the viewport and the marquee never starts.
+    <Animated.View style={[styles.pill, pillStyle]} onLayout={handleLayout}>
+      <ExplorePill
+        testID={getSocialV1HotTokenChipTestId(chipId)}
+        accessibilityState={{ selected: false }}
+        leading={
+          <Box twClassName="mr-1">
+            <PositionTokenAvatar
+              position={token.avatar}
+              size={AvatarTokenSize.Sm}
             />
           </Box>
-        ) : null
-      }
-    />
-  </Box>
-);
+        }
+        title={token.label}
+        onPress={handlePress}
+      />
+    </Animated.View>
+  );
+};
 
-const HotTokenTrack: React.FC<{
-  tokens: SocialV1HotToken[];
-  onPress?: (token: SocialV1HotToken) => void;
-  onLayout?: (event: LayoutChangeEvent) => void;
-  testID?: string;
-  idSuffix?: string;
-  selectedTokenId?: string | null;
-}> = ({ tokens, onPress, onLayout, testID, idSuffix, selectedTokenId }) => (
+const HotTokenTrack: React.FC<
+  Omit<HotTokenPillProps, 'token' | 'chipId'> & {
+    tokens: SocialV1HotToken[];
+    onLayout?: (event: LayoutChangeEvent) => void;
+    testID?: string;
+    idSuffix?: string;
+  }
+> = ({ tokens, onLayout, testID, idSuffix, ...pillProps }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -137,13 +309,11 @@ const HotTokenTrack: React.FC<{
     {tokens.map((token) => {
       const chipId = idSuffix ? `${token.id}${idSuffix}` : token.id;
       return (
-        <HotTokenChip
+        <HotTokenPill
           key={chipId}
           token={token}
-          onPress={onPress}
-          isSelected={token.id === selectedTokenId}
-          testID={getSocialV1HotTokenChipTestId(chipId)}
-          closeTestID={getSocialV1HotTokenCloseTestId(chipId)}
+          chipId={chipId}
+          {...pillProps}
         />
       );
     })}
@@ -152,8 +322,13 @@ const HotTokenTrack: React.FC<{
 
 /**
  * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
- * the chips overflow the viewport they crawl like a news ticker, until a chip is
- * selected: that one moves to the front, takes a check, and the rail holds still.
+ * the chips overflow the viewport they crawl like a news ticker.
+ *
+ * Pressing a chip filters the feed on it: the crawl brakes, the other chips
+ * scatter away from it, and a selected copy springs from its spot to the
+ * rail's left edge, where its close icon slides open. Pressing that copy
+ * clears the filter: it drops away and the chips rise back in, left to right,
+ * with the crawl picking back up from where it stopped.
  *
  * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
  * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
@@ -162,7 +337,8 @@ const HotTokenTrack: React.FC<{
  * still wins over the pager so scrubbing the chips does not change tabs.
  *
  * The crawl runs a callback every frame, so low-end hardware keeps the rail
- * still. The pan stays, so the chips can still be scrubbed.
+ * still, and its chips fade in place instead of scattering. The pan stays, so
+ * the chips can still be scrubbed.
  *
  * Icons go through `PositionTokenAvatar`, the same resolution the position
  * cards use.
@@ -193,15 +369,64 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldTokenRef.current?.id === selectedTokenId
       ? heldTokenRef.current
       : null);
-  // A selected chip is the only chip shown. Frequency decides the order until
-  // a filter is on, then the rail parks at its left edge with a clear action.
-  const railTokens = useMemo(
-    () => (selectedToken ? [selectedToken] : tokens),
-    [selectedToken, tokens],
+
+  // The docked chip outlives the selection by its exit animation, so it is
+  // tracked apart from `selectedTokenId`.
+  const [pendingOrigin, setPendingOrigin] = useState<PillOrigin | null>(null);
+  const [docked, setDocked] = useState<DockedChip | null>(() =>
+    selectedToken
+      ? {
+          key: 0,
+          token: selectedToken,
+          origin: null,
+          animatesIn: false,
+          isExiting: false,
+        }
+      : null,
   );
+  const [dockedForId, setDockedForId] = useState(
+    selectedToken ? selectedTokenId : null,
+  );
+  const dockTargetId = selectedToken ? selectedTokenId : null;
+  if (dockedForId !== dockTargetId) {
+    setDockedForId(dockTargetId);
+    setPendingOrigin(null);
+    if (selectedToken) {
+      const origin =
+        pendingOrigin?.tokenId === selectedToken.id ? pendingOrigin : null;
+      setDocked((current) => ({
+        key: (current?.key ?? 0) + 1,
+        token: selectedToken,
+        origin,
+        animatesIn: true,
+        isExiting: false,
+      }));
+    } else if (docked && !docked.isExiting) {
+      setDocked({ ...docked, isExiting: true });
+    }
+  }
+  const isSelected = Boolean(docked && !docked.isExiting);
+
+  const dispersal = useMemo<PillDispersal | null>(
+    () =>
+      docked && !docked.isExiting
+        ? {
+            originCenter: docked.origin?.center ?? DOCK_LEFT,
+            sourceChipId: docked.origin?.chipId ?? null,
+            isLight: isLowHardware,
+          }
+        : null,
+    [docked, isLowHardware],
+  );
+
+  const handleDockExited = useCallback((key: number) => {
+    setDocked((current) => (current?.key === key ? null : current));
+  }, []);
+
   const offset = useSharedValue(0);
   const dragStartOffset = useSharedValue(0);
   const paused = useSharedValue(false);
+  const speed = useSharedValue(0);
   const trackWidthSv = useSharedValue(0);
   const viewportWidthSv = useSharedValue(0);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -210,19 +435,12 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
 
-  // A crawling rail would carry the chip the feed is filtered on off screen, so
-  // a selection parks the track at its start. The pan is left alone: scrubbing
-  // to read the rest of the rail is the user's call, and nothing re-starts the
-  // crawl behind them.
-  const isParked = Boolean(selectedTokenId);
-  const parked = useSharedValue(isParked);
-
+  // A docked chip holds the crawl. The scattered rail keeps its offset, so
+  // the chips come back where they left.
+  const parked = useSharedValue(isSelected);
   useEffect(() => {
-    parked.value = isParked;
-    if (isParked) {
-      offset.value = 0;
-    }
-  }, [isParked, offset, parked]);
+    parked.value = isSelected;
+  }, [isSelected, parked]);
 
   const handleViewportLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -245,11 +463,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(!isSelected)
         .activeOffsetX([-10, 10])
         .failOffsetY([-12, 12])
         .onBegin(() => {
           'worklet';
           paused.value = true;
+          speed.value = 0;
           dragStartOffset.value = offset.value;
         })
         .onUpdate((event) => {
@@ -267,7 +487,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
           'worklet';
           paused.value = false;
         }),
-    [dragStartOffset, offset, paused, trackWidthSv],
+    [dragStartOffset, isSelected, offset, paused, speed, trackWidthSv],
   );
 
   const tickMarquee = useCallback(
@@ -275,25 +495,25 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       'worklet';
       const width = trackWidthSv.value;
       const viewport = viewportWidthSv.value;
-      if (
-        parked.value ||
-        paused.value ||
-        width <= 0 ||
-        viewport <= 0 ||
-        width <= viewport
-      ) {
+      if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
         return;
       }
       const dtMs = frame.timeSincePreviousFrame ?? 0;
       if (dtMs <= 0) {
         return;
       }
-      offset.value = wrapOffset(
-        offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
-        width,
-      );
+      const dt = Math.min(dtMs / 1000, 0.05);
+      const target = parked.value ? 0 : MARQUEE_PIXELS_PER_SECOND;
+      const rate =
+        target < speed.value ? MARQUEE_BRAKE_RATE : MARQUEE_ACCELERATE_RATE;
+      speed.value += (target - speed.value) * (1 - Math.exp(-dt * rate));
+      if (target === 0 && speed.value < 0.05) {
+        speed.value = 0;
+        return;
+      }
+      offset.value = wrapOffset(offset.value + speed.value * dt, width);
     },
-    [offset, parked, paused, trackWidthSv, viewportWidthSv],
+    [offset, parked, paused, speed, trackWidthSv, viewportWidthSv],
   );
 
   const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
@@ -307,11 +527,10 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   }));
 
   const loopTokens = useMemo(
-    () => (shouldMarquee ? railTokens : []),
-    [shouldMarquee, railTokens],
+    () => (shouldMarquee ? tokens : []),
+    [shouldMarquee, tokens],
   );
 
-  // Selecting a chip and closing the selected one are both this press.
   const handleTokenPress = useCallback(
     (token: SocialV1HotToken) => {
       if (!onTokenPress) {
@@ -323,9 +542,20 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     [onTokenPress],
   );
 
+  const handlePillPress = useCallback(
+    (token: SocialV1HotToken, origin: PillOrigin | null) => {
+      if (!onTokenPress) {
+        return;
+      }
+      setPendingOrigin(origin);
+      handleTokenPress(token);
+    },
+    [handleTokenPress, onTokenPress],
+  );
+
   // Returning null instead of an empty wrapper lets the page's gap collapse,
   // rather than leaving a rail-shaped hole above the first post.
-  if (!isLoading && railTokens.length === 0) {
+  if (!isLoading && tokens.length === 0 && !docked) {
     return null;
   }
 
@@ -333,31 +563,63 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     return <SectionPillsSkeleton rowCount={1} />;
   }
 
+  const trackProps = {
+    dispersal,
+    offset,
+    trackWidth: trackWidthSv,
+    viewportWidth: viewportWidthSv,
+    onPress: handlePillPress,
+  };
+
   return (
     <Box
       onLayout={handleViewportLayout}
-      twClassName="overflow-hidden"
+      twClassName="overflow-hidden min-h-10"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.row, trackStyle]}>
+        <Animated.View
+          style={[styles.row, trackStyle]}
+          testID={SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID}
+          pointerEvents={isSelected ? 'none' : 'auto'}
+          accessibilityElementsHidden={isSelected}
+          importantForAccessibility={
+            isSelected ? 'no-hide-descendants' : 'auto'
+          }
+        >
           <HotTokenTrack
-            tokens={railTokens}
-            onPress={handleTokenPress}
+            {...trackProps}
+            tokens={tokens}
+            trackIndex={0}
             onLayout={handleTrackLayout}
             testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
-            selectedTokenId={selectedTokenId}
           />
           {loopTokens.length > 0 ? (
             <HotTokenTrack
+              {...trackProps}
               tokens={loopTokens}
-              onPress={handleTokenPress}
+              trackIndex={1}
               idSuffix="-loop"
-              selectedTokenId={selectedTokenId}
             />
           ) : null}
         </Animated.View>
       </GestureDetector>
+      {docked ? (
+        <View pointerEvents="box-none" style={styles.dock}>
+          <SelectedHotTokenChip
+            key={docked.key}
+            dockKey={docked.key}
+            token={
+              !docked.isExiting && selectedToken ? selectedToken : docked.token
+            }
+            originLeft={docked.origin?.left ?? null}
+            animatesIn={docked.animatesIn}
+            isExiting={docked.isExiting}
+            onPress={handleTokenPress}
+            onExited={handleDockExited}
+          />
+        </View>
+      ) : null}
     </Box>
   );
 };
