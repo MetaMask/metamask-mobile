@@ -5,6 +5,7 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../types';
+import { getGameTeamOrder } from '../game';
 import { EventCard } from './internal/EventCard';
 import { GameCard } from './internal/EventCardGameParts';
 
@@ -30,76 +31,84 @@ const CompactGameCard = ({
   game,
   onPress,
   onOrder,
-}: GameCompositionProps) => (
-  <GameCard.Provider
-    event={event}
-    game={game}
-    onPress={onPress}
-    onOrder={onOrder}
-  >
-    <EventCard.Root
-      twClassName="rounded-2xl bg-section px-4 pb-4 pt-3"
-      testID={`predict-next-event-${event.venueId}-${event.id}`}
+}: GameCompositionProps) => {
+  const [first, second] = getGameTeamOrder(game);
+
+  return (
+    <GameCard.Provider
+      event={event}
+      game={game}
+      onPress={onPress}
+      onOrder={onOrder}
     >
-      <GameCard.Navigation>
-        <GameCard.CompactStatus />
-        <EventCard.Body twClassName="gap-3 py-3">
-          <GameCard.CompactTeamRow selection="away" />
-          <GameCard.CompactTeamRow selection="home" />
-        </EventCard.Body>
-      </GameCard.Navigation>
+      <EventCard.Root
+        twClassName="rounded-2xl bg-section px-4 pb-4 pt-3"
+        testID={`predict-next-event-${event.venueId}-${event.id}`}
+      >
+        <GameCard.Navigation>
+          <GameCard.CompactStatus />
+          <EventCard.Body twClassName="gap-3 py-3">
+            <GameCard.CompactTeamRow selection={first} />
+            <GameCard.CompactTeamRow selection={second} />
+          </EventCard.Body>
+        </GameCard.Navigation>
 
-      <GameCard.Actions />
+        <GameCard.Actions />
 
-      <GameCard.Footer>
-        <EventCard.FooterLeading>
-          <GameCard.Competition />
-          <EventCard.Volume value={event.volume} />
-        </EventCard.FooterLeading>
-        <GameCard.MoreMarkets />
-      </GameCard.Footer>
-    </EventCard.Root>
-  </GameCard.Provider>
-);
+        <GameCard.Footer>
+          <EventCard.FooterLeading>
+            <GameCard.Competition />
+            <EventCard.Volume value={event.volume} />
+          </EventCard.FooterLeading>
+          <GameCard.MoreMarkets />
+        </GameCard.Footer>
+      </EventCard.Root>
+    </GameCard.Provider>
+  );
+};
 
 const FeaturedGameCard = ({
   event,
   game,
   onPress,
   onOrder,
-}: GameCompositionProps) => (
-  <GameCard.Provider
-    event={event}
-    game={game}
-    onPress={onPress}
-    onOrder={onOrder}
-  >
-    <EventCard.Root
-      twClassName="rounded-2xl bg-section px-4 pb-4 pt-4"
-      testID={`predict-next-event-${event.venueId}-${event.id}`}
-    >
-      <GameCard.Navigation>
-        <EventCard.Header twClassName="items-center pb-1">
-          <EventCard.Title numberOfLines={1} twClassName="w-68 text-center">
-            {event.title}
-          </EventCard.Title>
-        </EventCard.Header>
-        <GameCard.Matchup>
-          <GameCard.FeaturedTeam selection="away" />
-          <GameCard.Score selection="away" />
-          <GameCard.FeaturedStatus />
-          <GameCard.Score selection="home" />
-          <GameCard.FeaturedTeam selection="home" />
-        </GameCard.Matchup>
-        <EventCard.Body twClassName="pb-4">
-          <GameCard.ProbabilityBar />
-        </EventCard.Body>
-      </GameCard.Navigation>
+}: GameCompositionProps) => {
+  const [first, second] = getGameTeamOrder(game);
 
-      <GameCard.Actions />
-    </EventCard.Root>
-  </GameCard.Provider>
-);
+  return (
+    <GameCard.Provider
+      event={event}
+      game={game}
+      onPress={onPress}
+      onOrder={onOrder}
+    >
+      <EventCard.Root
+        twClassName="rounded-2xl bg-section px-4 pb-4 pt-4"
+        testID={`predict-next-event-${event.venueId}-${event.id}`}
+      >
+        <GameCard.Navigation>
+          <EventCard.Header twClassName="items-center pb-1">
+            <EventCard.Title numberOfLines={1} twClassName="w-68 text-center">
+              {event.title}
+            </EventCard.Title>
+          </EventCard.Header>
+          <GameCard.Matchup>
+            <GameCard.FeaturedTeam selection={first} />
+            <GameCard.Score selection={first} />
+            <GameCard.FeaturedStatus />
+            <GameCard.Score selection={second} />
+            <GameCard.FeaturedTeam selection={second} />
+          </GameCard.Matchup>
+          <EventCard.Body twClassName="pb-4">
+            <GameCard.ProbabilityBar />
+          </EventCard.Body>
+        </GameCard.Navigation>
+
+        <GameCard.Actions />
+      </EventCard.Root>
+    </GameCard.Provider>
+  );
+};
 
 export const EventCardGame = ({
   event,

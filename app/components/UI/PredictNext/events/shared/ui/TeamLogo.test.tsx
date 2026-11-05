@@ -49,6 +49,25 @@ describe('TeamLogo', () => {
     });
   });
 
+  it('does not mirror the abbreviation when a flipped logo fails to load', () => {
+    render(
+      <TeamLogo
+        team={team('https://example.com/car.png')}
+        abbreviation="CAR"
+        flipped
+        testID="logo"
+        fallbackTestID="logo-fallback"
+      />,
+    );
+
+    fireEvent(screen.getByTestId('logo', HIDDEN), 'error');
+
+    const fallback = screen.getByTestId('logo-fallback', HIDDEN);
+    expect(fallback).toHaveTextContent('CAR');
+    expect(fallback).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(screen.queryByTestId('logo', HIDDEN)).toBeNull();
+  });
+
   it('shows the abbreviation when the Team has no logo', () => {
     renderLogo(team());
 
@@ -72,6 +91,7 @@ describe('TeamLogo', () => {
     ['small', 32],
     ['medium', 40],
     ['large', 48],
+    ['xlarge', 56],
   ] as const)('renders the %s size at %ipx', (size, pixels) => {
     renderLogo(team('https://example.com/car.png'), size);
 

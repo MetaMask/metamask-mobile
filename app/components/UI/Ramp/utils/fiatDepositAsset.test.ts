@@ -137,6 +137,21 @@ describe('deriveFiatDepositAssetId', () => {
     ).toBe(MUSD_MONAD_ASSET_ID);
   });
 
+  it('maps a nested membership subscription to mUSD on Monad', () => {
+    expect(
+      deriveFiatDepositAssetId(
+        tx({
+          type: TransactionType.batch,
+          nestedTransactions: [
+            { type: TransactionType.tokenMethodApprove },
+            { type: TransactionType.membershipSubscription },
+          ],
+        }),
+        [TransactionType.membershipSubscription],
+      ),
+    ).toBe(MUSD_MONAD_ASSET_ID);
+  });
+
   it('resolves nothing for a money deposit that is not an enabled type', () => {
     // The money branch sits below the enabled-types guard, so a disabled money
     // deposit stays idle rather than fetching the mUSD catalog anyway.

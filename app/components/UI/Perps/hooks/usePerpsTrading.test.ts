@@ -285,6 +285,44 @@ describe('usePerpsTrading', () => {
       expect(response).toEqual(mockEditResult);
     });
 
+    it.each([
+      [
+        'a cancelled original for a post-only would-cross modify',
+        'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
+        { reason: 'post_only_would_cross', originalOrder: 'cancelled' },
+      ],
+      [
+        'a retained original for any other refusal',
+        'Insufficient margin',
+        { reason: 'other', originalOrder: 'retained' },
+      ],
+    ])('reports %s', async (_label, error, expected) => {
+      // Arrange
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        { success: false, error },
+      );
+      const { result } = renderHook(() => usePerpsTrading());
+
+      // Act
+      const response = await result.current.editOrder({
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit',
+          price: '51000',
+        },
+      });
+
+      // Assert
+      expect(response).toEqual({
+        success: false,
+        error,
+        rejection: { ...expected, error },
+      });
+    });
+
     it('strips watchPriceUpdate before calling the controller', async () => {
       (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
         {
