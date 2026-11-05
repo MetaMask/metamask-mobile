@@ -230,11 +230,13 @@ const perpData = (overrides: Partial<PositionSheetData> = {}) =>
 describe('PositionDetailsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(formatAddressToAssetId).mockImplementation((...args) =>
-      jest
-        .requireActual('@metamask/bridge-controller')
-        .formatAddressToAssetId(...args),
-    );
+    jest
+      .mocked(formatAddressToAssetId)
+      .mockImplementation((...args) =>
+        jest
+          .requireActual('@metamask/bridge-controller')
+          .formatAddressToAssetId(...args),
+      );
     mockParams = {
       positionId: 'position-1',
       position: buildPosition(),
@@ -267,7 +269,9 @@ describe('PositionDetailsSheet', () => {
     );
 
     expect(within(priceHeader).getByText('Pepe')).toBeOnTheScreen();
-    expect(priceHeader.props.accessibilityLabel).toBe('Pepe, $120, +3.49%, Today');
+    expect(priceHeader.props.accessibilityLabel).toBe(
+      'Pepe, $120, +3.49%, Today',
+    );
     expect(priceHeader.props.accessibilityHint).toBe('Opens the asset page');
     expect(within(priceHeader).UNSAFE_getByType(Icon).props).toMatchObject({
       name: IconName.ArrowRight,
