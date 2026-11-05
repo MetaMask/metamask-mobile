@@ -100,7 +100,7 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
-  const { View } = jest.requireActual(
+  const { View, ScrollView } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
@@ -115,7 +115,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
-    onScroll?: (event: { contentOffset: { y: number } }) => void;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
   }
 
   return {
@@ -135,7 +135,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           },
           props.renderHeader?.(),
         ),
-        ReactActual.createElement(View, {
+        ReactActual.createElement(ScrollView, {
           testID: props.scrollTestID,
           onScroll: props.onScroll,
         }),
