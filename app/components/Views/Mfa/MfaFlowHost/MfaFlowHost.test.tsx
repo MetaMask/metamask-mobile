@@ -356,14 +356,13 @@ describe('MfaFlowHost', () => {
     const { outcome } = await start(
       {
         kind: 'verifyOrEnroll',
-        methods: ['email_otp', 'passkey'],
-        verifyWith: ['email_otp', 'passkey'],
+        methods: ['email_otp', 'totp'],
+        verifyWith: ['email_otp', 'totp'],
       },
       createController([
         activeEmail,
-        { id: 'passkey', type: 'passkey', status: 'active' },
+        { id: 'totp', type: 'totp', status: 'active' },
       ]),
-      { create: jest.fn(), get: jest.fn() },
     );
     const { getByTestId } = renderHost();
 
