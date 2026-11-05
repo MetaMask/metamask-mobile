@@ -9,6 +9,7 @@ import {
   LIMIT_ORDER_NEW_BANNER_TEST_ID,
   LIMIT_ORDER_NEW_BANNER_DISMISS_TEST_ID,
 } from './LimitOrderNewBanner';
+import { LIMIT_ORDER_NEW_BANNER_ICON_TEST_ID } from './LimitOrderNewBannerIcon';
 
 jest.mock('../../../../../store/storage-wrapper', () => ({
   getItemSync: jest.fn(),
@@ -48,13 +49,18 @@ describe('LimitOrderNewBanner', () => {
     mockSetItem.mockResolvedValue(undefined);
   });
 
-  it('renders the title and description copy', () => {
-    const { getByText } = renderBanner();
+  it('renders the title, description, and icon', () => {
+    const { getByText, getByTestId } = renderBanner();
 
     expect(getByText('bridge.limit_order_new_banner_title')).toBeOnTheScreen();
     expect(
       getByText('bridge.limit_order_new_banner_description'),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(LIMIT_ORDER_NEW_BANNER_ICON_TEST_ID, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
   });
 
   it('switches to the Limit tab when the banner is pressed', () => {

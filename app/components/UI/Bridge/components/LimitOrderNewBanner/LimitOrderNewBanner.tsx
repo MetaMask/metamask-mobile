@@ -7,6 +7,7 @@ import { selectBridgeLimitOrderTabEnabledFlag } from '../../../../../selectors/b
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { DismissableBanner } from '../../../DismissableBanner';
+import { LimitOrderNewBannerIcon } from './LimitOrderNewBannerIcon';
 
 export const LIMIT_ORDER_NEW_BANNER_TEST_ID = 'limit-order-new-banner';
 export const LIMIT_ORDER_NEW_BANNER_DISMISS_TEST_ID =
@@ -54,6 +55,7 @@ export function LimitOrderNewBanner() {
       description={strings('bridge.limit_order_new_banner_description')}
       onPress={handlePress}
       onDismiss={dismiss}
+      icon={<LimitOrderNewBannerIcon />}
       testID={LIMIT_ORDER_NEW_BANNER_TEST_ID}
       dismissTestID={LIMIT_ORDER_NEW_BANNER_DISMISS_TEST_ID}
     />
