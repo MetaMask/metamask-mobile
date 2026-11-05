@@ -28,6 +28,12 @@ export interface SocialFeedRow extends TraderFeedRow {
   realtimeEventId?: string;
   feedItemId: string;
   revision?: number;
+  /**
+   * The HTTP engagement this row last reconciled with. A fold takes the
+   * server's engagement again only once this reference changes, so loading
+   * another page or patching another post keeps the live socket counts.
+   */
+  serverEngagement?: AuthorComment['engagement'];
 }
 
 export interface PendingRealtimeEvent {
@@ -169,6 +175,7 @@ export const applyRealtimeEventToRow = (
         : undefined,
     feedItemId: event.feedItemId,
     revision: event.revision,
+    serverEngagement: row?.core.authorComment?.engagement,
   };
 };
 
@@ -193,10 +200,32 @@ export interface FoldedRealtimeRows {
   changed: boolean;
 }
 
+const reconcileWithServer = (
+  row: SocialFeedRow,
+  serverRow: TraderFeedRow,
+): SocialFeedRow => {
+  const serverEngagement = serverRow.core.authorComment?.engagement;
+  if (row.serverEngagement === serverEngagement) {
+    return row;
+  }
+  return {
+    ...row,
+    core: {
+      ...row.core,
+      authorComment: resolveRefreshedAuthorComment(
+        row.core.authorComment,
+        serverRow.core.authorComment,
+      ),
+    },
+    serverEngagement,
+  };
+};
+
 /**
  * Moves socket-only rows the server now returns out of the socket list, and
  * forgets revisions the server caught up with or no longer loads. A socket
- * copy newer than the server copy is kept as a revision of the loaded post.
+ * copy newer than the server copy is kept as a revision of the loaded post,
+ * taking the server's engagement only when the server copy's changed.
  */
 export const foldRealtimeRows = (
   socketRows: readonly SocialFeedRow[],
@@ -208,16 +237,7 @@ export const foldRealtimeRows = (
   revisedRows.forEach((row, feedItemId) => {
     const serverRow = serverRowsById.get(feedItemId);
     if (serverRow && isNewerThanServer(row, serverRow)) {
-      const nextRow = {
-        ...row,
-        core: {
-          ...row.core,
-          authorComment: resolveRefreshedAuthorComment(
-            row.core.authorComment,
-            serverRow.core.authorComment,
-          ),
-        },
-      };
+      const nextRow = reconcileWithServer(row, serverRow);
       nextRevised.set(feedItemId, nextRow);
       changed =
         changed || nextRow.core.authorComment !== row.core.authorComment;
@@ -234,16 +254,7 @@ export const foldRealtimeRows = (
     changed = true;
     if (isNewerThanServer(row, serverRow)) {
       // A socket-only copy has no HTTP core: an absent Call keeps the server's.
-      nextRevised.set(row.feedItemId, {
-        ...row,
-        core: {
-          ...row.core,
-          authorComment: resolveRefreshedAuthorComment(
-            row.core.authorComment,
-            serverRow.core.authorComment,
-          ),
-        },
-      });
+      nextRevised.set(row.feedItemId, reconcileWithServer(row, serverRow));
     }
     return false;
   });

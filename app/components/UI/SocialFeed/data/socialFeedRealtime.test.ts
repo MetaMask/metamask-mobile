@@ -403,6 +403,48 @@ describe('socialFeedRealtime', () => {
       expect(folded.changed).toBe(true);
     });
 
+    it('keeps live socket counts while the server engagement is unchanged', () => {
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: buildCall('call-shared', {
+          reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+          userReaction: '👍',
+        }),
+      });
+      const revisedRow = applyRealtimeEventToRow(
+        serverRow,
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: {
+            authorComment: buildCall('call-shared', {
+              reactions: [{ emotion: '👍', count: 4, profiles: [] }],
+              userReaction: null,
+            }),
+          },
+        }),
+        undefined,
+        false,
+      );
+      if (!revisedRow) {
+        throw new Error('Expected the event to map');
+      }
+
+      const folded = foldRealtimeRows(
+        [],
+        new Map([['pos-a', revisedRow]]),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')).toBe(revisedRow);
+      expect(revisedRow.core.authorComment?.engagement).toEqual({
+        reactions: [{ emotion: '👍', count: 4, profiles: [] }],
+        userReaction: '👍',
+      });
+      expect(folded.changed).toBe(false);
+    });
+
     it('forgets revisions the server caught up with or no longer loads', () => {
       const caughtUp = buildSocketRow(
         buildEvent({ feedItemId: 'pos-a', revision: 2 }),
