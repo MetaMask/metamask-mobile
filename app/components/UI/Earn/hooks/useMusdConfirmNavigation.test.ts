@@ -91,7 +91,7 @@ describe('useMusdConfirmNavigation', () => {
       });
 
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
@@ -103,7 +103,7 @@ describe('useMusdConfirmNavigation', () => {
         result.current.navigateOnConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
       expect(mockDispatch).not.toHaveBeenCalled();
     });
   });

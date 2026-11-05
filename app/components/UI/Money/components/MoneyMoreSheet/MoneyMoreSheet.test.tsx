@@ -164,12 +164,9 @@ describe('MoneyMoreSheet', () => {
       AppConstants.URLS.MONEY_LANDING,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.URLS.MONEY_LANDING,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: AppConstants.URLS.MONEY_LANDING,
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
   });
 
@@ -204,12 +201,9 @@ describe('MoneyMoreSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: consentedUrl,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: consentedUrl,
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
   });
 
