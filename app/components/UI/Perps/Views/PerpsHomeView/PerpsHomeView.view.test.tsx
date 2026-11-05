@@ -35,6 +35,7 @@ import {
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   getPerpsMarketRowItemSelector,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
@@ -2152,6 +2153,98 @@ describe('PerpsHomeView', () => {
       expect(
         screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION),
       ).toBeNull();
+    });
+  });
+
+  describe('withdrawal account support', () => {
+    const withdrawalRoutes = [
+      { name: Routes.PERPS.WITHDRAW, mount: 'perps-root' as const },
+      {
+        name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        mount: 'perps-root' as const,
+      },
+    ];
+    const renderFundedHome = () =>
+      renderPerpsHomeView({
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+        extraRoutes: withdrawalRoutes,
+      });
+    const expectNoWithdrawalStarted = () => {
+      for (const { name } of withdrawalRoutes) {
+        expect(screen.queryByTestId(`route-${name}`)).not.toBeOnTheScreen();
+      }
+    };
+
+    afterEach(() => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockReset()
+        .mockResolvedValue({ isSupported: true });
+    });
+
+    it('starts a withdrawal for a supported account', async () => {
+      renderFundedHome();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      await waitFor(() =>
+        expect(
+          withdrawalRoutes.some(({ name }) =>
+            screen.queryByTestId(`route-${name}`),
+          ),
+        ).toBe(true),
+      );
+    });
+
+    it('explains an unsupported account instead of starting a withdrawal and dismisses the explanation', async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getAccountSupport)
+        .mockResolvedValue({ isSupported: false, reason: 'multi_sig_account' });
+      renderFundedHome();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.tooltips.account_not_supported.content'),
+        ),
+      ).toBeOnTheScreen();
+      expectNoWithdrawalStarted();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText(
+            strings('perps.tooltips.account_not_supported.title'),
+          ),
+        ).not.toBeOnTheScreen(),
+      );
+      expectNoWithdrawalStarted();
     });
   });
 });

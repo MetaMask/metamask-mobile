@@ -547,19 +547,10 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
-  describe('handleWithdraw - unsupported account', () => {
-    it('does not start either withdrawal flow', async () => {
-      mockCheckAccountSupport.mockResolvedValue('unsupported');
-      const { result } = renderHook(() => usePerpsHomeActions());
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-
+  // Unit fallback. The unsupported-account explanation is covered through the
+  // rendered home view in PerpsHomeView.view.test.tsx; losing focus while the
+  // support read is held is not drivable there.
+  describe('handleWithdraw - account support', () => {
     it('does not start a withdrawal after the screen loses focus during the support check', async () => {
       let resolveSupport:
         | ((support: 'supported' | 'unsupported' | 'stale') => void)
