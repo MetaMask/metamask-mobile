@@ -166,6 +166,19 @@ describe('handleSocialPostUrl', () => {
     });
   });
 
+  it('forwards deduplication_id onto the notification click', async () => {
+    handleSocialPostUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=your_trader_was_copied',
+    });
+    await flushAsync();
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      notification_subtype: 'your_trader_was_copied',
+      deduplication_id: 'dedup-1',
+    });
+  });
+
   it('tracks the notification click with its subtype', async () => {
     handleSocialPostUrl({
       actionPath:
