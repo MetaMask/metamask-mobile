@@ -1,5 +1,5 @@
 import type { FullProject, TestInfo } from '@playwright/test';
-import type { WebDriverConfig } from '../../types.ts';
+import { Platform, type WebDriverConfig } from '../../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../../Constants.ts';
 import { setDeviceInfo } from '../../DeviceInfoCache.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
@@ -12,6 +12,7 @@ import { isSessionAlive } from '../../services/appium/sessionHealth.ts';
 import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  isIosAccessibilityServerError,
   requestSharedSessionRecreate,
   setSharedSessionRecreateHandler,
 } from '../../services/appium/sessionRecovery.ts';
@@ -37,6 +38,65 @@ const readCapability = (capabilities: object | undefined, key: string) => {
 };
 
 const logger = createAppiumLogger('driver');
+
+/**
+ * `getWindowSize` is the first command that needs a live accessibility server.
+ * When SpringBoard's server is gone, a new WebDriver session against the
+ * still-booted simulator fails the same way. Reboot that worker's simulator
+ * once and open a fresh session.
+ */
+async function readWindowSizeOrRebootIosAccessibilityServer({
+  drv,
+  implicitMs,
+  platform,
+  deviceProvider,
+  sharedSession,
+  testTitle,
+  onRecreated,
+}: {
+  drv: WebdriverIO.Browser;
+  implicitMs: number;
+  platform: WebDriverConfig['platform'];
+  deviceProvider: WorkerLevelFixtures['deviceProvider'];
+  sharedSession: SharedAppiumSession;
+  testTitle: string;
+  onRecreated: (session: WebdriverIO.Browser) => void;
+}): Promise<{ width: number; height: number }> {
+  try {
+    return await drv.getWindowSize();
+  } catch (error) {
+    const udid = process.env.IOS_SIMULATOR_UDID?.trim();
+    if (
+      platform !== Platform.IOS ||
+      !udid ||
+      !isIosAccessibilityServerError(error)
+    ) {
+      throw error;
+    }
+
+    logger.warn(
+      `iOS accessibility server is down during session setup for "${testTitle}"; rebooting simulator ${udid} once`,
+    );
+
+    try {
+      await deviceProvider.cleanupSession?.(drv);
+    } catch (cleanupError) {
+      logger.error(
+        'Failed to cleanup session before iOS simulator reboot:',
+        cleanupError,
+      );
+    }
+    sharedSession.drv = undefined;
+    const { rebootIosSimulator } = await import(
+      '../../services/appium/EmulatorHelpers.ts'
+    );
+    await rebootIosSimulator(udid);
+    const session = await createSession(deviceProvider, sharedSession);
+    onRecreated(session);
+    await configureImplicitWait(session, implicitMs);
+    return await session.getWindowSize();
+  }
+}
 
 export const driverFixture = {
   driver: async (
@@ -103,7 +163,19 @@ export const driverFixture = {
 
       const capabilities = await drv.capabilities;
       const platformName = capabilities?.platformName;
-      const windowSize = await drv.getWindowSize();
+      const windowSize = await readWindowSizeOrRebootIosAccessibilityServer({
+        drv,
+        implicitMs,
+        platform,
+        deviceProvider,
+        sharedSession,
+        testTitle: testInfo.title,
+        onRecreated: (session) => {
+          drv = session;
+          globalThis.driver = session;
+          sessionRecreated = true;
+        },
+      });
       setDeviceInfo(
         (platformName?.toLowerCase() === 'android' ? 'android' : 'ios') as
           | 'android'

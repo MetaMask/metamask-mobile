@@ -1416,3 +1416,14 @@ export async function stopIosSimulator(udid: string): Promise<void> {
     logger.warn(`Could not stop iOS simulator: ${error}`);
   }
 }
+
+/**
+ * Shutdown + boot one simulator. Used when SpringBoard's accessibility server
+ * dies (`kAXErrorServerNotFound`) and a new WebDriver session against the
+ * still-booted sim fails the same way. `bootIosSimulatorByUdid` no-ops while
+ * the sim is already booted, so the shutdown has to happen first.
+ */
+export async function rebootIosSimulator(udid: string): Promise<void> {
+  await stopIosSimulator(udid);
+  await bootIosSimulatorByUdid(udid);
+}
