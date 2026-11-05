@@ -6,6 +6,7 @@ import {
   onlineManager,
 } from '@tanstack/react-query';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { VBA_KYC_VENDOR } from '../constants';
 import { prefetchVbaVendorDisclaimers } from '../vbaVendorDisclaimersQuery';
 import { useKycDisclaimers } from './useKycDisclaimers';
@@ -142,6 +143,20 @@ describe('useKycDisclaimers', () => {
     );
     expect(result.current.error).toBeNull();
     expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports a failed prefetch only when the screen loads the terms', async () => {
+    mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
+
+    await prefetchVbaVendorDisclaimers(queryClient);
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    const { result } = renderUseKycDisclaimers();
+
+    await waitFor(() => expect(result.current.error).toBe('server error'));
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 
   it('surfaces an error when KycService is unavailable', async () => {
