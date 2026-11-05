@@ -16,6 +16,13 @@ import type { PositionSheetData } from './hooks/usePositionSheetData';
 import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 import { fireImpact, ImpactMoment } from '../../../../util/haptics';
+import {
+  AvatarTokenSize,
+  Icon,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import {
   DAY_MS,
@@ -148,10 +155,15 @@ jest.mock('./components/PositionSheetChart', () => {
   };
 });
 
-jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ size }: { size?: string }) => (
+      <View testID="position-token-avatar" accessibilityLabel={size} />
+    ),
+  };
+});
 
 jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => ({
   __esModule: true,
@@ -223,6 +235,65 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens token details from the price header', () => {
+    render(<PositionDetailsSheet />);
+
+    const priceHeader = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.PRICE_HEADER,
+    );
+
+    expect(within(priceHeader).getByText('Pepe')).toBeOnTheScreen();
+    expect(within(priceHeader).UNSAFE_getByType(Icon).props).toMatchObject({
+      name: IconName.ArrowRight,
+      color: IconColor.IconAlternative,
+    });
+    expect(
+      within(priceHeader).getByTestId('position-token-avatar').props
+        .accessibilityLabel,
+    ).toBe(AvatarTokenSize.Xl);
+
+    fireEvent.press(priceHeader);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      chainId: '0x1',
+      address: '0xpepe',
+      symbol: 'PEPE',
+      name: 'Pepe',
+      isNative: false,
+    });
+  });
+
+  it('opens perps market details from the price header', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = buildSheetData({
+      isPerp: true,
+      symbol: 'BTC',
+      assetName: 'BTC',
+      leverage: 40,
+      perpDirection: 'short',
+      perpTradeSymbol: 'BTC',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: expect.objectContaining({ symbol: 'BTC' }),
+        source: 'trader_feed',
+      },
+    });
   });
 
   describe('follow button', () => {

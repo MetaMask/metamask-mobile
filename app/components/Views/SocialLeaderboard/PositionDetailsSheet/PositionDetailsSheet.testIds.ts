@@ -3,6 +3,7 @@ export const PositionDetailsSheetSelectorsIDs = {
   HEADER: 'position-details-sheet-header',
   TITLE: 'position-details-sheet-title',
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
+  PRICE_HEADER: 'position-details-sheet-price-header',
   PRICE: 'position-details-sheet-price',
   DAILY_CHANGE: 'position-details-sheet-daily-change',
   CHART: 'position-details-sheet-chart',
