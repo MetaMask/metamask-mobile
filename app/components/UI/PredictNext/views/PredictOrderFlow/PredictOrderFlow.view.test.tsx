@@ -617,10 +617,14 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-      ).toBeOnTheScreen(),
+    // Expiry is a real-time timer; a runner pause can make it and the waiter's
+    // deadline due together, so give it the same budget as the approval case.
+    await waitFor(
+      () =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+        ).toBeOnTheScreen(),
+      { timeout: 3000 },
     );
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
