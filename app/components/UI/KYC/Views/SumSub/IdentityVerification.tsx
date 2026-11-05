@@ -6,6 +6,8 @@ import {
 } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
+import VbaVerificationPartners from './VerificationPartners';
+import { BiometricConsentProvider } from './BiometricConsentContext';
 import VbaSumSubKyc from './SumSubKyc';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
@@ -27,20 +29,46 @@ const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 type IdentityVerificationNavigation =
   NativeStackNavigationProp<VbaIdentityVerificationParamList>;
 
+/**
+ * Swaps both identity terms screens for the provider step, so Back from
+ * Sumsub returns to the caller instead of the terms the user already agreed to.
+ */
 export const replaceProviderTermsWithProvider = (
   navigation: IdentityVerificationNavigation,
 ): void => {
-  navigation.replace(VbaIdentityVerificationRoutes.PROVIDER);
+  navigation.reset({
+    index: 0,
+    routes: [{ name: VbaIdentityVerificationRoutes.PROVIDER }],
+  });
 };
 
+// Screen 1 of 2: MetaMask's terms. Agree and Continue opens screen 2.
 const ProviderTermsStep = () => {
   const navigation = useNavigation<IdentityVerificationNavigation>();
-  const handleSuccess = useCallback(
+  const handleContinue = useCallback(
+    () => navigation.navigate(VbaIdentityVerificationRoutes.PARTNER_TERMS),
+    [navigation],
+  );
+
+  return <VerifyIdentity onContinue={handleContinue} />;
+};
+
+// Screen 2 of 2: idOS and Sumsub. Agree starts Sumsub; Back returns to screen 1.
+const PartnerTermsStep = () => {
+  const navigation = useNavigation<IdentityVerificationNavigation>();
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.replace(VbaIdentityVerificationRoutes.PROVIDER_TERMS);
+  }, [navigation]);
+  const handleAgree = useCallback(
     () => replaceProviderTermsWithProvider(navigation),
     [navigation],
   );
 
-  return <VerifyIdentity onSuccess={handleSuccess} />;
+  return <VbaVerificationPartners onBack={handleBack} onAgree={handleAgree} />;
 };
 
 const ProviderStep = () => {
@@ -74,19 +102,25 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
   );
 
   return (
-    <Stack.Navigator
-      initialRouteName={initialRouteName}
-      screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen
-        name={VbaIdentityVerificationRoutes.PROVIDER_TERMS}
-        component={ProviderTermsStep}
-      />
-      <Stack.Screen
-        name={VbaIdentityVerificationRoutes.PROVIDER}
-        component={InstrumentedProviderStep}
-      />
-    </Stack.Navigator>
+    <BiometricConsentProvider>
+      <Stack.Navigator
+        initialRouteName={initialRouteName}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PROVIDER_TERMS}
+          component={ProviderTermsStep}
+        />
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PARTNER_TERMS}
+          component={PartnerTermsStep}
+        />
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PROVIDER}
+          component={InstrumentedProviderStep}
+        />
+      </Stack.Navigator>
+    </BiometricConsentProvider>
   );
 };
 

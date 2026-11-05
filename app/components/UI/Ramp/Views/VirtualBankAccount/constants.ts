@@ -10,14 +10,25 @@ export const PIX_BRAND_COLOR = '#2CBFB0';
 // from `KycController.fetchSessionDisclaimers` (via `useKycSessionDisclaimers`).
 // Iron / MoonPay Enterprise T&Cs on the VBA introduction screen come from
 // `KycController.fetchVendorDisclaimers` (via `useKycDisclaimers`).
-export const METAMASK_PRIVACY_POLICY_URL = AppConstants.URLS.PRIVACY_POLICY;
+export const METAMASK_PRIVACY_NOTICE_URL = AppConstants.URLS.PRIVACY_POLICY;
 export const METAMASK_TERMS_URL = AppConstants.URLS.TERMS_AND_CONDITIONS;
 
-// idOS Privacy Notice linked from the biometric consent on "Data and privacy".
+// TODO: replace with the support article on deleting a verified identity
+// once it's published. Placeholder until then.
+export const VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL =
+  'https://support.metamask.io/';
+
+// idOS Terms and Conditions in the "By tapping Agree" line on "Our verification
+// partners". Used only when the session catalog has no end user agreement.
+export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
+
+// idOS Privacy Notice linked from the biometric consent on "Our verification
+// partners".
 export const IDOS_PRIVACY_NOTICE_URL =
   'https://www.idos.network/legal/privacy-notice';
 
-// Sumsub documents linked from the acknowledgement on "Data and privacy".
+// Sumsub documents linked from the acknowledgement on "Our verification
+// partners".
 export const SUMSUB_PERSONAL_DATA_PROCESSING_URL =
   'https://sumsub.com/notification-to-processing-of-personal-data/';
 export const SUMSUB_PRIVACY_NOTICE_URL =
@@ -26,9 +37,9 @@ export const SUMSUB_BIOMETRICS_CONSENT_URL =
   'https://sumsub.com/privacy-user-acknowledgement-and-consent/';
 
 /**
- * Documents shown on the "Data and privacy" sheet, in display order and with
- * the labels legal asked for. Catalog documents not listed here are hidden from
- * the sheet (consent recording in `useLaunchSumSub` is unaffected).
+ * idOS documents shown on "Our verification partners", in display order and
+ * with the labels legal asked for. Catalog documents not listed here are hidden
+ * from the screen (consent recording in `useLaunchSumSub` is unaffected).
  *
  * Entries match the catalog `id` (`${group}:${key}`), so a new document
  * version or a backend title change doesn't affect the list.
@@ -37,13 +48,8 @@ export interface KycSessionDisclaimerDisplayEntry {
   group: 'idOS' | 'kycProvider';
   /** Catalog document `key` (stable across versions). */
   key: string;
-  /** Locale key for the label shown on the sheet. */
+  /** Locale key for the label shown on the screen. */
   titleKey: string;
-  /**
-   * Locale key for text shown before the label. When set, the row is a
-   * sentence and only the label is a link.
-   */
-  prefixKey?: string;
 }
 
 export const KYC_SESSION_DISCLAIMER_DISPLAY: KycSessionDisclaimerDisplayEntry[] =
@@ -52,8 +58,6 @@ export const KYC_SESSION_DISCLAIMER_DISPLAY: KycSessionDisclaimerDisplayEntry[] 
       group: 'idOS',
       key: 'end_user_agreement',
       titleKey: 'virtual_bank_account.verify_identity.terms_link_idos_terms',
-      prefixKey:
-        'virtual_bank_account.verify_identity.terms_link_idos_terms_prefix',
     },
     {
       group: 'idOS',

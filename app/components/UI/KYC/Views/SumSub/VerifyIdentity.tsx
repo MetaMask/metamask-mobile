@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -7,20 +7,14 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
+  FontWeight,
   IconName,
-  IconSize,
   ListItem,
   ListItemVariant,
   Text,
-  TextButton,
   TextColor,
   TextVariant,
   TitleStandard,
@@ -28,92 +22,87 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import VbaProviderTermsSheet from './ProviderTermsSheet';
-import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import {
-  METAMASK_PRIVACY_POLICY_URL,
+  METAMASK_PRIVACY_NOTICE_URL,
   METAMASK_TERMS_URL,
+  VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
-import { buildKycBaseProperties } from '../../utils/kycBaseProperties';
+import { trackIdentityTerms } from '../../utils/trackIdentityTerms';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
   KYC_SCREEN_ID,
   KYC_SCREEN_PERFORMANCE_CONFIG,
-  type KycScreenContentState,
 } from '../../kycScreenPerformance';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import {
+  InlineLink,
+  TermsCard,
+  TermsLinkRow,
+  TermsParty,
+  TermsSectionTitle,
+  TermsStepCounter,
+} from './IdentityTermsComponents';
 
-const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
-  trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, () => ({
-    ...buildKycBaseProperties(),
-    status,
-  }));
+const verifyIdentityString = (key: string) =>
+  strings(`virtual_bank_account.verify_identity.${key}`);
 
 const VERIFICATION_STEPS = [
   {
     id: 'photograph-id',
     icon: IconName.Card,
-    title: 'virtual_bank_account.verify_identity.step_photograph_id',
+    title: 'step_photograph_id',
   },
   {
     id: 'take-selfie',
     icon: IconName.FaceId,
-    title: 'virtual_bank_account.verify_identity.step_take_selfie',
+    title: 'step_take_selfie',
   },
   {
     id: 'confirm-details',
     icon: IconName.UserCheck,
-    title: 'virtual_bank_account.verify_identity.step_confirm_details',
+    title: 'step_confirm_details',
   },
   {
     id: 'answer-questions',
     icon: IconName.Clipboard,
-    title: 'virtual_bank_account.verify_identity.step_answer_questions',
+    title: 'step_answer_questions',
   },
 ] as const;
 
+const BENEFITS = [
+  { id: 'reuse', icon: IconName.Flash },
+  { id: 'control', icon: IconName.Key },
+  { id: 'delete', icon: IconName.Trash },
+] as const;
+
 interface VbaVerifyIdentityProps {
-  onSuccess: () => void | Promise<void>;
+  /** Opens Our verification partners (screen 2 of 2). */
+  onContinue: () => void;
 }
 
 /**
- * Provider terms step of identity verification. The footer links MetaMask's
- * Terms and Conditions and Privacy Policy, which the user accepts with
- * Agree & Continue. That opens the "Data and privacy" sheet with the idOS and
- * SumSub documents; agreeing there calls `onSuccess`.
+ * Screen 1 of 2 of the identity terms: MetaMask's own consent. It names idOS
+ * only (idOS engages Sumsub), links MetaMask's Terms of Use and Privacy Notice,
+ * and Agree and Continue (always enabled) opens Our verification partners,
+ * where idOS and Sumsub are agreed to before the camera opens. Back exits the
+ * flow to Money home.
  */
-const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
+const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
-  const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
-
-  let identityTermsContentState: KycScreenContentState =
-    KYC_SCREEN_CONTENT_STATE.EMPTY;
-  if (error) {
-    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.ERROR;
-  } else if (disclaimers?.length) {
-    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.POPULATED;
-  }
 
   useScreenPerformance({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
     screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
-    contentReady: !isLoading,
-    contentState: identityTermsContentState,
+    contentReady: true,
+    contentState: KYC_SCREEN_CONTENT_STATE.POPULATED,
   });
-
-  // The sheet can't open without the idOS / SumSub terms to review.
-  const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -126,29 +115,6 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
     trackIdentityTerms('viewed');
   }, []);
 
-  // Fires when the session terms fail to load, not on each render.
-  useEffect(() => {
-    if (error) {
-      trackIdentityTerms('failed');
-    }
-  }, [error]);
-
-  const handleAgree = useCallback(async () => {
-    trackIdentityTerms('accepted');
-    await onSuccess();
-  }, [onSuccess]);
-
-  const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
-  const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
-  const openMetaMaskTerms = useCallback(
-    () => openExternalUrl(METAMASK_TERMS_URL),
-    [],
-  );
-  const openMetaMaskPrivacyPolicy = useCallback(
-    () => openExternalUrl(METAMASK_PRIVACY_POLICY_URL),
-    [],
-  );
-
   return (
     <Box twClassName="flex-1 bg-default">
       <SafeAreaView
@@ -160,19 +126,24 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           isFloating={false}
           onBack={handleBack}
           backButtonProps={{
+            accessibilityLabel: strings('navigation.back'),
             testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
+          endAccessory={
+            <TermsStepCounter
+              current={1}
+              testID={VbaVerifyIdentitySelectorsIDs.STEP_COUNTER}
+            />
+          }
           includesTopInset
         />
         <ScrollView
-          contentContainerStyle={tw.style('flex-grow')}
+          contentContainerStyle={tw.style('flex-grow pb-6')}
           testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
         >
           <TitleStandard
-            title={strings('virtual_bank_account.verify_identity.title')}
-            bottomLabel={strings(
-              'virtual_bank_account.verify_identity.description',
-            )}
+            title={verifyIdentityString('title')}
+            bottomLabel={verifyIdentityString('description')}
             twClassName="px-4 pb-4"
           />
           <Box>
@@ -187,99 +158,116 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
                     size={AvatarIconSize.Lg}
                   />
                 }
-                title={strings(step.title)}
+                title={verifyIdentityString(step.title)}
                 testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
               />
             ))}
           </Box>
+
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="px-4 pb-1 pt-6"
+          >
+            {verifyIdentityString('partners_heading')}
+          </Text>
+          <Box>
+            {BENEFITS.map((benefit) => (
+              <ListItem
+                key={benefit.id}
+                variant={ListItemVariant.MultiLine}
+                avatar={
+                  <AvatarIcon
+                    iconName={benefit.icon}
+                    severity={AvatarIconSeverity.Neutral}
+                    size={AvatarIconSize.Lg}
+                  />
+                }
+                title={verifyIdentityString(`benefit_${benefit.id}_title`)}
+                description={
+                  benefit.id === 'delete' ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {verifyIdentityString('benefit_delete_body')}{' '}
+                      <InlineLink
+                        url={VERIFIED_IDENTITY_DELETE_LEARN_MORE_URL}
+                        variant={TextVariant.BodySm}
+                        testID={VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK}
+                      >
+                        {verifyIdentityString('learn_more_link')}
+                      </InlineLink>
+                    </Text>
+                  ) : (
+                    verifyIdentityString(`benefit_${benefit.id}_body`)
+                  )
+                }
+                descriptionProps={{ fontWeight: FontWeight.Regular }}
+                testID={`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
+              />
+            ))}
+          </Box>
+
+          <TermsSectionTitle>
+            {verifyIdentityString('terms_section_title_metamask')}
+          </TermsSectionTitle>
+          <TermsCard>
+            <TermsParty name={verifyIdentityString('party_metamask')}>
+              <TermsLinkRow
+                title={verifyIdentityString('footer_terms')}
+                url={METAMASK_TERMS_URL}
+                testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_ROW}
+              />
+              <TermsLinkRow
+                title={verifyIdentityString('footer_privacy_notice')}
+                url={METAMASK_PRIVACY_NOTICE_URL}
+                testID={
+                  VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_ROW
+                }
+              />
+            </TermsParty>
+          </TermsCard>
         </ScrollView>
 
         <Box twClassName="gap-4 px-4 pb-2 pt-4">
-          {error ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="gap-2"
-              testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR}
-            >
-              <Box twClassName="shrink-0 pt-0.5">
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Sm}
-                  color={IconColor.ErrorDefault}
-                />
-              </Box>
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {strings(
-                  'virtual_bank_account.verify_identity.disclaimers_error',
-                )}{' '}
-                <TextButton
-                  variant={TextVariant.BodySm}
-                  onPress={retry}
-                  testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
-                >
-                  {strings(
-                    'virtual_bank_account.verify_identity.disclaimers_retry',
-                  )}
-                </TextButton>
-              </Text>
-            </Box>
-          ) : null}
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="text-center"
+            testID={VbaVerifyIdentitySelectorsIDs.METAMASK_AGREEMENT}
           >
-            {strings(
-              'virtual_bank_account.verify_identity.footer_agreement_start',
-            )}
-            <TextButton
+            {verifyIdentityString('footer_agreement_metamask_start')}
+            <InlineLink
+              url={METAMASK_TERMS_URL}
               variant={TextVariant.BodySm}
-              onPress={openMetaMaskTerms}
               testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
             >
-              {strings('virtual_bank_account.verify_identity.footer_terms')}
-            </TextButton>
-            {strings('virtual_bank_account.verify_identity.footer_and')}
-            <TextButton
+              {verifyIdentityString('footer_terms')}
+            </InlineLink>
+            {verifyIdentityString('footer_agreement_metamask_middle')}
+            <InlineLink
+              url={METAMASK_PRIVACY_NOTICE_URL}
               variant={TextVariant.BodySm}
-              onPress={openMetaMaskPrivacyPolicy}
               testID={
-                VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK
+                VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_NOTICE_LINK
               }
             >
-              {strings(
-                'virtual_bank_account.verify_identity.footer_privacy_policy',
-              )}
-            </TextButton>
-            {strings(
-              'virtual_bank_account.verify_identity.footer_agreement_end',
-            )}
+              {verifyIdentityString('footer_privacy_notice')}
+            </InlineLink>
+            {verifyIdentityString('footer_agreement_metamask_end')}
           </Text>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!canContinue}
-            isLoading={isLoading}
-            onPress={openTermsSheet}
+            onPress={onContinue}
             testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
           >
-            {strings(
-              'virtual_bank_account.verify_identity.agree_and_continue_button',
-            )}
+            {verifyIdentityString('agree_and_continue_button')}
           </Button>
         </Box>
       </SafeAreaView>
-
-      {isTermsSheetOpen && disclaimers ? (
-        <VbaProviderTermsSheet
-          disclaimers={disclaimers}
-          onAgree={handleAgree}
-          onClose={closeTermsSheet}
-        />
-      ) : null}
     </Box>
   );
 };
