@@ -1,7 +1,4 @@
-import {
-  ClientConfigApiService,
-  ClientType,
-} from '@metamask/remote-feature-flag-controller';
+import { ClientType } from '@metamask/remote-feature-flag-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -15,6 +12,20 @@ import type { RootMessenger } from '../../types';
 
 type RemoteFeatureFlagControllerInstanceOptions =
   WalletOptions['instanceOptions']['remoteFeatureFlagController'];
+
+type ClientConfigApiServiceInstanceOptions =
+  WalletOptions['instanceOptions']['clientConfigApiService'];
+
+export function getClientConfigApiServiceInstanceOptions(): ClientConfigApiServiceInstanceOptions {
+  return {
+    fetch,
+    config: {
+      client: ClientType.Mobile,
+      environment: getFeatureFlagAppEnvironment(),
+      distribution: getFeatureFlagAppDistribution(),
+    },
+  };
+}
 
 /**
  * @param options.messenger - Root messenger; resolves the MetaMetrics id and
@@ -31,14 +42,6 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
   state: NonNullable<WalletOptions['state']>;
 }): RemoteFeatureFlagControllerInstanceOptions {
   return {
-    clientConfigApiService: new ClientConfigApiService({
-      fetch,
-      config: {
-        client: ClientType.Mobile,
-        environment: getFeatureFlagAppEnvironment(),
-        distribution: getFeatureFlagAppDistribution(),
-      },
-    }),
     // Apply default feature flag values here.
     defaultFeatureFlags: {
       // Example:

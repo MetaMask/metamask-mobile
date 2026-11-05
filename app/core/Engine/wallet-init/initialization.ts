@@ -4,7 +4,10 @@ import { initializeLedgerDmkMode } from '../../Ledger/dmk';
 import Logger from '../../../util/Logger';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
-import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import {
+  getClientConfigApiServiceInstanceOptions,
+  getRemoteFeatureFlagControllerInstanceOptions,
+} from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
@@ -83,6 +86,7 @@ export function initializeWallet({
       permissionController: getPermissionControllerInstanceOptions(
         getPermissionControllerInitMessenger(messenger),
       ),
+      clientConfigApiService: getClientConfigApiServiceInstanceOptions(),
       remoteFeatureFlagController:
         getRemoteFeatureFlagControllerInstanceOptions({
           messenger,

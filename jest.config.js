@@ -136,6 +136,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/perps-controller',
   '@metamask/json-rpc-engine',
   '@metamask/permission-controller',
+  '@metamask/remote-feature-flag-controller',
   '@metamask/selected-network-controller',
   '@metamask/superstruct',
   '@metamask/react-native-acm',

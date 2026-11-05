@@ -1,8 +1,8 @@
+import { ClientType } from '@metamask/remote-feature-flag-controller';
 import {
-  ClientConfigApiService,
-  ClientType,
-} from '@metamask/remote-feature-flag-controller';
-import { getRemoteFeatureFlagControllerInstanceOptions } from './remote-feature-flag-controller';
+  getClientConfigApiServiceInstanceOptions,
+  getRemoteFeatureFlagControllerInstanceOptions,
+} from './remote-feature-flag-controller';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -11,13 +11,6 @@ import { getBaseSemVerVersion } from '../../../../util/version';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import AppConstants from '../../../AppConstants';
 import type { RootMessenger } from '../../types';
-
-jest.mock('@metamask/remote-feature-flag-controller', () => ({
-  ...jest.requireActual('@metamask/remote-feature-flag-controller'),
-  ClientConfigApiService: jest
-    .fn()
-    .mockImplementation(() => ({ name: 'mock-client-config-api-service' })),
-}));
 
 jest.mock('../../../../store', () => ({ store: { getState: jest.fn() } }));
 
@@ -35,13 +28,8 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
   });
 
-  it('builds a ClientConfigApiService for the mobile client', () => {
-    getRemoteFeatureFlagControllerInstanceOptions({
-      messenger: buildMessenger('metrics-id'),
-      state: {},
-    });
-
-    expect(ClientConfigApiService).toHaveBeenCalledWith({
+  it('returns ClientConfigApiService options for the mobile client', () => {
+    expect(getClientConfigApiServiceInstanceOptions()).toStrictEqual({
       fetch,
       config: {
         client: ClientType.Mobile,
