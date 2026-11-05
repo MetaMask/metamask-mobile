@@ -3,10 +3,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
 import React, {
@@ -30,7 +26,6 @@ import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
 import type { SocialV1HotToken } from '../types';
 import {
-  getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
@@ -77,18 +72,19 @@ const HotTokenChip: React.FC<{
   token: SocialV1HotToken;
   onPress?: (token: SocialV1HotToken) => void;
   testID: string;
-  closeTestID: string;
   isSelected?: boolean;
-}> = ({ token, onPress, testID, closeTestID, isSelected = false }) => (
+}> = ({ token, onPress, testID, isSelected = false }) => (
   // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
   // ticker must keep each chip at intrinsic width or the track never overflows
   // the viewport and the marquee never starts.
+  // Selection is color only. A trailing close icon changes Button padding
+  // (`pl-3 pr-4` becomes `px-3`) and shifts the label.
   <Box twClassName="shrink-0">
     <ExplorePill
       testID={testID}
       accessibilityState={{ selected: isSelected }}
       twClassName={
-        isSelected ? 'bg-icon-default border-transparent' : undefined
+        isSelected ? 'bg-icon-default border-transparent' : 'border-transparent'
       }
       leading={
         <Box twClassName="mr-1">
@@ -103,18 +99,6 @@ const HotTokenChip: React.FC<{
         isSelected ? TextColor.InfoInverse : TextColor.TextDefault
       }
       onPress={() => onPress?.(token)}
-      trailing={
-        isSelected ? (
-          <Box twClassName="ml-1">
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Sm}
-              color={IconColor.IconInverse}
-              testID={closeTestID}
-            />
-          </Box>
-        ) : null
-      }
     />
   </Box>
 );
@@ -143,7 +127,6 @@ const HotTokenTrack: React.FC<{
           onPress={onPress}
           isSelected={token.id === selectedTokenId}
           testID={getSocialV1HotTokenChipTestId(chipId)}
-          closeTestID={getSocialV1HotTokenCloseTestId(chipId)}
         />
       );
     })}
@@ -152,8 +135,8 @@ const HotTokenTrack: React.FC<{
 
 /**
  * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
- * the chips overflow the viewport they crawl like a news ticker, until a chip is
- * selected: that one moves to the front, takes a check, and the rail holds still.
+ * the chips overflow the viewport they crawl like a news ticker. Selecting a
+ * chip parks the crawl where it is. The chip stays in place and keeps its size.
  *
  * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
  * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
@@ -193,12 +176,19 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldTokenRef.current?.id === selectedTokenId
       ? heldTokenRef.current
       : null);
-  // A selected chip is the only chip shown. Frequency decides the order until
-  // a filter is on, then the rail parks at its left edge with a clear action.
-  const railTokens = useMemo(
-    () => (selectedToken ? [selectedToken] : tokens),
-    [selectedToken, tokens],
-  );
+  // Frequency order stays put while a chip is selected. Dropping the other
+  // chips, or snapping the track back to x = 0, is what made the row jump.
+  // A selected asset that falls out of the ranking is kept at the front so
+  // the filter can still be cleared.
+  const railTokens = useMemo(() => {
+    if (
+      !selectedToken ||
+      tokens.some((token) => token.id === selectedToken.id)
+    ) {
+      return tokens;
+    }
+    return [selectedToken, ...tokens];
+  }, [selectedToken, tokens]);
   const offset = useSharedValue(0);
   const dragStartOffset = useSharedValue(0);
   const paused = useSharedValue(false);
@@ -210,19 +200,15 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
 
-  // A crawling rail would carry the chip the feed is filtered on off screen, so
-  // a selection parks the track at its start. The pan is left alone: scrubbing
-  // to read the rest of the rail is the user's call, and nothing re-starts the
-  // crawl behind them.
+  // A crawling rail would carry the selected chip off screen, so a selection
+  // pauses the crawl at the current offset. Resetting that offset slides every
+  // chip sideways. The pan still scrubs the row.
   const isParked = Boolean(selectedTokenId);
   const parked = useSharedValue(isParked);
 
   useEffect(() => {
     parked.value = isParked;
-    if (isParked) {
-      offset.value = 0;
-    }
-  }, [isParked, offset, parked]);
+  }, [isParked, parked]);
 
   const handleViewportLayout = useCallback(
     (event: LayoutChangeEvent) => {

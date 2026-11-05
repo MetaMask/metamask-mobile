@@ -1,12 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
-import {
-  FontWeight,
-  IconColor,
-  IconName,
-  IconSize,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { FontWeight, TextVariant } from '@metamask/design-system-react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { playSelection } from '../../../../../../util/haptics';
@@ -16,7 +11,6 @@ import HotTokensCarouselView, {
   type HotTokensCarouselProps,
 } from './HotTokensCarousel';
 import {
-  getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
@@ -203,36 +197,50 @@ describe('HotTokensCarousel', () => {
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(
-      screen.queryByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
-    ).toBeNull();
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
   });
 
-  it('shows a close icon on the selected chip', () => {
+  it('keeps chip size and label position when a chip is selected', () => {
     arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(<HotTokensCarousel />);
+    const unselected = StyleSheet.flatten(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props.style,
+    );
 
-    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+    rerender(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
 
-    const closeIcon = screen.UNSAFE_getByProps({
-      name: IconName.Close,
-      size: IconSize.Sm,
-      color: IconColor.IconInverse,
-      testID: getSocialV1HotTokenCloseTestId('hot-nvda'),
-    });
+    const selected = StyleSheet.flatten(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props.style,
+    );
 
-    expect(closeIcon).toBeTruthy();
+    expect(selected).toEqual(
+      expect.objectContaining({
+        height: unselected.height,
+        paddingLeft: unselected.paddingLeft,
+        paddingRight: unselected.paddingRight,
+        borderWidth: unselected.borderWidth,
+      }),
+    );
+    expect(
+      screen.UNSAFE_getByProps({
+        children: 'NVIDIA',
+        variant: TextVariant.BodyMd,
+        fontWeight: FontWeight.Medium,
+      }),
+    ).toBeTruthy();
   });
 
-  it('hides unselected chips while a chip is selected', () => {
+  it('keeps the other chips in place while a chip is selected', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
 
     expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-btc'),
       getSocialV1HotTokenChipTestId('hot-nvda'),
     ]);
-    expect(
-      screen.queryByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
-    ).toBeNull();
   });
 
   it('keeps frequency order while nothing is selected', () => {

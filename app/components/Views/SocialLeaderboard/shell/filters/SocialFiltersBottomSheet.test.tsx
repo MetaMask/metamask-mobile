@@ -136,8 +136,27 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextColor: { TextAlternative: 'alt', TextDefault: 'default' },
     TextVariant: { BodyMd: 'body-md' },
     FontWeight: { Medium: 'medium' },
-    ButtonSize: { Lg: 'lg' },
+    ButtonSize: { Sm: 'sm', Lg: 'lg' },
+    ButtonVariant: { Secondary: 'secondary' },
+    BoxFlexDirection: { Row: 'row' },
+    BoxAlignItems: { Center: 'center' },
     ButtonsAlignment: { Horizontal: 'horizontal' },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      style,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      style?: unknown;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        { testID, onPress, style },
+        children,
+      ),
     FilterButton: ({
       children,
       value,
@@ -185,14 +204,13 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('SocialFiltersBottomSheet', () => {
   const baseDraft: SocialShellFilters = { ...DEFAULT_FILTERS };
 
-  it('renders the sheet title, Reset, and Apply', () => {
+  it('renders the sheet title and Apply without Reset', () => {
     render(
       <SocialFiltersBottomSheet
         tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -202,8 +220,8 @@ describe('SocialFiltersBottomSheet', () => {
       screen.getByTestId('social-filters-bottom-sheet-apply'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId('social-filters-bottom-sheet-reset'),
-    ).toBeOnTheScreen();
+      screen.queryByTestId('social-filters-bottom-sheet-reset'),
+    ).toBeNull();
   });
 
   it('hides the Type section on the Leaderboard tab', () => {
@@ -213,7 +231,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -230,7 +247,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -246,7 +262,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -261,7 +276,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -273,7 +287,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -292,7 +305,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -308,7 +320,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -324,7 +335,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -341,7 +351,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -349,32 +358,6 @@ describe('SocialFiltersBottomSheet', () => {
       screen.getByTestId('social-filters-cohort-following'),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('social-filters-cohort-verified')).toBeNull();
-  });
-
-  it('sizes Reset by its label and lets Apply take the remaining width', () => {
-    render(
-      <SocialFiltersBottomSheet
-        tab="following"
-        draft={baseDraft}
-        onChange={jest.fn()}
-        onApply={jest.fn()}
-        onReset={jest.fn()}
-        onClose={jest.fn()}
-      />,
-    );
-
-    expect(screen.getByTestId('social-filters-bottom-sheet-reset')).toHaveStyle(
-      {
-        flexGrow: 0,
-        flexShrink: 1,
-        flexBasis: 'auto',
-      },
-    );
-    expect(screen.getByTestId('social-filters-bottom-sheet-apply')).toHaveStyle(
-      {
-        flexGrow: 1,
-      },
-    );
   });
 
   it('calls onApply when Apply is tapped', () => {
@@ -385,7 +368,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={onApply}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -393,24 +375,6 @@ describe('SocialFiltersBottomSheet', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     expect(onApply).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onReset when Reset is tapped', () => {
-    const onReset = jest.fn();
-    render(
-      <SocialFiltersBottomSheet
-        tab="following"
-        draft={baseDraft}
-        onChange={jest.fn()}
-        onApply={jest.fn()}
-        onReset={onReset}
-        onClose={jest.fn()}
-      />,
-    );
-
-    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-reset'));
-
-    expect(onReset).toHaveBeenCalledTimes(1);
   });
 
   it('calls onChange with the new type when a Type chip is tapped', () => {
@@ -421,7 +385,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={onChange}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -438,7 +401,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -454,7 +416,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -473,7 +434,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={onClose}
       />,
     );
@@ -490,7 +450,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -505,7 +464,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -530,7 +488,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -545,7 +502,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -563,7 +519,6 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
-        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );

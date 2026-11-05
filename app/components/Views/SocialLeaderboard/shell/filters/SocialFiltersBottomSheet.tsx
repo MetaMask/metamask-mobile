@@ -12,11 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import {
-  fireImpact,
-  ImpactMoment,
-  playSelection,
-} from '../../../../../util/haptics';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
   COHORT_LABEL_KEY,
   COHORT_OPTIONS_FOLLOWING,
@@ -54,16 +50,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  // Overrides the footer's `flex-1` so Reset is sized by its label and Apply
-  // takes the rest. `flexShrink` keeps a longer translation from pushing Apply
-  // off the row.
-  resetButton: {
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 'auto',
-    paddingLeft: 25,
-    paddingRight: 25,
-  },
 });
 
 export interface SocialFiltersBottomSheetProps {
@@ -75,8 +61,6 @@ export interface SocialFiltersBottomSheetProps {
   onChange: (patch: Partial<SocialShellFilters>) => void;
   /** Called when the user taps Apply. Commits the draft. */
   onApply: () => void;
-  /** Called when the user taps Reset. Restores the draft to defaults. */
-  onReset: () => void;
   /** Called when the user dismisses the sheet (backdrop tap, close button). */
   onClose: () => void;
 }
@@ -105,7 +89,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   draft,
   onChange,
   onApply,
-  onReset,
   onClose,
 }) => {
   const { colors } = useTheme();
@@ -209,20 +192,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       testID: SocialFiltersBottomSheetSelectorsIDs.APPLY,
     }),
     [onApply],
-  );
-
-  const resetButtonProps = useMemo(
-    () => ({
-      children: strings('social_leaderboard.shell.filters.reset'),
-      onPress: () => {
-        playSelection().catch(() => undefined);
-        onReset();
-      },
-      size: ButtonSize.Lg,
-      style: styles.resetButton,
-      testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
-    }),
-    [onReset],
   );
 
   return (
@@ -339,7 +308,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
               <BottomSheetFooter
                 buttonsAlignment={ButtonsAlignment.Horizontal}
-                secondaryButtonProps={resetButtonProps}
                 primaryButtonProps={applyButtonProps}
               />
             </BottomSheet>
