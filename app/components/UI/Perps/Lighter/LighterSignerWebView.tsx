@@ -29,6 +29,10 @@ import {
   type LighterExecutorCall,
   type LighterExecutor,
 } from './lighterSignerBridge';
+import {
+  recordSelfTestSpan,
+  startLighterSignerSelfTest,
+} from './lighterSignerSelfTest';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isTestEnvironment } from '../../../../util/test/utils';
 import Logger from '../../../../util/Logger';
@@ -40,6 +44,7 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
  * Log dev-only signer readiness without mutating the page's live WASM client.
  */
 function logReadyLatency(mountedAt: number): void {
+  recordSelfTestSpan('LighterSignerPage load to ready', mountedAt, true, 'ready');
   if (!__DEV__ || isTestEnvironment) {
     return;
   }
@@ -308,6 +313,7 @@ const UnlockedLighterSignerWebView = () => {
         clearTimeout(reloadTimerRef.current);
         reloadTimerRef.current = null;
       }
+      recordSelfTestSpan('LighterSignerPage unmount', Date.now(), true, 'unmount');
       rejectAllPending('Lighter signer WebView unmounted');
       resetLighterBridge();
     };
@@ -512,7 +518,9 @@ export const LighterSignerWebView = () => {
     };
     messenger.subscribe('KeyringController:lock', onLock);
     messenger.subscribe('KeyringController:unlock', onUnlock);
+    const stopSelfTest = startLighterSignerSelfTest();
     return () => {
+      stopSelfTest();
       messenger.tryUnsubscribe('KeyringController:lock', onLock);
       messenger.tryUnsubscribe('KeyringController:unlock', onUnlock);
     };
