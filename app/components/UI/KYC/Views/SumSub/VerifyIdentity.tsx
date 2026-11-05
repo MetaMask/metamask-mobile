@@ -67,12 +67,12 @@ const VERIFICATION_STEPS = [
   },
   {
     id: 'confirm-details',
-    icon: IconName.UserCheck,
+    icon: IconName.Details,
     title: 'virtual_bank_account.verify_identity.step_confirm_details',
   },
   {
     id: 'answer-questions',
-    icon: IconName.Clipboard,
+    icon: IconName.Question,
     title: 'virtual_bank_account.verify_identity.step_answer_questions',
   },
 ] as const;

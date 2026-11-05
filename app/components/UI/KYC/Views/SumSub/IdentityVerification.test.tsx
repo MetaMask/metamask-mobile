@@ -116,8 +116,9 @@ describe('getVbaIdentityVerificationInitialRoute', () => {
 describe('VbaIdentityVerificationModule', () => {
   // Mounting the navigator pulls in the whole identity-verification module
   // graph, which takes several seconds on a cold worker — more than Jest's
-  // 5s default for the first test to render it.
-  const NAVIGATOR_RENDER_TIMEOUT_MS = 20_000;
+  // 5s default for the first test to render it. Measured at 13s against a
+  // cold cache locally, so this leaves real headroom for slower CI machines.
+  const NAVIGATOR_RENDER_TIMEOUT_MS = 60_000;
 
   const catalog = {
     idOS: [
