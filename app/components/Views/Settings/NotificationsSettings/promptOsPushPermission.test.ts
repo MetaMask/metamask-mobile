@@ -3,7 +3,10 @@ import NotificationService, {
   isPushPermissionPromptable,
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
+import Logger from '../../../../util/Logger';
 import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
+
+jest.mock('../../../../util/Logger');
 
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
@@ -62,5 +65,15 @@ describe('promptOsPushPermissionIfNeeded', () => {
       NotificationService.requestPushNotificationsPermission,
     ).toHaveBeenCalledTimes(1);
     expect(requestPushPermissions).not.toHaveBeenCalled();
+  });
+
+  it('returns the current permission when the request fails', async () => {
+    jest.mocked(isPushPermissionGranted).mockResolvedValue(false);
+    jest.mocked(isPushPermissionPromptable).mockResolvedValue(true);
+    jest.mocked(requestPushPermissions).mockRejectedValue(new Error('Timeout'));
+
+    await expect(promptOsPushPermissionIfNeeded()).resolves.toBe(false);
+
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,10 +7,6 @@ import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsSt
 import type { FeatureNotificationsGateFeature } from './featureNotificationsGateConfig';
 import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
 
-/**
- * When the feature push channel is on but the OS has not granted push, prompt
- * the user: OS dialog if still promptable, otherwise the Settings alert.
- */
 interface FeatureNotificationsGateStatus {
   isFeatureBlocked: boolean;
   isPushEnabled: boolean;
