@@ -339,6 +339,7 @@ export enum TraceName {
   // Social V1 Performance
   SocialTabTimeToContent = 'Social Tab Time To Content',
   SocialTabDataFetch = 'Social Tab Data Fetch',
+  SocialCommentTranslate = 'Social Comment Translate',
 }
 
 export enum TraceOperation {
