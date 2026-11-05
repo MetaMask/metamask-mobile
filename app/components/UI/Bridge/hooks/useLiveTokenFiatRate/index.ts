@@ -6,7 +6,7 @@ import { useOHLCVRealtime } from '../../../Charts/AdvancedChart/useOHLCVRealtime
 import type { BridgeToken } from '../../types';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useTokenFiatRate } from '../useTokenFiatRate';
-import { UseLiveTokenFiatRateOptions } from './types';
+import { LiveTokenFiatRateState, UseLiveTokenFiatRateOptions } from './types';
 
 const DEFAULT_OPTIONS = {
   interval: '1m',
@@ -16,7 +16,8 @@ const DEFAULT_OPTIONS = {
 
 /**
  * Token fiat rate taken from the real-time OHLCV stream, falling back to the
- * polled Redux rate from {@link useTokenFiatRate}.
+ * polled Redux rate from {@link useTokenFiatRate}, along with whether that
+ * rate is still being looked up.
  *
  * The live value is the close of the in-progress candle, i.e. the most recent
  * traded price, refreshed every 5s. {@link useOHLCVRealtime} owns the socket:
@@ -25,15 +26,19 @@ const DEFAULT_OPTIONS = {
  * subscription so pricing the same asset twice costs one channel. The Redux
  * rate is only used when neither source can price the token, e.g. an asset the
  * OHLCV channel does not serve.
+ *
+ * `isLoading` is true only while there is no rate yet and the stream's first
+ * lookup for the token has not answered. An undefined rate that is not loading
+ * means no source can price the token.
  */
-export const useLiveTokenFiatRate = (
+export const useLiveTokenFiatRateState = (
   token?: BridgeToken,
   {
     interval = DEFAULT_OPTIONS.interval,
     timePeriod = DEFAULT_OPTIONS.timePeriod,
     enabled = DEFAULT_OPTIONS.enabled,
   }: UseLiveTokenFiatRateOptions = {},
-) => {
+): LiveTokenFiatRateState => {
   const fallbackRate = useTokenFiatRate(token);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currency = (currentCurrency || 'usd').toLowerCase();
@@ -57,7 +62,7 @@ export const useLiveTokenFiatRate = (
     }
   }, [token?.address, token?.chainId]);
 
-  const { latestBar } = useOHLCVRealtime({
+  const { latestBar, isLoading: isLiveRateLoading } = useOHLCVRealtime({
     assetId,
     interval,
     currency,
@@ -66,6 +71,16 @@ export const useLiveTokenFiatRate = (
   });
 
   const liveRate = enabled && assetId ? latestBar?.close : undefined;
+  const rate = liveRate && liveRate > 0 ? liveRate : fallbackRate;
 
-  return liveRate && liveRate > 0 ? liveRate : fallbackRate;
+  return { rate, isLoading: !rate && isLiveRateLoading };
 };
+
+/**
+ * Token fiat rate from {@link useLiveTokenFiatRateState}, without the loading
+ * state.
+ */
+export const useLiveTokenFiatRate = (
+  token?: BridgeToken,
+  options?: UseLiveTokenFiatRateOptions,
+) => useLiveTokenFiatRateState(token, options).rate;
