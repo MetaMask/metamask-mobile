@@ -18,9 +18,6 @@ export const ohlcvServiceInit: MessengerClientInitFunction<
 
   const controller = new OHLCVService({
     messenger: controllerMessenger,
-    // Must match the client channel prefix used by useOHLCVRealtime,
-    // useLiveTokenFiatRate and SocialLivePricesProvider.
-    subscriptionNamespace: 'ohlcv.v1',
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
   });

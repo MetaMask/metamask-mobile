@@ -13,7 +13,7 @@ describe('ohlcvServiceInit', () => {
     jest.clearAllMocks();
   });
 
-  it('initializes OHLCVService on the ohlcv.v1 namespace', () => {
+  it('initializes OHLCVService with the default ohlcv.v1 namespace', () => {
     // Arrange
     const mocks = buildMessengerClientInitRequestMock(
       new ExtendedMessenger<MockAnyNamespace>({
@@ -27,9 +27,11 @@ describe('ohlcvServiceInit', () => {
     // Assert
     expect(OHLCVService).toHaveBeenCalledWith({
       messenger: mocks.controllerMessenger,
-      subscriptionNamespace: 'ohlcv.v1',
       traceFn: expect.any(Function),
     });
+    expect(jest.mocked(OHLCVService).mock.calls[0][0]).not.toHaveProperty(
+      'subscriptionNamespace',
+    );
     expect(result.controller.init).toHaveBeenCalled();
   });
 });
