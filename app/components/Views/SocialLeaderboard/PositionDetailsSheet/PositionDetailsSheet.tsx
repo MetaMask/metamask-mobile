@@ -316,7 +316,6 @@ const PositionDetailsSheet = () => {
               isLoading={isChartLoading}
               isTrendPositive={data.isTrendPositive}
               markers={data.markers}
-              levels={data.levels}
               timeAxisLabels={data.timeAxisLabels}
               lineProgress={reveal.lineProgress}
               overlayStyle={reveal.overlayStyle}
