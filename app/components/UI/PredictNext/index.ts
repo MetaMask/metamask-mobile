@@ -23,7 +23,12 @@ export {
   type PredictPortfolioValue,
 } from './portfolio';
 export {
+  usePredictCampaignEligibility,
+  type PredictCampaign,
+} from './campaigns';
+export {
   createLegacyPredictEventRef,
+  createPredictCampaignEventRef,
   openPredict,
   usePredictEntryActions,
   type PredictEntryActions,

@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 20,
       marginBottom: 8,
       paddingVertical: 4,
-      paddingHorizontal: 15,
+      paddingHorizontal: 16,
       flexDirection: 'row',
       alignItems: 'center',
       alignSelf: 'center',
