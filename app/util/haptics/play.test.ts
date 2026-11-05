@@ -140,6 +140,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(FilterChipDock) calls impactAsync with Soft', async () => {
+      await playImpact(ImpactMoment.FilterChipDock);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Soft);
+    });
+
     it('playSelection calls selectionAsync', async () => {
       await playSelection();
       expect(selectionAsync).toHaveBeenCalled();

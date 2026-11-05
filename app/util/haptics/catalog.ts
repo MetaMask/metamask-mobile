@@ -113,6 +113,13 @@ export const ImpactMoment = {
 
   /** Social follow / unfollow toggle — Light impact. */
   FollowToggle: 'followToggle',
+
+  /**
+   * A selected filter chip landing at the edge of its rail — Soft impact,
+   * fired on the frame its spring reaches the dock. The press itself plays
+   * `playSelection`; this is the landing, so the two read as tap then settle.
+   */
+  FilterChipDock: 'filterChipDock',
 } as const;
 
 export type HapticImpactMoment =

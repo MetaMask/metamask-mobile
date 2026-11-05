@@ -11,12 +11,14 @@ import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   type SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { fireImpact, ImpactMoment } from '../../../../../../util/haptics';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import type { SocialV1HotToken } from '../types';
@@ -89,7 +91,8 @@ export interface SelectedHotTokenChipProps {
 /**
  * The chip the feed is filtered on, docked at the rail's left edge. It flies
  * out of the pressed pill on a spring while taking the selected fill and
- * sliding its close icon open. Pressing it clears the filter.
+ * sliding its close icon open, with a soft haptic on the frame it lands.
+ * Pressing it clears the filter.
  *
  * The fill change is a cross-fade: an unselected copy sits over the real chip
  * and fades out. Both copies share the close slot, so they keep one width.
@@ -105,11 +108,26 @@ const SelectedHotTokenChip: React.FC<SelectedHotTokenChipProps> = ({
 }) => {
   const fliesIn = animatesIn && originLeft !== null;
   const risesIn = animatesIn && originLeft === null;
-  const flightX = useSharedValue(fliesIn ? (originLeft ?? 0) - DOCK_LEFT : 0);
+  const flightStart = fliesIn ? (originLeft ?? 0) - DOCK_LEFT : 0;
+  const flightX = useSharedValue(flightStart);
   const enter = useSharedValue(risesIn ? 0 : 1);
   const fill = useSharedValue(animatesIn ? 0 : 1);
   const closeSlot = useSharedValue(animatesIn ? 0 : 1);
   const exit = useSharedValue(0);
+  const hasLanded = useSharedValue(Math.abs(flightStart) < 1);
+
+  useAnimatedReaction(
+    () => flightX.value,
+    (current, previous) => {
+      if (hasLanded.value || previous === null) {
+        return;
+      }
+      if (current === 0 || Math.sign(current) !== Math.sign(previous)) {
+        hasLanded.value = true;
+        scheduleOnRN(fireImpact, ImpactMoment.FilterChipDock);
+      }
+    },
+  );
 
   useEffect(() => {
     if (!animatesIn) {

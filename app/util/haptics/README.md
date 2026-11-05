@@ -30,6 +30,7 @@ Centralized haptic feedback module for MetaMask Mobile.
 | Pull refresh engage  | `playImpact('pullToRefreshEngage')` | `impactAsync(Light)`         | Light  | Pull stretch past early threshold | Lighter than commit; pairs with `pullToRefresh` |
 | Pull to refresh      | `playImpact('pullToRefresh')`       | `impactAsync(Medium)`        | Medium | Pull-to-refresh reload commit     |                                                 |
 | Chart crosshair      | `playImpact('chartCrosshair')`      | `impactAsync(Light)`         | Light  | OHLC data change                  |                                                 |
+| Filter chip dock     | `playImpact('filterChipDock')`      | `impactAsync(Soft)`          | Soft   | Selected chip spring landing      | Follows the `playSelection` press tick          |
 | Selection            | `playSelection()`                   | `selectionAsync()`           | —      | Discrete value picker             |                                                 |
 
 ### Adding a new moment
