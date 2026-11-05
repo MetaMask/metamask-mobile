@@ -483,7 +483,7 @@ describe('AccountsMenu', () => {
       expect(getByText('accounts_menu.scan')).toBeOnTheScreen();
     });
 
-    it('navigate to QR scanner and track analytics when Scan is pressed', () => {
+    it('navigates to the QR scanner when Scan is pressed', () => {
       const { getByText } = render(<AccountsMenu />);
       const scanButton = getByText('accounts_menu.scan');
 
@@ -495,8 +495,9 @@ describe('AccountsMenu', () => {
           onScanSuccess: expect.any(Function),
         }),
       );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith('QR Scanner Opened');
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        'QR Scanner Opened',
+      );
     });
 
     it('show alert when private key is scanned', () => {
