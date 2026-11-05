@@ -45,6 +45,7 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
   [VbaOnboardingRoutes.EMAIL]: [VBA_SCREEN_ID.EMAIL_VERIFICATION],
   [VbaOnboardingRoutes.IDENTITY_VERIFICATION]: [
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
   ],
   [VbaOnboardingRoutes.KYC_PENDING]: [VBA_SCREEN_ID.KYC_PENDING],
@@ -64,6 +65,10 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
 export const VBA_IDENTITY_ROUTE_SCREEN_IDS = {
   [VbaIdentityVerificationRoutes.PROVIDER_TERMS]:
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+  // Our verification partners. Was a sheet over Verify your identity; the id
+  // is kept so existing load traces stay comparable.
+  [VbaIdentityVerificationRoutes.PARTNER_TERMS]:
+    KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
   [VbaIdentityVerificationRoutes.PROVIDER]:
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
 } as const;
@@ -73,9 +78,9 @@ export const VBA_DETAILS_SCREEN_IDS = [
   VBA_SCREEN_ID.ACCOUNT_DETAILS,
 ] as const;
 
-export const VBA_MODAL_SCREEN_IDS = [
-  KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
-] as const;
+// Our verification partners moved from a sheet to the PARTNER_TERMS route, so
+// no VBA screen is a modal today.
+export const VBA_MODAL_SCREEN_IDS = [] as const;
 
 export const VBA_FLOW_SCREEN_IDS = [
   ...Object.values(VBA_SCREEN_ID),

@@ -1,22 +1,36 @@
 export const VbaVerifyIdentitySelectorsIDs = {
   CONTAINER: 'vba-verify-identity-container',
   BACK_BUTTON: 'vba-verify-identity-back-button',
+  STEP_COUNTER: 'vba-verify-identity-step-counter',
   STEP: 'vba-verify-identity-step',
-  CONTINUE_BUTTON: 'vba-verify-identity-continue-button',
-  DISCLAIMERS_ERROR: 'vba-verify-identity-disclaimers-error',
-  DISCLAIMERS_RETRY: 'vba-verify-identity-disclaimers-retry',
-  TERMS_SHEET: 'vba-verify-identity-terms-sheet',
-  METAMASK_PRIVACY_POLICY_LINK:
-    'vba-verify-identity-metamask-privacy-policy-link',
+  BENEFIT: 'vba-verify-identity-benefit',
   METAMASK_TERMS_LINK: 'vba-verify-identity-metamask-terms-link',
-  DISCLAIMER_LINK: 'vba-verify-identity-disclaimer-link',
-  AGREE_BUTTON: 'vba-verify-identity-agree-button',
-  BIOMETRIC_CONSENT_CHECKBOX: 'vba-verify-identity-biometric-consent-checkbox',
-  BIOMETRIC_CONSENT_LINK: 'vba-verify-identity-biometric-consent-link',
-  SUMSUB_ACKNOWLEDGEMENT: 'vba-verify-identity-sumsub-acknowledgement',
+  METAMASK_PRIVACY_NOTICE_LINK:
+    'vba-verify-identity-metamask-privacy-notice-link',
+  METAMASK_AGREEMENT: 'vba-verify-identity-metamask-agreement',
+  CONTINUE_BUTTON: 'vba-verify-identity-continue-button',
+};
+
+export const VbaVerificationPartnersSelectorsIDs = {
+  CONTAINER: 'vba-verification-partners-container',
+  BACK_BUTTON: 'vba-verification-partners-back-button',
+  STEP_COUNTER: 'vba-verification-partners-step-counter',
+  DISCLAIMERS_ERROR: 'vba-verification-partners-disclaimers-error',
+  DISCLAIMERS_RETRY: 'vba-verification-partners-disclaimers-retry',
+  DISCLAIMER_LINK: 'vba-verification-partners-disclaimer-link',
+  SUMSUB_ACKNOWLEDGEMENT: 'vba-verification-partners-sumsub-acknowledgement',
   SUMSUB_PERSONAL_DATA_PROCESSING_LINK:
-    'vba-verify-identity-sumsub-personal-data-processing-link',
-  SUMSUB_PRIVACY_NOTICE_LINK: 'vba-verify-identity-sumsub-privacy-notice-link',
+    'vba-verification-partners-sumsub-personal-data-processing-link',
+  SUMSUB_PRIVACY_NOTICE_LINK:
+    'vba-verification-partners-sumsub-privacy-notice-link',
   SUMSUB_BIOMETRICS_CONSENT_LINK:
-    'vba-verify-identity-sumsub-biometrics-consent-link',
+    'vba-verification-partners-sumsub-biometrics-consent-link',
+  BIOMETRIC_CONSENT_CHECKBOX:
+    'vba-verification-partners-biometric-consent-checkbox',
+  BIOMETRIC_CONSENT_LABEL: 'vba-verification-partners-biometric-consent-label',
+  BIOMETRIC_CONSENT_LINK: 'vba-verification-partners-biometric-consent-link',
+  BIOMETRIC_CONSENT_ROW: 'vba-verification-partners-biometric-consent-row',
+  IDOS_AGREEMENT: 'vba-verification-partners-idos-agreement',
+  IDOS_TERMS_LINK: 'vba-verification-partners-idos-terms-link',
+  AGREE_BUTTON: 'vba-verification-partners-agree-button',
 };

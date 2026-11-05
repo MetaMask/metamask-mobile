@@ -57,7 +57,7 @@ const abandonedRoute = {
   params: { snapshot: abandonedSnapshot },
 } as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
 
-// Terms were accepted earlier, on Verify Identity; re-entry lands on the
+// Terms were accepted earlier, on the two identity terms screens; re-entry lands on the
 // provider screen without an abandoned flow behind it.
 const termsAcceptedSnapshot = {
   ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -146,15 +146,16 @@ describe('VbaIdentityVerificationModule', () => {
 });
 
 describe('replaceProviderTermsWithProvider', () => {
-  it('replaces provider terms instead of adding another back route', () => {
-    const replace = jest.fn();
+  it('swaps both terms screens for the provider instead of adding another back route', () => {
+    const reset = jest.fn();
 
     replaceProviderTermsWithProvider({
-      replace,
+      reset,
     } as unknown as Parameters<typeof replaceProviderTermsWithProvider>[0]);
 
-    expect(replace).toHaveBeenCalledWith(
-      VbaIdentityVerificationRoutes.PROVIDER,
-    );
+    expect(reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: VbaIdentityVerificationRoutes.PROVIDER }],
+    });
   });
 });

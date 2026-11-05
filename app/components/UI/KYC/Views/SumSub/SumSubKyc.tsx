@@ -38,7 +38,8 @@ export const VbaSumSubKycSelectorsIDs = {
  * the launch fails it surfaces a retryable error instead of bouncing back to
  * the previous screen. Closing the provider before submitting returns to the
  * caller (money home); re-entry relaunches the provider directly. Provider
- * terms are accepted earlier, on Verify Identity.
+ * terms are accepted earlier, on Verify your identity and Our verification
+ * partners.
  */
 interface VbaSumSubKycProps {
   onSubmitted: (
