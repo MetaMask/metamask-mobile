@@ -79,7 +79,7 @@ describe('usePostTradeShareReopen', () => {
     renderHook(() =>
       usePostTradeShareReopen(
         positionReopen,
-        PostTradeShareOwner.positionDetails,
+        PostTradeShareOwner.traderPosition,
       ),
     );
 
@@ -88,7 +88,7 @@ describe('usePostTradeShareReopen', () => {
         target,
         tradeMode: 'sell',
         preview,
-        owner: PostTradeShareOwner.positionDetails,
+        owner: PostTradeShareOwner.traderPosition,
       });
       requestPostTradeShareReopen();
     });

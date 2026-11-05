@@ -257,6 +257,27 @@ describe('useHomeTabDefinitions', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('stops the native Social tab from selecting before the Social V1 gate', () => {
+      const { result } = renderDefinitions({
+        showSocialTab: true,
+        isSocialV1Enabled: true,
+      });
+      const social = result.current.tabs.find(
+        (tab) => tab.name === Routes.SOCIAL.TAB,
+      );
+
+      expect(social?.tabBarSelectionEnabled).toBe(false);
+    });
+
+    it('leaves native selection on for the control Social tab', () => {
+      const { result } = renderDefinitions({ showSocialTab: true });
+      const social = result.current.tabs.find(
+        (tab) => tab.name === Routes.SOCIAL.TAB,
+      );
+
+      expect(social?.tabBarSelectionEnabled).toBeUndefined();
+    });
+
     it('selects the Social tab through the onboarding-aware tab helper', () => {
       const { result } = renderDefinitions({ showSocialTab: true });
       const social = result.current.tabs.find(

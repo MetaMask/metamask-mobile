@@ -1349,6 +1349,54 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardBaanxProvisioning: {
+    name: 'cardBaanxProvisioning',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.74.0',
+      countries: {
+        US: {
+          enabled: true,
+          eligibility: { cardProcessors: ['galileo'] },
+          ios: {
+            apple_wallet: { enabled: true, minimumVersion: '7.74.0' },
+          },
+          android: {
+            google_wallet: { enabled: true, minimumVersion: '7.73.0' },
+          },
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveProvisioning: {
+    name: 'cardImmersveProvisioning',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      countries: {
+        NZ: {
+          enabled: true,
+          ios: {
+            apple_wallet: { enabled: false, minimumVersion: '0.0.0' },
+          },
+        },
+        AU: {
+          enabled: true,
+          ios: {
+            apple_wallet: { enabled: false, minimumVersion: '0.0.0' },
+          },
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardIntercomSupport: {
     name: 'cardIntercomSupport',
     type: FeatureFlagType.Remote,
@@ -4593,7 +4641,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.74.0',
       enabled: true,
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   galileoGoogleWalletInAppProvisioningEnabled: {
@@ -4604,7 +4652,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.73.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   gasFeesSponsoredNetwork: {
@@ -8581,7 +8629,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton: {
     name: 'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton',

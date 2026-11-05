@@ -3,6 +3,7 @@ import { captureException } from '@sentry/react-native';
 
 import initialRootState from '../../util/test/initial-root-state';
 import migrate from './088';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 const expectedState = {
   engine: {
@@ -55,7 +56,7 @@ describe('Migration #88', () => {
       const newState = await migrate(state);
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

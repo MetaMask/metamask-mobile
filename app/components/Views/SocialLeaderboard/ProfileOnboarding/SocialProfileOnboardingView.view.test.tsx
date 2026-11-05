@@ -670,16 +670,26 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.changeText(usernameInput, 'hello_');
 
     expect(
-      screen.queryByText('Use letters, numbers, and underscores.'),
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
     ).not.toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        Engine.context.ProfileController.checkUsernameAvailability,
-      ).toHaveBeenCalledWith('hello_');
-    });
-    expect(
-      await screen.findByText('Username available', { exact: true }),
-    ).toBeOnTheScreen();
+    // Availability is debounced 400ms. Wait for the available status — the
+    // assertion subject — with a budget above that debounce.
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+        expect(
+          screen.getByText(
+            strings('social_leaderboard.profile_onboarding.username_available'),
+            { exact: true },
+          ),
+        ).toBeOnTheScreen();
+      },
+      { timeout: 3000 },
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
@@ -1171,12 +1181,12 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('creates the profile with the signed-in session id', async () => {
+  it('creates the profile with the canonical profile id of a merged session', async () => {
     jest
       .mocked(Engine.context.AuthenticationController.getSessionProfile)
       .mockResolvedValue({
         ...SIGNED_OUT_SESSION,
-        profileId: 'signed-in-profile',
+        profileId: 'alias-profile',
         canonicalProfileId: 'signed-in-profile',
       });
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);

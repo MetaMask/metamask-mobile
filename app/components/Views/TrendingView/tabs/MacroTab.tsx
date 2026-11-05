@@ -7,9 +7,11 @@ import {
   type SortOptionId,
 } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictAvailability } from '../../../UI/PredictNext';
+import {
+  selectPredictAvailability,
+  usePredictEntryActions,
+} from '../../../UI/PredictNext';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
@@ -87,7 +89,7 @@ const MacroTabContent: React.FC<TabProps> = ({
   refreshing,
   onRefresh,
 }) => {
-  const appNavigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -116,7 +118,7 @@ const MacroTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-rwa-politics-market-row-item"
             idPrefix="politics_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(appNavigation, 'politics')
+              navigateToExplorePredictionsList(openPredict, 'politics')
             }
             isEnabled={isPredictEnabled}
           />
@@ -145,7 +147,7 @@ const MacroTabContent: React.FC<TabProps> = ({
     showPerps,
     politics,
     isPredictEnabled,
-    appNavigation,
+    openPredict,
     refresh,
     perpsNavigation,
   ]);

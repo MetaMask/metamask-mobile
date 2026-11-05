@@ -322,7 +322,7 @@ describe('Predict boundary fence', () => {
   it.each([
     [
       'burn-down Views file',
-      'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.tsx',
+      'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx',
     ],
     [
       'burn-down non-Views file',

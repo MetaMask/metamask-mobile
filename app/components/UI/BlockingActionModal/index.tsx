@@ -19,7 +19,7 @@ const createStyles = (colors: Theme['colors']) =>
       width: '90%',
       borderRadius: 6,
       minHeight: 200,
-      padding: 15,
+      padding: 16,
     },
     loader: {
       marginTop: 30,
