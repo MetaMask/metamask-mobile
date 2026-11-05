@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { useReducedMotion } from 'react-native-reanimated';
+import type { NetworkTier } from '../../../../../util/deviceCapability/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import type { TraderPosition } from '../../TraderPositionPnl/types';
@@ -30,7 +31,7 @@ jest.mock('react-native-reanimated', () => {
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
 const mockGetHardwareTier = jest.fn(() => null);
-const mockUseNetworkTier = jest.fn(() => null);
+const mockUseNetworkTier = jest.fn((): NetworkTier | null => null);
 
 jest.mock('../../../../../util/deviceCapability', () => ({
   getHardwareTier: () => mockGetHardwareTier(),
