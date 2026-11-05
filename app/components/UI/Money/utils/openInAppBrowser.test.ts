@@ -13,12 +13,9 @@ describe('openInAppBrowser', () => {
 
     expect(navigation.navigate).toHaveBeenCalledTimes(1);
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: 'https://example.com',
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: 'https://example.com',
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
   });
 });
