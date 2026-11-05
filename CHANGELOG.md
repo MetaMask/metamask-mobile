@@ -11,12 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a `Banner Select` analytics event when users tap a Braze banner (#38763)
 - Added real-time trending trades and hot-token filtering to Social Trending (#38319)
 - Added a referral code field to Rewards Settings for Money referral users (#38428)
 - Added Apple Pay splash screens and Card Home guidance for adding a card to Apple Wallet (#37436)
 - Added consistent animated amount inputs to Quick Buy and Ramp flows (#37555)
 - Added Tron transfer validation before confirmation in the Sell flow, with clear errors and a Try again option (#38249)
-- Added promotional fee discount indicators to Perps quotes and fee breakdowns (#38315)
 - Added a translation control for non-English social posts (#38340)
 - Added a megaphone animation and create-post action to the token feed empty state (#38286)
 - Added an explanation for positions that do not appear in the post composer (#38347)
@@ -24,13 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Pro order book setting that filled the order size as well as the price when tapping an order book row (#38184)
 - Added Social deep links and share buttons for trader profiles and positions (#38069)
 - Added pending and completed virtual bank account transfers to Money activity (#38080)
-- Added a Money account deposit deep link for full-screen splash campaigns (#37861)
 - Added Polymarket Protocol V2 markets to Predict (#38171)
 - Added support for claiming Protocol V2 Predict positions (#37535)
 - Added claiming of referee cashback into the Money account, including paused-claim information and an under-review banner (#37078)
 - Added actionable error screens for virtual bank account creation failures (#38098)
 - Added a mute bell to followed Social profiles to pause trading-signal alerts (#38054)
-- Added promotional fee grants for eligible Perps trades (#37146)
 - Added an Earnings tab with claimable rewards and earnings history (#36955)
 - Added support for currency selection during Money account onboarding when enabled (#37743)
 - Added the ability to edit your own social profile avatar (#38208)
@@ -39,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added screen-level performance tracing to the virtual bank account flow (#38167)
 - Added analytics for Limit and Recurring order interactions (#37860)
 - Displayed the OUSD logo when Tempo users need funds for network fees (#38298)
-- Added error guidance when homepage balance queries fail (#38273)
 - Added two-step verification to Immersve Card sign-in and signed out of Card after a wallet password change (#38314)
 
 ### Changed
@@ -67,7 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated profile onboarding X toggles to use the green design-system switch (#38432)
 - Updated the post composer GIF picker to use a bottom sheet and standardized attachment remove buttons (#38429)
 - Updated bridge transaction submission handling (#38338)
-- Updated the Money balance breakdown add action to accommodate localized label lengths (#38403)
 - Updated the Pix details screen to show the Pix key first, add a Done button, and match the latest design (#38409)
 - Updated the pinned leaderboard rank card with a muted surface and unranked values (#38337)
 - Updated the empty state for social profiles with no posts (#38295)
@@ -90,14 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the password warning sheet by removing its header and adjusting title spacing (#37870)
 - Updated wallet import so Paste appears only when the clipboard contains text, and word suggestions appear in a glass bar above the keyboard (#37947)
 - Updated the Secret Recovery Phrase backup screen so the help link and reveal warning appear inline, with 24px spacing and a 12px reveal box (#37871)
-- Updated the default limit order cost tolerance to 3% and enabled remote configuration (#38067)
 - Updated the add-device instructions with icon-based steps, titles, and subtitles (#37976)
 - Updated the Money Add sheet funding option label to “Bank transfer” (#37876)
 - Updated the bank transfer intro screen to use standard design system components (#37885)
 - Updated the Money Account fee tag for Perps and Predict trades to “No deposit fee” (#37811)
 - Updated Activity filtering to rely on server-side spam and incoming native transfer filters (#38168)
 - Updated the No Results event property name to `search_query` (#38425)
-- Updated analytics for the Money homepage balance breakdown Add button (#38326)
 - Updated the confirmation message when copying a token contract address (#37253)
 - Updated Member pricing on trades to explain when membership confirmation was pending or benefits were unavailable (#38001)
 - Updated Social so copy-trade posts appeared on Following and your Posts, new profiles linked all account addresses including Solana, GIFs used their original aspect ratios, and the keyboard could be hidden while composing posts (#38126)
@@ -131,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Perps home Watchlist rows sometimes appearing over the Explore category pills (#38923)
+- Fixed Add to Wallet appearing for MetaMask Card users outside the US (#38882)
+- Fixed limit and recurring buy order lists not loading when a non-EVM account was selected in the wallet (#38742)
 - Fixed social feed reporting, hiding, and blocking actions so they persisted, and removed blocked traders and posts from feeds and leaderboards (#38396)
 - Fixed the Support link in the profile drawer (#38383)
 - Moved Predict price charts to Polymarket's supported price history endpoint (#38366)
@@ -150,7 +147,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the reset wallet confirmation sheet layout by removing its header and adjusting title, body, and footer spacing (#37875)
 - Fixed the MetaMask Card sign-in screen title and description (#37940)
 - Fixed onboarding interest options so unselected items show a plus, selected items show a check, and the description has 24px of spacing above the list (#37949)
-- Fixed Predict withdrawals from Safe accounts being blocked by a “not enough POL” alert when network fees can be paid in pUSD (#38480)
 - Fixed claim error messages for payouts to non-Money Accounts and unavailable Money Account checks (#38493)
 - Fixed Token Details 24-hour high and low prices to use the same formatting as the header price (#38484)
 - Fixed 5-minute and 4-hour token performance data to use spot prices (#38491)
@@ -166,14 +162,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed delays when opening bank account deposit details from Money (#38414)
 - Fixed Activity showing inflated token and fiat amounts when transfer decimals were missing or invalid (#38256)
 - Fixed duplicate mUSD entries stored for some wallets (#38311)
-- Fixed homepage balance breakdown values when users selected a non-USD currency (#38368)
 - Fixed social profile username validation so handles with trailing underscores reach availability checks and handles under three or over sixteen characters show length messages (#38362)
 - Fixed Predict deposits and withdrawals failing with "deadline too soon" when the device clock was behind (#38335)
-- Fixed sell limit order triggers, limit-order refreshes, Robinhood USDG pricing, and charts that showed a previous asset's price (#38293)
 - Fixed limit orders not updating after cancellation or tab changes, improved open-order status labels, and reduced flicker of the missing price warning on Swaps (#38281)
 - Fixed Sell showing an insufficient balance when another network's account was selected (#37867)
 - Fixed the Socials row on the Manage Profile screen so it connects X or opens the X account screen, and added confirmation and success feedback when disconnecting X (#38271)
-- Fixed limit order deeplinks displaying an incorrect initial market price (#38323)
 - Fixed placeholder text on the virtual bank account email verification screen (#38282)
 - Fixed virtual bank account identity verification retries reopening automatically after closing verification from Money entry points (#38320)
 - Fixed Immersve Apple Pay rows and the verification banner remaining visible when in-app provisioning was turned off (#38092)
@@ -194,13 +187,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Quick Buy for Stellar tokens such as USDC, which could show no token, disable Buy, or open Buy when Sell was selected (#38241)
 - Fixed the bottom tab bar disappearing when opening Social from Home or Perps (#38170)
 - Fixed the Social feed Quick Buy sheet appearing behind the bottom tab bar (#38163)
-- Fixed rewards campaign deeplinks so they opened the details page from both rewards homes (#38247)
 - Fixed profile menu items shifting after the menu opened for users without a social profile (#38178)
 - Fixed the Settings row in the Social profile drawer to open the account menu (#38177)
-- Fixed an issue that could leave the homepage balance muted (#38152)
 - Fixed the homepage Tokens section showing "Unable to load tokens" when an account had a balance but no tokens to list (#38217)
 - Fixed completed virtual bank account deposits to open a detailed deposit breakdown instead of generic transaction details (#38190)
-- Fixed an incorrect "No deposit fee" tag on Predict deposits (#38206)
 - Prevented the unstake flow from crashing when withdrawal details were unavailable (#38173)
 - Fixed token and network logos so transparent areas remained visible on a white background in dark mode (#38172)
 - Fixed the transition into 2-step verification during virtual bank account onboarding (#38162)
@@ -262,6 +252,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Social feed section to Perps home (#37596)
 - Added an estimated receiving amount to limit order confirmations (#37733)
 - Added Plus subscription status alerts to the Pro Hub membership card (#36471)
+- Added a seal and struck-through original fee when a perps promotional discount applies (#38315)
+- Added error guidance for failed homepage balance primitives (#38273)
+- Added a Money account deposit deeplink for Braze fullscreen splash campaigns (#37861)
+- Added profile based promotional fee grants for eligible Perps trades (#37146)
 
 ### Changed
 
@@ -308,6 +302,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated external-link icons (#37632)
 - Updated data availability on token details pages (#37923)
 - Updated limit orders to refresh open and history lists automatically, accept exact minimum amounts, show cancellation dates, and display a MetaMask fee information sheet during confirmation (#37677)
+- Updated the Money balance breakdown add action to adapt to localized label lengths (#38403)
+- Updated the default limit order cost tolerance to 3% and allowed it to be configured remotely (#38067)
 
 ### Removed
 
@@ -352,6 +348,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the Limit Order CTA disappearing while editing the limit price (#37643)
 - Fixed Bridge limit order trigger prices that showed inverted ratios, and updated trigger labels and expiry times (#37619)
 - Fixed incorrect fiat conversion rates shown for tokens in the send flow (#38200)
+- Fixed Predict withdraws being blocked by a "not enough POL" alert when network fees can be paid in pUSD (#38480)
+- Fixed rewards campaign deeplinks so they open the details page from both rewards homes (#38247)
+- Fixed homepage balance breakdown values when users select a non-USD currency (#38368)
+- Fixed sell limit order triggers, limit order refresh, Robinhood USDG pricing, and charts showing a previous asset's price (#38293)
+- Fixed Limit order deeplinks displaying an incorrect initial market price (#38323)
+- Fixed the Money Homepage balance breakdown component name used in analytics (#38326)
+- Fixed an issue that could leave the homepage balance muted (#38152)
+- Fixed a bug that incorrectly showed a "No deposit fee" tag on Predict deposits (#38206)
 
 ### Security
 
