@@ -218,6 +218,7 @@ describe('ProHub', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+      benefitsPaused: false,
     });
     mockUseMoneyPremiumAccountInterest.mockReturnValue({
       sinceInceptionQuery: {

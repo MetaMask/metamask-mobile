@@ -74,9 +74,11 @@ const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
   Engine.context.SubscriptionController.getBenefits,
 );
-const mockGetPausedBenefits = jest.mocked(
-  Engine.context.SubscriptionService.getBenefits,
-);
+const subscriptionService = Engine.context.SubscriptionService;
+if (!subscriptionService) {
+  throw new Error('SubscriptionService mock is missing');
+}
+const mockGetPausedBenefits = jest.mocked(subscriptionService.getBenefits);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',

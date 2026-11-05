@@ -51,6 +51,7 @@ describe('MemberPricingOnTrades', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+      benefitsPaused: false,
     });
   });
 
@@ -95,6 +96,7 @@ describe('MemberPricingOnTrades', () => {
       items: [],
       resetsOn: undefined,
       retry: jest.fn(),
+      benefitsPaused: false,
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
@@ -115,6 +117,7 @@ describe('MemberPricingOnTrades', () => {
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
@@ -137,6 +140,7 @@ describe('MemberPricingOnTrades', () => {
       items: [],
       resetsOn: undefined,
       retry: jest.fn(),
+      benefitsPaused: false,
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
@@ -178,6 +182,7 @@ describe('MemberPricingOnTrades', () => {
       items: [],
       resetsOn: undefined,
       retry: jest.fn(),
+      benefitsPaused: false,
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
@@ -197,6 +202,7 @@ describe('MemberPricingOnTrades', () => {
       items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+      benefitsPaused: false,
     });
 
     const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
@@ -215,6 +221,7 @@ describe('MemberPricingOnTrades', () => {
       items: [],
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+      benefitsPaused: false,
     });
 
     const { queryByTestId } = renderMemberPricingOnTrades();

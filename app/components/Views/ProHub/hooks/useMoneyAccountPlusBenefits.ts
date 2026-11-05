@@ -124,7 +124,12 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     queryKey: [...BENEFITS_QUERY_KEY, plusSubscription?.status],
     queryFn: async (): Promise<SubscriptionBenefitsState | null> => {
       if (isDeactivatedMembership) {
-        const response = await Engine.context.SubscriptionService.getBenefits();
+        // Optional messenger client: absent when the subscription build omits it.
+        const subscriptionService = Engine.context.SubscriptionService;
+        if (!subscriptionService) {
+          throw new Error('SubscriptionService is unavailable');
+        }
+        const response = await subscriptionService.getBenefits();
         return toPausedBenefitsSnapshot(response);
       }
 
