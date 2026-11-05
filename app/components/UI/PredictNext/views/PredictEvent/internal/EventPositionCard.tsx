@@ -28,12 +28,12 @@ import type {
   PredictTeam,
 } from '../../../types';
 import { getOutcomeName } from '../../../utils/entryCopy';
-import { formatSharesAmount } from '../../../utils/formatShares';
 import {
-  formatPositionPnl,
+  formatSharesAmount,
   formatUsdAmount,
   pnlToneClassName,
-} from '../../../utils/positionValue';
+} from '../../../utils/portfolioFormatting';
+import { formatPositionPnl } from '../../../utils/positionValue';
 
 const NO_VALUE = '–';
 

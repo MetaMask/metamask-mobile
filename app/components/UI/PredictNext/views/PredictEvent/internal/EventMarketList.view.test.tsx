@@ -2182,9 +2182,7 @@ describe('EventMarketList', () => {
         marketId: market?.id,
         context: undefined,
       });
-      const { view } = await renderPositions({ ...event, markets }, [
-        position,
-      ]);
+      const { view } = await renderPositions({ ...event, markets }, [position]);
 
       expect(
         cardOf(view, position).getByText(
@@ -2208,9 +2206,7 @@ describe('EventMarketList', () => {
         marketId: market?.id,
         context: undefined,
       });
-      const { view } = await renderPositions({ ...event, markets }, [
-        position,
-      ]);
+      const { view } = await renderPositions({ ...event, markets }, [position]);
 
       expect(
         cardOf(view, position).getByText(
