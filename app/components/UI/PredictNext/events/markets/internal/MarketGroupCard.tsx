@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 import {
@@ -32,7 +26,7 @@ export interface MarketGroupCardProps {
   markets: readonly PredictMarket[];
   selectedMarket: PredictMarket;
   onSelectMarket: (marketId: PredictMarket['id']) => void;
-  /** Shows a rules button for the selected line when it has rules. */
+  /** Opens the selected line's rules from the title, when it has rules. */
   onRulesPress?: (market: PredictMarket) => void;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
   /** Supplied by the spread or total composition. */
@@ -144,28 +138,23 @@ export function MarketGroupCard({
 
   return (
     <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
-      {title || showRules ? (
+      {title ? (
         <Box twClassName="flex-row items-center gap-2">
           <Box twClassName="min-w-0 flex-1">
-            {title ? (
-              <MarketCard.Title testID={MarketGroupCardTestIds.title(groupKey)}>
-                {title}
-              </MarketCard.Title>
-            ) : null}
-          </Box>
-          {showRules ? (
-            <ButtonIcon
-              iconName={IconName.Question}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-              onPress={() => onRulesPress?.(selectedMarket)}
-              testID={MarketGroupCardTestIds.rulesButton(groupKey)}
-              accessibilityLabel={strings(
+            <MarketCard.Title
+              testID={MarketGroupCardTestIds.title(groupKey)}
+              onPress={
+                showRules && onRulesPress
+                  ? () => onRulesPress(selectedMarket)
+                  : undefined
+              }
+              accessibilityHint={strings(
                 'predict.rules.market_accessibility_label',
               )}
-              accessibilityRole="button"
-            />
-          ) : null}
+            >
+              {title}
+            </MarketCard.Title>
+          </Box>
         </Box>
       ) : null}
       <Box twClassName="gap-3">

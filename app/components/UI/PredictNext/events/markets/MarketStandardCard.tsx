@@ -1,10 +1,4 @@
-import {
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
@@ -52,23 +46,18 @@ export const MarketStandardCard = React.memo(
               <Box twClassName="min-w-0 shrink">
                 <MarketCard.Title
                   testID={MarketStandardCardTestIds.title(market.id)}
+                  onPress={
+                    rules && onRulesPress
+                      ? () => onRulesPress(market)
+                      : undefined
+                  }
+                  accessibilityHint={strings(
+                    'predict.rules.market_accessibility_label',
+                  )}
                 >
                   {yesOutcome.label}
                 </MarketCard.Title>
               </Box>
-              {rules ? (
-                <ButtonIcon
-                  iconName={IconName.Question}
-                  size={ButtonIconSize.Sm}
-                  iconProps={{ color: IconColor.IconAlternative }}
-                  onPress={() => onRulesPress(market)}
-                  testID={MarketStandardCardTestIds.rulesButton(market.id)}
-                  accessibilityLabel={strings(
-                    'predict.rules.market_accessibility_label',
-                  )}
-                  accessibilityRole="button"
-                />
-              ) : null}
             </Box>
             {volume ? (
               <MarketCard.Volume

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -9,7 +9,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 
 interface ChildrenProps {
   children: React.ReactNode;
@@ -40,16 +43,87 @@ const Summary = ({ children }: ChildrenProps) => (
   <Box twClassName="min-w-0 flex-1 gap-1">{children}</Box>
 );
 
-const Title = ({ children, testID }: ChildrenProps & { testID?: string }) => (
-  <Text
-    testID={testID}
-    variant={TextVariant.HeadingSm}
-    fontWeight={FontWeight.Bold}
-    numberOfLines={1}
-  >
-    {children}
-  </Text>
-);
+/** Dotted underline drawn under a pressable title: 2px dots, 2px gaps. */
+const TITLE_UNDERLINE_HEIGHT = 2;
+const TITLE_UNDERLINE_DASH = '2,2';
+
+const styles = StyleSheet.create({
+  titleUnderline: { position: 'absolute', left: 0, bottom: -2 },
+});
+
+interface TitleProps extends ChildrenProps {
+  testID?: string;
+  /** Makes the title a button that opens the Market's rules. */
+  onPress?: () => void;
+  accessibilityHint?: string;
+}
+
+const Title = ({
+  children,
+  testID,
+  onPress,
+  accessibilityHint,
+}: TitleProps) => {
+  const { colors } = useTheme();
+  const [textWidth, setTextWidth] = useState(0);
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setTextWidth(event.nativeEvent.layout.width);
+  };
+
+  if (!onPress) {
+    return (
+      <Text
+        testID={testID}
+        variant={TextVariant.HeadingSm}
+        fontWeight={FontWeight.Bold}
+        numberOfLines={1}
+      >
+        {children}
+      </Text>
+    );
+  }
+
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={typeof children === 'string' ? children : undefined}
+      accessibilityHint={accessibilityHint}
+      hitSlop={{ top: 10, bottom: 10 }}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        alignSelf: 'flex-start',
+        maxWidth: '100%',
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <Text
+        variant={TextVariant.HeadingSm}
+        fontWeight={FontWeight.Bold}
+        numberOfLines={1}
+        onLayout={handleLayout}
+      >
+        {children}
+      </Text>
+      <Svg
+        width={textWidth}
+        height={TITLE_UNDERLINE_HEIGHT}
+        style={styles.titleUnderline}
+      >
+        <Line
+          x1={0}
+          y1={TITLE_UNDERLINE_HEIGHT / 2}
+          x2={textWidth}
+          y2={TITLE_UNDERLINE_HEIGHT / 2}
+          stroke={colors.text.default}
+          strokeWidth={TITLE_UNDERLINE_HEIGHT}
+          strokeDasharray={TITLE_UNDERLINE_DASH}
+        />
+      </Svg>
+    </Pressable>
+  );
+};
 
 const Volume = ({ value, testID }: { value: string; testID?: string }) => (
   <Text
