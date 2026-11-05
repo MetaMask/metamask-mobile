@@ -1,12 +1,13 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useReducedMotion } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -44,6 +45,10 @@ import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
 import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
 import { formatChartTimestamp } from './utils/chartWindow';
+import {
+  scrollOffsetForExpandSwipe,
+  sheetHeightDuration,
+} from './utils/sheetGestureMotion';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 
@@ -112,9 +117,13 @@ const PositionDetailsSheet = () => {
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const pendingScrollY = useRef(0);
+  const prefersReducedMotion = useReducedMotion();
 
-  // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
-  // footer sits right under the tab bar; scrolling up opens the active tab.
+  // Upward swipe opens the tabs and scrolls by the gesture's distance and
+  // speed. Downward fails so the sheet's own drag dismisses. A horizontal
+  // move fails so the chart can scrub.
   const expandGesture = useMemo(
     () =>
       Gesture.Pan()
@@ -123,21 +132,28 @@ const PositionDetailsSheet = () => {
         .enabled(!isTabsExpanded)
         .activeOffsetY(-6)
         .failOffsetY(6)
+        .failOffsetX([-12, 12])
         .onEnd((event) => {
-          if (event.translationY < -SWIPE_THRESHOLD) setIsTabsExpanded(true);
+          if (event.translationY >= -SWIPE_THRESHOLD) return;
+          pendingScrollY.current = scrollOffsetForExpandSwipe(
+            event.translationY,
+            event.velocityY,
+          );
+          setIsTabsExpanded(true);
         }),
     [isTabsExpanded],
   );
 
-  // iOS bounce: pulling the open sheet down past its top closes the tab.
-  const handleScrollEndDrag = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (event.nativeEvent.contentOffset.y < -SWIPE_THRESHOLD * 2) {
-        setIsTabsExpanded(false);
-      }
-    },
-    [],
-  );
+  useEffect(() => {
+    if (!isTabsExpanded) return undefined;
+    const y = pendingScrollY.current;
+    if (y <= 0) return undefined;
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y, animated: true });
+      pendingScrollY.current = 0;
+    }, sheetHeightDuration(prefersReducedMotion));
+    return () => clearTimeout(timer);
+  }, [isTabsExpanded, prefersReducedMotion]);
 
   const closeThen = useCallback((next: () => void) => {
     if (sheetRef.current) {
@@ -237,27 +253,25 @@ const PositionDetailsSheet = () => {
   );
 
   const details = (
-    <GestureDetector gesture={expandGesture}>
-      <View>
-        <Box twClassName="px-4 py-3" gap={2}>
-          <PositionSheetTradeSummary
-            position={position}
-            title={data.summaryTitle}
-            subtitle={data.summarySubtitle}
-            pnlPercentLabel={data.pnlPercentLabel}
-            pnlValueLabel={data.pnlValueLabel}
-            isPnlPositive={data.isPnlPositive}
-          />
-        </Box>
-        <PositionSheetTabs
+    <View>
+      <Box twClassName="px-4 py-3" gap={2}>
+        <PositionSheetTradeSummary
           position={position}
-          author={author}
-          isExpanded={isTabsExpanded}
-          onExpandedChange={setIsTabsExpanded}
+          title={data.summaryTitle}
+          subtitle={data.summarySubtitle}
+          pnlPercentLabel={data.pnlPercentLabel}
+          pnlValueLabel={data.pnlValueLabel}
+          isPnlPositive={data.isPnlPositive}
         />
-        {isTabsExpanded ? null : footer}
-      </View>
-    </GestureDetector>
+      </Box>
+      <PositionSheetTabs
+        position={position}
+        author={author}
+        isExpanded={isTabsExpanded}
+        onExpandedChange={setIsTabsExpanded}
+      />
+      {isTabsExpanded ? null : footer}
+    </View>
   );
 
   return (
@@ -274,55 +288,58 @@ const PositionDetailsSheet = () => {
             position={position}
             isOwnPost={isOwnPost}
           />
-          {/* Collapsed, everything fits and drags move the sheet instead. */}
-          <ScrollView
-            scrollEnabled={isTabsExpanded}
-            showsVerticalScrollIndicator={false}
-            onScrollEndDrag={handleScrollEndDrag}
-            testID={PositionDetailsSheetSelectorsIDs.SCROLL}
-          >
-            <PositionSheetPriceHeader
-              assetName={data.assetName}
-              isPerp={data.isPerp}
-              leverage={data.leverage}
-              valueLabel={
-                headerValue !== undefined
-                  ? data.formatValue(headerValue)
-                  : undefined
-              }
-              isMarketCapMode={data.isMarketCapMode}
-              changePercent={headerChange}
-              changeCaption={headerCaption}
-            />
-            <PositionSheetChart
-              prices={data.prices}
-              isLoading={isChartLoading}
-              isTrendPositive={data.isTrendPositive}
-              markers={data.markers}
-              levels={data.levels}
-              timeAxisLabels={data.timeAxisLabels}
-              lineProgress={reveal.lineProgress}
-              overlayStyle={reveal.overlayStyle}
-              onScrub={setScrubPoint}
-            />
-            {reveal.isAnimated ? (
-              <Animated.View
-                style={reveal.detailsContainerStyle}
-                testID={PositionDetailsSheetSelectorsIDs.DETAILS}
-              >
+          {/* Collapsed, an upward swipe expands the tabs. The next movement
+              scrolls. Overlay taps dismiss through the design-system sheet. */}
+          <GestureDetector gesture={expandGesture}>
+            <ScrollView
+              ref={scrollRef}
+              scrollEnabled={isTabsExpanded}
+              showsVerticalScrollIndicator={false}
+              testID={PositionDetailsSheetSelectorsIDs.SCROLL}
+            >
+              <PositionSheetPriceHeader
+                assetName={data.assetName}
+                isPerp={data.isPerp}
+                leverage={data.leverage}
+                valueLabel={
+                  headerValue !== undefined
+                    ? data.formatValue(headerValue)
+                    : undefined
+                }
+                isMarketCapMode={data.isMarketCapMode}
+                changePercent={headerChange}
+                changeCaption={headerCaption}
+              />
+              <PositionSheetChart
+                prices={data.prices}
+                isLoading={isChartLoading}
+                isTrendPositive={data.isTrendPositive}
+                markers={data.markers}
+                levels={data.levels}
+                timeAxisLabels={data.timeAxisLabels}
+                lineProgress={reveal.lineProgress}
+                overlayStyle={reveal.overlayStyle}
+                onScrub={setScrubPoint}
+              />
+              {reveal.isAnimated ? (
                 <Animated.View
-                  style={[styles.detailsMeasure, reveal.detailsContentStyle]}
-                  onLayout={reveal.onDetailsLayout}
+                  style={reveal.detailsContainerStyle}
+                  testID={PositionDetailsSheetSelectorsIDs.DETAILS}
                 >
-                  {details}
+                  <Animated.View
+                    style={[styles.detailsMeasure, reveal.detailsContentStyle]}
+                    onLayout={reveal.onDetailsLayout}
+                  >
+                    {details}
+                  </Animated.View>
                 </Animated.View>
-              </Animated.View>
-            ) : (
-              <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-                {details}
-              </View>
-            )}
-          </ScrollView>
+              ) : (
+                <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
+                  {details}
+                </View>
+              )}
+            </ScrollView>
+          </GestureDetector>
           {isTabsExpanded ? footer : null}
         </BottomSheet>
       )}

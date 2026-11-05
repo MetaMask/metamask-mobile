@@ -323,20 +323,17 @@ describe('PositionDetailsSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens on a swipe up and closes on a swipe down over the tab bar', async () => {
+    it('opens on a swipe up and keeps the list open', () => {
       render(<PositionDetailsSheet />);
 
       swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -40);
+
       expect(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeOnTheScreen();
-      // GestureDetector swaps in the re-enabled gesture on a microtask.
-      await act(async () => undefined);
-
-      swipe(PositionDetailsSheetSelectorsIDs.TABS_COLLAPSE_GESTURE, 40);
       expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
+      ).toHaveProp('scrollEnabled', true);
     });
 
     it('ignores swipes shorter than the threshold', () => {
@@ -366,23 +363,6 @@ describe('PositionDetailsSheet', () => {
       expect(scroll).toHaveProp('scrollEnabled', true);
       expect(within(scroll).queryByTestId(copyTradeId)).toBeNull();
       expect(screen.getByTestId(copyTradeId)).toBeOnTheScreen();
-    });
-
-    it('closes when the sheet is pulled down past its top', () => {
-      render(<PositionDetailsSheet />);
-      fireEvent.press(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
-      );
-
-      fireEvent(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
-        'scrollEndDrag',
-        { nativeEvent: { contentOffset: { x: 0, y: -80 } } },
-      );
-
-      expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
     });
 
     it('lists every comment on the position under Posts', () => {

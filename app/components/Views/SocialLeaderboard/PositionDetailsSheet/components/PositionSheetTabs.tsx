@@ -1,5 +1,12 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   Box,
   FontWeight,
@@ -17,9 +24,15 @@ import {
   getPositionTransactions,
 } from '../utils/positionPosts';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
+import { sheetHeightDuration } from '../utils/sheetGestureMotion';
 import PositionSheetPostRow from './PositionSheetPostRow';
 
-/** Vertical travel that counts as a deliberate expand / collapse swipe. */
+const styles = StyleSheet.create({
+  // Measured at its natural height while the clip animates the sheet open.
+  listMeasure: { position: 'absolute', left: 0, right: 0 },
+});
+
+/** Vertical travel that counts as a deliberate expand swipe. */
 export const SWIPE_THRESHOLD = 24;
 
 const POSTS_TAB_INDEX = 0;
@@ -34,8 +47,8 @@ interface PositionSheetTabsProps {
 
 /**
  * Posts (author comments) and Transactions (fills) for one position. Tapping
- * a tab opens its list; tapping the open tab again or swiping down on the tab
- * bar closes it. The open list scrolls with the sheet, not on its own.
+ * a tab opens its list and the sheet grows by that list's height. The open
+ * list scrolls with the sheet, not on its own.
  */
 const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
   position,
@@ -43,6 +56,9 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
   isExpanded,
   onExpandedChange,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const listHeight = useSharedValue(0);
+  const [measuredListHeight, setMeasuredListHeight] = useState(0);
   const [activeIndex, setActiveIndex] = useState(POSTS_TAB_INDEX);
   const posts = useMemo(() => getPositionPosts(position), [position]);
   const transactions = useMemo(
@@ -84,20 +100,26 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
     [isExpanded, activeIndex, onExpandedChange],
   );
 
-  // Downward-only so a swipe on the collapsed bar still drags the sheet.
-  const collapseGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(PositionDetailsSheetSelectorsIDs.TABS_COLLAPSE_GESTURE)
-        .runOnJS(true)
-        .enabled(isExpanded)
-        .activeOffsetY(6)
-        .failOffsetY(-6)
-        .onEnd((event) => {
-          if (event.translationY > SWIPE_THRESHOLD) onExpandedChange(false);
-        }),
-    [isExpanded, onExpandedChange],
-  );
+  const handleListLayout = useCallback((event: LayoutChangeEvent) => {
+    setMeasuredListHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+
+  useEffect(() => {
+    const target = isExpanded ? measuredListHeight : 0;
+    const duration = sheetHeightDuration(prefersReducedMotion);
+    listHeight.value =
+      duration === 0
+        ? target
+        : withTiming(target, {
+            duration,
+            easing: Easing.out(Easing.cubic),
+          });
+  }, [isExpanded, listHeight, measuredListHeight, prefersReducedMotion]);
+
+  const listClipStyle = useAnimatedStyle(() => ({
+    height: listHeight.value,
+    overflow: 'hidden',
+  }));
 
   const isPostsTab = activeIndex === POSTS_TAB_INDEX;
 
@@ -133,26 +155,26 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
 
   return (
     <Box testID={PositionDetailsSheetSelectorsIDs.TABS}>
-      <GestureDetector gesture={collapseGesture}>
-        <Box>
-          <TabsBar
-            tabs={tabs}
-            activeIndex={activeIndex}
-            onTabPress={handleTabPress}
-          />
-        </Box>
-      </GestureDetector>
+      <TabsBar
+        tabs={tabs}
+        activeIndex={activeIndex}
+        onTabPress={handleTabPress}
+      />
       {isExpanded ? (
-        <Box
-          twClassName="mt-3"
-          testID={
-            isPostsTab
-              ? PositionDetailsSheetSelectorsIDs.POSTS_LIST
-              : PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST
-          }
-        >
-          {isPostsTab ? renderPosts() : renderTransactions()}
-        </Box>
+        <Animated.View style={listClipStyle}>
+          <View style={styles.listMeasure} onLayout={handleListLayout}>
+            <Box
+              twClassName="mt-3"
+              testID={
+                isPostsTab
+                  ? PositionDetailsSheetSelectorsIDs.POSTS_LIST
+                  : PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST
+              }
+            >
+              {isPostsTab ? renderPosts() : renderTransactions()}
+            </Box>
+          </View>
+        </Animated.View>
       ) : null}
     </Box>
   );

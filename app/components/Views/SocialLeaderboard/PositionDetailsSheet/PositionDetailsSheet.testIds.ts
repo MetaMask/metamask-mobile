@@ -15,7 +15,6 @@ export const PositionDetailsSheetSelectorsIDs = {
   SCROLL: 'position-details-sheet-scroll',
   DETAILS: 'position-details-sheet-details',
   DETAILS_EXPAND_GESTURE: 'position-details-sheet-details-expand-gesture',
-  TABS_COLLAPSE_GESTURE: 'position-details-sheet-tabs-collapse-gesture',
   TRADE_SUMMARY: 'position-details-sheet-trade-summary',
   TABS: 'position-details-sheet-tabs',
   POSTS_TAB: 'position-details-sheet-posts-tab',
