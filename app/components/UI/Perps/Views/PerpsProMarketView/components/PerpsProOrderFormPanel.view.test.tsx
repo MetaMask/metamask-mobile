@@ -13,7 +13,10 @@ import type {
   PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import type { ComponentType } from 'react';
-import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import {
+  renderPerpsCrossMarginOrderFormPanel,
+  renderPerpsProMarketView,
+} from '../../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import {
   createEthMarketForViews,
@@ -34,6 +37,7 @@ import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import PerpsTPSLView from '../../PerpsTPSLView/PerpsTPSLView';
 import {
+  PerpsBottomSheetTooltipSelectorsIDs as tooltipIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsOrderTypeBottomSheetSelectorsIDs as orderTypeIds,
   PerpsProOrderFormSelectorsIDs as formIds,
@@ -677,5 +681,54 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
         strings('perps.margin_mode.cross_title'),
       ),
     );
+  });
+});
+
+describeForPlatforms('PerpsProOrderFormPanel account support', () => {
+  afterEach(() => {
+    cleanup();
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockReset()
+      .mockResolvedValue({ isSupported: true });
+  });
+
+  it('explains an unsupported account instead of placing the order and dismisses the explanation', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockResolvedValue({ isSupported: false, reason: 'multi_sig_account' });
+    renderPerpsProMarketView({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      { timeout: 5000 },
+    );
+
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.account_not_supported.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.tooltips.account_not_supported.content')),
+    ).toBeOnTheScreen();
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId(tooltipIds.GOT_IT_BUTTON));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
   });
 });
