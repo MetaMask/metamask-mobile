@@ -496,8 +496,15 @@ export const LighterSignerWebView = () => {
     isLighterSignerRequested,
   );
   useEffect(() => {
-    // Locking unmounts the page; the next unlock waits for a new request.
-    if (!isUnlocked) clearLighterSignerRequest();
+    if (isUnlocked) {
+      // The page that saw the lock left the bridge unavailable and has since
+      // unmounted. Nothing remounts at unlock anymore, so revive here or the
+      // next call fails before it can request a fresh page.
+      reviveLighterBridge();
+    } else {
+      // Locking unmounts the page; the next unlock waits for a new request.
+      clearLighterSignerRequest();
+    }
   }, [isUnlocked]);
   return isUnlocked && isRequested ? <UnlockedLighterSignerWebView /> : null;
 };

@@ -135,7 +135,7 @@ describe('LighterSignerWebView', () => {
   });
 
   afterEach(() => {
-    clearLighterSignerRequest();
+    act(() => clearLighterSignerRequest());
     reviveLighterBridge();
     resetLighterBridge();
     jest.restoreAllMocks();
@@ -168,11 +168,14 @@ describe('LighterSignerWebView', () => {
       expect(mockWebViewRenderCount).toBe(0);
 
       let settled = false;
-      const pending = lighterSignerBridge
-        .execute({ function: '_createAuthToken', params: [28, 7] })
-        .finally(() => {
-          settled = true;
-        });
+      let pending!: Promise<unknown>;
+      act(() => {
+        pending = lighterSignerBridge
+          .execute({ function: '_createAuthToken', params: [28, 7] })
+          .finally(() => {
+            settled = true;
+          });
+      });
       await act(async () => undefined);
 
       expect(mockWebViewRenderCount).toBe(1);
@@ -199,14 +202,17 @@ describe('LighterSignerWebView', () => {
     it('starts loading the page as soon as client setup begins', async () => {
       render(<LighterSignerWebView />);
 
-      const setup = lighterSignerBridge
-        .createClient({
-          chainId: 304,
-          accountIndex: 7,
-          nonce: 1,
-          apiKeyIndex: 3,
-        })
-        .catch((error: Error) => error);
+      let setup!: Promise<unknown>;
+      act(() => {
+        setup = lighterSignerBridge
+          .createClient({
+            chainId: 304,
+            accountIndex: 7,
+            nonce: 1,
+            apiKeyIndex: 3,
+          })
+          .catch((error: Error) => error);
+      });
       await act(async () => undefined);
 
       expect(mockWebViewRenderCount).toBeGreaterThan(0);
@@ -247,6 +253,55 @@ describe('LighterSignerWebView', () => {
       jest.mocked(useSelector).mockReturnValue(true);
       rerender(<LighterSignerWebView />);
       expect(mockWebViewRenderCount).toBe(1);
+    });
+
+    it('loads a fresh page for the first call after a lock and unlock', async () => {
+      const { rerender } = render(<LighterSignerWebView />);
+      act(() => requestLighterSigner());
+      act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+
+      // The keyring publishes lock before Redux unmounts the page.
+      act(() => {
+        jest
+          .mocked(Engine.context.KeyringController.isUnlocked)
+          .mockReturnValue(false);
+        emitWalletEvent('KeyringController:lock');
+      });
+      jest.mocked(useSelector).mockReturnValue(false);
+      rerender(<LighterSignerWebView />);
+
+      jest
+        .mocked(Engine.context.KeyringController.isUnlocked)
+        .mockReturnValue(true);
+      jest.mocked(useSelector).mockReturnValue(true);
+      rerender(<LighterSignerWebView />);
+      expect(mockWebViewRenderCount).toBe(1);
+
+      let pending!: Promise<unknown>;
+      act(() => {
+        pending = lighterSignerBridge.execute({
+          function: '_createAuthToken',
+          params: [28, 7],
+        });
+      });
+      await act(async () => undefined);
+      expect(mockWebViewRenderCount).toBe(2);
+
+      act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+      await act(async () => undefined);
+      expect(mockPostMessage).toHaveBeenCalledTimes(1);
+      const { executeId } = JSON.parse(mockPostMessage.mock.calls[0][0]);
+      act(() =>
+        mockWebViewProps.onMessage?.(
+          messageEvent({
+            type: 'executeResult',
+            executeId,
+            result: { token: 'fresh', deadline: 1 },
+          }),
+        ),
+      );
+
+      await expect(pending).resolves.toEqual({ token: 'fresh', deadline: 1 });
     });
   });
 
