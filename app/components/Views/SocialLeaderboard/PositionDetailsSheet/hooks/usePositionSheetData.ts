@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
@@ -27,11 +27,10 @@ import {
 } from '../utils/chartLevels';
 import {
   buildTimeAxisLabels,
+  chartWindowForPeriod,
   deriveDailyChangePercent,
-  getFirstTradeMs,
-  resolveChartWindow,
-  resolveSpotPeriod,
   sliceToWindow,
+  type ChartPeriod,
 } from '../utils/chartWindow';
 import { formatTradeTooltipLabel } from '../utils/tradeTooltipLabel';
 import { usePerpsSheetPrices } from './usePerpsSheetPrices';
@@ -90,6 +89,10 @@ export interface PositionSheetData {
   dailyChangePercent: number | undefined;
   marketCap: number | undefined;
 
+  /** Selected chart range. `1D` until the user picks another. */
+  chartPeriod: ChartPeriod;
+  setChartPeriod: (period: ChartPeriod) => void;
+
   summaryTitle: string;
   summarySubtitle: string;
   pnlPercentLabel: string;
@@ -122,24 +125,32 @@ export function usePositionSheetData(
     setAnchor({ positionKey, nowMs: Date.now() });
   }
   const { nowMs } = anchor;
+  const [chartPeriod, setChartPeriodState] = useState<ChartPeriod>('1D');
+  const [periodPositionKey, setPeriodPositionKey] = useState(positionKey);
+  if (periodPositionKey !== positionKey) {
+    setPeriodPositionKey(positionKey);
+    setChartPeriodState('1D');
+  }
+  const setChartPeriod = useCallback((period: ChartPeriod) => {
+    setChartPeriodState(period);
+  }, []);
   const chartWindow = useMemo(
-    () => resolveChartWindow(position?.trades, nowMs),
-    [position?.trades, nowMs],
+    () => chartWindowForPeriod(chartPeriod, nowMs),
+    [chartPeriod, nowMs],
   );
 
   const base = useTraderPositionData(position, undefined, isClosedOverride);
   const { isPerp, setActiveTimePeriod, activeTimePeriod } = base;
 
-  const spotPeriod = resolveSpotPeriod(chartWindow);
   useEffect(() => {
-    if (!isPerp && activeTimePeriod !== spotPeriod) {
-      setActiveTimePeriod(spotPeriod);
+    if (!isPerp && activeTimePeriod !== chartPeriod) {
+      setActiveTimePeriod(chartPeriod);
     }
-  }, [isPerp, activeTimePeriod, spotPeriod, setActiveTimePeriod]);
+  }, [isPerp, activeTimePeriod, chartPeriod, setActiveTimePeriod]);
 
   const perps = usePerpsSheetPrices({
     symbol: position?.tokenSymbol,
-    earliestTradeMs: getFirstTradeMs(position?.trades),
+    period: chartPeriod,
     nowMs,
     enabled: isPerp && isNetworkAvailable,
   });
@@ -153,7 +164,7 @@ export function usePositionSheetData(
     isNetworkAvailable &&
     (isPerp
       ? perps.isLoading
-      : base.isPricesLoading || activeTimePeriod !== spotPeriod);
+      : base.isPricesLoading || activeTimePeriod !== chartPeriod);
 
   const currentPrice = isPerp
     ? prices.at(-1)?.[1]
@@ -177,6 +188,10 @@ export function usePositionSheetData(
   const markers = useMemo((): PositionSheetMarker[] => {
     if (!position) return [];
     return (position.trades ?? []).flatMap((trade, tradeIndex) => {
+      const tradeMs = tradeTimestampToMs(trade.timestamp);
+      if (tradeMs < chartWindow.startMs || tradeMs > chartWindow.endMs) {
+        return [];
+      }
       const [marker] = mapTradesToMarkers([trade], prices);
       if (!marker) return [];
       const unitPrice = toUnitPrice(trade);
@@ -203,6 +218,8 @@ export function usePositionSheetData(
   }, [
     position,
     prices,
+    chartWindow.startMs,
+    chartWindow.endMs,
     isMarketCapMode,
     base.tradeActions,
     isPerp,
@@ -279,7 +296,11 @@ export function usePositionSheetData(
         : undefined,
     prices,
     isPricesLoading,
-    timeAxisLabels: buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT),
+    timeAxisLabels: buildTimeAxisLabels(
+      chartWindow,
+      TIME_AXIS_LABEL_COUNT,
+      chartPeriod,
+    ),
     isTrendPositive,
     markers,
     levels,
@@ -288,6 +309,8 @@ export function usePositionSheetData(
     currentPrice,
     dailyChangePercent: deriveDailyChangePercent(prices, nowMs),
     marketCap,
+    chartPeriod,
+    setChartPeriod,
     summaryTitle,
     summarySubtitle: formatUsd(summaryValue),
     pnlPercentLabel: formatPercent(base.pnlPercent),

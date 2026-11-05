@@ -141,10 +141,21 @@ jest.mock('../../../UI/QuickBuy/hooks/usePositionTokenBalance', () => ({
 }));
 
 jest.mock('./components/PositionSheetChart', () => {
-  const { View } = jest.requireActual('react-native');
+  const { Pressable, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="position-sheet-chart" />,
+    default: ({
+      onScrub,
+    }: {
+      onScrub?: (point: [string, number] | null) => void;
+    }) => (
+      <View testID="position-sheet-chart">
+        <Pressable
+          testID="position-sheet-chart-scrub"
+          onPress={() => onScrub?.(['100', 60])}
+        />
+      </View>
+    ),
   };
 });
 
@@ -179,6 +190,8 @@ const buildSheetData = (
   currentPrice: 120,
   dailyChangePercent: 3.49,
   marketCap: undefined,
+  chartPeriod: '1D',
+  setChartPeriod: jest.fn(),
   summaryTitle: '2 PEPE',
   summarySubtitle: '$240.00',
   pnlPercentLabel: '+20.00%',
@@ -223,6 +236,63 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens on price when the spot card has no market cap on its fills', () => {
+    const setChartPeriod = jest.fn();
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      setChartPeriod,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$120');
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$1.2M');
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.chartPeriod('1W')),
+    );
+    expect(setChartPeriod).toHaveBeenCalledWith('1W');
+  });
+
+  it('scrubs the headline in the selected price or market cap format', () => {
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(screen.getByTestId('position-sheet-chart-scrub'));
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$60');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$600K');
   });
 
   describe('follow button', () => {

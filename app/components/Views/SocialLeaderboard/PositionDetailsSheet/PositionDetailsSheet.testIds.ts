@@ -5,6 +5,13 @@ export const PositionDetailsSheetSelectorsIDs = {
   FOLLOW_BUTTON: 'position-details-sheet-follow-button',
   PRICE: 'position-details-sheet-price',
   DAILY_CHANGE: 'position-details-sheet-daily-change',
+  CHART_CONTROLS: 'position-details-sheet-chart-controls',
+  CHART_PERIODS: 'position-details-sheet-chart-periods',
+  chartPeriod: (period: string) =>
+    `position-details-sheet-chart-period-${period}`,
+  VALUE_TOGGLE: 'position-details-sheet-value-toggle',
+  VALUE_TOGGLE_PRICE: 'position-details-sheet-value-toggle-price',
+  VALUE_TOGGLE_MARKET_CAP: 'position-details-sheet-value-toggle-market-cap',
   CHART: 'position-details-sheet-chart',
   CHART_LINE: 'position-details-sheet-chart-line',
   CHART_LOADING: 'position-details-sheet-chart-loading',
