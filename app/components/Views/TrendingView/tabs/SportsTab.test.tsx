@@ -44,8 +44,8 @@ const mockUsePredictionsFeed = jest.fn<
   data: [],
   isLoading: false,
 }));
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: () => mockUsePredictionsFeed(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: () => mockUsePredictionsFeed(),
 }));
 
 const mockUseSportsMarketsFeed = jest.fn(() => ({
@@ -60,9 +60,12 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
     fetchMore: jest.fn(),
   },
 }));
-jest.mock('../feeds/predictions/useSportsMarketsFeed', () => ({
-  useSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
-}));
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictSportsMarketsFeed',
+  () => ({
+    usePredictSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
+  }),
+);
 
 jest.mock('../components/HorizontalCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports

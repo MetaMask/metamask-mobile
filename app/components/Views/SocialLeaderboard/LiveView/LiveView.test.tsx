@@ -333,6 +333,7 @@ describe('LiveView', () => {
         positionId: 'other-perp-position',
         isClosed: false,
         isSnapshotLive: false,
+        orderSource: 'social_live_trades',
       }),
     );
   });
