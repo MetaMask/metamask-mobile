@@ -14,10 +14,10 @@ import {
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  BadgeStatus,
+  BadgeStatusStatus,
   Box,
   IconName,
-  Tag,
-  TagSeverity,
 } from '@metamask/design-system-react-native';
 import {
   TabsBar,
@@ -53,6 +53,8 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
+import { markLimitTabVisited } from './limitTabVisit';
+import { useLimitTabNewDot } from './useLimitTabNewDot';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
@@ -94,6 +96,7 @@ const BridgeView = () => {
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
+  const showLimitTabNewDot = useLimitTabNewDot(isLimitOrderTabEnabled);
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
@@ -252,6 +255,15 @@ const BridgeView = () => {
     [renderedTab, handleSlippageSettingsPress],
   );
 
+  // Opening the Limit tab, including from a deep link, dismisses the dot.
+  useEffect(() => {
+    if (renderedTab !== BridgeTabKey.Limit) {
+      return;
+    }
+
+    markLimitTabVisited();
+  }, [renderedTab]);
+
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
   // disabled, only Market remains and the tabs bar is hidden entirely below.
@@ -271,16 +283,20 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
-        endAccessory: (
-          <Tag
-            severity={TagSeverity.Info}
-            startIconName={IconName.Sparkle}
-            twClassName="top-0.5"
-            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
-          >
-            {strings('bridge.tabs.new_badge')}
-          </Tag>
-        ),
+        // Same discovery dot as the Social nav item. Absolute so it sits just
+        // past the label's top-right corner and does not widen the underline.
+        ...(showLimitTabNewDot
+          ? {
+              endAccessory: (
+                <BadgeStatus
+                  status={BadgeStatusStatus.Active}
+                  twClassName="absolute top-0.5 -right-3"
+                  testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
+                  accessibilityLabel={strings('bridge.tabs.new_badge')}
+                />
+              ),
+            }
+          : null),
       });
     }
 
@@ -294,7 +310,7 @@ const BridgeView = () => {
     }
 
     return visibleTabs;
-  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled]);
+  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled, showLimitTabNewDot]);
 
   const showTabsBar = tabs.length > 1;
 
