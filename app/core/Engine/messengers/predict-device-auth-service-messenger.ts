@@ -11,8 +11,7 @@ type InitActionType =
   | 'AuthenticationController:getSessionProfile'
   | 'AuthenticationController:getState'
   | 'KeyringController:getState'
-  | 'RemoteFeatureFlagController:getState'
-  | 'SnapController:handleRequest';
+  | 'RemoteFeatureFlagController:getState';
 
 type InitEventType =
   | 'AuthenticationController:profileSignIn'
@@ -55,7 +54,6 @@ export const getPredictDeviceAuthServiceInitMessenger = (
       'AuthenticationController:getState',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
-      'SnapController:handleRequest',
     ],
     events: [
       'AuthenticationController:profileSignIn',

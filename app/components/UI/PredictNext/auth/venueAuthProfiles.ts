@@ -13,19 +13,17 @@ export interface VenueAuthenticationProfile {
     readonly keySlot: string;
   };
   readonly a2t: {
-    readonly challengePath: string;
-    readonly issuancePath: string;
-    readonly proofMessagePrefix: string;
+    /** Appended to the issuer base from `MM_PREDICT_A2T_URL` or the dev default. */
+    readonly tokenPath: string;
     readonly requestTimeoutMs: number;
     readonly readinessTimeoutMs: number;
     readonly readinessPollMs: number;
     readonly refreshMarginSeconds: number;
-    readonly challengeAttempts: number;
   };
 }
 
 /**
- * Bundled Kalshi authentication profile.
+ * Bundled authentication profile.
  *
  * The service consumes this declarative contract. Future remote configuration
  * may select its bundled id, but cannot replace the profile contents.
@@ -37,14 +35,11 @@ export const KALSHI_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
     keySlot: 'kalshi-v1',
   },
   a2t: {
-    challengePath: '/venues/kalshi/a2t/challenge',
-    issuancePath: '/venues/kalshi/a2t',
-    proofMessagePrefix: 'kalshi-a2t-request-v1',
+    tokenPath: '/api/v2/kalshi/token',
     requestTimeoutMs: 15_000,
     readinessTimeoutMs: 15_000,
     readinessPollMs: 200,
     refreshMarginSeconds: 60,
-    challengeAttempts: 2,
   },
 };
 
