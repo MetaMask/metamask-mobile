@@ -3,6 +3,12 @@ import type { TokenDetailsV1TabKey } from './constants/constants';
 const TAB_CONTENT = 'token-details-v1-tab-content';
 
 export const TokenDetailsIds = {
+  header: {
+    subtitle: 'token-details-subtitle',
+    ticker: 'token-details-ticker',
+    address: 'token-details-address',
+    copyAddressButton: 'copy-contract-address-button',
+  },
   v1: 'token-details-v1',
   scrollView: 'token-details-v1-scroll-view',
   tabPanelPrefix: 'token-details-v1-tab-panel',

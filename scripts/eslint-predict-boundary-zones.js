@@ -96,10 +96,6 @@ const predictCompositionFiles = [
 const predictImportBurndownFiles = [
   'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.test.tsx',
   'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchCampaignCTA.test.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchCampaignCTA.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.test.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx',
   'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.test.tsx',
