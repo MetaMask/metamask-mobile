@@ -1668,7 +1668,10 @@ describe('TokenDetailsV1', () => {
       // A different token must re-fire (dedup keys on the token, not mount).
       rerender(
         <TokenDetailsV1
-          token={{ ...baseToken, address: '0xdifferentaddress' }}
+          token={{
+            ...baseToken,
+            address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+          }}
           variant={TokenDetailsVariant.Memecoin}
         />,
       );

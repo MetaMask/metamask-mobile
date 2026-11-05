@@ -253,6 +253,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 emptyClassName="-mt-4"
                 onOutcomeChange={setScreenOutcome}
                 performance={performance}
+                requireSocialProfile
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

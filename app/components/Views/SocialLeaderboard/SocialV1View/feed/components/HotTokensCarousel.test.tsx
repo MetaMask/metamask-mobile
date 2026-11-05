@@ -9,6 +9,7 @@ import {
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { playSelection } from '../../../../../../util/haptics';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../types';
 import HotTokensCarouselView, {
@@ -24,6 +25,8 @@ import {
 jest.mock('../../../../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => null),
 }));
+
+jest.mock('../../../../../../util/haptics');
 
 const mockSetFrameCallbackActive = jest.fn();
 
@@ -114,6 +117,33 @@ describe('HotTokensCarousel', () => {
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
     ).not.toBeOnTheScreen();
+  });
+
+  it('plays a selection haptic when a chip is pressed', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel onTokenPress={jest.fn()} />);
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a selection haptic when the selected chip is pressed', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={NVIDIA.id}
+        onTokenPress={jest.fn()}
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('passes the pressed token to onTokenPress', () => {
