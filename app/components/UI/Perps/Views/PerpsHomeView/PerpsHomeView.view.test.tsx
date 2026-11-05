@@ -2928,7 +2928,7 @@ describe('PerpsHomeView', () => {
       }
     };
 
-    afterEach(() => {
+    beforeEach(() => {
       jest
         .mocked(Engine.context.PerpsController.getAccountSupport)
         .mockReset()
