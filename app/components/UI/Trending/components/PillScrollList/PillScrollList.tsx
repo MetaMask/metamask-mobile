@@ -95,9 +95,9 @@ function PillScrollList<T>({
     nativeEvent: { layout: { height: number } };
   }) => {
     const { height } = event.nativeEvent.layout;
-    if (!isLoading && rows.length > 0 && height === 0) {
+    if (!isLoading && rows.length > 0 && height <= 12) {
       DevLogger.log(
-        `[TAT-4456] BUG_MARKER: pill rail reserved height collapsed to 0 (rows=${rows.length})`,
+        `[TAT-4456] BUG_MARKER: pill rail reserved height collapsed to ${height} (rows=${rows.length})`,
       );
     }
   };
