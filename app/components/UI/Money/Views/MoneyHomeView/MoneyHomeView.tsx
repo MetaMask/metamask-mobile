@@ -49,7 +49,7 @@ import {
   getMoneyHomeCard,
   type MoneyHomeVbaVariant,
 } from '../../hooks/getMoneyHomeCard';
-import { useWalletCryptoPresence } from '../../hooks/useWalletCryptoPresence';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
 import {
   getKycDecisionDismissDevOverride,
   setMoneyHomeCardDevOverride,
@@ -222,7 +222,7 @@ const MoneyHomeView = () => {
   const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
     useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
-    useWalletCryptoPresence();
+    useActiveGroupCryptoPresence();
   const devOverride = useMoneyHomeCardDevOverride();
   const onboardingProgress = useSelector(selectOnboardingStepperProgress);
   const [dismissedVbaVariant, setDismissedVbaVariant] =

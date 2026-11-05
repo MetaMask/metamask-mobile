@@ -43,7 +43,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
-import { useWalletCryptoPresence } from '../../hooks/useWalletCryptoPresence';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
 import {
   getMoneyHomeCardDevOverrideById,
   setMoneyHomeCardDevOverride,
@@ -487,7 +487,9 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
 const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
-const mockUseWalletCryptoPresence = jest.mocked(useWalletCryptoPresence);
+const mockUseActiveGroupCryptoPresence = jest.mocked(
+  useActiveGroupCryptoPresence,
+);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
   () => ({
@@ -500,12 +502,12 @@ jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
   useVbaTransactionRefresh: jest.fn(),
 }));
 
-jest.mock('../../hooks/useWalletCryptoPresence', () => ({
-  useWalletCryptoPresence: jest.fn(),
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
 }));
 
-jest.mock('../../hooks/useWalletCryptoPresence', () => ({
-  useWalletCryptoPresence: jest.fn(),
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
 }));
 
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
@@ -862,7 +864,7 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     setMoneyHomeCardDevOverride(null);
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
-    mockUseWalletCryptoPresence.mockReturnValue({
+    mockUseActiveGroupCryptoPresence.mockReturnValue({
       hasCrypto: false,
       isLoading: false,
     });
@@ -1119,7 +1121,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('shows the onboarding card instead of Get started when the wallet has crypto', () => {
-      mockUseWalletCryptoPresence.mockReturnValue({
+      mockUseActiveGroupCryptoPresence.mockReturnValue({
         hasCrypto: true,
         isLoading: false,
       });
