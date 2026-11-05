@@ -23,7 +23,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
-import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { buyIntent, usePredictOrderFlow } from '../PredictOrderFlow';
 import {
   getFeedScreen,
   getFeedScreenTab,
@@ -101,17 +101,7 @@ const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
       variant="featured"
       onPress={() => onOpenEvent(event)}
       onOrder={(cardEvent, market, outcome) =>
-        openOrderFlow({
-          action: 'buy',
-          eventId: cardEvent.id,
-          venueId: cardEvent.venueId,
-          marketId: market.id,
-          side: outcome.side,
-          outcomeLabel: outcome.label,
-          eventTitle: cardEvent.title,
-          eventImageUrl: cardEvent.imageUrl,
-          askPrice: outcome.askPrice,
-        })
+        openOrderFlow(buyIntent(cardEvent, market, outcome))
       }
     />
   );

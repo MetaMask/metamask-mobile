@@ -23,12 +23,15 @@ import {
 } from '../../events/game';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
-import { getOutcomeName } from '../../utils/entryCopy';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import type { PredictEvent, PredictMarket, PredictPosition } from '../../types';
-import { usePredictOrderFlow } from '../PredictOrderFlow';
+import {
+  buyIntent,
+  cashOutIntent,
+  usePredictOrderFlow,
+} from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
@@ -280,51 +283,21 @@ export const PredictEventScreen = () => {
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
-  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
-   * Position's whole-contract size. Canonical identity comes from the
-   * presented Event; display context falls back to the Position's catalog
-   * context only when the live Event cannot supply it. */
   const handlePositionCashOut = useCallback(
     (position: PredictPosition) => {
-      if (!liveEvent) {
-        return;
+      if (liveEvent) {
+        openOrderFlow(cashOutIntent(position, liveEvent));
       }
-      const market = liveEvent.markets.find(
-        (candidate) => candidate.id === position.marketId,
-      );
-      const outcome = market?.outcomes.find(
-        (candidate) => candidate.side === position.side,
-      );
-      openOrderFlow({
-        action: 'sell',
-        eventId,
-        venueId,
-        marketId: position.marketId,
-        side: position.side,
-        outcomeLabel:
-          outcome?.label ?? getOutcomeName(position.side, position.context),
-        eventTitle: liveEvent.title,
-        eventImageUrl: liveEvent.imageUrl,
-        maxContracts: Math.floor(Number(position.shares)),
-      });
     },
-    [eventId, liveEvent, openOrderFlow, venueId],
+    [liveEvent, openOrderFlow],
   );
   const handleMarketOrder = useCallback(
     (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
-      openOrderFlow({
-        action: 'buy',
-        eventId,
-        venueId,
-        marketId: market.id,
-        side: outcome.side,
-        outcomeLabel: outcome.label,
-        eventTitle: liveEvent?.title ?? '',
-        eventImageUrl: liveEvent?.imageUrl,
-        askPrice: outcome.askPrice,
-      });
+      if (liveEvent) {
+        openOrderFlow(buyIntent(liveEvent, market, outcome));
+      }
     },
-    [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+    [liveEvent, openOrderFlow],
   );
   if (liveEvent) {
     const event = liveEvent;

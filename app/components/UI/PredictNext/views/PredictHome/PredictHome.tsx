@@ -39,7 +39,7 @@ import { useNextVenueId } from '../../implementation';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { buyIntent, usePredictOrderFlow } from '../PredictOrderFlow';
 import type {
   PredictEvent,
   PredictMarket,
@@ -186,17 +186,7 @@ const PredictHomeView = ({
   );
   const openOrder = useCallback(
     (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
-      openOrderFlow({
-        action: 'buy',
-        eventId: event.id,
-        venueId: event.venueId,
-        marketId: market.id,
-        side: outcome.side,
-        outcomeLabel: outcome.label,
-        eventTitle: event.title,
-        eventImageUrl: event.imageUrl,
-        askPrice: outcome.askPrice,
-      });
+      openOrderFlow(buyIntent(event, market, outcome));
     },
     [openOrderFlow],
   );

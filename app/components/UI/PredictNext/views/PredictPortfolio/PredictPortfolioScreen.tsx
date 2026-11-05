@@ -18,7 +18,7 @@ import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
-import { usePredictOrderFlow } from '../PredictOrderFlow';
+import { cashOutIntent, usePredictOrderFlow } from '../PredictOrderFlow';
 import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
@@ -28,7 +28,6 @@ import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioTabs } from './internal/PortfolioTabs';
-import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
@@ -92,23 +91,9 @@ export const PredictPortfolioScreen = () => {
     [navigation, venueId],
   );
 
-  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
-   * Position's whole-contract size, labeled from its catalog context. */
   const cashOut = useCallback(
-    (position: PredictPosition) => {
-      openOrderFlow({
-        action: 'sell',
-        eventId: position.context?.eventId,
-        venueId,
-        marketId: position.marketId,
-        side: position.side,
-        outcomeLabel: getOutcomeName(position.side, position.context),
-        eventTitle: getEntryTitle(position.context),
-        eventImageUrl: position.context?.imageUrl,
-        maxContracts: Math.floor(Number(position.shares)),
-      });
-    },
-    [openOrderFlow, venueId],
+    (position: PredictPosition) => openOrderFlow(cashOutIntent(position)),
+    [openOrderFlow],
   );
 
   return (
