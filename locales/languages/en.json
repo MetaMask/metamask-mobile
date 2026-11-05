@@ -8768,7 +8768,8 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
-      "get_new_code": "Get new code"
+      "get_new_code": "Get new code",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
@@ -8797,7 +8798,7 @@
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
-      "too_many_attempts": "Too many attempts. Request a new code.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
