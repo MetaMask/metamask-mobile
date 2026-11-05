@@ -33,6 +33,8 @@ const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockFeedInteractions = {};
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+let mockRouteName: string = Routes.SOCIAL.V1;
 const mockSetParams = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
@@ -274,9 +276,10 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setParams: mockSetParams,
     }),
-    useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useRoute: () => ({ params: mockRouteParams, name: mockRouteName }),
     useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
@@ -332,6 +335,7 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    mockRouteName = Routes.SOCIAL.V1;
     act(() => {
       resetPendingPosts();
     });
@@ -673,12 +677,6 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
-  it('omits the header back button', () => {
-    renderWithProvider(<SocialV1View />);
-
-    expect(screen.queryByTestId('social-v1-view-back-button')).toBeNull();
-  });
-
   it('tracks Live tab selection', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -858,14 +856,35 @@ describe('SocialV1View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('insets the header avatar so it shares the 16px tab padding', () => {
+  it('insets the header start controls so they share the 16px tab padding', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
       StyleSheet.flatten(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
+        screen.getByTestId(SocialV1ViewSelectorsIDs.HEADER_START).props.style,
       ).marginLeft,
     ).toBe(8);
+  });
+
+  it('goes back from the header when opened as a pushed screen', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the back button on the Social tab', () => {
+    mockRouteName = Routes.SOCIAL.TAB;
+
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.BACK_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('uses the profile image URL for the header avatar when available', () => {

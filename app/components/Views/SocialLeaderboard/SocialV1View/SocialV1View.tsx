@@ -466,6 +466,12 @@ const SocialV1ViewContent: React.FC = () => {
     };
   });
 
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleOpenMyProfile = useCallback(() => {
     playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
@@ -697,35 +703,52 @@ const SocialV1ViewContent: React.FC = () => {
             testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
           }}
           startAccessory={
-            <Pressable
-              onPress={handleOpenMyProfile}
-              testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'social_leaderboard.my_profile.open_profile',
-              )}
-              // Header chrome is inset 8px. The feed tabs use 16px, so the
-              // avatar needs the other 8px to share that left edge.
-              style={tw.style('ml-2')}
+            // Header chrome is inset 8px. The feed tabs use 16px, so the
+            // start controls need the other 8px to share that left edge.
+            <Box
+              twClassName="ml-2 flex-row items-center gap-3"
+              testID={SocialV1ViewSelectorsIDs.HEADER_START}
             >
-              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
-                {myProfile ? (
-                  <ProfileAvatar
-                    imageUrl={myProfile.imageUrl}
-                    avatarPresetId={myProfile.avatarPresetId}
-                    avatarBackgroundId={myProfile.avatarBackgroundId}
-                    size="sm"
+              {isPushedScreen ? (
+                <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                  <ButtonIcon
+                    iconName={IconName.ArrowLeft}
+                    iconProps={{ color: IconColor.IconDefault }}
+                    size={ButtonIconSize.Md}
+                    onPress={handleBack}
+                    accessibilityLabel={strings('navigation.back')}
+                    testID={SocialV1ViewSelectorsIDs.BACK_BUTTON}
+                    twClassName="bg-transparent"
                   />
-                ) : (
-                  <AvatarAccount
-                    address={accountAddress ?? ''}
-                    variant={getAvatarAccountVariant(avatarAccountType)}
-                    size={AvatarAccountSize.Sm}
-                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
-                  />
+                </SocialHeaderGlassSurface>
+              ) : null}
+              <Pressable
+                onPress={handleOpenMyProfile}
+                testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
+                accessibilityRole="button"
+                accessibilityLabel={strings(
+                  'social_leaderboard.my_profile.open_profile',
                 )}
-              </SocialHeaderGlassSurface>
-            </Pressable>
+              >
+                <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                  {myProfile ? (
+                    <ProfileAvatar
+                      imageUrl={myProfile.imageUrl}
+                      avatarPresetId={myProfile.avatarPresetId}
+                      avatarBackgroundId={myProfile.avatarBackgroundId}
+                      size="sm"
+                    />
+                  ) : (
+                    <AvatarAccount
+                      address={accountAddress ?? ''}
+                      variant={getAvatarAccountVariant(avatarAccountType)}
+                      size={AvatarAccountSize.Sm}
+                      testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                    />
+                  )}
+                </SocialHeaderGlassSurface>
+              </Pressable>
+            </Box>
           }
           endAccessory={
             <SocialHeaderGlassSurface twClassName="gap-2 px-2">
