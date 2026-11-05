@@ -2264,6 +2264,7 @@ describe('EventMarketList', () => {
       ).toBeOnTheScreen();
       const buy = card.getByTestId(ids(EventMarketListTestIds.positionBuy));
       expect(buy).toHaveTextContent('Buy –');
+      expect(buy).toHaveProp('accessibilityLabel', 'Buy, price unavailable');
       expect(buy).toBeDisabled();
 
       fireEvent.press(buy);

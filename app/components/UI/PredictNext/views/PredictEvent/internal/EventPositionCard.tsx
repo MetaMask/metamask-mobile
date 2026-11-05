@@ -226,6 +226,11 @@ export const EventPositionCard = ({
           size={ButtonSize.Lg}
           twClassName="h-12 min-w-0 flex-1 rounded-full bg-muted"
           isDisabled={!canBuy}
+          accessibilityLabel={
+            price === undefined
+              ? strings('predict_next.event.position.buy_price_unavailable')
+              : undefined
+          }
           accessibilityState={{ disabled: !canBuy }}
           onPress={
             canBuy && market && heldOutcome

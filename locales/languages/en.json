@@ -3781,6 +3781,7 @@
         "title": "{{side}} · {{name}}",
         "chance_to_win": "{{percent}}% to win",
         "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
       }
