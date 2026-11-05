@@ -1,45 +1,100 @@
 /**
  * Ways to earn benefit copy comes from referral me, not from app strings.
+ * The tab stays on the skeleton until getReferralMe settles.
  *
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
-import { cleanup, within } from '@testing-library/react-native';
+import { waitFor, within } from '@testing-library/react-native';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
+import { REFEREE_HERO_CARD_TEST_IDS } from '../RefereeHeroCard.testIds';
+import { REFERER_HERO_CARD_TEST_IDS } from '../RefererHeroCard';
 import { renderWaysToEarnTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   REFERRAL_LOCALIZED_TEXT,
+  referralMeFixture,
   referralMeWithInvitedBenefit,
   REFEREE_INVITED_BENEFIT_TITLE,
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
+import type { ReferralMeDto } from '../../../../../../../app/core/Engine/controllers/rewards-money-controller/types';
+
+const LOAD_TIMEOUT = 3000;
+
+function referralMeCalls(engine: jest.Mock): unknown[][] {
+  return engine.mock.calls.filter(
+    (call) => call[0] === 'RewardsMoneyController:getReferralMe',
+  );
+}
+
+/**
+ * Referrer payload still carries the referee title. The card must show
+ * earnEligibleFees; a render of invitedBenefitTitle would fail the absence
+ * check even though that string is on the response.
+ */
+function referrerWithRefereeTitle(): ReferralMeDto {
+  const referralMe = referralMeFixture('referrer');
+  return {
+    ...referralMe,
+    localized_text: {
+      ...referralMe.localized_text,
+      invitedBenefitTitle: REFEREE_INVITED_BENEFIT_TITLE,
+    },
+  };
+}
 
 describe('WaysToEarnTab', () => {
-  it('shows the invited benefit title the backend returns for a referee (A3, RWDS-1673)', async () => {
-    const referee = renderWaysToEarnTab({
-      persona: 'referee',
-      referralMe: referralMeWithInvitedBenefit(),
-    });
+  it('shows the invited benefit title once referral me loads for a referee (A3, RWDS-1673)', async () => {
+    const view = renderWaysToEarnTab(referralMeWithInvitedBenefit());
 
     expect(
-      await referee.findByText(REFEREE_INVITED_BENEFIT_TITLE),
+      await view.findByText(
+        REFEREE_INVITED_BENEFIT_TITLE,
+        {},
+        { timeout: LOAD_TIMEOUT },
+      ),
     ).toBeOnTheScreen();
     expect(
-      within(
-        referee.getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
-      ).getByText(REFEREE_INVITED_BENEFIT_TITLE),
-    ).toBeOnTheScreen();
-
-    cleanup();
-
-    const referrer = renderWaysToEarnTab({ persona: 'referrer' });
-
-    expect(
-      await referrer.findByText(REFERRAL_LOCALIZED_TEXT.earnEligibleFees),
+      within(view.getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER)).getByText(
+        REFEREE_INVITED_BENEFIT_TITLE,
+      ),
     ).toBeOnTheScreen();
     expect(
-      within(
-        referrer.getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
-      ).queryByText(REFEREE_INVITED_BENEFIT_TITLE),
+      view.getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByText(REFERRAL_LOCALIZED_TEXT.earnEligibleFees),
     ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(referralMeCalls(view.engine).length).toBeGreaterThan(0);
+    });
+  });
+
+  it('shows the referrer fee title once referral me loads, not the invited benefit title', async () => {
+    const view = renderWaysToEarnTab(referrerWithRefereeTitle());
+
+    expect(
+      await view.findByText(
+        REFERRAL_LOCALIZED_TEXT.earnEligibleFees,
+        {},
+        { timeout: LOAD_TIMEOUT },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(view.getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER)).getByText(
+        REFERRAL_LOCALIZED_TEXT.earnEligibleFees,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByText(REFEREE_INVITED_BENEFIT_TITLE),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(referralMeCalls(view.engine).length).toBeGreaterThan(0);
+    });
   });
 });

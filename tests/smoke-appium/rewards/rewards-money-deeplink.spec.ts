@@ -4,7 +4,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { SmokeWalletPlatform } from '../../tags.js';
-import Assertions from '../../framework/Assertions.js';
 import RewardsMoneyView from '../../page-objects/Rewards/RewardsMoneyView.js';
 import { openE2EUrl } from '../../framework/DeepLink.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
@@ -52,17 +51,10 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
           // "Proceed with caution" interstitial is shown before navigation.
           await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
 
-          await Assertions.expectElementToBeVisible(
-            RewardsMoneyView.refereeHeroCard,
-            {
-              timeout: 20000,
-              description:
-                'Rewards Money dashboard shows the referee hero after the money campaign deeplink',
-            },
+          await RewardsMoneyView.expectRefereeHeroVisible();
+          await RewardsMoneyView.expectInvitedBenefitTitle(
+            REFEREE_INVITED_BENEFIT_TITLE,
           );
-          await Assertions.expectTextDisplayed(REFEREE_INVITED_BENEFIT_TITLE, {
-            description: 'Referee hero shows the mocked invited benefit title',
-          });
         },
       );
     },

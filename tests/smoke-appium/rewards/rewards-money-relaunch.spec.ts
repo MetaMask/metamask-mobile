@@ -4,7 +4,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { SmokeWalletPlatform } from '../../tags.js';
-import Assertions from '../../framework/Assertions.js';
 import Gestures from '../../framework/Gestures.js';
 import RewardsMoneyView from '../../page-objects/Rewards/RewardsMoneyView.js';
 import { openE2EUrl } from '../../framework/DeepLink.js';
@@ -23,18 +22,9 @@ const MONEY_CAMPAIGN_DEEPLINK =
 async function openClaimedEarnings(): Promise<void> {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
   await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
-  await Assertions.expectElementToBeVisible(RewardsMoneyView.refereeHeroCard, {
-    timeout: 20000,
-    description: 'Rewards Money dashboard is open for the referee',
-  });
-  await Gestures.waitAndTap(RewardsMoneyView.earningsTab, {
-    timeout: 20000,
-    elemDescription: 'Earnings tab',
-  });
-  await Assertions.expectElementToBeVisible(RewardsMoneyView.claimedButton, {
-    timeout: 20000,
-    description: 'Claimed earnings stay on the Earnings tab',
-  });
+  await RewardsMoneyView.expectRefereeHeroVisible();
+  await RewardsMoneyView.tapEarningsTab();
+  await RewardsMoneyView.expectClaimedEarnings();
 }
 
 appiumTest.describe(SmokeWalletPlatform('Rewards Money relaunch'), () => {

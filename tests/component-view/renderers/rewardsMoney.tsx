@@ -1,6 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
+import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
@@ -8,6 +9,12 @@ import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
+import RewardsTabSkeleton from '../../../app/components/UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { useRewardsMoneyTabRouting } from '../../../app/components/UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard.testIds';
+import type { RootState } from '../../../app/reducers';
+import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../app/selectors/identity';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
@@ -385,27 +392,47 @@ export function renderRewardsSettingsView(
 }
 
 /**
- * Ways to earn on the Money preset. The tab reads the referral payload it is
- * given; earnings still come from the Engine summary handler.
+ * Ways to earn stays on the skeleton until `useRewardsMoneyTabRouting` writes
+ * the referral-me response. Passing the payload as a prop paints the title on
+ * the first render, so a findBy would not be waiting on a load.
  */
-export function renderWaysToEarnTab(options: RenderRewardsMoneyOptions = {}) {
-  const persona = options.persona ?? 'referee';
-  const referralMe = options.referralMe ?? referralMeFixture(persona);
+function WaysToEarnAfterReferralLoad() {
+  const { moneyReferralResolved, moneyPersona } = useRewardsMoneyTabRouting();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const personaReady =
+    moneyPersona === 'referee' || moneyPersona === 'referrer';
 
-  function Screen() {
+  if (!moneyReferralResolved || !profileId || !referralMe || !personaReady) {
     return (
-      <WaysToEarnTab
-        profileId={REWARDS_MONEY_PROFILE_ID}
-        referralMe={referralMe}
-        isSubscribed={Boolean(options.subscriptionId)}
-      />
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
     );
   }
 
-  return renderMoneyScreen(Screen, 'WaysToEarnTab', {
-    ...options,
-    persona,
-    referralMe,
+  return (
+    <WaysToEarnTab
+      profileId={profileId}
+      referralMe={referralMe}
+      isSubscribed={false}
+    />
+  );
+}
+
+/**
+ * Ways to earn after the Rewards tab resolves referral me. The cache starts
+ * empty, so the title appears only once `getReferralMe` settles.
+ */
+export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
+  return renderMoneyScreen(WaysToEarnAfterReferralLoad, 'WaysToEarnTab', {
+    seedReferralMe: false,
+    moneyControllerEnabled: true,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
+    },
   });
 }
 
