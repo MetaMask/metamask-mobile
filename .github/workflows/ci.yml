@@ -499,10 +499,11 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace ci-linux is 8x16, so the heap stays at 12288 to leave room
-          # for the rest of the process. ubuntu-latest matches the other test
+          # Namespace ci-linux is 8x16. 13312 leaves about 3 GB for the rest of
+          # the process and the runner; a higher heap trades the V8 heap error
+          # for the kernel OOM killer. ubuntu-latest matches the other test
           # jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '12288' || '20480' }}
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '13312' || '20480' }}
       - name: Require clean working directory
         shell: bash
         run: |
