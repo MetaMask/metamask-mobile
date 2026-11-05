@@ -686,12 +686,13 @@ interstitial. That list is the source of truth and currently includes:
 - Card: `CARD_ONBOARDING`, `CARD_HOME`, `CARD_KYC_NOTIFICATION`
 - Other: `WC`, `SHIELD`, `AGENTIC_CLI`, `NOTIFICATIONS_SETTINGS`
 
-`HOME` is whitelisted for the Money referral share link
+`HOME` is whitelisted. The Money referral share link uses it
 (`https://link.metamask.io/home?ref=...`). The home handler always navigates
-to `Routes.WALLET.HOME`; `homePath` is only read for `previewToken` and
-`openNetworkSelector`. It does not route to a token, swap, dapp, or other
-action. `ref` only stores a session-only pending referral code, and the user
-must accept the invite for a referral to be created.
+to `Routes.WALLET.HOME`; `homePath` is only read for `openNetworkSelector`.
+The legacy `previewToken` param is intentionally ignored and no longer enables
+Contentful preview mode from a deeplink. `ref` only stores a session-only
+pending referral code, and the user must accept the invite for a referral to be
+created.
 
 `interstitialWhitelistUrls` is currently empty. If you add an entry, prefer an
 exact URL match over `startsWith`; the current `startsWith` check can be
@@ -1069,7 +1070,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 | `buy` / `buy-crypto`     | Buy crypto                  | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `sell` / `sell-crypto`   | Sell crypto                 | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `send`                   | Send transaction            | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `home`                   | Navigate home               | `navigateToHomeUrl`              | Params: `previewToken`, `openNetworkSelector`                                                                                                                                                                                                                                                                                                                                                                                      |
+| `home`                   | Navigate home               | `navigateToHomeUrl`              | Params: `openNetworkSelector` (legacy `previewToken` is ignored)                                                                                                                                                                                                                                                                                                                                                                   |
 | `asset`                  | Asset overview              | `handleAssetUrl`                 | Params: `assetId` (CAIP-19)                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `dapp`                   | Open dApp browser           | `handleBrowserUrl`               |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `create-account`         | Create new account          | `handleCreateAccountUrl`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
