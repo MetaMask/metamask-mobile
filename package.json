@@ -189,6 +189,7 @@
     ]
   },
   "resolutions": {
+    "uniffi-bindgen-react-native": "0.31.0-2",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^37.1.1",
@@ -423,6 +424,7 @@
     "@metamask/money-account-controller": "^3.0.0",
     "@metamask/money-account-upgrade-controller": "^5.1.0",
     "@metamask/money-account-utils": "^2.1.0",
+    "@metamask/mpc-react-native": "^0.2.1",
     "@metamask/multichain-account-service": "^14.1.0",
     "@metamask/multichain-api-client": "^0.11.0",
     "@metamask/multichain-api-middleware": "^4.0.1",
