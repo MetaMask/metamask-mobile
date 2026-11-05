@@ -376,7 +376,7 @@ export function formatHoldDuration(durationMs: number): string {
  * unlike the compact V0 row ({@link formatFeedTimestamp}) there is room for the
  * unit and the "ago" suffix. Ages of a day or more stay relative here rather
  * than switching to a clock time, because a post's position in the feed is
- * already chronological and "3 d ago" reads faster than a bare date.
+ * already chronological and "3d ago" reads faster than a bare date.
  */
 export function formatFeedPostAge(
   timestamp: number,

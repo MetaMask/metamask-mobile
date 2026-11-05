@@ -455,8 +455,8 @@ describe('formatFeedPostAge', () => {
   // than collapsing to a clock time.
   it('switches to days at the one-day boundary', () => {
     expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23 hr ago');
-    expect(formatFeedPostAge(now - DAY, now)).toBe('1 d ago');
-    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9 d ago');
+    expect(formatFeedPostAge(now - DAY, now)).toBe('1d ago');
+    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9d ago');
   });
 
   it('absorbs clock skew as "Just now"', () => {
