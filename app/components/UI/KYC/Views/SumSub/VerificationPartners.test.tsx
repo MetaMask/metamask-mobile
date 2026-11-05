@@ -163,7 +163,7 @@ describe('VbaVerificationPartners', () => {
     expect(
       getByTestId(VbaVerificationPartnersSelectorsIDs.IDOS_AGREEMENT),
     ).toHaveTextContent(
-      'By tapping Agree, I agree to idOS Terms and Conditions.',
+      'By tapping Agree and continue, I agree to idOS Terms and Conditions.',
       {
         exact: true,
       },
@@ -246,11 +246,11 @@ describe('VbaVerificationPartners', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(IDOS_TERMS_URL);
   });
 
-  describe('Scroll to continue', () => {
+  describe('footer button states', () => {
     const footerButton = (getByTestId: GetByTestId) =>
       getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON);
 
-    it('labels the enabled footer button Scroll to continue while the consent is off screen', () => {
+    it('reads a disabled Scroll to continue while the consent is below the fold', () => {
       const { getByTestId, getByRole } = renderScreen();
       layOutScreen(getByTestId);
 
@@ -258,87 +258,117 @@ describe('VbaVerificationPartners', () => {
         'Scroll to continue',
         { exact: true },
       );
-      expect(footerButton(getByTestId)).toBeEnabled();
+      expect(footerButton(getByTestId)).toBeDisabled();
+      expect(footerButton(getByTestId).props.accessibilityLabel).toBe(
+        'Scroll to continue',
+      );
       expect(
-        getByRole('button', { name: 'Scroll to continue' }),
+        getByRole('button', { name: 'Scroll to continue', disabled: true }),
       ).toBeOnTheScreen();
     });
 
-    it('scrolls the consent row into view when pressed, without agreeing', () => {
-      const { getByTestId, UNSAFE_getByType } = renderScreen();
-      const scrollToSpy = jest.spyOn(
-        UNSAFE_getByType(ScrollView).instance,
-        'scrollTo',
-      );
+    it('does not scroll or agree when pressed while disabled', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
+      const { getByTestId } = renderScreen();
       layOutScreen(getByTestId);
 
       fireEvent.press(footerButton(getByTestId));
 
-      // Row bottom (900 + 140) plus a 16pt margin, less the 600pt viewport.
-      expect(scrollToSpy).toHaveBeenCalledWith({ y: 456, animated: true });
+      expect(scrollToSpy).not.toHaveBeenCalled();
+      expect(scrollToEndSpy).not.toHaveBeenCalled();
       expect(mockOnAgree).not.toHaveBeenCalled();
-    });
-
-    it('scrolls to the end when pressed before the consent row is measured', () => {
-      const { getByTestId, UNSAFE_getByType } = renderScreen();
-      const scrollToEndSpy = jest.spyOn(
-        UNSAFE_getByType(ScrollView).instance,
-        'scrollToEnd',
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Scroll to continue',
+        { exact: true },
       );
-
-      fireEvent.press(footerButton(getByTestId));
-
-      expect(scrollToEndSpy).toHaveBeenCalledWith({ animated: true });
     });
 
-    it('switches to a disabled Agree once the consent has scrolled into view', () => {
+    it('reads a disabled Agree to consent above once the consent is in view', () => {
       const { getByTestId, getByRole } = renderScreen();
       revealConsent(getByTestId);
 
-      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
-        exact: true,
-      });
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Agree to consent above',
+        { exact: true },
+      );
       expect(footerButton(getByTestId)).toBeDisabled();
-      expect(getByRole('button', { name: 'Agree' })).toBeOnTheScreen();
+      expect(footerButton(getByTestId).props.accessibilityLabel).toBe(
+        'Agree to consent above',
+      );
+      expect(
+        getByRole('button', { name: 'Agree to consent above', disabled: true }),
+      ).toBeOnTheScreen();
     });
 
-    it('stays on Agree when the consent scrolls back off screen', () => {
+    it('goes back to Scroll to continue when the consent scrolls off screen', () => {
       const { getByTestId } = renderScreen();
       revealConsent(getByTestId);
 
       scrollContentTo(getByTestId, 0);
 
-      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
-        exact: true,
-      });
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Scroll to continue',
+        { exact: true },
+      );
+      expect(footerButton(getByTestId)).toBeDisabled();
     });
 
-    it('keeps Scroll to continue while the terms load, even with the consent row on screen', () => {
+    it('reads an enabled Agree and continue once ticked, wherever it is scrolled', () => {
+      const { getByTestId, getByRole } = renderScreen();
+      revealConsent(getByTestId);
+      tickBiometricConsent(getByTestId);
+
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Agree and continue',
+        { exact: true },
+      );
+      expect(footerButton(getByTestId)).toBeEnabled();
+
+      scrollContentTo(getByTestId, 0);
+
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Agree and continue',
+        { exact: true },
+      );
+      expect(footerButton(getByTestId)).toBeEnabled();
+      expect(
+        getByRole('button', { name: 'Agree and continue', disabled: false }),
+      ).toBeOnTheScreen();
+    });
+
+    it('ignores a consent row measured while the terms were loading', () => {
       mockUseKycSessionDisclaimers.mockReturnValue({
         disclaimers: null,
         isLoading: true,
         error: null,
         retry: mockRetry,
       });
-      const { getByTestId } = renderScreen();
+      const { getByTestId, rerender } = renderScreen();
       revealConsent(getByTestId);
 
       expect(footerButton(getByTestId)).toHaveTextContent(
         'Scroll to continue',
         { exact: true },
       );
-    });
 
-    it('switches to an enabled Agree when the consent is ticked', () => {
-      const { getByTestId } = renderScreen();
-      layOutScreen(getByTestId);
-
-      tickBiometricConsent(getByTestId);
-
-      expect(footerButton(getByTestId)).toHaveTextContent('Agree', {
-        exact: true,
+      // The terms arrive; the row's last measurement was taken while loading.
+      mockUseKycSessionDisclaimers.mockReturnValue({
+        disclaimers: legalCatalog,
+        isLoading: false,
+        error: null,
+        retry: mockRetry,
       });
-      expect(footerButton(getByTestId)).toBeEnabled();
+      rerender(
+        <BiometricConsentProvider>
+          <VbaVerificationPartners onBack={mockOnBack} onAgree={mockOnAgree} />
+        </BiometricConsentProvider>,
+      );
+
+      expect(footerButton(getByTestId)).toHaveTextContent(
+        'Scroll to continue',
+        { exact: true },
+      );
     });
   });
 

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   type LayoutChangeEvent,
@@ -79,9 +73,6 @@ const IDOS_TERMS_DISCLAIMER_ID = 'idOS:end_user_agreement';
  */
 const CHECKBOX_VISIBLE_HEIGHT = 24;
 
-/** Space left below the consent row when Scroll to continue brings it up. */
-const SCROLL_TO_CONSENT_MARGIN = 16;
-
 interface TermsLink {
   id: string;
   title: string;
@@ -130,10 +121,11 @@ interface VbaVerificationPartnersProps {
 
 /**
  * Screen 2 of 2 of the identity terms: idOS and Sumsub. idOS needs an explicit,
- * separate biometric consent before any data is collected. Until the consent
- * has been on screen the footer CTA reads Scroll to continue and scrolls to
- * it; after that it's Agree, disabled until the consent checkbox is ticked (and
- * the session terms have loaded). Agreeing hands off to the provider step, which records the session
+ * separate biometric consent before any data is collected. The footer CTA
+ * stays disabled until the consent checkbox is ticked (and the session terms
+ * have loaded); its label reads Scroll to continue while the consent is below
+ * the fold, Agree to consent above once it's in view, and Agree and continue
+ * once it's ticked. Agreeing hands off to the provider step, which records the session
  * consents and launches Sumsub back-to-back. The tick lives in
  * {@link useBiometricConsent}, so it survives Back to screen 1.
  */
@@ -148,59 +140,50 @@ const VbaVerificationPartners = ({
 
   // Where the consent row sits in the scroll content, and what's on screen.
   // Until both are measured the row counts as off screen.
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [consentRow, setConsentRow] = useState<{ y: number; height: number }>();
+  const [consentRow, setConsentRow] = useState<{
+    y: number;
+    height: number;
+    // Measured while the terms were still loading, so the row sat higher than
+    // it will once the card fills in.
+    isProvisional: boolean;
+  }>();
   const [viewportHeight, setViewportHeight] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
-  // Once the consent has been on screen (or ticked) the footer stays on Agree,
-  // even if the user scrolls back up, so its label doesn't flicker.
-  const [hasSeenConsent, setHasSeenConsent] = useState(false);
 
   const handleViewportLayout = useCallback(
     (event: LayoutChangeEvent) =>
       setViewportHeight(event.nativeEvent.layout.height),
     [],
   );
-  const handleConsentRowLayout = useCallback((event: LayoutChangeEvent) => {
-    const { y, height } = event.nativeEvent.layout;
-    setConsentRow({ y, height });
-  }, []);
+  const handleConsentRowLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      setConsentRow({ y, height, isProvisional: isLoading });
+    },
+    [isLoading],
+  );
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) =>
       setScrollOffset(event.nativeEvent.contentOffset.y),
     [],
   );
 
+  // Only a measurement taken after the terms load counts: while the card is
+  // still empty the row sits high up and would read as in view too early.
   const isConsentRowInView =
     consentRow !== undefined &&
+    !consentRow.isProvisional &&
     viewportHeight > 0 &&
     consentRow.y + CHECKBOX_VISIBLE_HEIGHT <= scrollOffset + viewportHeight;
 
-  // The consent row only counts as seen once the terms have loaded: while the
-  // card is still empty the row sits high up and would flip the CTA early.
-  useEffect(() => {
-    if (hasBiometricConsent || (isConsentRowInView && !isLoading)) {
-      setHasSeenConsent(true);
-    }
-  }, [isConsentRowInView, isLoading, hasBiometricConsent]);
-
-  // Brings the whole consent row up above the footer.
-  const scrollToConsent = useCallback(() => {
-    if (!consentRow) {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-      return;
-    }
-    scrollViewRef.current?.scrollTo({
-      y: Math.max(
-        0,
-        consentRow.y +
-          consentRow.height +
-          SCROLL_TO_CONSENT_MARGIN -
-          viewportHeight,
-      ),
-      animated: true,
-    });
-  }, [consentRow, viewportHeight]);
+  // The footer CTA tells the user what's left: scroll to the consent, tick
+  // it, then agree. It's only enabled once the consent is ticked.
+  let ctaLabel = verifyIdentityString('partners_scroll_to_continue');
+  if (hasBiometricConsent) {
+    ctaLabel = verifyIdentityString('partners_agree_and_continue');
+  } else if (isConsentRowInView) {
+    ctaLabel = verifyIdentityString('partners_agree_to_consent_above');
+  }
 
   let contentState: KycScreenContentState = KYC_SCREEN_CONTENT_STATE.EMPTY;
   if (error) {
@@ -264,7 +247,6 @@ const VbaVerificationPartners = ({
           includesTopInset
         />
         <ScrollView
-          ref={scrollViewRef}
           contentContainerStyle={tw.style('flex-grow pb-6')}
           onLayout={handleViewportLayout}
           onScroll={handleScroll}
@@ -422,7 +404,7 @@ const VbaVerificationPartners = ({
             twClassName="text-center"
             testID={VbaVerificationPartnersSelectorsIDs.IDOS_AGREEMENT}
           >
-            {verifyIdentityString('footer_agreement_idos_start')}
+            {verifyIdentityString('partners_footer_agreement_idos_start')}
             <InlineLink
               url={idosTermsUrl}
               variant={TextVariant.BodySm}
@@ -432,19 +414,17 @@ const VbaVerificationPartners = ({
             </InlineLink>
             {verifyIdentityString('footer_agreement_idos_end')}
           </Text>
-          {/* Until the consent has been on screen, the CTA scrolls to it. */}
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={hasSeenConsent && (!hasBiometricConsent || !hasTerms)}
+            isDisabled={!hasBiometricConsent || !hasTerms}
             isLoading={isLoading}
-            onPress={hasSeenConsent ? handleAgree : scrollToConsent}
+            onPress={handleAgree}
+            accessibilityLabel={ctaLabel}
             testID={VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON}
           >
-            {verifyIdentityString(
-              hasSeenConsent ? 'agree_button' : 'partners_scroll_to_continue',
-            )}
+            {ctaLabel}
           </Button>
         </Box>
       </SafeAreaView>

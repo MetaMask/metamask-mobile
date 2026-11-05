@@ -1178,6 +1178,8 @@
       "partners_title": "Our verification partners",
       "partners_description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
       "partners_scroll_to_continue": "Scroll to continue",
+      "partners_agree_to_consent_above": "Agree to consent above",
+      "partners_agree_and_continue": "Agree and continue",
       "terms_section_title": "Terms and privacy",
       "party_idos": "idOS",
       "party_sumsub": "Sumsub",
@@ -1196,9 +1198,8 @@
       "biometric_consent_label": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in ",
       "biometric_consent_link": "idOS Privacy Notice",
       "biometric_consent_label_end": ".",
-      "footer_agreement_idos_start": "By tapping Agree, I agree to ",
-      "footer_agreement_idos_end": ".",
-      "agree_button": "Agree"
+      "partners_footer_agreement_idos_start": "By tapping Agree and continue, I agree to ",
+      "footer_agreement_idos_end": "."
     },
     "kyc_email": {
       "error_title": "Couldn't start verification",

@@ -112,7 +112,7 @@ const tickBiometricConsent = ({ getByTestId }: Rendered) =>
   );
 
 // Lays out a 600pt viewport with the consent row on screen, so the footer CTA
-// switches from Scroll to continue to Agree.
+// switches from Scroll to continue to Agree to consent above.
 const revealConsent = ({ getByTestId }: Rendered) => {
   fireEvent(
     getByTestId(VbaVerificationPartnersSelectorsIDs.CONTAINER),
@@ -243,7 +243,7 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.IDOS_AGREEMENT),
       ).toHaveTextContent(
-        'By tapping Agree, I agree to idOS Terms and Conditions.',
+        'By tapping Agree and continue, I agree to idOS Terms and Conditions.',
         { exact: true },
       );
       fireEvent.press(
@@ -273,16 +273,22 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
       ).toHaveTextContent('Scroll to continue', { exact: true });
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+      ).toBeDisabled();
       revealConsent(result);
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
-      ).toHaveTextContent('Agree', { exact: true });
+      ).toHaveTextContent('Agree to consent above', { exact: true });
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
       ).toBeDisabled();
 
       tickBiometricConsent(result);
 
+      expect(
+        getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
+      ).toHaveTextContent('Agree and continue', { exact: true });
       expect(
         getByTestId(VbaVerificationPartnersSelectorsIDs.AGREE_BUTTON),
       ).toBeEnabled();
