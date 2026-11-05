@@ -24,11 +24,15 @@ const mockDepositWithConfirmation = jest.mocked(
 
 const openSheet = async (
   venue: PredictFundingVenue,
-  options: { pending?: boolean } = {},
+  options: { pending?: boolean; predictTradingEnabled?: boolean } = {},
 ) => {
   const transactions = options.pending ? [pendingTransaction()] : [];
   const rejectRequest = seedEngineTransactions(transactions);
-  const view = renderMoneyTransferSheetView({ venue, transactions });
+  const view = renderMoneyTransferSheetView({
+    venue,
+    transactions,
+    predictTradingEnabled: options.predictTradingEnabled,
+  });
   fireEvent.press(
     await view.findByTestId(PredictFundingRendererTestIds.OPEN_SHEET),
   );
@@ -92,6 +96,19 @@ describeForPlatforms('MoneyTransferSheet Predict funding gate', () => {
       );
       expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
     });
+
+    it('does not render the Predictions account transfer while Predict trading is off', async () => {
+      const { queryByTestId, getByTestId } = await openSheet('polymarket', {
+        predictTradingEnabled: false,
+      });
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+      ).toBeNull();
+    });
   });
 
   describe('while Kalshi is active without a funding implementation', () => {
@@ -114,6 +131,9 @@ describeForPlatforms('MoneyTransferSheet Predict funding gate', () => {
 
       await switchPredictVenue(view, 'kalshi');
 
+      expect(
+        view.getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+      ).toBeOnTheScreen();
       expect(
         view.queryByTestId(
           MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,

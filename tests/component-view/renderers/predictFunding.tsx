@@ -48,6 +48,8 @@ export const PREDICT_FUNDING_ORDER_TX_ID = 'predict-funding-order-tx';
 
 interface PredictFundingStateOptions {
   venue: PredictFundingVenue;
+  /** `predictTradingEnabled`, the legacy lane's switch. Defaults to on. */
+  predictTradingEnabled?: boolean;
   transactions?: Partial<TransactionMeta>[];
   overrides?: DeepPartial<RootState>;
 }
@@ -59,13 +61,14 @@ interface PredictFundingStateOptions {
  */
 const buildPredictFundingState = ({
   venue,
+  predictTradingEnabled = true,
   transactions = [],
   overrides,
 }: PredictFundingStateOptions) => {
   const builder = initialStateVba()
     .withRemoteFeatureFlags({
       predictTradingEnabled: {
-        enabled: true,
+        enabled: predictTradingEnabled,
         featureVersion: '1.0.0',
         minimumVersion: '0.0.1',
       },
@@ -164,9 +167,8 @@ export const predictDepositAndOrderTransaction =
 /** The pay-with sheet for a pending `predictDepositAndOrder` confirmation. */
 export const renderPayWithBottomSheetView = ({
   venue,
-}: {
-  venue: PredictFundingVenue;
-}) =>
+  predictTradingEnabled,
+}: Pick<PredictFundingStateOptions, 'venue' | 'predictTradingEnabled'>) =>
   renderScreenWithRoutes(
     PayWithBottomSheet as unknown as React.ComponentType,
     { name: Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET },
@@ -174,6 +176,7 @@ export const renderPayWithBottomSheetView = ({
     {
       state: buildPredictFundingState({
         venue,
+        predictTradingEnabled,
         transactions: [predictDepositAndOrderTransaction()],
         overrides: {
           engine: {
