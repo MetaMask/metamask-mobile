@@ -3,11 +3,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import { usePerpsLiveOrders, usePerpsLivePositions } from './stream';
 
-export type PerpsDataMonitorPositionSnapshot = Pick<
-  Position,
-  'size' | 'entryPrice'
->;
-
 export interface DataMonitorParams {
   /** Asset symbol */
   asset: string;
@@ -15,10 +10,6 @@ export interface DataMonitorParams {
   monitorOrders?: boolean;
   /** Whether to monitor for position changes (default: true) */
   monitorPositions?: boolean;
-  /** Number of orders for this asset immediately before order submission */
-  initialOrderCount?: number;
-  /** Position state for this asset immediately before order submission */
-  initialPosition?: PerpsDataMonitorPositionSnapshot | null;
   /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
   timeoutMs?: number;
   /** Callback when monitoring detects data changes */
@@ -36,10 +27,6 @@ export interface UsePerpsDataMonitorParams {
   monitorOrders?: boolean;
   /** Whether to monitor for position changes (default: true) */
   monitorPositions?: boolean;
-  /** Number of orders for this asset immediately before order submission */
-  initialOrderCount?: number;
-  /** Position state for this asset immediately before order submission */
-  initialPosition?: PerpsDataMonitorPositionSnapshot | null;
   /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
   timeoutMs?: number;
   /** Callback when monitoring detects data changes */
@@ -77,8 +64,6 @@ export function usePerpsDataMonitor(
     asset,
     monitorOrders = true,
     monitorPositions = true,
-    initialOrderCount: suppliedInitialOrderCount,
-    initialPosition: suppliedInitialPosition,
     timeoutMs = PERPS_CONSTANTS.DefaultMonitoringTimeoutMs,
     onDataDetected,
     enabled = false,
@@ -92,9 +77,9 @@ export function usePerpsDataMonitor(
   const hasCompletedRef = useRef<boolean>(false);
 
   // State to track positions and orders before order placement (for change detection)
-  const [initialPosition, setInitialPosition] = useState<
-    PerpsDataMonitorPositionSnapshot | null | undefined
-  >(undefined);
+  const [initialPositions, setInitialPositions] = useState<Position[] | null>(
+    null,
+  );
   const [initialOrderCount, setInitialOrderCount] = useState<number>(0);
 
   // Get orders data (real-time WebSocket)
@@ -108,7 +93,7 @@ export function usePerpsDataMonitor(
   // Helper function to clean up monitoring state - DRY utility
   const cleanupMonitoring = useCallback((resetCompletion: boolean = false) => {
     setIsMonitoring(false);
-    setInitialPosition(undefined);
+    setInitialPositions(null);
     setInitialOrderCount(0);
     if (resetCompletion) {
       hasCompletedRef.current = false;
@@ -132,7 +117,11 @@ export function usePerpsDataMonitor(
   // Helper function to detect position changes for the specific asset
   const hasPositionChangedForAsset = useCallback(
     (targetAsset: string): boolean => {
-      if (initialPosition === undefined || !positions) return false;
+      if (!initialPositions || !positions) return false;
+
+      const initialPosition = initialPositions.find(
+        (p) => p.symbol === targetAsset,
+      );
       const currentPosition = positions.find((p) => p.symbol === targetAsset);
 
       // New position created (no position before, now has position)
@@ -153,7 +142,7 @@ export function usePerpsDataMonitor(
 
       return false;
     },
-    [initialPosition, positions],
+    [initialPositions, positions],
   );
 
   // Reset completion flag when key parameters change
@@ -165,8 +154,6 @@ export function usePerpsDataMonitor(
     enabled,
     monitorOrders,
     monitorPositions,
-    suppliedInitialOrderCount,
-    suppliedInitialPosition,
     timeoutMs,
   ]);
 
@@ -199,29 +186,12 @@ export function usePerpsDataMonitor(
         },
       );
 
-      // Prefer the pre-submit baseline supplied by the caller. The order or
-      // position update can arrive before this destination screen mounts.
-      const currentPosition = (positions || []).find(
-        (position) => position.symbol === asset,
-      );
-      let positionBaseline: PerpsDataMonitorPositionSnapshot | null;
-      if (suppliedInitialPosition !== undefined) {
-        positionBaseline = suppliedInitialPosition;
-      } else if (currentPosition) {
-        positionBaseline = {
-          size: currentPosition.size,
-          entryPrice: currentPosition.entryPrice,
-        };
-      } else {
-        positionBaseline = null;
-      }
-      setInitialPosition(positionBaseline);
+      // Capture current positions and order count as initial state for change detection
+      setInitialPositions(positions || []);
       const currentAssetOrders = (orders || []).filter(
         (order) => order.symbol === asset,
       );
-      setInitialOrderCount(
-        suppliedInitialOrderCount ?? currentAssetOrders.length,
-      );
+      setInitialOrderCount(currentAssetOrders.length);
       setIsMonitoring(true);
 
       // Set a timeout fallback in case data never loads
@@ -257,8 +227,6 @@ export function usePerpsDataMonitor(
     asset,
     monitorOrders,
     monitorPositions,
-    suppliedInitialOrderCount,
-    suppliedInitialPosition,
     onDataDetected,
     timeoutMs,
     isLoadingOrders,
@@ -353,7 +321,7 @@ export function usePerpsDataMonitor(
       monitorPositions,
       hasOrders: orders ? orders.length > 0 : false,
       hasPositions: positions?.length > 0,
-      hasInitialPosition: initialPosition !== undefined,
+      hasInitialPositions: !!initialPositions,
     });
   }, [
     isMonitoring,
@@ -363,7 +331,7 @@ export function usePerpsDataMonitor(
     onDataDetected,
     orders,
     positions,
-    initialPosition,
+    initialPositions,
     initialOrderCount,
     isLoadingOrders,
     isLoadingPositions,
