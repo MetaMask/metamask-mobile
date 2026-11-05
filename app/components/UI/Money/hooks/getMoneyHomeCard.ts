@@ -61,10 +61,12 @@ export interface MoneyHomeCardInputs {
  * Get started is the only crypto-gated VBA card: a VBA-supported region,
  * nothing started, and no crypto. "Eligible" in the rendering table means
  * that region. A wallet that already has crypto, or a user outside a VBA
- * region, takes the onboarding stepper instead. Once a KYC-approved account
- * has an autoramp, or the Money account is funded, Account is ready gives
- * way to the card step (or to nothing, when that step is already done).
- * Dismissing the KYC decision card falls through to that same stepper.
+ * region, takes the onboarding stepper instead. Identity verified is the
+ * KYC-approved card with no usable autoramp, and it shows only while the
+ * Money account is unfunded. A usable autoramp does not render You're all
+ * set: an unfunded account shows nothing, and a funded account takes the
+ * card step (or nothing, when that step is already done). Dismissing the
+ * KYC decision card falls through to that same stepper.
  *
  * @param inputs - Eligibility, balances, VBA card, and card-step state.
  * @returns The one card to mount, or `none`.
@@ -87,12 +89,15 @@ export function getMoneyHomeCard(inputs: MoneyHomeCardInputs): MoneyHomeCard {
     return { type: 'none' };
   }
 
+  // getVbaHomeCard returns identity_verified only when KYC is approved and
+  // no usable autoramp exists. account_is_ready now means a usable autoramp
+  // whose details have not been viewed, and that card stays off this screen.
   if (
-    vbaCard.type === 'account_is_ready' &&
+    vbaCard.type === 'identity_verified' &&
     !inputs.hasUsableAutoramp &&
     !inputs.isMoneyAccountFunded
   ) {
-    return { type: 'vba', variant: 'account_is_ready' };
+    return { type: 'vba', variant: 'identity_verified' };
   }
 
   if (vbaCard.type === 'get_started' && !inputs.hasCrypto) {

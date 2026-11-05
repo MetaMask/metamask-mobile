@@ -42,9 +42,9 @@ export const MONEY_HOME_CARD_DEV_OVERRIDES: readonly MoneyHomeCardDevOverride[] 
       card: { type: 'vba', variant: 'kyc_decision' },
     },
     {
-      id: 'account_is_ready',
-      label: '6. VBA region — Account is ready',
-      card: { type: 'vba', variant: 'account_is_ready' },
+      id: 'identity_verified',
+      label: '6. VBA region: Identity verified',
+      card: { type: 'vba', variant: 'identity_verified' },
     },
     {
       id: 'add_funds',

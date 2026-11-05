@@ -39,7 +39,7 @@ describe('getMoneyHomeCard', () => {
     const cryptoLoading = getMoneyHomeCard({
       ...baseInputs,
       isCryptoBalanceLoading: true,
-      vbaCard: card('account_is_ready'),
+      vbaCard: card('identity_verified'),
     });
 
     expect(moneyLoading).toEqual({ type: 'none' });
@@ -124,24 +124,33 @@ describe('getMoneyHomeCard', () => {
     expect(result).toEqual({ type: 'onboarding' });
   });
 
-  it('returns Account is ready when KYC is approved, no autoramp exists, and the account is unfunded', () => {
+  it('returns Identity verified when KYC is approved, no autoramp exists, and the account is unfunded', () => {
     const result = getMoneyHomeCard({
       ...baseInputs,
       hasCrypto: true,
-      vbaCard: card('account_is_ready'),
+      vbaCard: card('identity_verified'),
     });
 
-    expect(result).toEqual({ type: 'vba', variant: 'account_is_ready' });
+    expect(result).toEqual({ type: 'vba', variant: 'identity_verified' });
   });
 
   it('returns the card onboarding step once a first deposit funds the Money account', () => {
     const result = getMoneyHomeCard({
       ...baseInputs,
-      vbaCard: card('account_is_ready'),
+      vbaCard: card('identity_verified'),
       isMoneyAccountFunded: true,
     });
 
     expect(result).toEqual({ type: 'onboarding' });
+  });
+
+  it('does not render You are all set for an approved session that has no autoramp', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      vbaCard: card('account_is_ready'),
+    });
+
+    expect(result).toEqual({ type: 'none' });
   });
 
   it('returns none when KYC is approved, the autoramp is active, and the account is unfunded', () => {

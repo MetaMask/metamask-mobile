@@ -1017,7 +1017,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the account_is_ready card', () => {
+    it('renders the identity_verified card', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -1025,12 +1025,12 @@ describe('MoneyHomeView', () => {
         tokenTotal: new BigNumber(0),
       });
       mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
+        type: 'identity_verified',
       } as VbaHomeCard);
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
       );
     });
 
