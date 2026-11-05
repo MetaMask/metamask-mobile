@@ -1,4 +1,6 @@
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import ExtendedKeyringTypes, {
+  MONEY_KEYRING_TYPES,
+} from '../../constants/keyringTypes';
 import {
   KeyringControllerState,
   KeyringObject,
@@ -53,6 +55,40 @@ export const hasMultipleHDKeyrings = createDeepEqualSelector(
   (keyrings) =>
     keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd).length > 1,
 );
+
+/**
+ * A memoized selector that returns the lowercased addresses of every account
+ * held by a Money keyring.
+ *
+ * Money Accounts are not internal accounts, so `metadata.keyring` lookups on
+ * `AccountsController` do not apply; the keyring list is the source of truth.
+ */
+export const selectMoneyKeyringAddresses = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings): string[] =>
+    keyrings
+      .filter((keyring) => MONEY_KEYRING_TYPES.includes(keyring.type))
+      .flatMap((keyring) =>
+        keyring.accounts.map((account) => account.toLowerCase()),
+      ),
+);
+
+/**
+ * Whether the given address belongs to a Money keyring.
+ *
+ * Money keyrings cannot sign transactions, so their transactions must stay
+ * externally signed and publish through the EIP-7702 sponsored relay.
+ *
+ * @param state - The Redux state.
+ * @param address - The account address to check.
+ * @returns True when the address is held by a Money keyring.
+ */
+export const selectIsMoneyKeyringAddress = (
+  state: RootState,
+  address: string | undefined,
+): boolean =>
+  address !== undefined &&
+  selectMoneyKeyringAddresses(state).includes(address.toLowerCase());
 
 /**
  * A memoized selector that returns the list of accounts from all keyrings in the form of a flattened array of strings.

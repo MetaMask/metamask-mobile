@@ -8,7 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -25,6 +24,7 @@ import {
   useRoute,
   type NavigationState,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import React, {
   useCallback,
   useContext,
@@ -60,6 +60,8 @@ import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardH
 import { useTheme } from '../../../../util/theme';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import {
   fireImpact,
   ImpactMoment,
@@ -83,6 +85,7 @@ import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
+import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
 import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
@@ -206,6 +209,7 @@ const ComposerChip = ({
 
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -409,17 +413,21 @@ const SocialPostComposerView: React.FC = () => {
     try {
       let created;
       if (tradeInFlightParams) {
-        created = await createSwapComment({
-          commentText,
-          tradeInFlight: tradeInFlightParams,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            tradeInFlight: tradeInFlightParams,
+            source: 'metamask-mobile',
+          }),
+        );
       } else if (selectedPosition) {
-        created = await createSwapComment({
-          commentText,
-          positionUid: selectedPosition.position.positionId,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            positionUid: selectedPosition.position.positionId,
+            source: 'metamask-mobile',
+          }),
+        );
       } else {
         return;
       }
@@ -578,7 +586,9 @@ const SocialPostComposerView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
       >
-        <HeaderBase
+        <HeaderBaseGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="px-4"
           startAccessory={

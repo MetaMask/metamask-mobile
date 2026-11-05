@@ -329,6 +329,7 @@ export function useQuickBuyQuotes({
   const { setQuoteParams } = useBridgeSession();
 
   // If migrated, set swap quoteParams to trigger quote polling
+  const previousBridgeQuoteParamsRef = useRef<QuoteParams | null>(null);
   useEffect(() => {
     if (isBridgeControllerActive) {
       const quoteParams: QuoteParams = {
@@ -341,6 +342,22 @@ export function useQuickBuyQuotes({
         gasIncluded,
         gasIncluded7702,
       };
+      const previous = previousBridgeQuoteParamsRef.current;
+      previousBridgeQuoteParamsRef.current = quoteParams;
+
+      // Backend hydration alone must not restart the quote stream.
+      const isHydrationOnlySlippageChange =
+        !isSlippageUserOverride &&
+        previous !== null &&
+        previous.slippage === undefined &&
+        slippage !== undefined &&
+        (Object.keys(quoteParams) as (keyof QuoteParams)[]).every(
+          (key) => key === 'slippage' || previous[key] === quoteParams[key],
+        );
+      if (isHydrationOnlySlippageChange) {
+        return;
+      }
+
       setQuoteParams(quoteParams);
     }
   }, [
@@ -349,6 +366,7 @@ export function useQuickBuyQuotes({
     destToken,
     sourceTokenAmount,
     slippage,
+    isSlippageUserOverride,
     walletAddress,
     destAddress,
     gasIncluded,
@@ -593,7 +611,7 @@ export function useQuickBuyQuotes({
       return;
     }
 
-    debouncedFetchQuotes();
+    debouncedFetchQuotes()?.catch(() => undefined);
     return () => {
       debouncedFetchQuotes.cancel();
     };
@@ -620,7 +638,7 @@ export function useQuickBuyQuotes({
     }
     prevImmediateFetchTokenRef.current = immediateFetchToken;
     debouncedFetchQuotes.cancel();
-    fetchQuotes();
+    fetchQuotes().catch(() => undefined);
   }, [
     isBridgeControllerActive,
     immediateFetchToken,
@@ -649,7 +667,7 @@ export function useQuickBuyQuotes({
     const delay = Math.max(0, quoteRefreshRateMs - elapsed);
 
     const timer = setTimeout(() => {
-      fetchQuotes();
+      fetchQuotes().catch(() => undefined);
     }, delay);
 
     return () => clearTimeout(timer);
@@ -664,7 +682,7 @@ export function useQuickBuyQuotes({
   /** Reset the refresh counter and re-fetch immediately (for "Get new quote" CTA). */
   const refetchQuotes = useCallback(() => {
     setRefreshCount(0);
-    fetchQuotes();
+    fetchQuotes().catch(() => undefined);
   }, [fetchQuotes]);
 
   useEffect(

@@ -57,6 +57,7 @@ const getDescription = (
 
 const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
   <StepLayout
+    onAction={onAction}
     title={strings('mfa.intro.title')}
     description={reason.enrollDescription ?? strings('mfa.intro.description')}
     error={state.error}

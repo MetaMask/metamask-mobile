@@ -103,7 +103,7 @@ function PillScrollList<T>({
           showsHorizontalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           testID={listTestId}
-          style={tw.style('bg-transparent')}
+          style={tw.style('bg-transparent grow-0 shrink-0')}
           contentContainerStyle={tw.style('flex-col px-4')}
         >
           <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">

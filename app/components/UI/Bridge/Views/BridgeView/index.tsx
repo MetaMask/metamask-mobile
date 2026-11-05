@@ -15,8 +15,9 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   Box,
-  HeaderStandard,
   IconName,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import {
   TabsBar,
@@ -39,6 +40,9 @@ import {
   setBridgeViewMode,
   setLimitOrderCostTolerance,
   setLimitOrderExpirationMinutes,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -61,8 +65,11 @@ import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileI
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     selectedTab,
     renderedTab,
@@ -98,6 +105,7 @@ const BridgeView = () => {
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
     route.params?.initialLimitOrderPriceTolerance;
+  const initialRecurringSchedule = route.params?.initialRecurringSchedule;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location =
@@ -170,6 +178,17 @@ const BridgeView = () => {
     dispatch,
     navigation,
   ]);
+
+  useLayoutEffect(() => {
+    if (!initialRecurringSchedule) {
+      return;
+    }
+
+    dispatch(setRecurringEveryUnit(initialRecurringSchedule.everyUnit));
+    dispatch(setRecurringEveryValue(initialRecurringSchedule.everyValue));
+    dispatch(setRecurringRepeatCount(initialRecurringSchedule.repeatCount));
+    navigation.setParams({ initialRecurringSchedule: undefined });
+  }, [dispatch, initialRecurringSchedule, navigation]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({
@@ -252,6 +271,16 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+        endAccessory: (
+          <Tag
+            severity={TagSeverity.Info}
+            startIconName={IconName.Sparkle}
+            twClassName="top-0.5"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
+          >
+            {strings('bridge.tabs.new_badge')}
+          </Tag>
+        ),
       });
     }
 
@@ -363,7 +392,9 @@ const BridgeView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleBack}
         backButtonProps={{

@@ -72,6 +72,31 @@ describe('EventMarketSection', () => {
     expect(screen.queryByText(CONTENT)).not.toBeOnTheScreen();
   });
 
+  it('shows the controlled open state and only reports presses', () => {
+    const onToggle = jest.fn();
+    const { rerender } = renderSection({ open: false, onToggle });
+
+    fireEvent.press(header());
+
+    expect(onToggle).toHaveBeenCalledWith(true);
+    expect(screen.queryByText(CONTENT)).not.toBeOnTheScreen();
+
+    rerender(
+      <EventMarketSection
+        title="Moneyline"
+        volume="$1.2K"
+        open
+        onToggle={onToggle}
+      >
+        <Text>{CONTENT}</Text>
+      </EventMarketSection>,
+    );
+
+    expect(screen.getByText(CONTENT)).toBeOnTheScreen();
+    fireEvent.press(header());
+    expect(onToggle).toHaveBeenLastCalledWith(false);
+  });
+
   it('labels the header button with its title and volume', () => {
     renderSection();
 
