@@ -509,6 +509,7 @@ interface ImmersveFundingSourceListItem {
   balanceCurrency?: string;
   network?: string;
   fundingChannelId?: string;
+  fundingAddress?: string;
 }
 
 interface ImmersveFundingSourcesResponse {
@@ -559,10 +560,18 @@ interface ImmersveFundingSourceDetail {
   balance?: string;
   balanceCurrency?: string;
   fundingChannelId?: string;
+  /** Address Immersve debits. Distinct from the SIWE wallet for Money account. */
+  fundingAddress?: string;
   externalId?: string;
   purpose?: string;
   network?: string;
 }
+
+const sameEvmAddress = (
+  left: string | undefined,
+  right: string | undefined,
+): boolean =>
+  Boolean(left && right && left.toLowerCase() === right.toLowerCase());
 
 interface ImmersvePanTokenResponse {
   tokenId: string;
@@ -1050,7 +1059,9 @@ export class ImmersveProvider implements ICardProvider {
     const existing = await this.getFundingSources(tokens);
     const match =
       existing.find(
-        (source) => source.fundingChannelId === moneyAccount.fundingChannelId,
+        (source) =>
+          source.fundingChannelId === moneyAccount.fundingChannelId &&
+          sameEvmAddress(source.fundingAddress, params.moneyAccountAddress),
       ) ?? (await this.createFundingSource(tokens, params.moneyAccountAddress));
 
     const { prerequisites } = await this.getSpendingPrerequisites(
@@ -1129,6 +1140,7 @@ export class ImmersveProvider implements ICardProvider {
         balance: item.balance,
         balanceCurrency: item.balanceCurrency,
         fundingChannelId: item.fundingChannelId,
+        ...(item.fundingAddress ? { fundingAddress: item.fundingAddress } : {}),
       }));
     } catch (error) {
       reportAndMap(error, 'getFundingSources');
@@ -1734,8 +1746,10 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     const symbol = channel?.symbol ?? fundingSource.balanceCurrency ?? 'USDC';
-    const walletAddress =
-      tokens.accountAddress ?? fundingSource.externalId ?? '';
+    // Money account allowance lives on the funding address, not the SIWE wallet.
+    const walletAddress = isMoneyAccountFundingChannel(channel)
+      ? (fundingSource.fundingAddress ?? '')
+      : (tokens.accountAddress ?? fundingSource.externalId ?? '');
 
     const { spendableBalance, spendingCap } =
       await this.resolveOnChainSpendableBalance(
