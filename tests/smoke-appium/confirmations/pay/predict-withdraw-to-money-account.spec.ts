@@ -94,7 +94,13 @@ appiumTest.describe(
             await PayWithModalTokenPicker.tapAssetOnNetwork('mUSD', '0x8f');
 
             await TransactionPayConfirmation.verifyPayWithSymbol('mUSD');
+
+            // Commit the amount first so the post-quote request fires and stores
+            // quotes. The Money-account override applied below does not always
+            // retrigger a quote refresh — assert fee readiness on mUSD first so
+            // stored quotes are present before the override.
             await TransactionPayConfirmation.enterAmountAndContinue('5');
+            await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await TransactionPayConfirmation.tapPayWithRow();
             await PayWithModal.verifyMoneyAccountSectionVisible();
@@ -104,6 +110,8 @@ appiumTest.describe(
               'Money account',
             );
 
+            // Money override can briefly clear totals (Loading skeleton / NoQuote).
+            // Shared POM polls through that window until bridge-fee-row resolves.
             await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
