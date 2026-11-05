@@ -1,6 +1,7 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 import NotificationService, {
+  canOsPromptForPushPermission,
   isPushPermissionGranted,
   isPushPermissionPromptable,
   requestPushPermissions,
@@ -18,6 +19,7 @@ jest.mock(
   () => ({
     __esModule: true,
     default: { requestPushNotificationsPermission: jest.fn() },
+    canOsPromptForPushPermission: jest.fn(),
     isPushPermissionGranted: jest.fn(),
     isPushPermissionPromptable: jest.fn(),
     requestPushPermissions: jest.fn(),
@@ -27,6 +29,7 @@ jest.mock(
 describe('promptOsPushPermissionIfNeeded', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(canOsPromptForPushPermission).mockReturnValue(true);
   });
 
   it('returns true without prompting when permission is already granted', async () => {
@@ -57,7 +60,7 @@ describe('promptOsPushPermissionIfNeeded', () => {
     ).not.toHaveBeenCalled();
   });
 
-  describe('when the OS permission is no longer promptable', () => {
+  describe('when the OS cannot show its permission dialog', () => {
     let appStateListener: (state: AppStateStatus) => void;
     const removeSubscription = jest.fn();
 
@@ -135,6 +138,29 @@ describe('promptOsPushPermissionIfNeeded', () => {
 
       await expect(result).resolves.toBe(false);
       expect(removeSubscription).toHaveBeenCalledTimes(1);
+    });
+
+    it('routes Android API 32 to the Settings alert instead of the OS request', async () => {
+      jest.mocked(canOsPromptForPushPermission).mockReturnValue(false);
+      jest.mocked(isPushPermissionPromptable).mockResolvedValue(true);
+      jest
+        .mocked(isPushPermissionGranted)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      jest
+        .mocked(NotificationService.requestPushNotificationsPermission)
+        .mockResolvedValue(true);
+
+      const result = promptOsPushPermissionIfNeeded();
+      await waitFor(() => expect(AppState.addEventListener).toHaveBeenCalled());
+      appStateListener('background');
+      appStateListener('active');
+
+      await expect(result).resolves.toBe(true);
+      expect(requestPushPermissions).not.toHaveBeenCalled();
+      expect(
+        NotificationService.requestPushNotificationsPermission,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 

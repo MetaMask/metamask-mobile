@@ -76,6 +76,7 @@ jest.mock(
   () => ({
     __esModule: true,
     default: { requestPushNotificationsPermission: jest.fn() },
+    canOsPromptForPushPermission: jest.fn(() => true),
     isPushPermissionGranted: jest.fn(),
     isPushPermissionPromptable: jest.fn(),
     requestPushPermissions: jest.fn(),

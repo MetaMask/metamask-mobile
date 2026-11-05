@@ -1,5 +1,6 @@
 import { AppState } from 'react-native';
 import NotificationService, {
+  canOsPromptForPushPermission,
   isPushPermissionGranted,
   isPushPermissionPromptable,
   requestPushPermissions,
@@ -45,7 +46,8 @@ const waitForReturnFromSystemSettings = (): Promise<void> =>
 
 /**
  * Prompts for OS push permission when it is not granted: the OS dialog if the
- * OS can still ask, otherwise the alert that links to the system Settings. In
+ * OS can still ask, otherwise (including Android < 13, which has no runtime
+ * dialog) the alert that links to the system Settings. In
  * the latter case it waits for the user to come back before reading the
  * permission, so a grant made in the system Settings is picked up.
  *
@@ -59,7 +61,10 @@ export async function promptOsPushPermissionIfNeeded(): Promise<boolean> {
   }
 
   try {
-    if (await isPushPermissionPromptable()) {
+    if (
+      canOsPromptForPushPermission() &&
+      (await isPushPermissionPromptable())
+    ) {
       await requestPushPermissions();
     } else if (await NotificationService.requestPushNotificationsPermission()) {
       await waitForReturnFromSystemSettings();
