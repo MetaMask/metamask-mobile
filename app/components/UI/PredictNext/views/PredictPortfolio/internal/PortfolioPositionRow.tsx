@@ -26,7 +26,7 @@ import {
   formatSharesAmount,
   formatUsdAmount,
   pnlToneClassName,
-} from './portfolioFormatting';
+} from '../../../utils/portfolioFormatting';
 
 interface PortfolioPositionRowProps {
   position: PredictPosition;

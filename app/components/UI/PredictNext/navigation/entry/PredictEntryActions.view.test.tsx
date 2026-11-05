@@ -324,11 +324,13 @@ describe('Predict entry actions', () => {
 
       fireEvent.press(view.getByTestId(openTestId('kalshiEvent')));
 
+      // The loading screen already shows the title snapshot; its header
+      // remounts once the Event loads, so wait for the loaded header first.
       expect(
-        await view.findByTestId(PredictEventScreenTestIds.VIEW),
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
       ).toBeOnTheScreen();
       expect(
-        await view.findByTestId(PredictEventScreenTestIds.TITLE),
+        view.getByTestId(PredictEventScreenTestIds.TITLE),
       ).toHaveTextContent(KALSHI_EVENT.title);
       expect(view.queryByTestId(PredictHomeTestIds.HOME)).toBeNull();
     });

@@ -12,10 +12,14 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createGamePresentation,
   getEventGame,
+  getGameTeamOrder,
+  getMatchupSlot,
   isFootballEvent,
+  shouldMirrorTeamLogo,
   type GameSelection,
   type GameStatusLine,
 } from '../../../events/game';
+import { TeamLogo } from '../../../events/shared/ui';
 import type { PredictEvent, PredictTeam } from '../../../types';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
@@ -73,65 +77,24 @@ export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
   );
 };
 
-const LOGO_SIZE_CLASS_NAMES = { medium: 'h-10 w-10', large: 'h-14 w-14' };
-
-const TeamLogo = ({
-  team,
-  abbreviation,
-  selection,
-  size,
-}: {
-  team: PredictTeam;
-  abbreviation: string;
-  selection: GameSelection;
-  size: keyof typeof LOGO_SIZE_CLASS_NAMES;
-}) => {
-  const tw = useTailwind();
-  const [imageFailed, setImageFailed] = useState(false);
-  const sizeClassName = LOGO_SIZE_CLASS_NAMES[size];
-
-  return (
-    <Box
-      twClassName={`${sizeClassName} items-center justify-center`}
-      accessible={false}
-    >
-      {team.logoUrl && !imageFailed ? (
-        <ExpoImage
-          testID={PredictEventScreenTestIds.teamLogo(selection)}
-          source={team.logoUrl}
-          recyclingKey={team.logoUrl}
-          contentFit="contain"
-          style={tw.style(sizeClassName)}
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <Box
-          twClassName={`${sizeClassName} items-center justify-center rounded-full bg-muted`}
-        >
-          <Text
-            testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-            variant={size === 'large' ? TextVariant.BodySm : TextVariant.BodyXs}
-            fontWeight={FontWeight.Bold}
-          >
-            {abbreviation}
-          </Text>
-        </Box>
-      )}
-    </Box>
-  );
-};
-
 interface GameTeamProps {
   team: PredictTeam;
   abbreviation: string;
   score?: string;
   selection: GameSelection;
+  mirrored: boolean;
 }
 
 const teamAccessibilityLabel = (team: PredictTeam, score?: string) =>
   score === undefined ? team.name : `${team.name}, ${score}`;
 
-const GameTeam = ({ team, abbreviation, score, selection }: GameTeamProps) => (
+const GameTeam = ({
+  team,
+  abbreviation,
+  score,
+  selection,
+  mirrored,
+}: GameTeamProps) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
     accessible
@@ -141,8 +104,10 @@ const GameTeam = ({ team, abbreviation, score, selection }: GameTeamProps) => (
     <TeamLogo
       team={team}
       abbreviation={abbreviation}
-      selection={selection}
-      size="large"
+      size="xlarge"
+      flipped={mirrored}
+      testID={PredictEventScreenTestIds.teamLogo(selection)}
+      fallbackTestID={PredictEventScreenTestIds.teamLogoFallback(selection)}
     />
     {score !== undefined ? (
       <Text
@@ -170,6 +135,7 @@ const FootballTeam = ({
   abbreviation,
   score,
   selection,
+  mirrored,
 }: GameTeamProps) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
@@ -180,8 +146,10 @@ const FootballTeam = ({
     <TeamLogo
       team={team}
       abbreviation={abbreviation}
-      selection={selection}
       size="medium"
+      flipped={mirrored}
+      testID={PredictEventScreenTestIds.teamLogo(selection)}
+      fallbackTestID={PredictEventScreenTestIds.teamLogoFallback(selection)}
     />
     <Text
       testID={PredictEventScreenTestIds.teamAbbreviation(selection)}
@@ -270,11 +238,17 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   }
 
   const presentation = createGamePresentation(event, game);
-  const teamProps = (selection: GameSelection): GameTeamProps => ({
-    ...presentation.teams[selection],
-    score: game.score?.[selection],
-    selection,
-  });
+  const order = getGameTeamOrder(game);
+  const teamProps = (selection: GameSelection): GameTeamProps => {
+    const { team, abbreviation } = presentation.teams[selection];
+    return {
+      team,
+      abbreviation,
+      score: game.score?.[selection],
+      selection,
+      mirrored: shouldMirrorTeamLogo(team, getMatchupSlot(order, selection)),
+    };
+  };
   const status = (layout: 'football' | 'default') => (
     <GameStatus
       line={presentation.status.detail}
@@ -291,11 +265,11 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
         testID={PredictEventScreenTestIds.GAME_HEADER}
         twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
       >
-        <FootballTeam {...teamProps('away')} />
-        <FootballScore score={game.score?.away} selection="away" />
+        <FootballTeam {...teamProps(order[0])} />
+        <FootballScore score={game.score?.[order[0]]} selection={order[0]} />
         {status('football')}
-        <FootballScore score={game.score?.home} selection="home" />
-        <FootballTeam {...teamProps('home')} />
+        <FootballScore score={game.score?.[order[1]]} selection={order[1]} />
+        <FootballTeam {...teamProps(order[1])} />
       </Box>
     );
   }
@@ -303,9 +277,9 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   return (
     <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
       <Box twClassName="flex-row items-start gap-2">
-        <GameTeam {...teamProps('away')} />
+        <GameTeam {...teamProps(order[0])} />
         {status('default')}
-        <GameTeam {...teamProps('home')} />
+        <GameTeam {...teamProps(order[1])} />
       </Box>
     </Box>
   );

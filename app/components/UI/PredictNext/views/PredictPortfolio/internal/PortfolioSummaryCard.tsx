@@ -27,7 +27,7 @@ import {
   formatUsdAmount,
   isNonZeroAmount,
   pnlToneClassName,
-} from './portfolioFormatting';
+} from '../../../utils/portfolioFormatting';
 
 interface PortfolioSummaryCardProps {
   summary?: PredictPortfolioSummary;
