@@ -267,7 +267,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       undefined,
       expect.any(Function),
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
   });
 
   it('imports valid pasted 24-word SRP', async () => {
@@ -303,7 +303,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       undefined,
       expect.any(Function),
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
   });
 
   it('disables import button when SRP is empty', () => {
@@ -468,7 +468,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
