@@ -15,6 +15,7 @@ export const createStyles = (colors: any) =>
     },
     header: {
       alignItems: 'center',
+      alignSelf: 'stretch',
     },
     headerLogo: {
       width: 67,

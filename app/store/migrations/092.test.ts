@@ -3,6 +3,7 @@ import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -57,7 +58,7 @@ describe('Migration #92', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     },
@@ -190,7 +191,7 @@ describe('Migration #92', () => {
 
     expect(newState).toStrictEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       "Migration 92: Invalid SmartTransactionsController state: 'string'",
     );
   });
