@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
+import { SolScope } from '@metamask/keyring-api';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -28,6 +30,10 @@ import {
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimToastKey,
@@ -40,11 +46,17 @@ import {
   submitClaimVoucher,
 } from './claimEarnings';
 
+jest.mock('@metamask/eth-snap-keyring/v2', () => ({
+  isSnapKeyring: (keyring: { submitRequest?: unknown }) =>
+    typeof keyring?.submitRequest === 'function',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn() },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -525,6 +537,170 @@ describe('bitcoinProofHex', () => {
   it('returns null for an empty or odd-length signature', () => {
     expect(bitcoinProofHex('')).toBeNull();
     expect(bitcoinProofHex('0x0')).toBeNull();
+  });
+});
+
+const STELLAR_ADDRESS =
+  'GDVEU3DD4KOFECV66VIHWEZOYX4ZKR3WV27L464SIIPOU2IUI3JCZA57';
+const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
+
+describe('solanaAddressFromEarningAddress', () => {
+  it('keeps the base58 case', () => {
+    expect(solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS}`)).toBe(
+      SOLANA_ADDRESS,
+    );
+    expect(
+      solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS.toLowerCase()}`),
+    ).toBe(SOLANA_ADDRESS.toLowerCase());
+    expect(SOLANA_ADDRESS.toLowerCase()).not.toBe(SOLANA_ADDRESS);
+  });
+});
+
+describe('stellarAddressFromEarningAddress', () => {
+  it('keeps a G address and refuses a lowercase copy', () => {
+    expect(stellarAddressFromEarningAddress(`stellar:${STELLAR_ADDRESS}`)).toBe(
+      STELLAR_ADDRESS,
+    );
+    expect(
+      stellarAddressFromEarningAddress(
+        `stellar:${STELLAR_ADDRESS.toLowerCase()}`,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('signSolanaClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+  const signatureBytes = Buffer.alloc(64, 7);
+
+  function keyringReturning(result: unknown) {
+    const submitRequest = jest.fn().mockResolvedValue(result);
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    return submitRequest;
+  }
+
+  it('sends the base64 challenge and returns the base58 reply as 0x hex', async () => {
+    const submitRequest = keyringReturning({
+      signature: base58.encode(signatureBytes),
+    });
+
+    const signature = await signSolanaClaimMessage(
+      'sol-account',
+      SOLANA_ADDRESS,
+      'solana challenge',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: SolScope.Mainnet,
+        account: 'sol-account',
+        request: {
+          method: 'signMessage',
+          params: {
+            account: { address: SOLANA_ADDRESS },
+            message: Buffer.from('solana challenge', 'utf8').toString('base64'),
+          },
+        },
+      }),
+    );
+    expect(signature).toBe(`0x${signatureBytes.toString('hex')}`);
+  });
+
+  it('fails with SIGN_FAILED when the reply is not a 64-byte signature', async () => {
+    keyringReturning({ signature: base58.encode(Buffer.from([1, 2, 3])) });
+
+    await expect(
+      signSolanaClaimMessage('sol-account', SOLANA_ADDRESS, 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+});
+
+describe('signStellarClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+
+  it('sends the raw challenge and returns signedMessage as 0x hex', async () => {
+    const submitRequest = jest.fn().mockResolvedValue({
+      signedMessage: Buffer.from([1, 2, 3]).toString('base64'),
+      signerAddress: STELLAR_ADDRESS,
+    });
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+
+    const signature = await signStellarClaimMessage(
+      'xlm-account',
+      'sign the claim',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: 'stellar:pubnet',
+        account: 'xlm-account',
+        request: {
+          method: 'signMessage',
+          params: { message: 'sign the claim' },
+        },
+      }),
+    );
+    expect(signature).toBe('0x010203');
+  });
+
+  it('fails with SIGN_FAILED when the snap returns signature instead of signedMessage', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest.fn().mockResolvedValue({
+              signature: Buffer.from([1, 2, 3]).toString('base64'),
+            }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+
+  it('fails with SIGN_FAILED when signedMessage is not base64', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest
+              .fn()
+              .mockResolvedValue({ signedMessage: '!!!' }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
   });
 });
 

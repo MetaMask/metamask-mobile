@@ -18,6 +18,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import {
   EM_DASH,
@@ -29,8 +30,10 @@ export interface PositionSheetPriceHeaderProps {
   assetName: string;
   isPerp: boolean;
   leverage: number | undefined;
-  /** Already formatted price, or market cap when that toggle is selected. */
+  /** Already formatted price, or market cap when one is known. */
   valueLabel: string | undefined;
+  /** When true, the figure is market cap and shows the (MC) label. */
+  isMarketCapMode: boolean;
   changePercent: number | undefined;
   /** "Today", or the scrubbed point's timestamp. */
   changeCaption: string;
@@ -45,6 +48,7 @@ const PositionSheetPriceHeader = ({
   isPerp,
   leverage,
   valueLabel,
+  isMarketCapMode,
   changePercent,
   changeCaption,
   position,
@@ -55,22 +59,32 @@ const PositionSheetPriceHeader = ({
   const isChangePositive = (changePercent ?? 0) >= 0;
   const leverageLabel = isPerp && leverage ? `${leverage}x` : undefined;
   const changeLabel = hasChange ? formatPercent(changePercent) : undefined;
+  const marketCapSuffix = isMarketCapMode
+    ? strings('social_leaderboard.position_sheet.market_cap_suffix')
+    : undefined;
   // One label, because the whole header is the button. A label on the
   // pressable otherwise replaces the price, change, and leverage.
   const accessibilityLabel = [
     assetName,
     leverageLabel,
     valueLabel,
+    marketCapSuffix,
     changeLabel,
     changeCaption,
   ]
     .filter((part) => part != null && part !== '')
     .join(', ');
+  const accessibilityHint = strings(
+    isPerp
+      ? 'social_leaderboard.position_sheet.open_market_accessibility_hint'
+      : 'social_leaderboard.position_sheet.open_asset_accessibility_hint',
+  );
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       onPress={onPressAsset}
       testID={PositionDetailsSheetSelectorsIDs.PRICE_HEADER}
     >
@@ -104,13 +118,29 @@ const PositionSheetPriceHeader = ({
               color={IconColor.IconAlternative}
             />
           </Box>
-          <Text
-            variant={TextVariant.AmountDisplayLg}
-            fontFamily={FontFamily.Hero}
-            testID={PositionDetailsSheetSelectorsIDs.PRICE}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.End}
+            gap={1}
           >
-            {valueLabel ?? EM_DASH}
-          </Text>
+            <Text
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              testID={PositionDetailsSheetSelectorsIDs.PRICE}
+            >
+              {valueLabel ?? EM_DASH}
+            </Text>
+            {marketCapSuffix ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="pb-1"
+              >
+                {marketCapSuffix}
+              </Text>
+            ) : null}
+          </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
