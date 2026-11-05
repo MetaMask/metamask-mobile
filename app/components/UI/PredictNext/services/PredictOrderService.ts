@@ -704,20 +704,35 @@ export class PredictOrderService {
       ? now
       : operation.expiresAt + this.#ambiguousCommitGraceMs;
     operation.backgroundObservations += 1;
-    operation.backgroundTimer = setTimeout(
-      () => {
-        operation.backgroundTimer = undefined;
-        if (
-          this.#operations.get(operation.previewId) !== operation ||
-          this.#inFlightCommits.has(operation.previewId)
-        ) {
-          return;
-        }
-        // Failures are handled inside; the background has no caller.
-        this.#dispatch(operation, 0).catch(() => undefined);
-      },
-      Math.max(delay, earliest - now),
-    );
+    // setTimeout truncates fractional delays, so the callback can run before
+    // `earliest`. A re-POST in that gap does not prove the Order was never
+    // placed, and the service would send yet another one. Re-arm until the
+    // clock has actually reached the grace boundary.
+    const arm = (waitMs: number) => {
+      operation.backgroundTimer = setTimeout(
+        () => {
+          operation.backgroundTimer = undefined;
+          if (
+            this.#operations.get(operation.previewId) !== operation ||
+            this.#inFlightCommits.has(operation.previewId)
+          ) {
+            return;
+          }
+          const firedAt = Date.now();
+          const notBefore = operation.receiptSeen
+            ? firedAt
+            : operation.expiresAt + this.#ambiguousCommitGraceMs;
+          if (firedAt < notBefore) {
+            arm(Math.ceil(notBefore - firedAt));
+            return;
+          }
+          // Failures are handled inside; the background has no caller.
+          this.#dispatch(operation, 0).catch(() => undefined);
+        },
+        Math.max(0, Math.ceil(waitMs)),
+      );
+    };
+    arm(Math.max(delay, earliest - now));
   }
 
   #clearBackgroundTimer(operation: OrderOperation): void {
