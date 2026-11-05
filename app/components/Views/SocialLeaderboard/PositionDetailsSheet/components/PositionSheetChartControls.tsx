@@ -27,6 +27,38 @@ const PERIOD_LABEL_KEYS: Record<ChartPeriod, string> = {
 
 export type HeadlineValueMode = 'price' | 'marketCap';
 
+const ValueSegment = ({
+  label,
+  isSelected,
+  onPress,
+  testID,
+}: {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  testID: string;
+}) => (
+  <Pressable
+    accessibilityRole="button"
+    accessibilityState={{ selected: isSelected }}
+    onPress={onPress}
+    testID={testID}
+  >
+    <Box
+      alignItems={BoxAlignItems.Center}
+      twClassName={`h-7 justify-center rounded-full px-3 ${isSelected ? 'bg-muted' : ''}`}
+    >
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={isSelected ? TextColor.TextDefault : TextColor.TextAlternative}
+      >
+        {label}
+      </Text>
+    </Box>
+  </Pressable>
+);
+
 export interface PositionSheetChartControlsProps {
   period: ChartPeriod;
   onPeriodChange: (period: ChartPeriod) => void;
@@ -111,37 +143,5 @@ const PositionSheetChartControls = ({
     </Box>
   );
 };
-
-const ValueSegment = ({
-  label,
-  isSelected,
-  onPress,
-  testID,
-}: {
-  label: string;
-  isSelected: boolean;
-  onPress: () => void;
-  testID: string;
-}) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ selected: isSelected }}
-    onPress={onPress}
-    testID={testID}
-  >
-    <Box
-      alignItems={BoxAlignItems.Center}
-      twClassName={`h-7 justify-center rounded-full px-3 ${isSelected ? 'bg-muted' : ''}`}
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={isSelected ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </Pressable>
-);
 
 export default PositionSheetChartControls;

@@ -32,7 +32,10 @@ import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
 import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProfileOnboarding';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
-import { formatAbbreviatedUsd } from '../../../UI/SocialFeed/utils/formatters';
+import {
+  formatAbbreviatedUsd,
+  formatTradeUnitPrice,
+} from '../../../UI/SocialFeed/utils/formatters';
 import { deriveMarketCapPerPrice } from '../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetChartControls, {
@@ -264,7 +267,7 @@ const PositionDetailsSheet = () => {
       ? undefined
       : headlineIsMarketCap
         ? formatAbbreviatedUsd(headerValue)
-        : data.formatValue(headerValue);
+        : formatTradeUnitPrice(headerValue);
   const { setChartPeriod } = data;
   const handlePeriodChange = useCallback(
     (period: ChartPeriod) => {
