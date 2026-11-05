@@ -389,7 +389,6 @@ describe('rewardsMoneyReducer', () => {
         pendingReferralCode: null,
         answeredReferralCode: null,
         isReferralLinkPending: false,
-        commissionMechanisms: {},
       };
 
       const state = rewardsMoneyReducer(initialState, {
