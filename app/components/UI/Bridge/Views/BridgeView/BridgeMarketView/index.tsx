@@ -89,11 +89,7 @@ import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOr
 import { useBridgeViewOnFocus } from '../../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
-import {
-  RobinhoodBanner,
-  RobinhoodBannerSurface,
-  useRobinhoodBanner,
-} from '../../../../RobinhoodBanner';
+import { LimitOrderNewBanner } from '../../../components/LimitOrderNewBanner';
 import {
   SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
   SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
@@ -157,12 +153,6 @@ const BridgeMarketViewContent = ({
     SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
     SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
   );
-  const {
-    dismiss: dismissRobinhoodBanner,
-    handlePress: handleRobinhoodBannerPress,
-    shouldShow: shouldShowRobinhoodBanner,
-  } = useRobinhoodBanner(RobinhoodBannerSurface.Swaps);
-
   const { styles } = useStyles(createStyles);
   const { bottom: bottomInset } = useSafeAreaInsets();
   const dispatch = useDispatch();
@@ -697,12 +687,7 @@ const BridgeMarketViewContent = ({
                 />
               </Box>
             ) : null}
-            {shouldShowDiscoveryFeed && shouldShowRobinhoodBanner ? (
-              <RobinhoodBanner
-                onDismiss={dismissRobinhoodBanner}
-                onPress={handleRobinhoodBannerPress}
-              />
-            ) : null}
+            {shouldShowDiscoveryFeed ? <LimitOrderNewBanner /> : null}
             {shouldShowDiscoveryFeed ? (
               <SwapDiscoveryFeed
                 mode={discoveryFeedVariant.mode}

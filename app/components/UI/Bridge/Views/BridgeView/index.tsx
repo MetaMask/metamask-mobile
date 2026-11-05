@@ -259,7 +259,6 @@ const BridgeView = () => {
         endAccessory: (
           <Tag
             severity={TagSeverity.Info}
-            startIconName={IconName.Sparkle}
             twClassName="top-0.5"
             testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
           >

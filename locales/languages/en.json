@@ -10686,6 +10686,8 @@
     "explore_tokens": "Explore tokens",
     "robinhood_banner_title": "Robinhood Chain is here",
     "robinhood_banner_subtitle": "Explore trending tokens",
+    "limit_order_new_banner_title": "Limit orders are here",
+    "limit_order_new_banner_description": "Swap at the price you set",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "no_watchlist_tokens_found": "No assets in watchlist",
