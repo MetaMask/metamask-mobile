@@ -29,6 +29,7 @@ describe('buildVenueAuthorization', () => {
       signingProfileId: 'kalshi-demo-signing-v2',
       step: 'default',
       credential: context,
+      values: {},
       signatures: [signature],
     });
   });

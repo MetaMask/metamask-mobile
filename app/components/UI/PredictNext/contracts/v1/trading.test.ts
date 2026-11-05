@@ -312,6 +312,7 @@ describe('parsePredictOrderReceipt', () => {
     'not_filled',
     'rejected',
     'reconciliation_required',
+    'needs_manual_review',
   ])('accepts the %s status', (status) => {
     const receipt = parsePredictOrderReceipt({ ...validReceipt, status });
 

@@ -618,6 +618,35 @@ describe('renderStep generic refusals', () => {
       render('op', 'default', { idempotencyKey: KEY }, {}, profile)[0]?.body,
     ).toBe('{"__proto__":"x"}');
   });
+
+  it('refuses an integer-like body key, which JSON would reorder', () => {
+    const profile: TemplateProfile = {
+      operations: {
+        op: { class: 'mutation', steps: { default: [{ request: 'w' }] } },
+      },
+      requests: {
+        w: {
+          class: 'mutation',
+          method: 'POST',
+          path: '/w',
+          idempotencyKey: { input: 'idempotencyKey' },
+          body: {
+            json: [
+              { key: 'b', value: { const: 'x' } },
+              { key: '1', value: { const: 'y' } },
+            ],
+            maxBytes: 64,
+          },
+        },
+      },
+    };
+
+    expect(
+      ruleOf(() =>
+        render('op', 'default', { idempotencyKey: KEY }, {}, profile),
+      ),
+    ).toBe('body');
+  });
 });
 
 describe('binary-limit-order-v1 display', () => {

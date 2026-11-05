@@ -35,6 +35,7 @@ const TERMINAL_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'partially_filled',
   'not_filled',
   'rejected',
+  'needs_manual_review',
 ];
 
 /** How many re-POSTs observe one in-flight Commit before handing control

@@ -44,7 +44,7 @@ The authentication profile (`auth/venueAuthProfiles.ts`) has since become declar
 4. **The Predict API renders from the same profile.**
    - For the operations it serves, predict-api loads the same profile document the app bundles, and renders with the same rules.
    - It verifies that the signatures cover exactly the requests it rendered, then relays them.
-   - The profile is the only description of the venue wire format. A shared fixture of inputs, values and expected bytes keeps the two renderers identical.
+   - The profile is the only description of the venue wire format. A shared fixture of inputs, values and expected bytes pins what both renderers produce, and the generic refusal tests in both test files pin the rules the fixture's profile cannot reach.
 5. **Profiles are bundled now and move later to a backend that is not the Predict API.**
    - A remote profile must be signed by a MetaMask key the app pins, and carry a monotonic version.
    - It can reference only implementations and invariants the build bundles.
@@ -141,7 +141,9 @@ Rendering follows these rules:
 - Path parameters are percent-encoded segments. An empty, `.` or `..` value is refused, and so is any value with a lone surrogate.
 - A step that renders more requests than `maxSignatures` is refused with the rule `max_signatures`.
 
-Both renderers follow these rules and are tested against the shared fixture.
+Both renderers follow these rules, and two things keep them together: the shared fixture, and the same generic refusal tests in both repos. Those tests cover dot path segments, lone surrogates, malformed decimal bounds, a misshaped idempotency key, integer-like body keys and `__proto__` keys. A change to a rule changes both renderers and both test files.
+
+The renderers are not copies of each other after the bytes are rendered. The phone checks invariants on the rendered body text and returns the figures for its confirmation sheet. The Predict API checks them on the body object and returns nothing. The phone also enforces `maxSignatures` itself, and the Predict API enforces it when it verifies the envelope.
 
 Invariants are allowlisted checks that span fields. They return `display` values for the confirmation sheet. The first invariant is `binary-limit-order-v1`:
 
@@ -169,6 +171,8 @@ It returns the max cost, the contract count, the payout, and the minimum proceed
 A later signature for the same key needs no new confirmation only if the rendered body is byte-identical, `signCount` is under the profile's limit (3 for orders), and the ledger entry hasn't expired. Anything else needs a new confirmation.
 
 The ledger lives in SecureKeychain with a 30-minute TTL. It is cleared on lock, wallet reset and SRP change. While the wallet is locked, nothing is signed.
+
+A lock while an order is still being observed has a consequence. The ledger is gone, so the observation calls (`lookup` and `scan`) are refused with `confirmation` until the observation cap is reached, and the order stays unresolved. The user is not asked to confirm again. A rejected A2T does not clear the ledger. Only lock, wallet reset and SRP change do.
 
 ### Where profiles come from
 
@@ -232,7 +236,13 @@ When a request needs a value only the server knows, the server returns it in the
 | Commit and observation receipts | `next: { step, values }`, for example `{ step: 'lookup', values: { order_id } }` | The next `orders.commit` call       |
 | A paged or partial read         | `continuation: { token, step, values }`                                          | The next call of the same operation |
 
-`token` is an opaque value the Predict API signs with its own key (HMAC). It carries the server's own state between calls, such as an Activity cursor or the running totals of a traversal. The client passes it back as an input, and the phone does not sign it. `values` are what the phone renders from.
+`token` is an opaque value the Predict API seals with its own key (AES-256-GCM, with the key derived from the A2T issuer key under a separate label). It carries the server's own state between calls, such as an Activity cursor or the running totals of a traversal. It is encrypted, so the state is not readable by the phone or in logs.
+
+- **Binding:** the token is bound to the operation and the profile, so another user or another operation cannot open it. It also carries the step it was issued for.
+- **Expiry:** a step's token lives 10 minutes, and the token for a next page lives 60 minutes.
+- **Transport:** the client passes it back in the POST body, not in a URL. The phone does not sign it. A token longer than 200,000 characters is refused at seal time with a 503, and a request body carrying a longer one is rejected, so a portfolio too large for one token fails cleanly.
+
+`values` are what the phone renders from.
 
 ### Pagination and multi-step operations
 
@@ -364,6 +374,8 @@ Order observation is stepped. Each call performs one step, and the receipt names
 | Third verified absence                       | `none`                                                                          | Re-armed to `pending`. The next call submits                     |
 | Terminal                                     | `none`                                                                          | Receipt only                                                     |
 
+An operation that has been reconciling for longer than the profile's `min_ts` window (40 minutes) is not scanned. The server flags it `needs_manual_review`, because a scan older than the window can be neither rendered nor signed. The ledger entry is gone after 30 minutes in any case.
+
 Cancel, amend and decrease are not used, because every order is IOC. If they are added, they follow the same pattern, with per-intent confirmation and `order_id` taken from an order the user selected.
 
 ### Funding and withdrawals (not yet built, flow not decided)
@@ -422,6 +434,8 @@ ADR-0003's assurance levels still apply. L1 (route, class, authority, lifetime) 
 | It quotes a price or count so the user pays or receives more or less than shown | `binary-limit-order-v1` checks the rendered body against the user's amount, contracts and floor. The sheet renders from the invariant's `display`                                |
 | It reuses a signature or re-submits an order                                    | The request ID is the nonce, a signature lives 60 seconds, mutations carry the phone's idempotency key, and the ledger allows only byte-identical re-signs, up to its sign count |
 | It points a reconciliation read at another order                                | `order_id` is a server value with only a shape check. It is read-only, and a read reveals only the user's own data to a relay that already sees it                               |
+
+The Predict API keeps no store of request IDs, so within a signature's 60 seconds anyone who can read the request can replay it. Mutations are protected by the idempotency key, and Kalshi enforces the nonce. This is an accepted risk. A short-lived request ID cache is the fix if it stops being acceptable.
 
 What remains uncovered is the same as in ADR-0003: a forged catalog mapping, and venue responses that the venue doesn't sign, such as deposit addresses.
 

@@ -59,6 +59,14 @@ const copyFor = (outcome: PredictOrderOutcome): OrderToastCopy => {
         ),
         isSuccess: false,
       };
+    case 'needs_manual_review':
+      return {
+        title: strings('predict_next.order_receipt.reconciling_title'),
+        description: strings(
+          'predict_next.order_receipt.reconciling_description',
+        ),
+        isSuccess: false,
+      };
     default:
       // Only terminal receipts resolve an operation; `not_filled` is the
       // remaining one.

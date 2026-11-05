@@ -407,7 +407,9 @@ export interface FetchOrderCommitParams {
  * `rejected` means the Venue refused the Order; nothing was filled.
  * `reconciliation_required` means the backend is still resolving the true
  * outcome; render it like an in-progress status and re-observe by committing
- * the same Order Preview again. */
+ * the same Order Preview again.
+ * `needs_manual_review` means the order scan is too old to sign. The outcome
+ * is unknown, and committing again will not look any further. */
 export type PredictOrderReceiptStatus =
   | 'pending'
   | 'submitted'
@@ -415,7 +417,8 @@ export type PredictOrderReceiptStatus =
   | 'partially_filled'
   | 'not_filled'
   | 'rejected'
-  | 'reconciliation_required';
+  | 'reconciliation_required'
+  | 'needs_manual_review';
 
 /** Shared header of a committed Order's canonical result. One Order
  * produces exactly one Order Receipt, and repeated Commits of the same

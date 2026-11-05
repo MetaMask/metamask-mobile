@@ -340,6 +340,7 @@ export class PredictDeviceAuthService {
         signingProfileId: profile.id,
         step,
         context,
+        values: input.values ?? {},
         signatures,
         maxSignatures,
       }),

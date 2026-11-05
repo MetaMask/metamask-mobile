@@ -86,7 +86,8 @@ const sellPreviewSchema = object({
 /** Receipt statuses of a committed Order operation, as defined in CONTEXT.md.
  * `pending` and `submitted` are in-progress projections;
  * `reconciliation_required` is projected while the backend keeps resolving
- * the true outcome. */
+ * the true outcome. `needs_manual_review` means the scan is too old to sign
+ * and the outcome is unknown. */
 const receiptStatus = enums([
   'pending',
   'submitted',
@@ -95,6 +96,7 @@ const receiptStatus = enums([
   'not_filled',
   'rejected',
   'reconciliation_required',
+  'needs_manual_review',
 ] as const);
 
 /** Shared Receipt header reported for either action. */

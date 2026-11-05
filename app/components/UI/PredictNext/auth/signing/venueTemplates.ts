@@ -1,10 +1,19 @@
 /**
  * Declarative venue request templates and their renderer (ADR-0004).
  *
- * This file is self-contained and has an identical twin in predict-api
+ * This file is self-contained and has a twin in predict-api
  * (`apps/api/src/venue-signing/venue-templates.ts`). Both render from the same
- * profile document, and the shared fixture `venue-signing-v2.json` pins the
- * rendered bytes, so the two copies cannot drift apart unnoticed.
+ * profile document and follow the same rules. Two things keep them together:
+ * the shared fixture `venue-signing-v2.json` pins the rendered bytes, and the
+ * `renderStep generic refusals` tests, kept in both test files, pin the
+ * refusals the fixture's profile cannot reach. Change a rule in both files and
+ * both test files.
+ *
+ * They differ in what happens after rendering. The phone checks invariants on
+ * the rendered body text and returns the figures for its confirmation sheet.
+ * predict-api checks them on the body object and returns nothing. The phone
+ * also enforces the envelope bound (`max_signatures`) itself, and predict-api
+ * enforces it when it verifies the envelope.
  */
 
 export type Scalar = string | number | boolean;
@@ -460,6 +469,8 @@ const renderQuery = (
   return pairs.join('&');
 };
 
+const INTEGER_LIKE_KEY = /^(0|[1-9][0-9]*)$/u;
+
 const renderBody = (
   template: RequestTemplate,
   context: RenderContext,
@@ -469,6 +480,11 @@ const renderBody = (
   }
   const object: Record<string, unknown> = Object.create(null);
   for (const field of template.body.json) {
+    // JSON.stringify writes integer-like keys first, whatever their order in
+    // the template, which would break the template's key order.
+    if (INTEGER_LIKE_KEY.test(field.key)) {
+      throw new TemplateError('body', `integer-like key ${field.key}`);
+    }
     if (has(object, field.key)) {
       throw new TemplateError('body', `duplicate key ${field.key}`);
     }
@@ -565,7 +581,14 @@ const checkBinaryLimitOrder = (
   }
   const outcomeLimit =
     outcome === 'no' ? 10_000n - price : outcome === 'yes' ? price : undefined;
-  if (outcomeLimit === undefined || outcomeLimit <= 0n) {
+  // A binary contract trades between 1 and 99 cents. A zero or negative count
+  // would pass the cost check trivially.
+  if (
+    outcomeLimit === undefined ||
+    outcomeLimit < 100n ||
+    outcomeLimit > 9_900n ||
+    count <= 0n
+  ) {
     throw new TemplateError('invariant', implementation);
   }
   const floorName = params.minOutcomePriceInput;

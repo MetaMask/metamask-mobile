@@ -271,6 +271,38 @@ export const OrderReceiptOutcome = ({
           </Button>
         </Box>
       );
+    case 'needs_manual_review':
+      return (
+        <Box
+          twClassName="items-center gap-3 py-6"
+          testID={PredictOrderFlowTestIds.RECEIPT_RECONCILING}
+        >
+          <StatusIcon
+            iconName={IconName.ClockFilled}
+            color={IconColor.InfoDefault}
+            background="bg-info-muted"
+          />
+          <Text variant={TextVariant.HeadingSm}>
+            {strings('predict_next.order_receipt.reconciling_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('predict_next.order_receipt.reconciling_description')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onDone}
+            testID={PredictOrderFlowTestIds.DONE}
+          >
+            {strings('predict_next.order_preview.done')}
+          </Button>
+        </Box>
+      );
     case 'rejected':
       return (
         <Box
