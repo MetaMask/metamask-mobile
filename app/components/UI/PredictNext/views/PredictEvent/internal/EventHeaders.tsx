@@ -133,6 +133,7 @@ const GameScore = ({
       testID={PredictEventScreenTestIds.teamScore(selection)}
       variant={TextVariant.DisplayMd}
       fontWeight={FontWeight.Bold}
+      twClassName="shrink-0"
       accessibilityElementsHidden
       importantForAccessibility="no"
     >
@@ -147,8 +148,10 @@ const GameStatus = ({
   line: GameStatusLine;
   isLive: boolean;
 }) => (
-  <Box twClassName="items-center">
-    <Box twClassName="flex-row items-center gap-2">
+  // Takes the width the Teams and scores leave, and wraps inside it, so the
+  // row never pushes the right Team past the screen padding.
+  <Box twClassName="min-w-0 flex-1 items-center">
+    <Box twClassName="max-w-full flex-row items-center gap-2">
       {isLive ? (
         <Box
           testID={PredictEventScreenTestIds.LIVE_DOT}
@@ -160,7 +163,7 @@ const GameStatus = ({
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Bold}
         color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
-        twClassName="text-center"
+        twClassName="shrink text-center"
       >
         {line.label}
       </Text>
