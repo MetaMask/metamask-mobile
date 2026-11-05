@@ -186,10 +186,6 @@ describe('MarketStandardCard', () => {
     );
 
     expect(title).toHaveProp('accessibilityRole', 'button');
-    expect(within(title).getByText(market.outcomes[0].label)).toHaveStyle({
-      textDecorationLine: 'underline',
-      textDecorationStyle: 'dotted',
-    });
     fireEvent.press(title);
 
     expect(onRulesPress).toHaveBeenCalledWith(market);
@@ -205,7 +201,6 @@ describe('MarketStandardCard', () => {
     );
 
     expect(title).not.toHaveProp('accessibilityRole', 'button');
-    expect(title).not.toHaveStyle({ textDecorationLine: 'underline' });
     fireEvent.press(title);
 
     expect(onRulesPress).not.toHaveBeenCalled();

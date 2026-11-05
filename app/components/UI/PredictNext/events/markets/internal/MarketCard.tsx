@@ -9,8 +9,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
+import DottedUnderline from '../../../../DottedUnderline';
 
 interface ChildrenProps {
   children: React.ReactNode;
@@ -41,14 +43,6 @@ const Summary = ({ children }: ChildrenProps) => (
   <Box twClassName="min-w-0 flex-1 gap-1">{children}</Box>
 );
 
-/** A pressable title is underlined with dots, in the text's own color. */
-const styles = StyleSheet.create({
-  pressableTitle: {
-    textDecorationLine: 'underline',
-    textDecorationStyle: 'dotted',
-  },
-});
-
 interface TitleProps extends ChildrenProps {
   testID?: string;
   /** Makes the title a button that opens the Market's rules. */
@@ -62,6 +56,8 @@ const Title = ({
   onPress,
   accessibilityHint,
 }: TitleProps) => {
+  const { colors } = useTheme();
+
   if (!onPress) {
     return (
       <Text
@@ -89,14 +85,16 @@ const Title = ({
         opacity: pressed ? 0.7 : 1,
       })}
     >
-      <Text
-        variant={TextVariant.HeadingSm}
-        fontWeight={FontWeight.Bold}
-        numberOfLines={1}
-        style={styles.pressableTitle}
-      >
-        {children}
-      </Text>
+      {/* The same dotted underline as Money's APY, so it renders on Android. */}
+      <DottedUnderline color={colors.text.default}>
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+        >
+          {children}
+        </Text>
+      </DottedUnderline>
     </Pressable>
   );
 };
