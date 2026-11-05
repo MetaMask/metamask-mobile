@@ -109,6 +109,48 @@ describe('useGifPages', () => {
     expect(result.current.gifs.map((item) => item.id)).toEqual(['a', 'b']);
   });
 
+  it('does not fetch when disabled', async () => {
+    const { result } = renderHook(() =>
+      useGifPages('', false, fetchPage, () => 'request_failed'),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(0);
+    });
+
+    expect(fetchPage).not.toHaveBeenCalled();
+    expect(result.current.gifs).toEqual([]);
+  });
+
+  it('reloads the first page when retrying after a failed load', async () => {
+    fetchPage
+      .mockRejectedValueOnce(new Error('429'))
+      .mockResolvedValueOnce({ gifs: [gif('ok')], hasNext: false });
+
+    const { result } = renderHook(() =>
+      useGifPages('', true, fetchPage, () => 'request_failed'),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(0);
+    });
+
+    expect(result.current.error).toBe('request_failed');
+
+    act(() => {
+      result.current.retry();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(fetchPage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1 }),
+    );
+    expect(result.current.error).toBeNull();
+    expect(result.current.gifs.map((item) => item.id)).toEqual(['ok']);
+  });
+
   it('reports a failed load', async () => {
     fetchPage.mockRejectedValue(new Error('429'));
 
