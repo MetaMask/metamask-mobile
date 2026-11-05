@@ -17,10 +17,13 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+import { playSelection } from '../../../../util/haptics';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
   REACTION_EMOJI_BURST_TEST_ID,
 } from './ReactionEmojiBurst';
+
+jest.mock('../../../../util/haptics');
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
@@ -254,6 +257,8 @@ describe('SocialFeedPostShell', () => {
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
     );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(

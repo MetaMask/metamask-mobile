@@ -1,3 +1,8 @@
+import {
+  getPredictCampaignVenue,
+  type PredictCampaign,
+  type PredictCampaignVenue,
+} from '../../campaigns/campaignVenues';
 import type { PredictConfiguredVenue } from '../../implementation';
 import type { PredictEntityId } from '../../types';
 
@@ -54,6 +59,26 @@ export const createLegacyPredictEventRef = ({
   providerId: string;
 }): PredictEventRef<'polymarket'> =>
   mint({ implementation: 'legacy', venue: 'polymarket', marketId, providerId });
+
+/**
+ * Mints a reference to an Event that a Rewards campaign's backend names. The
+ * campaign decides the Venue, so a campaign's identifier only ever becomes a
+ * reference on that campaign's Venue, and the reference's type says which.
+ * Every campaign runs on Polymarket, which the legacy implementation serves,
+ * where the provider ID is the Venue ID. PRED-1356 changes the shape it mints.
+ */
+export const createPredictCampaignEventRef = (
+  campaign: PredictCampaign,
+  eventId: string,
+): PredictEventRef<PredictCampaignVenue> => {
+  const venue = getPredictCampaignVenue(campaign);
+  return mint({
+    implementation: 'legacy',
+    venue,
+    marketId: eventId,
+    providerId: venue,
+  });
+};
 
 /** Mints a reference to a canonical Event served by PredictNext. */
 export const createNextPredictEventRef = <TVenue extends PredictNextVenue>(
