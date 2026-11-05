@@ -93,7 +93,11 @@ const SearchTokenResultRow = React.memo(
           )
         }
       >
-        <Checkbox isSelected={isChecked} pointerEvents="none" />
+        <Checkbox
+          isSelected={isChecked}
+          onChange={() => onSelect(item)}
+          pointerEvents="none"
+        />
         <AddAssetTokenRow asset={item} networkName={networkName} />
       </Pressable>
     );
