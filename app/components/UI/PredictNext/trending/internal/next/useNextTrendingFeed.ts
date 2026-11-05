@@ -104,11 +104,17 @@ export const useNextTrendingFeed = ({
 
   useFeedRefresh(refresh, refetch, activeQueryKey !== undefined);
 
-  const events = canSearch
-    ? search.data?.events
-    : feedId !== undefined
-      ? feed.data?.pages.flatMap((page) => page.events)
-      : undefined;
+  const feedEvents = useMemo(
+    () => feed.data?.pages.flatMap((page) => page.events),
+    [feed.data],
+  );
+  let events: readonly PredictEvent[] | undefined;
+  if (canSearch) {
+    events = search.data?.events;
+  } else if (feedId !== undefined) {
+    events = feedEvents;
+  }
+  // Minted once per read, so a re-render hands Explore the same markets.
   const data = useMemo(
     () => (events ?? NO_EVENTS).map(toNextTrendingMarket),
     [events],
