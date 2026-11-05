@@ -4,6 +4,7 @@ import {
   isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
   type PerpsErrorDetails,
+  type PriceMovedErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -14,8 +15,39 @@ import {
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
 
+/**
+ * Core codes for HyperLiquid post-only rejections. Declared here so Mobile
+ * classifies them whether or not the installed `@metamask/perps-controller`
+ * already exports them in `PERPS_ERROR_CODES`; once it does these are
+ * identical to `PERPS_ERROR_CODES.ORDER_POST_ONLY_*`.
+ */
+const POST_ONLY_ERROR_CODES = {
+  /** A post-only order would cross the spread; on an edit the venue has cancelled the original. */
+  WOULD_CROSS: 'ORDER_POST_ONLY_WOULD_CROSS',
+  /** HyperLiquid accepts only post-only orders for a while after a network upgrade. */
+  WINDOW: 'ORDER_POST_ONLY_WINDOW',
+} as const;
+
+type PostOnlyErrorCode =
+  (typeof POST_ONLY_ERROR_CODES)[keyof typeof POST_ONLY_ERROR_CODES];
+
+/** Every code Mobile can translate: the installed Core codes plus the post-only codes. */
+type ClientPerpsErrorCode = PerpsErrorCode | PostOnlyErrorCode;
+
+function isClientPerpsErrorCode(value: unknown): value is ClientPerpsErrorCode {
+  return (
+    isPerpsErrorCodeValue(value) ||
+    Object.values<unknown>(POST_ONLY_ERROR_CODES).includes(value)
+  );
+}
+
+/**
+ * Provider-tagged Hyperliquid failure. `PRICE_MOVED` stays on
+ * `PriceMovedErrorDetails` only, matching Core's `HyperLiquidErrorDetails`.
+ * Post-only codes remain until Core adds them to `PerpsErrorCode`.
+ */
 interface HyperLiquidErrorDetails {
-  code: PerpsErrorCode;
+  code: Exclude<ClientPerpsErrorCode, typeof PERPS_ERROR_CODES.PRICE_MOVED>;
   provider: 'hyperliquid';
 }
 
@@ -23,14 +55,16 @@ type SupportedPerpsErrorDetails = PerpsErrorDetails | HyperLiquidErrorDetails;
 
 export interface PerpsErrorInput {
   error: string;
-  errorCode?: PerpsErrorCode;
+  errorCode?: ClientPerpsErrorCode;
   errorDetails?: SupportedPerpsErrorDetails;
   maxSlippageBps?: number;
 }
 
 const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
 
-function isPriceMovedErrorDetails(value: unknown): value is PerpsErrorDetails {
+function isPriceMovedErrorDetails(
+  value: unknown,
+): value is PriceMovedErrorDetails {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -54,7 +88,8 @@ function isHyperLiquidErrorDetails(
     typeof value === 'object' &&
     value !== null &&
     hasProperty(value, 'code') &&
-    isPerpsErrorCodeValue(value.code) &&
+    isClientPerpsErrorCode(value.code) &&
+    value.code !== PERPS_ERROR_CODES.PRICE_MOVED &&
     hasProperty(value, 'provider') &&
     value.provider === 'hyperliquid'
   );
@@ -79,7 +114,7 @@ function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
   const hasValidCode =
     !hasProperty(value, 'errorCode') ||
     value.errorCode === undefined ||
-    isPerpsErrorCodeValue(value.errorCode);
+    isClientPerpsErrorCode(value.errorCode);
   const hasValidDetails =
     !hasProperty(value, 'errorDetails') ||
     value.errorDetails === undefined ||
@@ -140,7 +175,7 @@ const getErrorInterpolationData = (
 /**
  * Maps error codes to i18n keys
  */
-export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
+export const ERROR_CODE_TO_I18N_KEY: Record<ClientPerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
     'perps.errors.clientNotInitialized',
   [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
@@ -318,6 +353,9 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.marginAdjustmentFailed',
   [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
   [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
+  // Post-only rejections
+  [POST_ONLY_ERROR_CODES.WOULD_CROSS]: 'perps.errors.postOnlyWouldCross',
+  [POST_ONLY_ERROR_CODES.WINDOW]: 'perps.errors.postOnlyWindow',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
@@ -331,7 +369,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
 };
 
 const getErrorI18nKey = (
-  errorCode: PerpsErrorCode,
+  errorCode: ClientPerpsErrorCode,
   interpolationData: Record<string, unknown>,
 ): string =>
   errorCode === PERPS_ERROR_CODES.IOC_CANCEL &&
@@ -509,7 +547,7 @@ export function translatePerpsError(
   }
   const errorCode =
     errorInput.errorCode ??
-    (isPerpsErrorCodeValue(errorInput.error) ? errorInput.error : undefined);
+    (isClientPerpsErrorCode(errorInput.error) ? errorInput.error : undefined);
   const interpolationData = {
     ...getErrorInterpolationData(
       errorCode ? { ...errorInput, errorCode } : errorInput,
@@ -548,7 +586,7 @@ export function translatePerpsError(
  */
 export function isPerpsErrorCode(
   error: unknown,
-  code: PerpsErrorCode,
+  code: ClientPerpsErrorCode,
 ): boolean {
   const errorInput = normalizePerpsError(error);
   return errorInput?.errorCode === code || errorInput?.error === code;
@@ -577,13 +615,17 @@ export function isNoPositionFoundError(error: unknown): boolean {
 
 /** True when HyperLiquid refused the order because of its post-only window. */
 export function isPostOnlyWindowError(error: unknown): boolean {
-  return POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '');
+  return (
+    isPerpsErrorCode(error, POST_ONLY_ERROR_CODES.WINDOW) ||
+    POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '')
+  );
 }
 
 /** True when HyperLiquid refused a post-only order that would cross the spread. */
 export function isPostOnlyWouldCrossError(error: unknown): boolean {
-  return POST_ONLY_WOULD_CROSS_PATTERN.test(
-    normalizePerpsError(error)?.error ?? '',
+  return (
+    isPerpsErrorCode(error, POST_ONLY_ERROR_CODES.WOULD_CROSS) ||
+    POST_ONLY_WOULD_CROSS_PATTERN.test(normalizePerpsError(error)?.error ?? '')
   );
 }
 
@@ -597,15 +639,25 @@ export interface OrderEditRejection {
 /**
  * Normalizes a refused order edit for the UI. HyperLiquid cancels the original
  * order when its post-only replacement is rejected, so that outcome reports a
- * cancelled original. `@metamask/perps-controller` reports it only as venue
- * wording, so this is the one place that reads it.
+ * cancelled original.
+ *
+ * Core reports that rejection as the stable `ORDER_POST_ONLY_WOULD_CROSS` code
+ * on the provider result. Raw venue wording is still recognised for results
+ * produced by older controllers.
+ *
+ * @param error - The failed edit result, or its error text.
  */
 export function normalizeOrderEditRejection(
-  error?: string,
+  error?: string | PerpsErrorInput,
 ): OrderEditRejection {
+  const message = typeof error === 'string' ? error : error?.error;
   return isPostOnlyWouldCrossError(error)
-    ? { reason: 'post_only_would_cross', originalOrder: 'cancelled', error }
-    : { reason: 'other', originalOrder: 'retained', error };
+    ? {
+        reason: 'post_only_would_cross',
+        originalOrder: 'cancelled',
+        error: message,
+      }
+    : { reason: 'other', originalOrder: 'retained', error: message };
 }
 
 /**
@@ -657,7 +709,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   const errorString = parsedError.error;
   const errorCode =
     parsedError.errorCode ??
-    (isPerpsErrorCodeValue(errorString) ? errorString : undefined);
+    (isClientPerpsErrorCode(errorString) ? errorString : undefined);
   const normalizedError = errorCode
     ? { ...parsedError, errorCode }
     : parsedError;
