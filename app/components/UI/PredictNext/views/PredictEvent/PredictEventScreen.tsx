@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
@@ -11,9 +11,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonVariant,
   IconName,
   Text,
   TextVariant,
@@ -36,7 +33,9 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
   PredictMarketHistory,
+  PredictTopMarketsHistory,
 } from './internal/PredictMarketHistory';
+import { selectTopChartMarkets } from './internal/selectTopChartMarkets';
 import {
   EventLoadingHeader,
   GameEventHeader,
@@ -49,15 +48,6 @@ import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
-
-const styles = StyleSheet.create({
-  marketFilter: {
-    height: 'auto',
-    minHeight: 32,
-    maxWidth: 240,
-    paddingVertical: 8,
-  },
-});
 
 type RulesTarget =
   | { type: 'event' }
@@ -146,20 +136,14 @@ const EventLoadedHeader = ({
   event,
   winnerQuotes,
   historyMarket,
-  selectedMarketId,
-  onSelectMarket,
+  topChartMarkets,
 }: {
   event: PredictEvent;
   winnerQuotes?: WinnerQuotes;
   historyMarket?: PredictMarket;
-  selectedMarketId?: string;
-  onSelectMarket: (marketId: string) => void;
+  topChartMarkets: readonly PredictMarket[];
 }) => {
   const game = getEventGame(event);
-  const chartMarkets = getGameMoneylineMarkets(event);
-  const selectedChartMarket = chartMarkets.find(
-    (market) => market.id === selectedMarketId,
-  );
 
   const renderMarketHistory = () => {
     if (game && winnerQuotes) {
@@ -180,13 +164,29 @@ const EventLoadedHeader = ({
       );
     }
 
-    const market = selectedChartMarket ?? historyMarket;
-    if (market) {
-      return <PredictMarketHistory venueId={event.venueId} market={market} />;
+    if (!game && event.markets.length > 1) {
+      return topChartMarkets.length > 0 ? (
+        <PredictTopMarketsHistory
+          venueId={event.venueId}
+          markets={topChartMarkets}
+        />
+      ) : null;
+    }
+
+    if (historyMarket) {
+      return (
+        <PredictMarketHistory
+          venueId={event.venueId}
+          market={historyMarket}
+          isStandardEvent={!game}
+        />
+      );
     }
 
     return null;
   };
+
+  const marketHistory = renderMarketHistory();
 
   return (
     <Box>
@@ -195,31 +195,9 @@ const EventLoadedHeader = ({
       ) : (
         <StandardEventHeader event={event} />
       )}
-      {!game && !winnerQuotes && chartMarkets.length > 1 ? (
-        <FilterButtonGroup
-          value={historyMarket?.id ?? ''}
-          onChange={onSelectMarket}
-          variant={FilterButtonVariant.Secondary}
-          testID={PredictEventScreenTestIds.MARKETS}
-        >
-          {chartMarkets.map((market) => (
-            <FilterButton
-              key={market.id}
-              value={market.id}
-              accessibilityRole="tab"
-              accessibilityState={{
-                selected: historyMarket?.id === market.id,
-              }}
-              style={styles.marketFilter}
-              textProps={{ numberOfLines: 3, ellipsizeMode: 'tail' }}
-              testID={PredictEventScreenTestIds.market(market.id)}
-            >
-              {market.question}
-            </FilterButton>
-          ))}
-        </FilterButtonGroup>
+      {marketHistory ? (
+        <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
       ) : null}
-      <Box twClassName="mt-4 mb-6">{renderMarketHistory()}</Box>
     </Box>
   );
 };
@@ -233,8 +211,31 @@ export const PredictEventScreen = () => {
   const liveEvent = useEventWithLiveData(venueId, query.data);
   const { openOrderFlow } = usePredictOrderFlow();
   const [hasBlockingError, setHasBlockingError] = useState(false);
-  const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
+  // The top chart Markets are picked once per Event, so live quotes update
+  // their prices without swapping which Markets are charted.
+  const [topChart, setTopChart] = useState<{
+    eventId: PredictEvent['id'];
+    marketIds: readonly PredictMarket['id'][];
+  }>();
+  if (liveEvent && topChart?.eventId !== liveEvent.id) {
+    setTopChart({
+      eventId: liveEvent.id,
+      marketIds: selectTopChartMarkets(liveEvent.markets).map(
+        (market) => market.id,
+      ),
+    });
+  }
+  const topChartMarkets = useMemo(
+    () =>
+      (topChart?.marketIds ?? []).flatMap((marketId) => {
+        const market = liveEvent?.markets.find(
+          (candidate) => candidate.id === marketId,
+        );
+        return market ? [market] : [];
+      }),
+    [liveEvent?.markets, topChart],
+  );
   const winnerQuotes = useMemo(
     () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
     [liveEvent],
@@ -261,7 +262,6 @@ export const PredictEventScreen = () => {
     }
   }, [query.data, query.isError]);
   useEffect(() => {
-    setSelectedMarketId(undefined);
     setRulesTarget(null);
   }, [eventId]);
   const handleBack = useCallback(
@@ -276,9 +276,6 @@ export const PredictEventScreen = () => {
   }, []);
   const handleMarketRulesPress = useCallback((market: PredictMarket) => {
     setRulesTarget({ type: 'market', marketId: market.id });
-  }, []);
-  const handleMarketSelect = useCallback((marketId: string) => {
-    setSelectedMarketId(marketId);
   }, []);
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
@@ -338,10 +335,7 @@ export const PredictEventScreen = () => {
         : marketProjection[0]?.market;
     const moneylineMarkets = getGameMoneylineMarkets(event);
     const historyMarket =
-      moneylineMarkets.find((market) => market.id === selectedMarketId) ??
-      moneylineMarkets[0] ??
-      firstProjectedMarket ??
-      event.markets[0];
+      moneylineMarkets[0] ?? firstProjectedMarket ?? event.markets[0];
     const rulesMarket =
       rulesTarget?.type === 'market'
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
@@ -364,8 +358,7 @@ export const PredictEventScreen = () => {
               event={event}
               winnerQuotes={winnerQuotes}
               historyMarket={historyMarket}
-              selectedMarketId={selectedMarketId}
-              onSelectMarket={handleMarketSelect}
+              topChartMarkets={topChartMarkets}
             />
           </EventMarketList>
         </EventScreenChrome>

@@ -1637,7 +1637,22 @@
     "position_flags": {
       "insider": "Insider allocation - excluded",
       "developer": "Contract creator - excluded",
-      "excluded": "Excluded from PnL"
+      "excluded": "Excluded from PnL",
+      "short": {
+        "insider": "Insider",
+        "creator": "Creator",
+        "excluded": "Excluded"
+      },
+      "accessibility": {
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
+        "direction_up": "up",
+        "direction_down": "down",
+        "direction_flat": "unchanged",
+        "reason_insider": "insider",
+        "reason_creator": "creator",
+        "reason_excluded": "excluded"
+      }
     },
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -1708,6 +1723,7 @@
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
+      "not_counted_in_pnl": "Not counted in P&L",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -1824,6 +1840,9 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "posts_tab": "Posts ({{count}})",
+      "transactions_tab": "Transactions ({{count}})",
+      "no_posts": "No posts on this trade yet",
       "level": {
         "entry": "Entry",
         "exit": "Exit",
@@ -2645,7 +2664,8 @@
       "updating_your_order": "Updating your order",
       "order_updated": "Order updated",
       "order_update_failed": "Failed to update order",
-      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -2954,6 +2974,8 @@
       "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
       "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
@@ -3739,11 +3761,17 @@
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
+      "view_all_markets": "View all {{count}} markets",
       "market_layout": {
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Total points",
         "team_total": "Team total",
+        "player_props": "Player props",
+        "anytime_touchdown": "Anytime touchdown",
+        "rushing_yards": "Rushing yards",
+        "receiving_yards": "Receiving yards",
+        "passing_yards": "Passing yards",
         "full_game": "Full game",
         "first_half": "1st half",
         "second_half": "2nd half",
@@ -6414,7 +6442,7 @@
         },
         "volume_flags": {
           "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
         },
         "listed_on_exchange": {
           "title": "Listed on exchange",
@@ -10503,6 +10531,8 @@
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
       "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
+      "swap_into_token": "Swap into {{symbol}}",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",
