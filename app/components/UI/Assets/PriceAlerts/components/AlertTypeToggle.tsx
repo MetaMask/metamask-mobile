@@ -33,7 +33,7 @@ const AlertTypeToggle: React.FC<AlertTypeToggleProps> = ({
 
   const handlePress = useCallback(() => {
     if (isDisabled) return;
-    playSelection();
+    playSelection().catch(() => undefined);
     onChange(value === 'absolute_price' ? 'percent_change' : 'absolute_price');
   }, [isDisabled, onChange, value]);
 

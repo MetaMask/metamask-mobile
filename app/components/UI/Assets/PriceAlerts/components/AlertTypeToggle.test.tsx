@@ -6,7 +6,7 @@ import { CreatePriceAlertTestIds } from '../constants';
 import AlertTypeToggle from './AlertTypeToggle';
 
 jest.mock('../../../../../util/haptics', () => ({
-  playSelection: jest.fn(),
+  playSelection: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockPlaySelection = playSelection as jest.MockedFunction<
