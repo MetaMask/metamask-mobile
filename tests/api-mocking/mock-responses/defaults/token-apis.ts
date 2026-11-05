@@ -24,17 +24,15 @@ const tokenAssetsMarketDataRegex =
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
+// v2 assets endpoint read by the AssetsController launchpad spam check on unlock
+// (core-backend TokenApiClient.fetchV2Assets). An empty list means no launchpad
+// tokens, so nothing extra is flagged as spam.
+// e.g. https://token.api.cx.metamask.io/v2/assets?assetIds=eip155:1/erc20:0x...&includeLaunchpadData=true&includeTokenSecurityData=true
+const tokenV2AssetsRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/v2\/assets\?.*$/;
+
 const tokenV2SupportedNetworksRegex =
   /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
-
-// Matches the v2 assets endpoint. Used by the TokenDetails screen, and by the
-// launchpad exemption that AssetsController's unlock spam cleanup added in
-// @metamask/assets-controller 20.2.1 (requested with includeLaunchpadData).
-// An empty array means no asset is treated as a launchpad token, so below-floor
-// tokens stay eligible for cleanup — the behaviour before the exemption existed.
-// e.g. https://token.api.cx.metamask.io/v2/assets?assetIds=eip155:1/erc20:0x...&includeLaunchpadData=true
-const tokenV2AssetsRegex =
-  /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/assets\?.*$/;
 
 // Per-chain suggested occurrence floors used by TokenDataSource spam filtering
 // and TokensApiClient token-list fetches (AssetsController).

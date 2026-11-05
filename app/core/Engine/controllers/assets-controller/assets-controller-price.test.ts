@@ -6,14 +6,7 @@ import {
   type ChainId,
   type DataRequest,
 } from '@metamask/assets-controller';
-
-// `@metamask/assets-controller` resolves its own copy of
-// `@metamask/core-backend`, so derive the client type from the consumer rather
-// than importing `ApiPlatformClient` directly, which would resolve to the
-// root copy and be nominally incompatible.
-type QueryApiClient = ConstructorParameters<
-  typeof PriceDataSource
->[0]['queryApiClient'];
+import type { ApiPlatformClient } from '@metamask/core-backend';
 
 const ACCOUNT_ID = 'account-id';
 const MAINNET_CHAIN_ID = 'eip155:1' as ChainId;
@@ -50,7 +43,7 @@ describe('AssetsController native asset pricing', () => {
         fetchPriceV2SupportedNetworks,
         fetchV3SpotPrices,
       },
-    } as unknown as QueryApiClient;
+    } as unknown as ApiPlatformClient;
     const priceDataSource = new PriceDataSource({
       queryApiClient,
       getSelectedCurrency: () => 'usd',

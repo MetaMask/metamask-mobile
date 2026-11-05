@@ -106,17 +106,14 @@ function subscribeToBasicFunctionalityChange(
 function getApiClient(
   initMessenger: AssetsControllerInitMessenger,
 ): QueryApiClient {
-  // `@metamask/assets-controllers` resolves its own copy of
-  // `@metamask/core-backend`, so the client we build here is structurally
-  // identical but nominally incompatible (private `#` fields). Cast to the
-  // type the package expects rather than importing a second `ApiPlatformClient`.
-  apiClient ??= createApiPlatformClient({
-    clientProduct: 'metamask-mobile',
-    clientVersion: getVersion(),
-    getBearerToken: () => safeGetBearerToken(initMessenger),
-    ...getBackendApiUrlsOption(),
-  }) as unknown as QueryApiClient;
-
+  if (!apiClient) {
+    apiClient = createApiPlatformClient({
+      clientProduct: 'metamask-mobile',
+      clientVersion: getVersion(),
+      getBearerToken: () => safeGetBearerToken(initMessenger),
+      ...getBackendApiUrlsOption(),
+    });
+  }
   return apiClient;
 }
 
