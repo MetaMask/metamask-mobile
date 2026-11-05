@@ -9570,6 +9570,11 @@
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Verifying your identity",
         "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
