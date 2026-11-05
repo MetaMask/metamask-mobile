@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Nous échangerons vos jetons contre des pUSD sur Polygon, le réseau utilisé par « Prédictions ». Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask échangera vos jetons pour vous. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask échangera vos jetons pour vous. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Les frais de conversion en mUSD comprennent les coûts de réseau et peuvent inclure des frais de fournisseur. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
       },

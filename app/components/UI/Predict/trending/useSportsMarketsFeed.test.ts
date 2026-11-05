@@ -3,11 +3,11 @@ import {
   usePredictMarketData,
   type UsePredictMarketDataOptions,
   type UsePredictMarketDataResult,
-} from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { strings } from '../../../../../../locales/i18n';
+} from '../hooks/usePredictMarketData';
+import { strings } from '../../../../../locales/i18n';
 import { useSportsMarketsFeed } from './useSportsMarketsFeed';
 
-jest.mock('../../../../UI/Predict/hooks/usePredictMarketData');
+jest.mock('../hooks/usePredictMarketData');
 
 const mockUsePredictMarketData = jest.mocked(usePredictMarketData);
 
@@ -87,5 +87,29 @@ describe('useSportsMarketsFeed', () => {
     });
     expect(refetchBySport.soccer).toHaveBeenCalledTimes(2);
     expect(refetchBySport.basketball).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads no sport and ignores refreshes while disabled', () => {
+    const { result, rerender } = renderHook(
+      ({ trigger }: { trigger: number }) =>
+        useSportsMarketsFeed({
+          refresh: { trigger, silentRefresh: true },
+          enabled: false,
+        }),
+      { initialProps: { trigger: 0 } },
+    );
+
+    act(() => {
+      result.current.select('basketball');
+    });
+    rerender({ trigger: 1 });
+
+    expect(
+      mockUsePredictMarketData.mock.calls.every(
+        ([opts]) => opts?.enabled === false,
+      ),
+    ).toBe(true);
+    expect(refetchBySport.soccer).not.toHaveBeenCalled();
+    expect(refetchBySport.basketball).not.toHaveBeenCalled();
   });
 });
