@@ -1,4 +1,5 @@
-import { Share } from 'react-native';
+import { Platform } from 'react-native';
+import Share from 'react-native-share';
 import {
   buildSocialTraderDeeplink,
   buildSocialTraderPositionDeeplink,
@@ -7,6 +8,13 @@ import {
   shareSocialProfile,
   shareSocialTraderPosition,
 } from './socialTraderDeeplink';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(),
+  },
+}));
 
 const PROFILE_URL = 'https://link.metamask.io/social/profile?traderId=trader-1';
 
@@ -67,37 +75,77 @@ describe('buildSocialTraderShareContent', () => {
 });
 
 describe('OS share completion', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
+  const openShare = Share.open as jest.Mock;
+  const originalOs = Platform.OS;
+
+  beforeEach(() => {
+    openShare.mockReset();
   });
 
-  it('reports a completed profile share and ignores a dismissed sheet', async () => {
+  afterEach(() => {
+    jest.replaceProperty(Platform, 'OS', originalOs);
+  });
+
+  it('counts an iOS share and ignores an iOS dismiss', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
     const onShared = jest.fn();
-    jest
-      .spyOn(Share, 'share')
-      .mockResolvedValueOnce({ action: Share.sharedAction });
+    openShare.mockResolvedValueOnce({ success: true, message: 'shared' });
 
     shareSocialProfile('trader-1', onShared);
     await Promise.resolve();
+
+    expect(openShare).toHaveBeenCalledWith({
+      message: PROFILE_URL,
+      url: PROFILE_URL,
+      failOnCancel: false,
+    });
     expect(onShared).toHaveBeenCalledTimes(1);
 
     onShared.mockClear();
-    jest
-      .spyOn(Share, 'share')
-      .mockResolvedValueOnce({ action: Share.dismissedAction });
+    openShare.mockResolvedValueOnce({
+      success: false,
+      dismissedAction: true,
+      message: '',
+    });
     shareSocialProfile('trader-1', onShared);
     await Promise.resolve();
     expect(onShared).not.toHaveBeenCalled();
   });
 
-  it('reports a completed position share', async () => {
+  it('counts an Android share and ignores an Android dismiss', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
     const onShared = jest.fn();
-    jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
+    const positionUrl =
+      'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1';
+    openShare.mockResolvedValueOnce({ success: true, message: 'shared' });
 
     shareSocialTraderPosition('position-1', 'trader-1', onShared);
     await Promise.resolve();
+
+    expect(openShare).toHaveBeenCalledWith({
+      message: positionUrl,
+      failOnCancel: false,
+    });
     expect(onShared).toHaveBeenCalledTimes(1);
+
+    onShared.mockClear();
+    openShare.mockResolvedValueOnce({
+      success: false,
+      dismissedAction: true,
+      message: '',
+    });
+    shareSocialTraderPosition('position-1', 'trader-1', onShared);
+    await Promise.resolve();
+    expect(onShared).not.toHaveBeenCalled();
+  });
+
+  it('does not count a share sheet that throws', async () => {
+    const onShared = jest.fn();
+    openShare.mockRejectedValueOnce(new Error('share failed'));
+
+    shareSocialProfile('trader-1', onShared);
+    await Promise.resolve();
+
+    expect(onShared).not.toHaveBeenCalled();
   });
 });
