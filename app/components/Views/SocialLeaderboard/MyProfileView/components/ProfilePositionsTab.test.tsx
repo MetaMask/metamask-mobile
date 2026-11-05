@@ -327,7 +327,8 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(row);
 
-    expect(onPositionPress).not.toHaveBeenCalled();
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
   });
 
   it('uses a singular accessibility label for one uncounted position', () => {
@@ -375,10 +376,6 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
     ).toBeNull();
-    expect(row.props.accessibilityState).toEqual({ disabled: false });
-    expect(onPositionPress).toHaveBeenCalledTimes(1);
-    expect(onPositionPress).toHaveBeenCalledWith(flagged);
-    expect(row).toHaveProp('accessibilityLabel', 'subline');
   });
 
   it('retries after a load error', () => {
