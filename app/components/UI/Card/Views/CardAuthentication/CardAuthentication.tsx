@@ -35,11 +35,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import {
   selectCardForgotPasswordFeatureEnabled,
-  selectCardImmersveConfig,
   selectCardImmersveCountries,
 } from '../../../../../selectors/featureFlagController/card';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
-import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
 import { MoneyAccountRequired } from '../../components/MoneyAccountRow/MoneyAccountRow';
 import { CardMessageBoxType, type Region } from '../../types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
@@ -178,11 +177,8 @@ const CardAuthentication = () => {
   const { state: ukMigrationState } = useCardUkMigrationState();
 
   const countryKey = selectedCountry?.key ?? null;
-  const immersveConfig = useSelector(selectCardImmersveConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const isMoneyAccountMode = Boolean(
-    getImmersveMoneyAccountConfig(immersveConfig, countryKey),
-  );
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(countryKey);
   const moneyAccountAddress = safeToChecksumAddress(
     primaryMoneyAccount?.address,
   );

@@ -49,6 +49,7 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../selectors/cardController', () => ({
   selectCardHomeData: jest.fn(() => null),
+  selectImmersveFundingChannelForSelectedCountry: jest.fn(() => null),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
@@ -56,6 +57,7 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
     network: 'base-sepolia',
     spenderAddress: '0x2222222222222222222222222222222222222222',
   })),
+  selectCardImmersveCountryFunding: jest.fn(() => ({})),
 }));
 
 jest.mock('./useEnsureCardNetworkExists', () => ({

@@ -1,11 +1,14 @@
 import { getVersion } from 'react-native-device-info';
+import { BASE_USDC_TOKEN_ADDRESS } from '../../../components/UI/Card/constants';
 import {
   DEFAULT_IMMERSVE_CHAINS,
   DEFAULT_IMMERSVE_CONFIG,
   DEFAULT_IMMERSVE_COUNTRIES,
+  IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  findImmersveFundingChannelById,
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
@@ -17,12 +20,19 @@ import {
   readCardProviderEnabled,
   readCardUkMigrationFlag,
   readCardUkMigrationSignInRoutingEnabled,
+  readImmersveCountryFunding,
+  readImmersveFundingChannels,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
+  resolveImmersveFundingChannel,
 } from './read';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockGetVersion = jest.mocked(getVersion);
@@ -86,23 +96,23 @@ describe('card feature flag readers', () => {
         ).toBe(true);
       });
 
-      it('stays on for the resolved disabled cohort on this custom build', () => {
+      it('stays off for the resolved disabled cohort (not in rollout)', () => {
         expect(
           readCardProviderEnabled(
             { cardImmersve: { enabled: false, minimumVersion: '0.0.0' } },
             IMMERSVE,
           ),
-        ).toBe(true);
+        ).toBe(false);
       });
 
-      it('stays on below minimumVersion on this custom build', () => {
+      it('still version-gates a user inside the enabled cohort', () => {
         mockGetVersion.mockReturnValue('8.0.0');
         expect(
           readCardProviderEnabled(
             { cardImmersve: { enabled: true, minimumVersion: '9.0.0' } },
             IMMERSVE,
           ),
-        ).toBe(true);
+        ).toBe(false);
       });
 
       // Guards the resolved-vs-raw contract on CardRemoteFeatureFlags: handing
@@ -126,31 +136,31 @@ describe('card feature flag readers', () => {
 
         expect(
           readCardProviderEnabled({ cardImmersve: rawRolloutFlag }, IMMERSVE),
-        ).toBe(true);
+        ).toBe(false);
       });
     });
 
-    it('stays on when the binary is below minimumVersion on this custom build', () => {
+    it('returns false when the binary is below minimumVersion', () => {
       mockGetVersion.mockReturnValue('8.0.0');
       expect(
         readCardProviderEnabled(
           { cardImmersve: { enabled: true, minimumVersion: '9.0.0' } },
           IMMERSVE,
         ),
-      ).toBe(true);
+      ).toBe(false);
     });
 
-    it('is on even when only the legacy cardFeature.immersve block is set', () => {
+    it('ignores the legacy cardFeature.immersve block entirely', () => {
       expect(
         readCardProviderEnabled(
           { cardFeature: { immersve: { enabled: true } } },
           IMMERSVE,
         ),
-      ).toBe(true);
+      ).toBe(false);
     });
 
-    it('defaults to on for Immersve on this custom build', () => {
-      expect(readCardProviderEnabled({}, IMMERSVE)).toBe(true);
+    it('defaults to false with nothing configured', () => {
+      expect(readCardProviderEnabled({}, IMMERSVE)).toBe(false);
     });
 
     it('returns false for an unknown provider', () => {
@@ -159,17 +169,11 @@ describe('card feature flag readers', () => {
   });
 
   describe('readCardProviderConfig', () => {
-    it('prefers cardImmersveConfig and merges the Money account channel', () => {
+    it('prefers cardImmersveConfig', () => {
       const config = { cardProgramId: 'from-flag' };
       expect(
         readCardProviderConfig({ cardImmersveConfig: config }, IMMERSVE),
-      ).toEqual({
-        ...config,
-        moneyAccountConfig: expect.objectContaining({
-          countries: ['NZ'],
-          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
-        }),
-      });
+      ).toBe(config);
     });
 
     it('ignores the legacy cardFeature.immersve block entirely', () => {
@@ -178,32 +182,24 @@ describe('card feature flag readers', () => {
           { cardFeature: { immersve: { cardProgramId: 'legacy' } } },
           IMMERSVE,
         ),
-      ).toEqual({
-        ...DEFAULT_IMMERSVE_CONFIG,
-        moneyAccountConfig: expect.objectContaining({
-          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
-        }),
-      });
+      ).toBe(DEFAULT_IMMERSVE_CONFIG);
     });
 
     it('falls back to the default when nothing is configured', () => {
-      expect(readCardProviderConfig({}, IMMERSVE)).toEqual({
-        ...DEFAULT_IMMERSVE_CONFIG,
-        moneyAccountConfig: expect.objectContaining({
-          network: 'monad-mainnet',
-        }),
-      });
+      expect(readCardProviderConfig({}, IMMERSVE)).toBe(
+        DEFAULT_IMMERSVE_CONFIG,
+      );
     });
   });
 
   describe('readCardProviderCountries', () => {
-    it('prefers cardImmersveCountries and claims NZ', () => {
+    it('prefers cardImmersveCountries', () => {
       expect(
         readCardProviderCountries(
           { cardImmersveCountries: ['FR', 'DE'] },
           IMMERSVE,
         ),
-      ).toEqual(['FR', 'DE', 'NZ']);
+      ).toEqual(['FR', 'DE']);
     });
 
     it('ignores a malformed value and falls back', () => {
@@ -212,7 +208,7 @@ describe('card feature flag readers', () => {
           { cardImmersveCountries: [1, 2], cardFeature: {} },
           IMMERSVE,
         ),
-      ).toEqual([...DEFAULT_IMMERSVE_COUNTRIES, 'NZ']);
+      ).toEqual(DEFAULT_IMMERSVE_COUNTRIES);
     });
 
     it('ignores the legacy immersveCountries key entirely', () => {
@@ -221,7 +217,7 @@ describe('card feature flag readers', () => {
           { cardFeature: { immersveCountries: ['ES'] } },
           IMMERSVE,
         ),
-      ).toEqual([...DEFAULT_IMMERSVE_COUNTRIES, 'NZ']);
+      ).toEqual(DEFAULT_IMMERSVE_COUNTRIES);
     });
   });
 
@@ -312,7 +308,7 @@ describe('card feature flag readers', () => {
       ).toBe('immersve');
     });
 
-    it('still routes GB to Immersve when the switch is off on this custom build', () => {
+    it('falls back to baanx when the provider is switched off', () => {
       expect(
         resolveCardProviderForCountry(
           {
@@ -321,7 +317,7 @@ describe('card feature flag readers', () => {
           },
           'GB',
         ),
-      ).toBe('immersve');
+      ).toBe('baanx');
     });
 
     it('falls back to baanx for an unclaimed country', () => {
@@ -336,7 +332,7 @@ describe('card feature flag readers', () => {
       ).toBe('baanx');
     });
 
-    it('routes GB to Immersve below minimumVersion on this custom build', () => {
+    it('does not route to a provider gated off by version', () => {
       mockGetVersion.mockReturnValue('8.0.0');
       expect(
         resolveCardProviderForCountry(
@@ -346,11 +342,227 @@ describe('card feature flag readers', () => {
           },
           'GB',
         ),
+      ).toBe('baanx');
+    });
+
+    it('does not route NZ to Immersve when the country funding flag is absent', () => {
+      expect(
+        resolveCardProviderForCountry(
+          {
+            cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+            cardImmersveCountries: ['GB'],
+          },
+          'NZ',
+        ),
+      ).toBe('baanx');
+    });
+  });
+
+  describe('Immersve funding channels', () => {
+    const baseAssetId = `eip155:8453/erc20:${BASE_USDC_TOKEN_ADDRESS}`;
+    const lineaUsdcAddress = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+    const lineaAssetId = `eip155:59144/erc20:${lineaUsdcAddress}`;
+    const moneyAssetId = `eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`;
+    const usdcSpender = '0x1111111111111111111111111111111111111111';
+    const lineaSpender = '0x2222222222222222222222222222222222222222';
+    const moneySpender = '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964';
+    const moneyChannelId = 'd32fbc3527bc048e7de9e9fdc68c1966';
+    const topLevelWalletConfig = {
+      network: 'base-mainnet',
+      fundingChannelId: 'usdc-base-channel',
+      spenderAddress: usdcSpender,
+    };
+
+    const fundingFlags = {
+      cardImmersveConfig: {
+        ...topLevelWalletConfig,
+        fundingChannels: {
+          usdcBase: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-base-channel',
+            assetId: baseAssetId,
+            spenderAddress: usdcSpender,
+          },
+          usdcLinea: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-linea-channel',
+            assetId: lineaAssetId,
+            spenderAddress: lineaSpender,
+          },
+          moneyAccount: {
+            source: 'moneyAccount',
+            fundingChannelId: moneyChannelId,
+            assetId: moneyAssetId,
+            spenderAddress: moneySpender,
+          },
+        },
+      },
+      cardImmersveChains: {
+        ...DEFAULT_IMMERSVE_CHAINS,
+        'eip155:59144': {
+          network: 'linea-mainnet',
+          rpcUrl: 'https://linea.example',
+          fallbackRpcUrl: 'https://rpc.linea.build',
+          tokens: { [lineaAssetId]: { decimals: 6, symbol: 'USDC' } },
+        },
+      },
+      cardImmersveCountries: {
+        GB: { fundingChannel: 'usdcBase' },
+        TH: { fundingChannel: 'usdcLinea' },
+        NZ: { fundingChannel: 'moneyAccount' },
+      },
+    };
+
+    it('resolves a channel through cardImmersveChains', () => {
+      expect(resolveImmersveFundingChannel(fundingFlags, 'nz')).toMatchObject({
+        source: 'moneyAccount',
+        fundingChannelId: moneyChannelId,
+        assetId: moneyAssetId,
+        spenderAddress: moneySpender,
+        caipChainId: 'eip155:143',
+        network: 'monad-mainnet',
+        tokenAddress: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        symbol: 'vmUSD',
+      });
+    });
+
+    it('lets countries use different wallet assets', () => {
+      expect(resolveImmersveFundingChannel(fundingFlags, 'GB')).toMatchObject({
+        source: 'wallet',
+        caipChainId: 'eip155:8453',
+        network: 'base-mainnet',
+        tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+      });
+      expect(resolveImmersveFundingChannel(fundingFlags, 'TH')).toMatchObject({
+        source: 'wallet',
+        fundingChannelId: 'usdc-linea-channel',
+        caipChainId: 'eip155:59144',
+        network: 'linea-mainnet',
+        tokenAddress: lineaUsdcAddress,
+        spenderAddress: lineaSpender,
+        rpcUrl: 'https://linea.example',
+        fallbackRpcUrl: 'https://rpc.linea.build',
+      });
+    });
+
+    it('routes every mapped country to Immersve', () => {
+      expect(readCardProviderCountries(fundingFlags, IMMERSVE)).toEqual([
+        'GB',
+        'TH',
+        'NZ',
+      ]);
+      expect(
+        resolveCardProviderForCountry(
+          {
+            ...fundingFlags,
+            cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          },
+          'TH',
+        ),
       ).toBe('immersve');
     });
 
-    it('routes NZ to Immersve via the hardcoded Money account country', () => {
-      expect(resolveCardProviderForCountry({}, 'NZ')).toBe('immersve');
+    it('drops a channel whose asset is missing from chains, and its countries', () => {
+      const flags = {
+        cardImmersveConfig: fundingFlags.cardImmersveConfig,
+        cardImmersveCountries: fundingFlags.cardImmersveCountries,
+      };
+
+      expect(readImmersveFundingChannels(flags).usdcLinea).toBeUndefined();
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual([
+        'GB',
+        'NZ',
+      ]);
+    });
+
+    it('drops channels with an unknown source and countries pointing at unknown channels', () => {
+      const flags = {
+        cardImmersveConfig: {
+          ...topLevelWalletConfig,
+          fundingChannels: {
+            usdcBase: {
+              source: 'card',
+              fundingChannelId: 'usdc-base-channel',
+              assetId: baseAssetId,
+              spenderAddress: usdcSpender,
+            },
+          },
+        },
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          FR: { fundingChannel: 'missing' },
+          DE: 'wallet',
+        },
+      };
+
+      expect(readImmersveFundingChannels(flags)).toEqual({});
+      expect(readImmersveCountryFunding(flags)).toEqual({});
+    });
+
+    it('uses the top-level wallet channel for a legacy country list', () => {
+      const flags = {
+        cardImmersveConfig: {
+          ...topLevelWalletConfig,
+          fundingChannels: fundingFlags.cardImmersveConfig.fundingChannels,
+        },
+        cardImmersveCountries: ['GB'],
+      };
+
+      expect(readImmersveCountryFunding(flags)).toEqual({
+        GB: expect.objectContaining({
+          source: 'wallet',
+          fundingChannelId: 'usdc-base-channel',
+          network: 'base-mainnet',
+          tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+          spenderAddress: usdcSpender,
+        }),
+      });
+      expect(resolveImmersveFundingChannel(flags, 'NZ')).toBeNull();
+    });
+
+    it('defaults an absent country flag to GB on the top-level wallet channel', () => {
+      expect(
+        Object.keys(
+          readImmersveCountryFunding({
+            cardImmersveConfig: topLevelWalletConfig,
+          }),
+        ),
+      ).toEqual(['GB']);
+    });
+
+    it('drops a country below its minimumVersion and keeps one without a floor', () => {
+      const flags = {
+        ...fundingFlags,
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          NZ: { fundingChannel: 'moneyAccount', minimumVersion: '9.0.0' },
+        },
+      };
+
+      mockGetVersion.mockReturnValue('8.18.0');
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual(['GB']);
+
+      mockGetVersion.mockReturnValue('9.0.0');
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual([
+        'GB',
+        'NZ',
+      ]);
+    });
+
+    it('finds a channel by its Immersve funding channel id', () => {
+      expect(
+        findImmersveFundingChannelById(fundingFlags, moneyChannelId)?.source,
+      ).toBe('moneyAccount');
+      expect(
+        findImmersveFundingChannelById(
+          { cardImmersveConfig: topLevelWalletConfig },
+          'usdc-base-channel',
+        )?.tokenAddress,
+      ).toBe(BASE_USDC_TOKEN_ADDRESS);
+      expect(
+        findImmersveFundingChannelById(fundingFlags, 'missing'),
+      ).toBeNull();
     });
   });
 

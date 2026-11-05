@@ -17,11 +17,10 @@ export interface MoneyMetaMaskCardModeInput {
   isCardStateResolved: boolean;
   isMoneyCardSectionAvailable?: boolean;
   /**
-   * Immersve never reports Baanx VERIFIED, so card state never resolves via
-   * verificationStatus. Skip the unresolved loading gate for NZ Money account
-   * users and show upsell (not the verification banner) until they have a card.
+   * When false, the provider has no Baanx-style verification status. Skip the
+   * unresolved loading gate and show the card upsell until the user has a card.
    */
-  isImmersveMoneyAccountMode?: boolean;
+  reportsVerificationStatus?: boolean;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -35,15 +34,15 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountRequirements,
   isCardStateResolved,
   isMoneyCardSectionAvailable = true,
-  isImmersveMoneyAccountMode = false,
+  reportsVerificationStatus = true,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
   if (!isMoneyCardSectionAvailable) {
     return null;
   }
 
-  // Immersve never supplies Baanx verificationStatus, so the shared
-  // unresolved-state gate would spin forever. Continue to manage/link/upsell.
-  if (!isCardStateResolved && !isImmersveMoneyAccountMode) {
+  // A provider with no verification status never resolves the shared gate.
+  // Continue to manage, link, or upsell.
+  if (!isCardStateResolved && reportsVerificationStatus) {
     return isMoneyAccountVisible ? 'loading' : null;
   }
 
@@ -64,9 +63,9 @@ export const deriveMoneyMetaMaskCardMode = ({
   }
 
   // Authenticated but identity not yet verified -> verification in progress.
-  // Immersve NZ has no Baanx verification state; show the card upsell instead.
+  // A provider that does not report verification offers the card upsell.
   if (isCardAuthenticated) {
-    if (isImmersveMoneyAccountMode) {
+    if (!reportsVerificationStatus) {
       return isMoneyAccountVisible ? 'upsell' : null;
     }
     return isMoneyAccountVisible ? 'verifying' : null;

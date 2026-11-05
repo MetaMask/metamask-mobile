@@ -42,11 +42,10 @@ import { validatePassword } from '../../util/validatePassword';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import {
-  selectCardImmersveConfig,
   selectCardImmersveCountries,
   selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
 import {
   MoneyAccountRequired,
   MoneyAccountIdentity,
@@ -79,7 +78,6 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { UK_MIGRATION_COUNTRY_CODE } from '../../util/countryPrefill';
 import { useSignUpCountryPrefill } from '../../hooks/useSignUpCountryPrefill';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
@@ -184,9 +182,8 @@ const SignUp = () => {
   );
   const selectedImmersveAccount = selectAccountByScope('eip155:0');
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const immersveConfig = useSelector(selectCardImmersveConfig);
-  const isMoneyAccountMode = Boolean(
-    getImmersveMoneyAccountConfig(immersveConfig, selectedCountry?.key),
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(
+    selectedCountry?.key,
   );
   const immersveAddress = safeToChecksumAddress(
     isMoneyAccountMode

@@ -1,5 +1,11 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { bytesToHex, numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  bytesToHex,
+  numberToHex,
+  parseCaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -110,6 +116,7 @@ import {
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
 import { capRedeemAmount } from './utils/redeemAmount';
+import { MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID } from '../../../../components/UI/Card/util/vedaToken';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -137,6 +144,9 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
+const MONEY_ACCOUNT_CHAIN_ID = Number(
+  parseCaipChainId(MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID).reference,
+);
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
@@ -2874,8 +2884,10 @@ export class CardController extends BaseController<
       ),
     );
 
-    const chainNumber = parseInt(preparation.caipChainId.split(':')[1], 10);
-    if (chainNumber !== 143) {
+    const chainNumber = Number(
+      parseCaipChainId(preparation.caipChainId).reference,
+    );
+    if (chainNumber !== MONEY_ACCOUNT_CHAIN_ID) {
       this.#assertMonadGasSponsorship(chainNumber);
     }
 
@@ -2966,7 +2978,7 @@ export class CardController extends BaseController<
     }
   }
 
-  #assertMonadGasSponsorship(chainNumber = 143): void {
+  #assertMonadGasSponsorship(chainNumber = MONEY_ACCOUNT_CHAIN_ID): void {
     const hexChainId = numberToHex(chainNumber) as Hex;
     const isEnabled = getGasFeesSponsoredNetworkEnabled(
       ReduxService.store.getState() as RootState,

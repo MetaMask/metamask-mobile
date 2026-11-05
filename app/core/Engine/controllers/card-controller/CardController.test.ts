@@ -433,7 +433,7 @@ describe('CardController — setSelectedCountry', () => {
     expect(controller.state.activeProviderId).toBe('immersve');
   });
 
-  it('keeps Immersve for a configured country when the kill-switch is off on this custom build', () => {
+  it('keeps the default provider when the kill-switch is off', () => {
     const controller = build({
       cardImmersve: { enabled: false, minimumVersion: '0.0.0' },
       cardImmersveCountries: ['GB'],
@@ -442,7 +442,7 @@ describe('CardController — setSelectedCountry', () => {
     controller.setSelectedCountry('GB');
 
     expect(controller.state.selectedCountry).toBe('GB');
-    expect(controller.state.activeProviderId).toBe('immersve');
+    expect(controller.state.activeProviderId).toBe('baanx');
   });
 
   it('keeps the default provider for a non-Immersve country', () => {
@@ -3143,6 +3143,7 @@ describe('CardController — getCapabilities', () => {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
+    reportsVerificationStatus: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
   };

@@ -19,13 +19,14 @@ import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
+  findImmersveFundingChannelById,
   readCardFeatureFlag,
   readCardImmersveMfaEnabled,
   readCardProviderConfig,
+  resolveImmersveFundingChannel,
   type CardFeatureFlag,
   type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
-import { getImmersveMoneyAccountConfig } from '../../../../components/UI/Card/util/immersveMoneyAccount';
 
 const getMobileClientInfo = (): CardClientInfo => ({
   product: 'metamask-mobile',
@@ -80,8 +81,13 @@ export const cardControllerInit: MessengerClientInitFunction<
     config: immersveConfig,
     getProgramConfig: getImmersveConfig,
     getSelectedCountry: () => readSelectedCountry(),
-    getMoneyAccountConfig: () =>
-      getImmersveMoneyAccountConfig(getImmersveConfig(), readSelectedCountry()),
+    getFundingChannel: () =>
+      resolveImmersveFundingChannel(
+        getRemoteFeatureFlags(),
+        readSelectedCountry(),
+      ),
+    findFundingChannelById: (channelId) =>
+      findImmersveFundingChannelById(getRemoteFeatureFlags(), channelId),
     isMfaEnabled: () => readCardImmersveMfaEnabled(getRemoteFeatureFlags()),
   });
 

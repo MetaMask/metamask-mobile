@@ -6,13 +6,11 @@ import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
-import {
-  selectCardFeatureFlag,
-  selectCardImmersveConfig,
-} from '../../../../selectors/featureFlagController/card';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardSelectedCountry,
+  selectImmersveFundingChannelForSelectedCountry,
   selectImmersveMoneyAccountMode,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
@@ -298,34 +296,64 @@ describe('useMoneyAccountCardLinkage', () => {
       ),
     });
 
-  it('synthesizes the Immersve Veda token when delegation settings have none', () => {
+  const mockMoneyAccountChannel = (
+    extras: { isCardVerified?: boolean } = {},
+  ) => {
     mockResolveMoneyAccountCardToken.mockReturnValue(null);
-    applySelectorMocks(buildSelectors({ isCardVerified: false }));
+    applySelectorMocks(
+      buildSelectors({
+        isCardVerified: extras.isCardVerified ?? false,
+        cardFeatureFlag: { chains: {} },
+      }),
+    );
     const previous = mockUseSelector.getMockImplementation();
     mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
       if (selector === selectCardSelectedCountry) return 'NZ';
       if (selector === selectImmersveMoneyAccountMode) return true;
-      if (selector === selectCardImmersveConfig) {
+      if (selector === selectImmersveFundingChannelForSelectedCountry) {
         return {
-          moneyAccountConfig: {
-            countries: ['NZ'],
-            network: 'monad-mainnet',
-            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
-            spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
-          },
+          source: 'moneyAccount',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+          network: 'monad-mainnet',
+          caipChainId: 'eip155:143',
+          tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
         };
       }
       return previous?.(selector);
     });
+  };
+
+  it('uses the Money account channel token without the Baanx allowlist', () => {
+    mockMoneyAccountChannel();
+    mockUseCardCapabilities.mockReturnValue({
+      supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: false,
+    } as ReturnType<typeof useCardCapabilities>);
 
     const { result } = renderLinkageHook();
 
+    expect(mockResolveMoneyAccountCardToken).not.toHaveBeenCalled();
     expect(result.current.moneyAccountCardToken).toMatchObject({
       address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
       delegationContract: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
       caipChainId: 'eip155:143',
     });
     expect(result.current.canLink).toBe(true);
+  });
+
+  it('refuses an unverified Money account link when the provider reports verification', () => {
+    mockMoneyAccountChannel();
+    mockUseCardCapabilities.mockReturnValue({
+      supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: true,
+    } as ReturnType<typeof useCardCapabilities>);
+
+    const { result } = renderLinkageHook();
+
+    expect(result.current.moneyAccountCardToken).not.toBeNull();
+    expect(result.current.canLink).toBe(false);
   });
 
   beforeEach(() => {
@@ -636,20 +664,16 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.isMoneyCardSectionAvailable).toBe(true);
     });
 
-    it('keeps the card section for an authenticated Immersve NZ Money account', () => {
+    it('keeps the card section when the provider can link a Money account', () => {
       applySelectorMocks(buildSelectors({ isCardAuthenticated: true }));
-      const previous = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation(
-        (selector: (s: unknown) => unknown) => {
-          if (selector === selectImmersveMoneyAccountMode) return true;
-          return previous?.(selector);
-        },
-      );
-      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+      mockUseCardCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: true,
+        reportsVerificationStatus: false,
+      } as ReturnType<typeof useCardCapabilities>);
 
       const { result } = renderLinkageHook();
 
-      expect(result.current.isImmersveMoneyAccountMode).toBe(true);
+      expect(result.current.reportsVerificationStatus).toBe(false);
       expect(result.current.isMoneyCardSectionAvailable).toBe(true);
     });
 

@@ -36,8 +36,7 @@ import {
   selectCardHomeData,
   selectCardSelectedCountry,
 } from '../../../../../selectors/cardController';
-import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
-import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
 import { MoneyAccountRow } from '../MoneyAccountRow/MoneyAccountRow';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import {
@@ -188,14 +187,9 @@ const ImmersveFundingApproval = () => {
     isReapprove ? 'back' : 'close-direct',
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const immersveConfig = useSelector(selectCardImmersveConfig);
   const selectedCountry = useSelector(selectCardSelectedCountry);
-  const isMoneyAccountMode = Boolean(
-    getImmersveMoneyAccountConfig(
-      immersveConfig,
-      countryKey ?? selectedCountry,
-    ),
-  );
+  const fundingCountry = countryKey ?? selectedCountry;
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(fundingCountry);
   const { confirmLinkInBackground, isLinking } = useMoneyAccountCardLinkage();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
@@ -243,7 +237,10 @@ const ImmersveFundingApproval = () => {
     buildApproveWrite,
     isLoading: fundingIsLoading,
     error: fundingError,
-  } = useImmersveFunding({ fundingAddress: resolvedFundingAddress });
+  } = useImmersveFunding({
+    fundingAddress: resolvedFundingAddress,
+    country: fundingCountry,
+  });
 
   useEffect(() => {
     trackEvent(

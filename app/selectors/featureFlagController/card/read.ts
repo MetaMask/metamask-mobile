@@ -1,13 +1,18 @@
+import { parseCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import {
   CardProviderIds,
   type CardProviderId,
 } from '../../../core/Engine/controllers/card-controller/provider-types';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import { immersveNetworkToFundingToken } from '../../../components/UI/Card/util/immersveFunding';
+import Logger from '../../../util/Logger';
+import {
+  hasMinimumRequiredVersion,
+  validatedVersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
 import {
   DEFAULT_IMMERSVE_CHAINS,
   DEFAULT_IMMERSVE_CONFIG,
   DEFAULT_IMMERSVE_COUNTRIES,
-  IMMERSVE_MONEY_ACCOUNT_CONFIG,
   defaultCardFeatureFlag,
   defaultCardUkMigrationFlag,
 } from './defaults';
@@ -19,8 +24,20 @@ import type {
   CardProviderTokenConfig,
   CardUkMigrationFlag,
   CardUkMigrationState,
+  ImmersveFundingChannel,
+  ImmersveFundingSourceType,
   ImmersveProgramConfig,
 } from './types';
+
+const IMMERSVE_FUNDING_SOURCE_TYPES: readonly ImmersveFundingSourceType[] = [
+  'wallet',
+  'moneyAccount',
+];
+
+const isImmersveFundingSourceType = (
+  value: unknown,
+): value is ImmersveFundingSourceType =>
+  IMMERSVE_FUNDING_SOURCE_TYPES.includes(value as ImmersveFundingSourceType);
 
 /**
  * `RemoteFeatureFlagController.remoteFeatureFlags` — the **resolved** flag bag.
@@ -54,27 +71,16 @@ export const CARD_PROVIDER_FLAGS: Record<string, CardProviderFlagKeys> = {
 /** Provider used when no provider claims the country. */
 export const FALLBACK_CARD_PROVIDER_ID: CardProviderId = CardProviderIds.Baanx;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 const isNonEmptyObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' &&
-  value !== null &&
-  !Array.isArray(value) &&
-  Object.keys(value).length > 0;
+  isRecord(value) && Object.keys(value).length > 0;
 
 /**
  * `process.env` member expressions must be written out literally — the React
  * Native env transform does not inline dynamic `process.env[key]` lookups.
  */
-/**
- * CUSTOM BUILD: force Immersve on, claim NZ, and attach the Money account
- * channel. LaunchDarkly would own these three once this build is retired.
- */
-const IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY = 'NZ';
-
-const withImmersveMoneyAccountCountry = (countries: string[]): string[] =>
-  countries.includes(IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY)
-    ? countries
-    : [...countries, IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY];
-
 const readProviderEnvOverride = (providerId: string): boolean => {
   if (providerId === CardProviderIds.Immersve) {
     return process.env.MM_CARD_IMMERSVE_ENABLED === 'true';
@@ -107,7 +113,7 @@ export function readCardLinkApiEnabled(flags: CardRemoteFeatureFlags): boolean {
  * Whether a provider is available.
  *
  * Resolution order: the `card<Provider>` switch -> the local env override ->
- * false. This custom build forces Immersve on before that resolution.
+ * false.
  *
  * The switch is expected to be a gradual-rollout flag. The controller has
  * already picked the cohort by the time we see it, so the value here is a plain
@@ -130,10 +136,6 @@ export function readCardProviderEnabled(
     return false;
   }
 
-  if (providerId === CardProviderIds.Immersve) {
-    return true;
-  }
-
   const gated = validatedVersionGatedFeatureFlag(flags?.[keys.gate]);
   if (gated !== undefined) {
     return gated;
@@ -149,18 +151,12 @@ export function readCardProviderConfig<T = ImmersveProgramConfig>(
 ): T {
   const keys = CARD_PROVIDER_FLAGS[providerId];
   const raw = keys ? flags?.[keys.config] : undefined;
-  if (providerId === CardProviderIds.Immersve) {
-    const base = isNonEmptyObject(raw)
-      ? (raw as ImmersveProgramConfig)
-      : DEFAULT_IMMERSVE_CONFIG;
-    return {
-      ...base,
-      moneyAccountConfig: IMMERSVE_MONEY_ACCOUNT_CONFIG,
-    } as T;
-  }
-
   if (isNonEmptyObject(raw)) {
     return raw as T;
+  }
+
+  if (providerId === CardProviderIds.Immersve) {
+    return DEFAULT_IMMERSVE_CONFIG as T;
   }
 
   return {} as T;
@@ -171,21 +167,20 @@ export function readCardProviderCountries(
   flags: CardRemoteFeatureFlags,
   providerId: string,
 ): string[] {
-  const keys = CARD_PROVIDER_FLAGS[providerId];
-  const raw = keys ? flags?.[keys.countries] : undefined;
-  const remoteCountries =
-    Array.isArray(raw) &&
-    raw.every((entry): entry is string => typeof entry === 'string')
-      ? raw
-      : null;
-
   if (providerId === CardProviderIds.Immersve) {
-    return withImmersveMoneyAccountCountry(
-      remoteCountries ?? DEFAULT_IMMERSVE_COUNTRIES,
-    );
+    return Object.keys(readImmersveCountryFunding(flags));
   }
 
-  return remoteCountries ?? [];
+  const keys = CARD_PROVIDER_FLAGS[providerId];
+  const raw = keys ? flags?.[keys.countries] : undefined;
+  if (
+    Array.isArray(raw) &&
+    raw.every((entry): entry is string => typeof entry === 'string')
+  ) {
+    return raw;
+  }
+
+  return [];
 }
 
 const toTokenConfig = (value: unknown): CardProviderTokenConfig | null => {
@@ -269,6 +264,310 @@ export function readCardProviderChains(
     }
   }
   return chains;
+}
+
+const logImmersveFundingFlag = (message: string): void => {
+  Logger.error(new Error(message), {
+    tags: { feature: 'card', provider: 'immersve' },
+    context: {
+      name: 'ImmersveFundingChannels',
+      data: { message },
+    },
+  });
+};
+
+const findChainToken = (
+  tokens: Record<string, CardProviderTokenConfig> | undefined,
+  assetId: string,
+): CardProviderTokenConfig | null => {
+  if (!tokens) {
+    return null;
+  }
+  const exact = tokens[assetId];
+  if (exact) {
+    return exact;
+  }
+  const target = assetId.toLowerCase();
+  for (const [key, value] of Object.entries(tokens)) {
+    if (key.toLowerCase() === target) {
+      return value;
+    }
+  }
+  return null;
+};
+
+const sanitizeFundingChannel = (
+  name: string,
+  value: unknown,
+  chains: CardProviderChains,
+): ImmersveFundingChannel | null => {
+  if (!isNonEmptyObject(value)) {
+    logImmersveFundingFlag(
+      `Immersve funding channel "${name}" is not an object`,
+    );
+    return null;
+  }
+
+  const { source, fundingChannelId, assetId, spenderAddress, cardProgramId } =
+    value as {
+      source?: unknown;
+      fundingChannelId?: unknown;
+      assetId?: unknown;
+      spenderAddress?: unknown;
+      cardProgramId?: unknown;
+    };
+
+  if (
+    !isImmersveFundingSourceType(source) ||
+    typeof fundingChannelId !== 'string' ||
+    fundingChannelId.length === 0 ||
+    typeof assetId !== 'string' ||
+    assetId.length === 0 ||
+    typeof spenderAddress !== 'string' ||
+    spenderAddress.length === 0
+  ) {
+    logImmersveFundingFlag(
+      `Immersve funding channel "${name}" is missing source, fundingChannelId, assetId, or spenderAddress`,
+    );
+    return null;
+  }
+
+  let parsed: ReturnType<typeof parseCaipAssetType>;
+  try {
+    parsed = parseCaipAssetType(assetId as CaipAssetType);
+  } catch {
+    logImmersveFundingFlag(
+      `Immersve funding channel "${name}" has an invalid asset id`,
+    );
+    return null;
+  }
+
+  const chain = chains[parsed.chainId];
+  const token = findChainToken(chain?.tokens, assetId);
+  if (!chain?.network || !token || !parsed.assetReference) {
+    logImmersveFundingFlag(
+      `Immersve funding channel "${name}" asset ${assetId} is not in cardImmersveChains`,
+    );
+    return null;
+  }
+
+  return {
+    source,
+    fundingChannelId,
+    assetId: assetId as CaipAssetType,
+    spenderAddress,
+    ...(typeof cardProgramId === 'string' && cardProgramId.length > 0
+      ? { cardProgramId }
+      : {}),
+    caipChainId: parsed.chainId,
+    network: chain.network,
+    tokenAddress: parsed.assetReference,
+    decimals: token.decimals,
+    ...(token.symbol ? { symbol: token.symbol } : {}),
+    ...(chain.rpcUrl ? { rpcUrl: chain.rpcUrl } : {}),
+    ...(chain.fallbackRpcUrl ? { fallbackRpcUrl: chain.fallbackRpcUrl } : {}),
+  };
+};
+
+/**
+ * The USDC wallet channel from the top-level `network` / `fundingChannelId` /
+ * `spenderAddress`. Used when `cardImmersveCountries` is a legacy string
+ * array or is absent, and to recognise funding sources created by released
+ * builds. An empty channel id still resolves so country routing matches
+ * released builds.
+ */
+const buildTopLevelWalletChannel = (
+  config: ImmersveProgramConfig,
+  chains: CardProviderChains,
+): ImmersveFundingChannel | null => {
+  const configuredNetwork = config.network || DEFAULT_IMMERSVE_CONFIG.network;
+  if (!configuredNetwork) {
+    return null;
+  }
+
+  let token: ReturnType<typeof immersveNetworkToFundingToken>;
+  try {
+    token = immersveNetworkToFundingToken(configuredNetwork);
+  } catch {
+    return null;
+  }
+
+  const assetId = `${token.caipChainId}/erc20:${token.tokenAddress}`;
+  const chain = chains[token.caipChainId];
+  const chainToken = findChainToken(chain?.tokens, assetId);
+
+  return {
+    source: 'wallet',
+    fundingChannelId: config.fundingChannelId ?? '',
+    assetId: assetId as CaipAssetType,
+    spenderAddress: config.spenderAddress ?? '',
+    caipChainId: token.caipChainId as ImmersveFundingChannel['caipChainId'],
+    network: chain?.network || configuredNetwork,
+    tokenAddress: token.tokenAddress,
+    decimals: chainToken?.decimals ?? token.decimals,
+    ...(chainToken?.symbol ? { symbol: chainToken.symbol } : {}),
+    ...(chain?.rpcUrl ? { rpcUrl: chain.rpcUrl } : {}),
+    ...(chain?.fallbackRpcUrl ? { fallbackRpcUrl: chain.fallbackRpcUrl } : {}),
+  };
+};
+
+const readImmersveFundingFlags = (flags: CardRemoteFeatureFlags) => ({
+  config: readCardProviderConfig<ImmersveProgramConfig>(
+    flags,
+    CardProviderIds.Immersve,
+  ),
+  chains: readCardProviderChains(flags, CardProviderIds.Immersve),
+});
+
+const resolveNamedFundingChannels = (
+  config: ImmersveProgramConfig,
+  chains: CardProviderChains,
+): Record<string, ImmersveFundingChannel> => {
+  const resolved: Record<string, ImmersveFundingChannel> = {};
+  if (!isNonEmptyObject(config.fundingChannels)) {
+    return resolved;
+  }
+  for (const [name, value] of Object.entries(config.fundingChannels)) {
+    const channel = sanitizeFundingChannel(name, value, chains);
+    if (channel) {
+      resolved[name] = channel;
+    }
+  }
+  return resolved;
+};
+
+/** True when the channel spends from the Money account. */
+export function isMoneyAccountFundingChannel<T extends { source: string }>(
+  channel: T | null | undefined,
+): channel is T & { source: 'moneyAccount' } {
+  return channel?.source === 'moneyAccount';
+}
+
+/**
+ * Channel name -> resolved channel, from `cardImmersveConfig.fundingChannels`.
+ * Incomplete entries and entries whose asset is missing from
+ * `cardImmersveChains` are dropped.
+ */
+export function readImmersveFundingChannels(
+  flags: CardRemoteFeatureFlags,
+): Record<string, ImmersveFundingChannel> {
+  const { config, chains } = readImmersveFundingFlags(flags);
+  return resolveNamedFundingChannels(config, chains);
+}
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+
+/**
+ * One object entry of `cardImmersveCountries`. Returns null when
+ * `fundingChannel` is missing or `minimumVersion` is present but not a string.
+ */
+const parseImmersveCountryConfig = (
+  value: unknown,
+): { fundingChannel: string; minimumVersion?: string } | null => {
+  if (!isRecord(value) || typeof value.fundingChannel !== 'string') {
+    return null;
+  }
+  const { fundingChannel, minimumVersion } = value;
+  if (fundingChannel.length === 0) {
+    return null;
+  }
+  if (minimumVersion !== undefined && typeof minimumVersion !== 'string') {
+    return null;
+  }
+  return {
+    fundingChannel,
+    ...(typeof minimumVersion === 'string' && minimumVersion.length > 0
+      ? { minimumVersion }
+      : {}),
+  };
+};
+
+/**
+ * Country code -> funding channel, from `cardImmersveCountries`.
+ *
+ * An object maps each country to a named channel in `fundingChannels`. A
+ * country below its `minimumVersion`, or whose channel does not resolve, is
+ * dropped. A legacy string array, and a missing or invalid value, use the
+ * top-level wallet channel (defaulting to GB when the value is not a list).
+ */
+export function readImmersveCountryFunding(
+  flags: CardRemoteFeatureFlags,
+): Record<string, ImmersveFundingChannel> {
+  const { config, chains } = readImmersveFundingFlags(flags);
+  const raw = flags?.[CARD_PROVIDER_FLAGS[CardProviderIds.Immersve].countries];
+
+  if (isRecord(raw)) {
+    const channels = resolveNamedFundingChannels(config, chains);
+    const countryFunding: Record<string, ImmersveFundingChannel> = {};
+    for (const [country, value] of Object.entries(raw)) {
+      const normalized = country.toUpperCase();
+      const entry = parseImmersveCountryConfig(value);
+      if (!entry) {
+        logImmersveFundingFlag(
+          `Immersve country ${normalized} is missing a funding channel`,
+        );
+        continue;
+      }
+      if (
+        entry.minimumVersion &&
+        !hasMinimumRequiredVersion(entry.minimumVersion)
+      ) {
+        continue;
+      }
+      const channel = channels[entry.fundingChannel];
+      if (!channel) {
+        logImmersveFundingFlag(
+          `Immersve country ${normalized} does not map to a resolved funding channel`,
+        );
+        continue;
+      }
+      countryFunding[normalized] = channel;
+    }
+    return countryFunding;
+  }
+
+  const countries = isStringArray(raw) ? raw : DEFAULT_IMMERSVE_COUNTRIES;
+  const topLevel = buildTopLevelWalletChannel(config, chains);
+  if (!topLevel) {
+    return {};
+  }
+  return Object.fromEntries(
+    countries.map((country) => [country.toUpperCase(), topLevel]),
+  );
+}
+
+/** Funding channel for `country`, or null when Immersve does not claim it. */
+export function resolveImmersveFundingChannel(
+  flags: CardRemoteFeatureFlags,
+  country: string | null | undefined,
+): ImmersveFundingChannel | null {
+  if (!country) {
+    return null;
+  }
+  return readImmersveCountryFunding(flags)[country.toUpperCase()] ?? null;
+}
+
+/**
+ * Channel whose Immersve id matches a funding source. A card can spend from a
+ * channel other than the one the selected country would create.
+ */
+export function findImmersveFundingChannelById(
+  flags: CardRemoteFeatureFlags,
+  fundingChannelId: string | null | undefined,
+): ImmersveFundingChannel | null {
+  if (!fundingChannelId) {
+    return null;
+  }
+  const { config, chains } = readImmersveFundingFlags(flags);
+  const named = Object.values(resolveNamedFundingChannels(config, chains)).find(
+    (channel) => channel.fundingChannelId === fundingChannelId,
+  );
+  if (named) {
+    return named;
+  }
+  const topLevel = buildTopLevelWalletChannel(config, chains);
+  return topLevel?.fundingChannelId === fundingChannelId ? topLevel : null;
 }
 
 /**

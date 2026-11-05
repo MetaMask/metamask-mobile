@@ -2,24 +2,10 @@ import type {
   CardFeatureFlag,
   CardProviderChains,
   CardUkMigrationFlag,
-  ImmersveMoneyAccountConfig,
   ImmersveProgramConfig,
 } from './types';
 
-/**
- * CUSTOM BUILD: NZ Money account funding channel.
- * Merged into `cardImmersveConfig` by the card flag readers so a remote flag
- * without this block cannot drop it. Remove once LaunchDarkly supplies
- * `moneyAccountConfig`.
- */
-export const IMMERSVE_MONEY_ACCOUNT_CONFIG: ImmersveMoneyAccountConfig = {
-  countries: ['NZ'],
-  network: 'monad-mainnet',
-  fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
-  spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
-};
-
-/** Veda vault share on Monad, displayed as mUSD. */
+/** vmUSD (Veda vault share) on Monad. The Money account funding asset. */
 export const IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS =
   '0x1C8a336051D2024E318A229d01F9F6CF96efD316';
 
@@ -251,7 +237,7 @@ export const DEFAULT_IMMERSVE_CHAINS: CardProviderChains = {
     tokens: {
       [`eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`]: {
         decimals: 6,
-        symbol: 'VEDA',
+        symbol: 'vmUSD',
       },
     },
   },

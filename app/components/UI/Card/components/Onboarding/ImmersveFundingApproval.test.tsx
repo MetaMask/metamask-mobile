@@ -10,7 +10,7 @@ import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendin
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
-import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
+import { selectCardImmersveCountryFunding } from '../../../../../selectors/featureFlagController/card';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -56,13 +56,14 @@ jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: jest.fn(() => null),
 }));
 
-const NZ_IMMERSVE_CONFIG = {
-  moneyAccountConfig: {
-    countries: ['NZ'],
-    network: 'monad-mainnet',
-    fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
-    spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
-  },
+const NZ_FUNDING_CHANNEL = {
+  source: 'moneyAccount' as const,
+  fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+  spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+  network: 'monad-mainnet',
+  caipChainId: 'eip155:143',
+  tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+  decimals: 6,
 };
 
 const MOCK_ACCOUNT = {
@@ -274,8 +275,8 @@ describe('ImmersveFundingApproval', () => {
         return {};
       case 'select-card-selected-country':
         return null;
-      case selectCardImmersveConfig:
-        return undefined;
+      case selectCardImmersveCountryFunding:
+        return {};
       default:
         return undefined;
     }
@@ -317,8 +318,8 @@ describe('ImmersveFundingApproval', () => {
   it('hides the token row and uses Money account copy for NZ', () => {
     const { useSelector } = jest.requireMock('react-redux');
     useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectCardImmersveConfig) {
-        return NZ_IMMERSVE_CONFIG;
+      if (selector === selectCardImmersveCountryFunding) {
+        return { NZ: NZ_FUNDING_CHANNEL };
       }
       return mockUseSelectorImplementation(selector);
     });
@@ -530,6 +531,7 @@ describe('ImmersveFundingApproval', () => {
 
       expect(useImmersveFunding).toHaveBeenCalledWith({
         fundingAddress: '0xFunding',
+        country: 'GB',
       });
       expect(mockBuildApproveWrite).toHaveBeenCalledWith('2199023255551');
       expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');

@@ -257,6 +257,12 @@ export interface CardProviderCapabilities {
   supportsTransactionHistory: boolean;
   supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
+  /**
+   * True when card home data includes a Baanx-style `verificationStatus`.
+   * Providers that verify through their own flow (Immersve spending
+   * prerequisites) leave this false.
+   */
+  reportsVerificationStatus: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --

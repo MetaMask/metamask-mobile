@@ -32,7 +32,7 @@ interface SignInWalletFieldsProps {
   onBack?: () => void;
   onSelectAccount: () => void;
   onUseCurrentCard: () => void;
-  /** NZ Money account: the row is locked and shows the Money account icon. */
+  /** Money account channel: the row is locked and shows the Money account icon. */
   lockToMoneyAccount?: boolean;
 }
 

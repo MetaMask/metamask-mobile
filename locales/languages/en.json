@@ -11865,7 +11865,7 @@
       "siwe_button": "Sign in with Ethereum",
       "money_account_required": {
         "title": "Set up Money account",
-        "description": "A Money account is required to get the card in New Zealand.",
+        "description": "A Money account is required to get the card in your country.",
         "confirm_button_label": "Set up Money account"
       },
       "continue_button": "Continue",

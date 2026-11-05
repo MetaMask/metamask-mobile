@@ -1,3 +1,5 @@
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
+
 /**
  * Shape of a version-gated remote flag. LaunchDarkly may additionally wrap this
  * in a progressive-rollout envelope (`{ name, value }`), which
@@ -66,16 +68,23 @@ export interface CardProgramIdOption {
 }
 
 /**
- * Immersve program that funds a card from the primary Money account.
- * Present on `cardImmersveConfig` when a country should SIWE and approve
- * with the Money account instead of an EOA USDC allowance.
+ * Where an Immersve card draws its balance: the user's own wallet (an EOA
+ * allowance) or the primary Money account.
  */
-export interface ImmersveMoneyAccountConfig {
-  /** ISO country codes this block applies to, e.g. `['NZ']`. */
-  countries: string[];
-  /** Immersve network name, e.g. `monad-mainnet`. */
-  network: string;
+export type ImmersveFundingSourceType = 'wallet' | 'moneyAccount';
+
+/**
+ * One entry of `cardImmersveConfig.fundingChannels`, keyed by a channel name
+ * such as `usdcBase`, `usdcLinea`, or `moneyAccount`. Chain, token, RPC, and
+ * Immersve network name are not stored here — they are resolved from
+ * `assetId` through `cardImmersveChains`.
+ */
+export interface ImmersveFundingChannelConfig {
+  source: ImmersveFundingSourceType;
+  /** Immersve funding channel id sent to the funding-sources API. */
   fundingChannelId: string;
+  /** CAIP-19 asset the channel spends. */
+  assetId: CaipAssetType;
   /** Spender used for allowance reads, revoke, and re-approve. */
   spenderAddress: string;
   /** Falls back to the top-level `cardProgramId` when omitted. */
@@ -83,8 +92,26 @@ export interface ImmersveMoneyAccountConfig {
 }
 
 /**
+ * A funding channel joined with its chain and token from `cardImmersveChains`.
+ */
+export interface ImmersveFundingChannel extends ImmersveFundingChannelConfig {
+  caipChainId: CaipChainId;
+  /** Immersve network name, e.g. `base-mainnet` or `monad-mainnet`. */
+  network: string;
+  tokenAddress: string;
+  decimals: number;
+  symbol?: string;
+  rpcUrl?: string;
+  fallbackRpcUrl?: string;
+}
+
+/**
  * Immersve provider config — the `cardImmersveConfig` flag. The on/off switch
  * is the separate `cardImmersve` flag, not a field in here.
+ *
+ * `network`, `fundingChannelId`, and `spenderAddress` are the USDC wallet
+ * channel that released builds read. New builds use them when
+ * `cardImmersveCountries` is a legacy string array or is absent.
  */
 export interface ImmersveProgramConfig {
   network?: string;
@@ -100,11 +127,8 @@ export interface ImmersveProgramConfig {
   secureApiBaseUrl?: string;
   appUrl?: string;
   reportTransactionUrl?: string;
-  /**
-   * When the selected country is listed here, Immersve signs in and funds
-   * from the primary Money account on this channel.
-   */
-  moneyAccountConfig?: ImmersveMoneyAccountConfig;
+  /** Channel name -> channel. See {@link ImmersveFundingChannelConfig}. */
+  fundingChannels?: Record<string, ImmersveFundingChannelConfig>;
 }
 
 // -- Generic per-provider shapes --
@@ -135,7 +159,22 @@ export interface CardProviderChain {
 /** CAIP-2 chain ID -> chain config. */
 export type CardProviderChains = Record<string, CardProviderChain>;
 
-/** The four remote-flag keys that make up one provider's contract. */
+/**
+ * One country in the object form of `cardImmersveCountries`. Released builds
+ * only accept that flag as a string array, so they ignore this shape and fall
+ * back to GB on the top-level USDC channel.
+ */
+export interface ImmersveCountryConfig {
+  /** Name of an entry in `cardImmersveConfig.fundingChannels`. */
+  fundingChannel: string;
+  /**
+   * Builds older than this are not offered the country. Omitted means no
+   * floor.
+   */
+  minimumVersion?: string;
+}
+
+/** The remote-flag keys that make up one provider's contract. */
 export interface CardProviderFlagKeys {
   gate: string;
   config: string;

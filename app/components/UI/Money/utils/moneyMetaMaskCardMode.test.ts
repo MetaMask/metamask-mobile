@@ -195,31 +195,31 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBeNull();
   });
 
-  it('shows the card upsell for an authenticated Immersve NZ user who is not verified', () => {
+  it('shows the card upsell for an authenticated Money account user who is not verified', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
         isCardAuthenticated: true,
         isCardVerified: false,
         isCardholder: false,
-        isImmersveMoneyAccountMode: true,
+        reportsVerificationStatus: false,
       }),
     ).toBe('upsell');
   });
 
-  it('returns manage for a linked Immersve NZ card while card state is unresolved', () => {
+  it('returns manage for a linked Money account card while card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
         isCardStateResolved: false,
         isCardLinkedToMoneyAccount: true,
         isCardAuthenticated: true,
-        isImmersveMoneyAccountMode: true,
+        reportsVerificationStatus: false,
       }),
     ).toBe('manage');
   });
 
-  it('returns link for an Immersve NZ cardholder while card state is unresolved', () => {
+  it('returns link for a Money account cardholder while card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -228,12 +228,12 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardAuthenticated: true,
         isCardVerified: false,
         hasMoneyAccountRequirements: true,
-        isImmersveMoneyAccountMode: true,
+        reportsVerificationStatus: false,
       }),
     ).toBe('link');
   });
 
-  it('returns upsell for an authenticated Immersve NZ non-cardholder while card state is unresolved', () => {
+  it('returns upsell for an authenticated Money account non-cardholder while card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -241,7 +241,7 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardAuthenticated: true,
         isCardVerified: false,
         isCardholder: false,
-        isImmersveMoneyAccountMode: true,
+        reportsVerificationStatus: false,
       }),
     ).toBe('upsell');
   });

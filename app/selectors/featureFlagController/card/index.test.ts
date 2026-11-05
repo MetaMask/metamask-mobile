@@ -909,7 +909,7 @@ describe('selectImmersveOnboardingEnabled', () => {
     ).toBe(true);
   });
 
-  it('stays on when the cardImmersve switch is off on this custom build', () => {
+  it('returns false when the cardImmersve switch is off', () => {
     (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(false);
 
     expect(
@@ -918,23 +918,23 @@ describe('selectImmersveOnboardingEnabled', () => {
           cardImmersve: { enabled: false, minimumVersion: '0.0.0' },
         }),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('defaults to on when no switch is configured on this custom build', () => {
+  it('returns false when no switch is configured', () => {
     (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(undefined);
 
-    expect(selectImmersveOnboardingEnabled(mockedEmptyFlagsState)).toBe(true);
+    expect(selectImmersveOnboardingEnabled(mockedEmptyFlagsState)).toBe(false);
   });
 
-  it('is on even when only the legacy cardFeature.immersve block is set', () => {
+  it('ignores the legacy cardFeature.immersve block', () => {
     (validatedVersionGatedFeatureFlag as jest.Mock).mockReturnValue(undefined);
 
     expect(
       selectImmersveOnboardingEnabled(
         stateWithFlags({ cardFeature: { immersve: { enabled: true } } }),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 

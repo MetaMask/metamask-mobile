@@ -49,7 +49,7 @@ export const MoneyAccountRow = ({
 );
 
 /**
- * Shown when NZ Immersve needs a Money account that does not exist yet.
+ * Shown when a Money account channel needs a Money account that does not exist yet.
  * The CTA opens Money onboarding and returns to Card afterwards.
  */
 export const MoneyAccountRequired = ({

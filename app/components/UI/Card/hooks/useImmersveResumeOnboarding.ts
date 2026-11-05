@@ -2,14 +2,17 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { setImmersveFundingSourceId } from '../../../../core/redux/slices/card';
-import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
+import {
+  isMoneyAccountFundingChannel,
+  selectCardImmersveConfig,
+  selectCardImmersveCountryFunding,
+} from '../../../../selectors/featureFlagController/card';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { KYC_REDIRECT_URL } from '../constants';
 import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
-import { getImmersveMoneyAccountConfig } from '../util/immersveMoneyAccount';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
 import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
@@ -33,6 +36,7 @@ export const useImmersveResumeOnboarding = () => {
   const handoffMfa = useImmersveMfaHandoff();
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
+  const countryFunding = useSelector(selectCardImmersveCountryFunding);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
@@ -98,17 +102,15 @@ export const useImmersveResumeOnboarding = () => {
             .catch(() => undefined);
         }
 
-        const moneyAccountConfig = getImmersveMoneyAccountConfig(
-          immersveConfig,
-          country,
-        );
+        const fundingChannel = countryFunding?.[country.toUpperCase()];
+        const isMoneyAccountChannel =
+          isMoneyAccountFundingChannel(fundingChannel);
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId:
-            moneyAccountConfig?.fundingChannelId ??
-            immersveConfig.fundingChannelId,
+            fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId,
           // A previously stored Base source must not be reused for the Money
           // account channel.
-          existingId: moneyAccountConfig
+          existingId: isMoneyAccountChannel
             ? undefined
             : resume?.fundingSourceIds?.[0],
         });
@@ -167,6 +169,7 @@ export const useImmersveResumeOnboarding = () => {
       handoffMfa,
       route,
       immersveConfig,
+      countryFunding,
       trackEvent,
       createEventBuilder,
     ],

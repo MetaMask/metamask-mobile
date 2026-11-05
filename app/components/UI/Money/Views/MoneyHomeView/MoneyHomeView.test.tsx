@@ -580,7 +580,7 @@ const createLinkageMock = (
   canLink: false,
   isMoneyAccountLinkingSupported: true,
   isMoneyCardSectionAvailable: true,
-  isImmersveMoneyAccountMode: false,
+  reportsVerificationStatus: true,
   status: 'idle',
   isLinking: false,
   error: null,
@@ -3784,7 +3784,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the MetaMask Card link section for an unresolved Immersve NZ cardholder', () => {
+    it('shows the MetaMask Card link section for an unresolved Money account cardholder', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectIsCardStateResolved.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue(
@@ -3795,7 +3795,7 @@ describe('MoneyHomeView', () => {
           isCardVerified: false,
           isCardLinkedToMoneyAccount: false,
           isMoneyCardSectionAvailable: true,
-          isImmersveMoneyAccountMode: true,
+          reportsVerificationStatus: false,
           primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
           moneyAccountCardToken: MOCK_CARD_FUNDING_TOKEN,
           canLink: true,
