@@ -5,6 +5,7 @@ import {
   type SocialFeedEntrances,
 } from '../data/socialFeedEntrances';
 import type { SocialV1FeedPost } from '../types';
+import { formatFeedPostAge } from '../utils/formatters';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import SocialFeedPostShell, {
   type SocialFeedPostShellProps,
@@ -27,9 +28,42 @@ export interface SocialFeedRowProps {
   onPositionPress?: (post: SocialV1FeedPost) => void;
   requireSocialTerms?: boolean;
   requireSocialProfile?: boolean;
-  /** Clock for relative timestamps; a new value re-renders the row. */
+  /**
+   * Clock for relative timestamps. A new value re-renders the row only when
+   * one of its age labels reads differently.
+   */
   now?: number;
 }
+
+const closedAtMs = (post: SocialV1FeedPost): number | undefined =>
+  post.item.variant === 'perpsClosed' || post.item.variant === 'spotClosed'
+    ? post.item.closedAtMs
+    : undefined;
+
+/**
+ * Whether the post's age and its card's closed age read the same at both
+ * instants. A minute tick leaves "3 hr ago" unchanged, so most rows skip it.
+ */
+const areAgeLabelsEqual = (
+  post: SocialV1FeedPost,
+  previousNow: number | undefined,
+  nextNow: number | undefined,
+): boolean => {
+  if (previousNow === nextNow) {
+    return true;
+  }
+  if (previousNow === undefined || nextNow === undefined) {
+    return false;
+  }
+  const closedAt = closedAtMs(post);
+  return (
+    formatFeedPostAge(post.timestampMs, previousNow) ===
+      formatFeedPostAge(post.timestampMs, nextNow) &&
+    (closedAt === undefined ||
+      formatFeedPostAge(closedAt, previousNow) ===
+        formatFeedPostAge(closedAt, nextNow))
+  );
+};
 
 const areReactionsEqual = (
   previous: SocialV1FeedPost['reactions'],
@@ -59,7 +93,6 @@ export const areSocialFeedRowPropsEqual = (
   previous.onPositionPress === next.onPositionPress &&
   previous.requireSocialTerms === next.requireSocialTerms &&
   previous.requireSocialProfile === next.requireSocialProfile &&
-  previous.now === next.now &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -72,7 +105,8 @@ export const areSocialFeedRowPropsEqual = (
   areReactionsEqual(previous.post.reactions, next.post.reactions) &&
   previous.post.item === next.post.item &&
   previous.post.marketCapUsd === next.post.marketCapUsd &&
-  previous.post.position === next.post.position;
+  previous.post.position === next.post.position &&
+  areAgeLabelsEqual(next.post, previous.now, next.now);
 
 const NO_ENTRANCES: SocialFeedEntrances = {
   hasPlayed: () => true,

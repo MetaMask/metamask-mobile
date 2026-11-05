@@ -23,6 +23,7 @@ import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedInlineRow } from './SocialFeed.types';
+import { SocialFeedPageActiveContext } from './SocialFeedPageActiveContext';
 import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
@@ -93,21 +94,33 @@ jest.mock('./SocialEntryOptionsBottomSheet', () => ({
   useSocialEntryModeration: () => ({ isEntryHidden: mockIsEntryHidden }),
 }));
 
+const mockShellRender = jest.fn();
 jest.mock('./SocialFeedPostShell', () => {
   const { Text: MockText } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      post,
-      onPositionPress,
-    }: {
-      post: { id: string };
-      onPositionPress?: (post: { id: string }) => void;
-    }) => (
+  const { useContext } = jest.requireActual('react');
+  const { TraderStatRotationContext } = jest.requireActual(
+    './TraderStatRotationContext',
+  );
+  const MockShell = ({
+    post,
+    onPositionPress,
+    now,
+  }: {
+    post: { id: string };
+    onPositionPress?: (post: { id: string }) => void;
+    now?: number;
+  }) => {
+    const rotates = useContext(TraderStatRotationContext);
+    mockShellRender({ id: post.id, now, rotates });
+    return (
       <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
-    ),
+    );
   };
+  return { __esModule: true, default: MockShell };
 });
+
+const lastShellRender = (id: string) =>
+  mockShellRender.mock.calls.filter(([props]) => props.id === id).at(-1)?.[0];
 
 jest.mock('./FeedItemEntryAnimation', () => ({
   __esModule: true,
@@ -665,6 +678,78 @@ describe('SocialFeedVirtualized', () => {
     });
 
     expect(requestVisibilityCheck).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips the age tick for rows whose age still reads the same', () => {
+    jest.useFakeTimers();
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+    renderFeed();
+    const rendersBeforeTick = mockShellRender.mock.calls.length;
+
+    act(() => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(mockShellRender).toHaveBeenCalledTimes(rendersBeforeTick);
+  });
+
+  it('re-renders a row on the age tick once its age reads differently', () => {
+    jest.useFakeTimers();
+    const fresh = { ...post('one'), timestampMs: Date.now() };
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [fresh] }));
+    renderFeed();
+    const nowBeforeTick = lastShellRender('one')?.now;
+
+    act(() => {
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(lastShellRender('one')?.now).toBeGreaterThan(nowBeforeTick);
+  });
+
+  it('holds the age clock on an inactive page and catches up on return', () => {
+    jest.useFakeTimers();
+    const fresh = { ...post('one'), timestampMs: Date.now() };
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [fresh] }));
+    const renderOnPage = (active: boolean) => (
+      <SocialFeedPageActiveContext.Provider value={active}>
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+        />
+      </SocialFeedPageActiveContext.Provider>
+    );
+    const { rerender } = render(renderOnPage(false));
+    const nowAtMount = lastShellRender('one')?.now;
+
+    act(() => {
+      jest.advanceTimersByTime(120_000);
+    });
+    const nowWhileInactive = lastShellRender('one')?.now;
+    rerender(renderOnPage(true));
+
+    expect(nowWhileInactive).toBe(nowAtMount);
+    expect(lastShellRender('one')?.now).toBe(Date.now());
+  });
+
+  it('rotates trader stats only in rows the list reports as viewable', () => {
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('one'), post('two')] }),
+    );
+    renderFeed();
+    const rotatedBeforeReport = lastShellRender('two')?.rotates;
+
+    act(() => {
+      getList().props.onViewableItemsChanged({
+        viewableItems: [{ key: 'one' }],
+        changed: [],
+      });
+    });
+
+    expect(rotatedBeforeReport).toBe(true);
+    expect(lastShellRender('one')?.rotates).toBe(true);
+    expect(lastShellRender('two')?.rotates).toBe(false);
   });
 
   it('offers a retry after a failed page while posts stay visible', () => {

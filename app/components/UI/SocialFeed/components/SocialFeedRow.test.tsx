@@ -1,7 +1,10 @@
 import { act, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import {
+  mockClosedPerpsFeedItem,
+  mockOpenPerpsFeedItem,
+} from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedRow, {
   areSocialFeedRowPropsEqual,
@@ -149,6 +152,34 @@ describe('areSocialFeedRowPropsEqual', () => {
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
       now: 61_000,
+    });
+
+    expect(equal).toBe(false);
+  });
+
+  it('skips a clock tick that leaves the age label unchanged', () => {
+    const hour = 60 * 60_000;
+    const previous = { ...rowProps(), now: 3.5 * hour };
+
+    const equal = areSocialFeedRowPropsEqual(previous, {
+      ...previous,
+      now: 3.5 * hour + 60_000,
+    });
+
+    expect(equal).toBe(true);
+  });
+
+  it('rerenders when only the closed card age changes', () => {
+    const hour = 60 * 60_000;
+    const closedPost = post({
+      timestampMs: 1,
+      item: mockClosedPerpsFeedItem({ id: 'post-1', closedAtMs: 2 * hour }),
+    });
+    const previous = { ...rowProps({ post: closedPost }), now: 2 * hour };
+
+    const equal = areSocialFeedRowPropsEqual(previous, {
+      ...previous,
+      now: 2 * hour + 60_000,
     });
 
     expect(equal).toBe(false);

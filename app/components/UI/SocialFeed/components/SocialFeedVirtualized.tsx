@@ -8,13 +8,14 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type ViewToken } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useComposedEventHandler,
@@ -57,7 +58,12 @@ import {
   SocialFeedRealtimeContext,
   type SocialFeedRealtimeContextValue,
 } from './SocialFeedRealtime/SocialFeedRealtimeContext';
+import { SocialFeedPageActiveContext } from './SocialFeedPageActiveContext';
 import SocialFeedRow from './SocialFeedRow';
+import {
+  SocialFeedRowViewabilityProvider,
+  createSocialFeedViewability,
+} from './SocialFeedRowViewability';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
 
 /** Scroll offset under which the list counts as at the top. */
@@ -87,6 +93,9 @@ const LIST_WINDOW = {
 const MAX_TO_RENDER_PER_BATCH = 1;
 
 const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
+
+/** A row counts as in the viewport once any of it shows. */
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 1 };
 
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
@@ -159,9 +168,27 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isPageActive =
+    useContext(SocialFeedPageActiveContext) && isActive !== false;
   const [clock, setClock] = useState(() => Date.now());
-  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
+  useInterval(() => setClock(Date.now()), {
+    delay: isPageActive ? AGE_TICK_MS : null,
+  });
+  const wasPageActiveRef = useRef(isPageActive);
+  useEffect(() => {
+    if (isPageActive && !wasPageActiveRef.current) {
+      setClock(Date.now());
+    }
+    wasPageActiveRef.current = isPageActive;
+  }, [isPageActive]);
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
+  const viewability = useMemo(() => createSocialFeedViewability(), []);
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<SocialFeedListItem>[] }) => {
+      viewability.setViewableKeys(viewableItems.map((token) => token.key));
+    },
+    [viewability],
+  );
 
   const isLowHardware = hardwareTier === 'LOW';
   const isOffline = networkTier === 'NONE';
@@ -360,19 +387,24 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       switch (item.kind) {
         case 'post':
           return (
-            <SocialFeedRow
-              post={item.post}
-              requireSocialTerms
-              requireSocialProfile={requireSocialProfile}
-              dividerTestID={dividerTestID}
-              entrances={entrances}
-              scheduleEntryDelay={scheduleEntryDelay}
-              reducedMotion={isLowHardware}
-              onAuthorPress={onAuthorPress}
-              onCopyTrade={onCopyTrade}
-              onPositionPress={handlePositionPress}
-              now={clock}
-            />
+            <SocialFeedRowViewabilityProvider
+              viewability={viewability}
+              rowKey={getSocialFeedListItemKey(item)}
+            >
+              <SocialFeedRow
+                post={item.post}
+                requireSocialTerms
+                requireSocialProfile={requireSocialProfile}
+                dividerTestID={dividerTestID}
+                entrances={entrances}
+                scheduleEntryDelay={scheduleEntryDelay}
+                reducedMotion={isLowHardware}
+                onAuthorPress={onAuthorPress}
+                onCopyTrade={onCopyTrade}
+                onPositionPress={handlePositionPress}
+                now={clock}
+              />
+            </SocialFeedRowViewabilityProvider>
           );
         case 'inline':
           return (
@@ -402,6 +434,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       requireSocialProfile,
       scheduleEntryDelay,
       state,
+      viewability,
     ],
   );
 
@@ -457,6 +490,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             scrollEventThrottle={16}
             onMomentumScrollEnd={handleScrollSettled}
             onScrollEndDrag={handleScrollSettled}
+            onViewableItemsChanged={handleViewableItemsChanged}
+            viewabilityConfig={VIEWABILITY_CONFIG}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             refreshControl={

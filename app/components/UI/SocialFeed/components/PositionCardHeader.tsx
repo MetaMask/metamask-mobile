@@ -91,6 +91,48 @@ const isBullish = ({
 }: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
   direction ? direction === 'long' : side !== 'sell';
 
+/**
+ * Symbol and side tag. Memoized because live ticks re-render the header for the
+ * figures, while these never change for a given position.
+ */
+const HeaderTitle = React.memo(
+  ({
+    symbol,
+    tagLabel,
+    bullish,
+  }: {
+    symbol: string;
+    tagLabel: string;
+    bullish: boolean;
+  }) => (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      {/* `shrink` so a long symbol truncates before the tag does. */}
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        numberOfLines={1}
+        twClassName="shrink"
+      >
+        {symbol}
+      </Text>
+      {tagLabel ? (
+        <Tag
+          severity={bullish ? TagSeverity.Success : TagSeverity.Danger}
+          twClassName="shrink-0"
+        >
+          {tagLabel}
+        </Tag>
+      ) : null}
+    </Box>
+  ),
+);
+HeaderTitle.displayName = 'HeaderTitle';
+
 const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   const {
     avatar,
@@ -101,7 +143,6 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     subtitleLabel,
     live,
   } = props;
-  const tagLabel = sideTagLabel(props);
 
   return (
     <Box
@@ -113,32 +154,11 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          {/* `shrink` so a long symbol truncates before the tag does. */}
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="shrink"
-          >
-            {symbol}
-          </Text>
-          {tagLabel ? (
-            <Tag
-              severity={
-                isBullish(props) ? TagSeverity.Success : TagSeverity.Danger
-              }
-              twClassName="shrink-0"
-            >
-              {tagLabel}
-            </Tag>
-          ) : null}
-        </Box>
+        <HeaderTitle
+          symbol={symbol}
+          tagLabel={sideTagLabel(props)}
+          bullish={isBullish(props)}
+        />
         {subtitleLabel && live ? (
           <AnimatedSlotText
             animated={!live.reduceMotion}
