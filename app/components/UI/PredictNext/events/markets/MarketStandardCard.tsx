@@ -1,4 +1,3 @@
-import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../types';
@@ -42,23 +41,15 @@ export const MarketStandardCard = React.memo(
       <MarketCard.Root testID={MarketStandardCardTestIds.card(market.id)}>
         <MarketCard.Header>
           <MarketCard.Summary>
-            <Box twClassName="flex-row items-center gap-2.5 min-w-0">
-              <Box twClassName="min-w-0 shrink">
-                <MarketCard.Title
-                  testID={MarketStandardCardTestIds.title(market.id)}
-                  onPress={
-                    rules && onRulesPress
-                      ? () => onRulesPress(market)
-                      : undefined
-                  }
-                  accessibilityHint={strings(
-                    'predict.rules.market_accessibility_label',
-                  )}
-                >
-                  {yesOutcome.label}
-                </MarketCard.Title>
-              </Box>
-            </Box>
+            <MarketCard.Title
+              testID={MarketStandardCardTestIds.title(market.id)}
+              onPress={rules ? () => onRulesPress(market) : undefined}
+              accessibilityHint={strings(
+                'predict.rules.market_accessibility_label',
+              )}
+            >
+              {yesOutcome.label}
+            </MarketCard.Title>
             {volume ? (
               <MarketCard.Volume
                 value={volume}

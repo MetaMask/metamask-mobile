@@ -12,6 +12,7 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 import { MarketStandardCard } from './MarketStandardCard';
 import { MarketStandardCardTestIds } from './MarketStandardCard.testIds';
 
@@ -186,6 +187,10 @@ describe('MarketStandardCard', () => {
     );
 
     expect(title).toHaveProp('accessibilityRole', 'button');
+    expect(title).toHaveProp(
+      'accessibilityHint',
+      strings('predict.rules.market_accessibility_label'),
+    );
     fireEvent.press(title);
 
     expect(onRulesPress).toHaveBeenCalledWith(market);
