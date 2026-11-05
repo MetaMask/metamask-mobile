@@ -149,11 +149,8 @@ describe('SitesSearchFooter', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            ...(siteUrl ? { newTabUrl: siteUrl } : {}),
-            fromTrending: true,
-          }),
+          ...(siteUrl ? { newTabUrl: siteUrl } : {}),
+          fromTrending: true,
         }),
       );
     };

@@ -42,7 +42,7 @@ export const ResetAccountModal = ({
     resetFirstTimeUserState();
     // Clear any stuck pending Perps transactions
     clearPendingTransactionRequests();
-    navigation.navigate('WalletView');
+    navigation.navigate('WalletTabHome');
   };
 
   return (

@@ -110,7 +110,7 @@ const EditAccountName = () => {
     InteractionManager.runAfterInteractions(async () => {
       if (accountName && accountName.length > 0 && selectedAccount?.address) {
         Engine.setAccountLabel(selectedAccount?.address, accountName);
-        navigate('WalletView');
+        navigate('WalletTabHome');
 
         try {
           const analyticsProperties = async () => {
