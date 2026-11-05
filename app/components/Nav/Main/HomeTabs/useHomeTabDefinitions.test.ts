@@ -224,9 +224,7 @@ describe('useHomeTabDefinitions', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.WALLET_OPENED,
       );
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('opens Activity with the bottom nav entry point', () => {

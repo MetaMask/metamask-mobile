@@ -365,9 +365,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET_VIEW,
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('plays the tab-change haptic on every tab press', () => {
