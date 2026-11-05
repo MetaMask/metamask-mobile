@@ -14,9 +14,6 @@ import { selectExploreLaptopSearchApiRankingEnabled } from '../../selectors/feat
 import { usesTemporaryApiRanking } from '../../utils/usesTemporaryApiRanking';
 import { isEqual } from 'lodash';
 
-/** Identifies Trending search traffic to the token search API (sent as `x-mm-service-profile`). */
-export const TRENDING_SEARCH_SERVICE_PROFILE = 'assets--trending-search';
-
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);
 
@@ -101,7 +98,6 @@ export const useTrendingSearch = (opts?: {
     limit: 20,
     chainIds: chainIds ?? undefined,
     includeMarketData,
-    serviceProfile: TRENDING_SEARCH_SERVICE_PROFILE,
   });
 
   const {

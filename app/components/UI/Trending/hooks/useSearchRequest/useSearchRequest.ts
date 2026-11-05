@@ -34,8 +34,6 @@ export const useSearchRequest = (options: {
   includeMarketData?: boolean;
   /** Whether to debounce the query (default: false). */
   enableDebounce?: boolean;
-  /** Sent as the `x-mm-service-profile` header on token search requests. Omitted when unset. */
-  serviceProfile?: string;
 }) => {
   const {
     chainIds: providedChainIds = [],
@@ -43,7 +41,6 @@ export const useSearchRequest = (options: {
     limit,
     includeMarketData,
     enableDebounce = false,
-    serviceProfile,
   } = options;
 
   // Use provided chainIds or default to trending networks
@@ -102,7 +99,6 @@ export const useSearchRequest = (options: {
         limit,
         includeMarketData,
         includeTokenSecurityData: true,
-        serviceProfile,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
@@ -130,13 +126,7 @@ export const useSearchRequest = (options: {
         setIsFetching(false);
       }
     }
-  }, [
-    stableChainIds,
-    debouncedQuery,
-    limit,
-    includeMarketData,
-    serviceProfile,
-  ]);
+  }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)
@@ -150,7 +140,6 @@ export const useSearchRequest = (options: {
         includeMarketData,
         includeTokenSecurityData: true,
         after: endCursor,
-        serviceProfile,
       });
       if (more?.data) {
         setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
@@ -171,12 +160,11 @@ export const useSearchRequest = (options: {
     debouncedQuery,
     limit,
     includeMarketData,
-    serviceProfile,
   ]);
 
   // Automatically trigger search when debounced query changes
   useEffect(() => {
-    searchTokensRequest().catch(() => undefined);
+    searchTokensRequest();
   }, [searchTokensRequest]);
 
   // Track whether debouncedQuery has been processed by the effect yet.
