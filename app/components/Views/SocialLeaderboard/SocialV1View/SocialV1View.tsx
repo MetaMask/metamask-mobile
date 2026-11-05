@@ -809,6 +809,7 @@ const SocialV1ViewContent: React.FC = () => {
                       : tab === 'live'
                         ? livePageRef
                         : leaderboardPageRef;
+                const isPageActive = isFocused && activeIndex === pageIndex;
                 return (
                   <View
                     key={tab}
@@ -816,12 +817,8 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    <SocialFeedPageActiveContext.Provider
-                      value={activeIndex === pageIndex}
-                    >
-                      <TraderStatRotationContext.Provider
-                        value={activeIndex === pageIndex}
-                      >
+                    <SocialFeedPageActiveContext.Provider value={isPageActive}>
+                      <TraderStatRotationContext.Provider value={isPageActive}>
                         {tab === 'leaderboard' ? (
                           <LeaderboardShellTabPage
                             isActive={activeIndex === leaderboardIndex}

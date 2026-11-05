@@ -93,11 +93,17 @@ describe('SocialFeedRow', () => {
 
 describe('areSocialFeedRowPropsEqual', () => {
   it('treats a rebuilt post with the same content as equal', () => {
-    const previous = rowProps();
+    const previous = rowProps({
+      post: post({ translations: { en: 'Hello' } }),
+    });
 
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
-      post: { ...previous.post, reactions: [{ emotion: 'heart', count: 1 }] },
+      post: {
+        ...previous.post,
+        reactions: [{ emotion: 'heart', count: 1 }],
+        translations: { en: 'Hello' },
+      },
     });
 
     expect(equal).toBe(true);
@@ -108,6 +114,8 @@ describe('areSocialFeedRowPropsEqual', () => {
     ['the mapped item', { item: mockOpenPerpsFeedItem({ id: 'post-1' }) }],
     ['the realtime event', { realtimeEventId: 'event-2' }],
     ['the copy count', { copyCount: 4 }],
+    ['the pending state', { isPending: true }],
+    ['translations', { translations: { en: 'Updated' } }],
   ])('rerenders when %s change', (_label, change) => {
     const previous = rowProps();
 

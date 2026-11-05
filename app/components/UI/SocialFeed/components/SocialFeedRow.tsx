@@ -76,6 +76,23 @@ const areReactionsEqual = (
       reaction.count === next[index]?.count,
   );
 
+const areTranslationsEqual = (
+  previous: SocialV1FeedPost['translations'],
+  next: SocialV1FeedPost['translations'],
+): boolean => {
+  if (previous === next) {
+    return true;
+  }
+  if (!previous || !next) {
+    return false;
+  }
+  const languages = Object.keys(previous);
+  return (
+    languages.length === Object.keys(next).length &&
+    languages.every((language) => previous[language] === next[language])
+  );
+};
+
 /**
  * Posts are rebuilt whenever the feed's clock moves, so rows compare what
  * they render instead of the post's identity.
@@ -101,6 +118,8 @@ export const areSocialFeedRowPropsEqual = (
   previous.post.commentId === next.post.commentId &&
   previous.post.copyCount === next.post.copyCount &&
   previous.post.gifUri === next.post.gifUri &&
+  Boolean(previous.post.isPending) === Boolean(next.post.isPending) &&
+  areTranslationsEqual(previous.post.translations, next.post.translations) &&
   previous.post.userReaction === next.post.userReaction &&
   areReactionsEqual(previous.post.reactions, next.post.reactions) &&
   previous.post.item === next.post.item &&
