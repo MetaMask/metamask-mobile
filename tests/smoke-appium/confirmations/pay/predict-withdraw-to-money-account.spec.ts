@@ -104,6 +104,7 @@ appiumTest.describe(
               'Money account',
             );
 
+            await TransactionPayConfirmation.verifyNoQuoteError();
             await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
