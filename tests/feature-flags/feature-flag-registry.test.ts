@@ -82,6 +82,19 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers cross margin display as in-prod, version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsCrossMarginEnabled).toMatchObject({
+        name: 'perpsCrossMarginEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',
