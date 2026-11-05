@@ -409,6 +409,25 @@ export function referralMeFixture(
   };
 }
 
+/**
+ * Referee `GET /referral/me` whose Ways to earn title is the backend string.
+ * Kept off {@link REFERRAL_LOCALIZED_TEXT} so other screens keep the shared copy.
+ */
+export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
+
+export function referralMeWithInvitedBenefit(
+  invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
+): ReferralMeDto {
+  const referralMe = referralMeFixture('referee');
+  return {
+    ...referralMe,
+    localized_text: {
+      ...referralMe.localized_text,
+      invitedBenefitTitle,
+    },
+  };
+}
+
 function moneyAccount(): MoneyAccount {
   return {
     id: 'money-1',

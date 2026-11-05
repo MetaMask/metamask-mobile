@@ -7,6 +7,7 @@ import type { ToastRef } from '../../../app/component-library/components/Toast/T
 import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
+import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
@@ -48,7 +49,8 @@ export type InitiateClaimMode = 'hang' | 'under_review';
 
 export interface RewardsMoneyEngineOptions {
   referralMe?: ReferralMeDto;
-  summary?: EarningsSummaryDto;
+  /** `null` is an empty cache, which is what surfaces the earnings error banner. */
+  summary?: EarningsSummaryDto | null;
   /** Returned by the unwindowed summary read after an under-review refusal. */
   summaryAfterRefusal?: EarningsSummaryDto;
   history?: LedgerEntryDto[] | 'pending';
@@ -113,6 +115,9 @@ export function installRewardsMoneyEngine({
       const params = summaryParams(args);
       const current =
         refused && summaryAfterRefusal ? summaryAfterRefusal : summary;
+      if (current == null) {
+        return Promise.resolve(null);
+      }
       if (params.from) {
         return Promise.resolve(
           windowedEarningsSummary(current, params.from, params.to),
@@ -377,6 +382,31 @@ export function renderRewardsSettingsView(
     ),
     engine,
   };
+}
+
+/**
+ * Ways to earn on the Money preset. The tab reads the referral payload it is
+ * given; earnings still come from the Engine summary handler.
+ */
+export function renderWaysToEarnTab(options: RenderRewardsMoneyOptions = {}) {
+  const persona = options.persona ?? 'referee';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+
+  function Screen() {
+    return (
+      <WaysToEarnTab
+        profileId={REWARDS_MONEY_PROFILE_ID}
+        referralMe={referralMe}
+        isSubscribed={Boolean(options.subscriptionId)}
+      />
+    );
+  }
+
+  return renderMoneyScreen(Screen, 'WaysToEarnTab', {
+    ...options,
+    persona,
+    referralMe,
+  });
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
