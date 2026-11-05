@@ -101,6 +101,8 @@ export interface SocialLeaderboardProps {
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
+  /** Gates Follow behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -122,6 +124,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   showViewerRow = false,
   onOutcomeChange,
   performance,
+  requireSocialProfile,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -130,6 +133,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { track } = useSocialLeaderboardAnalytics();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile,
   });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.

@@ -24,19 +24,10 @@ import PerformanceSection from '../sections/PerformanceSection';
 import ActivitySection, {
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
 } from '../sections/ActivitySection';
+import { TokenDetailsIds } from '../../testIds';
 
-export const OVERVIEW_TAB_TEST_ID = 'token-details-overview-tab';
-export const OVERVIEW_TAB_DESCRIPTION_TEST_ID =
-  'token-details-overview-tab-description';
-export const OVERVIEW_TAB_BALANCE_TEST_ID =
-  'token-details-overview-tab-balance';
-export const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
-  'token-details-overview-tab-token-details';
 export const OVERVIEW_TAB_ACTIVITY_TEST_ID =
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID;
-
-export const OVERVIEW_SECTION_RULE_TEST_ID =
-  'token-details-overview-section-rule';
 
 const SECTION_RULE = 'mt-6 border-t border-muted pt-6';
 
@@ -62,7 +53,10 @@ const OverviewSection = ({
   }
 
   return (
-    <Box testID={OVERVIEW_SECTION_RULE_TEST_ID} twClassName={SECTION_RULE}>
+    <Box
+      testID={TokenDetailsIds.overview.sectionRule}
+      twClassName={SECTION_RULE}
+    >
       {content}
     </Box>
   );
@@ -113,12 +107,12 @@ const OverviewTab = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       twClassName="pt-5 pb-6"
-      testID={OVERVIEW_TAB_TEST_ID}
+      testID={TokenDetailsIds.overview.container}
     >
       {description ? (
         <OverviewSection
           bordered={false}
-          testID={OVERVIEW_TAB_DESCRIPTION_TEST_ID}
+          testID={TokenDetailsIds.overview.description}
           twClassName="px-4"
         >
           <ContentDisplay content={description} />
@@ -134,7 +128,7 @@ const OverviewTab = ({
       {hasBalanceSection ? (
         <OverviewSection
           bordered={Boolean(description) || hasPerformance}
-          testID={OVERVIEW_TAB_BALANCE_TEST_ID}
+          testID={TokenDetailsIds.overview.balance}
         >
           <Balance
             asset={token}
@@ -146,7 +140,7 @@ const OverviewTab = ({
 
       <OverviewSection
         bordered={Boolean(description) || hasPerformance || hasBalanceSection}
-        testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID}
+        testID={TokenDetailsIds.overview.tokenDetails}
         twClassName="px-4"
       >
         <TokenDetailsSection

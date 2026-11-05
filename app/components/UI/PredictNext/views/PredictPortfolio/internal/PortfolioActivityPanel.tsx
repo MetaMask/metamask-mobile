@@ -14,7 +14,7 @@ import { PortfolioActivityRow } from './PortfolioActivityRow';
 import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
-import { formatActivityDate } from './portfolioFormatting';
+import { formatActivityDate } from '../../../utils/portfolioFormatting';
 
 interface PortfolioActivityPanelProps {
   query: ReturnType<typeof useActivity>;

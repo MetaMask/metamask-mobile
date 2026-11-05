@@ -78,14 +78,14 @@ describe('PredictMarketListRoute', () => {
     expect(screen.queryByTestId('legacy-predict-feed')).not.toBeOnTheScreen();
   });
 
-  it('keeps a parameterized market list on legacy Polymarket', () => {
+  it('serves the Active Venue to a parameterized market list', () => {
     mockConfig = config(false, true);
     givenParams({ query: 'election' });
 
     render(<PredictMarketListRoute />);
 
-    expect(screen.getByTestId('legacy-predict-feed')).toBeOnTheScreen();
-    expect(screen.queryByTestId('predict-next-stack')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('predict-next-stack')).toBeOnTheScreen();
+    expect(screen.queryByTestId('legacy-predict-feed')).not.toBeOnTheScreen();
   });
 
   it.each([

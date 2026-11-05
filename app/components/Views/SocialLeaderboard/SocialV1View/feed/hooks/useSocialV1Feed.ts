@@ -4,6 +4,8 @@ import type {
   FeedScope,
   SocialFeedQuery,
 } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import { isViewerSocialAuthor } from '../../../../../UI/SocialFeed/utils/isViewerSocialAuthor';
+import { useMyProfile } from '../../../MyProfileView/hooks/useMyProfile';
 import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 import { useSelector } from 'react-redux';
@@ -21,12 +23,7 @@ const TAB_TRACE = {
 } as const satisfies Record<SocialV1FeedTab, 'trending' | 'following'>;
 
 export interface UseSocialV1FeedOptions {
-  /**
-   * The viewer's social profile id. On Following, their just-written posts
-   * are pinned on top until the feed returns them.
-   */
-  ownerProfileId?: string;
-  /** Whether the tab is on screen; gates the pending-post refetches. */
+  /** Whether the tab is on screen. */
   isActive?: boolean;
 }
 
@@ -36,14 +33,16 @@ export interface UseSocialV1FeedOptions {
  *
  * Delegates fetching to `useSocialFeed`. Following shares its query key with
  * V0's Following feed (`useTraderFeed`), so either surface warms the cache for
- * the other. The viewer's own new posts appear on Following only: it is the
- * feed that serves them.
+ * the other. A just-written post is not pinned here. Following also omits
+ * the viewer's own posts; those stay on their Posts tab.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
-  { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
+  { isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const { profile } = useMyProfile();
+  const viewerProfileId = profile?.profileId;
   const query = useMemo(
     (): SocialFeedQuery => ({ scope: TAB_SCOPE[tab] }),
     [tab],
@@ -62,10 +61,19 @@ export const useSocialV1Feed = (
     performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
   });
 
+  const feedPosts = useMemo(() => {
+    if (tab !== 'following' || !viewerProfileId) {
+      return livePosts;
+    }
+    return livePosts.filter(
+      (post) => !isViewerSocialAuthor(post.item.author.id, viewerProfileId),
+    );
+  }, [livePosts, tab, viewerProfileId]);
+
   const overlay = usePendingPostsOverlay({
     surface: 'following',
-    ownerProfileId: tab === 'following' ? ownerProfileId : undefined,
-    serverPosts: livePosts,
+    ownerProfileId: undefined,
+    serverPosts: feedPosts,
     refetch,
     isActive,
   });
