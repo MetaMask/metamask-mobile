@@ -623,6 +623,10 @@ describe('selectImmersveOnboardingEnabled', () => {
         }),
       ),
     ).toBe(true);
+    expect(validatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '0.0.0',
+    });
   });
 
   it('returns false when the cardImmersve switch is off', () => {
