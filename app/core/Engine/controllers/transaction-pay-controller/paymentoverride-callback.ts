@@ -127,99 +127,81 @@ async function getMoneyAccountDepositPaymentOverrideData<
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   const vaultConfig = selectMoneyAccountVaultConfig(state);
-  if (!primaryMoneyAccount?.address) return { calls: [] };
+  if (!primaryMoneyAccount?.address || !vaultConfig) return { calls: [] };
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
-  // Non-atomic post-quote quotes (Predict / perps withdraw to a Money Account)
-  // are rejected by pay controller 30.3.2 unless this callback names a
-  // recipient. A missing recipient is stored as a no-quotes error and the
-  // confirmation shows the generic "payment route isn't available" alert.
-  // Atomic deposits still require a built call list, so they keep failing closed.
-  const recipientOnly = {
-    calls: [] as BatchTransactionParams[],
-    recipient: moneyAccountAddress,
-  };
-  if (!vaultConfig) return atomic ? { calls: [] } : recipientOnly;
+  const chainId = CHAIN_IDS.MONAD as Hex;
 
-  try {
-    const chainId = CHAIN_IDS.MONAD as Hex;
-    const provider = getProviderByChainId(chainId);
-    if (!provider) return atomic ? { calls: [] } : recipientOnly;
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return { calls: [] };
 
-    // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
-    // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
-    const amount = BigInt(
-      calcTokenValue(amountHuman, MUSD_DECIMALS)
-        .decimalPlaces(0, BigNumber.ROUND_DOWN)
-        .toFixed(0),
-    );
+  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+  // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_DOWN)
+      .toFixed(0),
+  );
 
-    const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-      amount,
-      chainId,
-      boringVault: vaultConfig.boringVault,
-      tellerAddress: vaultConfig.tellerAddress,
-      accountantAddress: vaultConfig.accountantAddress,
-      lensAddress: vaultConfig.lensAddress,
-      provider,
-    });
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
 
-    const rawCalls: BatchTransactionParams[] = [
-      {
-        to: approveTx.params.to,
-        data: approveTx.params.data,
-        value: approveTx.params.value,
-      },
-      {
-        to: depositTx.params.to,
-        data: depositTx.params.data,
-        value: depositTx.params.value,
-      },
-    ];
+  const rawCalls: BatchTransactionParams[] = [
+    {
+      to: approveTx.params.to,
+      data: approveTx.params.data,
+      value: approveTx.params.value,
+    },
+    {
+      to: depositTx.params.to,
+      data: depositTx.params.data,
+      value: depositTx.params.value,
+    },
+  ];
 
-    // Non-atomic flows submit the raw calls directly as a sponsored batch after
-    // Relay completion; the Money Account is already 7702-delegated so no fresh
-    // delegation wrap is needed.
-    if (!atomic) {
-      return { calls: rawCalls, recipient: moneyAccountAddress };
-    }
-
-    const { NetworkController } = Engine.context;
-    const networkClientId =
-      NetworkController.findNetworkClientIdByChainId(chainId);
-
-    const transactionMeta = {
-      id: `money-account-deposit-${Date.now()}`,
-      chainId,
-      networkClientId,
-      status: TransactionStatus.unapproved,
-      time: Date.now(),
-      txParams: {
-        from: moneyAccountAddress,
-      },
-      nestedTransactions: rawCalls,
-    } as TransactionMeta;
-
-    const delegation = await getDelegationTransaction(
-      messenger,
-      transactionMeta,
-    );
-
-    return {
-      recipient: moneyAccountAddress,
-      authorizationList: delegation.authorizationList,
-      calls: [
-        {
-          to: delegation.to,
-          data: delegation.data,
-          value: delegation.value,
-        },
-      ],
-    };
-  } catch (error) {
-    if (atomic) throw error;
-    return recipientOnly;
+  // Non-atomic flows submit the raw calls directly as a sponsored batch after
+  // Relay completion; the Money Account is already 7702-delegated so no fresh
+  // delegation wrap is needed.
+  if (!atomic) {
+    return { calls: rawCalls, recipient: moneyAccountAddress };
   }
+
+  const { NetworkController } = Engine.context;
+  const networkClientId =
+    NetworkController.findNetworkClientIdByChainId(chainId);
+
+  const transactionMeta = {
+    id: `money-account-deposit-${Date.now()}`,
+    chainId,
+    networkClientId,
+    status: TransactionStatus.unapproved,
+    time: Date.now(),
+    txParams: {
+      from: moneyAccountAddress,
+    },
+    nestedTransactions: rawCalls,
+  } as TransactionMeta;
+
+  const delegation = await getDelegationTransaction(messenger, transactionMeta);
+
+  return {
+    recipient: moneyAccountAddress,
+    authorizationList: delegation.authorizationList,
+    calls: [
+      {
+        to: delegation.to,
+        data: delegation.data,
+        value: delegation.value,
+      },
+    ],
+  };
 }
 
 export async function getPaymentOverrideData<T extends SignMessenger>(
