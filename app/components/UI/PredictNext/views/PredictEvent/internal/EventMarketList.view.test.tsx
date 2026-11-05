@@ -2256,7 +2256,12 @@ describe('EventMarketList', () => {
       expect(
         card.queryByTestId(ids(EventMarketListTestIds.positionChance)),
       ).not.toBeOnTheScreen();
-      expect(view.queryByLabelText(/shares at/)).not.toBeOnTheScreen();
+      // Without an average price, screen readers still hear the shares.
+      expect(
+        card.getByLabelText(
+          new RegExp(`, ${formatSharesAmount(position.shares)} shares$`),
+        ),
+      ).toBeOnTheScreen();
       const buy = card.getByTestId(ids(EventMarketListTestIds.positionBuy));
       expect(buy).toHaveTextContent('Buy –');
       expect(buy).toBeDisabled();

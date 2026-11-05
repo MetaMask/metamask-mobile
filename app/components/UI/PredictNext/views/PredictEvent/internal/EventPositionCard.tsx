@@ -151,13 +151,18 @@ export const EventPositionCard = ({
     isOutcomeTradeable(market, heldOutcome);
   const { averagePrice, currentValue, unrealizedPnl, unrealizedPnlPercent } =
     position;
-  const holding =
-    isPrivacyMode || averagePrice === undefined
-      ? undefined
-      : strings('predict_next.event.position.holding', {
-          shares: formatSharesAmount(position.shares),
-          price: formatAskPrice(averagePrice) ?? NO_VALUE,
-        });
+  const shares = formatSharesAmount(position.shares);
+  const averagePriceText = formatAskPrice(averagePrice);
+  let holding: string | undefined;
+  if (!isPrivacyMode) {
+    holding =
+      averagePriceText === undefined
+        ? strings('predict_next.event.position.holding_shares', { shares })
+        : strings('predict_next.event.position.holding', {
+            shares,
+            price: averagePriceText,
+          });
+  }
 
   return (
     <Box testID={testIds.root} twClassName="gap-4 rounded-2xl bg-section p-4">
