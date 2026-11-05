@@ -70,7 +70,7 @@ const finishExistingUserSyncWithoutMnemonic = async (
 
   if (importFailed && !addedNewAccounts) {
     await messenger.call('QrSyncController:resetState');
-    navigation.navigate(Routes.WALLET_VIEW);
+    navigation.navigate(Routes.WALLET.HOME);
     showImportFailedSheet(navigation);
     return;
   }
@@ -82,7 +82,7 @@ const finishExistingUserSyncWithoutMnemonic = async (
   startExistingUserQrMetadataProvisioning(
     QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
   );
-  navigation.navigate(Routes.WALLET_VIEW);
+  navigation.navigate(Routes.WALLET.HOME);
 
   // Show "already synced" sheet after navigation when no new wallets were imported.
   if (!addedNewAccounts) {
@@ -144,7 +144,7 @@ export const useQrSyncImportNavigation = ({
             'QR sync existing-user import: no pending secrets in sync data',
           );
           await messenger.call('QrSyncController:resetState');
-          navigation.navigate(Routes.WALLET_VIEW);
+          navigation.navigate(Routes.WALLET.HOME);
           return;
         }
 
