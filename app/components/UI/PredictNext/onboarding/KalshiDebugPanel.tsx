@@ -105,9 +105,12 @@ const describeError = (error: unknown): string => {
 export const KalshiDebugPanel = ({
   balance,
   balanceError,
+  renderTrigger,
 }: {
   balance?: PredictBalance;
   balanceError: Error | null;
+  /** Renders the trigger elsewhere, e.g. the screen header. */
+  renderTrigger?: (open: () => void) => React.ReactNode;
 }) => {
   const tw = useTailwind();
   const [visible, setVisible] = useState(false);
@@ -179,14 +182,18 @@ export const KalshiDebugPanel = ({
 
   return (
     <Box>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Sm}
-        onPress={open}
-        testID={KalshiDebugTestIds.OPEN}
-      >
-        User debug
-      </Button>
+      {renderTrigger ? (
+        renderTrigger(open)
+      ) : (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          onPress={open}
+          testID={KalshiDebugTestIds.OPEN}
+        >
+          User debug
+        </Button>
+      )}
       <Modal
         visible={visible}
         animationType="slide"
