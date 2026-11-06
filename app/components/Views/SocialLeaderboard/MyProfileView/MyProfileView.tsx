@@ -407,9 +407,13 @@ const MyProfileView: React.FC = () => {
   const overlayedStats = useMemo(
     () =>
       displayProfile
-        ? overlayMyProfileLiveStats(displayProfile, liveProfile.profile)
+        ? overlayMyProfileLiveStats(
+            displayProfile,
+            liveProfile.profile,
+            openPositions,
+          )
         : null,
-    [displayProfile, liveProfile.profile],
+    [displayProfile, liveProfile.profile, openPositions],
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
