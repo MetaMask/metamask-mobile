@@ -1707,7 +1707,7 @@ describe('PredictEventScreen', () => {
 
     await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     expect(
@@ -1758,7 +1758,7 @@ describe('PredictEventScreen', () => {
 
     await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     expect(
@@ -1783,7 +1783,7 @@ describe('PredictEventScreen', () => {
 
     await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     await view.findByTestId(RulesBottomSheetTestIds.MARKET_RULES);
@@ -1803,8 +1803,8 @@ describe('PredictEventScreen', () => {
       view.queryByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
-      view.queryByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
-    ).not.toBeOnTheScreen();
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
+    ).not.toHaveProp('accessibilityRole', 'button');
     expect(
       view.queryByTestId(RulesBottomSheetTestIds.SHEET),
     ).not.toBeOnTheScreen();

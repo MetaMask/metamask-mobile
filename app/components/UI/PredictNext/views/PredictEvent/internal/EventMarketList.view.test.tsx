@@ -1163,9 +1163,7 @@ describe('EventMarketList', () => {
 
     for (const market of [updated, spread]) {
       const key = market.group?.key ?? '';
-      fireEvent.press(
-        view.getByTestId(MarketGroupCardTestIds.rulesButton(key)),
-      );
+      fireEvent.press(view.getByTestId(MarketGroupCardTestIds.title(key)));
       fireEvent.press(
         view.getByTestId(
           MarketGroupCardTestIds.outcomeButton(key, market.id, 'yes'),
@@ -1437,7 +1435,7 @@ describe('EventMarketList', () => {
       });
     });
     fireEvent.press(
-      view.getByTestId(MarketGroupCardTestIds.rulesButton('nfl-total-points')),
+      view.getByTestId(MarketGroupCardTestIds.title('nfl-total-points')),
     );
     fireEvent.press(
       view.getByTestId(
