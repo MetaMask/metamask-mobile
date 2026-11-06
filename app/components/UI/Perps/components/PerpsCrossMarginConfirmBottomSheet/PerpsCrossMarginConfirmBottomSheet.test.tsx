@@ -62,6 +62,15 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     expect(screen.getByTestId(ids.CONFIRM_BUTTON)).toBeEnabled();
   });
 
+  it('marks an item as checked when pressed', () => {
+    render(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
+    expect(screen.getByTestId(ids.COLLATERAL_ITEM)).not.toBeChecked();
+
+    fireEvent.press(screen.getByTestId(ids.COLLATERAL_ITEM));
+
+    expect(screen.getByTestId(ids.COLLATERAL_ITEM)).toBeChecked();
+  });
+
   it('disables Confirm again when an item is unchecked', () => {
     render(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
     ITEM_IDS.forEach((id) => fireEvent.press(screen.getByTestId(id)));

@@ -120,7 +120,9 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
               accessibilityRole="checkbox"
               accessibilityState={{ checked: acknowledged[key] }}
               accessoryGap={4}
-              twClassName="bg-muted rounded-2xl py-4"
+              twClassName={`bg-muted rounded-2xl py-4 border ${
+                acknowledged[key] ? 'border-default' : 'border-transparent'
+              }`}
             />
           ))}
         </Box>
