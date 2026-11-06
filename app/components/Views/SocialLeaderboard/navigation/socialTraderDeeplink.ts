@@ -1,4 +1,5 @@
-import { Platform, Share } from 'react-native';
+import { Platform } from 'react-native';
+import Share from 'react-native-share';
 import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
 import AppConstants from '../../../../core/AppConstants';
 import {
@@ -69,10 +70,43 @@ export const buildSocialTraderPositionShareContent = (
   toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
 
 /**
+ * Whether the native sheet completed a share.
+ *
+ * React Native `Share.share` resolves with `sharedAction` on Android both when
+ * the user shares and when they dismiss, so it cannot gate `post_shared`.
+ * `react-native-share` with `failOnCancel: false` reports a real share as
+ * `success: true` and a dismiss as `success: false` / `dismissedAction`.
+ */
+const didCompleteNativeShare = (result: {
+  success?: boolean;
+  dismissedAction?: boolean;
+}): boolean => result.success === true && result.dismissedAction !== true;
+
+const openShareSheet = (
+  content: { message: string; url?: string },
+  onShared?: () => void,
+): void => {
+  Share.open({
+    message: content.message,
+    ...(content.url ? { url: content.url } : {}),
+    failOnCancel: false,
+  })
+    .then((result) => {
+      if (didCompleteNativeShare(result)) {
+        onShared?.();
+      }
+    })
+    .catch(() => undefined);
+};
+
+/**
  * Opens the native share sheet with the trader profile deeplink.
  */
-export const shareSocialProfile = (traderId: string): void => {
-  Share.share(buildSocialTraderShareContent(traderId)).catch(() => undefined);
+export const shareSocialProfile = (
+  traderId: string,
+  onShared?: () => void,
+): void => {
+  openShareSheet(buildSocialTraderShareContent(traderId), onShared);
 };
 
 /**
@@ -81,8 +115,10 @@ export const shareSocialProfile = (traderId: string): void => {
 export const shareSocialTraderPosition = (
   positionId: string,
   traderId: string,
+  onShared?: () => void,
 ): void => {
-  Share.share(
+  openShareSheet(
     buildSocialTraderPositionShareContent(positionId, traderId),
-  ).catch(() => undefined);
+    onShared,
+  );
 };

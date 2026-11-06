@@ -267,7 +267,19 @@ describe('resolveSurfaceFeeds', () => {
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
       'sports-football-nfl',
       'sports-football-ncaa',
+      'politics',
     ]);
+  });
+
+  it('shows Polymarket no Politics topic Feed, so no Politics section', () => {
+    const polymarket = resolveVenueCapabilities(POLYMARKET, read());
+
+    expect(
+      resolveSurfaceFeeds(
+        polymarket,
+        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
+      ).map(({ sectionId }) => sectionId),
+    ).toEqual([]);
   });
 
   it('keeps every surface Polymarket shows today', () => {

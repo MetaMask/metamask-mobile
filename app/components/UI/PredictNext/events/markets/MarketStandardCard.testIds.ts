@@ -10,6 +10,4 @@ export const MarketStandardCardTestIds = {
   barNo: (marketId: string) => `predict-next-market-${marketId}-bar-no`,
   yesButton: (marketId: string) => `predict-next-market-${marketId}-yes`,
   noButton: (marketId: string) => `predict-next-market-${marketId}-no`,
-  rulesButton: (marketId: string) =>
-    `predict-next-market-${marketId}-rules-button`,
 } as const;
