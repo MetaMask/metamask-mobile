@@ -327,4 +327,61 @@ describe('filterAndSortMarkets', () => {
       expect(markets.map((m) => m.symbol)).toEqual(originalSymbols);
     });
   });
+
+  describe('memoization', () => {
+    it('reuses the result for the same snapshot and flags', () => {
+      const markets = [
+        createMarket({ symbol: 'A', volume: '$100K' }),
+        createMarket({ symbol: 'B', volume: '$1.5B' }),
+      ];
+
+      const first = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const second = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(second).toBe(first);
+    });
+
+    it('does not reuse a result across different flags', () => {
+      const markets = [
+        createMarket({
+          symbol: 'A',
+          volume: PERPS_CONSTANTS.ZeroAmountDisplay,
+        }),
+        createMarket({ symbol: 'B', volume: '$1.5B' }),
+      ];
+
+      const hidden = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+      const shown = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: true,
+      });
+
+      expect(shown).not.toBe(hidden);
+      expect(hidden.map((m) => m.symbol)).toStrictEqual(['B']);
+      expect(shown.map((m) => m.symbol)).toStrictEqual(['B', 'A']);
+    });
+
+    it('recomputes for a new snapshot holding equal data', () => {
+      const first = filterAndSortMarkets({
+        marketData: [createMarket({ symbol: 'A', volume: '$100K' })],
+        showZeroVolume: false,
+      });
+      const second = filterAndSortMarkets({
+        marketData: [createMarket({ symbol: 'A', volume: '$100K' })],
+        showZeroVolume: false,
+      });
+
+      expect(second).not.toBe(first);
+      expect(second).toStrictEqual(first);
+    });
+  });
 });
