@@ -14,6 +14,8 @@ import WalletActionsBottomSheet from '../page-objects/wallet/WalletActionsBottom
 
 /** Presence probe for optional Perps UI (tutorial / tooltip). Keep short — smoke fixtures pre-grant notifications and usually skip GTM. */
 const PERPS_OPTIONAL_UI_PROBE_MS = 1_000;
+/** The post-order notification sheet opens ~3s after the order succeeds (PerpsNotificationTooltip). */
+const PERPS_NOTIFICATION_SHEET_PROBE_MS = 6_000;
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
 
 /**
@@ -100,7 +102,8 @@ export const completePerpsModeSelectionIfPresent = async (): Promise<void> => {
 /**
  * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
  * Blocks navigation until closed (first successful perps order with push disabled).
- * Smoke specs that set `PERPS_SMOKE_PERMISSIONS` should no-op within the short probe.
+ * The sheet is delayed by ~3s after the order, so the probe must outlast that delay;
+ * a 1s probe returns before it opens and the sheet then blocks the next tap.
  */
 export const dismissPerpsNotificationTooltipIfPresent =
   async (): Promise<void> => {
@@ -108,7 +111,10 @@ export const dismissPerpsNotificationTooltipIfPresent =
       PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON,
     );
     if (
-      !(await Utilities.isElementVisible(turnOnEl, PERPS_OPTIONAL_UI_PROBE_MS))
+      !(await Utilities.isElementVisible(
+        turnOnEl,
+        PERPS_NOTIFICATION_SHEET_PROBE_MS,
+      ))
     ) {
       return;
     }
