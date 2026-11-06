@@ -162,8 +162,8 @@ const arrangePreferences = ({
           inAppNotificationsEnabled: true,
         },
         socialAI: {
-          pushNotificationsEnabled: true,
-          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: isPushEnabled,
+          inAppNotificationsEnabled: isInAppEnabled,
           txAmountLimit: 500,
           mutedTraderProfileIds: [],
         },
@@ -566,6 +566,77 @@ describe('FeatureNotificationsGateSheet', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
       },
     );
+
+    it.each(['priceAlerts', 'socialAI'] as const)(
+      'keeps push on when it was already enabled and OS push permission is denied for %s',
+      async (feature) => {
+        const updatePreferencesSection = jest.fn().mockResolvedValue(undefined);
+        jest
+          .spyOn(OsPushPermission, 'promptOsPushPermissionIfNeeded')
+          .mockResolvedValue(false);
+        arrangePreferences({ isPushEnabled: true, isInAppEnabled: false });
+        jest.mocked(useNotificationStoragePreferences).mockReturnValue({
+          ...jest.mocked(useNotificationStoragePreferences)(),
+          updatePreferencesSection,
+        });
+
+        renderSheet({ feature });
+        await act(async () => {
+          fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+        });
+
+        const sectionUpdater = updatePreferencesSection.mock.calls[0][1] as (
+          section: Record<string, boolean>,
+        ) => Record<string, boolean>;
+        expect(
+          sectionUpdater({
+            pushNotificationsEnabled: true,
+            inAppNotificationsEnabled: false,
+          }),
+        ).toEqual({
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        });
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it('turns push off when first-time setup seeds it on and OS push permission is denied', async () => {
+      const updatePreferencesSection = jest.fn().mockResolvedValue(undefined);
+      jest
+        .spyOn(OsPushPermission, 'promptOsPushPermissionIfNeeded')
+        .mockResolvedValue(false);
+      const seededPreferences = arrangePreferences({
+        isPushEnabled: true,
+        isInAppEnabled: true,
+      });
+      arrangePreferences({ hasPreferences: false });
+      mockRefetch.mockResolvedValue({ data: seededPreferences });
+      jest.mocked(useNotificationStoragePreferences).mockReturnValue({
+        ...jest.mocked(useNotificationStoragePreferences)(),
+        updatePreferencesSection,
+      });
+
+      renderSheet({ feature: 'socialAI' });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
+
+      expect(mockEnableNotifications).toHaveBeenCalled();
+      const sectionUpdater = updatePreferencesSection.mock.calls[0][1] as (
+        section: Record<string, boolean>,
+      ) => Record<string, boolean>;
+      expect(
+        sectionUpdater({
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        }),
+      ).toEqual({
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: true,
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
 
     it('refreshes preferences after creating the preferences row', async () => {
       const seededPreferences = arrangePreferences({
