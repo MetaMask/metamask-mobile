@@ -70,6 +70,17 @@ export interface TabsListProps extends BoxComponentProps {
    */
   tabsBarProps?: Omit<TabsBarProps, 'tabs' | 'activeIndex' | 'onTabPress'>;
   /**
+   * When false, the tab strip is not shown and horizontal swipes do not
+   * change tabs. The active tab's content still renders.
+   */
+  showTabBar?: boolean;
+  /**
+   * Mount the active tab during the first render. Other tabs still wait
+   * until they are selected. Use this when the visible tab owns page chrome
+   * that must be on screen immediately.
+   */
+  mountActiveContent?: boolean;
+  /**
    * Tailwind CSS classes to apply to the tab content containers
    */
   tabsListContentTwClassName?: string;

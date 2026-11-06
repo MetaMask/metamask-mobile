@@ -780,7 +780,7 @@ const SocialV1ViewContent: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <Box twClassName="bg-default mt-4">
+            <Box twClassName="mt-4">
               <TabsBar
                 tabs={tabs}
                 activeIndex={activeIndex}

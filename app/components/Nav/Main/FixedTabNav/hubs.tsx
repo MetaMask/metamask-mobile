@@ -4,8 +4,8 @@ import { PerpsScreenStack } from '../../../UI/Perps';
 import { PredictRoot } from '../../../UI/PredictNext';
 import { BridgeScreenStack } from '../../../UI/Bridge/routes';
 import EarnSectionListView from '../../../UI/Earn/Views/EarnSectionListView/EarnSectionListView';
-import { MoneyTabScreenStack } from '../../../UI/Money/routes';
 import CardRoutes from '../../../UI/Card/routes';
+import { MoneyTabScreenStack } from '../../../UI/Money/routes';
 import NftFullView from '../../../Views/NftFullView';
 import FixedTabPlaceholder from './FixedTabPlaceholder';
 import PillHub from './PillHub';
@@ -32,10 +32,11 @@ export const TRADE_PILLS: readonly FixedTabPill[] = [
   { key: 'swaps', label: 'Swaps', Screen: BridgeScreenStack },
 ];
 
+/** Account is the Money screen and the screen Money opens on. */
 export const MONEY_PILLS: readonly FixedTabPill[] = [
-  { key: 'earn', label: 'Earn', Screen: EarnSectionListView },
   { key: 'account', label: 'Account', Screen: MoneyTabScreenStack },
   { key: 'card', label: 'Card', Screen: CardRoutes },
+  { key: 'earn', label: 'Earn', Screen: EarnSectionListView },
 ];
 
 export const COLLECT_PILLS: readonly FixedTabPill[] = [

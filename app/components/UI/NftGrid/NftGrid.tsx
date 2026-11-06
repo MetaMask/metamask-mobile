@@ -8,9 +8,18 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import { RefreshControl } from 'react-native';
+import {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { useNftRefresh } from './useNftRefresh';
 import { FlashList } from '@shopify/flash-list';
+import { useScrollingChrome } from '../../Nav/Main/FixedTabNav/ScrollingChrome';
+import {
+  useFixedHubChromeInset,
+  useFixedHubChromeScroll,
+} from '../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { RefreshTestId } from './constants';
@@ -67,12 +76,14 @@ const NftGridContent = ({
   goToAddCollectible,
   isAddNFTEnabled,
   isFullView = false,
+  scrollingChrome = null,
 }: {
   allFilteredCollectibles: Nft[];
   nftRowList: React.ReactNode;
   goToAddCollectible: () => void;
   isAddNFTEnabled: boolean;
   isFullView?: boolean;
+  scrollingChrome?: React.ReactNode;
 }) => {
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -81,19 +92,27 @@ const NftGridContent = ({
   }
 
   if (isNftFetchingProgress) {
-    return <NftGridSkeleton isFullView={isFullView} />;
+    return (
+      <>
+        {scrollingChrome}
+        <NftGridSkeleton isFullView={isFullView} />
+      </>
+    );
   }
 
   return (
-    <CollectiblesEmptyState
-      onAction={goToAddCollectible}
-      actionButtonProps={{
-        testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-        isDisabled: !isAddNFTEnabled,
-      }}
-      twClassName="mx-auto mt-4"
-      testID="collectibles-empty-state"
-    />
+    <>
+      {scrollingChrome}
+      <CollectiblesEmptyState
+        onAction={goToAddCollectible}
+        actionButtonProps={{
+          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+          isDisabled: !isAddNFTEnabled,
+        }}
+        twClassName="mx-auto mt-4"
+        testID="collectibles-empty-state"
+      />
+    </>
   );
 };
 
@@ -104,6 +123,15 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =
       useState<Nft | null>(null);
+    const scrollingChrome = useScrollingChrome();
+    const chromeInset = useFixedHubChromeInset();
+    const hubScrollY = useSharedValue(0);
+    useFixedHubChromeScroll(isFullView ? hubScrollY : null);
+    const handleHubScroll = useAnimatedScrollHandler({
+      onScroll: (event) => {
+        hubScrollY.value = event.contentOffset.y;
+      },
+    });
     const tw = useTailwind();
     const { colors } = useTheme();
     const { refreshing, onRefresh } = useNftRefresh();
@@ -311,20 +339,54 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
               onRefresh={onRefresh}
             />
           }
-          contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+          contentContainerStyle={
+            !isFullView
+              ? undefined
+              : [tw`px-4`, chromeInset > 0 ? { paddingTop: chromeInset } : null]
+          }
+          ListHeaderComponent={
+            isFullView ? (
+              <>
+                {scrollingChrome}
+                <BaseControlBar
+                  networkFilterTestId={
+                    WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER
+                  }
+                  customWrapper={'outer'}
+                  additionalButtons={
+                    <ButtonIcon
+                      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                      size={ButtonIconSizes.Md}
+                      onPress={goToAddCollectible}
+                      iconName={IconName.Add}
+                    />
+                  }
+                  hideSort
+                  style={tw`pb-4`}
+                />
+                <NftGridHeader />
+              </>
+            ) : undefined
+          }
           scrollEnabled={isFullView}
           numColumns={3}
+          onScroll={isFullView ? handleHubScroll : undefined}
+          scrollEventThrottle={16}
         />
       ),
       [
         gridData,
         isFullView,
+        handleHubScroll,
         handleLongPress,
         nftSource,
         tw,
         colors,
         refreshing,
         onRefresh,
+        scrollingChrome,
+        goToAddCollectible,
+        chromeInset,
       ],
     );
 
@@ -341,22 +403,25 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     return (
       <>
-        <BaseControlBar
-          networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-          customWrapper={'outer'}
-          additionalButtons={
-            <ButtonIcon
-              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              size={ButtonIconSizes.Md}
-              onPress={goToAddCollectible}
-              iconName={IconName.Add}
+        {isFullView ? null : (
+          <>
+            <BaseControlBar
+              networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+              customWrapper={'outer'}
+              additionalButtons={
+                <ButtonIcon
+                  testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                  size={ButtonIconSizes.Md}
+                  onPress={goToAddCollectible}
+                  iconName={IconName.Add}
+                />
+              }
+              hideSort
+              style={tw`pb-3`}
             />
-          }
-          hideSort
-          style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
-        />
-
-        <NftGridHeader />
+            <NftGridHeader />
+          </>
+        )}
 
         <NftGridContent
           allFilteredCollectibles={allFilteredCollectibles}
@@ -364,6 +429,30 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           goToAddCollectible={goToAddCollectible}
           isAddNFTEnabled={isAddNFTEnabled}
           isFullView={isFullView}
+          scrollingChrome={
+            isFullView ? (
+              <>
+                {scrollingChrome}
+                <BaseControlBar
+                  networkFilterTestId={
+                    WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER
+                  }
+                  customWrapper={'outer'}
+                  additionalButtons={
+                    <ButtonIcon
+                      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                      size={ButtonIconSizes.Md}
+                      onPress={goToAddCollectible}
+                      iconName={IconName.Add}
+                    />
+                  }
+                  hideSort
+                  style={tw`pb-4`}
+                />
+                <NftGridHeader />
+              </>
+            ) : null
+          }
         />
 
         {/* View all NFTs button - shown when there are more items than maxItems */}

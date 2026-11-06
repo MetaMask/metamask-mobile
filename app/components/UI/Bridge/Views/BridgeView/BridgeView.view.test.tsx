@@ -123,6 +123,19 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   });
 };
 
+// The order-type selector hides options in a sheet; open it before picking.
+const selectTab = async (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getByTestId: (testID: string) => any,
+  tabTestID: string,
+) => {
+  fireEvent.press(getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR));
+  await waitFor(() => {
+    expect(getByTestId(tabTestID)).toBeTruthy();
+  });
+  fireEvent.press(getByTestId(tabTestID));
+};
+
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
@@ -254,8 +267,9 @@ describeForPlatforms('BridgeView', () => {
       expect(
         getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+      // The order-type selector trigger shows the selected tab's label.
       expect(
-        getByTestId(`${BridgeViewSelectorsIDs.MARKET_TAB}-label`),
+        getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR),
       ).toHaveTextContent(strings('bridge.tabs.market'));
       expect(
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -264,7 +278,7 @@ describeForPlatforms('BridgeView', () => {
         queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
       ).not.toBeOnTheScreen();
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
 
       await waitFor(() => {
         expect(
@@ -317,7 +331,7 @@ describeForPlatforms('BridgeView', () => {
         },
       );
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
       act(() => {
         store.dispatch(setDestToken(USDT_DEST));
         store.dispatch(setSourceAmount('1'));
@@ -364,7 +378,7 @@ describeForPlatforms('BridgeView', () => {
         },
       });
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
       act(() => {
         store.dispatch(setDestToken(USDC_DEST));
         store.dispatch(setSourceAmount('1'));
@@ -406,7 +420,7 @@ describeForPlatforms('BridgeView', () => {
       const { getByTestId, getByText, queryByTestId, store } =
         defaultBridgeWithTokens();
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.RECURRING_TAB);
       act(() => {
         store.dispatch(setDestToken(USDT_DEST));
       });
@@ -453,7 +467,7 @@ describeForPlatforms('BridgeView', () => {
       const { findByTestId, getByTestId, queryByTestId } =
         defaultBridgeWithTokens();
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.RECURRING_TAB);
 
       expect(
         await findByTestId(
@@ -468,17 +482,28 @@ describeForPlatforms('BridgeView', () => {
     });
 
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
-      const { getByTestId, queryByTestId } = renderBridgeView();
+      const { getByTestId, getByText, queryByTestId } = renderBridgeView();
 
+      // The selector trigger shows the selected tab (Market) with no badge.
       expect(
-        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
-      ).toHaveTextContent(strings('bridge.tabs.limit'));
+        getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR),
+      ).toHaveTextContent(strings('bridge.tabs.market'));
       expect(
-        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+      ).not.toBeOnTheScreen();
+
+      // Open the sheet to assert the option labels and the Limit "New" badge.
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SHEET),
+        ).toBeOnTheScreen();
+      });
+      expect(getByText(strings('bridge.tabs.limit'))).toBeOnTheScreen();
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-new-badge`),
       ).toHaveTextContent(strings('bridge.tabs.new_badge'));
-      expect(
-        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
-      ).toHaveTextContent(strings('bridge.tabs.recurring'));
+      expect(getByText(strings('bridge.tabs.recurring'))).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
 
@@ -495,14 +520,14 @@ describeForPlatforms('BridgeView', () => {
     it('restores the market content when returning to the market tab', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
         ).toBeOnTheScreen();
       });
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.MARKET_TAB);
 
       await waitFor(() => {
         expect(
@@ -547,7 +572,7 @@ describeForPlatforms('BridgeView', () => {
         },
       );
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -559,7 +584,7 @@ describeForPlatforms('BridgeView', () => {
         store.dispatch(setDestToken(robinhoodUsde));
       });
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.MARKET_TAB);
 
       await waitFor(() => {
         expect(
@@ -615,7 +640,7 @@ describeForPlatforms('BridgeView', () => {
         },
       });
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
 
       await waitFor(() => {
         expect(store.getState().bridge.sourceToken).toEqual(
@@ -633,7 +658,7 @@ describeForPlatforms('BridgeView', () => {
         store.dispatch(setSourceAmount('2'));
       });
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.RECURRING_TAB);
 
       await waitFor(() => {
         expect(store.getState().bridge.sourceToken).toEqual(
@@ -652,7 +677,7 @@ describeForPlatforms('BridgeView', () => {
       const expectedSourceToken = store.getState().bridge.sourceToken;
       const expectedDestToken = store.getState().bridge.destToken;
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
 
       await waitFor(() => {
         expect(
@@ -663,7 +688,7 @@ describeForPlatforms('BridgeView', () => {
       expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.RECURRING_TAB);
 
       await waitFor(() => {
         expect(
@@ -674,7 +699,7 @@ describeForPlatforms('BridgeView', () => {
       expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.MARKET_TAB);
 
       await waitFor(() => {
         expect(
@@ -697,7 +722,7 @@ describeForPlatforms('BridgeView', () => {
       const expectedSourceToken = store.getState().bridge.sourceToken;
       const expectedDestToken = store.getState().bridge.destToken;
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTab(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
 
       await waitFor(() => {
         expect(
@@ -767,6 +792,16 @@ describeForPlatforms('BridgeView', () => {
         });
 
         expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+
+        // Tab options live inside the selector's sheet; open it to inspect.
+        fireEvent.press(
+          getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR),
+        );
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SHEET),
+          ).toBeOnTheScreen();
+        });
         expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
         expect(
           queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),

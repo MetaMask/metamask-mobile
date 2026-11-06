@@ -2023,6 +2023,7 @@
     "add_funds": "Add funds",
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
+    "balance_heading": "Balance",
     "available": "available",
     "select_perps_account": "Select perps account",
     "search_account": "Search an account",
@@ -3751,6 +3752,7 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "balance_heading": "Balance",
     "venue_selector": {
       "button_label": "Choose a prediction market",
       "title": "Prediction market",
@@ -3921,6 +3923,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "balance_heading": "Balance",
     "game_status": {
       "live": "LIVE",
       "scheduled": "SCHEDULED",
@@ -10453,7 +10456,8 @@
       "market": "Market",
       "limit": "Limit",
       "recurring": "Recurring",
-      "new_badge": "New"
+      "new_badge": "New",
+      "order_type": "Order type"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",

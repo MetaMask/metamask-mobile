@@ -85,6 +85,16 @@ import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import DottedUnderline from '../../../DottedUnderline';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+} from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import MoneyHeader, {
+  useMoneyTabHeader,
+} from '../../../Money/components/MoneyHeader';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const EarnSectionListSkeleton = () => (
@@ -240,6 +250,8 @@ const MoneyProjection = ({
  */
 const EarnSectionListView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { isGlass: isMoneyGlass, onMenuPress } = useMoneyTabHeader();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<EarnScreensStackParamList, 'EarnSearchList'>>();
@@ -554,9 +566,31 @@ const EarnSectionListView = () => {
       </Box>
     ) : null;
 
+    const screenHeader = isMoneyHubTab ? (
+      <FixedHubChromeSpacer />
+    ) : (
+      <>
+        <Box
+          style={{ paddingTop: insets.top }}
+          testID={EARN_SECTION_LIST_TEST_IDS.HEADER}
+        >
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
+            onBack={handleBack}
+            backButtonProps={{
+              testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,
+            }}
+          />
+        </Box>
+        <FixedTabPillRow />
+      </>
+    );
+
     if (!isMoneyAccountVisible) {
       return (
         <Box>
+          {screenHeader}
           <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
             {strings('money.potential_earnings.title')}
           </Text>
@@ -572,6 +606,7 @@ const EarnSectionListView = () => {
 
     return (
       <>
+        {screenHeader}
         <Text variant={TextVariant.HeadingLg} twClassName="px-4 pt-2">
           {strings('money.potential_earnings.title')}
         </Text>
@@ -631,6 +666,10 @@ const EarnSectionListView = () => {
     hasError,
     isLoading,
     isOnboardingRedirectNeeded,
+    handleBack,
+    insets.top,
+    isGlassHeader,
+    isMoneyHubTab,
     isMoneyAccountVisible,
     isNoFeeToken,
     isRetrying,
@@ -662,19 +701,12 @@ const EarnSectionListView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <Box
-        style={{ paddingTop: insets.top }}
-        testID={EARN_SECTION_LIST_TEST_IDS.HEADER}
-      >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          onBack={handleBack}
-          backButtonProps={{
-            testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,
-          }}
-        />
-      </Box>
+      {isMoneyHubTab ? (
+        <FixedHubChrome>
+          <MoneyHeader onMenuPress={onMenuPress} isGlass={isMoneyGlass} />
+          <FixedTabPillRow />
+        </FixedHubChrome>
+      ) : null}
       <FlashList
         data={
           isLoading

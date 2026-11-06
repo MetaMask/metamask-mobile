@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { PredictMarket as PredictMarketType } from '../types';
@@ -22,7 +23,15 @@ interface PredictionsCarouselSectionProps {
   onViewAll: () => void;
   /** When false the section is hidden entirely (feature-flag guard). Defaults to true. */
   isEnabled?: boolean;
+  /** Extra Tailwind classes for the title row (e.g. top padding overrides). */
+  titleTwClassName?: string;
 }
+
+const styles = StyleSheet.create({
+  header: {
+    paddingTop: 8,
+  },
+});
 
 /**
  * Reusable predictions horizontal carousel with section header and analytics.
@@ -37,6 +46,7 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
   idPrefix,
   onViewAll,
   isEnabled = true,
+  titleTwClassName = 'pt-2',
 }) => {
   const renderItem: ListRenderItem<PredictMarketType> = useCallback(
     ({ item, index }) => (
@@ -76,6 +86,8 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
         testID={`section-header-view-all-${idPrefix}`}
         tabName={tabName}
         sectionName={sectionName}
+        titleTwClassName={titleTwClassName}
+        style={styles.header}
       />
       <HorizontalCarousel<PredictMarketType>
         data={feed.data.slice(0, 6)}

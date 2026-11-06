@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   SafeAreaInsetsContext,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  Box,
-  FilterButton,
-  FilterButtonGroup,
-} from '@metamask/design-system-react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { Box } from '@metamask/design-system-react-native';
+import { FixedTabPillRowProvider } from './FixedTabPillRow';
+import { FixedHubChromeProvider } from './FixedHubChrome';
 import type { FixedTabPill } from './fixedTabNav.types';
 
 interface PillHubProps {
@@ -20,24 +19,43 @@ interface PillHubProps {
  * Content-layer pills. The footer stays mounted in the parent tab navigator.
  * Only the selected destination is mounted.
  *
- * Product screens read the window safe area. This hub already sits below the
- * status bar and above the footer, so children see zero top and bottom insets
- * and do not pad a second time.
+ * Each screen renders the pill row under its own header. The hub keeps the
+ * real top inset so that header can clear the status bar, and zeros the
+ * bottom inset because the footer already covers the home indicator.
  */
 const PillHub = ({ testID, pills }: PillHubProps) => {
   const insets = useSafeAreaInsets();
-  const [selectedKey, setSelectedKey] = useState(pills[0]?.key ?? '');
+  const firstKey = pills[0]?.key ?? '';
+  const [selectedKey, setSelectedKey] = useState(firstKey);
   const selected = pills.find((pill) => pill.key === selectedKey) ?? pills[0];
   const ActiveScreen = selected?.Screen;
 
+  // Returning to the hub (e.g. Home → Trade) lands on the first pill, not the
+  // one the user left on. First mount already defaults to the first pill.
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedKey(firstKey);
+    }, [firstKey]),
+  );
+
   const childInsets = useMemo(
     () => ({
-      top: 0,
+      top: insets.top,
       right: insets.right,
       bottom: 0,
       left: insets.left,
     }),
-    [insets.left, insets.right],
+    [insets.left, insets.right, insets.top],
+  );
+
+  const pillRow = useMemo(
+    () => ({
+      testID,
+      pills,
+      selectedKey: selected?.key ?? '',
+      onChange: setSelectedKey,
+    }),
+    [pills, selected?.key, testID],
   );
 
   if (!selected || !ActiveScreen) {
@@ -45,35 +63,17 @@ const PillHub = ({ testID, pills }: PillHubProps) => {
   }
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={testID}>
-      <Box
-        twClassName="bg-default"
-        style={{ paddingTop: insets.top }}
-        testID={`${testID}-pills-chrome`}
-      >
-        <FilterButtonGroup
-          value={selected.key}
-          onChange={setSelectedKey}
-          twClassName="px-4 py-2"
-          testID={`${testID}-pills`}
-        >
-          {pills.map((pill) => (
-            <FilterButton
-              key={pill.key}
-              value={pill.key}
-              testID={`${testID}-pill-${pill.key}`}
-            >
-              {pill.label}
-            </FilterButton>
-          ))}
-        </FilterButtonGroup>
+    <FixedTabPillRowProvider value={pillRow}>
+      <Box twClassName="flex-1 bg-default" testID={testID}>
+        <FixedHubChromeProvider>
+          <Box key={selected.key} twClassName="flex-1">
+            <SafeAreaInsetsContext.Provider value={childInsets}>
+              <ActiveScreen />
+            </SafeAreaInsetsContext.Provider>
+          </Box>
+        </FixedHubChromeProvider>
       </Box>
-      <Box key={selected.key} twClassName="flex-1">
-        <SafeAreaInsetsContext.Provider value={childInsets}>
-          <ActiveScreen />
-        </SafeAreaInsetsContext.Provider>
-      </Box>
-    </Box>
+    </FixedTabPillRowProvider>
   );
 };
 

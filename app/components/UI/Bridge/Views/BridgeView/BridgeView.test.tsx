@@ -2728,6 +2728,24 @@ describe('BridgeView', () => {
       });
     };
 
+    // The order-type selector hides options in a sheet; open it before picking.
+    const selectTabViaSelector = async (
+      getByTestId: (testID: string) => unknown,
+      tabTestID: string,
+    ) => {
+      fireEvent.press(
+        getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR) as Parameters<
+          typeof fireEvent.press
+        >[0],
+      );
+      await waitFor(() => {
+        expect(getByTestId(tabTestID)).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(tabTestID) as Parameters<typeof fireEvent.press>[0],
+      );
+    };
+
     it('opens the initial tab requested by the route', async () => {
       mockRoute.params = {
         sourcePage: 'TokenDetails',
@@ -2864,7 +2882,10 @@ describe('BridgeView', () => {
       // initialTab once consumed. Mirror that before switching tabs.
       mockRoute.params.initialTab = undefined;
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await selectTabViaSelector(
+        getByTestId,
+        BridgeViewSelectorsIDs.MARKET_TAB,
+      );
       await waitFor(() => {
         expect(
           queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -2873,7 +2894,7 @@ describe('BridgeView', () => {
       expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
       expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTabViaSelector(getByTestId, BridgeViewSelectorsIDs.LIMIT_TAB);
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -2889,7 +2910,10 @@ describe('BridgeView', () => {
         { name: Routes.BRIDGE.ROOT },
         { state: stateWithTabsEnabled() },
       );
-      fireEvent.press(rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await selectTabViaSelector(
+        rendered.getByTestId,
+        BridgeViewSelectorsIDs.LIMIT_TAB,
+      );
       await waitFor(() => {
         expect(
           rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -2945,6 +2969,10 @@ describe('BridgeView', () => {
         { state: stateWithTabsEnabled() },
       );
 
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR));
+      await waitFor(() => {
+        expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeTruthy();
+      });
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
       await waitFor(() => {
         expect(
@@ -2983,6 +3011,10 @@ describe('BridgeView', () => {
         { state: stateWithTabsEnabled() },
       );
 
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR));
+      await waitFor(() => {
+        expect(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB)).toBeTruthy();
+      });
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
       await waitFor(() => {
         expect(

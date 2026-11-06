@@ -40,11 +40,11 @@ describe('ExploreScroll', () => {
       call.join(' '),
     );
 
-    expect(styleCalls).toContain('flex-1 pt-3');
+    expect(styleCalls).toContain('flex-1');
     expect(styleCalls).not.toEqual(
       expect.arrayContaining([expect.stringContaining('px-4')]),
     );
-    expect(scrollView.props.style.__twClasses).toBe('flex-1 pt-3');
+    expect(scrollView.props.style.__twClasses).toBe('flex-1');
   });
 
   it('subscribes to scroll and layout notifications at a bounded frequency', () => {

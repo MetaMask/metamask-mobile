@@ -1,7 +1,14 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, View } from 'react-native';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import { FixedHubChrome } from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import MoneyHeader, {
+  useMoneyTabHeader,
+} from '../../../Money/components/MoneyHeader';
 import LinearGradient from 'react-native-linear-gradient';
 import { brandColor } from '@metamask/design-tokens';
 import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -50,6 +57,8 @@ const CardWelcome = () => {
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const tw = useTailwind();
+  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { isGlass, onMenuPress } = useMoneyTabHeader();
   const animationState = useCardEducationAnimationState();
   const shouldAnimateCards = animationState === 'animate';
 
@@ -67,16 +76,19 @@ const CardWelcome = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const applyLightStatusBar = () =>
-        StatusBar.setBarStyle('light-content', true);
+      const statusBarStyle =
+        isMoneyHubTab && theme.themeAppearance !== AppThemeKey.dark
+          ? 'dark-content'
+          : 'light-content';
+      const applyStatusBar = () => StatusBar.setBarStyle(statusBarStyle, true);
 
-      applyLightStatusBar();
+      applyStatusBar();
 
       const handleTransitionEnd = (event: TransitionEndEvent) => {
         if (event?.data?.closing) {
           return;
         }
-        applyLightStatusBar();
+        applyStatusBar();
       };
 
       const unsubscribers: (() => void)[] = [];
@@ -98,7 +110,7 @@ const CardWelcome = () => {
           true,
         );
       };
-    }, [navigation, theme.themeAppearance]),
+    }, [isMoneyHubTab, navigation, theme.themeAppearance]),
   );
 
   const handleClose = useCallback(() => {
@@ -140,51 +152,61 @@ const CardWelcome = () => {
   ]);
 
   return (
-    <MarketingMoment
-      testID="card-gtm-modal-container"
-      theme={Theme.Dark}
-      background={
-        <LinearGradient
-          colors={GRADIENT_COLORS}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={tw.style('flex-1')}
+    <View style={tw.style('flex-1')}>
+      <FixedHubChrome>
+        {isMoneyHubTab ? (
+          <MoneyHeader onMenuPress={onMenuPress} isGlass={isGlass} />
+        ) : null}
+        <FixedTabPillRow includeTopInset={!isMoneyHubTab} />
+      </FixedHubChrome>
+      <View style={tw.style('flex-1')}>
+        <MarketingMoment
+          testID="card-gtm-modal-container"
+          theme={Theme.Dark}
+          background={
+            <LinearGradient
+              colors={GRADIENT_COLORS}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={tw.style('flex-1')}
+            />
+          }
+          title={strings('card.card_onboarding.title')}
+          description={strings('card.card_onboarding.description')}
+          titleProps={{
+            testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
+            twClassName: 'text-accent02-light text-center',
+          }}
+          descriptionProps={{
+            testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+            // padding to prevent orphan
+            twClassName: 'text-accent02-light text-center px-3',
+          }}
+          artwork={
+            animationState === 'pending' ? null : (
+              <CardWelcomeCardsAnimation
+                animate={shouldAnimateCards}
+                style={tw.style('h-full w-full')}
+              />
+            )
+          }
+          primaryAction={{
+            label: strings(
+              shouldGoToSignIn
+                ? 'card.card_onboarding.login_button'
+                : 'card.card_onboarding.apply_now_button',
+            ),
+            onPress: handleButtonPress,
+            testID: CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON,
+          }}
+          secondaryAction={{
+            label: strings('card.card_onboarding.not_now_button'),
+            onPress: handleClose,
+            testID: CardWelcomeSelectors.NOT_NOW_BUTTON,
+          }}
         />
-      }
-      title={strings('card.card_onboarding.title')}
-      description={strings('card.card_onboarding.description')}
-      titleProps={{
-        testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
-        twClassName: 'text-accent02-light text-center',
-      }}
-      descriptionProps={{
-        testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
-        // padding to prevent orphan
-        twClassName: 'text-accent02-light text-center px-3',
-      }}
-      artwork={
-        animationState === 'pending' ? null : (
-          <CardWelcomeCardsAnimation
-            animate={shouldAnimateCards}
-            style={tw.style('h-full w-full')}
-          />
-        )
-      }
-      primaryAction={{
-        label: strings(
-          shouldGoToSignIn
-            ? 'card.card_onboarding.login_button'
-            : 'card.card_onboarding.apply_now_button',
-        ),
-        onPress: handleButtonPress,
-        testID: CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON,
-      }}
-      secondaryAction={{
-        label: strings('card.card_onboarding.not_now_button'),
-        onPress: handleClose,
-        testID: CardWelcomeSelectors.NOT_NOW_BUTTON,
-      }}
-    />
+      </View>
+    </View>
   );
 };
 

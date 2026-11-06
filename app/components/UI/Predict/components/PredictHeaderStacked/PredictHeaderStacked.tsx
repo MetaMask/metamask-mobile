@@ -9,6 +9,8 @@ import {
   IconName,
   type ButtonIconProps,
 } from '@metamask/design-system-react-native';
+import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
+import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { PredictVenueSelectorButton } from '../../../PredictNext/venueSelection';
@@ -36,8 +38,13 @@ export interface PredictHeaderStackedProps {
    * Defaults to the shared "Predictions" string.
    */
   title?: string;
-  /** Back button handler. */
-  onBack: () => void;
+  /** Back button handler. Omitted on the Trade hub, which uses the root header. */
+  onBack?: () => void;
+  /**
+   * `root` matches the Money tab header: a left title and the page buttons.
+   * `stacked` is the collapsing nav used when this screen is pushed.
+   */
+  variant?: 'stacked' | 'root';
   /** Search icon handler. Opens the existing Predict search flow. */
   onSearchPress: () => void;
   /**
@@ -47,6 +54,8 @@ export interface PredictHeaderStackedProps {
   isGlass?: boolean;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Off keeps the header in the scroll instead of pinning it. */
+  isFloating?: boolean;
   testID?: string;
 }
 
@@ -68,6 +77,8 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
   onSearchPress,
   isGlass = false,
   onLayout,
+  isFloating = true,
+  variant = 'stacked',
   testID = PREDICT_HEADER_STACKED_TEST_IDS.HEADER,
 }) => {
   const searchButtonProps: ButtonIconProps = {
@@ -78,9 +89,41 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
     testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
   };
 
+  const headerActions = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+    >
+      <PredictVenueSelectorButton variant={isGlass ? 'glass' : 'standard'} />
+      {isGlass ? (
+        <ButtonIconGlass isCapsule {...searchButtonProps} />
+      ) : (
+        <ButtonIcon {...searchButtonProps} />
+      )}
+    </Box>
+  );
+
+  if (variant === 'root') {
+    return (
+      <HeaderRootGlass
+        isGlass={isGlass}
+        isFloating={isFloating}
+        onLayout={onLayout}
+        testID={testID}
+        includesTopInset
+        scrollY={scrollY}
+        endAccessory={headerActions}
+      >
+        <HubProfileButton />
+      </HeaderRootGlass>
+    );
+  }
+
   return (
     <HeaderStandardAnimatedGlass
       isGlass={isGlass}
+      isFloating={isFloating}
       onLayout={onLayout}
       testID={testID}
       includesTopInset
@@ -93,22 +136,7 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
         accessibilityLabel: strings('navigation.back'),
         testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
       }}
-      endAccessory={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-        >
-          <PredictVenueSelectorButton
-            variant={isGlass ? 'glass' : 'standard'}
-          />
-          {isGlass ? (
-            <ButtonIconGlass isCapsule {...searchButtonProps} />
-          ) : (
-            <ButtonIcon {...searchButtonProps} />
-          )}
-        </Box>
-      }
+      endAccessory={headerActions}
     />
   );
 };

@@ -27,6 +27,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       testID,
       tabsBarProps,
       tabsListContentTwClassName,
+      showTabBar = true,
+      mountActiveContent = false,
       ...boxProps
     },
     ref,
@@ -76,7 +78,11 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const [activeIndex, setActiveIndex] = useState(() =>
       normalizeTabIndex(initialActiveIndex),
     );
-    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
+    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(() =>
+      mountActiveContent && initialActiveIndex >= 0
+        ? new Set([initialActiveIndex])
+        : new Set(),
+    );
     const interactionHandleRef = useRef<{ cancel?: () => void } | null>(null);
     const fallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
@@ -245,33 +251,38 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [tabs, activeIndex, handleTabPress, testID, tabsBarProps],
     );
 
+    const content = (
+      <Box
+        twClassName={`flex-1 ${showTabBar ? 'mt-2' : ''} px-4 ${tabsListContentTwClassName || ''}`}
+        testID={testID ? `${testID}-content` : undefined}
+      >
+        {tabs.map((tab, index) => {
+          const isActive = index === activeIndex;
+          const isLoaded = loadedTabs.has(index);
+
+          if (!isLoaded) return null;
+
+          return (
+            <Box
+              key={tab.key}
+              twClassName={isActive ? 'flex-1' : 'hidden'}
+              pointerEvents={!isActive ? 'none' : 'auto'}
+            >
+              {tab.content}
+            </Box>
+          );
+        })}
+      </Box>
+    );
+
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
-        <TabsBar {...tabBarPropsComputed} />
-
-        <GestureDetector gesture={swipeGesture}>
-          <Box
-            twClassName={`flex-1 mt-2 px-4 ${tabsListContentTwClassName || ''}`}
-            testID={testID ? `${testID}-content` : undefined}
-          >
-            {tabs.map((tab, index) => {
-              const isActive = index === activeIndex;
-              const isLoaded = loadedTabs.has(index);
-
-              if (!isLoaded) return null;
-
-              return (
-                <Box
-                  key={tab.key}
-                  twClassName={isActive ? 'flex-1' : 'hidden'}
-                  pointerEvents={!isActive ? 'none' : 'auto'}
-                >
-                  {tab.content}
-                </Box>
-              );
-            })}
-          </Box>
-        </GestureDetector>
+        {showTabBar ? <TabsBar {...tabBarPropsComputed} /> : null}
+        {showTabBar ? (
+          <GestureDetector gesture={swipeGesture}>{content}</GestureDetector>
+        ) : (
+          content
+        )}
       </Box>
     );
   },

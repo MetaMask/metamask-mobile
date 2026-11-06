@@ -137,12 +137,25 @@ function renderRecurringPriceRangeView({
   });
 }
 
+// The order-type selector hides options in a sheet; open it before picking.
+async function selectOrderTypeTab(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  tabTestID: string,
+) {
+  fireEvent.press(
+    renderResult.getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR),
+  );
+
+  await waitFor(() => {
+    expect(renderResult.getByTestId(tabTestID)).toBeTruthy();
+  });
+  fireEvent.press(renderResult.getByTestId(tabTestID));
+}
+
 async function openRecurringTab(
   renderResult: ReturnType<typeof renderBridgeView>,
 ) {
-  fireEvent.press(
-    renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
-  );
+  await selectOrderTypeTab(renderResult, BridgeViewSelectorsIDs.RECURRING_TAB);
 
   await waitFor(() => {
     expect(
@@ -697,9 +710,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('0');
     });
 
-    fireEvent.press(
-      renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB),
-    );
+    await selectOrderTypeTab(renderResult, BridgeViewSelectorsIDs.MARKET_TAB);
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(

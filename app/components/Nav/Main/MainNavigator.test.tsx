@@ -260,13 +260,19 @@ describe('MainNavigator', () => {
       const tabNavigatorNode = homeRoot.findAll(
         (node: ReactTestInstance) => node.type?.toString?.() === 'TabNavigator',
       )[0];
-      return tabNavigatorNode?.props?.tabBar as { name?: string } | undefined;
+      return tabNavigatorNode?.props?.tabBar as
+        | ((props: Record<string, unknown>) => React.ReactElement)
+        | undefined;
     };
 
-    it('uses one footer component for every tab', () => {
+    it('renders the fixed footer as its own component for every tab', () => {
       const HomeTabs = getHomeTabsComponent();
 
-      expect(getTabBarComponent(HomeTabs)?.name).toBe('FixedTabBar');
+      const tabBarElement = getTabBarComponent(HomeTabs)?.({});
+
+      expect((tabBarElement?.type as { name?: string })?.name).toBe(
+        'FixedTabBar',
+      );
     });
 
     it('hosts Quick Buy above the tab navigator', () => {
@@ -361,15 +367,16 @@ describe('MainNavigator', () => {
 
       expect(tabNames).toEqual([
         Routes.WALLET.HOME,
-        Routes.FIXED_TAB_NAV.TRADE,
         Routes.FIXED_TAB_NAV.MONEY,
+        Routes.FIXED_TAB_NAV.TRADE,
         Routes.FIXED_TAB_NAV.COLLECT,
+        Routes.SOCIAL.TAB,
       ]);
     });
   });
 
   describe('Fixed footer instead of the native tab bar', () => {
-    it('keeps the four JS tabs when the native tab bar flag is on', () => {
+    it('keeps the JS footer when the native tab bar flag is on', () => {
       mockIsNativeTabBar = true;
       const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -397,9 +404,10 @@ describe('MainNavigator', () => {
           .map((screen) => screen.props.name),
       ).toEqual([
         Routes.WALLET.HOME,
-        Routes.FIXED_TAB_NAV.TRADE,
         Routes.FIXED_TAB_NAV.MONEY,
+        Routes.FIXED_TAB_NAV.TRADE,
         Routes.FIXED_TAB_NAV.COLLECT,
+        Routes.SOCIAL.TAB,
       ]);
     });
   });
@@ -1861,9 +1869,10 @@ describe('MainNavigator', () => {
 
     const fixedFooterTabs = [
       Routes.WALLET.HOME,
-      Routes.FIXED_TAB_NAV.TRADE,
       Routes.FIXED_TAB_NAV.MONEY,
+      Routes.FIXED_TAB_NAV.TRADE,
       Routes.FIXED_TAB_NAV.COLLECT,
+      Routes.SOCIAL.TAB,
     ];
 
     it.each(['searchFocused', 'tradeFocused', 'control'])(
@@ -2186,7 +2195,7 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('registers Trade, Money, and Collect hubs beside Home', () => {
+      it('registers Money, Trade, Collect, and Social beside Home', () => {
         expect(
           getScreenComponent(
             homeTabsRoot,
@@ -2207,6 +2216,9 @@ describe('MainNavigator', () => {
             Routes.FIXED_TAB_NAV.COLLECT,
             'TabScreen',
           ),
+        ).toBeTruthy();
+        expect(
+          getScreenComponent(homeTabsRoot, Routes.SOCIAL.TAB, 'TabScreen'),
         ).toBeTruthy();
       });
 

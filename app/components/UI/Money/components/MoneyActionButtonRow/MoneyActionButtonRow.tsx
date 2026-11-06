@@ -17,7 +17,6 @@ interface ActionButtonConfig {
 interface MoneyActionButtonRowProps {
   add: ActionButtonConfig;
   transfer: ActionButtonConfig;
-  card: ActionButtonConfig;
   /** Virtual bank account details. Omitted when there is no account to show. */
   details?: ActionButtonConfig;
   /** Brand refresh Liquid Glass tiles; resolved by the screen. */
@@ -34,7 +33,6 @@ const styles = StyleSheet.create({
 const MoneyActionButtonRow = ({
   add,
   transfer,
-  card,
   details,
   isGlass = false,
 }: MoneyActionButtonRowProps) => (
@@ -59,16 +57,6 @@ const MoneyActionButtonRow = ({
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
-      twClassName="py-3"
-      containerStyle={styles.buttonContainer}
-      isGlass={isGlass}
-    />
-    <MainActionButtonGlass
-      iconName={IconName.Card}
-      label={strings('money.action.card')}
-      onPress={card.onPress}
-      isDisabled={card.disabled}
-      testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
       twClassName="py-3"
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}

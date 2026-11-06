@@ -22,6 +22,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
 import {
   TabItem,
   TabsBar,
@@ -401,6 +402,7 @@ const PredictFeedView: React.FC = () => {
         }
         testID={PredictFeedViewSelectorsIDs.HEADER}
       />
+      <FixedTabPillRow />
 
       <Box twClassName="flex-1">
         {showTabBar && (

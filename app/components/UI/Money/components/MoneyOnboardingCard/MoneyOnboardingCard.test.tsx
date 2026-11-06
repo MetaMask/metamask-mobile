@@ -26,7 +26,6 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));
@@ -240,14 +239,6 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-container')).toBeOnTheScreen();
-    });
-
-    it('draws the card on glass when isGlass is set', () => {
-      setupDefaultMocks({ currentStep: 0 });
-
-      const { getByTestId } = render(<MoneyOnboardingCard isGlass />);
-
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });
   });
 

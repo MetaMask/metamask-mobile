@@ -5,6 +5,15 @@ import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+
+jest.mock('../../../../Nav/Main/FixedTabNav/HubProfileButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Pressable testID="profile-button" />,
+  };
+});
 
 jest.mock(
   '../../../../../component-library/components-temp/CapsuleGlass',
@@ -36,13 +45,15 @@ describe('MoneyHeader', () => {
     expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
-  it('renders the Money title alongside the menu button', () => {
-    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
-
-    expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
-      strings('money.title'),
+  it('renders the profile avatar instead of the Money title', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyHeader onMenuPress={jest.fn()} />,
     );
 
+    expect(
+      getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyHeaderTestIds.TITLE)).toBeNull();
     expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
@@ -117,12 +128,12 @@ describe('MoneyHeader', () => {
       expect(queryByTestId('capsule')).toBeNull();
     });
 
-    it('floats the tab header on its backdrop with the menu in a capsule', () => {
-      const { getByTestId } = render(
+    it('keeps the glass tab header in the scroll with the menu in a capsule', () => {
+      const { getByTestId, queryByTestId } = render(
         <MoneyHeader onMenuPress={jest.fn()} isGlass />,
       );
 
-      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
       expect(
         within(getByTestId('capsule')).getByTestId(
           MoneyHeaderTestIds.MENU_BUTTON,

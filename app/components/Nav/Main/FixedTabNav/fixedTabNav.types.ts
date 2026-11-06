@@ -11,7 +11,7 @@ export interface FixedTabPill {
 }
 
 export interface FixedTabDefinition {
-  key: 'home' | 'trade' | 'money' | 'collect';
+  key: 'home' | 'money' | 'trade' | 'collect' | 'social';
   label: string;
   routeName: string;
   icon: IconName;

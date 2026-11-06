@@ -109,7 +109,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
-    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
+    const { getByTestId, queryByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -118,7 +118,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
       ).toBeOnTheScreen();
-      expect(getByText('Explore')).toBeOnTheScreen();
+      expect(getByTestId('profile-button')).toBeOnTheScreen();
+      expect(queryByText('Trade')).toBeNull();
     });
 
     // Now tab is active by default and contains the scroll view
@@ -229,8 +230,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('user switches between Explore tabs and sees tab-specific sections', async () => {
-    const { getByTestId, getByText, queryAllByTestId } =
+  it('shows the Now feed without the Explore category tabs', async () => {
+    const { getByTestId, getByText, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -240,33 +241,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
     });
 
-    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.CRYPTO, getByTestId);
-    await waitFor(() => {
-      expect(
-        getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
-      ).toBeOnTheScreen();
-      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
-      expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
-    });
-
-    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.RWAS, getByTestId);
-    await waitFor(() => {
-      expect(
-        getByTestId(TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW),
-      ).toBeOnTheScreen();
-      expect(getByText(strings('trending.stocks'))).toBeOnTheScreen();
-      expect(getByText('Ondo US Dollar Yield')).toBeOnTheScreen();
-    });
-
-    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);
-    await waitFor(() => {
-      expect(
-        queryAllByTestId(TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW),
-      ).toHaveLength(1);
-      expect(getByText(strings('trending.ecosystems'))).toBeOnTheScreen();
-      expect(getByText(strings('trending.popular'))).toBeOnTheScreen();
-      expect(queryAllByTestId('site-row-item-Uniswap')).toHaveLength(1);
-    });
+    expect(queryByTestId('explore-tabs-bar')).toBeNull();
   });
 
   it('opens the requested Explore tab from route params', async () => {

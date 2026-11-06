@@ -3,11 +3,27 @@ import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PillHub from './PillHub';
+import FixedTabPillRow from './FixedTabPillRow';
 import type { FixedTabPill } from './fixedTabNav.types';
 
-const TrendingScreen = () => <Text>Trending screen</Text>;
-const PerpsScreen = () => <Text>Perps screen</Text>;
-const SwapsScreen = () => <Text>Swaps screen</Text>;
+const TrendingScreen = () => (
+  <>
+    <FixedTabPillRow />
+    <Text>Trending screen</Text>
+  </>
+);
+const PerpsScreen = () => (
+  <>
+    <FixedTabPillRow />
+    <Text>Perps screen</Text>
+  </>
+);
+const SwapsScreen = () => (
+  <>
+    <FixedTabPillRow />
+    <Text>Swaps screen</Text>
+  </>
+);
 
 const TRADE_PILLS: readonly FixedTabPill[] = [
   { key: 'trending', label: 'Trending', Screen: TrendingScreen },

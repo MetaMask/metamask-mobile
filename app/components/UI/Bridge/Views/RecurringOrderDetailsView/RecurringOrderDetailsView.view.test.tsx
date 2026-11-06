@@ -45,7 +45,16 @@ const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 async function openInProgressOrderDetails(
   renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
 ) {
-  await userEvent.press(
+  // The order-type selector hides options in a sheet; open it before picking.
+  fireEvent.press(
+    renderResult.getByTestId(BridgeViewSelectorsIDs.ORDER_TYPE_SELECTOR),
+  );
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+    ).toBeTruthy();
+  });
+  fireEvent.press(
     renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
   );
   await waitFor(() => {

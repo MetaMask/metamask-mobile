@@ -124,7 +124,6 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -135,10 +134,15 @@ import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
-import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
-import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+  useFixedHubChromeScroll,
+} from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
+import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
@@ -341,25 +345,12 @@ const PerpsHomeView = () => {
     [],
   );
 
-  const {
-    scrollY: headerScrollY,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
+  const { scrollY: headerScrollY } = useHeaderStandardAnimated();
+  useFixedHubChromeScroll(headerScrollY);
 
-  // The banner sits above the header, so whichever of the two is at the top of
-  // the screen owns the status-bar inset.
-  const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
-  const headerIncludesTopInset =
-    !outreachCampaign && !isServiceInterruptionBannerEnabled;
-  const safeAreaInsets = useSafeAreaInsets();
-  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useHeaderGlassInset(
-      isBrandRefresh,
-      headerIncludesTopInset ? safeAreaInsets.top : 0,
-    );
-
-  const perpsScreenTitle = strings('perps.title');
+  // The header stays pinned, so it always owns the status-bar inset. Banners
+  // scroll underneath it.
+  const headerIncludesTopInset = true;
 
   const perpsScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -1215,19 +1206,13 @@ const PerpsHomeView = () => {
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
-      { paddingTop: floatingHeaderInset },
       showsFixedFooter
         ? { paddingBottom: 0 }
         : {
             paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
           },
     ],
-    [
-      styles.scrollViewContent,
-      floatingHeaderInset,
-      showsFixedFooter,
-      bottomSafeAreaInset,
-    ],
+    [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
 
   const titleEndAccessory = useMemo(() => {
@@ -1256,25 +1241,15 @@ const PerpsHomeView = () => {
     return undefined;
   }, [isMultiProviderEnabled, isTestnet]);
 
-  // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
-  const handleBackPress = perpsNavigation.navigateToWallet;
-
   const header = (
-    <HeaderStandardAnimatedGlass
+    <HeaderRootGlass
       isGlass={isBrandRefresh}
-      onLayout={handleFloatingHeaderLayout}
+      isFloating={false}
       includesTopInset={headerIncludesTopInset}
       // h-16 (64px) matches the Figma header when the Lite pill is shown
       // (HeaderBase defaults to 56px).
       twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
       scrollY={headerScrollY}
-      titleSectionHeight={titleSectionHeightSv}
-      title={perpsScreenTitle}
-      onBack={handleBackPress}
-      backButtonProps={{
-        accessibilityLabel: 'Back',
-        testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-      }}
       endAccessory={
         <Box
           accessible={false}
@@ -1303,7 +1278,9 @@ const PerpsHomeView = () => {
         </Box>
       }
       testID="perps-home"
-    />
+    >
+      <HubProfileButton />
+    </HeaderRootGlass>
   );
 
   const content = (
@@ -1315,62 +1292,67 @@ const PerpsHomeView = () => {
       scrollEventThrottle={16}
       testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
     >
-      <Box paddingBottom={3}>
+      <FixedHubChromeSpacer />
+      <PerpsOutreachBanner includesTopInset={false} location="perps_home" />
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            includesTopInset={false}
+            scrollY={headerScrollY}
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
+      <Box testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}>
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
           isGlass={isGlass}
-          onTitleSectionLayout={(event) =>
-            setTitleSectionHeight(event.nativeEvent.layout.height)
-          }
         >
-          <TitleHub
-            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={perpsScreenTitle}
-            titleEndAccessory={titleEndAccessory}
-            titleProps={{
-              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-            }}
-            amount={
-              !isBalanceEmpty ? (
-                <SensitiveText
-                  variant={TextVariant.AmountDisplayLg}
-                  fontFamily={FontFamily.Hero}
-                  color={TextColor.TextDefault}
-                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                >
-                  {formatPerpsBalance(totalBalance)}
-                </SensitiveText>
-              ) : undefined
-            }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
+          {!isBalanceEmpty || titleEndAccessory ? (
+            <TitleHub
+              title={titleEndAccessory ?? ''}
+              amount={
+                !isBalanceEmpty ? (
                   <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
+                    variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
+                    color={TextColor.TextDefault}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                     isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
+                    length={SensitiveTextLength.Medium}
                   >
-                    {formatPerpsBalance(spendableBalance)}
+                    {formatPerpsBalance(totalBalance)}
                   </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
-              ) : undefined
-            }
-            twClassName="px-4 pb-3"
-          />
+                ) : undefined
+              }
+              bottomLabel={
+                !isBalanceEmpty ? (
+                  <Box flexDirection={BoxFlexDirection.Row}>
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                      }
+                    >
+                      {formatPerpsBalance(spendableBalance)}
+                    </SensitiveText>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {' '}
+                      {strings('perps.available')}
+                    </Text>
+                  </Box>
+                ) : undefined
+              }
+              twClassName="px-4 pb-3"
+            />
+          ) : null}
         </PerpsMarketBalanceActions>
 
         <PerpsCompetitionBanner
@@ -1391,35 +1373,12 @@ const PerpsHomeView = () => {
 
   return (
     <View style={styles.container}>
-      {/* Perps Outreach Banner */}
-      <PerpsOutreachBanner includesTopInset location="perps_home" />
+      <FixedHubChrome>
+        {header}
+        <FixedTabPillRow />
+      </FixedHubChrome>
 
-      {/* Service Interruption Banner — pinned above the header; collapses to
-          its title row once the content is scrolled. Outer flag guard avoids
-          mounting the padded wrapper (and banner hooks) when disabled. */}
-      {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2">
-          <PerpsServiceInterruptionBanner
-            includesTopInset={!outreachCampaign}
-            scrollY={headerScrollY}
-            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-        </Box>
-      )}
-
-      {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
-      {isBrandRefresh ? (
-        <View style={styles.scrollView}>
-          {/* Mounted before the content so assistive tech reads the header first. */}
-          {header}
-          {content}
-        </View>
-      ) : (
-        <>
-          {header}
-          {content}
-        </>
-      )}
+      {content}
 
       {/* Close All Positions Bottom Sheet */}
       {showCloseAllSheet && (

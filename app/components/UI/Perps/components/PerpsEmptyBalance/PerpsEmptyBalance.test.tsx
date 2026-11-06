@@ -22,6 +22,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'perps.add_funds': 'Add funds',
+      'perps.balance_heading': 'Balance',
     };
     return mockStrings[key] ?? key;
   }),
@@ -33,6 +34,16 @@ describe('PerpsEmptyBalance', () => {
   });
 
   describe('rendering', () => {
+    it('renders Balance heading above the balance value', () => {
+      const onAddFunds = jest.fn();
+
+      const { getByText } = render(
+        <PerpsEmptyBalance onAddFunds={onAddFunds} />,
+      );
+
+      expect(getByText('Balance')).toBeTruthy();
+    });
+
     it('renders $0.00 balance text', () => {
       const onAddFunds = jest.fn();
 

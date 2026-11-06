@@ -708,11 +708,11 @@ const Routes = {
   },
   /**
    * Prototype fixed footer. Home reuses `WALLET.HOME`.
-   * Search is not a footer tab. Content pills live inside Trade, Money, and Collect.
+   * Content pills live inside Trade, Money, and Collect.
    */
   FIXED_TAB_NAV: {
-    TRADE: 'FixedTabTrade',
     MONEY: 'FixedTabMoney',
+    TRADE: 'FixedTabTrade',
     COLLECT: 'FixedTabCollect',
   },
 } as const;

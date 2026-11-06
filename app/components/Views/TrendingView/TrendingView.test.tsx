@@ -28,7 +28,10 @@ jest.mock('./tabs/NowTab', () => ({
   __esModule: true,
   default: () => {
     mockTrackTabRender('Now');
-    return null;
+    const { ScrollingChrome } = jest.requireActual(
+      '../../Nav/Main/FixedTabNav/ScrollingChrome',
+    ) as typeof import('../../Nav/Main/FixedTabNav/ScrollingChrome');
+    return <ScrollingChrome />;
   },
 }));
 jest.mock('./tabs/MacroTab', () => ({
@@ -67,6 +70,14 @@ jest.mock('./tabs/DappsTab', () => ({
   },
 }));
 
+jest.mock('../../Nav/Main/FixedTabNav/HubProfileButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Pressable testID="profile-button" />,
+  };
+});
+
 jest.mock('../../Nav/Main/MainNavigator', () => ({
   lastTrendingScreenRef: { current: 'TrendingFeed' },
   updateLastTrendingScreen: jest.fn(),
@@ -98,7 +109,6 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -380,10 +390,11 @@ describe('TrendingView', () => {
     });
   });
 
-  it('renders title in header', () => {
-    const { getByText } = renderTrendingView();
+  it('renders the profile avatar instead of a title', () => {
+    const { getByTestId, queryByText } = renderTrendingView();
 
-    expect(getByText('Explore')).toBeOnTheScreen();
+    expect(getByTestId('profile-button')).toBeOnTheScreen();
+    expect(queryByText('Trade')).toBeNull();
   });
 
   it('wraps screen in SafeAreaView', () => {
@@ -412,39 +423,26 @@ describe('TrendingView', () => {
     expect(searchButton).toBeOnTheScreen();
   });
 
-  it('keeps the muted search bar when the Explore brand refresh is off', () => {
-    const { queryByTestId } = renderTrendingView();
-
-    expect(
-      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('draws the search bar as glass when the Explore brand refresh is on', () => {
-    mockUseIsGlassSurfaceEnabled.mockReturnValue(true);
-
-    const { getByTestId } = renderTrendingView();
-
-    expect(mockUseIsGlassSurfaceEnabled).toHaveBeenCalledWith(
-      selectExploreBrandRefreshEnabled,
-    );
-    expect(
-      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
-    ).toBeOnTheScreen();
-  });
-
-  it('draws the browser tabs button as glass when the Explore brand refresh is on', () => {
-    mockUseIsGlassSurfaceEnabled.mockReturnValue(true);
-    mockUseIsExploreHeaderRefreshEnabled.mockReturnValue(true);
+  it('groups search and the tab button in one header capsule', () => {
     mockUseSelector.mockImplementation(
       createMockSelectorImplementation({ browserTabsCount: 2 }),
     );
 
-    const { getByTestId } = renderTrendingView();
+    const { getByTestId, queryByTestId } = renderTrendingView();
+    const capsule = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS,
+    );
 
+    expect(capsule).toBeOnTheScreen();
+    expect(capsule).toContainElement(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+    );
+    expect(capsule).toContainElement(
+      getByTestId('trending-view-browser-button'),
+    );
     expect(
-      getByTestId(TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS),
-    ).toBeOnTheScreen();
+      queryByTestId(TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS),
+    ).toBeNull();
   });
 
   it('navigates to ExploreSearch route when search bar is pressed', () => {
@@ -483,25 +481,15 @@ describe('TrendingView', () => {
   });
 
   describe('tab switching', () => {
-    it('does not re-render an inactive tab just because the active tab changed', async () => {
-      const { getByTestId } = renderTrendingView();
+    it('does not show the Explore category tabs', async () => {
+      const { getByTestId, queryByTestId } = renderTrendingView();
 
-      // The "Now" tab (index 0) mounts first.
       await waitFor(() => {
         expect(mockTabRenderCounts.Now).toBeGreaterThanOrEqual(1);
       });
-      const nowRenderCountBeforeSwitch = mockTabRenderCounts.Now;
 
-      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
-
-      // The "Macro" tab (index 1) mounts once it becomes active.
-      await waitFor(() => {
-        expect(mockTabRenderCounts.Macro).toBeGreaterThanOrEqual(1);
-      });
-
-      // "Now" isn't a consumer of the active-tab context, so switching away
-      // from it must not cause it to re-render.
-      expect(mockTabRenderCounts.Now).toBe(nowRenderCountBeforeSwitch);
+      expect(queryByTestId('explore-tabs-bar')).toBeNull();
+      expect(getByTestId('explore-tabs-content')).toBeOnTheScreen();
     });
   });
 

@@ -85,6 +85,7 @@ import {
 import PerpsMarketHeader, {
   createLiteMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
+import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
 import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
@@ -1951,6 +1952,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   if (!market) {
     return (
       <View style={styles.container}>
+        <FixedTabPillRow includeTopInset />
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -2111,6 +2113,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               testID={PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER}
             />
           )}
+          <FixedTabPillRow />
           <PerpsMarketSummary
             symbol={market.symbol}
             currentPrice={syncedChartCurrentPrice}

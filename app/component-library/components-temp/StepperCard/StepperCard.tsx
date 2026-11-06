@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
+  Button,
   ButtonSize,
   ButtonVariant,
   FontFamily,
@@ -16,15 +17,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
-import BoxGlass from '../BoxGlass';
-import ButtonGlass from '../ButtonGlass';
 
 const StepperCard = ({
   steps,
   currentStep,
   onComplete,
   testID,
-  isGlass = false,
 }: StepperCardProps) => {
   const tw = useTailwind();
 
@@ -107,42 +105,39 @@ const StepperCard = ({
         {/* CTAs */}
         <Box twClassName="flex-row gap-3">
           {step.secondaryCta && (
-            <ButtonGlass
-              isGlass={isGlass}
+            <Button
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               onPress={step.secondaryCta.onPress}
               isDisabled={step.secondaryCta.disabled}
-              containerStyle={tw.style('flex-1')}
+              style={tw.style('flex-1')}
             >
               {step.secondaryCta.text}
-            </ButtonGlass>
+            </Button>
           )}
-          <ButtonGlass
-            isGlass={isGlass}
+          <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={step.primaryCta.onPress}
             isDisabled={step.primaryCta.disabled}
-            containerStyle={tw.style('flex-1')}
+            style={tw.style('flex-1')}
             testID={getTestId('cta-button')}
           >
             {step.primaryCta.text}
-          </ButtonGlass>
+          </Button>
         </Box>
       </Box>
     </>
   );
 
   return (
-    <BoxGlass
-      isGlass={isGlass}
-      radiusClassName="rounded-3xl"
-      hasSheen
+    <Box
+      twClassName="rounded-3xl bg-muted overflow-hidden"
       style={tw.style('overflow-hidden')}
       testID={getTestId('container')}
     >
       {content}
-    </BoxGlass>
+    </Box>
   );
 };
 

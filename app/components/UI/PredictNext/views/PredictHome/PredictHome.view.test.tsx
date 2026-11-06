@@ -78,7 +78,8 @@ describe('PredictHome', () => {
     expect(
       view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
     ).toBeOnTheScreen();
-    expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+    expect(view.getByText('Predictions')).toBeOnTheScreen();
+    expect(view.getByText('Balance')).toBeOnTheScreen();
   });
 
   it('floats the header over the content when the Predict brand refresh is on', async () => {
@@ -89,11 +90,12 @@ describe('PredictHome', () => {
     });
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-    expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
-    expect(
-      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
-        .paddingTop,
-    ).toBeGreaterThan(0);
+    const scroll = view.getByTestId(PredictHomeTestIds.SCROLL);
+    expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    expect(scroll).toContainElement(
+      view.getByTestId(PredictHomeTestIds.HEADER_TITLE),
+    );
+    expect(scroll.props.contentContainerStyle?.paddingTop ?? 0).toBe(0);
 
     fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
 
@@ -109,7 +111,7 @@ describe('PredictHome', () => {
     expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
     expect(
       view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
-        .paddingTop,
+        ?.paddingTop ?? 0,
     ).toBe(0);
   });
 

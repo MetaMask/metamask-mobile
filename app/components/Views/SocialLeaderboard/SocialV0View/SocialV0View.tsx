@@ -441,10 +441,7 @@ const SocialV0View: React.FC = () => {
   const titleTabsAndPager = (
     <>
       {isPushedScreen ? (
-        <Box
-          twClassName="px-4 pt-2 pb-3 bg-default"
-          onLayout={handleTitleLayout}
-        >
+        <Box twClassName="px-4 pt-2 pb-3" onLayout={handleTitleLayout}>
           <Text
             variant={TextVariant.HeadingLg}
             color={TextColor.TextDefault}
@@ -455,7 +452,7 @@ const SocialV0View: React.FC = () => {
         </Box>
       ) : null}
 
-      <Box twClassName="bg-default">
+      <Box>
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}

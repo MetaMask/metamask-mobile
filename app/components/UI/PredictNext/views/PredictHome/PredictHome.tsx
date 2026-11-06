@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
@@ -15,7 +14,15 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
-import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+} from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
+import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
@@ -86,9 +93,7 @@ const PredictHomeView = ({
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
-  const { top: topInset } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: handleHeaderLayout } =
-    useHeaderGlassInset(isGlassHeader, topInset);
+  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
   const {
     visibleKeys,
     onViewportLayout,
@@ -203,46 +208,85 @@ const PredictHomeView = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimatedGlass
-        isGlass={isGlassHeader}
-        onLayout={handleHeaderLayout}
-        includesTopInset
-        title={homeTitle}
-        titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
-        scrollY={scrollY}
-        titleSectionHeight={titleSectionHeightSv}
-        endAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <PredictVenueSelectorButton
-              variant={isGlassHeader ? 'glass' : 'standard'}
-            />
-            {isVenueSearchSupported(capabilities) ? (
-              <ButtonIconGlass
-                isCapsule={isGlassHeader}
-                size={ButtonIconSize.Md}
-                iconName={IconName.Search}
-                onPress={openSearch}
-                testID={PredictHomeTestIds.SEARCH}
-                accessibilityLabel={strings('predict_next.search.placeholder')}
-                accessibilityRole="button"
-              />
-            ) : null}
-          </Box>
-        }
-        {...(navigation.canGoBack()
-          ? {
-              onBack: () => navigation.goBack(),
-              backButtonProps: { testID: PredictHomeTestIds.BACK },
+      <FixedHubChrome>
+        {isTradeHubTab ? (
+          <HeaderRootGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
+            includesTopInset
+            scrollY={scrollY}
+            endAccessory={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <PredictVenueSelectorButton
+                  variant={isGlassHeader ? 'glass' : 'standard'}
+                />
+                {isVenueSearchSupported(capabilities) ? (
+                  <ButtonIconGlass
+                    isCapsule={isGlassHeader}
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={openSearch}
+                    testID={PredictHomeTestIds.SEARCH}
+                    accessibilityLabel={strings(
+                      'predict_next.search.placeholder',
+                    )}
+                    accessibilityRole="button"
+                  />
+                ) : null}
+              </Box>
             }
-          : {})}
-      />
+          >
+            <HubProfileButton />
+          </HeaderRootGlass>
+        ) : (
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
+            includesTopInset
+            title={homeTitle}
+            titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
+            scrollY={scrollY}
+            titleSectionHeight={titleSectionHeightSv}
+            endAccessory={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <PredictVenueSelectorButton
+                  variant={isGlassHeader ? 'glass' : 'standard'}
+                />
+                {isVenueSearchSupported(capabilities) ? (
+                  <ButtonIconGlass
+                    isCapsule={isGlassHeader}
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={openSearch}
+                    testID={PredictHomeTestIds.SEARCH}
+                    accessibilityLabel={strings(
+                      'predict_next.search.placeholder',
+                    )}
+                    accessibilityRole="button"
+                  />
+                ) : null}
+              </Box>
+            }
+            {...(navigation.canGoBack()
+              ? {
+                  onBack: () => navigation.goBack(),
+                  backButtonProps: { testID: PredictHomeTestIds.BACK },
+                }
+              : {})}
+          />
+        )}
+        <FixedTabPillRow />
+      </FixedHubChrome>
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
-        contentContainerStyle={{ paddingTop: headerInset }}
         onScroll={onScroll}
         onLayout={onViewportLayout}
         // The animated handler above only reads contentOffset, so these plain
@@ -252,20 +296,23 @@ const PredictHomeView = ({
         onMomentumScrollEnd={onScrollSettled}
         scrollEventThrottle={16}
       >
+        <FixedHubChromeSpacer />
         <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
-          <Text
-            variant={TextVariant.HeadingLg}
-            testID={PredictHomeTestIds.TITLE_SECTION}
-            onLayout={handleTitleLayout}
-          >
-            {homeTitle}
-          </Text>
-          <BalanceSummary
-            balance={balanceQuery.data}
-            isLoading={balanceQuery.isPending}
-            error={balanceQuery.error}
-            onRetry={() => balanceQuery.refetch()}
-          />
+          <Box gap={1}>
+            <Text
+              variant={TextVariant.HeadingMd}
+              testID={PredictHomeTestIds.TITLE_SECTION}
+              onLayout={handleTitleLayout}
+            >
+              {strings('predict_next.balance_heading')}
+            </Text>
+            <BalanceSummary
+              balance={balanceQuery.data}
+              isLoading={balanceQuery.isPending}
+              error={balanceQuery.error}
+              onRetry={() => balanceQuery.refetch()}
+            />
+          </Box>
           {/* Funding actions appear when PRED-1162 ships them and the
               Venue descriptor lists deposit or withdraw. */}
           <PortfolioActions onPositionsPress={openPortfolio} />

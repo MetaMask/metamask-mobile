@@ -13,6 +13,8 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ScrollingChrome } from '../../../../../Nav/Main/FixedTabNav/ScrollingChrome';
+import { FixedHubChromeSpacer } from '../../../../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FeatureId,
@@ -593,6 +595,8 @@ const BridgeLimitOrderViewContent = ({
             />
           }
         >
+          <FixedHubChromeSpacer />
+          <ScrollingChrome />
           <Box
             twClassName="flex-1"
             testID={BridgeViewSelectorsIDs.LIMIT_ORDER_DISMISS_AREA}

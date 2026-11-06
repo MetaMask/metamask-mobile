@@ -1,16 +1,14 @@
 import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
   RouteProp,
   useFocusEffect,
+  useIsFocused,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -39,7 +37,14 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
-import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+  useFixedHubChromeScroll,
+} from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
@@ -70,11 +75,13 @@ const PredictHome: React.FC = () => {
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
+  useFixedHubChromeScroll(scrollY);
+  // A pushed screen (e.g. Positions) keeps this screen mounted underneath;
+  // drop the hub chrome so it doesn't overlay the pushed screen.
+  const isFocused = useIsFocused();
   const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
   const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
-  const safeAreaInsets = useSafeAreaInsets();
-  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useHeaderGlassInset(isBrandRefresh, safeAreaInsets.top);
 
   const handleSectionViewed = useCallback(
     (sectionId: string) => {
@@ -166,20 +173,29 @@ const PredictHome: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {/* Mounted before the content so assistive tech reads the header first. */}
-        <PredictHeaderStacked
-          scrollY={scrollY}
-          titleSectionHeight={titleSectionHeight}
-          onBack={handleBackPress}
-          onSearchPress={handleShowSearch}
-          isGlass={isBrandRefresh}
-          onLayout={isBrandRefresh ? handleFloatingHeaderLayout : undefined}
-        />
-
+        {isFocused ? (
+          <FixedHubChrome>
+            <PredictHeaderStacked
+              variant={isTradeHubTab ? 'root' : 'stacked'}
+              scrollY={scrollY}
+              titleSectionHeight={titleSectionHeight}
+              onBack={handleBackPress}
+              onSearchPress={handleShowSearch}
+              isGlass={isBrandRefresh}
+              isFloating={false}
+            />
+            <FixedTabPillRow />
+          </FixedHubChrome>
+        ) : null}
         {showHomeError ? (
-          <Box twClassName="flex-1" style={{ paddingTop: floatingHeaderInset }}>
+          <Animated.ScrollView
+            testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('grow')}
+          >
+            <FixedHubChromeSpacer />
             <PredictOffline onRetry={retryHome} />
-          </Box>
+          </Animated.ScrollView>
         ) : (
           <Animated.ScrollView
             testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
@@ -188,25 +204,23 @@ const PredictHome: React.FC = () => {
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
             style={tw.style('flex-1')}
-            contentContainerStyle={[
-              tw.style('px-4 pb-8'),
-              { paddingTop: floatingHeaderInset },
-            ]}
+            contentContainerStyle={tw.style('pb-8')}
           >
+            <FixedHubChromeSpacer />
             <Box
               testID={PredictHomeSelectorsIDs.TITLE_SECTION}
               onLayout={handleTitleLayout}
-              twClassName="pt-2 pb-2"
+              twClassName="px-4 pt-2 pb-1"
             >
               <Text
                 testID={PredictHomeSelectorsIDs.TITLE}
                 variant={TextVariant.HeadingMd}
               >
-                {strings('wallet.predict')}
+                {strings('predict.balance_heading')}
               </Text>
             </Box>
 
-            <Box twClassName="gap-8">
+            <Box twClassName="gap-8 px-4">
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />

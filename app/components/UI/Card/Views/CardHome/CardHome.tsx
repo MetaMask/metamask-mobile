@@ -129,6 +129,16 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+} from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import MoneyHeader, {
+  useMoneyTabHeader,
+} from '../../../Money/components/MoneyHeader';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CardHomeRouteParams {
@@ -627,6 +637,19 @@ const CardHome = () => {
 
   const headerHandlers = useCardHeaderHandlers('back');
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { isGlass: isMoneyGlass, onMenuPress } = useMoneyTabHeader();
+  const screenHeader = isMoneyHubTab ? (
+    <MoneyHeader onMenuPress={onMenuPress} isGlass={isMoneyGlass} />
+  ) : (
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
+      includesTopInset
+      twClassName="bg-background-default"
+      {...headerHandlers}
+    />
+  );
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -639,59 +662,68 @@ const CardHome = () => {
   });
 
   // --- Error state ---
+  const hubChrome = (
+    <FixedHubChrome>
+      {screenHeader}
+      <FixedTabPillRow />
+    </FixedHubChrome>
+  );
+
   if (isError) {
     return (
       <Box twClassName="flex-1 bg-background-default">
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-        <Box twClassName="flex-1 items-center justify-center gap-2">
-          <Icon
-            name={IconName.Forest}
-            size={IconSize.Xl}
-            color={IconColor.IconDefault}
-          />
-          <Text
-            variant={TextVariant.HeadingSm}
-            twClassName="text-text-alternative"
-          >
-            {strings('card.card_home.error_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-text-alternative text-center px-12"
-          >
-            {strings('card.card_home.error_description')}
-          </Text>
-          <Box twClassName="pt-2">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Md}
-              onPress={() => refetch()}
-              testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
+        {hubChrome}
+        <ScrollView
+          style={tw.style('flex-1 bg-background-default')}
+          contentContainerStyle={tw.style('flex-grow')}
+        >
+          <FixedHubChromeSpacer />
+          <Box twClassName="flex-1 items-center justify-center gap-2">
+            <Icon
+              name={IconName.Forest}
+              size={IconSize.Xl}
+              color={IconColor.IconDefault}
+            />
+            <Text
+              variant={TextVariant.HeadingSm}
+              twClassName="text-text-alternative"
             >
-              {strings('card.card_home.try_again')}
-            </Button>
+              {strings('card.card_home.error_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative text-center px-12"
+            >
+              {strings('card.card_home.error_description')}
+            </Text>
+            <Box twClassName="pt-2">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Md}
+                onPress={() => refetch()}
+                testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
+              >
+                {strings('card.card_home.try_again')}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </ScrollView>
       </Box>
     );
   }
 
+  const cardAlerts = (data?.alerts ?? []).filter(
+    (alert) =>
+      !(
+        alert.type === 'close_to_spending_limit' &&
+        (isSpendingLimitWarningDismissed || isUkMigrationForced)
+      ),
+  );
+
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        includesTopInset
-        twClassName="bg-background-default"
-        {...headerHandlers}
-      />
+      {hubChrome}
       <ScrollView
         style={tw.style('flex-1 bg-background-default')}
         showsVerticalScrollIndicator={false}
@@ -707,26 +739,20 @@ const CardHome = () => {
           />
         }
       >
-        <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
-          {strings('card.card_home.title')}
-        </Text>
+        <FixedHubChromeSpacer />
 
-        <Box twClassName="mx-4 mt-2">
-          <CardAlertSection
-            alerts={(data?.alerts ?? []).filter(
-              (a) =>
-                !(
-                  a.type === 'close_to_spending_limit' &&
-                  (isSpendingLimitWarningDismissed || isUkMigrationForced)
-                ),
-            )}
-            onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
-            onDismissSpendingLimitWarning={() =>
-              setIsSpendingLimitWarningDismissed(true)
-            }
-            provisioningView={provisioningView}
-          />
-        </Box>
+        {cardAlerts.length > 0 ? (
+          <Box twClassName="mx-4 mt-2">
+            <CardAlertSection
+              alerts={cardAlerts}
+              onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
+              onDismissSpendingLimitWarning={() =>
+                setIsSpendingLimitWarningDismissed(true)
+              }
+              provisioningView={provisioningView}
+            />
+          </Box>
+        ) : null}
 
         {showUkMigrationSoftBanner && (
           <Box
@@ -779,7 +805,7 @@ const CardHome = () => {
             </Box>
           )}
 
-        <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
+        <Box twClassName="mt-2 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
           >

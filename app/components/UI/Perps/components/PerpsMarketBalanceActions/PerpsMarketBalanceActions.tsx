@@ -219,7 +219,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
+        twClassName={isBalanceEmpty ? 'rounded-xl' : undefined}
       >
         <Box
           onLayout={onTitleSectionLayout}

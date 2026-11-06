@@ -69,11 +69,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  CardActions,
-  CardEntryPoint,
-  CardScreens,
-} from '../../../Card/util/metrics';
+import { CardEntryPoint, CardScreens } from '../../../Card/util/metrics';
 import {
   FundingStatus,
   type CardFundingToken,
@@ -124,8 +120,17 @@ jest.mock(
 
 let mockIsMoneyNativeHeader = false;
 jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
-  useMoneyNativeHeader: () => mockIsMoneyNativeHeader,
+  useMoneyNativeHeader: ({ isEnabled }: { isEnabled: boolean }) =>
+    isEnabled && mockIsMoneyNativeHeader,
 }));
+
+jest.mock('../../../../Nav/Main/FixedTabNav/HubProfileButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Pressable testID="profile-button" />,
+  };
+});
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -719,15 +724,18 @@ describe('MoneyHomeView', () => {
     });
 
     it('keeps the JS header and opaque surfaces by default', () => {
-      const { getByTestId, queryAllByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { getByTestId, queryByTestId, queryAllByTestId } =
+        renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId('profile-button')).toBeOnTheScreen();
+      expect(queryByTestId(MoneyHeaderTestIds.TITLE)).toBeNull();
       expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
 
-    it('hands the header to the native bar and lets content scroll under it', () => {
+    it('hands the pushed header to the native bar and lets content scroll under it', () => {
+      mockRouteParams = { showBackButton: true };
+      mockIsMoneyBrandRefresh = true;
       mockIsMoneyNativeHeader = true;
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -742,6 +750,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('puts the header backdrop under the native bar', () => {
+      mockRouteParams = { showBackButton: true };
       mockIsMoneyBrandRefresh = true;
       mockIsMoneyNativeHeader = true;
 
@@ -752,15 +761,19 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('floats the JS header on its backdrop where the native bar is off', () => {
+    it('pins the JS header above the page where the native bar is off', () => {
       mockIsMoneyBrandRefresh = true;
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
       );
 
+      const scroll = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
       expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(scroll).not.toContainElement(
+        getByTestId(MoneyHeaderTestIds.CONTAINER),
+      );
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
       expect(
         queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
       ).not.toBeOnTheScreen();
@@ -784,7 +797,7 @@ describe('MoneyHomeView', () => {
         within(
           getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
         ).getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID),
-      ).toHaveLength(3);
+      ).toHaveLength(2);
     });
   });
 
@@ -1167,8 +1180,8 @@ describe('MoneyHomeView', () => {
         label_key: 'money.action.details',
         component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
         redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
-        button_position: 4,
-        button_row_button_count: 4,
+        button_position: 3,
+        button_row_button_count: 3,
       });
       expect(mockOpenVbaEntry).toHaveBeenCalledWith(
         expect.objectContaining({ goBack: mockGoBack }),
@@ -1203,7 +1216,7 @@ describe('MoneyHomeView', () => {
       expect(details.props.accessibilityState?.disabled).toBeFalsy();
     });
 
-    it('counts four buttons in the Add tracking payload when Details is shown', () => {
+    it('counts three buttons in the Add tracking payload when Details is shown', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
@@ -1213,7 +1226,7 @@ describe('MoneyHomeView', () => {
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(
         expect.objectContaining({
           button_position: 1,
-          button_row_button_count: 4,
+          button_row_button_count: 3,
         }),
       );
     });
@@ -1895,7 +1908,7 @@ describe('MoneyHomeView', () => {
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
       button_position: 1,
-      button_row_button_count: 3,
+      button_row_button_count: 2,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -1961,6 +1974,7 @@ describe('MoneyHomeView', () => {
 
     it('leaves the title to the native bar when it is on', () => {
       mockRouteParams = { showBackButton: true };
+      mockIsMoneyBrandRefresh = true;
       mockIsMoneyNativeHeader = true;
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1971,9 +1985,13 @@ describe('MoneyHomeView', () => {
       mockIsMoneyNativeHeader = false;
     });
 
-    it('keeps the title in the header as the Money tab', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+    it('uses the avatar header and no Money title on the tab', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
+      expect(getByTestId('profile-button')).toBeOnTheScreen();
+      expect(queryByTestId(MoneyHeaderTestIds.TITLE)).toBeNull();
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
       ).not.toBeOnTheScreen();
@@ -2027,7 +2045,7 @@ describe('MoneyHomeView', () => {
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
-      button_row_button_count: 3,
+      button_row_button_count: 2,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -2099,58 +2117,6 @@ describe('MoneyHomeView', () => {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
     });
-  });
-
-  it('navigates to Card root when Card button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-    jest.clearAllMocks();
-
-    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
-
-    expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
-      label_key: 'money.action.card',
-      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
-      button_position: 3,
-      button_row_button_count: 3,
-    });
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CARD_BUTTON_CLICKED,
-    );
-    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      provider: null,
-      screen: CardScreens.MONEY_HOME,
-      entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
-      action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
-    });
-    expect(mockAddProperties).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      animation: 'slide_from_bottom',
-    });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('tracks Card Viewed for the Card action row on render', () => {
-    renderWithProvider(<MoneyHomeView />);
-
-    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CARD_VIEWED,
-    );
-    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
-    expect(mockAddProperties).toHaveBeenCalledWith({
-      provider: null,
-      screen: CardScreens.MONEY_HOME,
-      entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
-    });
-    expect(mockAddProperties).toHaveBeenCalledTimes(2);
   });
 
   it('does not track the MetaMask Card impression while the card state is unsettled', () => {
@@ -3799,9 +3765,7 @@ describe('MoneyHomeView', () => {
         }),
       );
 
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
@@ -3809,9 +3773,6 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
-      ).toBeOnTheScreen();
     });
 
     it('shows the MetaMask Card section again for a logged-out cardholder', () => {
@@ -3838,9 +3799,6 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
-      ).toBeOnTheScreen();
     });
 
     it('disables link content while linkage is in progress', () => {
@@ -3895,39 +3853,6 @@ describe('MoneyHomeView', () => {
         screen: Routes.CARD.HOME,
         params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
       });
-    });
-
-    it('navigates to Card root with push animation when Card button is pressed in manage mode', () => {
-      mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: false,
-        hasMoneyAccountBaseRequirements: false,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: true,
-        primaryMoneyAccount: undefined,
-        moneyAccountCardToken: null,
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      jest.clearAllMocks();
-
-      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CARD.ROOT,
-        expect.objectContaining({ animation: 'slide_from_bottom' }),
-      );
     });
   });
 

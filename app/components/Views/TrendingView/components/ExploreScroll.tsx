@@ -15,6 +15,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
+import {
+  FixedHubChromeSpacer,
+  useFixedHubChromeScroll,
+} from '../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import { useSharedValue } from 'react-native-reanimated';
 
 export interface ExploreViewportBounds {
   screenY: number;
@@ -61,6 +66,8 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
   const floatingTabBarInset = useFloatingTabBarInset();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollSubscribersRef = useRef(new Set<ExploreScrollSubscriber>());
+  const hubScrollY = useSharedValue(0);
+  useFixedHubChromeScroll(hubScrollY);
 
   const subscribeToScroll = useCallback((callback: ExploreScrollSubscriber) => {
     scrollSubscribersRef.current.add(callback);
@@ -91,10 +98,11 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
   }, [measureViewport]);
 
   const handleScroll = useCallback(
-    (_event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      hubScrollY.value = event.nativeEvent.contentOffset.y;
       notifyScrollSubscribers();
     },
-    [notifyScrollSubscribers],
+    [notifyScrollSubscribers, hubScrollY],
   );
 
   const handleLayout = useCallback(() => {
@@ -115,7 +123,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
       <ScrollView
         ref={scrollViewRef}
         testID={testID}
-        style={tw.style('flex-1 pt-3')}
+        style={tw.style('flex-1')}
         contentContainerStyle={tw.style(`pb-[${16 + floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={50}
@@ -130,7 +138,8 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
           />
         }
       >
-        {children}
+        <FixedHubChromeSpacer />
+        <View>{children}</View>
       </ScrollView>
     </ExploreScrollContext.Provider>
   );

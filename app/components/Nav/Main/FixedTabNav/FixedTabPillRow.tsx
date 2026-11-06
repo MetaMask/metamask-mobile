@@ -1,0 +1,164 @@
+import React, { createContext, useContext } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Box,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonVariant,
+} from '@metamask/design-system-react-native';
+import BoxGlass from '../../../../component-library/components-temp/BoxGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
+import { useLiquidGlass } from '../../../../component-library/hooks/useLiquidGlass';
+import { colorWithOpacity } from '../../../../util/colors/colorWithOpacity';
+import { useTheme } from '../../../../util/theme';
+import type { FixedTabPill } from './fixedTabNav.types';
+
+/** Frost on the selected pill. Strong enough to read as chosen, still glass. */
+const SELECTED_PILL_TINT_OPACITY = 0.32;
+
+interface FixedTabPillRowContextValue {
+  testID: string;
+  pills: readonly FixedTabPill[];
+  selectedKey: string;
+  onChange: (key: string) => void;
+}
+
+const FixedTabPillRowContext =
+  createContext<FixedTabPillRowContextValue | null>(null);
+
+export const FixedTabPillRowProvider = FixedTabPillRowContext.Provider;
+
+interface FixedTabPillPlacement {
+  /** True while this screen is mounted inside a fixed-tab hub. */
+  active: boolean;
+  /** Space above the row so it clears a floating header. */
+  rowOffset: number;
+  /** Padding the content still needs above itself. */
+  contentClearance: number;
+}
+
+/**
+ * When the row is showing, it sits under a floating header and the content
+ * no longer pads for that header. Outside a hub the content keeps its padding.
+ */
+export const useFixedTabPillPlacement = (
+  headerClearance: number,
+): FixedTabPillPlacement => {
+  const active = useContext(FixedTabPillRowContext) != null;
+
+  return {
+    active,
+    rowOffset: active ? headerClearance : 0,
+    contentClearance: active ? 0 : headerClearance,
+  };
+};
+
+interface GlassPillProps {
+  label: string;
+  pillKey: string;
+  testID: string;
+  isSelected: boolean;
+}
+
+/**
+ * A hub pill drawn on Liquid Glass, or on the blurred capsule where the OS
+ * has material but not Liquid Glass. The button stays transparent so it does
+ * not paint over the material. Elsewhere the pill stays the plain filter.
+ */
+const GlassPill = ({ label, pillKey, testID, isSelected }: GlassPillProps) => {
+  const { colors } = useTheme();
+  const { isGlassEnabled, isBlurEnabled } = useLiquidGlass();
+  const isMaterial = isGlassEnabled || isBlurEnabled;
+  const button = (
+    <FilterButton
+      value={pillKey}
+      testID={testID}
+      variant={isMaterial ? FilterButtonVariant.Secondary : undefined}
+      twClassName={isMaterial ? 'bg-transparent border-transparent' : undefined}
+    >
+      {label}
+    </FilterButton>
+  );
+
+  if (isGlassEnabled) {
+    return (
+      <BoxGlass
+        radiusClassName="rounded-full"
+        isInteractive
+        tintColor={
+          isSelected
+            ? colorWithOpacity(colors.icon.default, SELECTED_PILL_TINT_OPACITY)
+            : undefined
+        }
+        testID={`${testID}-glass`}
+      >
+        {button}
+      </BoxGlass>
+    );
+  }
+
+  if (isBlurEnabled) {
+    return (
+      <CapsuleGlass twClassName="h-8" testID={`${testID}-glass`}>
+        {button}
+      </CapsuleGlass>
+    );
+  }
+
+  return button;
+};
+
+interface FixedTabPillRowProps {
+  /** Push the row below a header that floats over the content. */
+  topOffset?: number;
+  /** Pad for the status bar when no header above the row does. */
+  includeTopInset?: boolean;
+}
+
+/**
+ * Hub pills for the screen that is showing. Renders nothing outside a hub,
+ * so product screens keep their layout when opened on their own.
+ */
+const FixedTabPillRow = ({
+  topOffset = 0,
+  includeTopInset = false,
+}: FixedTabPillRowProps) => {
+  const value = useContext(FixedTabPillRowContext);
+  const insets = useSafeAreaInsets();
+
+  if (!value) {
+    return null;
+  }
+
+  const paddingTop = includeTopInset ? insets.top : 0;
+
+  return (
+    <Box
+      twClassName="w-full"
+      style={{
+        marginTop: topOffset,
+        paddingTop,
+      }}
+      testID={`${value.testID}-pills-chrome`}
+    >
+      <FilterButtonGroup
+        value={value.selectedKey}
+        onChange={value.onChange}
+        twClassName="px-4 py-4"
+        testID={`${value.testID}-pills`}
+      >
+        {value.pills.map((pill) => (
+          <GlassPill
+            key={pill.key}
+            pillKey={pill.key}
+            label={pill.label}
+            isSelected={value.selectedKey === pill.key}
+            testID={`${value.testID}-pill-${pill.key}`}
+          />
+        ))}
+      </FilterButtonGroup>
+    </Box>
+  );
+};
+
+export default FixedTabPillRow;

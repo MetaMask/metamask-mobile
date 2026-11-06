@@ -5,6 +5,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 interface MoneyHeaderCommonProps {
@@ -60,8 +61,9 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     return (
       <HeaderStandardAnimatedGlass
         isGlass={isGlass}
+        isFloating={false}
         onLayout={onLayout}
-        includesTopInset={isGlass}
+        includesTopInset
         testID={MoneyHeaderTestIds.CONTAINER}
         title={strings('money.title')}
         titleProps={{
@@ -82,17 +84,16 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   return (
     <HeaderRootGlass
       isGlass={isGlass}
+      isFloating={false}
       onLayout={onLayout}
-      includesTopInset={isGlass}
+      includesTopInset
       scrollY={props.scrollY}
       testID={MoneyHeaderTestIds.CONTAINER}
       twClassName="pl-4 pr-3"
-      title={strings('money.title')}
-      titleProps={{
-        testID: MoneyHeaderTestIds.TITLE,
-      }}
       endButtonIconProps={[menuButtonProps]}
-    />
+    >
+      <HubProfileButton />
+    </HeaderRootGlass>
   );
 };
 

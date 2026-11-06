@@ -129,6 +129,14 @@ const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
 // implementations, so selectors that must yield a collection are answered here
 // rather than in each override.
 const mockRewardsCampaigns: unknown[] = [];
+jest.mock('../../../../Nav/Main/FixedTabNav/HubProfileButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Pressable testID="profile-button" />,
+  };
+});
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => {
     const { selectCampaigns } = jest.requireActual(
@@ -716,23 +724,31 @@ describe('PerpsHomeView', () => {
 
   it('renders without crashing', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { getByTestId, queryByText, queryByTestId } = render(
+      <PerpsHomeView />,
+    );
 
     // Assert - Component renders with essential elements
+    expect(getByTestId('profile-button')).toBeOnTheScreen();
+    expect(queryByText('Trade')).toBeNull();
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
+      queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeNull();
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows header with navigation controls', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { getByTestId, queryByText, queryByTestId } = render(
+      <PerpsHomeView />,
+    );
 
     // Assert
+    expect(getByTestId('profile-button')).toBeOnTheScreen();
+    expect(queryByText('Trade')).toBeNull();
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
+      queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeNull();
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
@@ -783,7 +799,7 @@ describe('PerpsHomeView', () => {
     ).toBeNull();
   });
 
-  it('pins the outage banner above the header and hands it the status-bar inset', () => {
+  it('scrolls the outage banner under the pinned header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) =>
@@ -793,19 +809,18 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - the banner owns the inset, so the header no longer applies it
-    // and the banner does not scroll with the content.
+    // Assert - the banner moves with the page. The pinned header keeps the
+    // status-bar inset and stays outside the scroll.
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
-    ).toBeTruthy();
+      within(getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT)).getByTestId(
+        PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+      ),
+    ).toBeOnTheScreen();
     expect(
       within(
         getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
-      ).queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+      ).queryByTestId('perps-home'),
     ).toBeNull();
-    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
-      'marginTop',
-    );
   });
 
   it('enables mode-toggle haptics for the Lite mode header', () => {
@@ -815,12 +830,12 @@ describe('PerpsHomeView', () => {
     );
 
     // Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the active-mode pill sits in endAccessory
+    // Assert - search remains and the active-mode pill sits in endAccessory
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
+      queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeNull();
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
@@ -1123,15 +1138,12 @@ describe('PerpsHomeView', () => {
     expect(queryByText('perps.home.orders')).toBeNull();
   });
 
-  it('navigates to wallet home when back button is pressed', () => {
-    // Arrange
-    const { getByTestId } = render(<PerpsHomeView />);
+  it('does not render a back button', () => {
+    const { queryByTestId } = render(<PerpsHomeView />);
 
-    // Act
-    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON));
-
-    // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
-    expect(mockNavigateToWallet).toHaveBeenCalled();
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeNull();
   });
 
   it('navigates to close all modal when close all is pressed', () => {
@@ -1548,10 +1560,14 @@ describe('PerpsHomeView', () => {
 
   describe('header', () => {
     it('renders the header by default', () => {
-      const { getByTestId } = render(<PerpsHomeView />);
+      const { getByTestId, queryByText, queryByTestId } = render(
+        <PerpsHomeView />,
+      );
+      expect(getByTestId('profile-button')).toBeOnTheScreen();
+      expect(queryByText('Trade')).toBeNull();
       expect(
-        getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-      ).toBeTruthy();
+        queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeNull();
       expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     });
   });
@@ -2096,19 +2112,29 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('floats the header on the scroll edge fade only with the flag on', async () => {
+    it('pins the header above the page', async () => {
       enableBrandRefresh();
-      const { queryByTestId, unmount } = render(<PerpsHomeView />);
+      const { queryByTestId, getByTestId, unmount } = render(<PerpsHomeView />);
       await settleAsyncChildren();
-      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(getByTestId('perps-home')).toBeOnTheScreen();
+      expect(
+        within(
+          getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        ).queryByTestId('perps-home'),
+      ).toBeNull();
       unmount();
 
       mockUseSelector.mockReturnValue(false);
       const view = render(<PerpsHomeView />);
       await settleAsyncChildren();
+      expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(view.getByTestId('perps-home')).toBeOnTheScreen();
       expect(
-        view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID),
-      ).not.toBeOnTheScreen();
+        within(
+          view.getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        ).queryByTestId('perps-home'),
+      ).toBeNull();
     });
   });
 });

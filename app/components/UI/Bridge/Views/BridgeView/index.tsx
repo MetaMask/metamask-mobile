@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -13,16 +14,10 @@ import {
 } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Box,
-  IconName,
-  Tag,
-  TagSeverity,
-} from '@metamask/design-system-react-native';
-import {
-  TabsBar,
-  type TabItem,
-} from '../../../../../component-library/components-temp/Tabs';
+import { Box, IconName } from '@metamask/design-system-react-native';
+import BridgeOrderTypeSelector, {
+  BridgeOrderTypeSheet,
+} from './BridgeOrderTypeSelector';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -65,11 +60,19 @@ import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileI
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
+import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import FixedTabPillRow, {
+  useFixedTabPillPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import { ScrollingChromeProvider } from '../../../../Nav/Main/FixedTabNav/ScrollingChrome';
+import { FixedHubChrome } from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
   const {
     selectedTab,
     renderedTab,
@@ -254,14 +257,14 @@ const BridgeView = () => {
 
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
-  // disabled, only Market remains and the tabs bar is hidden entirely below.
-  const tabs = useMemo<TabItem[]>(() => {
-    const visibleTabs: TabItem[] = [
+  // disabled, only Market remains and the selector is hidden entirely below.
+  const tabs = useMemo(() => {
+    const visibleTabs = [
       {
         key: BridgeTabKey.Market,
         label: strings('bridge.tabs.market'),
-        content: null,
         testID: BridgeViewSelectorsIDs.MARKET_TAB,
+        showNewBadge: false,
       },
     ];
 
@@ -269,18 +272,8 @@ const BridgeView = () => {
       visibleTabs.push({
         key: BridgeTabKey.Limit,
         label: strings('bridge.tabs.limit'),
-        content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
-        endAccessory: (
-          <Tag
-            severity={TagSeverity.Info}
-            startIconName={IconName.Sparkle}
-            twClassName="top-0.5"
-            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
-          >
-            {strings('bridge.tabs.new_badge')}
-          </Tag>
-        ),
+        showNewBadge: true,
       });
     }
 
@@ -288,8 +281,8 @@ const BridgeView = () => {
       visibleTabs.push({
         key: BridgeTabKey.Recurring,
         label: strings('bridge.tabs.recurring'),
-        content: null,
         testID: BridgeViewSelectorsIDs.RECURRING_TAB,
+        showNewBadge: false,
       });
     }
 
@@ -314,6 +307,14 @@ const BridgeView = () => {
       startTransition(() => setRenderedTab(nextTab));
     },
     [tabs, setRenderedTab, setSelectedTab],
+  );
+
+  const handleSelectTabKey = useCallback(
+    (key: BridgeTabKey) => {
+      setSelectedTab(key);
+      startTransition(() => setRenderedTab(key));
+    },
+    [setRenderedTab, setSelectedTab],
   );
 
   const goToPreviousTab = useCallback(() => {
@@ -390,41 +391,109 @@ const BridgeView = () => {
     [dispatch],
   );
 
+  const fixedChrome = (
+    <>
+      {isTradeHubTab ? (
+        <HeaderRootGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          endButtonIconProps={endButtonIconProps}
+        >
+          <HubProfileButton />
+        </HeaderRootGlass>
+      ) : (
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title={headerTitle}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: BridgeViewSelectorsIDs.BACK_BUTTON,
+            accessibilityLabel: strings('navigation.back'),
+          }}
+          endButtonIconProps={endButtonIconProps}
+          includesTopInset
+        />
+      )}
+      <FixedTabPillRow />
+    </>
+  );
+
+  // The order-type selector scrolls away with the content rather than pinning
+  // under the header. The sheet it opens must NOT render inside the scroll
+  // content: the design-system `BottomSheet` is absolutely positioned over its
+  // nearest ancestor, so it is hoisted to the screen root below, where it
+  // anchors to the bottom edge of the screen.
+  //
+  // `orderTypeSheetSession` increments on every trigger press and is used as
+  // the sheet's React key. Pressing the trigger while a previous sheet is
+  // still animating closed (e.g. right after picking an option) therefore
+  // remounts a fresh, fully-open sheet instead of being swallowed by the
+  // already-open state, and the previous sheet's onClose is ignored because
+  // its session no longer matches.
+  const [orderTypeSheetSession, setOrderTypeSheetSession] =
+    useState<number>(-1);
+  const openOrderTypeSheet = useCallback(
+    () => setOrderTypeSheetSession((session) => session + 1),
+    [],
+  );
+  const closeOrderTypeSheet = useCallback(
+    () => setOrderTypeSheetSession(-1),
+    [],
+  );
+
+  const scrollingChrome = showTabsBar ? (
+    <Box testID={BridgeViewSelectorsIDs.TABS_BAR}>
+      <BridgeOrderTypeSelector
+        options={tabs}
+        selectedKey={selectedTab}
+        onOpenSheet={openOrderTypeSheet}
+      />
+    </Box>
+  ) : null;
+
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        title={headerTitle}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: BridgeViewSelectorsIDs.BACK_BUTTON,
-          accessibilityLabel: strings('navigation.back'),
-        }}
-        endButtonIconProps={endButtonIconProps}
-        includesTopInset
-      />
-      {showTabsBar ? (
-        <TabsBar
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-          testID={BridgeViewSelectorsIDs.TABS_BAR}
+      {isTradeHubTab ? <FixedHubChrome>{fixedChrome}</FixedHubChrome> : null}
+      <ScrollingChromeProvider
+        value={
+          isTradeHubTab ? (
+            scrollingChrome
+          ) : (
+            <>
+              {fixedChrome}
+              {scrollingChrome}
+            </>
+          )
+        }
+      >
+        <GestureDetector gesture={swipeGesture}>
+          <Box
+            twClassName="flex-1"
+            testID={BridgeViewSelectorsIDs.TABS_CONTENT}
+          >
+            {renderedTab === BridgeTabKey.Market ? (
+              <BridgeMarketView location={location} />
+            ) : null}
+            {renderedTab === BridgeTabKey.Limit ? (
+              <BridgeLimitOrderView location={location} />
+            ) : null}
+            {renderedTab === BridgeTabKey.Recurring ? (
+              <BridgeRecurringBuyView location={location} />
+            ) : null}
+          </Box>
+        </GestureDetector>
+      </ScrollingChromeProvider>
+      {showTabsBar && orderTypeSheetSession >= 0 ? (
+        <BridgeOrderTypeSheet
+          key={orderTypeSheetSession}
+          options={tabs}
+          selectedKey={selectedTab}
+          onClose={closeOrderTypeSheet}
+          onSelect={handleSelectTabKey}
         />
       ) : null}
-      <GestureDetector gesture={swipeGesture}>
-        <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? (
-            <BridgeMarketView location={location} />
-          ) : null}
-          {renderedTab === BridgeTabKey.Limit ? (
-            <BridgeLimitOrderView location={location} />
-          ) : null}
-          {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView location={location} />
-          ) : null}
-        </Box>
-      </GestureDetector>
     </Box>
   );
 };

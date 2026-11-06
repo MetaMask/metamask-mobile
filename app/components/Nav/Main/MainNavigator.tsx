@@ -762,7 +762,7 @@ const MainNavigator = () => {
       screenOptions={defaultScreenOptions}
       initialRouteName={'Home'}
     >
-      {/* Prototype footer: Home · Trade · Money · Collect. */}
+      {/* Prototype footer: Home · Money · Trade · Collect · Social. */}
       <NativeStack.Screen name="Home" component={FixedTabHome} />
       {/*
        * Rewards is not a footer tab in the fixed-tab prototype. This root

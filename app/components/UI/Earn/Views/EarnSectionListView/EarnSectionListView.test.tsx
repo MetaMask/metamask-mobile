@@ -44,6 +44,9 @@ import {
 } from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
+import { FixedTabPillRowProvider } from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import { MoneyHeaderTestIds } from '../../../Money/components/MoneyHeader/MoneyHeader.testIds';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -120,6 +123,14 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+
+jest.mock('../../../../Nav/Main/FixedTabNav/HubProfileButton', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Pressable testID="profile-button" />,
+  };
+});
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(() => ({
@@ -449,6 +460,32 @@ describe('EarnSectionListView', () => {
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses the Money header with the profile avatar on the Money hub tab', () => {
+    render(
+      <FixedTabPillRowProvider
+        value={{
+          testID: 'money-hub',
+          pills: [],
+          selectedKey: 'earn',
+          onChange: jest.fn(),
+        }}
+      >
+        <EarnSectionListView />
+      </FixedTabPillRowProvider>,
+    );
+
+    expect(screen.queryByTestId(MoneyHeaderTestIds.TITLE)).toBeNull();
+    expect(
+      screen.getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MoneyHeaderTestIds.MENU_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON),
+    ).toBeNull();
   });
 
   it('renders positive projection and More Ways content in Money-visible mode', () => {

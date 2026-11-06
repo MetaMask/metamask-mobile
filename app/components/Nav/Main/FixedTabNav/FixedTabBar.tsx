@@ -1,91 +1,104 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import { View, type LayoutChangeEvent } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxBackgroundColor,
-  BoxFlexDirection,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import TabBarFloatingItem from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingItem';
+import TabBarFloatingSurface from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloatingSurface';
+import {
+  TAB_BAR_FLOATING_HEIGHT,
+  TAB_BAR_FLOATING_HORIZONTAL_INSET,
+  TAB_BAR_FLOATING_TEST_IDS,
+} from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
+import { useBlurMaterial } from '../../../../component-library/hooks/useBlurMaterial';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { FIXED_TABS } from './fixedTabs';
 
+/** Reports the overlay height so tab scenes can pad their last row. */
+export const FixedTabBarHeightContext = React.createContext<
+  (height: number) => void
+>(() => undefined);
+
 /**
- * Stable footer. Tabs never change with the content pill.
- * This bar stays in the navigator layout, so it does not overlay the scene.
+ * Home · Money · Trade · Collect · Social in the floating glass pill.
+ * The bar overlays the scene.
  */
 const FixedTabBar = ({ state, navigation }: BottomTabBarProps) => {
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const { isBlurAvailable, colorScheme } = useBlurMaterial();
+  const reportHeight = useContext(FixedTabBarHeightContext);
+  const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
+  const lastReportedHeight = useRef(0);
+
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = event.nativeEvent.layout.height;
+      if (Math.abs(height - lastReportedHeight.current) > 2) {
+        lastReportedHeight.current = height;
+        reportHeight(height);
+      }
+    },
+    [reportHeight],
+  );
+
+  useEffect(() => () => reportHeight(0), [reportHeight]);
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      backgroundColor={BoxBackgroundColor.BackgroundDefault}
-      twClassName="border-t border-muted"
-      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+    <View
+      style={[
+        tw.style('absolute bottom-0 left-0 right-0'),
+        {
+          paddingBottom: bottomPadding,
+          paddingHorizontal: TAB_BAR_FLOATING_HORIZONTAL_INSET,
+        },
+      ]}
       testID="fixed-tab-bar"
+      onLayout={handleLayout}
+      pointerEvents="box-none"
     >
-      {state.routes.map((route, index) => {
-        const tab = FIXED_TABS.find(
-          (candidate) => candidate.routeName === route.name,
-        );
-        if (!tab) {
-          return null;
-        }
-
-        const isSelected = state.index === index;
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!isSelected && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+      <TabBarFloatingSurface
+        isBlurAvailable={isBlurAvailable}
+        colorScheme={colorScheme}
+        twClassName="flex-row items-center rounded-full p-1"
+        style={{ height: TAB_BAR_FLOATING_HEIGHT }}
+        testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
+      >
+        {state.routes.map((route, index) => {
+          const tab = FIXED_TABS.find(
+            (candidate) => candidate.routeName === route.name,
+          );
+          if (!tab) {
+            return null;
           }
-        };
 
-        return (
-          <Pressable
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={tab.label}
-            testID={`fixed-tab-${tab.key}`}
-            onPress={onPress}
-            style={tw.style('flex-1 items-center justify-center py-2')}
-          >
-            <Icon
-              name={isSelected ? tab.selectedIcon : tab.icon}
-              size={IconSize.Md}
-              color={
-                isSelected ? IconColor.IconDefault : IconColor.IconAlternative
-              }
+          const isSelected = state.index === index;
+          const onPress = () => {
+            playImpact(ImpactMoment.TabChange);
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isSelected && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <TabBarFloatingItem
+              key={route.key}
+              testID={`fixed-tab-${tab.key}`}
+              iconName={isSelected ? tab.selectedIcon : tab.icon}
+              label={tab.label}
+              isActive={isSelected}
+              onPress={onPress}
             />
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={isSelected ? FontWeight.Medium : FontWeight.Regular}
-              color={
-                isSelected ? TextColor.TextDefault : TextColor.TextAlternative
-              }
-              twClassName="mt-1"
-            >
-              {tab.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </Box>
+          );
+        })}
+      </TabBarFloatingSurface>
+    </View>
   );
 };
 

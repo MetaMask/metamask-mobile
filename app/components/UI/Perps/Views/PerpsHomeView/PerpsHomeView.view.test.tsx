@@ -2044,7 +2044,7 @@ describe('PerpsHomeView', () => {
 
       expect(
         await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
           {},
           { timeout: TIMEOUT_MS },
         ),
@@ -2148,7 +2148,7 @@ describe('PerpsHomeView', () => {
 
       expect(
         await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
           {},
           { timeout: TIMEOUT_MS },
         ),

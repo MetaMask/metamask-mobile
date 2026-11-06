@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import {
   SectionHeader as MMDSSectionHeader,
   Text,
@@ -26,6 +27,8 @@ export interface SectionHeaderProps {
   titleTwClassName?: string;
   /** Extra Tailwind classes for the optional subtitle. */
   subtitleTwClassName?: string;
+  /** Explicit container style overrides (e.g. top padding). */
+  style?: StyleProp<ViewStyle>;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -37,6 +40,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   sectionName,
   titleTwClassName,
   subtitleTwClassName,
+  style,
 }) => {
   const handleViewAll = useCallback(() => {
     if (tabName && sectionName) {
@@ -58,6 +62,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         isInteractive={Boolean(onViewAll)}
         onPress={onViewAll ? handleViewAll : undefined}
         twClassName={resolvedTitleTwClassName}
+        style={style}
       />
       {subtitle ? (
         <Text

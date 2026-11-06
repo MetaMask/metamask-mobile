@@ -4,9 +4,13 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  HeaderRoot,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import FixedTabPillRow from './FixedTabPillRow';
+import { FixedHubChrome } from './FixedHubChrome';
+import HubProfileButton from './HubProfileButton';
 
 interface FixedTabPlaceholderProps {
   title: string;
@@ -18,13 +22,23 @@ interface FixedTabPlaceholderProps {
  */
 const FixedTabPlaceholder = ({ title }: FixedTabPlaceholderProps) => (
   <Box
-    flexDirection={BoxFlexDirection.Column}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Center}
-    twClassName="flex-1 bg-default px-4"
+    twClassName="flex-1 bg-default"
     testID={`fixed-tab-placeholder-${title}`}
   >
-    <Text variant={TextVariant.HeadingMd}>{title}</Text>
+    <FixedHubChrome>
+      <HeaderRoot includesTopInset>
+        <HubProfileButton />
+      </HeaderRoot>
+      <FixedTabPillRow />
+    </FixedHubChrome>
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="flex-1 px-4"
+    >
+      <Text variant={TextVariant.HeadingMd}>{title}</Text>
+    </Box>
   </Box>
 );
 

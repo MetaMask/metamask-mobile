@@ -20,6 +20,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { FixedHubChromeSpacer } from '../../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { useTheme } from '../../../../util/theme';
 import {
   PredictTrendingCarousel,
@@ -187,16 +188,19 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     !showAllSportsSkeleton && active.marketData.length === 0;
 
   const listHeader = (
-    <SportsListHeader
-      showSportsPredictions={showSportsPredictions}
-      sportsPredictionsData={sportsPredictions.data}
-      sportsPredictionsLoading={sportsPredictions.isLoading}
-      sportsMarkets={sportsMarkets}
-      showAllSports={showAllSports}
-      showAllSportsSkeleton={showAllSportsSkeleton}
-      showAllSportsEmpty={showAllSportsEmpty}
-      openPredict={openPredict}
-    />
+    <>
+      <FixedHubChromeSpacer />
+      <SportsListHeader
+        showSportsPredictions={showSportsPredictions}
+        sportsPredictionsData={sportsPredictions.data}
+        sportsPredictionsLoading={sportsPredictions.isLoading}
+        sportsMarkets={sportsMarkets}
+        showAllSports={showAllSports}
+        showAllSportsSkeleton={showAllSportsSkeleton}
+        showAllSportsEmpty={showAllSportsEmpty}
+        openPredict={openPredict}
+      />
+    </>
   );
 
   const listFooter =

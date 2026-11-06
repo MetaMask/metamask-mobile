@@ -24,16 +24,17 @@ const noop = jest.fn();
 const defaultProps = {
   add: { onPress: noop },
   transfer: { onPress: noop },
-  card: { onPress: noop },
 };
 
 describe('MoneyActionButtonRow', () => {
-  it('renders all three action buttons', () => {
-    const { getByText } = render(<MoneyActionButtonRow {...defaultProps} />);
+  it('renders Add and Send', () => {
+    const { getByText, queryByText } = render(
+      <MoneyActionButtonRow {...defaultProps} />,
+    );
 
     expect(getByText(strings('money.action.add'))).toBeOnTheScreen();
     expect(getByText(strings('money.action.transfer'))).toBeOnTheScreen();
-    expect(getByText(strings('money.action.card'))).toBeOnTheScreen();
+    expect(queryByText(strings('money.action.card'))).toBeNull();
   });
 
   it('calls add.onPress when Add button is pressed', () => {
@@ -59,17 +60,6 @@ describe('MoneyActionButtonRow', () => {
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
     expect(mockTransfer).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls card.onPress when Card button is pressed', () => {
-    const mockCard = jest.fn();
-    const { getByTestId } = render(
-      <MoneyActionButtonRow {...defaultProps} card={{ onPress: mockCard }} />,
-    );
-
-    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
-
-    expect(mockCard).toHaveBeenCalledTimes(1);
   });
 
   it('does not call add.onPress when Add button is disabled', () => {
@@ -98,20 +88,6 @@ describe('MoneyActionButtonRow', () => {
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
     expect(mockTransfer).not.toHaveBeenCalled();
-  });
-
-  it('does not call card.onPress when Card button is disabled', () => {
-    const mockCard = jest.fn();
-    const { getByTestId } = render(
-      <MoneyActionButtonRow
-        {...defaultProps}
-        card={{ onPress: mockCard, disabled: true }}
-      />,
-    );
-
-    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
-
-    expect(mockCard).not.toHaveBeenCalled();
   });
 
   it('does not render the Details button when no details config is given', () => {
@@ -164,7 +140,7 @@ describe('MoneyActionButtonRow', () => {
         <MoneyActionButtonRow {...defaultProps} isGlass />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
     });
 
     it('draws the details tile on glass too', () => {
@@ -176,7 +152,7 @@ describe('MoneyActionButtonRow', () => {
         />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(4);
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
     });
   });
 });

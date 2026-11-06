@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -13,16 +13,28 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import FixedTabPillRow from '../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import HubProfileButton from '../../Nav/Main/FixedTabNav/HubProfileButton';
+import {
+  FixedHubChrome,
+  FixedHubChromeSpacer,
+} from '../../Nav/Main/FixedTabNav/FixedHubChrome';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
-  IconName,
-  Icon,
-  IconSize,
 } from '@metamask/design-system-react-native';
+import CapsuleGlass from '../../../component-library/components-temp/CapsuleGlass';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
@@ -34,15 +46,10 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
-import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
-import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
 import RwasTab from './tabs/RwasTab';
@@ -192,6 +199,8 @@ const ExploreTabs: React.FC<ExploreTabsProps> = ({
         ref={tabsListRef}
         testID="explore-tabs"
         tabsListContentTwClassName="px-0 mt-0"
+        showTabBar={false}
+        mountActiveContent
         onChangeTab={handleTabChange}
       >
         {children}
@@ -233,10 +242,6 @@ export const ExploreFeed: React.FC = () => {
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
-  );
-  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
-  const isSearchGlass = useIsGlassSurfaceEnabled(
-    selectExploreBrandRefreshEnabled,
   );
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -322,62 +327,93 @@ export const ExploreFeed: React.FC = () => {
     [tabProps],
   );
 
+  const header = (
+    <>
+      <HeaderRoot
+        includesTopInset
+        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
+        endAccessory={
+          <CapsuleGlass
+            twClassName="px-2"
+            nonGlassClassName="px-3"
+            testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <ButtonIcon
+                iconProps={{ color: IconColor.IconDefault }}
+                iconName={IconName.Search}
+                size={ButtonIconSize.Md}
+                onPress={handleSearchPress}
+                accessibilityLabel={strings('trending.search_placeholder')}
+                testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON}
+                twClassName="bg-transparent"
+              />
+              {browserTabsCount > 0 ? (
+                <Pressable
+                  onPress={handleBrowserPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings('browser.opened_tabs')}
+                  testID="trending-view-browser-button"
+                  style={tw.style('flex-row items-center gap-1')}
+                >
+                  <Icon
+                    name={IconName.Global}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                  />
+                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+                </Pressable>
+              ) : (
+                <ButtonIcon
+                  iconProps={{ color: IconColor.IconDefault }}
+                  iconName={IconName.Explore}
+                  size={ButtonIconSize.Md}
+                  onPress={handleBrowserPress}
+                  testID="trending-view-browser-button"
+                  twClassName="bg-transparent"
+                />
+              )}
+            </Box>
+          </CapsuleGlass>
+        }
+      >
+        <HubProfileButton />
+      </HeaderRoot>
+      <FixedTabPillRow />
+    </>
+  );
+
   return (
     <Box
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <HeaderRoot
-        includesTopInset
-        title={strings('trending.title')}
-        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
-      />
-
-      <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-4 mb-2 flex-row items-center gap-2 px-4">
+      {isBasicFunctionalityEnabled ? (
+        <Box twClassName="flex-1">
+          <FixedHubChrome>{header}</FixedHubChrome>
           <Box twClassName="flex-1">
-            <ExploreSearchBar
-              type="button"
-              onPress={handleSearchPress}
-              isGlass={isSearchGlass}
-            />
-          </Box>
-
-          {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
-            <BrowserTabsButton
-              tabCount={browserTabsCount}
-              onPress={handleBrowserPress}
-              testID="trending-view-browser-button"
-              isGlass={isSearchGlass}
-            />
-          ) : (
-            <TouchableOpacity
-              onPress={handleBrowserPress}
-              testID="trending-view-browser-button"
+            <ExploreTabs
+              tabsListRef={tabsListRef}
+              previousTabRef={previousTabRef}
+              pendingExploreEntrySourceRef={pendingExploreEntrySourceRef}
             >
-              {browserTabsCount > 0 ? (
-                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-                </Box>
-              ) : (
-                <Icon name={IconName.Explore} size={IconSize.Xl} />
-              )}
-            </TouchableOpacity>
-          )}
+              {tabElements}
+            </ExploreTabs>
+          </Box>
         </Box>
-
-        {!isBasicFunctionalityEnabled ? (
-          <BasicFunctionalityEmptyState />
-        ) : (
-          <ExploreTabs
-            tabsListRef={tabsListRef}
-            previousTabRef={previousTabRef}
-            pendingExploreEntrySourceRef={pendingExploreEntrySourceRef}
-          >
-            {tabElements}
-          </ExploreTabs>
-        )}
-      </Box>
+      ) : (
+        <Box twClassName="flex-1">
+          <FixedHubChrome>{header}</FixedHubChrome>
+          <ScrollView style={tw.style('flex-1')}>
+            <FixedHubChromeSpacer />
+            <BasicFunctionalityEmptyState />
+          </ScrollView>
+        </Box>
+      )}
     </Box>
   );
 };

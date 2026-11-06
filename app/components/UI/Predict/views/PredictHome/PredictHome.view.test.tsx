@@ -31,7 +31,7 @@ import {
 } from '../../constants/feedBanner';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
-const PREDICTIONS_TITLE = 'Predictions';
+const BALANCE_TITLE = 'Balance';
 
 const homeRedesignEnabledOverrides = {
   engine: {
@@ -144,12 +144,12 @@ describe('PredictHome', () => {
   });
 
   describe('shell composition', () => {
-    it('renders the large "Predictions" title', async () => {
+    it('renders the large "Balance" title', async () => {
       const { getByTestId } = renderPredictHomeView();
 
       await waitFor(() => {
         expect(getByTestId(PredictHomeSelectorsIDs.TITLE)).toHaveTextContent(
-          PREDICTIONS_TITLE,
+          BALANCE_TITLE,
         );
       });
     });
@@ -335,12 +335,14 @@ describe('PredictHome', () => {
 
   describe('brand refresh', () => {
     it('floats the header on the scroll edge fade and still opens search', async () => {
-      const { findByTestId, getByTestId, findByPlaceholderText } =
-        renderPredictHomeView({ overrides: brandRefreshOverrides });
+      const {
+        findByTestId,
+        getByTestId,
+        findByPlaceholderText,
+        queryByTestId,
+      } = renderPredictHomeView({ overrides: brandRefreshOverrides });
 
-      expect(
-        await findByTestId(FLOATING_HEADER_FADE_TEST_ID),
-      ).toBeOnTheScreen();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
