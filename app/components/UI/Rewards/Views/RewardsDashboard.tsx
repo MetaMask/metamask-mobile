@@ -499,7 +499,7 @@ const RewardsDashboard: React.FC = () => {
               As a tab it stays in HeaderRoot, unchanged. */}
           {isPushedScreen ? (
             <Box
-              twClassName="px-4 pb-3"
+              twClassName="px-4 pt-2 pb-3"
               onLayout={(event) =>
                 setTitleSectionHeight(event.nativeEvent.layout.height)
               }

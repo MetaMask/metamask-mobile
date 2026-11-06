@@ -224,7 +224,7 @@ const ProHub = () => {
 
       {showHubContent && (
         <ScrollView
-          contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
+          contentContainerStyle={tw.style('px-4 pt-0 pb-10')}
           showsVerticalScrollIndicator={false}
         >
           <Box twClassName="w-full mb-4 gap-y-4">

@@ -115,7 +115,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
       <ScrollView
         ref={scrollViewRef}
         testID={testID}
-        style={tw.style('flex-1 pt-3')}
+        style={tw.style('flex-1 pt-1')}
         contentContainerStyle={tw.style(`pb-[${16 + floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={50}
