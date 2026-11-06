@@ -1,5 +1,5 @@
 import '../../../../../tests/component-view/mocks';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   PREDICT_ROOT_PARAMS_PROBE,
   renderUrlAutocompleteWithRoutes,
@@ -16,6 +16,11 @@ import {
   MOCK_PREDICT_MARKET,
 } from '../../../../../tests/component-view/fixtures/predict';
 import Engine from '../../../../core/Engine';
+import { UrlAutocompleteCategory } from '../../UrlAutocomplete/types';
+import {
+  SECTION_LOADING_INDICATOR_TEST_ID,
+  sectionHeaderTestId,
+} from '../../UrlAutocomplete/UrlAutocomplete.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import type { PredictConfig } from '../config/predictConfig';
@@ -140,6 +145,36 @@ describeForPlatforms('Browser URL autocomplete predictions', () => {
     expect(searchMarkets).toHaveBeenCalledWith(
       expect.objectContaining({ q: 'bitcoin' }),
     );
+  });
+
+  it('shows the Predictions header spinner while the Polymarket search is in flight', async () => {
+    searchMarkets.mockImplementation(() => new Promise(() => undefined));
+    const view = renderAutocomplete(LEGACY_LANE);
+
+    fireEvent.changeText(
+      view.getByTestId(URL_AUTOCOMPLETE_QUERY_INPUT),
+      'bitcoin',
+    );
+
+    // Past the debounce: the spinner now stands for the request, not the typing
+    await waitFor(() =>
+      expect(searchMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'bitcoin' }),
+      ),
+    );
+    const header = view.getByTestId(
+      sectionHeaderTestId(UrlAutocompleteCategory.Predictions),
+      HIDDEN,
+    );
+    expect(
+      within(header).getByText(PREDICTIONS_HEADER, HIDDEN),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(SECTION_LOADING_INDICATOR_TEST_ID, HIDDEN),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(/^predict-search-result-row-/, HIDDEN),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the market details on a result press, as Browser did', async () => {

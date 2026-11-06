@@ -77,14 +77,6 @@ const mockPerpsData = {
   marketSource: 'hyperliquid',
 };
 
-const mockPredictionsData = {
-  id: 'pred-1',
-  title: 'Will Bitcoin reach $100k?',
-  subtitle: 'Open',
-  imageUrl: 'https://example.com/btc.png',
-  intent: { type: 'home' as const },
-};
-
 const mockUseExploreSearchReturn = {
   sections: [
     {
@@ -111,12 +103,10 @@ const mockUseExploreSearchReturn = {
 jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
 }));
-// Predictions come from Predict's search source, not from Explore's sections
+// Predictions come from Predict's search source; PredictSearchResults.view.test.tsx
+// covers that section through the real source, so it stays empty here.
 jest.mock('../PredictNext', () => ({
-  usePredictSearchResults: jest.fn(() => ({
-    results: [mockPredictionsData],
-    isLoading: false,
-  })),
+  usePredictSearchResults: jest.fn(() => ({ results: [], isLoading: false })),
 }));
 jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -557,25 +547,6 @@ describe('UrlAutocomplete', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays Predictions header when predictions data is available', async () => {
-      // Arrange
-      const ref = React.createRef<UrlAutocompleteRef>();
-      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
-        state: defaultState,
-      });
-
-      // Act
-      act(() => {
-        ref.current?.search('bitcoin');
-        jest.runAllTimers();
-      });
-
-      // Assert
-      expect(
-        await screen.findByText('Predictions', { includeHiddenElements: true }),
-      ).toBeOnTheScreen();
-    });
-
     it('displays search footer as a default/web search option', async () => {
       // Arrange
       const ref = React.createRef<UrlAutocompleteRef>();
@@ -632,25 +603,6 @@ describe('UrlAutocomplete', () => {
       // Assert - perps name is displayed via transformed PerpsSearchResult
       expect(
         await screen.findByText('Bitcoin', { includeHiddenElements: true }),
-      ).toBeOnTheScreen();
-    });
-
-    it('transforms predictions search results and shows header', async () => {
-      // Arrange
-      const ref = React.createRef<UrlAutocompleteRef>();
-      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
-        state: defaultState,
-      });
-
-      // Act
-      act(() => {
-        ref.current?.search('prediction');
-        jest.runAllTimers();
-      });
-
-      // Assert - Predictions section is rendered
-      expect(
-        await screen.findByText('Predictions', { includeHiddenElements: true }),
       ).toBeOnTheScreen();
     });
 

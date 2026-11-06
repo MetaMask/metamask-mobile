@@ -66,6 +66,10 @@ import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  SECTION_LOADING_INDICATOR_TEST_ID,
+  sectionHeaderTestId,
+} from './UrlAutocomplete.testIds';
 
 export * from './types';
 
@@ -389,12 +393,18 @@ const SearchContent: React.FC<SearchContentProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ResultsWithCategory }) => (
-      <View style={styles.categoryWrapper}>
+      <View
+        style={styles.categoryWrapper}
+        testID={sectionHeaderTestId(section.category)}
+      >
         <Text style={styles.category}>
           {strings(`autocomplete.${section.category}`)}
         </Text>
         {section.isLoading && (
-          <ActivityIndicator testID="loading-indicator" size="small" />
+          <ActivityIndicator
+            testID={SECTION_LOADING_INDICATOR_TEST_ID}
+            size="small"
+          />
         )}
       </View>
     ),
