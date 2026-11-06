@@ -3605,11 +3605,13 @@ describe('CardController — data pass-throughs', () => {
       messenger,
       withDelegationSettings = true,
       installLinkHooks = true,
+      cardHomeData,
     }: {
       provider: jest.Mocked<ICardProvider>;
       messenger: jest.Mocked<CardControllerMessenger>;
       withDelegationSettings?: boolean;
       installLinkHooks?: boolean;
+      cardHomeData?: Record<string, unknown>;
     }) {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
@@ -3623,6 +3625,9 @@ describe('CardController — data pass-throughs', () => {
           .fn()
           .mockResolvedValue(undefined);
       }
+      const initialCardHomeData =
+        cardHomeData ??
+        (withDelegationSettings ? cardHomeDataWithMonadUsdc : null);
       return new CardController({
         ...hostOptions,
         cardService: buildMockCardService(),
@@ -3631,9 +3636,10 @@ describe('CardController — data pass-throughs', () => {
         state: {
           activeProviderId: 'baanx',
           isAuthenticated: true,
-          cardHomeData: withDelegationSettings
-            ? (cardHomeDataWithMonadUsdc as unknown as Record<string, Json>)
-            : null,
+          cardHomeData: initialCardHomeData as unknown as Record<
+            string,
+            Json
+          > | null,
         },
       });
     }
@@ -3863,13 +3869,10 @@ describe('CardController — data pass-throughs', () => {
       const controller = buildLinkController({
         provider,
         messenger: handle.messenger,
-        withDelegationSettings: false,
-      });
-      controller.update((state) => {
-        state.cardHomeData = {
+        cardHomeData: {
           ...cardHomeDataWithMonadUsdc,
           delegationSettings: staleSettings,
-        } as unknown as Record<string, Json>;
+        },
       });
 
       const linkPromise = controller.linkMoneyAccountCard({
