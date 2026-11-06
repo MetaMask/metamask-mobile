@@ -40,12 +40,13 @@ import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import { earnedByOthersLifetime } from '../../../utils/earningsSummaryTotals';
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
+import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import { SHOW_TRADING_COMMISSIONS } from '../constants';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import ReferralFunnelBar from '../ReferralFunnelBar';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 import {
@@ -413,9 +414,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   active,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
   const isReferrer = persona === 'referrer';
   const isReferee = persona === 'referee';
-  const showCommissions = (isReferrer || isReferee) && SHOW_TRADING_COMMISSIONS;
+  const showCommissions = (isReferrer || isReferee) && showTradingCommissions;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
@@ -439,6 +441,9 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+  }, [navigation]);
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
   }, [navigation]);
 
   if (!localizedText) {
@@ -479,7 +484,9 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           }}
           state={commissions}
           followsSection={funnel.show}
-          emptyDescription={localizedText.tradingActivityEmptyDescription}
+          emptyDescription={localizedText.copyTradingEmptyDescription}
+          emptyActionLabel={localizedText.copyTradingEmptyAction}
+          onEmptyAction={openSocialTab}
           onOpenList={() =>
             navigateToRewardsRoute(
               navigation,
