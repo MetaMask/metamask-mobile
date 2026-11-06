@@ -16,6 +16,7 @@ on:
           - e2e
           - exp
           - rc
+          - dev
         default: e2e
       sentry_target:
         description: 'Sentry target for performance events (test or real)'

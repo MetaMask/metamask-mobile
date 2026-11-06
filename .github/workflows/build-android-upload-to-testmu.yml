@@ -3,9 +3,9 @@
 # to BrowserStack by leaving upload_to_browserstack at its default.
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
-# Build 3 (performance only, build_main_dev): main-dev. Dev API hosts, not the
-# RC/e2e profiles above, which keep production API hosts. Built in parallel and
-# outside the with/without-SRP fingerprint reuse gate.
+# build_variant=dev skips both of those and builds nothing here. The main-dev
+# APK is a separate job in run-performance-e2e.yml, because a reusable
+# workflow call cannot set continue-on-error.
 #
 # Fingerprint reuse (same procedure as build-android-e2e.yml):
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
@@ -44,7 +44,7 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant (e2e = e2e environment, exp = experimental)'
+        description: 'Build variant (e2e, exp, rc, or dev). dev builds main-dev only.'
         default: 'exp'
       source_fingerprint:
         required: false
@@ -86,15 +86,6 @@ on:
           LT_USERNAME and LT_ACCESS_KEY. A TestMu failure does not fail the
           job when BrowserStack upload is also enabled.
         default: false
-      build_main_dev:
-        required: false
-        type: boolean
-        description: >-
-          When true, also build the main-dev Android APK (dev API environment)
-          in parallel with the with-SRP and without-SRP builds, then upload it
-          to the same cloud target. Performance runs enable this for social
-          trading tests. Nightly system tests leave it false.
-        default: false
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -133,18 +124,6 @@ on:
       without-srp-testmu-version:
         description: 'App version recorded for the without-SRP TestMu upload'
         value: ${{ jobs.upload-to-browserstack.outputs.without-srp-testmu-version }}
-      main-dev-testmu-url:
-        description: 'TestMu AI app URL for the main-dev APK (dev API environment)'
-        value: ${{ jobs.upload-main-dev.outputs.main-dev-testmu-url }}
-      main-dev-testmu-version:
-        description: 'App version recorded for the main-dev TestMu upload'
-        value: ${{ jobs.upload-main-dev.outputs.main-dev-testmu-version }}
-      main-dev-browserstack-url:
-        description: 'BrowserStack URL for the main-dev APK'
-        value: ${{ jobs.upload-main-dev.outputs.main-dev-browserstack-url }}
-      main-dev-version:
-        description: 'App version recorded for the main-dev BrowserStack upload'
-        value: ${{ jobs.upload-main-dev.outputs.main-dev-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -177,6 +156,8 @@ jobs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
       with-srp-build-name: ${{ steps.names.outputs.with-srp-build-name }}
       without-srp-build-name: ${{ steps.names.outputs.without-srp-build-name }}
+      main-dev-build-name: ${{ steps.names.outputs.main-dev-build-name }}
+      srp-builds-needed: ${{ steps.names.outputs.srp-builds-needed }}
       github-environment: ${{ steps.names.outputs.github-environment }}
 
     steps:
@@ -199,22 +180,33 @@ jobs:
         env:
           BUILD_VARIANT: ${{ inputs.build_variant }}
         run: |
+          # Selecting dev builds only the main-dev APK from run-performance-e2e.yml.
+          # The SRP pair must not fall through to the e2e profile.
+          echo "main-dev-build-name=main-dev" >> "$GITHUB_OUTPUT"
           if [ "${BUILD_VARIANT}" = "exp" ]; then
             {
               echo "with-srp-build-name=main-exp-with-srp"
               echo "without-srp-build-name=main-exp-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-exp"
             } >> "$GITHUB_OUTPUT"
           elif [ "${BUILD_VARIANT}" = "rc" ]; then
             {
               echo "with-srp-build-name=main-rc-with-srp"
               echo "without-srp-build-name=main-rc-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-rc"
+            } >> "$GITHUB_OUTPUT"
+          elif [ "${BUILD_VARIANT}" = "dev" ]; then
+            {
+              echo "srp-builds-needed=false"
+              echo "github-environment=build-dev"
             } >> "$GITHUB_OUTPUT"
           else
             {
               echo "with-srp-build-name=main-e2e-bs-with-srp"
               echo "without-srp-build-name=main-e2e-bs-without-srp"
+              echo "srp-builds-needed=true"
               echo "github-environment=build-e2e"
             } >> "$GITHUB_OUTPUT"
           fi
@@ -225,6 +217,7 @@ jobs:
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
     outputs:
       found: ${{ steps.finalize.outputs.found }}
@@ -601,6 +594,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
@@ -622,6 +616,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
@@ -635,130 +630,6 @@ jobs:
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
     secrets: inherit
-
-  # Independent of fingerprint reuse. A main-dev failure must not drop the
-  # with-SRP / without-SRP URLs the rest of the suite already runs on.
-  build-main-dev:
-    name: Performance Build Android (main-dev)
-    needs: [check-builds-needed]
-    if: >-
-      always() &&
-      !cancelled() &&
-      inputs.build_main_dev == true &&
-      needs.check-builds-needed.outputs.builds-needed == 'true'
-    continue-on-error: true
-    permissions:
-      contents: read
-      id-token: write # AWS OIDC for code signing in build.yml
-    uses: ./.github/workflows/build.yml
-    with:
-      build_name: main-dev
-      platform: android
-      source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
-    secrets: inherit
-
-  upload-main-dev:
-    name: Upload main-dev APK
-    runs-on: ubuntu-latest
-    needs: [check-builds-needed, build-main-dev]
-    continue-on-error: true
-    if: >-
-      always() &&
-      !cancelled() &&
-      inputs.build_main_dev == true &&
-      needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      needs.build-main-dev.result == 'success' &&
-      (inputs.upload_to_testmu || inputs.upload_to_browserstack)
-    permissions:
-      contents: read
-      actions: read
-    outputs:
-      main-dev-testmu-url: ${{ steps.testmu-upload.outputs.main-dev-testmu-url }}
-      main-dev-testmu-version: ${{ steps.testmu-upload.outputs.main-dev-testmu-version }}
-      main-dev-browserstack-url: ${{ steps.browserstack-upload.outputs.main-dev-browserstack-url }}
-      main-dev-version: ${{ steps.browserstack-upload.outputs.main-dev-version }}
-    steps:
-      - name: Checkout upload scripts
-        uses: actions/checkout@v6
-
-      - name: Download main-dev APK
-        uses: actions/download-artifact@v7
-        with:
-          name: android-apk-main-dev
-          path: artifacts/main-dev
-
-      - name: Upload main-dev APK to TestMu AI
-        id: testmu-upload
-        if: inputs.upload_to_testmu
-        env:
-          LT_USERNAME: ${{ secrets.LT_USERNAME }}
-          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-          MAIN_DEV_VERSION: ${{ needs.build-main-dev.outputs.semantic_version }}
-        run: |
-          set -euo pipefail
-          if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
-            echo "::warning::LT_USERNAME and LT_ACCESS_KEY are required to upload the main-dev APK to TestMu AI"
-            exit 0
-          fi
-
-          chmod +x .github/scripts/qa-automation/performance-tests/upload-testmu-app.sh .github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh
-
-          apk="$(find artifacts/main-dev -name '*.apk' -type f -print -quit)"
-          if [ -z "$apk" ]; then
-            echo "::warning::No main-dev APK found in artifacts/main-dev"
-            exit 0
-          fi
-
-          echo "Uploading main-dev APK to TestMu AI: $apk"
-          if app_url="$(./.github/scripts/qa-automation/performance-tests/upload-testmu-app.sh "$apk" "metamask-android-main-dev")" \
-            && ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh "$app_url"; then
-            {
-              echo "main-dev-testmu-url=$app_url"
-              echo "main-dev-testmu-version=$MAIN_DEV_VERSION"
-            } >> "$GITHUB_OUTPUT"
-            echo "TestMu main-dev URL: $app_url"
-          else
-            echo "::warning::main-dev TestMu upload failed"
-          fi
-
-      - name: Upload main-dev APK to BrowserStack
-        id: browserstack-upload
-        if: inputs.upload_to_browserstack
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-          MAIN_DEV_VERSION: ${{ needs.build-main-dev.outputs.semantic_version }}
-          BRANCH_NAME: ${{ inputs.branch_name || github.ref_name }}
-        run: |
-          set -euo pipefail
-          if [ -z "$BROWSERSTACK_USERNAME" ] || [ -z "$BROWSERSTACK_ACCESS_KEY" ]; then
-            echo "::warning::BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY are required to upload the main-dev APK"
-            exit 0
-          fi
-
-          apk="$(find artifacts/main-dev -name '*.apk' -type f -print -quit)"
-          if [ -z "$apk" ]; then
-            echo "::warning::No main-dev APK found in artifacts/main-dev"
-            exit 0
-          fi
-
-          branch_slug="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/_/g' | cut -c1-40)"
-          custom_id="MetaMask-Android-Main-Dev-${branch_slug}"
-          echo "Uploading main-dev APK to BrowserStack: $apk"
-          response="$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-            -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-            -F "file=@$apk" \
-            -F "custom_id=$custom_id")"
-          app_url="$(echo "$response" | jq -r '.app_url // empty')"
-          if [ -n "$app_url" ]; then
-            {
-              echo "main-dev-browserstack-url=$app_url"
-              echo "main-dev-version=$MAIN_DEV_VERSION"
-            } >> "$GITHUB_OUTPUT"
-            echo "BrowserStack main-dev URL: $app_url"
-          else
-            echo "::warning::main-dev BrowserStack upload failed: $response"
-          fi
 
   upload-to-browserstack:
     name: ${{ inputs.upload_to_browserstack && 'Upload APKs to BrowserStack' || 'Upload APKs to TestMu AI' }}
@@ -806,6 +677,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      needs.check-builds-needed.outputs.srp-builds-needed == 'true' &&
       (
         needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
         (

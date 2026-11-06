@@ -22,6 +22,7 @@ type WorkflowJob = {
   if?: string;
   with?: Record<string, string | boolean>;
   'continue-on-error'?: boolean;
+  'runs-on'?: string;
   steps?: WorkflowStep[];
 };
 
@@ -240,52 +241,78 @@ describe('main-dev performance build', () => {
     return workflow.jobs[jobId];
   };
 
-  it('builds main-dev in parallel and outside the SRP fingerprint reuse gate', () => {
-    const build = loadWorkflow().jobs['build-main-dev'];
+  it('builds main-dev as its own workflow call, without continue-on-error', () => {
+    const performancePath = path.join(
+      __dirname,
+      '../../../workflows/run-performance-e2e.yml',
+    );
+    const build = job(performancePath, 'build-main-dev');
+    const upload = job(performancePath, 'upload-main-dev');
 
+    expect(loadWorkflow().jobs['build-main-dev']).toBeUndefined();
     expect(build.uses).toBe('./.github/workflows/build.yml');
     expect(build.with).toMatchObject({
       build_name: 'main-dev',
       platform: 'android',
     });
-    // Starts with the name check only, so it does not wait for the SRP
-    // fingerprint lookup or for those Gradle jobs.
-    expect(build.needs).toEqual(['check-builds-needed']);
-    expect(build.if).toContain('inputs.build_main_dev == true');
-    expect(build['continue-on-error']).toBe(true);
+    // A reusable workflow call cannot set continue-on-error. GitHub then
+    // requires runs-on and rejects uses.
+    expect(build['continue-on-error']).toBeUndefined();
+    expect(build.needs).toEqual(['prepare', 'check-testmu-credentials']);
+    expect(upload.needs).toEqual(['build-main-dev']);
+    expect(upload['continue-on-error']).toBe(true);
+    expect(upload['runs-on']).toBe('ubuntu-latest');
 
-    const srpUpload = loadWorkflow().jobs['upload-to-browserstack'];
-    const srpNeeds = Array.isArray(srpUpload.needs)
-      ? srpUpload.needs
-      : [srpUpload.needs];
-    expect(srpNeeds).not.toContain('build-main-dev');
+    for (const workflowJob of Object.values(loadWorkflow().jobs)) {
+      if (workflowJob.uses) {
+        expect(workflowJob['continue-on-error']).toBeUndefined();
+      }
+    }
   });
 
-  it('uploads the main-dev APK without coupling it to the SRP upload job', () => {
-    const upload = loadWorkflow().jobs['upload-main-dev'];
-    const download = upload.steps?.find(
-      (step) => step.name === 'Download main-dev APK',
-    );
+  it('maps the dev profile to main-dev and skips the SRP pair', () => {
+    const names =
+      stepByName('check-builds-needed', 'Resolve build artifact names')?.run ??
+      '';
 
-    expect(upload.needs).toEqual(['check-builds-needed', 'build-main-dev']);
-    expect(upload['continue-on-error']).toBe(true);
-    expect(download?.with).toMatchObject({
-      name: 'android-apk-main-dev',
-      path: 'artifacts/main-dev',
-    });
+    expect(names).toContain('main-dev-build-name=main-dev');
+    expect(names).toContain('[ "${BUILD_VARIANT}" = "dev" ]');
+    expect(names).toContain('srp-builds-needed=false');
+    expect(names).toContain('github-environment=build-dev');
+
+    for (const jobId of [
+      'build-with-srp',
+      'build-without-srp',
+      'resolve-fingerprint-reuse',
+      'upload-to-browserstack',
+    ]) {
+      expect(loadWorkflow().jobs[jobId].if).toContain(
+        "needs.check-builds-needed.outputs.srp-builds-needed == 'true'",
+      );
+    }
+
+    const manual = fs.readFileSync(
+      path.join(__dirname, '../../../workflows/run-performance-e2e-manual.yml'),
+      'utf8',
+    );
+    expect(manual).toMatch(
+      /options:\n\s+- e2e\n\s+- exp\n\s+- rc\n\s+- dev\n/,
+    );
   });
 
   it('is enabled for performance runs and left off for nightly system tests', () => {
-    const performance = job(
-      path.join(__dirname, '../../../workflows/run-performance-e2e.yml'),
-      'trigger-android-dual-versions',
+    const performancePath = path.join(
+      __dirname,
+      '../../../workflows/run-performance-e2e.yml',
     );
-    const systemTests = job(
+    const systemTests = fs.readFileSync(
       path.join(__dirname, '../../../workflows/run-system-tests.yml'),
-      'trigger-android-dual-versions',
+      'utf8',
     );
 
-    expect(performance.with?.build_main_dev).toBe(true);
-    expect(systemTests.with?.build_main_dev).toBeUndefined();
+    expect(job(performancePath, 'build-main-dev').with?.build_name).toBe(
+      'main-dev',
+    );
+    expect(systemTests).not.toContain('build_name: main-dev');
   });
 });

@@ -18,7 +18,7 @@ on:
         required: true
         type: string
       build_variant:
-        description: 'App build profile (e2e = standard E2E, exp = experimental, rc = release candidate)'
+        description: 'App build profile (e2e = standard E2E, exp = experimental, rc = release candidate, dev = main-dev API environment)'
         required: false
         type: string
         default: 'e2e'
@@ -310,8 +310,8 @@ jobs:
     # Android runs without explicit TestMu app URLs go through this workflow.
     # It selects fingerprint reuse for app changes and latest-main artifact
     # reuse for test-only changes, with a fresh-build fallback. APKs are
-    # uploaded to TestMu only. main-dev is a third APK (dev API hosts) built
-    # in parallel for social trading tests; it does not follow build_variant.
+    # uploaded to TestMu only. Selecting build_variant=dev skips the with-SRP
+    # and without-SRP builds. The main-dev APK is the sibling job below.
     if: >-
       always() &&
       !cancelled() &&
@@ -328,12 +328,91 @@ jobs:
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
       upload_to_browserstack: false
       upload_to_testmu: true
-      build_main_dev: true
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
     secrets: inherit
+
+  # Separate from the SRP workflow. A job that calls a reusable workflow cannot
+  # set continue-on-error, and nesting this call inside that workflow made the
+  # file invalid and would have dropped the SRP URLs if main-dev failed.
+  # Test jobs do not need this job, so a main-dev failure does not skip them.
+  build-main-dev:
+    name: Performance Build Android (main-dev)
+    needs: [prepare, check-testmu-credentials]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.prepare.result == 'success' &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      needs.check-testmu-credentials.result == 'success' &&
+      !inputs.testmu_app_url_android_onboarding &&
+      !inputs.testmu_app_url_android_imported_wallet
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-dev
+      platform: android
+      source_branch: ${{ inputs.source_ref }}
+    secrets: inherit
+
+  upload-main-dev:
+    name: Upload main-dev APK to TestMu AI
+    runs-on: ubuntu-latest
+    needs: [build-main-dev]
+    continue-on-error: true
+    if: always() && !cancelled() && needs.build-main-dev.result == 'success'
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      main-dev-testmu-url: ${{ steps.testmu-upload.outputs.main-dev-testmu-url }}
+      main-dev-testmu-version: ${{ steps.testmu-upload.outputs.main-dev-testmu-version }}
+    steps:
+      - name: Checkout upload scripts
+        uses: actions/checkout@v6
+
+      - name: Download main-dev APK
+        uses: actions/download-artifact@v7
+        with:
+          name: android-apk-main-dev
+          path: artifacts/main-dev
+
+      - name: Upload main-dev APK to TestMu AI
+        id: testmu-upload
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+          MAIN_DEV_VERSION: ${{ needs.build-main-dev.outputs.semantic_version }}
+        run: |
+          set -euo pipefail
+          if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
+            echo "::warning::LT_USERNAME and LT_ACCESS_KEY are required to upload the main-dev APK to TestMu AI"
+            exit 0
+          fi
+
+          chmod +x .github/scripts/qa-automation/performance-tests/upload-testmu-app.sh .github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh
+
+          apk="$(find artifacts/main-dev -name '*.apk' -type f -print -quit)"
+          if [ -z "$apk" ]; then
+            echo "::warning::No main-dev APK found in artifacts/main-dev"
+            exit 0
+          fi
+
+          echo "Uploading main-dev APK to TestMu AI: $apk"
+          if app_url="$(./.github/scripts/qa-automation/performance-tests/upload-testmu-app.sh "$apk" "metamask-android-main-dev")" \
+            && ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh "$app_url"; then
+            {
+              echo "main-dev-testmu-url=$app_url"
+              echo "main-dev-testmu-version=$MAIN_DEV_VERSION"
+            } >> "$GITHUB_OUTPUT"
+            echo "TestMu main-dev URL: $app_url"
+          else
+            echo "::warning::main-dev TestMu upload failed"
+          fi
 
   # =============================================================================
   # ONBOARDING AND IMPORTED WALLET TESTS (TestMu HyperExecute)
