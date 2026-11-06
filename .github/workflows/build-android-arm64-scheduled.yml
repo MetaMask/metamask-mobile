@@ -5,12 +5,20 @@ name: Build Android arm64 E2E (scheduled)
 
 on:
   schedule:
-    - cron: '0 8 * * 1-5' # 08:00 UTC, Monday-Friday
+    # 09:00 UTC sits between ci.yml's 08:00 and 10:00 even-hour schedules so
+    # this android-build job does not start on the same minute as CI E2E.
+    - cron: '0 9 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
   contents: read
   actions: read
+
+# Share a concurrency group with run-performance-e2e-manual.yml's scheduled
+# path so Android Namespace builds do not claim the linux/amd64 pool together.
+concurrency:
+  group: ${{ github.event_name == 'schedule' && 'namespace-linux-android-scheduled' || format('build-android-arm64-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   check-changes:

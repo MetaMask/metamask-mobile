@@ -162,6 +162,10 @@ jobs:
     if: ${{ always() && !cancelled() && needs.compute-matrix.result == 'success' && needs.compute-matrix.outputs.has_suites == 'true' }}
     strategy:
       fail-fast: false
+      # Cap Namespace linux/amd64 fan-out. ALL expands to 25 shards on
+      # android-e2e (16 vCPU each); unbounded scheduling saturates the 2,000
+      # vCPU pool when several PR runs overlap. Tune against queue telemetry.
+      max-parallel: 8
       matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     permissions:
       contents: read

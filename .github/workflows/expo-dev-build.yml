@@ -28,9 +28,11 @@ on:
     branches:
       - main
   schedule:
-    # Weekly safety-net build (Monday 06:00 UTC) so GitHub Actions artifacts don't expire
+    # Weekly safety-net build (Monday 05:00 UTC) so GitHub Actions artifacts don't expire
     # and go stale during long stretches with no native-affecting changes on main.
-    - cron: '0 6 * * 1'
+    # Offset from ci.yml's 06:00 weekday schedule and the former performance E2E
+    # 06:00 slot to avoid a Monday-morning Namespace Linux stack.
+    - cron: '0 5 * * 1'
   workflow_dispatch:
     inputs:
       runner_provider:

@@ -81,19 +81,11 @@ jobs:
       contents: read
     # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
     # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
-    # macos/ios-build concurrency.
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # macos/ios-build concurrency. GitHub-hosted on purpose: spare Namespace
+    # Linux vCPU for Gradle and emulator work.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -225,18 +217,10 @@ jobs:
     name: Dedupe
     permissions:
       contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # GitHub-hosted on purpose: spare Namespace Linux vCPU for Gradle and emulator work.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -289,18 +273,10 @@ jobs:
     name: Run `@lavamoat/git-safe-dependencies`
     permissions:
       contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # GitHub-hosted on purpose: spare Namespace Linux vCPU for Gradle and emulator work.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -349,23 +325,31 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        matrix.profile || 'ubuntu-latest'
+        matrix.profile != '' && matrix.profile || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.
+      # Empty matrix.profile pins the leg to GitHub-hosted, so force current here
+      # or Namespace checkout/cache actions would run on ubuntu-latest.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          matrix.profile != '' &&
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') ||
+          'current'
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     strategy:
+      # Bound concurrent Namespace Linux legs during PR bursts.
+      max-parallel: 4
       # `include` with no base axis yields exactly these combinations, and `name`
       # already interpolates a matrix value, so the rendered job names stay
       # `Run <script>` and the required status checks keep reporting (MCWP-813).
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
+      # Empty profile keeps the leg on ubuntu-latest even when NAMESPACE_RUNNER_LINUX
+      # is namespace — light static checks do not need the Namespace pool.
       matrix:
         include:
           # `lint` is not in this matrix. It runs as `lint-shards` below so the
@@ -374,19 +358,19 @@ jobs:
           # renders for the lint script (MCWP-813).
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
-          # Right-sized to 4x8: worst observed peak <= 5.6 GB.
+          # Right-sized light checks: GitHub-hosted to spare Namespace vCPU.
           - scripts: lint:changelog
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
           - scripts: format:check
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
           - scripts: test:depcheck
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
           - scripts: test:app-profiling
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
           - scripts: test:tgz-check
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
           - scripts: constraints
-            profile: namespace-profile-metamask-ci-linux-small
+            profile: ''
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -459,6 +443,8 @@ jobs:
       - get_requirements
     strategy:
       fail-fast: false
+      # Cap concurrent large (16x32) lint shards against the Namespace Linux pool.
+      max-parallel: 2
       matrix:
         shard: [1, 2, 3, 4]
     steps:
@@ -519,11 +505,8 @@ jobs:
   lint:
     name: Run `lint`
     permissions: {}
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # Aggregate gate only — no Namespace work.
+    runs-on: ubuntu-latest
     needs:
       - get_requirements
       - lint-shards
@@ -1083,18 +1066,10 @@ jobs:
     name: Check workflows
     permissions:
       contents: read
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # GitHub-hosted on purpose: spare Namespace Linux vCPU for Gradle and emulator work.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -1193,6 +1168,8 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       fail-fast: false
+      # Cap concurrent unit-test shards (8 vCPU each) against the Namespace Linux pool.
+      max-parallel: 5
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1492,6 +1469,8 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      # Cap concurrent component-view shards against the Namespace Linux pool.
+      max-parallel: 3
       matrix:
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
         # The shard list length must match the denominator in --shard below.
@@ -1973,18 +1952,10 @@ jobs:
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # Reporting only — GitHub-hosted to spare Namespace Linux vCPU.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
@@ -2099,18 +2070,10 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # API poll only — GitHub-hosted to spare Namespace Linux vCPU.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     needs: sonar-cloud
     if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     permissions:
@@ -2239,19 +2202,11 @@ jobs:
       contents: read
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
+    # Aggregate gate only — GitHub-hosted to spare Namespace Linux vCPU.
     if: ${{ always() && !cancelled() }}
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     needs:
       - get_requirements
       - check-diff
@@ -2297,18 +2252,10 @@ jobs:
   log-merge-group-failure:
     name: Log merge group failure
     permissions: {}
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # Reporting only — GitHub-hosted to spare Namespace Linux vCPU.
+    runs-on: ubuntu-latest
     env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+      RESOLVED_RUNNER_PROVIDER: current
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
