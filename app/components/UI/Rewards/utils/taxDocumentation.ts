@@ -1,6 +1,7 @@
 import type {
   EarningsSummaryDto,
   ReferralLocalizedTextKey,
+  SummaryTotalsDto,
   TaxFormSubmittedSnapshot,
   TaxFormTokenDto,
   TaxMeDto,
@@ -375,19 +376,43 @@ export function withMinutes(
 }
 
 /**
- * True when follow-trade is held for tax documentation. Cashback is never
- * held for tax, and revenue share is not a self-serve claim route, so
- * neither one keeps Claim visible.
+ * True when this family's balance is held for tax documentation. Cashback
+ * is never held for tax.
  */
+function familyHeldForTax(family: SummaryTotalsDto | undefined): boolean {
+  return (
+    isPositiveBaseUnits(family?.held) &&
+    family?.blocking_reason === 'TAX_DETERMINATION_REQUIRED'
+  );
+}
+
+/** True when follow-trade is held for tax documentation. */
 export function followTradeHeldForTax(
   summary: EarningsSummaryDto | null | undefined,
 ): boolean {
-  const followTrade =
-    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE;
-  return (
-    isPositiveBaseUnits(followTrade?.held) &&
-    followTrade?.blocking_reason === 'TAX_DETERMINATION_REQUIRED'
+  return familyHeldForTax(
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE,
   );
+}
+
+/** True when revenue share is held for tax documentation. */
+export function revShareHeldForTax(
+  summary: EarningsSummaryDto | null | undefined,
+): boolean {
+  return familyHeldForTax(
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE,
+  );
+}
+
+/**
+ * True when follow-trade or revenue share is held for tax documentation.
+ * Both claim routes stay off until the tax form is on, so either hold is a
+ * reason to read `tax/me` fresh.
+ */
+export function incomeHeldForTax(
+  summary: EarningsSummaryDto | null | undefined,
+): boolean {
+  return followTradeHeldForTax(summary) || revShareHeldForTax(summary);
 }
 
 const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([

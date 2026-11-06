@@ -44,7 +44,10 @@ import type {
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
 import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
-import { followTradeHeldForTax } from '../../../utils/taxDocumentation';
+import {
+  followTradeHeldForTax,
+  revShareHeldForTax,
+} from '../../../utils/taxDocumentation';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
@@ -648,8 +651,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   );
   const claimEnabled = canClaimEarnings(summary.data, routeOptions);
   const taxHeld =
-    routeOptions.includeFollowTrade === true &&
-    followTradeHeldForTax(summary.data);
+    (routeOptions.includeFollowTrade === true &&
+      followTradeHeldForTax(summary.data)) ||
+    (routeOptions.includeRevShare === true && revShareHeldForTax(summary.data));
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>

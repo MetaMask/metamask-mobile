@@ -212,6 +212,45 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows Claim when revenue share is held for tax and its claim route is open', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: withTaxHeldIncome(
+        earningsSummaryFixture({
+          claimable: '0',
+          cashbackClaimable: '0',
+          claimed: '0',
+          held: '2000000',
+        }),
+      ),
+      handlers: {
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve({
+            ...OPEN_FOLLOW_TRADE_COMMISSIONS,
+            mechanisms: {
+              REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+              SOCIAL_FOLLOW_TRADE: {
+                claim_open: false,
+                reason: 'MECHANISM_NOT_CLAIMABLE' as const,
+              },
+            },
+          }),
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows Paused when follow-trade is held for tax but its claim route is closed', async () => {
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referee',
@@ -278,6 +317,39 @@ describe('EarningsTab tax documentation', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('opens the tax sheet from a fresh read when a tax hold is cached as cleared', async () => {
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': (...args: unknown[]) => {
+          const params = args[0] as { forceFresh?: boolean } | undefined;
+          return Promise.resolve(params?.forceFresh ? ATTESTATION : CLEARED);
+        },
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(COPY.taxAttestationTitle);
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getTaxMe').some(
+          (call) =>
+            (call[1] as { forceFresh?: boolean } | undefined)?.forceFresh ===
+            true,
+        ),
+      ).toBe(true);
+    });
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
   });
 
   it('shows the attestation and still submits cashback, not income', async () => {

@@ -26,6 +26,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import {
   holdMintRateLimit,
+  incomeHeldForTax,
   holdTaxFormSession,
   isOpenFormTaxMe,
   isTaxFlowEnabled,
@@ -499,6 +500,20 @@ export function useTaxDocumentation(profileId: string) {
     openInfo('taxFormPendingTitle', 'taxFormPendingDescription');
     refreshSummary();
     void (async () => {
+      // Claim treats a missing snapshot as a new form. Record this submit
+      // before the fresh status read, which can be slow or fail.
+      let remembered = PRE_WEBHOOK_TAX_FORM_SNAPSHOT;
+      try {
+        const cached = await readTaxMe(false);
+        if (isOpenFormTaxMe(cached)) {
+          remembered = taxFormSubmittedSnapshot(cached);
+        }
+      } catch (error) {
+        if (error instanceof RewardsMoneyAuthorizationError) {
+          return;
+        }
+      }
+      await noteSubmitted(remembered);
       try {
         const taxMe = await readTaxMe(true);
         const stillOpenForm = isOpenFormTaxMe(taxMe);
@@ -512,26 +527,13 @@ export function useTaxDocumentation(profileId: string) {
         if (error instanceof RewardsMoneyAuthorizationError) {
           return;
         }
-        try {
-          const cached = await readTaxMe(false);
-          await noteSubmitted(
-            isOpenFormTaxMe(cached)
-              ? taxFormSubmittedSnapshot(cached)
-              : PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
-          );
-        } catch (cacheError) {
-          if (cacheError instanceof RewardsMoneyAuthorizationError) {
-            return;
-          }
-          await noteSubmitted(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
-        }
       }
     })();
   }, [noteSubmitted, openInfo, readTaxMe, refreshSummary, showTaxMe]);
 
   const onClaimPress = useCallback(
     async (
-      _summary: EarningsSummaryDto,
+      summary: EarningsSummaryDto,
       claim: (options?: ClaimEarningsOptions) => Promise<void>,
     ) => {
       if (pressBusy.current) {
@@ -545,8 +547,12 @@ export function useTaxDocumentation(profileId: string) {
         }
         let submitted = await readSubmitted();
         let taxMe: TaxMeDto | null = null;
+        // A tax hold means the cached tax/me may be stale. Taxbit can change
+        // the determination without an app POST, and this press has no claim
+        // route, so the sheet has to come from a fresh read.
+        const heldForTax = incomeHeldForTax(summary);
         try {
-          taxMe = await readTaxMe(submitted != null);
+          taxMe = await readTaxMe(submitted != null || heldForTax);
         } catch (error) {
           if (!(error instanceof RewardsMoneyAuthorizationError)) {
             showError(copy(localizedText, 'taxErrorToast'));
@@ -560,7 +566,10 @@ export function useTaxDocumentation(profileId: string) {
           await noteSubmitted(null);
           submitted = null;
         }
-        if (taxMe?.reason === 'GATE_OFF') {
+        if (
+          taxMe?.reason === 'GATE_OFF' ||
+          (heldForTax && taxMe?.cleared === true)
+        ) {
           refreshSummary();
         }
         let omitFollowTrade = false;

@@ -119,6 +119,35 @@ const localizedText = {
 
 const summary = {} as unknown as EarningsSummaryDto;
 
+const taxHeldSummary = {
+  earned_by_others: {
+    by_claim_family: {
+      SOCIAL_FOLLOW_TRADE: {
+        held: '2000000',
+        blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+      },
+    },
+  },
+} as unknown as EarningsSummaryDto;
+
+const revShareHeldSummary = {
+  earned_by_others: {
+    by_claim_family: {
+      REFERRAL_REV_SHARE: {
+        held: '2000000',
+        blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+      },
+    },
+  },
+} as unknown as EarningsSummaryDto;
+
+const clearedTaxMe = {
+  state: 'COMPLETE_OR_VERIFIED' as const,
+  next_action: 'NONE' as const,
+  reason: null,
+  cleared: true,
+};
+
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -257,6 +286,90 @@ describe('useTaxDocumentation', () => {
   });
 
   describe('onClaimPress', () => {
+    it('reads tax/me fresh and opens the sheet when income is held only for tax', async () => {
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
+            return Promise.resolve(null);
+          }
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return Promise.resolve(
+              params?.forceFresh ? taxMe() : { ...taxMe(), ...clearedTaxMe },
+            );
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe', {
+        forceFresh: true,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+        expect.objectContaining({
+          question: 'attestation',
+          title: localizedText.taxAttestationTitle,
+        }),
+      );
+      expect(claim).toHaveBeenCalledWith({ omitFollowTrade: true });
+      expect(mockFetchEarningsSummary).not.toHaveBeenCalled();
+    });
+
+    it('reads tax/me fresh when revenue share is held only for tax', async () => {
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
+            return Promise.resolve(null);
+          }
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return Promise.resolve(
+              params?.forceFresh ? taxMe() : { ...taxMe(), ...clearedTaxMe },
+            );
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(revShareHeldSummary, claim);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe', {
+        forceFresh: true,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+        expect.objectContaining({ question: 'attestation' }),
+      );
+    });
+
+    it('refreshes the summary when a tax hold reads as already cleared', async () => {
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe', {
+        forceFresh: true,
+      });
+      expect(mockFetchEarningsSummary).toHaveBeenCalledWith({
+        forceFresh: true,
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledTimes(1);
+    });
+
     it('opens the attestation and still claims when the payee is not cleared', async () => {
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();
@@ -1015,6 +1128,57 @@ describe('useTaxDocumentation', () => {
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('records the open-form snapshot before the fresh status read resolves', async () => {
+      const fresh = deferred<TaxMeDto>();
+      const cached = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            if (params?.forceFresh) {
+              return fresh.promise;
+            }
+            return Promise.resolve(cached);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const notedAt = mockCall.mock.calls.findIndex(
+        (call) => call[0] === 'RewardsMoneyController:noteTaxFormSubmitted',
+      );
+      const freshAt = mockCall.mock.calls.findIndex(
+        (call) =>
+          call[0] === 'RewardsMoneyController:getTaxMe' &&
+          (call[1] as { forceFresh?: boolean } | undefined)?.forceFresh ===
+            true,
+      );
+      expect(notedAt).toBeGreaterThanOrEqual(0);
+      expect(freshAt).toBeGreaterThan(notedAt);
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        {
+          state: 'ACTION_REQUIRED',
+          next_action: 'OPEN_FORM',
+          reason: 'TIN_NOT_MATCHED',
+        },
+      );
+
+      fresh.resolve(cached);
+      await act(async () => {
+        await fresh.promise;
+      });
     });
 
     it('remembers the cached open-form read when the fresh read fails', async () => {

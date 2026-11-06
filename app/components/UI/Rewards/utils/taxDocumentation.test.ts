@@ -6,6 +6,8 @@ import {
   clearMintRateLimit,
   holdMintRateLimit,
   followTradeHeldForTax,
+  incomeHeldForTax,
+  revShareHeldForTax,
   minutesFromRetryAfter,
   mintRateLimitRemainingMs,
   readMintRateLimit,
@@ -372,6 +374,34 @@ describe('followTradeHeldForTax', () => {
     } as unknown as EarningsSummaryDto['earned_by_others']['by_claim_family'];
 
     expect(followTradeHeldForTax(summary)).toBe(false);
+    expect(revShareHeldForTax(summary)).toBe(true);
+    expect(incomeHeldForTax(summary)).toBe(true);
+  });
+});
+
+describe('revShareHeldForTax', () => {
+  it('is true only when revenue share is held for tax documentation', () => {
+    const held = heldSummary({ held: '100' });
+    held.earned_by_others.by_claim_family = {
+      REFERRAL_REV_SHARE: {
+        held: '100',
+        blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+      },
+    } as unknown as EarningsSummaryDto['earned_by_others']['by_claim_family'];
+
+    expect(revShareHeldForTax(held)).toBe(true);
+    expect(incomeHeldForTax(held)).toBe(true);
+    expect(followTradeHeldForTax(held)).toBe(false);
+
+    const underReview = heldSummary({ held: '100' });
+    underReview.earned_by_others.by_claim_family = {
+      REFERRAL_REV_SHARE: {
+        held: '100',
+        blocking_reason: 'UNDER_REVIEW',
+      },
+    } as unknown as EarningsSummaryDto['earned_by_others']['by_claim_family'];
+    expect(revShareHeldForTax(underReview)).toBe(false);
+    expect(incomeHeldForTax(underReview)).toBe(false);
   });
 });
 
