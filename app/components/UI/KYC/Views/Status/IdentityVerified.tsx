@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -18,8 +18,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
-import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaAccountSetup } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import VbaIllustration, {
   VbaIllustrationSource,
@@ -54,13 +53,7 @@ const VbaIdentityVerified = () => {
   }, [navigation]);
 
   const handleContinue = useCallback(() => {
-    if (chooseCurrency) {
-      navigation.dispatch(
-        StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY),
-      );
-      return;
-    }
-    navigateToVbaOnboardingDestination(navigation, 'complete');
+    openVbaAccountSetup(navigation, chooseCurrency);
   }, [chooseCurrency, navigation]);
 
   return (
