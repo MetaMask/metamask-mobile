@@ -16,6 +16,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { selectPerpsProvider } from '../selectors/perpsController';
 
 const mockCheckAccountSupport = jest.fn();
 
@@ -51,6 +52,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  selectPerpsProvider: jest.fn(),
 }));
 
 jest.mock('./usePerpsTrading', () => ({
@@ -600,6 +602,45 @@ describe('usePerpsHomeActions', () => {
 
       expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks Hyperliquid when the active provider is aggregated', async () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        selector === selectPerpsProvider ? 'aggregated' : true,
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid');
+    });
+
+    it('checks Hyperliquid when no active provider is selected', async () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        selector === selectPerpsProvider ? undefined : true,
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid');
+    });
+
+    it('checks the active venue when it is a direct provider', async () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
+        selector === selectPerpsProvider ? 'lighter' : true,
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter');
     });
 
     it('accepts a new withdrawal once the previous one has finished', async () => {

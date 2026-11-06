@@ -282,6 +282,8 @@ import ToastService from '../../../../../core/ToastService';
 interface OrderRouteParams {
   direction?: 'long' | 'short';
   asset?: string;
+  /** Venue that will sign this order. Omitted follows the active provider. */
+  providerId?: PerpsProviderType;
   amount?: string;
   leverage?: number;
   // Existing position param
@@ -399,6 +401,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const copyTradeOrigin = route.params?.copyTradeOrigin;
+  const orderProviderId = route.params?.providerId;
   const activePerpsProvider = useSelector(selectPerpsProvider);
   const orderProvider = useSelector(selectPerpsOrderProvider);
   const getSelectedAccountByScope = useSelector(
@@ -1998,9 +2001,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // same lock only after this read, so a second tap in the same turn
       // would otherwise start a parallel placement.
       isSubmittingRef.current = true;
-      const accountSupport = await checkAccountSupport().finally(() => {
-        isSubmittingRef.current = false;
-      });
+      const accountSupport = await checkAccountSupport(orderProviderId).finally(
+        () => {
+          isSubmittingRef.current = false;
+        },
+      );
       // The post-deposit re-entry runs after this view unmounts, so an
       // unmounted support read is not a reason to drop it. A changed
       // account context still is.
@@ -2024,7 +2029,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
       return 'continue';
     },
-    [checkAccountSupport],
+    [checkAccountSupport, orderProviderId],
   );
 
   /** Shows a toast and returns true when liquidity or slippage blocks the order. */
@@ -2343,6 +2348,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         limitPrice: orderForm.limitPrice,
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
+        providerId: orderProviderId,
         trackingData: buildPerpsOrderTrackingData({
           marginRequired,
           feeResults,
@@ -2374,6 +2380,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.limitPrice,
       orderForm.takeProfitPrice,
       orderForm.stopLossPrice,
+      orderProviderId,
       positionSize,
       effectivePrice,
       maxSlippageBps,
