@@ -1,5 +1,8 @@
 import packageJSON from '../../../../package.json';
-import { KalshiRemoteAdapter } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import {
+  KalshiRemoteAdapter,
+  KALSHI_VENUE_ID,
+} from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import { PredictLiveDataClient } from '../../../components/UI/PredictNext/adapters/remote/PredictLiveDataClient';
 import {
@@ -18,11 +21,12 @@ import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
-import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
+import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
+import { store } from '../../../store';
 import type { MessengerClientInitFunction } from '../types';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
@@ -96,7 +100,7 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
   PredictOrderService,
   PredictOrderServiceMessenger,
   PredictOrderServiceInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger, initMessenger, getState }) => {
   // Trading-capable composition lives here, at the Engine composition root —
   // product modules never import concrete adapters (see venue-adapters.md).
   // Quote and Commit requests are single-flight workflow calls that must
@@ -110,11 +114,18 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
         initMessenger.call('AuthenticationController:getBearerToken'),
     }),
   );
-  return {
-    controller: new PredictOrderService({
-      messenger: controllerMessenger,
-      trading: adapter.trading,
-      venueId: adapter.venueId,
-    }),
-  };
+  const controller = new PredictOrderService({
+    messenger: controllerMessenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  // An Active Venue change cancels every Preview that has not crossed the
+  // submission boundary. It is watched here, not on a screen, so it applies
+  // whether or not the Order sheet is mounted; committed operations keep
+  // being observed.
+  subscribeToActiveVenueChanges(
+    { getState, subscribe: (listener) => store.subscribe(listener) },
+    () => controller.cancelUncommittedPreviews(),
+  );
+  return { controller };
 };

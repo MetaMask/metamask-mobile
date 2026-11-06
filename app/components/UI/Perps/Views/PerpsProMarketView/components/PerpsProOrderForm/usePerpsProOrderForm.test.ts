@@ -18,7 +18,10 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -65,6 +68,11 @@ const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
   isCalculating: false,
 }));
 let mockTotalFee = 5;
+// Only populated by the fee display format A/B test
+// treatment tests below; `undefined` matches the real hook's control-mode
+// (includeFeeRateBreakdown: false) result.
+let mockTakerFeeRate: number | undefined;
+let mockMakerFeeRate: number | undefined;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   totalFee: mockTotalFee,
   undiscountedTotalFee: 6,
@@ -75,6 +83,8 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   originalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
   estimatedPoints: 100,
+  takerFeeRate: mockTakerFeeRate,
+  makerFeeRate: mockMakerFeeRate,
 }));
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
@@ -439,6 +449,15 @@ jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   }),
 }));
 
+let mockFeeDisplayMode: 'dollar' | 'percentage' = 'dollar';
+jest.mock('../../../../hooks/usePerpsFeeDisplayAbTest', () => ({
+  usePerpsFeeDisplayAbTest: () => ({
+    feeDisplayMode: mockFeeDisplayMode,
+    variantName: mockFeeDisplayMode === 'percentage' ? 'treatment' : 'control',
+    isActive: mockFeeDisplayMode === 'percentage',
+  }),
+}));
+
 let mockMarginModeLock: {
   status: 'locked' | 'unlocked' | 'unavailable';
   providerId: 'hyperliquid';
@@ -487,12 +506,53 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
-jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
-  usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
-    setOrderBookPreferences: jest.fn(),
-  }),
-}));
+jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const state: {
+    currency: 'usd' | 'base';
+    notify: () => void;
+  } = {
+    currency: 'usd',
+    notify: () => undefined,
+  };
+
+  return {
+    usePerpsOrderBookPreferences: () => {
+      const [currency, setCurrency] = React.useState(state.currency);
+
+      React.useLayoutEffect(() => {
+        state.notify = () => setCurrency(state.currency);
+        return () => {
+          state.notify = () => undefined;
+        };
+      }, []);
+
+      return {
+        preferences: { currency, metric: 'total' as const },
+        setOrderBookPreferences: (patch: { currency?: 'usd' | 'base' }) => {
+          if (patch.currency) {
+            state.currency = patch.currency;
+            setCurrency(patch.currency);
+          }
+        },
+      };
+    },
+    resetTestOrderBookCurrency: () => {
+      state.currency = 'usd';
+      state.notify = () => undefined;
+    },
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => {
+      state.currency = currency;
+      state.notify();
+    },
+  };
+});
+
+const { resetTestOrderBookCurrency, setTestOrderBookCurrency } =
+  jest.requireMock('../../../../hooks/usePerpsOrderBookPreferences') as {
+    resetTestOrderBookCurrency: () => void;
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => void;
+  };
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: {
@@ -657,6 +717,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
+    resetTestOrderBookCurrency();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
@@ -699,6 +760,9 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
+    mockTakerFeeRate = undefined;
+    mockMakerFeeRate = undefined;
+    mockFeeDisplayMode = 'dollar';
     mockSizeDecimals = 3;
     mockSelectedAddress = '0xaccount-a';
     mockPerpsAccountAddress = undefined;
@@ -891,6 +955,73 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
       expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
+
+    it('keeps the summary in dollar mode with no taker/maker rates for control', () => {
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('requests the breakdown and surfaces both rates on the summary for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: true }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('percentage');
+      expect(result.current.summary.takerFeeRate).toBe(0.00143);
+      expect(result.current.summary.makerFeeRate).toBe(0.00114);
+    });
+
+    it('hides taker/maker rates on the summary while the amount is invalid, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+      mockOrderForm.amount = '0';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('keeps a reduce-only close in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockContextValue.pendingReduceOnly = true;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+    });
+
+    it('keeps a TWAP order in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          includeFeeRateBreakdown: false,
+        }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
     it('routes Scale fees and validation through the concrete provider', () => {
@@ -1957,6 +2088,7 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
             PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
       expect(mockTrack).not.toHaveBeenCalledWith(
@@ -1972,6 +2104,49 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('reports usd on place order when coin is saved but the price is not ready', async () => {
+      setTestOrderBookCurrency('base');
+      mockLivePrice = '0';
+      mockLiveMarkPrice = '0';
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+    });
+
+    it('reports coin on place order after the size denomination is switched', async () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
     });
 
     it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {

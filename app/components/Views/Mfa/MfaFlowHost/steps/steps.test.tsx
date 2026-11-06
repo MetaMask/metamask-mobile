@@ -1,11 +1,12 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { AccessibilityInfo, Keyboard, TextInput } from 'react-native';
+import { AccessibilityInfo, Keyboard, Linking, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
   MfaFlowState,
   MfaFlowStep,
+  MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import CodeStep from './CodeStep';
@@ -16,7 +17,14 @@ import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
 import TotpSetupStep from './TotpSetupStep';
 
-const reason = { operation: 'test' };
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
+const reason: MfaReason = { operation: 'qa.test' };
 
 const buildState = <Step extends MfaFlowStep>(
   step: Step,
@@ -45,7 +53,7 @@ describe('IntroStep', () => {
           missing: ['passkey'],
           email: 'chris@metamask.com',
         })}
-        reason={{ operation: 'test', enrollDescription: 'Why we ask' }}
+        reason={{ operation: 'qa.test', enrollDescription: 'Why we ask' }}
         onAction={onAction}
       />,
     );
@@ -111,7 +119,7 @@ describe('IntroStep', () => {
           methods: ['email_otp'],
           missing: ['email_otp'],
         })}
-        reason={{ operation: 'test', verifyDescription: 'Not this one' }}
+        reason={{ operation: 'qa.test', verifyDescription: 'Not this one' }}
         onAction={jest.fn()}
       />,
     );
@@ -183,13 +191,13 @@ describe('PickerStep', () => {
   it.each([
     [
       'verify',
-      { operation: 'test', verifyDescription: 'To send $20.00' },
+      { operation: 'qa.test', verifyDescription: 'To send $20.00' },
       true,
     ],
-    ['verify', { operation: 'test' }, false],
+    ['verify', { operation: 'qa.test' }, false],
     [
       'confirm',
-      { operation: 'test', verifyDescription: 'To send $20.00' },
+      { operation: 'qa.test', verifyDescription: 'To send $20.00' },
       false,
     ],
   ] as const)(
@@ -248,6 +256,32 @@ describe('EmailEntryStep', () => {
     expect(onAction).toHaveBeenCalledWith({
       type: 'submitEmail',
       email: 'a@b.co',
+    });
+  });
+
+  it('links the help article when the email is already in use', () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' }, { error: 'email_claimed' })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(
+      getByText('This email is already in use. Try a different one.', {
+        exact: false,
+      }),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.ERROR_LINK));
+    expect(openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/configure/wallet/email-in-use',
+    );
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'errorCtaClicked',
+      cta: 'learn_more',
     });
   });
 
@@ -475,6 +509,16 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
+  it('hides the wrong-code error once the user types again', () => {
+    const { getByTestId, queryByTestId } = renderCode(otp(true), {
+      error: 'invalid_code',
+    });
+
+    expect(getByTestId(MfaFlowSelectorsIDs.ERROR)).toBeOnTheScreen();
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '1');
+    expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
+  });
+
   it('counts down instead of showing the cooldown error', () => {
     const { onAction, getByText, getByTestId, queryByTestId } = renderCode(
       otp(true),
@@ -492,6 +536,26 @@ describe('CodeStep', () => {
       jest.advanceTimersByTime(1_000);
     });
     expect(getByText('Resend code in 29s')).toBeOnTheScreen();
+  });
+
+  it('says the code is dead and counts down to a new one after too many attempts', () => {
+    const { onAction, getByText, getByTestId } = renderCode(otp(true), {
+      error: 'too_many_attempts',
+      resendAvailableAt: Date.now() + 30_000,
+    });
+
+    expect(
+      getByText(
+        "Too many incorrect codes. Get a new code when it's available.",
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Get new code in 30s')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(30_000);
+    });
+    expect(getByText('Get new code')).toBeOnTheScreen();
   });
 
   it('lets the user resend once the cooldown ends, without its error', () => {
@@ -517,11 +581,13 @@ describe('CodeStep', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pastes a copied code and submits it', async () => {
+  it('pastes a copied code on a long press and submits it', async () => {
     jest.spyOn(Clipboard, 'getString').mockResolvedValue('Code: 123456');
     const { onAction, getByTestId } = renderCode(otp(true));
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+    const tapArea = getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA);
+    fireEvent(tapArea, 'longPress');
+    fireEvent(tapArea, 'pressOut', { nativeEvent: {} });
 
     await waitFor(() =>
       expect(onAction).toHaveBeenCalledWith({
@@ -554,7 +620,7 @@ describe('CodeStep', () => {
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
-    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend', trigger: 'auto' });
   });
 
   it('waits out a new cooldown before sending again', () => {
@@ -647,6 +713,10 @@ describe('CodeStep', () => {
 
     expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'errorCtaClicked',
+      cta: 'try_again',
+    });
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
@@ -702,7 +772,7 @@ describe('PasskeyStep', () => {
 describe('FailureStep', () => {
   it('offers a retry when the error allows it', () => {
     const onAction = jest.fn();
-    const { getByTestId, getByText, queryByText } = render(
+    const { getByTestId, getByText, queryByText, queryByTestId } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -716,30 +786,65 @@ describe('FailureStep', () => {
 
     expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(queryByText('Something went wrong. Try again.')).toBeNull();
+    expect(queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON)).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
-    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
   it('only offers to close for a final error', () => {
-    const { queryByTestId, getByText } = render(
+    const onAction = jest.fn();
+    const { queryByTestId, getByTestId, getByText } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
-          code: 'max_identifiers_reached',
+          code: 'max_passkeys_reached',
           canRetry: false,
         })}
         reason={reason}
-        onAction={jest.fn()}
+        onAction={onAction}
       />,
     );
 
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(
       getByText("You've reached the limit for this method."),
     ).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
+
+  it.each(['multi_primary_srp', 'max_identifiers_reached'] as const)(
+    'sends %s to support',
+    (code) => {
+      const onAction = jest.fn();
+      const { getByTestId, getByText } = render(
+        <FailureStep
+          {...buildState({
+            name: 'failure',
+            code,
+            canRetry: false,
+          })}
+          reason={reason}
+          onAction={onAction}
+        />,
+      );
+
+      expect(getByText("We couldn't verify your details")).toBeOnTheScreen();
+      expect(getByText('Contact support to continue.')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'errorCtaClicked',
+        cta: 'contact_support',
+      });
+      const [, url] = mockOpenSupportWithConsent.mock.lastCall ?? [];
+      expect(new URL(url).searchParams.get('mfa_error')).toBe(code);
+
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+      expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
+    },
+  );
 });
 
 describe('TotpSetupStep', () => {

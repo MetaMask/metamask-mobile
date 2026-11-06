@@ -34,11 +34,13 @@ import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/s
 import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import AppConstants from '../../core/AppConstants';
 import {
+  CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
@@ -55,6 +57,11 @@ import {
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
+import { parseMoneyReferralCodeFromUrl } from '../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -65,9 +72,24 @@ const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
 let hasMainNavigatorMounted = false;
 let sdkServicesInitializationTask: Task<void> | undefined;
+// The link a user opened before having a wallet. Wallet creation marks
+// onboarding complete while onboarding screens can still follow, so this link
+// waits for MainNavigator instead of the ready timeout.
+let deeplinkOpenedBeforeWallet: string | null = null;
+// Latest referral link parse. Only that parse ending releases
+// `isReferralLinkPending`, so an older link cannot release a newer one.
+let referralLinkParseId = 0;
 
 export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
   hasMainNavigatorMounted = isReady;
+};
+
+export const __resetDeeplinkOpenedBeforeWalletForTesting = () => {
+  deeplinkOpenedBeforeWallet = null;
+};
+
+export const __resetReferralLinkParseForTesting = () => {
+  referralLinkParseId = 0;
 };
 
 export const __resetSDKServicesInitializationForTesting = () => {
@@ -95,14 +117,22 @@ export function* parseDeeplink(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   try {
-    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
-      origin,
-      ...(appStartType === undefined ? {} : { appStartType }),
-    });
+    const accepted: boolean = yield call(
+      [SharedDeeplinkManager, SharedDeeplinkManager.parse],
+      deeplink,
+      {
+        origin,
+        ...(appStartType === undefined ? {} : { appStartType }),
+        ...(onHandled ? { onHandled } : {}),
+      },
+    );
+    return accepted;
   } catch (error) {
     Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
+    return false;
   }
 }
 
@@ -141,6 +171,7 @@ export function* parseDeeplinkAfterNavReady(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   if (!hasMainNavigatorMounted) {
     const { timedOut } = yield race({
@@ -157,7 +188,109 @@ export function* parseDeeplinkAfterNavReady(
     }
   }
 
-  yield call(parseDeeplink, deeplink, origin, appStartType);
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
+  );
+  return accepted;
+}
+
+/**
+ * Parses a link opened before the wallet existed once onboarding hands over
+ * to `MainNavigator`. The remaining onboarding steps can take any amount of
+ * time, and parsing before then drops main-stack targets such as Swap.
+ *
+ * An auto-lock in the meantime keeps the wait going: the pending link is
+ * already cleared, so the post-unlock Home is what mounts `MainNavigator`.
+ */
+export function* parseDeeplinkAfterOnboarding(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
+) {
+  if (!hasMainNavigatorMounted) {
+    const { walletReset } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      walletReset: take(CLEAR_ONBOARDING),
+    });
+
+    if (walletReset) {
+      // Drop the stale destination: a reset creates a new wallet and the old
+      // swap/dapp/home target must not fire into it. Keep the referral code:
+      // social-login/SRP retries call deleteWallet() -> CLEAR_ONBOARDING, and
+      // the user should still be offered the code they opened the app with.
+      const referralCode = parseMoneyReferralCodeFromUrl(deeplink);
+      if (referralCode) {
+        yield put(setPendingReferralCode(referralCode));
+      }
+
+      Logger.log(
+        'parseDeeplinkAfterOnboarding: wallet reset before MainNavigator mounted, dropping deeplink destination',
+      );
+      return false;
+    }
+
+    hasMainNavigatorMounted = true;
+  }
+
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
+  );
+  return accepted;
+}
+
+type DeeplinkParser = (
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
+) => Generator;
+
+/**
+ * Runs the parse of a link carrying a Money referral code, then releases
+ * `isReferralLinkPending`, which the caller set before forking. The invite
+ * sheet and the push pre-prompt wait on it, so it is released however the
+ * parse ends, including on cancellation.
+ *
+ * A parse that accepts the link returns before the interstitial is answered,
+ * and the code is only captured on Continue. The release therefore waits for
+ * `onHandled`, which the deeplink pipeline calls once that answer is known.
+ */
+export function* parseReferralDeeplink(
+  parseId: number,
+  parse: DeeplinkParser,
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
+  let markHandled: () => void = () => undefined;
+  const handled = new Promise<void>((resolve) => {
+    markHandled = resolve;
+  });
+  try {
+    const accepted: boolean = yield call(
+      parse,
+      deeplink,
+      origin,
+      appStartType,
+      markHandled,
+    );
+    if (accepted) {
+      yield call(() => handled);
+    }
+  } finally {
+    if (parseId === referralLinkParseId) {
+      yield put(setReferralLinkPending(false));
+    }
+  }
 }
 
 /**
@@ -273,6 +406,7 @@ export function* handleDeeplinkSaga() {
         if (utmPayload) {
           yield put(saveAttribution(utmPayload));
         }
+        deeplinkOpenedBeforeWallet = AppStateEventProcessor.pendingDeeplink;
       }
 
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
@@ -327,13 +461,35 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
-      yield fork(
-        parseDeeplinkAfterNavReady,
-        deeplink,
-        deeplinkSource,
-        consumeNextParseAppStartType() ?? getUnlockAppStartType(),
-      );
+      // SDK and WalletConnect requests only need an unlocked keychain, and a
+      // dapp waiting on one may give up before onboarding ends.
+      const shouldWaitForOnboarding =
+        deeplink === deeplinkOpenedBeforeWallet &&
+        !isSDKServiceDeeplink(deeplink);
+      deeplinkOpenedBeforeWallet = null;
+
+      const parse = shouldWaitForOnboarding
+        ? parseDeeplinkAfterOnboarding
+        : parseDeeplinkAfterNavReady;
+      // Fallback captured here — inside parse, post-unlock nav has already cleared it.
+      const appStartType =
+        consumeNextParseAppStartType() ?? getUnlockAppStartType();
+
+      // Fork so the loop keeps listening.
+      if (parseMoneyReferralCodeFromUrl(deeplink)) {
+        referralLinkParseId += 1;
+        yield put(setReferralLinkPending(true));
+        yield fork(
+          parseReferralDeeplink,
+          referralLinkParseId,
+          parse,
+          deeplink,
+          deeplinkSource,
+          appStartType,
+        );
+      } else {
+        yield fork(parse, deeplink, deeplinkSource, appStartType);
+      }
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
@@ -421,6 +577,8 @@ export function* startAppServices() {
 
   // Apply vault initialization
   yield call(applyVaultInitialization);
+
+  yield call(hydrateSocialTermsAcceptance);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());

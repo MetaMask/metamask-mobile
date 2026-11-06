@@ -68,6 +68,16 @@ export interface PerpsProOrderSummaryProps {
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
   /**
+   * Fee display format A/B test. `'dollar'` (default)
+   * renders `fee`/`originalFee` as today; `'percentage'` renders
+   * `takerFeeRate`/`makerFeeRate` as "Taker X.XXX% / Maker Y.YYY%" instead.
+   */
+  feeDisplayMode?: 'dollar' | 'percentage';
+  /** Taker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  takerFeeRate?: number;
+  /** Maker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  makerFeeRate?: number;
+  /**
    * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
    * per suborder in place of Est Liquidation and Slippage.
    */

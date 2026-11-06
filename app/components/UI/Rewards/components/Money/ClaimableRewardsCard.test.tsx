@@ -2,10 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import ClaimableRewardsCard, {
-  CLAIMABLE_REWARDS_CARD_TEST_IDS,
-  claimButtonState,
-} from './ClaimableRewardsCard';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
+
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => false),
+}));
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
@@ -60,6 +63,10 @@ describe('claimButtonState', () => {
 });
 
 describe('ClaimableRewardsCard', () => {
+  beforeEach(() => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
+  });
+
   it('renders Claim when a route clears $1', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -238,5 +245,85 @@ describe('ClaimableRewardsCard', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
     );
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the claimable amount row for a referrer while Social V1 is off', () => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
+    const { getByTestId, getByText, queryByTestId, queryByText } =
+      renderWithProvider(
+        <ClaimableRewardsCard
+          localizedText={LOCALIZED_TEXT}
+          claimable="1000000"
+          claimed="0"
+          claimableAmount="$1.00"
+          recordedAmount="$4.00"
+          last7Amount="$0.25"
+          isSummaryLoading={false}
+          isLast7Loading={false}
+          canClaim
+          isReferrer
+        />,
+      );
+
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
+    ).toHaveTextContent('$0.25');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$4.00');
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
+  });
+
+  it('shows the claimable amount row for a referrer while Social V1 is on', () => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(true);
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isReferrer
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the claimable amount row in the referrer skeleton', () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount={null}
+        isSummaryLoading
+        isLast7Loading
+        isReferrer
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
   });
 });

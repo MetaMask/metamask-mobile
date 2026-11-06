@@ -57,12 +57,15 @@ export const fetchSocialFeedPage = (
 ): Promise<FeedResponse> => {
   const paging = olderThan ? { limit, olderThan } : { limit };
   switch (request.action) {
-    case 'SocialService:fetchFeed':
+    case 'SocialService:fetchFeed': {
+      const { chains, assetIds, ...options } = request.options;
       return Engine.controllerMessenger.call('SocialService:fetchFeed', {
-        ...request.options,
-        chains: [...request.options.chains],
+        ...options,
+        chains: [...chains],
+        ...(assetIds ? { assetIds: [...assetIds] } : {}),
         ...paging,
       });
+    }
     case 'SocialService:fetchTokenFeed':
       return Engine.controllerMessenger.call('SocialService:fetchTokenFeed', {
         ...request.options,

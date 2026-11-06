@@ -151,6 +151,9 @@ export type ReferralLocalizedTextKey =
   | 'funnelFeeGenerating'
   | 'funnelFeeGeneratingDescription'
   | 'tradingCommissionsSection'
+  | 'copyTradingEmptyDescription'
+  | 'copyTradingEmptyAction'
+  | 'copyTradingInfoDescription'
   | 'tradingActivityEmptyDescription'
   | 'tradingActivityEmptyAction'
   | 'copiedOnce'
@@ -194,7 +197,12 @@ export type ReferralLocalizedTextKey =
   | 'rewardsPausedTitle'
   | 'rewardsPausedDescription'
   | 'rewardsPausedBanner'
-  | 'rewardsPausedLearnMore';
+  | 'rewardsPausedLearnMore'
+  | 'settingsReferralTitle'
+  | 'settingsReferralLinkedDescription'
+  | 'settingsReferralNotLinkedDescription'
+  | 'settingsReferralPlaceholder'
+  | 'settingsReferralApply';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
@@ -497,7 +505,8 @@ export type ClaimHistoryPageDto = {
 /** Last path segment of `POST /wr/earnings/claim/<slug>`. */
 export type ClaimRouteSlug =
   | 'referral-trade-fee-cashback'
-  | 'referral-rev-share';
+  | 'referral-rev-share'
+  | 'social-follow-trade';
 
 export interface ClaimVoucherDto {
   claim_id: string;

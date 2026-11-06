@@ -1,6 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { useEffect, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { Image, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -12,7 +12,7 @@ import {
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
 } from 'expo-updates';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { OTA_VERSION } from '../../../../constants/ota';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
@@ -27,6 +27,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import foxImage from '../../../../images/branding/fox.png';
 import { createStyles } from './AppInformation.styles';
 import { EnvironmentInfo } from './EnvironmentInfo';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface Props {
   navigation: AppNavigationProp;
@@ -37,6 +39,7 @@ interface Props {
  * View that contains app information
  */
 const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [appName, setAppName] = useState('');
@@ -151,9 +154,13 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
       style={styles.wrapper}
       testID={AboutMetaMaskSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={aboutTitle}
+        // Android wraps "MetaMask" to a clipped second line without this
+        titleProps={{ numberOfLines: 1 }}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
       />

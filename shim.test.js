@@ -106,23 +106,29 @@ describe('E2E network shim', () => {
    * @param {object} [options]
    * @param {boolean} [options.hasTestOverrides] - Mocked `hasTestOverrides`.
    * @param {boolean} [options.isPerformanceTest] - Mocked `isPerformanceTest`.
+   * @param {boolean} [options.isTestEnvironment] - Mocked `isTestEnvironment`.
+   * @param {object} [options.launchArguments] - Extra launch arguments.
    * @param {string} [options.platform] - `Platform.OS` the shim sees.
    */
   const loadShim = ({
     hasTestOverrides = true,
     isPerformanceTest = false,
+    isTestEnvironment = true,
+    launchArguments = {},
     platform = 'ios',
   } = {}) =>
     jest.isolateModules(() => {
       /* eslint-disable import-x/no-commonjs */
       jest.doMock('./app/util/test/utils.js', () => ({
         ...jest.requireActual('./app/util/test/utils.js'),
-        isTestEnvironment: true,
+        isTestEnvironment,
         hasTestOverrides,
         isPerformanceTest,
       }));
       jest.doMock('react-native-launch-arguments', () => ({
-        LaunchArguments: { value: () => ({ mockServerPort: 8000 }) },
+        LaunchArguments: {
+          value: () => ({ mockServerPort: 8000, ...launchArguments }),
+        },
       }));
       jest.doMock('@walletconnect/react-native-compat', () => ({}));
       jest.doMock('expo', () => ({}));
@@ -181,6 +187,45 @@ describe('E2E network shim', () => {
     jest.restoreAllMocks();
   });
 
+  describe('fixture and command queue server ports', () => {
+    const launchArguments = {
+      fixtureServerPort: '30002',
+      commandQueueServerPort: '30003',
+    };
+    let testConfig;
+
+    beforeEach(() => {
+      ({ testConfig } = jest.requireActual('./app/util/test/utils.js'));
+      for (const key of Object.keys(testConfig)) {
+        delete testConfig[key];
+      }
+    });
+
+    it.each([
+      ['a test environment', { isTestEnvironment: true }],
+      [
+        'a build with test overrides outside a test environment',
+        { isTestEnvironment: false, hasTestOverrides: true },
+      ],
+    ])('reads them from launch arguments in %s', (_label, options) => {
+      loadShim({ ...options, launchArguments });
+
+      expect(testConfig.fixtureServerPort).toBe('30002');
+      expect(testConfig.commandQueueServerPort).toBe('30003');
+    });
+
+    it('leaves them unset without a test environment or test overrides', () => {
+      loadShim({
+        isTestEnvironment: false,
+        hasTestOverrides: false,
+        launchArguments,
+      });
+
+      expect(testConfig.fixtureServerPort).toBeUndefined();
+      expect(testConfig.commandQueueServerPort).toBeUndefined();
+    });
+  });
+
   it('routes fetch through the mock server proxy', async () => {
     loadShim();
     answerHealthCheck({ ok: true });
@@ -191,6 +236,54 @@ describe('E2E network shim', () => {
       proxied('https://example.com/a'),
       undefined,
     );
+  });
+
+  it('fetches data URLs directly on iOS', async () => {
+    loadShim({ platform: 'ios' });
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl).catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      proxied(dataUrl),
+      undefined,
+    );
+  });
+
+  it('routes data URLs through the mock server on Android', async () => {
+    loadShim({ platform: 'android' });
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl).catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(proxied(dataUrl), undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
+  });
+
+  it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
+    const opened = [];
+    global.WebSocket = function MockWebSocket(url, protocols) {
+      opened.push({ url, protocols });
+    };
+    loadShim();
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const wsUrl = 'wss://example.com/socket';
+    // eslint-disable-next-line no-new
+    new global.WebSocket(wsUrl);
+
+    expect(opened).toEqual([
+      {
+        url: `ws://localhost:8000/proxy-ws?url=${encodeURIComponent(wsUrl)}`,
+        protocols: undefined,
+      },
+    ]);
   });
 
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {

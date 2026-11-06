@@ -12,7 +12,6 @@ import {
   navigateToTestDappAndTap,
   openSmartAccountSwitchForSelectedAccount,
   SMART_ACCOUNT_UPGRADED_ACTIVITY,
-  SMART_ACCOUNT_UPGRADING_ACTIVITY,
   switchToLocalNetworkFromNetworkManager,
 } from '../../../../flows/confirmations.flow.js';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder.js';
@@ -85,10 +84,10 @@ function buildLocalRpcFixture({
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupSimulationEnabledNetworksMocks(mockServer);
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...Object.assign({}, ...confirmationFeatureFlags),
-    tmcuActivityRedesignEnabled: true,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationFeatureFlags),
+  );
 };
 
 appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
@@ -218,9 +217,11 @@ appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
           await assertUpgradeConfirmationRows();
 
           await dismissSmartAccountScreensAndOpenFilteredActivity();
-          // Upgrade tx never reached Anvil (empty txpool / no 0xef01) — pending only.
+          // transaction-controller 72.3.0 estimates the type-4 upgrade as one
+          // outer transaction, so Anvil confirms it and the activity row is
+          // the success title rather than the pending one.
           await assertSmartAccountUpgradeActivity(
-            SMART_ACCOUNT_UPGRADING_ACTIVITY,
+            SMART_ACCOUNT_UPGRADED_ACTIVITY,
           );
         },
       );

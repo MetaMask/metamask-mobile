@@ -13,7 +13,6 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -43,6 +42,9 @@ import type { Quote } from '../../types';
 import { RAMP_SURFACE } from '../../types/depositAnalytics';
 
 import styleSheet from './HeadlessPlayground.styles';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const HEADLESS_PLAYGROUND_HEADER_TEST_ID = 'headless-playground-header';
 export const HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID =
@@ -286,6 +288,7 @@ function SelectableRow({
 type QuotesStatus = 'idle' | 'loading' | 'success' | 'error';
 
 function HeadlessPlayground() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
@@ -657,7 +660,9 @@ function HeadlessPlayground() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
         onBack={handleBack}

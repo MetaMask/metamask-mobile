@@ -6,7 +6,6 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -17,7 +16,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -35,12 +40,13 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
+import socialTermsOfUseContent from '../../../../util/termsOfUse/socialTermsOfUseContent';
 import {
   connectX,
   XAuthError,
   XAuthErrorType,
 } from '../../../../core/XAuthService';
-import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
@@ -57,11 +63,16 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
+  type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getUsernameLocalError } from './utils/getUsernameLocalError';
+import { getUsernameFeedback } from './utils/getUsernameFeedback';
+import UsernameStatusLine from './UsernameStatusLine';
 import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
@@ -77,8 +88,17 @@ import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import SocialTermsSheet from '../terms/SocialTermsSheet';
+import {
+  acceptSocialTerms,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const { Interaction, Outcome, Screen, Step } = SocialEvent;
+// Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
@@ -87,6 +107,16 @@ const USERNAME_CHECK_DEBOUNCE_MS = 400;
  * not the same as the name being taken, and callers must not replace the draft.
  */
 type UsernameCheckOutcome = 'available' | 'unavailable' | 'superseded';
+
+/**
+ * A server answer for one handle. `taken` is the only result that means
+ * another name should be suggested; `invalid` and `error` keep the name and
+ * show why it can't be claimed yet.
+ */
+interface UsernameAvailability {
+  status: 'available' | 'taken' | 'invalid' | 'error';
+  claimError: string | null;
+}
 
 const LIVE_ACTIVITY = [
   {
@@ -132,6 +162,40 @@ const OnboardingTitle: React.FC<{
     >
       {children}
     </MarketingMomentTitle>
+  </Box>
+);
+
+/**
+ * "Connect [X logo] account". The logo stands in for the word X, so the
+ * label is built from parts instead of one string. The button's text color
+ * only reaches string children, so the parts set the primary inverse color.
+ */
+const ConnectXLabel: React.FC = () => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={1}
+  >
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.PrimaryInverse}
+    >
+      {strings('social_leaderboard.profile_onboarding.connect_x_before_logo')}
+    </Text>
+    <Icon
+      name={IconName.X}
+      size={IconSize.Md}
+      color={IconColor.PrimaryInverse}
+      testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_LOGO}
+    />
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.PrimaryInverse}
+    >
+      {strings('social_leaderboard.profile_onboarding.connect_x_after_logo')}
+    </Text>
   </Box>
 );
 
@@ -239,7 +303,10 @@ const ReadyCardFallback: React.FC<{
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route =
+    useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   // Zero the insets this screen already accounts for. MarketingMoment pads
@@ -261,6 +328,12 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  // Path the user picked while the terms sheet is open; null when it is closed.
+  const [pendingTermsPath, setPendingTermsPath] =
+    useState<ProfileOnboardingPath | null>(null);
+  const [pendingTermsOnly, setPendingTermsOnly] = useState(
+    () => route.params?.termsOnly === true,
+  );
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -302,6 +375,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   useEffect(() => {
     trackInteraction(Interaction.STEP_VIEWED);
   }, [analyticsStep, trackInteraction]);
+
+  useEffect(() => {
+    if (pendingTermsOnly) {
+      trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
+    }
+  }, [pendingTermsOnly, trackInteraction]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -362,42 +441,60 @@ const SocialProfileOnboardingView: React.FC = () => {
     }));
   }, []);
 
-  const checkHandle = useCallback(
-    async (username: string): Promise<UsernameCheckOutcome> => {
-      const requestId = ++usernameCheckId.current;
+  const fetchUsernameAvailability = useCallback(
+    async (username: string): Promise<UsernameAvailability> => {
       try {
         const availability = await checkUsernameAvailability(username);
-        if (requestId !== usernameCheckId.current) {
-          return 'superseded';
+        if (!availability.valid) {
+          return {
+            status: 'invalid',
+            claimError: strings(
+              'social_leaderboard.profile_onboarding.username_invalid',
+            ),
+          };
         }
-        if (!availability.available || !availability.valid) {
-          setUsernameClaimError(
-            strings(
+        if (!availability.available) {
+          return {
+            status: 'taken',
+            claimError: strings(
               'social_leaderboard.profile_onboarding.username_unavailable',
             ),
-          );
-          return 'unavailable';
+          };
         }
-        setUsernameClaimError(null);
-        return 'available';
+        return { status: 'available', claimError: null };
       } catch {
-        if (requestId !== usernameCheckId.current) {
-          return 'superseded';
-        }
-        setUsernameClaimError(
-          strings('social_leaderboard.profile_onboarding.username_check_error'),
-        );
-        return 'unavailable';
+        return {
+          status: 'error',
+          claimError: strings(
+            'social_leaderboard.profile_onboarding.username_check_error',
+          ),
+        };
       }
     },
     [checkUsernameAvailability],
   );
 
+  const checkHandle = useCallback(
+    async (username: string): Promise<UsernameCheckOutcome> => {
+      const requestId = ++usernameCheckId.current;
+      const { status, claimError } = await fetchUsernameAvailability(username);
+      if (requestId !== usernameCheckId.current) {
+        return 'superseded';
+      }
+      setUsernameClaimError(claimError);
+      return status === 'available' ? 'available' : 'unavailable';
+    },
+    [fetchUsernameAvailability],
+  );
+
   const scheduleUsernameCheck = useCallback(
     (username: string) => {
       clearUsernameCheckTimer();
+      // Any edit makes in-flight checks stale, including a shuffle that has
+      // not shown its name yet.
+      usernameCheckId.current += 1;
       if (getUsernameStatus(username) !== 'available') {
-        usernameCheckId.current += 1;
+        setUsernameClaimError(null);
         return;
       }
       usernameCheckTimer.current = setTimeout(() => {
@@ -419,20 +516,33 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
     trackInteraction(Interaction.USERNAME_SHUFFLED);
+    // Check the suggestion before showing it, so one tap shows one name. A
+    // superseded check means the user typed or continued in the meantime, and
+    // the draft must stay as they left it.
+    const requestId = ++usernameCheckId.current;
     const claimGeneratedUsername = async () => {
-      let username = generateUsername();
-      applyUsername(username);
-      // Only a completed "taken" result may replace the handle. A superseded
-      // check returns after the user has moved on, and must leave the draft.
-      if ((await checkHandle(username)) !== 'unavailable') {
+      const username = generateUsername();
+      const { status, claimError } = await fetchUsernameAvailability(username);
+      if (requestId !== usernameCheckId.current) {
         return;
       }
-      username = generateUsernameWithNumber();
+      if (status === 'taken') {
+        const numberedUsername = generateUsernameWithNumber();
+        applyUsername(numberedUsername);
+        await checkHandle(numberedUsername);
+        return;
+      }
       applyUsername(username);
-      await checkHandle(username);
+      setUsernameClaimError(claimError);
     };
     claimGeneratedUsername().catch(() => undefined);
-  }, [applyUsername, checkHandle, clearUsernameCheckTimer, trackInteraction]);
+  }, [
+    applyUsername,
+    checkHandle,
+    clearUsernameCheckTimer,
+    fetchUsernameAvailability,
+    trackInteraction,
+  ]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -458,7 +568,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     [trackInteraction],
   );
 
-  const handleConnectX = useCallback(() => {
+  const startManualPath = useCallback(() => {
+    setUsernameClaimError(null);
+    setDraft((current) => startManualOnboarding(current));
+    setStep('username');
+  }, []);
+
+  const beginConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
     cancelConnectX();
     const controller = new AbortController();
@@ -502,20 +618,81 @@ const SocialProfileOnboardingView: React.FC = () => {
     connect().catch(() => undefined);
   }, [cancelConnectX, playSelection]);
 
-  const handleCreateManually = useCallback(() => {
-    cancelConnectX();
-    setIsConnectingX(false);
-    playSelection().catch(() => undefined);
-    setUsernameClaimError(null);
-    setDraft((current) => startManualOnboarding(current));
-    setStep('username');
-  }, [cancelConnectX, playSelection]);
+  const requestPath = useCallback(
+    (path: ProfileOnboardingPath) => {
+      if (hasAcceptedSocialTerms()) {
+        if (path === 'x') {
+          beginConnectX();
+        } else {
+          playSelection().catch(() => undefined);
+          startManualPath();
+        }
+        return;
+      }
+      playSelection().catch(() => undefined);
+      trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
+      setPendingTermsPath(path);
+    },
+    [beginConnectX, playSelection, startManualPath, trackInteraction],
+  );
+
+  const handleConnectX = useCallback(() => requestPath('x'), [requestPath]);
+
+  const handleCreateManually = useCallback(
+    () => requestPath('manual'),
+    [requestPath],
+  );
+
+  const handleTermsAgree = useCallback(() => {
+    if (!pendingTermsPath && !pendingTermsOnly) {
+      return;
+    }
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: Outcome.SUCCESS,
+      step: Step.TERMS,
+    });
+    acceptSocialTerms().catch(() => undefined);
+    if (pendingTermsOnly) {
+      setPendingTermsOnly(false);
+      navigation.goBack();
+      return;
+    }
+    const path = pendingTermsPath;
+    setPendingTermsPath(null);
+    if (path === 'x') {
+      beginConnectX();
+    } else {
+      startManualPath();
+    }
+  }, [
+    beginConnectX,
+    navigation,
+    pendingTermsOnly,
+    pendingTermsPath,
+    startManualPath,
+    trackInteraction,
+  ]);
+
+  const handleTermsClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, {
+      outcome: Outcome.DISMISSED,
+      step: Step.TERMS,
+    });
+    if (pendingTermsOnly) {
+      setPendingTermsOnly(false);
+      navigation.goBack();
+      return;
+    }
+    setPendingTermsPath(null);
+  }, [navigation, pendingTermsOnly, trackInteraction]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
       setUsernameClaimError(null);
       if (enabled) {
+        clearUsernameCheckTimer();
+        usernameCheckId.current += 1;
         setDraft((current) => ({
           ...current,
           useXUsername: true,
@@ -535,7 +712,13 @@ const SocialProfileOnboardingView: React.FC = () => {
       }));
       scheduleUsernameCheck(normalizeUsername(nextUsername));
     },
-    [draft.username, draft.xUsername, playSelection, scheduleUsernameCheck],
+    [
+      clearUsernameCheckTimer,
+      draft.username,
+      draft.xUsername,
+      playSelection,
+      scheduleUsernameCheck,
+    ],
   );
 
   const handleToggleXAvatar = useCallback(
@@ -600,7 +783,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       (account) => account.id === current.linkedAccountId,
     );
     const profileId =
-      (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+      (await getSocialProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
     const params = buildCreateProfileParams(
       current,
       profileId,
@@ -756,13 +939,24 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
-    navigation.navigate(
-      draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+    // Replace drops onboarding from the stack. navigate() would leave it under
+    // the feed, so a later back swipe could reopen it.
+    navigation.dispatch(
+      StackActions.replace(
+        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+      ),
     );
   }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
+  const usernameLocalError = getUsernameLocalError(draft, usernameStatus);
+  const usernameFeedback = getUsernameFeedback({
+    localError: usernameLocalError,
+    claimError: usernameClaimError,
+    status: usernameStatus,
+    showAvailable: !isUneditedXUsername(draft),
+  });
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
@@ -785,7 +979,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           topInset={insets.top}
         />
       )}
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
@@ -840,10 +1036,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                     : undefined
                 }
                 primaryAction={{
-                  label: strings(
+                  label: <ConnectXLabel />,
+                  accessibilityLabel: strings(
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
-                  startIconName: IconName.X,
                   onPress: handleConnectX,
                   isLoading: isConnectingX,
                   isDisabled: isConnectingX,
@@ -869,8 +1065,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'x-identity' ? (
                 <XProfileIdentityStep
                   draft={draft}
-                  usernameStatus={usernameStatus}
-                  usernameClaimError={usernameClaimError}
+                  usernameFeedback={usernameFeedback}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}
@@ -904,10 +1099,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.username}
                       onChangeText={handleUsernameChange}
-                      isError={
-                        usernameStatus === 'invalid' ||
-                        Boolean(usernameClaimError)
-                      }
+                      isError={usernameFeedback?.tone === 'error'}
                       startAccessory={
                         <Text
                           variant={TextVariant.BodyMd}
@@ -935,43 +1127,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameClaimError}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'available' && !usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.SuccessDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'invalid' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_invalid',
-                        )}
-                      </Text>
-                    ) : null}
+                    <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
                   <Box gap={2}>
                     <Text
@@ -1159,6 +1315,13 @@ const SocialProfileOnboardingView: React.FC = () => {
           ) : null}
         </Box>
       </KeyboardAvoidingView>
+      {pendingTermsPath || pendingTermsOnly ? (
+        <SocialTermsSheet
+          html={socialTermsOfUseContent}
+          onAgree={handleTermsAgree}
+          onClose={handleTermsClose}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

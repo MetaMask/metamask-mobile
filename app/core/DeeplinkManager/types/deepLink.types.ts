@@ -24,6 +24,7 @@ export interface DeeplinkUrlParams {
   attributionId?: string;
   attribution_id?: string;
   referral?: string;
+  ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -45,6 +46,11 @@ export interface DeeplinkUrlParams {
   // Limit Order-specific parameters
   expiresInMinutes?: string;
   priceTolerance?: string;
+
+  // Recurring Buy-specific parameters
+  every?: string;
+  unit?: string;
+  repeatCount?: string;
 
   // Perps-specific parameters
   symbol?: string;
@@ -116,10 +122,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;

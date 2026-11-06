@@ -16,7 +16,6 @@ import {
   selectPerpsCompetitionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
   selectPerpsPayWithAnyTokenAllowlistAssets,
-  selectPerpsRewardsReferralCodeEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -28,6 +27,8 @@ import {
   PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsPositionModifyPreviewEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
+  PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY,
   selectPerpsPriceAlertsEnabledFlag,
   selectPerpsPriceAlertsPercentChangeEnabledFlag,
   selectPerpsSocialEnabledFlag,
@@ -211,6 +212,78 @@ describe('Perps Feature Flag Selectors', () => {
 
       expect(result).toBe(false);
     });
+  });
+
+  describe('selectPerpsCrossMarginEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY] = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns false when the remote flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsCrossMarginEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the flag is enabled and the app meets minimumVersion', () => {
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsCrossMarginEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsCrossMarginEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the app version is below minimumVersion', () => {
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      const result = selectPerpsCrossMarginEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it.each([null, true, { enabled: 'yes' }, { minimumVersion: '1.0.0' }])(
+      'returns false for malformed flag %p',
+      (flag) => {
+        const state = createStateWithFlag(flag as Json);
+
+        const result = selectPerpsCrossMarginEnabledFlag(state);
+
+        expect(result).toBe(false);
+      },
+    );
   });
 
   describe('selectPerpsSocialEnabledFlag', () => {
@@ -2893,77 +2966,6 @@ describe('Perps Feature Flag Selectors', () => {
         stateWithInvalidRemoteFlag,
       );
       expect(result).toBe(true);
-    });
-  });
-
-  describe('selectPerpsRewardsReferralCodeEnabledFlag', () => {
-    it('returns false when flag is not set', () => {
-      const result = selectPerpsRewardsReferralCodeEnabledFlag(
-        mockedEmptyFlagsState,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('returns true when flag is boolean true', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                rewardsReferralCodeEnabled: true,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
-      expect(result).toBe(true);
-    });
-
-    it('returns true when version-gated flag is enabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                rewardsReferralCodeEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
-      expect(result).toBe(true);
-    });
-
-    it('returns false when version-gated flag is disabled', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                rewardsReferralCodeEnabled: {
-                  enabled: false,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
-      expect(result).toBe(false);
     });
   });
 

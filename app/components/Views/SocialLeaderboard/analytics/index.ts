@@ -1,6 +1,5 @@
 export { useSocialLeaderboardAnalytics } from './useSocialLeaderboardAnalytics';
 export {
-  useManageProfileAnalytics,
   useSocialFeedInteractions,
   useSocialInteraction,
   useSocialScreenAnalytics,

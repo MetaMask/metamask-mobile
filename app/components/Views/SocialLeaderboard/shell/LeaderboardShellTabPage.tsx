@@ -41,7 +41,7 @@ import {
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
 import {
-  DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
   SocialTabFilterBar,
   toLeaderboardTimeframe,
   toLeaderboardTypeFilter,
@@ -77,6 +77,8 @@ export interface LeaderboardShellTabPageProps {
   appliedFilters?: SocialShellFilters;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /** Clears the applied Leaderboard filters. The type chip is kept. */
+  onClearFilters?: () => void;
   onTypeChange?: (type: SocialTypeFilter) => void;
 }
 
@@ -91,9 +93,10 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   onScroll,
   pageRef,
   containerTestID,
-  appliedFilters = DEFAULT_FILTERS,
+  appliedFilters = DEFAULT_LEADERBOARD_FILTERS,
   onOpenFilters,
   isFilterActive = false,
+  onClearFilters,
   onTypeChange,
 }) => {
   const tw = useTailwind();
@@ -245,8 +248,12 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
+                filteredEmpty={isFilterActive}
+                onClearFilters={onClearFilters}
+                emptyClassName="-mt-4"
                 onOutcomeChange={setScreenOutcome}
                 performance={performance}
+                requireSocialProfile
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

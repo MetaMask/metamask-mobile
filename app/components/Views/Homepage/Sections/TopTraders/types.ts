@@ -56,6 +56,11 @@ export interface TraderRowMetric {
   label: string;
   /** Renders the value in success green rather than error red. */
   isPositive: boolean;
+  /**
+   * Renders the value in the default text color, ignoring `isPositive`. For a
+   * holding such as a position size, which is not a gain or a loss.
+   */
+  isNeutral?: boolean;
 }
 
 /**
@@ -89,8 +94,8 @@ export interface TraderRowProps {
    */
   highlighted?: boolean;
   /**
-   * Social V1 only: omit the position column when the viewer's rank is
-   * unknown. Ignored by the legacy Follow-button row.
+   * Social V1 only: leave the position column blank when the viewer's rank
+   * is unknown. The column keeps its width. Ignored by the legacy row.
    */
   hideRank?: boolean;
 }

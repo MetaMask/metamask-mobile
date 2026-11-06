@@ -13,6 +13,12 @@ describe('Social V1 analytics contracts', () => {
   });
   it('normalizes bounded route origins', () => {
     expect(getSocialEventSource('perp_asset_screen')).toBe('perp_asset_screen');
+    expect(getSocialEventSource('social_trending')).toBe('social_trending');
+    expect(getSocialEventSource('social_following')).toBe('social_following');
+    expect(getSocialEventSource('social_live_trades')).toBe(
+      'social_live_trades',
+    );
     expect(getSocialEventSource('wallet-address')).toBeUndefined();
+    expect(getSocialEventSource('social_live')).toBeUndefined();
   });
 });

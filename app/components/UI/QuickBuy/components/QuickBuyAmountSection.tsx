@@ -1,23 +1,31 @@
 import React, { useMemo } from 'react';
-import { Animated, TextInput, TouchableOpacity } from 'react-native';
+import { TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  FontFamily,
+  FontWeight,
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
-import { useBlinkingCursor } from '../../Ramp/hooks/useBlinkingCursor';
 import useCurrency from '../../../Base/Keypad/useCurrency';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useTheme } from '../../../../util/theme';
 import {
   formatCurrency,
   getCurrencySymbol,
 } from '../../Bridge/utils/currencyUtils';
+import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
@@ -60,8 +68,10 @@ interface QuickBuyAmountSectionProps {
   onAmountChange?: (text: string) => void;
 }
 
-// Larger than the design system's largest variant (DisplayLg, 40px).
-const PRIMARY_AMOUNT_TW_CLASS = 'text-[54px] leading-[70px]';
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
+// Holds the row at the largest step so the shrinking scale for long amounts
+// does not change the centered block's height.
+const AMOUNT_ROW_STYLE = { minHeight: getFontSizeForInputLength(0) };
 
 /** True when the currency symbol appears before the digits for this locale. */
 function isCurrencySymbolPrefix(currency: string): boolean {
@@ -86,11 +96,7 @@ export function formatAmountDigitsForDisplay(
   amount: string,
   decimalSeparator: string | null | undefined,
 ): string {
-  const digits = amount || '0';
-  if (!decimalSeparator || decimalSeparator === '.' || !digits.includes('.')) {
-    return digits;
-  }
-  return digits.replace('.', decimalSeparator);
+  return formatAmountWithLocaleSeparators(amount || '0', decimalSeparator);
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
@@ -110,7 +116,15 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
-  const cursorOpacity = useBlinkingCursor(showCursor);
+  const { colors } = useTheme();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  // Glyph motion is local. The UX matrix only reduces it for LOW hardware on
+  // a known slow cellular link. Unknown hardware or network stays on the
+  // product default and is not treated as low-end or offline.
+  const animateAmount = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
   // Same currency → decimal mapping as QuickBuyKeypad so the headline separator
   // matches what the keypad is typing.
   const { decimalSeparator } = useCurrency(
@@ -150,168 +164,117 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     ? TextColor.ErrorDefault
     : TextColor.TextDefault;
 
-  // While the keypad is open, render amount digits + caret + currency/token
-  // affix separately so the caret sits where typing happens (after digits),
-  // not after a suffix symbol like "US$" / "ETH".
-  const editingPrimary = useMemo(() => {
-    if (!showCursor) {
-      return null;
-    }
-
-    const cursor = (
-      <Animated.View
-        testID="quick-buy-amount-cursor"
-        style={[
-          tw.style('mx-0.5 w-0.5 h-12 bg-primary-default'),
-          { opacity: cursorOpacity },
-        ]}
-      />
-    );
-
-    if (isUnpricedSource) {
-      const amountDigits = formatAmountDigitsForDisplay(
-        sourceCryptoAmount || '0',
-        decimalSeparator,
-      );
-      return (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-        >
-          <Text
-            variant={TextVariant.DisplayLg}
-            twClassName={PRIMARY_AMOUNT_TW_CLASS}
-            fontWeight={FontWeight.Bold}
-            color={amountColor}
-          >
-            {amountDigits}
-          </Text>
-          {cursor}
-          {sourceSymbol ? (
-            <Text
-              variant={TextVariant.DisplayLg}
-              twClassName={PRIMARY_AMOUNT_TW_CLASS}
-              fontWeight={FontWeight.Bold}
-              color={amountColor}
-            >
-              {` ${sourceSymbol}`}
-            </Text>
-          ) : null}
-        </Box>
-      );
-    }
-
-    const amountDigits = formatAmountDigitsForDisplay(
-      fiatAmount || '0',
+  let amountPrefix = '';
+  let amountValue = primaryLabel;
+  let amountSuffix = '';
+  if (showCursor) {
+    amountValue = formatAmountDigitsForDisplay(
+      isUnpricedSource ? sourceCryptoAmount || '0' : fiatAmount || '0',
       decimalSeparator,
     );
-    const symbol = currency ? getCurrencySymbol(currency) : '';
-    const symbolIsPrefix = currency ? isCurrencySymbolPrefix(currency) : true;
-
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
-        {symbol && symbolIsPrefix ? (
-          <Text
-            variant={TextVariant.DisplayLg}
-            twClassName={PRIMARY_AMOUNT_TW_CLASS}
-            fontWeight={FontWeight.Bold}
-            color={amountColor}
-          >
-            {symbol}
-          </Text>
-        ) : null}
-        <Text
-          variant={TextVariant.DisplayLg}
-          twClassName={PRIMARY_AMOUNT_TW_CLASS}
-          fontWeight={FontWeight.Bold}
-          color={amountColor}
-        >
-          {amountDigits}
-        </Text>
-        {cursor}
-        {symbol && !symbolIsPrefix ? (
-          <Text
-            variant={TextVariant.DisplayLg}
-            twClassName={PRIMARY_AMOUNT_TW_CLASS}
-            fontWeight={FontWeight.Bold}
-            color={amountColor}
-          >
-            {` ${symbol}`}
-          </Text>
-        ) : null}
-      </Box>
-    );
-  }, [
-    showCursor,
-    isUnpricedSource,
-    sourceCryptoAmount,
-    sourceSymbol,
-    fiatAmount,
-    currency,
-    decimalSeparator,
-    cursorOpacity,
-    tw,
-    amountColor,
-  ]);
+    if (isUnpricedSource) {
+      amountSuffix = sourceSymbol ? ` ${sourceSymbol}` : '';
+    } else if (currency) {
+      const symbol = getCurrencySymbol(currency);
+      if (symbol && isCurrencySymbolPrefix(currency)) {
+        amountPrefix = symbol;
+      } else if (symbol) {
+        amountSuffix = ` ${symbol}`;
+      }
+    }
+  }
+  const visibleAmountLabel = `${amountPrefix}${amountValue}${amountSuffix}`;
+  const amountFontSize = getFontSizeForInputLength(
+    amountPrefix.length +
+      amountValue.length +
+      amountSuffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const amountTextStyle = {
+    fontSize: amountFontSize,
+    lineHeight: amountFontSize,
+  };
+  // Same caret treatment as the confirmation custom amount: muted, 95% of the
+  // font size, and a slight upward shift so it sits with the glyphs.
+  const cursorStyle = {
+    width: 1,
+    height: Math.round(amountFontSize * 0.95),
+    backgroundColor: colors.text.muted,
+    transform: [{ translateY: Math.round(amountFontSize * -0.04) }],
+  };
 
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      gap={2}
       twClassName="px-4 pt-6 pb-4"
       testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA}
     >
-      {editingPrimary ?? (
-        <Text
-          variant={TextVariant.DisplayLg}
-          twClassName={PRIMARY_AMOUNT_TW_CLASS}
-          fontWeight={FontWeight.Bold}
-          color={amountColor}
-        >
-          {primaryLabel}
-        </Text>
-      )}
+      <AnimatedAmountDisplay
+        accessible={!onAmountAreaPress}
+        accessibilityLabel={visibleAmountLabel}
+        amountTestID={QuickBuySheetSelectorsIDs.AMOUNT_LABEL}
+        animated={animateAmount}
+        color={amountColor}
+        containerStyle={AMOUNT_ROW_STYLE}
+        cursor={
+          showCursor
+            ? {
+                animated: animateAmount,
+                style: cursorStyle,
+                testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
+              }
+            : false
+        }
+        fontFamily={FontFamily.Hero}
+        prefix={amountPrefix || undefined}
+        style={amountTextStyle}
+        suffix={amountSuffix || undefined}
+        suffixColor={amountColor}
+        suffixStyle={amountTextStyle}
+        testID="quick-buy-amount-row"
+        value={amountValue}
+        variant={TextVariant.DisplayMd}
+      />
 
-      {isQuoteLoading && !hasInsufficientBalance ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          testID="quick-buy-amount-loading"
-        >
-          <Skeleton
-            width={88}
-            height={16}
-            style={tw.style('rounded-md')}
-            testID="quick-buy-amount-loading-skeleton"
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            testID="quick-buy-amount-loading-symbol"
+      <Box alignItems={BoxAlignItems.Center} twClassName="mt-2">
+        {isQuoteLoading && !hasInsufficientBalance ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            testID="quick-buy-amount-loading"
           >
-            {destSymbol}
+            <Skeleton
+              width={88}
+              height={24}
+              style={tw.style('rounded-md')}
+              testID="quick-buy-amount-loading-skeleton"
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID="quick-buy-amount-loading-symbol"
+            >
+              {destSymbol}
+            </Text>
+          </Box>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              hasInsufficientBalance
+                ? TextColor.ErrorDefault
+                : TextColor.TextAlternative
+            }
+            numberOfLines={1}
+          >
+            {secondaryLabel}
           </Text>
-        </Box>
-      ) : (
-        <Text
-          variant={TextVariant.BodySm}
-          color={
-            hasInsufficientBalance
-              ? TextColor.ErrorDefault
-              : TextColor.TextAlternative
-          }
-          numberOfLines={1}
-        >
-          {secondaryLabel}
-        </Text>
-      )}
+        )}
+      </Box>
     </Box>
   );
 
@@ -321,6 +284,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     return (
       <TouchableOpacity
         activeOpacity={1}
+        accessibilityLabel={visibleAmountLabel}
         onPress={onAmountAreaPress}
         accessibilityRole="button"
         testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA_PRESSABLE}

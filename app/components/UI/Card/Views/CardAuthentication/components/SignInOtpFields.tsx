@@ -27,6 +27,8 @@ interface SignInOtpFieldsProps {
   isScreenTransitionComplete: boolean;
   onChangeCode: (text: string) => void;
   onResend: () => void;
+  /** Replaces the "Resend it" action. MFA uses this for "Start over". */
+  resendLabel?: string;
 }
 
 const SignInOtpFields = ({
@@ -38,6 +40,7 @@ const SignInOtpFields = ({
   isScreenTransitionComplete,
   onChangeCode,
   onResend,
+  resendLabel = strings('card.card_otp_authentication.resend_verification'),
 }: SignInOtpFieldsProps) => {
   const codeInputRef = useRef<TextInput>(null);
 
@@ -98,7 +101,7 @@ const SignInOtpFields = ({
                 onPress={resendCooldown > 0 ? undefined : onResend}
                 disabled={resendCooldown > 0 || otpLoading}
               >
-                {strings('card.card_otp_authentication.resend_verification')}
+                {resendLabel}
               </Text>
             </>
           )}
