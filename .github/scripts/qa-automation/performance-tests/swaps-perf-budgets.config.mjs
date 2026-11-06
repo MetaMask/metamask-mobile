@@ -59,8 +59,7 @@ export const BUDGET_RULES = [
     id: 'extension-swap-quote-fetch',
     label: 'Extension Swap Quote Fetch',
     projectId: EXTENSION_PROJECT_ID,
-    query:
-      'environment:production span.name:"Swap Quote Fetch" span.op:bridge.data_fetch',
+    query: 'environment:production span.name:"Swap Quote Fetch" span.op:bridge.data_fetch',
     guardrailMs: 3385,
     releaseHeadroom: 0.5,
     perRelease: false,
@@ -69,8 +68,7 @@ export const BUDGET_RULES = [
     id: 'extension-swap-view-loaded',
     label: 'Extension Swap View Loaded',
     projectId: EXTENSION_PROJECT_ID,
-    query:
-      'environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance',
+    query: 'environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance',
     guardrailMs: 2400,
     releaseHeadroom: 0.5,
     perRelease: false,
@@ -79,8 +77,7 @@ export const BUDGET_RULES = [
     id: 'extension-swap-popular-tokens-fetch',
     label: 'Extension Swap Popular Tokens Fetch',
     projectId: EXTENSION_PROJECT_ID,
-    query:
-      'environment:production span.name:"Swap Popular Tokens Fetch" span.op:bridge.data_fetch',
+    query: 'environment:production span.name:"Swap Popular Tokens Fetch" span.op:bridge.data_fetch',
     guardrailMs: 1810,
     releaseHeadroom: 0.5,
     perRelease: false,
@@ -89,8 +86,7 @@ export const BUDGET_RULES = [
     id: 'extension-swap-token-search',
     label: 'Extension Swap Token Search',
     projectId: EXTENSION_PROJECT_ID,
-    query:
-      'environment:production span.name:"Swap Token Search" span.op:bridge.data_fetch',
+    query: 'environment:production span.name:"Swap Token Search" span.op:bridge.data_fetch',
     guardrailMs: 965,
     releaseHeadroom: 0.5,
     perRelease: false,
@@ -99,8 +95,7 @@ export const BUDGET_RULES = [
     id: 'extension-bridge-balances-updated',
     label: 'Extension Bridge Balances Updated',
     projectId: EXTENSION_PROJECT_ID,
-    query:
-      'environment:production span.name:"Bridge Balances Updated" span.op:bridge.data_fetch',
+    query: 'environment:production span.name:"Bridge Balances Updated" span.op:bridge.data_fetch',
     guardrailMs: 875,
     releaseHeadroom: 0.5,
     perRelease: false,

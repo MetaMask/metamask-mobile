@@ -22,32 +22,22 @@ import {
 import { BUDGET_RULES } from './swaps-perf-budgets.config.mjs';
 
 const NOV_6 = { year: 2026, month: 11, day: 6 };
+const TODAY_END = '2026-11-05T23:00:00Z';
+const [MOBILE_QUOTE_FETCH] = BUDGET_RULES;
 
-test('windows are complete Europe/Berlin days across the October DST change', () => {
+test('windows are complete Europe/Berlin days across DST changes', () => {
   const window = windowEndingOn(NOV_6, 14);
   assert.equal(window.start.toISOString(), '2026-10-22T22:00:00.000Z');
   assert.equal(window.end.toISOString(), '2026-11-05T23:00:00.000Z');
   assert.equal(window.label, 'Oct 23 – Nov 5');
-  assert.equal(
-    midnightIn({ year: 2026, month: 3, day: 29 }).toISOString(),
-    '2026-03-28T23:00:00.000Z',
-  );
-  assert.equal(
-    midnightIn({ year: 2026, month: 3, day: 30 }).toISOString(),
-    '2026-03-29T22:00:00.000Z',
-  );
+  const march = (day) => midnightIn({ year: 2026, month: 3, day }).toISOString();
+  assert.equal(march(29), '2026-03-28T23:00:00.000Z');
+  assert.equal(march(30), '2026-03-29T22:00:00.000Z');
 });
 
 test('today is the Berlin calendar date, not the UTC one', () => {
-  assert.deepEqual(
-    calendarDateIn(new Date('2026-11-05T23:30:00Z')),
-    NOV_6,
-  );
-  assert.deepEqual(addDays({ year: 2026, month: 3, day: 1 }, -1), {
-    year: 2026,
-    month: 2,
-    day: 28,
-  });
+  assert.deepEqual(calendarDateIn(new Date('2026-11-05T23:30:00Z')), NOV_6);
+  assert.deepEqual(addDays({ year: 2026, month: 3, day: 1 }, -1), { year: 2026, month: 2, day: 28 });
 });
 
 test('AS_OF must be a real calendar date', () => {
@@ -57,60 +47,46 @@ test('AS_OF must be a real calendar date', () => {
 });
 
 test('a p90 needs the minimum sample count and a full scan', () => {
-  assert.equal(
-    budgetStatus({ p90: 5300, n: 4176, fullScan: true }, 5199),
-    STATUS.BREACH,
-  );
-  assert.equal(
-    budgetStatus({ p90: 5199, n: 4176, fullScan: true }, 5199),
-    STATUS.OK,
-  );
-  assert.equal(
-    budgetStatus({ p90: 9000, n: 399, fullScan: true }, 5199),
-    STATUS.NOT_EVALUABLE,
-  );
-  assert.equal(
-    budgetStatus({ p90: 9000, n: 4176, fullScan: false }, 5199),
-    STATUS.NOT_EVALUABLE,
-  );
-  assert.equal(
-    budgetStatus({ p90: null, n: 0, fullScan: true }, 5199),
-    STATUS.NOT_EVALUABLE,
-  );
+  const status = (p90, n, fullScan = true) => budgetStatus({ p90, n, fullScan }, 5199);
+  assert.equal(status(5300, 4176), STATUS.BREACH);
+  assert.equal(status(5199, 4176), STATUS.OK);
+  assert.equal(status(9000, 399), STATUS.NOT_EVALUABLE);
+  assert.equal(status(9000, 4176, false), STATUS.NOT_EVALUABLE);
+  assert.equal(status(null, 0), STATUS.NOT_EVALUABLE);
 });
 
 test('posting compares today with yesterday', () => {
   const { BREACH, OK, NOT_EVALUABLE } = STATUS;
-  assert.equal(budgetTransition(BREACH, OK), 'triggered');
-  assert.equal(budgetTransition(BREACH, NOT_EVALUABLE), 'triggered');
-  assert.equal(budgetTransition(BREACH, BREACH), null);
-  assert.equal(budgetTransition(OK, BREACH), 'resolved');
-  assert.equal(budgetTransition(OK, OK), null);
-  assert.equal(budgetTransition(OK, NOT_EVALUABLE), null);
-  assert.equal(budgetTransition(NOT_EVALUABLE, OK), 'not-evaluable');
-  assert.equal(budgetTransition(NOT_EVALUABLE, BREACH), 'not-evaluable');
-  assert.equal(budgetTransition(NOT_EVALUABLE, NOT_EVALUABLE), null);
+  const cases = [
+    [BREACH, OK, 'triggered'],
+    [BREACH, NOT_EVALUABLE, 'triggered'],
+    [BREACH, BREACH, null],
+    [OK, BREACH, 'resolved'],
+    [OK, OK, null],
+    [OK, NOT_EVALUABLE, null],
+    [NOT_EVALUABLE, OK, 'not-evaluable'],
+    [NOT_EVALUABLE, BREACH, 'not-evaluable'],
+    [NOT_EVALUABLE, NOT_EVALUABLE, null],
+  ];
+  for (const [today, yesterday, expected] of cases) {
+    assert.equal(budgetTransition(today, yesterday), expected, `${today} after ${yesterday}`);
+  }
 });
 
 test('builds of one version count together, newest version first', () => {
   assert.equal(releaseVersion('io.metamask@8.18.0+7523'), '8.18.0');
   assert.equal(releaseVersion('io.metamask@8.18.0'), '8.18.0');
   assert.equal(releaseVersion('io.metamask@8.18.0-beta.1+1'), null);
+  const row = (release, firstSeen) => ({ release, 'min(timestamp)': firstSeen });
   const versions = versionsFromReleaseRows([
-    { release: 'io.metamask@8.17.0+7385', 'min(timestamp)': 1793233722 },
-    { release: 'io.metamask@8.18.0+7523', 'min(timestamp)': 1793697843 },
-    { release: 'io.metamask@8.18.0+7530', 'min(timestamp)': 1793600000 },
-    { release: 'io.metamask@8.9.0+6000', 'min(timestamp)': 1790000000 },
-    { release: 'io.metamask@8.10.1+6788', 'min(timestamp)': '2026-10-01T00:00:00Z' },
+    row('io.metamask@8.17.0+7385', 1793233722),
+    row('io.metamask@8.18.0+7523', 1793697843),
+    row('io.metamask@8.18.0+7530', 1793600000),
+    row('io.metamask@8.9.0+6000', 1790000000),
+    row('io.metamask@8.10.1+6788', '2026-10-01T00:00:00Z'),
   ]);
-  assert.deepEqual(
-    versions.map(({ version }) => version),
-    ['8.18.0', '8.17.0', '8.10.1', '8.9.0'],
-  );
-  assert.deepEqual(versions[0].releases, [
-    'io.metamask@8.18.0+7523',
-    'io.metamask@8.18.0+7530',
-  ]);
+  assert.deepEqual(versions.map(({ version }) => version), ['8.18.0', '8.17.0', '8.10.1', '8.9.0']);
+  assert.deepEqual(versions[0].releases, ['io.metamask@8.18.0+7523', 'io.metamask@8.18.0+7530']);
   assert.equal(versions[0].firstSeen.getTime(), 1793600000 * 1000);
   assert.equal(
     releaseFilter(versions[0].releases),
@@ -135,37 +111,24 @@ test('the events request uses the spans dataset and a full-accuracy scan', async
   let requested;
   const fetchFn = async (url, init) => {
     requested = { url: new URL(url), init };
-    return {
-      ok: true,
-      json: async () => ({
-        data: [{ 'count_sample()': 4176, 'p90(span.duration)': 4076.3 }],
-        meta: { dataScanned: 'full' },
-      }),
-    };
+    const data = [{ 'count_sample()': 4176, 'p90(span.duration)': 4076.3 }];
+    return { ok: true, json: async () => ({ data, meta: { dataScanned: 'full' } }) };
   };
-  const window = windowEndingOn(NOV_6, 14);
+  const { start, end } = windowEndingOn(NOV_6, 14);
+  const fields = ['count_sample()', 'p90(span.duration)'];
   const result = await querySpans(
-    {
-      projectId: '2299799',
-      query: 'span.name:"Swap Quote Fetch"',
-      start: window.start,
-      end: window.end,
-      fields: ['count_sample()', 'p90(span.duration)'],
-    },
+    { projectId: '2299799', query: 'span.name:"Swap Quote Fetch"', start, end, fields },
     { token: 't', fetchFn },
   );
-  const { url, init } = requested;
-  assert.equal(url.pathname, '/api/0/organizations/metamask/events/');
-  assert.equal(url.searchParams.get('dataset'), 'spans');
-  assert.equal(url.searchParams.get('project'), '2299799');
-  assert.deepEqual(url.searchParams.getAll('field'), [
-    'count_sample()',
-    'p90(span.duration)',
-  ]);
-  assert.equal(url.searchParams.get('start'), '2026-10-22T22:00:00Z');
-  assert.equal(url.searchParams.get('end'), '2026-11-05T23:00:00Z');
-  assert.equal(url.searchParams.get('sampling'), 'HIGHEST_ACCURACY');
-  assert.equal(init.headers.Authorization, 'Bearer t');
+  const params = requested.url.searchParams;
+  assert.equal(requested.url.pathname, '/api/0/organizations/metamask/events/');
+  assert.equal(params.get('dataset'), 'spans');
+  assert.equal(params.get('project'), '2299799');
+  assert.deepEqual(params.getAll('field'), fields);
+  assert.equal(params.get('start'), '2026-10-22T22:00:00Z');
+  assert.equal(params.get('end'), TODAY_END);
+  assert.equal(params.get('sampling'), 'HIGHEST_ACCURACY');
+  assert.equal(requested.init.headers.Authorization, 'Bearer t');
   assert.equal(result.fullScan, true);
   assert.equal(result.rows[0]['count_sample()'], 4176);
 });
@@ -176,45 +139,32 @@ test('the events request retries a rate limit, then fails loudly', async () => {
     calls += 1;
     return { ok: false, status: 429, text: async () => 'slow down' };
   };
-  const window = windowEndingOn(NOV_6, 14);
+  const { start, end } = windowEndingOn(NOV_6, 14);
   await assert.rejects(
-    querySpans(
-      { projectId: '1', query: '', start: window.start, end: window.end, fields: [] },
-      { token: 't', fetchFn, retryDelayMs: 0 },
-    ),
+    querySpans({ projectId: '1', query: '', start, end, fields: [] }, { token: 't', fetchFn, retryDelayMs: 0 }),
     /HTTP 429: slow down/,
   );
   assert.equal(calls, 3);
 });
 
-/**
- * A fake events API: p90 by window end date and release filter, and a fixed
- * release listing.
- */
+/** A fake events API answering from `handler({ query, end, fields })`. */
 function fakeSentry(handler) {
-  return {
-    token: 't',
-    retryDelayMs: 0,
-    fetchFn: async (url) => {
-      const params = new URL(url).searchParams;
-      const body = handler({
-        query: params.get('query'),
-        end: params.get('end'),
-        fields: params.getAll('field'),
-      });
-      if (body instanceof Error) {
-        return { ok: false, status: 400, text: async () => body.message };
-      }
-      return { ok: true, json: async () => ({ meta: { dataScanned: 'full' }, ...body }) };
-    },
+  const fetchFn = async (url) => {
+    const params = new URL(url).searchParams;
+    const body = handler({ query: params.get('query'), end: params.get('end'), fields: params.getAll('field') });
+    if (body instanceof Error) {
+      return { ok: false, status: 400, text: async () => body.message };
+    }
+    return { ok: true, json: async () => ({ meta: { dataScanned: 'full' }, ...body }) };
   };
+  return { token: 't', retryDelayMs: 0, fetchFn };
 }
 
-const TODAY_END = '2026-11-05T23:00:00Z';
-const [MOBILE_QUOTE_FETCH] = BUDGET_RULES;
+const aggregate = (n, p90) => ({ data: [{ 'count_sample()': n, 'p90(span.duration)': p90 }] });
 
 test('a run posts a trigger and a release flag, and reports failures', async () => {
   const sentry = fakeSentry(({ query, end, fields }) => {
+    const isToday = end === TODAY_END;
     if (fields.includes('release')) {
       return {
         data: [
@@ -227,27 +177,23 @@ test('a run posts a trigger and a release flag, and reports failures', async () 
       return new Error('bad query');
     }
     if (query.includes('8.18.0')) {
-      return { data: [{ 'count_sample()': 900, 'p90(span.duration)': end === TODAY_END ? 5000 : 4000 }] };
+      return aggregate(900, isToday ? 5000 : 4000);
     }
     if (query.includes('8.17.0')) {
-      return { data: [{ 'count_sample()': 2000, 'p90(span.duration)': 4000 }] };
+      return aggregate(2000, 4000);
     }
     if (query.includes('Swap Quote Fetch') && query.includes('device.class')) {
-      return { data: [{ 'count_sample()': 4176, 'p90(span.duration)': end === TODAY_END ? 5300 : 5100 }] };
+      return aggregate(4176, isToday ? 5300 : 5100);
     }
-    return { data: [{ 'count_sample()': 1000, 'p90(span.duration)': 100 }] };
+    return aggregate(1000, 100);
   });
 
   const result = await runBudgetCheck({ today: NOV_6, sentry });
   assert.equal(result.errors.length, 1);
   assert.match(result.errors[0], /Bridge Balances Updated: .*bad query/);
-
   const quoteFetch = result.budgets.find(({ rule }) => rule === MOBILE_QUOTE_FETCH);
   assert.equal(quoteFetch.transition, 'triggered');
-  assert.equal(
-    result.budgets.filter(({ transition }) => transition).length,
-    1,
-  );
+  assert.equal(result.budgets.filter(({ transition }) => transition).length, 1);
 
   const release = result.releases.find(({ rule }) => rule === MOBILE_QUOTE_FETCH);
   assert.equal(release.newerVersion, '8.18.0');
@@ -255,10 +201,7 @@ test('a run posts a trigger and a release flag, and reports failures', async () 
   assert.equal(release.today.flagged, true);
   assert.equal(release.post, true);
 
-  const message = buildSlackMessage(result, {
-    mentionGroupId: 'S123',
-    runUrl: 'https://example.com/run',
-  });
+  const message = buildSlackMessage(result, { mentionGroupId: 'S123', runUrl: 'https://example.com/run' });
   assert.match(message, /<!subteam\^S123>/);
   assert.match(message, /Mobile Swap Quote Fetch \(mid-tier Android\)\*: p90 5,300ms > guardrail 5,199ms \(n=4,176\)/);
   assert.match(message, /8\.18\.0 p90 5,000ms .* vs 8\.17\.0 4,000ms .* \+25\.0% > \+15\.0% headroom/);
@@ -270,11 +213,7 @@ test('a run posts a trigger and a release flag, and reports failures', async () 
 });
 
 test('a quiet run posts nothing and never mentions the on-call', async () => {
-  const sentry = fakeSentry(({ fields }) =>
-    fields.includes('release')
-      ? { data: [] }
-      : { data: [{ 'count_sample()': 1000, 'p90(span.duration)': 100 }] },
-  );
+  const sentry = fakeSentry(({ fields }) => (fields.includes('release') ? { data: [] } : aggregate(1000, 100)));
   const result = await runBudgetCheck({ today: NOV_6, sentry });
   assert.deepEqual(result.errors, []);
   assert.equal(buildSlackMessage(result, { mentionGroupId: 'S123' }), null);

@@ -4,37 +4,27 @@
 /**
  * Swaps performance budgets: daily check.
  *
- * For each rule in `swaps-perf-budgets.config.mjs`, queries Sentry for the
- * p90 and sample count of the last 14 complete Europe/Berlin days, and of the
- * same window one day earlier. A rule breaches when p90 > guardrail with at
- * least MIN_SAMPLES samples. Comparing today's window with yesterday's makes
- * the posting stateless:
- *   - triggered: breaching today, not yesterday
- *   - resolved: within the guardrail today, breaching yesterday
- *   - not evaluable: too few samples (or a partial scan) today, evaluable
- *     yesterday
- * Anything else posts nothing. Every result is in the job summary.
+ * For each rule in `swaps-perf-budgets.config.mjs`: p90 and sample count over
+ * the last 14 complete Europe/Berlin days, and over the same window one day
+ * earlier. A rule breaches when p90 > guardrail with at least MIN_SAMPLES
+ * samples. Comparing the two windows keeps posting stateless: triggered
+ * (breaching today, not yesterday), resolved (within the guardrail today,
+ * breaching yesterday), not evaluable (today only). Nothing else posts; every
+ * result goes to the job summary.
  *
- * Per-release check (rules with `perRelease`): the newest version with
- * samples in the last RELEASE_LOOKBACK_DAYS against the version before it,
- * over the same dates (the newer version's first sampled span to 00:00
- * today). It is flagged when both have MIN_SAMPLES and the newer p90 exceeds
- * the previous by more than the rule's headroom; posted on the first day it
- * is flagged.
- *
- * Usage:
- *   node .github/scripts/qa-automation/performance-tests/swaps-perf-budgets.mjs
+ * Per-release check (`perRelease` rules): the newest version with samples in
+ * the last RELEASE_LOOKBACK_DAYS against the version before it, over the same
+ * dates (the newer version's first sampled span to 00:00 today). Flagged when
+ * both have MIN_SAMPLES and the gap exceeds the rule's headroom; posted on the
+ * first day it is flagged.
  *
  * Environment:
- *   SWAPS_SENTRY_TOKEN        required; read-only (org:read) Sentry token
- *   SWAPS_PERF_SLACK_WEBHOOK  required unless DRY_RUN; Slack incoming webhook
- *   DRY_RUN                   `true` logs the Slack message instead of posting
- *   AS_OF                     optional YYYY-MM-DD; evaluate as if run that
- *                             day (window ends at 00:00 Europe/Berlin)
+ *   SWAPS_SENTRY_TOKEN           required; read-only (org:read) Sentry token
+ *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
+ *   DRY_RUN                      `true` logs the Slack message instead
+ *   AS_OF                        optional YYYY-MM-DD; evaluate as of that day
  *   SWAPS_ONCALL_SLACK_GROUP_ID  optional; mentioned on triggers and flags
- *   SENTRY_API_BASE           optional; defaults to https://sentry.io
- *   GITHUB_RUN_URL            optional footer link
- *   GITHUB_STEP_SUMMARY       set by GitHub Actions; the results table
+ *   SENTRY_API_BASE, GITHUB_RUN_URL, GITHUB_STEP_SUMMARY  optional
  *
  * Exits 1 when any Sentry query failed, after posting the other results.
  */
@@ -58,38 +48,32 @@ const FIRST_SEEN_FIELD = 'min(timestamp)';
 const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 
-// ---------------------------------------------------------------------------
-// Calendar dates in Europe/Berlin
-// ---------------------------------------------------------------------------
+// --- Calendar dates in Europe/Berlin ---
+
+function zonedParts(instant, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  }).formatToParts(instant);
+  const value = (type) => Number(parts.find((part) => part.type === type).value);
+  return {
+    year: value('year'),
+    month: value('month'),
+    day: value('day'),
+    hour: value('hour'),
+    minute: value('minute'),
+  };
+}
 
 /** A calendar date as `{ year, month, day }`, month 1-12. */
 export function calendarDateIn(instant, timeZone = TIME_ZONE) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(instant);
-  const value = (type) =>
-    Number(parts.find((part) => part.type === type).value);
-  return { year: value('year'), month: value('month'), day: value('day') };
-}
-
-export function parseCalendarDate(text) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(text || '').trim());
-  if (!match) {
-    throw new Error(`AS_OF must be YYYY-MM-DD, got "${text}"`);
-  }
-  const date = {
-    year: Number(match[1]),
-    month: Number(match[2]),
-    day: Number(match[3]),
-  };
-  const check = addDays(date, 0);
-  if (check.month !== date.month || check.day !== date.day) {
-    throw new Error(`AS_OF is not a calendar date: "${text}"`);
-  }
-  return date;
+  const { year, month, day } = zonedParts(instant, timeZone);
+  return { year, month, day };
 }
 
 export function addDays({ year, month, day }, days) {
@@ -101,60 +85,37 @@ export function addDays({ year, month, day }, days) {
   };
 }
 
-function offsetMinutesAt(instant, timeZone) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).formatToParts(instant);
-  const value = (type) =>
-    Number(parts.find((part) => part.type === type).value);
-  const asUtc = Date.UTC(
-    value('year'),
-    value('month') - 1,
-    value('day'),
-    value('hour'),
-    value('minute'),
-  );
-  return Math.round((asUtc - instant.getTime()) / 60_000);
+export function parseCalendarDate(text) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(text || '').trim());
+  const date = match && { year: +match[1], month: +match[2], day: +match[3] };
+  if (!date || addDays(date, 0).day !== date.day) {
+    throw new Error(`AS_OF must be a YYYY-MM-DD calendar date, got "${text}"`);
+  }
+  return date;
 }
 
 /** The UTC instant of 00:00 on `date` in `timeZone`. */
 export function midnightIn(date, timeZone = TIME_ZONE) {
   const naive = Date.UTC(date.year, date.month - 1, date.day);
-  let instant = new Date(naive - offsetMinutesAt(new Date(naive), timeZone) * 60_000);
+  const offsetAt = (instant) => {
+    const local = zonedParts(instant, timeZone);
+    const asUtc = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute);
+    return asUtc - instant.getTime();
+  };
   // A second pass settles the offset when a DST change falls within it.
-  instant = new Date(naive - offsetMinutesAt(instant, timeZone) * 60_000);
-  return instant;
+  const first = new Date(naive - offsetAt(new Date(naive)));
+  return new Date(naive - offsetAt(first));
 }
 
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-
-function shortDate({ month, day }) {
-  return `${MONTHS[month - 1]} ${day}`;
+function shortDate({ year, month, day }) {
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
-/**
- * The `days` complete days ending at 00:00 on `endDate`. `label` names the
- * first and last included day.
- */
+/** The `days` complete days ending at 00:00 on `endDate`; `label` names the first and last. */
 export function windowEndingOn(endDate, days = WINDOW_DAYS, timeZone = TIME_ZONE) {
   const startDate = addDays(endDate, -days);
   return {
@@ -164,22 +125,10 @@ export function windowEndingOn(endDate, days = WINDOW_DAYS, timeZone = TIME_ZONE
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sentry
-// ---------------------------------------------------------------------------
+// --- Sentry ---
 
 export function ruleQuery(rule, { excludeTimeouts = EXCLUDE_TIMEOUTS } = {}) {
-  return excludeTimeouts
-    ? `${rule.query} span.duration:<${TIMEOUT_MS}`
-    : rule.query;
-}
-
-function isoSeconds(instant) {
-  return instant.toISOString().replace(/\.\d{3}Z$/, 'Z');
-}
-
-function exploreTime(instant) {
-  return instant.toISOString().slice(0, 19);
+  return excludeTimeouts ? `${rule.query} span.duration:<${TIMEOUT_MS}` : rule.query;
 }
 
 /** The Explore view of `query` over `start`…`end`, for Slack links. */
@@ -189,8 +138,8 @@ export function exploreUrl({ projectId, query, start, end }) {
     project: projectId,
     aggregateField: JSON.stringify({ yAxes: [COUNT_FIELD, P90_FIELD] }),
     mode: 'aggregate',
-    start: exploreTime(start),
-    end: exploreTime(end),
+    start: start.toISOString().slice(0, 19),
+    end: end.toISOString().slice(0, 19),
     utc: 'true',
     table: 'span',
   });
@@ -198,27 +147,19 @@ export function exploreUrl({ projectId, query, start, end }) {
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const isoSeconds = (instant) => instant.toISOString().replace(/\.\d{3}Z$/, 'Z');
 
 /**
  * GET /api/0/organizations/{org}/events/ on the spans dataset.
- * `sampling=HIGHEST_ACCURACY` asks for a full scan; the response's
- * `meta.dataScanned` says whether it got one.
+ * `sampling=HIGHEST_ACCURACY` asks for a full scan; `meta.dataScanned` says
+ * whether it got one.
  */
 export async function querySpans(
   { projectId, query, start, end, fields, sort, perPage = 1 },
-  {
-    token,
-    apiBase = DEFAULT_SENTRY_API_BASE,
-    fetchFn = fetch,
-    retryDelayMs = 2_000,
-  },
+  { token, apiBase = DEFAULT_SENTRY_API_BASE, fetchFn = fetch, retryDelayMs = 2_000 },
 ) {
-  const params = new URLSearchParams();
-  params.set('dataset', 'spans');
-  params.set('project', projectId);
-  for (const field of fields) {
-    params.append('field', field);
-  }
+  const params = new URLSearchParams({ dataset: 'spans', project: projectId });
+  fields.forEach((field) => params.append('field', field));
   params.set('query', query);
   params.set('start', isoSeconds(start));
   params.set('end', isoSeconds(end));
@@ -230,9 +171,7 @@ export async function querySpans(
   const url = `${apiBase}/api/0/organizations/${SENTRY_ORG}/events/?${params}`;
 
   for (let attempt = 1; ; attempt += 1) {
-    const response = await fetchFn(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetchFn(url, { headers: { Authorization: `Bearer ${token}` } });
     if (response.ok) {
       const body = await response.json();
       return {
@@ -241,29 +180,21 @@ export async function querySpans(
       };
     }
     if (attempt >= MAX_ATTEMPTS || !RETRY_STATUSES.has(response.status)) {
-      const detail = await response.text().catch(() => '');
-      throw new Error(
-        `Sentry events API HTTP ${response.status}${detail ? `: ${detail.slice(0, 200)}` : ''}`,
-      );
+      const detail = (await response.text().catch(() => '')).slice(0, 200);
+      throw new Error(`Sentry events API HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
     }
     await sleep(retryDelayMs * attempt);
   }
 }
 
-function numberOrNull(value) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
-}
+const numberOrNull = (value) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
 
-async function measure(rule, window, sentry, extraQuery = '') {
-  const query = `${ruleQuery(rule)}${extraQuery ? ` ${extraQuery}` : ''}`;
+async function measure(rule, { start, end }, sentry, extraQuery = '') {
+  const query = extraQuery ? `${ruleQuery(rule)} ${extraQuery}` : ruleQuery(rule);
+  const { projectId } = rule;
   const { rows, fullScan } = await querySpans(
-    {
-      projectId: rule.projectId,
-      query,
-      start: window.start,
-      end: window.end,
-      fields: [COUNT_FIELD, P90_FIELD],
-    },
+    { projectId, query, start, end, fields: [COUNT_FIELD, P90_FIELD] },
     sentry,
   );
   const row = rows[0] || {};
@@ -271,41 +202,19 @@ async function measure(rule, window, sentry, extraQuery = '') {
     p90: numberOrNull(row[P90_FIELD]),
     n: numberOrNull(row[COUNT_FIELD]) ?? 0,
     fullScan,
-    url: exploreUrl({
-      projectId: rule.projectId,
-      query,
-      start: window.start,
-      end: window.end,
-    }),
+    url: exploreUrl({ projectId, query, start, end }),
   };
 }
 
-// ---------------------------------------------------------------------------
-// Budget rules
-// ---------------------------------------------------------------------------
+// --- Budget rules ---
 
-export const STATUS = {
-  BREACH: 'breach',
-  OK: 'ok',
-  NOT_EVALUABLE: 'not-evaluable',
-};
+export const STATUS = { BREACH: 'breach', OK: 'ok', NOT_EVALUABLE: 'not-evaluable' };
 
-export function budgetStatus(
-  { p90, n, fullScan },
-  guardrailMs,
-  minSamples = MIN_SAMPLES,
-) {
+export function budgetStatus({ p90, n, fullScan }, guardrailMs, minSamples = MIN_SAMPLES) {
   if (!fullScan || n < minSamples || p90 === null) {
     return STATUS.NOT_EVALUABLE;
   }
   return p90 > guardrailMs ? STATUS.BREACH : STATUS.OK;
-}
-
-export function notEvaluableReason({ n, fullScan }, minSamples = MIN_SAMPLES) {
-  if (!fullScan) {
-    return 'Sentry scanned only part of the data';
-  }
-  return `n=${formatCount(n)}, below ${formatCount(minSamples)}`;
 }
 
 /** What to post, from today's and yesterday's status; null posts nothing. */
@@ -322,25 +231,17 @@ export function budgetTransition(today, yesterday) {
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// Per-release check
-// ---------------------------------------------------------------------------
+// --- Per-release check ---
 
 /** `io.metamask@8.18.0+7523` → `8.18.0`; anything else → null. */
 export function releaseVersion(release) {
-  const match = /@(\d+)\.(\d+)\.(\d+)(?:\+[^@]*)?$/.exec(String(release || ''));
-  return match ? `${match[1]}.${match[2]}.${match[3]}` : null;
+  const match = /@(\d+\.\d+\.\d+)(?:\+[^@]*)?$/.exec(String(release || ''));
+  return match ? match[1] : null;
 }
 
-export function compareVersions(left, right) {
-  const a = left.split('.').map(Number);
-  const b = right.split('.').map(Number);
-  for (let index = 0; index < 3; index += 1) {
-    if (a[index] !== b[index]) {
-      return a[index] - b[index];
-    }
-  }
-  return 0;
+function compareVersions(left, right) {
+  const [a, b] = [left, right].map((version) => version.split('.').map(Number));
+  return a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
 }
 
 function toInstant(value) {
@@ -354,8 +255,8 @@ function toInstant(value) {
 
 /**
  * Groups release rows (`release`, `min(timestamp)`) by version, so builds of
- * one version count together. Returns versions newest first, each with its
- * releases and its first sampled span.
+ * one version count together. Newest version first, each with its releases
+ * and its first sampled span.
  */
 export function versionsFromReleaseRows(rows) {
   const versions = new Map();
@@ -365,20 +266,12 @@ export function versionsFromReleaseRows(rows) {
     if (!version || !firstSeen) {
       continue;
     }
-    const entry = versions.get(version) || {
-      version,
-      releases: [],
-      firstSeen,
-    };
+    const entry = versions.get(version) || { version, releases: [], firstSeen };
     entry.releases.push(row.release);
-    if (firstSeen < entry.firstSeen) {
-      entry.firstSeen = firstSeen;
-    }
+    entry.firstSeen = firstSeen < entry.firstSeen ? firstSeen : entry.firstSeen;
     versions.set(version, entry);
   }
-  return [...versions.values()].sort((left, right) =>
-    compareVersions(right.version, left.version),
-  );
+  return [...versions.values()].sort((a, b) => compareVersions(b.version, a.version));
 }
 
 export function releaseFilter(releases) {
@@ -387,22 +280,16 @@ export function releaseFilter(releases) {
 
 /** Flagged when both have enough samples and the gap exceeds the headroom. */
 export function releaseFlagged(newer, previous, headroom, minSamples = MIN_SAMPLES) {
-  if (
-    !newer.fullScan ||
-    !previous.fullScan ||
-    newer.n < minSamples ||
-    previous.n < minSamples ||
-    newer.p90 === null ||
-    previous.p90 === null ||
-    previous.p90 <= 0
-  ) {
+  const enough = (side) => side.fullScan && side.n >= minSamples && side.p90 > 0;
+  if (!enough(newer) || !enough(previous)) {
     return { evaluable: false, flagged: false, gap: null };
   }
   const gap = newer.p90 / previous.p90 - 1;
   return { evaluable: true, flagged: gap > headroom, gap };
 }
 
-async function checkRelease(rule, todayEnd, yesterdayEnd, lookback, sentry) {
+async function checkRelease(rule, today, sentry) {
+  const lookback = windowEndingOn(today, RELEASE_LOOKBACK_DAYS);
   const { rows } = await querySpans(
     {
       projectId: rule.projectId,
@@ -429,44 +316,30 @@ async function checkRelease(rule, todayEnd, yesterdayEnd, lookback, sentry) {
       measure(rule, window, sentry, releaseFilter(newer.releases)),
       measure(rule, window, sentry, releaseFilter(previous.releases)),
     ]);
-    return {
-      window,
-      newer: newerResult,
-      previous: previousResult,
-      ...releaseFlagged(newerResult, previousResult, rule.releaseHeadroom),
-    };
+    const verdict = releaseFlagged(newerResult, previousResult, rule.releaseHeadroom);
+    return { window, newer: newerResult, previous: previousResult, ...verdict };
   };
 
-  const today = await compareUntil(todayEnd);
-  const yesterday = await compareUntil(yesterdayEnd);
+  const todayResult = await compareUntil(midnightIn(today));
+  const yesterdayResult = await compareUntil(midnightIn(addDays(today, -1)));
   return {
     rule,
     newerVersion: newer.version,
     previousVersion: previous.version,
-    today,
-    post: Boolean(today?.flagged) && !yesterday?.flagged,
+    today: todayResult,
+    post: Boolean(todayResult?.flagged) && !yesterdayResult?.flagged,
   };
 }
 
-// ---------------------------------------------------------------------------
-// Messages
-// ---------------------------------------------------------------------------
+// --- Messages ---
 
-function formatCount(value) {
-  return Math.round(value).toLocaleString('en-US');
-}
+const formatCount = (value) => Math.round(value).toLocaleString('en-US');
+const formatMs = (value) => (value === null ? 'n/a' : `${formatCount(value)}ms`);
+const formatPercent = (value) => `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
 
-function formatMs(value) {
-  return value === null ? 'n/a' : `${formatCount(value)}ms`;
-}
-
-function formatPercent(value) {
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
-}
-
-function formatDateTimeIn(instant, timeZone = TIME_ZONE) {
+function formatDateTimeIn(instant) {
   return new Intl.DateTimeFormat('en-US', {
-    timeZone,
+    timeZone: TIME_ZONE,
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -475,8 +348,13 @@ function formatDateTimeIn(instant, timeZone = TIME_ZONE) {
   }).format(instant);
 }
 
-export function budgetLine(result) {
-  const { rule, today, transition, window } = result;
+function notEvaluableReason({ n, fullScan }) {
+  return fullScan
+    ? `n=${formatCount(n)}, below ${formatCount(MIN_SAMPLES)}`
+    : 'Sentry scanned only part of the data';
+}
+
+function budgetLine({ rule, today, transition, window }) {
   const link = `<${today.url}|${window.label}>`;
   if (transition === 'not-evaluable') {
     return `• *${rule.label}*: not evaluable (${notEvaluableReason(today)}) · p90 ${formatMs(today.p90)} · ${link}`;
@@ -485,55 +363,35 @@ export function budgetLine(result) {
   return `• *${rule.label}*: p90 ${formatMs(today.p90)} ${comparison} guardrail ${formatMs(rule.guardrailMs)} (n=${formatCount(today.n)}) · ${link}`;
 }
 
-export function releaseLine(result) {
-  const { rule, today, newerVersion, previousVersion } = result;
-  return `• *${rule.label}*: ${newerVersion} p90 ${formatMs(today.newer.p90)} (n=${formatCount(today.newer.n)}) vs ${previousVersion} ${formatMs(today.previous.p90)} (n=${formatCount(today.previous.n)}), ${formatPercent(today.gap)} > ${formatPercent(rule.releaseHeadroom)} headroom · same dates from ${formatDateTimeIn(today.window.start)} Europe/Berlin · <${today.newer.url}|${newerVersion}> <${today.previous.url}|${previousVersion}>`;
+function releaseLine({ rule, today, newerVersion, previousVersion }) {
+  const { newer, previous } = today;
+  return `• *${rule.label}*: ${newerVersion} p90 ${formatMs(newer.p90)} (n=${formatCount(newer.n)}) vs ${previousVersion} ${formatMs(previous.p90)} (n=${formatCount(previous.n)}), ${formatPercent(today.gap)} > ${formatPercent(rule.releaseHeadroom)} headroom · same dates from ${formatDateTimeIn(today.window.start)} ${TIME_ZONE} · <${newer.url}|${newerVersion}> <${previous.url}|${previousVersion}>`;
 }
 
 /** The Slack message for this run, or null when nothing changed. */
-export function buildSlackMessage(
-  { budgets, releases },
-  { mentionGroupId = '', runUrl = '' } = {},
-) {
-  const byTransition = (transition) =>
-    budgets.filter((result) => result.transition === transition);
-  const triggered = byTransition('triggered');
-  const resolved = byTransition('resolved');
-  const notEvaluable = byTransition('not-evaluable');
-  const flagged = releases.filter((result) => result.post);
-  if (
-    triggered.length + resolved.length + notEvaluable.length + flagged.length ===
-    0
-  ) {
+export function buildSlackMessage({ budgets, releases }, { mentionGroupId = '', runUrl = '' } = {}) {
+  const byTransition = (transition) => budgets.filter((result) => result.transition === transition);
+  const sections = [
+    ['*Triggered* · 14-day p90 over the guardrail', byTransition('triggered'), budgetLine],
+    ['*Resolved*', byTransition('resolved'), budgetLine],
+    ['*Not evaluable*', byTransition('not-evaluable'), budgetLine],
+    ['*New release slower than the previous one*', releases.filter((result) => result.post), releaseLine],
+  ].filter(([, items]) => items.length > 0);
+  if (sections.length === 0) {
     return null;
   }
 
+  const needsTriage =
+    byTransition('triggered').length > 0 || releases.some((result) => result.post);
   const lines = ['*Swaps performance budgets*'];
-  if ((triggered.length > 0 || flagged.length > 0) && mentionGroupId) {
+  if (needsTriage && mentionGroupId) {
     lines.push(`<!subteam^${mentionGroupId}>`);
   }
-  const section = (title, items, render) => {
-    if (items.length > 0) {
-      lines.push('', title, ...items.map(render));
-    }
-  };
-  section(
-    `*Triggered* · 14-day p90 over the guardrail`,
-    triggered,
-    budgetLine,
-  );
-  section('*Resolved*', resolved, budgetLine);
-  section('*Not evaluable*', notEvaluable, budgetLine);
-  section(
-    '*New release slower than the previous one*',
-    flagged,
-    releaseLine,
-  );
-  if (triggered.length > 0 || flagged.length > 0) {
-    lines.push(
-      '',
-      'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.',
-    );
+  for (const [title, items, render] of sections) {
+    lines.push('', title, ...items.map(render));
+  }
+  if (needsTriage) {
+    lines.push('', 'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.');
   }
   if (runUrl) {
     lines.push('', `_Run:_ <${runUrl}|GitHub Actions>`);
@@ -541,39 +399,35 @@ export function buildSlackMessage(
   return lines.join('\n');
 }
 
+function releaseSummary({ rule, skipped, today, newerVersion: newV, previousVersion: oldV, post }) {
+  if (skipped) {
+    return `- ${rule.label}: skipped (${skipped})`;
+  }
+  if (!today) {
+    return `- ${rule.label}: ${newV} has no samples before 00:00 today`;
+  }
+  if (!today.evaluable) {
+    return `- ${rule.label}: ${newV} (n=${formatCount(today.newer.n)}) vs ${oldV} (n=${formatCount(today.previous.n)}): not evaluable yet`;
+  }
+  return `- ${rule.label}: ${newV} ${formatMs(today.newer.p90)} vs ${oldV} ${formatMs(today.previous.p90)} (${formatPercent(today.gap)}, headroom ${formatPercent(rule.releaseHeadroom)})${today.flagged ? ' · flagged' : ''}${post ? ' · posted' : ''}`;
+}
+
 export function buildSummaryMarkdown({ asOfLabel, budgets, releases, errors }) {
+  const timeouts = EXCLUDE_TIMEOUTS ? `, spans ≥ ${formatCount(TIMEOUT_MS)}ms excluded` : '';
   const lines = [
     `# Swaps performance budgets · ${asOfLabel}`,
     '',
-    `14 complete ${TIME_ZONE} days, minimum n ${formatCount(MIN_SAMPLES)}${EXCLUDE_TIMEOUTS ? `, spans ≥ ${formatCount(TIMEOUT_MS)}ms excluded` : ''}.`,
+    `${WINDOW_DAYS} complete ${TIME_ZONE} days, minimum n ${formatCount(MIN_SAMPLES)}${timeouts}.`,
     '',
     '| Rule | Window | p90 | Guardrail | n | Today | Yesterday | Posted |',
     '|---|---|---|---|---|---|---|---|',
+    ...budgets.map(
+      ({ rule, window, today, todayStatus, yesterdayStatus, transition }) =>
+        `| ${rule.label} | [${window.label}](${today.url}) | ${formatMs(today.p90)} | ${formatMs(rule.guardrailMs)} | ${formatCount(today.n)} | ${todayStatus} | ${yesterdayStatus} | ${transition || '—'} |`,
+    ),
   ];
-  for (const result of budgets) {
-    lines.push(
-      `| ${result.rule.label} | [${result.window.label}](${result.today.url}) | ${formatMs(result.today.p90)} | ${formatMs(result.rule.guardrailMs)} | ${formatCount(result.today.n)} | ${result.todayStatus} | ${result.yesterdayStatus} | ${result.transition || '—'} |`,
-    );
-  }
   if (releases.length > 0) {
-    lines.push('', '## Per-release check', '');
-    for (const result of releases) {
-      if (result.skipped) {
-        lines.push(`- ${result.rule.label}: skipped (${result.skipped})`);
-      } else if (!result.today) {
-        lines.push(
-          `- ${result.rule.label}: ${result.newerVersion} has no samples before 00:00 today`,
-        );
-      } else if (!result.today.evaluable) {
-        lines.push(
-          `- ${result.rule.label}: ${result.newerVersion} (n=${formatCount(result.today.newer.n)}) vs ${result.previousVersion} (n=${formatCount(result.today.previous.n)}): not evaluable yet`,
-        );
-      } else {
-        lines.push(
-          `- ${result.rule.label}: ${result.newerVersion} ${formatMs(result.today.newer.p90)} vs ${result.previousVersion} ${formatMs(result.today.previous.p90)} (${formatPercent(result.today.gap)}, headroom ${formatPercent(result.rule.releaseHeadroom)})${result.today.flagged ? ' · flagged' : ''}${result.post ? ' · posted' : ''}`,
-        );
-      }
-    }
+    lines.push('', '## Per-release check', '', ...releases.map(releaseSummary));
   }
   if (errors.length > 0) {
     lines.push('', '## Errors', '', ...errors.map((error) => `- ${error}`));
@@ -581,9 +435,7 @@ export function buildSummaryMarkdown({ asOfLabel, budgets, releases, errors }) {
   return lines.join('\n');
 }
 
-// ---------------------------------------------------------------------------
-// Run
-// ---------------------------------------------------------------------------
+// --- Run ---
 
 export async function postToSlack(webhook, text, { fetchFn = fetch } = {}) {
   const response = await fetchFn(webhook, {
@@ -596,16 +448,13 @@ export async function postToSlack(webhook, text, { fetchFn = fetch } = {}) {
   }
 }
 
-export async function runBudgetCheck({
-  today,
-  rules = BUDGET_RULES,
-  sentry,
-}) {
+export async function runBudgetCheck({ today, rules = BUDGET_RULES, sentry }) {
   const window = windowEndingOn(today);
   const yesterdayWindow = windowEndingOn(addDays(today, -1));
+  const budgets = [];
+  const releases = [];
   const errors = [];
 
-  const budgets = [];
   for (const rule of rules) {
     try {
       const [todayResult, yesterdayResult] = await Promise.all([
@@ -614,32 +463,16 @@ export async function runBudgetCheck({
       ]);
       const todayStatus = budgetStatus(todayResult, rule.guardrailMs);
       const yesterdayStatus = budgetStatus(yesterdayResult, rule.guardrailMs);
-      budgets.push({
-        rule,
-        window,
-        today: todayResult,
-        todayStatus,
-        yesterdayStatus,
-        transition: budgetTransition(todayStatus, yesterdayStatus),
-      });
+      const transition = budgetTransition(todayStatus, yesterdayStatus);
+      budgets.push({ rule, window, today: todayResult, todayStatus, yesterdayStatus, transition });
     } catch (error) {
       errors.push(`${rule.label}: ${error.message}`);
     }
   }
 
-  const releases = [];
-  const lookback = windowEndingOn(today, RELEASE_LOOKBACK_DAYS);
   for (const rule of rules.filter(({ perRelease }) => perRelease)) {
     try {
-      releases.push(
-        await checkRelease(
-          rule,
-          midnightIn(today),
-          midnightIn(addDays(today, -1)),
-          lookback,
-          sentry,
-        ),
-      );
+      releases.push(await checkRelease(rule, today, sentry));
     } catch (error) {
       errors.push(`${rule.label} per-release check: ${error.message}`);
     }
@@ -651,8 +484,7 @@ export async function runBudgetCheck({
 async function main() {
   const env = process.env;
   const dryRun = env.DRY_RUN === 'true';
-  const token = env.SWAPS_SENTRY_TOKEN;
-  const webhook = env.SWAPS_PERF_SLACK_WEBHOOK;
+  const { SWAPS_SENTRY_TOKEN: token, SWAPS_PERF_SLACK_WEBHOOK: webhook } = env;
   if (!token) {
     throw new Error('SWAPS_SENTRY_TOKEN is not set');
   }
@@ -660,21 +492,14 @@ async function main() {
     throw new Error('SWAPS_PERF_SLACK_WEBHOOK is not set (or run with DRY_RUN=true)');
   }
 
-  const today = env.AS_OF
-    ? parseCalendarDate(env.AS_OF)
-    : calendarDateIn(new Date());
+  const today = env.AS_OF ? parseCalendarDate(env.AS_OF) : calendarDateIn(new Date());
   const result = await runBudgetCheck({
     today,
-    sentry: {
-      token,
-      apiBase: env.SENTRY_API_BASE || DEFAULT_SENTRY_API_BASE,
-    },
+    sentry: { token, apiBase: env.SENTRY_API_BASE || DEFAULT_SENTRY_API_BASE },
   });
 
-  const summary = buildSummaryMarkdown({
-    asOfLabel: `as of 00:00 ${shortDate(today)} ${today.year}, ${TIME_ZONE}`,
-    ...result,
-  });
+  const asOfLabel = `as of 00:00 ${shortDate(today)} ${today.year}, ${TIME_ZONE}`;
+  const summary = buildSummaryMarkdown({ asOfLabel, ...result });
   console.log(summary);
   if (env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(env.GITHUB_STEP_SUMMARY, `${summary}\n`);
