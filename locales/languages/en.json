@@ -11941,7 +11941,6 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Sign in",
-      "siwe_button": "Sign in with Ethereum",
       "money_account_required": {
         "title": "Set up Money account",
         "description": "A Money account is required to get the card in your country.",
