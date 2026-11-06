@@ -161,6 +161,18 @@ describe('buildPerformanceCells', () => {
     });
   });
 
+  it('shows unsigned $0 unrealized when a tiny loss rounds to zero dollars', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('dust', { pnlValueUsd: 9.6, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '$0',
+      tone: 'success',
+    });
+  });
+
   it('marks negative P&L with the error tone', () => {
     const [pnlCell] = buildPerformanceCells(
       liveProfile({ stats: { pnl30d: -450 } }),

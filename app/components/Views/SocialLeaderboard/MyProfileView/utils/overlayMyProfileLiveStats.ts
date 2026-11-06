@@ -46,6 +46,9 @@ export interface OverlayedMyProfileStats {
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
+const signedUsdTone = (value: number): PerformanceCell['tone'] =>
+  Math.round(value) >= 0 ? 'success' : 'error';
+
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
   openPositions: readonly Position[] = [],
@@ -59,7 +62,7 @@ export const buildPerformanceCells = (
     cells.push({
       id: 'pnl',
       value: formatSignedFullUsdNoDecimals(stats.pnl30d),
-      tone: stats.pnl30d >= 0 ? 'success' : 'error',
+      tone: signedUsdTone(stats.pnl30d),
     });
   }
   const unrealized = sumUnrealizedFromOpenPositions(openPositions);
@@ -67,7 +70,7 @@ export const buildPerformanceCells = (
     cells.push({
       id: 'unrealizedPnl',
       value: formatSignedFullUsdNoDecimals(unrealized),
-      tone: unrealized >= 0 ? 'success' : 'error',
+      tone: signedUsdTone(unrealized),
     });
   }
   if (isPresentNumber(stats.winRate30d)) {
