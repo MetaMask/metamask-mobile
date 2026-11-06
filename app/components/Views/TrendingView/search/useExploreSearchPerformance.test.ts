@@ -515,6 +515,37 @@ describe('useExploreSearchPerformance', () => {
     );
   });
 
+  it('does not time out while the app remains inactive', () => {
+    jest.useFakeTimers();
+
+    try {
+      renderHook(() =>
+        useExploreSearchPerformance({
+          query: 'eth',
+          isDebouncing: false,
+          enabledFeeds: ['tokens'],
+        }),
+      );
+      const appStateChangeHandler = (AppState.addEventListener as jest.Mock)
+        .mock.calls[0][1] as (
+        nextState: 'active' | 'inactive' | 'background',
+      ) => void;
+
+      act(() => {
+        appStateChangeHandler('inactive');
+        jest.advanceTimersByTime(10_000);
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        appStateChangeHandler('background');
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('completes a trace when the request query is normalized', () => {
     const { result } = renderHook(() =>
       useExploreSearchPerformance({

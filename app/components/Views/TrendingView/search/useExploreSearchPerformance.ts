@@ -113,6 +113,13 @@ export const useExploreSearchPerformance = ({
   queryRef.current = query;
   isFocusedRef.current = isFocused;
 
+  const clearMeasurementTimeout = useCallback(() => {
+    if (timeoutRef.current !== undefined) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = undefined;
+    }
+  }, []);
+
   const cancelPendingFeedPaints = useCallback(() => {
     pendingFeedPaints.forEach((cancel) => cancel());
     pendingFeedPaints.clear();
@@ -122,15 +129,11 @@ export const useExploreSearchPerformance = ({
   const finishMeasurement = useCallback(
     (completed: boolean, reason?: string) => {
       const endTime = getPerformanceTimestamp();
+      clearMeasurementTimeout();
       const finished = performanceState.finish(reason);
 
       if (!finished) {
         return;
-      }
-
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = undefined;
       }
       cancelPendingFeedPaints();
 
@@ -230,7 +233,7 @@ export const useExploreSearchPerformance = ({
         },
       });
     },
-    [cancelPendingFeedPaints, performanceState],
+    [cancelPendingFeedPaints, clearMeasurementTimeout, performanceState],
   );
 
   const startMeasurement = useCallback(
@@ -582,6 +585,7 @@ export const useExploreSearchPerformance = ({
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'inactive') {
         pendingInactiveRef.current = true;
+        clearMeasurementTimeout();
         return;
       }
 
@@ -598,7 +602,7 @@ export const useExploreSearchPerformance = ({
       pendingInactiveRef.current = false;
       subscription.remove();
     };
-  }, [finishMeasurement]);
+  }, [clearMeasurementTimeout, finishMeasurement]);
 
   useEffect(
     () => () => {
