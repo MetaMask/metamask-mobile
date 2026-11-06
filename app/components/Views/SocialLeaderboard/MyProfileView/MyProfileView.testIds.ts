@@ -29,6 +29,7 @@ export const MyProfileViewSelectorsIDs = {
   PERFORMANCE_SECTION: 'my-profile-view-performance-section',
   PERFORMANCE_PNL: 'my-profile-view-performance-pnl',
   PERFORMANCE_PNL_UNCOUNTED: 'my-profile-view-performance-pnl-uncounted',
+  PERFORMANCE_UNREALIZED_PNL: 'my-profile-view-performance-unrealized-pnl',
   PERFORMANCE_WIN_RATE: 'my-profile-view-performance-win-rate',
   PERFORMANCE_HOLD_TIME: 'my-profile-view-performance-hold-time',
   PERFORMANCE_VOLUME: 'my-profile-view-performance-volume',

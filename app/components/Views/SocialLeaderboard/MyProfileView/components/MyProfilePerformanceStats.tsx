@@ -24,8 +24,12 @@ const CELL_CONFIG: Record<
   { labelKey: string; testID: string }
 > = {
   pnl: {
-    labelKey: 'social_leaderboard.my_profile.pnl',
+    labelKey: 'social_leaderboard.my_profile.realized_pnl',
     testID: MyProfileViewSelectorsIDs.PERFORMANCE_PNL,
+  },
+  unrealizedPnl: {
+    labelKey: 'social_leaderboard.my_profile.unrealized_pnl',
+    testID: MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
   },
   winRate: {
     labelKey: 'social_leaderboard.my_profile.win_rate',
@@ -65,8 +69,8 @@ interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
   /**
    * Flagged positions the profile list is showing. The note stays hidden at 0
-   * and when the P&L cell is absent. It sits under the Performance title.
-   * The P&L cell label stays "P&L".
+   * and when the realized P&L cell is absent. It sits under the Performance title.
+   * The realized P&L cell label stays "Realized P&L".
    */
   uncountedCount?: number;
   /** Scrolls the profile to the pinned uncounted section. */

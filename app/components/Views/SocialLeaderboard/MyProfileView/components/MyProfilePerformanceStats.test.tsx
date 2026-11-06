@@ -30,6 +30,7 @@ const ancestorWithStyle = (
 
 const allCells: PerformanceCell[] = [
   { id: 'pnl', value: '+$1,200', tone: 'success' },
+  { id: 'unrealizedPnl', value: '+$80', tone: 'success' },
   { id: 'winRate', value: '42%', tone: 'default' },
   { id: 'holdTime', value: '3h', tone: 'default' },
   { id: 'volume', value: '$50,000', tone: 'default' },
@@ -44,6 +45,9 @@ describe('MyProfilePerformanceStats', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200');
     expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
+    ).toHaveTextContent('+$80');
+    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
     expect(
@@ -56,7 +60,7 @@ describe('MyProfilePerformanceStats', () => {
 
   it('renders only the cells it receives', () => {
     renderWithProvider(
-      <MyProfilePerformanceStats cells={[allCells[1], allCells[3]]} />,
+      <MyProfilePerformanceStats cells={[allCells[2], allCells[4]]} />,
     );
 
     expect(
@@ -130,7 +134,7 @@ describe('MyProfilePerformanceStats', () => {
     const noteText = screen.getByText('2 positions not counted in P&L');
     expect(noteText).toBeOnTheScreen();
     expect(noteText.props.numberOfLines).toBeUndefined();
-    expect(screen.getByText('P&L')).toBeOnTheScreen();
+    expect(screen.getByText('Realized P&L')).toBeOnTheScreen();
 
     const note = screen.getByRole('button', {
       name: '2 positions not counted in P&L',
