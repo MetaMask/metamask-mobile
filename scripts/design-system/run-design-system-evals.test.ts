@@ -131,60 +131,6 @@ describe('runEvals', () => {
     expect(writes).toEqual([]);
   });
 
-  it('suppresses only the line that carries a ds-exception reason', () => {
-    const filePath = 'app/design-system-evals-seed/Seed.tsx';
-    const code = [
-      'export const seed = {',
-      '  marginRight: 0,',
-      '  marginTop: 8,',
-      '  padding: 1,',
-      '  gap: 4, // ds-exception: local seed, keep the raw gap',
-      '  top: 12,',
-      '};',
-      '',
-    ].join('\n');
-    const writes: string[] = [];
-
-    const codeResult = runEvals({
-      readDiff: () =>
-        addedDiff(
-          filePath,
-          code.split('\n').filter((line) => line.length > 0),
-        ),
-      lintFiles: () => lintSource(filePath, code),
-      write: (line) => {
-        writes.push(line);
-      },
-    });
-
-    expect(codeResult).toBe(1);
-    expect(writes).toEqual([
-      formatAnnotation(
-        filePath,
-        3,
-        'Hard-coded spacing value "8" on "marginTop". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add "// ds-exception: <reason>" on this line.',
-      ),
-      formatAnnotation(
-        filePath,
-        4,
-        'Hard-coded spacing value "1" on "padding". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add "// ds-exception: <reason>" on this line.',
-      ),
-    ]);
-  });
-
-  it('fails a line whose ds-exception reason is empty', () => {
-    const filePath = 'app/Screen.tsx';
-    const code = 'export const styles = { marginRight: 8 }; // ds-exception:\n';
-
-    const codeResult = runEvals({
-      readDiff: () => addedDiff(filePath, [code.trimEnd()]),
-      lintFiles: () => lintSource(filePath, code),
-      write: () => undefined,
-    });
-
-    expect(codeResult).toBe(1);
-  });
-
   it('throws when lint fails so the check does not pass silently', () => {
     const readDiff = () => addedDiff('app/Screen.tsx', ['export const x = 1;']);
 

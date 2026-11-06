@@ -137,7 +137,6 @@ function linterConfig(): Linter.Config {
 
 function main(): void {
   // pull_request checkout is the merge commit. Its first parent is the base tip.
-  const diffStarted = Date.now();
   const diff = execFileSync(
     'git',
     [
@@ -153,8 +152,6 @@ function main(): void {
     ],
     { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
-  const diffMs = Date.now() - diffStarted;
-  const lintStarted = Date.now();
   const code = runEvals({
     readDiff: () => diff,
     lintFiles: lintRepoFiles,
@@ -162,9 +159,6 @@ function main(): void {
       process.stdout.write(`${line}\n`);
     },
   });
-  process.stderr.write(
-    `design-system-evals timing diff_ms=${diffMs} lint_ms=${Date.now() - lintStarted}\n`,
-  );
   process.exitCode = code;
 }
 
