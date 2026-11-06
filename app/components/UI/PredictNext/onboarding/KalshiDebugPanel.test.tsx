@@ -32,17 +32,11 @@ jest.mock('./internal/createKalshiOnboardingClient', () => {
   };
 });
 
-jest.mock('./internal/kalshiRelinkRequest', () => ({
-  requestKalshiRelink: jest.fn(),
-}));
-
 jest.mock('./internal/kalshiDebugInfo', () => ({
   summarizeA2t: (token: string | undefined) => (token ? { sub: token } : {}),
 }));
 
 const messengerCall = Engine.controllerMessenger.call as jest.Mock;
-const requestKalshiRelink = jest.requireMock('./internal/kalshiRelinkRequest')
-  .requestKalshiRelink as jest.Mock;
 const profileId = '2245ae33-2695-4bfe-be45-d01e38de0955';
 
 const renderPanel = () => render(<KalshiDebugPanel />);
@@ -71,18 +65,6 @@ describe('KalshiDebugPanel', () => {
 
     expect(Clipboard.setString).toHaveBeenCalledTimes(1);
     expect(Clipboard.setString).toHaveBeenCalledWith(profileId);
-  });
-
-  it('restarts onboarding through the relink channel', async () => {
-    messengerCall.mockResolvedValue(profileId);
-    const view = renderPanel();
-
-    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
-    fireEvent.press(await view.findByTestId(KalshiDebugTestIds.RESTART));
-
-    await waitFor(() => {
-      expect(requestKalshiRelink).toHaveBeenCalledTimes(1);
-    });
   });
 
   it('reports a status failure instead of a state', async () => {

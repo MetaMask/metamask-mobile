@@ -19,7 +19,6 @@ import {
 
 import Engine from '../../../../core/Engine';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
-import { requestKalshiRelink } from './internal/kalshiRelinkRequest';
 import { summarizeA2t, type A2tSummary } from './internal/kalshiDebugInfo';
 
 interface DebugSnapshot {
@@ -35,7 +34,6 @@ interface DebugSnapshot {
 export const KalshiDebugTestIds = {
   OPEN: 'user-debug-open',
   COPY_PROFILE_ID: 'user-debug-copy-profile-id',
-  RESTART: 'user-debug-restart',
 } as const;
 
 const Row = ({
@@ -109,8 +107,8 @@ const describeServerStatus = (snapshot?: DebugSnapshot): string => {
 };
 
 /**
- * TEMPORARY. Shows where this profile stands in the Kalshi demo onboarding
- * and restarts the flow. Delete with the demo onboarding.
+ * TEMPORARY. Shows where this profile stands in the Kalshi demo onboarding.
+ * Delete with the demo onboarding.
  */
 export const KalshiDebugPanel = ({
   renderTrigger,
@@ -153,13 +151,6 @@ export const KalshiDebugPanel = ({
     setVisible(true);
     refresh().catch(() => undefined);
   }, [refresh]);
-
-  // Restart remounts the gate's flow through the relink channel. Close this
-  // sheet first so two sheets are not presented at once.
-  const restart = useCallback(() => {
-    setVisible(false);
-    setTimeout(requestKalshiRelink, 600);
-  }, []);
 
   const copyProfileId = useCallback(() => {
     const profileId = snapshot?.a2t.sub;
@@ -215,22 +206,6 @@ export const KalshiDebugPanel = ({
               onPress={() => setVisible(false)}
             >
               Close
-            </Button>
-          </Box>
-
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            Restart closes this sheet and opens the onboarding flow again from
-            the email step. For a profile Kalshi already activated, it relinks
-            that account to this profile: enter the email, the code, the MFA
-            code if Kalshi asks, then confirm the wallet.
-          </Text>
-          <Box twClassName="self-start">
-            <Button
-              variant={ButtonVariant.Secondary}
-              onPress={restart}
-              testID={KalshiDebugTestIds.RESTART}
-            >
-              Restart onboarding
             </Button>
           </Box>
         </ScrollView>

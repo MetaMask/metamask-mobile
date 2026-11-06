@@ -37,13 +37,6 @@ export interface UseKalshiDemoOnboardingOptions {
   walletAddress?: string;
   network: KalshiWalletNetwork;
   pollIntervalMs: number;
-  /**
-   * TEMPORARY debug. Starts at the email step even though the profile is
-   * already active, and goes from a verified code straight to the wallet
-   * step. The status route would answer `active` from the old binding and
-   * skip activation of the new account.
-   */
-  relink?: boolean;
   /** False while the device has no usable network. Unknown stays true. */
   canPoll?: () => boolean;
   onActivated: () => void;
@@ -69,9 +62,9 @@ export type KalshiDemoOnboarding = Omit<
 
 type Inputs = Omit<
   Required<UseKalshiDemoOnboardingOptions>,
-  'walletAddress' | 'canPoll' | 'relink'
+  'walletAddress' | 'canPoll'
 > &
-  Pick<UseKalshiDemoOnboardingOptions, 'walletAddress' | 'canPoll' | 'relink'>;
+  Pick<UseKalshiDemoOnboardingOptions, 'walletAddress' | 'canPoll'>;
 
 class Cancelled extends Error {}
 
@@ -230,10 +223,6 @@ export const createOnboardingController = (
   return {
     start: () => {
       dispatch({ type: 'started' });
-      if (inputs().relink) {
-        dispatch({ type: 'status', state: 'none', initial: false });
-        return;
-      }
       perform(() => readStatus(true));
     },
     submitEmail: (email) => {
@@ -243,13 +232,8 @@ export const createOnboardingController = (
       lastEmail = trimmed;
       perform(async () => {
         const check = guard();
-        // Relink (temporary debug): Kalshi refuses a new intent for a profile
-        // that is already activated (409 user_already_exists), so try the
-        // link against the existing intent.
-        if (!inputs().relink) {
-          await inputs().client.createIntent(intentKey);
-          check();
-        }
+        await inputs().client.createIntent(intentKey);
+        check();
         await inputs().client.submitEmail(trimmed, linkKey);
         check();
         dispatch({ type: 'link_sent' });
@@ -280,11 +264,6 @@ export const createOnboardingController = (
         // it to this same action; the link is not through yet.
         if (!result.verified && result.mfa) {
           dispatch({ type: 'mfa_required', mfa: result.mfa });
-          return;
-        }
-        if (inputs().relink) {
-          // The code was accepted, so the intent is approved. Activate it.
-          dispatch({ type: 'status', state: 'approved', initial: false });
           return;
         }
         await readStatusAfterVerify();
