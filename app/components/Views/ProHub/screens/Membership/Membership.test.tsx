@@ -429,6 +429,19 @@ describe('Membership', () => {
       });
     });
 
+    it('says Ends on for a past-due plan that is still scheduled to cancel', () => {
+      const { getByTestId, queryByTestId } = renderMembership({
+        ...pendingCancellation,
+        status: SUBSCRIPTION_STATUSES.pastDue,
+      });
+
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.ends_on')),
+      );
+      expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
+      expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+    });
+
     it('hides the membership action when the period end has passed', () => {
       const { getByTestId, queryByTestId } = renderMembership({
         ...pendingCancellation,

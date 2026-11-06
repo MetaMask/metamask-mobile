@@ -43,7 +43,10 @@ const UNSEEN_STATUS = Symbol('unseen-subscription-status');
  * session saw provisional, to active or trialing shows the membership
  * toast. Showing the processing toaster also owes that toast once, including
  * when Redux is already active before this effect records provisional. A
- * later change to a failed or missing plan opens the payment-failed sheet.
+ * later change out of provisional, or out of awaiting-funds after this
+ * session saw provisional, opens the payment-failed sheet. A plan that was
+ * already canceled when the processing toaster was shown is not that
+ * checkout.
  * A hop between those two funding statuses stays quiet and keeps watching.
  *
  * While that checkout is still funding, subscriptions refresh faster than
@@ -132,7 +135,7 @@ export function useProSubscriptionPaymentMonitor(): {
 
     if (
       transition === ProvisionalPaymentTransition.Failed &&
-      (observedThisCheckout || (activationToastOwed && status !== undefined))
+      observedThisCheckout
     ) {
       clearActivationToastDebt();
       dismissPaymentToast();

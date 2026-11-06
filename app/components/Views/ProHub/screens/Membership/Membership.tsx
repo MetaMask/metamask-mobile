@@ -33,6 +33,7 @@ import {
 import { useResumeMembership } from '../../hooks/useResumeMembership';
 import {
   getMembershipManageAction,
+  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
@@ -359,7 +360,7 @@ const Membership = () => {
 
             <InfoRow
               label={
-                manageAction === MembershipManageAction.Resume
+                isPeriodEndCancellationPending(subscription)
                   ? strings('pro_hub.membership.ends_on')
                   : strings('pro_hub.membership.renews_on')
               }

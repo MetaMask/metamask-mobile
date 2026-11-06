@@ -12,6 +12,7 @@ import {
   canResumeMembership,
   formatSubscriptionPeriodEnd,
   getMembershipManageAction,
+  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from './ProHub.utils';
 
@@ -85,6 +86,30 @@ const createSubscription = (
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
   ...overrides,
+});
+
+describe('isPeriodEndCancellationPending', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('is true for a payment-problem plan whose period end is still ahead', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(isPeriodEndCancellationPending(subscription, now)).toBe(true);
+  });
+
+  it('is false when the period end is already past', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.pastDue,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(isPeriodEndCancellationPending(subscription, now)).toBe(false);
+  });
 });
 
 describe('canResumeMembership', () => {

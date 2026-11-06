@@ -214,7 +214,7 @@ const ProHub = () => {
         case MembershipAlertAction.Resume:
           // A period-end cancel is still a membership, so the subscription
           // screen would send the user straight back. Uncancel here instead.
-          resumeMembership();
+          void resumeMembership();
           return;
         default: {
           const unexpectedAction: never = action;

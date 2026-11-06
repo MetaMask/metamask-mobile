@@ -228,6 +228,23 @@ describe('useProSubscriptionPaymentMonitor', () => {
     expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
   });
 
+  it('does not open the failed sheet for a canceled plan already stored when processing is owed', () => {
+    status = SUBSCRIPTION_STATUSES.canceled;
+    markActivationToastOwed();
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+    expect(mockDismissPaymentToast).not.toHaveBeenCalled();
+
+    status = SUBSCRIPTION_STATUSES.active;
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+  });
+
   it('does not show the active toast after a processing checkout fails', () => {
     status = SUBSCRIPTION_STATUSES.provisional;
     const { rerender, result } = renderHook(() =>
