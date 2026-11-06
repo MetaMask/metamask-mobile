@@ -487,7 +487,7 @@ describe('Amount', () => {
 
     expect(
       getByText(
-        `${getFormatters().formatTokenQuantity(tokenAmount, 'SOL')} available`,
+        `${getFormatters().formatTokenQuantity(tokenAmount as `${number}`, 'SOL')} available`,
       ),
     ).toBeOnTheScreen();
   });

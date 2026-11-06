@@ -115,7 +115,8 @@ export const Amount = () => {
         return formatTokenQuantity('0.000000001', symbol);
       }
       return (
-        formatTokenQuantity(tokenAmount, symbol) || `${tokenAmount} ${symbol}`
+        formatTokenQuantity(tokenAmount as `${number}`, symbol) ||
+        `${tokenAmount} ${symbol}`
       );
     },
     [formatTokenQuantity],

@@ -113,7 +113,7 @@ export const getFiatDisplayValueFn = ({
     return formatAmountWithCommas(amt);
   }
 
-  return getFormatters().formatCurrency(amt, currency, {
+  return getFormatters().formatCurrency(amt as `${number}`, currency, {
     currencyDisplay: 'narrowSymbol',
   });
 };
