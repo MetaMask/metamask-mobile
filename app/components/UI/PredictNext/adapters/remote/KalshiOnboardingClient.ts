@@ -175,6 +175,7 @@ export class KalshiOnboardingClient {
         body: '',
         idempotencyKey,
       },
+      body: { idempotencyKey },
     });
     const intent = parseKalshiEnrollmentIntent(value);
     Logger.log('PredictNext: Kalshi onboarding intent', {
@@ -196,6 +197,7 @@ export class KalshiOnboardingClient {
         body: JSON.stringify({ email }),
         idempotencyKey,
       },
+      body: { email, idempotencyKey },
     });
   }
 
@@ -210,6 +212,7 @@ export class KalshiOnboardingClient {
         body: JSON.stringify({ code }),
         idempotencyKey,
       },
+      body: { code, idempotencyKey },
     });
     return parseKalshiLinkVerify(value);
   }
@@ -239,6 +242,11 @@ export class KalshiOnboardingClient {
         body: JSON.stringify({ wallet_address: walletAddress, network }),
         idempotencyKey,
       },
+      body: {
+        walletAddress,
+        network,
+        idempotencyKey,
+      },
     });
     return parseKalshiActivate(value);
   }
@@ -260,6 +268,11 @@ export class KalshiOnboardingClient {
     request: OnboardingSignedRequest;
     /** Extra upstream requests the server relays under the same envelope. */
     alsoSign?: readonly OnboardingSignedRequest[];
+    /**
+     * DTO fields the server re-derives and matches against the envelope
+     * `values`, byte for byte. The same JSON goes in the HTTP body.
+     */
+    body?: Record<string, string>;
   }): Promise<unknown> {
     const send = async (): Promise<RawResponse> => {
       const context = await this.#resolveContext();
@@ -277,10 +290,16 @@ export class KalshiOnboardingClient {
         value: buildOnboardingVenueAuthorization({
           step: 'default',
           context,
+          values: input.body,
           signatures,
         }),
       };
-      return this.#send(input.method, input.route, undefined, header);
+      return this.#send(
+        input.method,
+        input.route,
+        input.body && { ...input.body },
+        header,
+      );
     };
     const response = await this.#sendOnceThenRetry(send);
     return this.#accept(response);

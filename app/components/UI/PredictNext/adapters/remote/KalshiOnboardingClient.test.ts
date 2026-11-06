@@ -131,7 +131,7 @@ describe('KalshiOnboardingClient', () => {
     [
       string,
       (client: KalshiOnboardingClient) => Promise<unknown>,
-      { path: string; body: string },
+      { path: string; body: string; dto: Record<string, string> },
     ]
   >([
     [
@@ -140,6 +140,7 @@ describe('KalshiOnboardingClient', () => {
       {
         path: '/trade-api/v2/isv/users/link',
         body: '{"email":"user@example.com"}',
+        dto: { email: 'user@example.com', idempotencyKey: KEY },
       },
     ],
     [
@@ -148,12 +149,17 @@ describe('KalshiOnboardingClient', () => {
       {
         path: '/trade-api/v2/isv/users/link/verify',
         body: '{"code":"888888"}',
+        dto: { code: '888888', idempotencyKey: KEY },
       },
     ],
     [
       'intent',
       (client) => client.createIntent(KEY),
-      { path: '/trade-api/v2/isv/enrollment/intents', body: '' },
+      {
+        path: '/trade-api/v2/isv/enrollment/intents',
+        body: '',
+        dto: { idempotencyKey: KEY },
+      },
     ],
     [
       'activate',
@@ -161,11 +167,12 @@ describe('KalshiOnboardingClient', () => {
       {
         path: '/trade-api/v2/isv/wallet/register',
         body: '{"wallet_address":"0xabc","network":"base"}',
+        dto: { walletAddress: '0xabc', network: 'base', idempotencyKey: KEY },
       },
     ],
   ])(
     'signs exactly the fixed upstream bytes of the %s request',
-    async (_name, call, upstream) => {
+    async (_name, call, { path, body, dto }) => {
       const fetchImpl = jest.fn().mockResolvedValue(json(500, {}, 'stop'));
       const { client, signDeviceProof } = clientWith(fetchImpl);
 
@@ -179,13 +186,7 @@ describe('KalshiOnboardingClient', () => {
       const [signature] = decoded.signatures;
       expect(signature.signatureInput).toBe(
         `kalshi=${onboardingSignatureParams(
-          {
-            method: 'POST',
-            path: upstream.path,
-            query: '',
-            body: upstream.body,
-            idempotencyKey: KEY,
-          },
+          { method: 'POST', path, query: '', body, idempotencyKey: KEY },
           signature.requestId,
           // created is derived from the params; recompute the base from the
           // signature input instead of the clock.
@@ -200,13 +201,18 @@ describe('KalshiOnboardingClient', () => {
       ).toString('utf8');
       expect(signedMessage.startsWith('"@method": POST')).toBe(true);
       // The base carries the fixed upstream request bytes.
-      expect(signedMessage).toContain(`"@path": ${upstream.path}`);
+      expect(signedMessage).toContain(`"@path": ${path}`);
       expect(signedMessage).toContain(
         `"content-digest": sha-256=:${Buffer.from(
-          sha256(new TextEncoder().encode(upstream.body)),
+          sha256(new TextEncoder().encode(body)),
         ).toString('base64')}:`,
       );
       expect(signedMessage).toContain(`"idempotency-key": ${KEY}`);
+      // The regression: the HTTP body must carry the DTO fields and the
+      // envelope values must repeat them, or the server answers 400 (empty
+      // DTO) or 403 (values mismatch).
+      expect(JSON.parse(sent(fetchImpl, 0).body ?? '{}')).toEqual(dto);
+      expect(decoded.values).toEqual(dto);
     },
   );
 
