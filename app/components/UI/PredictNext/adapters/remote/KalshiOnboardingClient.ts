@@ -112,8 +112,7 @@ interface SignedAttempt {
  * correct once, and a second failure is the caller's error.
  */
 const isRenewable = (attempt: SignedAttempt): boolean =>
-  (attempt.status === 403 &&
-    attempt.code === 'venue_authorization_invalid') ||
+  (attempt.status === 403 && attempt.code === 'venue_authorization_invalid') ||
   (attempt.status === 409 && attempt.code === 'venue_signature_expired');
 
 /**
@@ -136,13 +135,23 @@ export class KalshiOnboardingClient {
     const value = await this.#signedCall({
       method: 'GET',
       route: ['onboarded'],
-      // The temporary onboarded probe is the phone-signed balance read.
-        request: {
+      // The temporary onboarded probe: the server verifies one envelope
+      // covering both requests it may relay — the balance probe, then the
+      // enrollment-intent fallback.
+      request: {
+        method: 'GET',
+        path: '/trade-api/v2/portfolio/balance',
+        query: '',
+        body: '',
+      },
+      alsoSign: [
+        {
           method: 'GET',
-          path: '/trade-api/v2/portfolio/balance',
+          path: '/trade-api/v2/isv/enrollment/intents/current',
           query: '',
           body: '',
         },
+      ],
     });
     const status = parseKalshiOnboardingStatus(
       isOnboardedPayload(value) ? { state: 'active' } : value,
@@ -249,20 +258,26 @@ export class KalshiOnboardingClient {
     method: 'GET' | 'POST';
     route: readonly string[];
     request: OnboardingSignedRequest;
+    /** Extra upstream requests the server relays under the same envelope. */
+    alsoSign?: readonly OnboardingSignedRequest[];
   }): Promise<unknown> {
     const send = async (): Promise<RawResponse> => {
       const context = await this.#resolveContext();
-      const signature = await signOnboardingRequest(input.request, context, {
-        sign: this.#options.signDeviceProof,
-        requestId: () => uuidv4(),
-        now: () => Math.floor(Date.now() / 1000),
-      });
+      const signatures = await Promise.all(
+        [input.request, ...(input.alsoSign ?? [])].map((request) =>
+          signOnboardingRequest(request, context, {
+            sign: this.#options.signDeviceProof,
+            requestId: () => uuidv4(),
+            now: () => Math.floor(Date.now() / 1000),
+          }),
+        ),
+      );
       const header = {
         name: VENUE_AUTHORIZATION_HEADER,
         value: buildOnboardingVenueAuthorization({
           step: 'default',
           context,
-          signatures: [signature],
+          signatures,
         }),
       };
       return this.#send(input.method, input.route, undefined, header);

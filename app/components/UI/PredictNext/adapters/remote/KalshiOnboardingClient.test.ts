@@ -51,7 +51,8 @@ const clientWith = (
     getBearerToken: async () => 'mm-token',
     getA2t: overrides.getA2t ?? (async () => CONTEXT.a2t),
     getDeviceKey:
-      overrides.getDeviceKey ?? (async () => ({
+      overrides.getDeviceKey ??
+      (async () => ({
         publicKey: CONTEXT.deviceKey,
         salt: CONTEXT.salt,
       })),
@@ -75,10 +76,9 @@ const sent = (fetchImpl: jest.Mock, index: number) => {
 const envelope = (fetchImpl: jest.Mock, index: number) =>
   JSON.parse(
     Buffer.from(
-      sent(fetchImpl, index).headers[AUTH_HEADER].replace(/-/gu, '+').replace(
-        /_/gu,
-        '/',
-      ),
+      sent(fetchImpl, index)
+        .headers[AUTH_HEADER].replace(/-/gu, '+')
+        .replace(/_/gu, '/'),
       'base64',
     ).toString('utf8'),
   ) as {
@@ -111,13 +111,15 @@ describe('KalshiOnboardingClient', () => {
     expect(decoded.step).toBe('default');
     expect(decoded.credential).toEqual(CONTEXT);
     expect(decoded.values).toEqual({});
-    expect(decoded.signatures).toHaveLength(1);
+    expect(decoded.signatures).toHaveLength(2);
   });
 
   it('maps a failed probe to the enrollment state the server reports', async () => {
     const fetchImpl = jest
       .fn()
-      .mockResolvedValueOnce(json(200, { onboarded: false, state: 'link_pending' }));
+      .mockResolvedValueOnce(
+        json(200, { onboarded: false, state: 'link_pending' }),
+      );
     const { client } = clientWith(fetchImpl);
 
     await expect(client.getStatus()).resolves.toEqual({
@@ -135,12 +137,18 @@ describe('KalshiOnboardingClient', () => {
     [
       'link',
       (client) => client.submitEmail('user@example.com', KEY),
-      { path: '/trade-api/v2/isv/users/link', body: '{"email":"user@example.com"}' },
+      {
+        path: '/trade-api/v2/isv/users/link',
+        body: '{"email":"user@example.com"}',
+      },
     ],
     [
       'link verify',
       (client) => client.verifyCode('888888', KEY),
-      { path: '/trade-api/v2/isv/users/link/verify', body: '{"code":"888888"}' },
+      {
+        path: '/trade-api/v2/isv/users/link/verify',
+        body: '{"code":"888888"}',
+      },
     ],
     [
       'intent',
