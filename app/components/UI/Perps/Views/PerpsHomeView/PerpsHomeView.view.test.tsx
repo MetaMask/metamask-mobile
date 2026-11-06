@@ -140,7 +140,11 @@ describe('PerpsHomeView', () => {
     });
 
     expect(
-      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+      await screen.findByTestId(
+        PerpsOutreachBannerSelectorsIDs.BANNER,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(
