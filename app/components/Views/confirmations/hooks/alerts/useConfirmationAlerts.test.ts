@@ -32,6 +32,7 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
+import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -58,6 +59,7 @@ jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
 jest.mock('./useMMPayHardwareAccountAlert');
 jest.mock('./useSuggestedGasFeeHighAlert');
+jest.mock('./useWatchOnlyAccountAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -232,6 +234,7 @@ describe('useConfirmationAlerts', () => {
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
     (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
     (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue([]);
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -374,5 +377,28 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockDepositLimitAlert);
+  });
+
+  it('returns the watch-only account alert first, for signatures as well as transactions', () => {
+    const mockWatchOnlyAlert: Alert[] = [
+      {
+        key: AlertKeys.WatchOnlyAccount,
+        title: 'Watch-only account',
+        message: 'This account cannot sign.',
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue(mockWatchOnlyAlert);
+    (useBlockaidAlerts as jest.Mock).mockReturnValue(mockBlockaidAlerts);
+
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
+      state: siweSignatureConfirmationState,
+    });
+
+    expect(result.current).toEqual([
+      ...mockWatchOnlyAlert,
+      ...mockBlockaidAlerts,
+    ]);
   });
 });

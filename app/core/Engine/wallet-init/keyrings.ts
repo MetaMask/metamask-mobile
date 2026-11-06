@@ -39,7 +39,14 @@ import {
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import {
+  isMpcMoneyKeyringBuildEnabled,
+  isWatchOnlyAccountsBuildEnabled,
+} from '../../../constants/featureFlags';
+import {
+  buildWatchOnlyKeyringBuilder,
+  buildWatchOnlyKeyringV2Builder,
+} from '../../WatchOnly/watch-only-keyring-builder';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -144,6 +151,13 @@ export function getKeyringBuilders(
     keyrings.push(buildMpcMoneyKeyringBuilder());
   }
 
+  // Watch-only accounts are development-only. No release build can hold a
+  // watch-only keyring, and the controller keeps an unrecognised keyring in
+  // the vault untouched, so the builder can stay behind the build gate.
+  if (isWatchOnlyAccountsBuildEnabled()) {
+    keyrings.push(buildWatchOnlyKeyringBuilder());
+  }
+
   return keyrings;
 }
 
@@ -222,6 +236,10 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
   // in `getKeyringBuilders` above. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     builders.push(buildMpcMoneyKeyringV2Builder());
+  }
+
+  if (isWatchOnlyAccountsBuildEnabled()) {
+    builders.push(buildWatchOnlyKeyringV2Builder());
   }
 
   return builders;

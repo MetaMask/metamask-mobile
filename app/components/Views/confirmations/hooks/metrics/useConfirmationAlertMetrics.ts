@@ -139,6 +139,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
   [AlertKeys.FiatBuyAmountLimit]: 'fiat_buy_amount_limit',
   [AlertKeys.DepositLimit]: 'deposit_limit',
+  [AlertKeys.WatchOnlyAccount]: 'watch_only_account',
 };
 
 function getAlertName(alertKey: string): string {

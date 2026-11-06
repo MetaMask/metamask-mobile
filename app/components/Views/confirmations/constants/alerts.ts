@@ -32,4 +32,5 @@ export enum AlertKeys {
   TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',
+  WatchOnlyAccount = 'watch_only_account',
 }
