@@ -1,6 +1,11 @@
 import type { P256DevicePublicMaterial } from './p256DeviceKey';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
+export const A2T_REQUEST_TIMEOUT_MS = 15_000;
+export const A2T_READINESS_TIMEOUT_MS = 15_000;
+export const A2T_READINESS_POLL_MS = 200;
+export const A2T_REFRESH_MARGIN_SECONDS = 60;
+
 export interface A2tSessionDependencies {
   profile: VenueAuthenticationProfile;
   /** Issuer base. Undefined when this build has no issuer. Issuance is skipped. */
@@ -181,8 +186,7 @@ export class A2tSession {
   }
 
   async #waitUntilReady(generation: number): Promise<ReadyA2t> {
-    const deadline =
-      this.#deps.nowMs() + this.#deps.profile.a2t.readinessTimeoutMs;
+    const deadline = this.#deps.nowMs() + A2T_READINESS_TIMEOUT_MS;
     let lastError: unknown;
     let accessToken = '';
 
@@ -218,13 +222,10 @@ export class A2tSession {
         lastError = error;
       }
 
-      if (
-        this.#deps.nowMs() + this.#deps.profile.a2t.readinessPollMs >
-        deadline
-      ) {
+      if (this.#deps.nowMs() + A2T_READINESS_POLL_MS > deadline) {
         throwNotReady();
       }
-      await this.#deps.sleep(this.#deps.profile.a2t.readinessPollMs);
+      await this.#deps.sleep(A2T_READINESS_POLL_MS);
       return poll();
     };
 
@@ -269,7 +270,7 @@ export class A2tSession {
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.#deps.profile.a2t.requestTimeoutMs),
+      signal: AbortSignal.timeout(A2T_REQUEST_TIMEOUT_MS),
     });
 
     const payload: unknown = await response.json().catch(() => undefined);
@@ -293,10 +294,7 @@ export class A2tSession {
     ) {
       return undefined;
     }
-    if (
-      cached.expiresAt - this.#deps.now() <=
-      this.#deps.profile.a2t.refreshMarginSeconds
-    ) {
+    if (cached.expiresAt - this.#deps.now() <= A2T_REFRESH_MARGIN_SECONDS) {
       return undefined;
     }
     return cached.a2t;

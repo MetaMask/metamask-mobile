@@ -15,10 +15,6 @@ export interface VenueAuthenticationProfile {
   readonly a2t: {
     /** Appended to the issuer base from `MM_PREDICT_A2T_URL` or the dev default. */
     readonly tokenPath: string;
-    readonly requestTimeoutMs: number;
-    readonly readinessTimeoutMs: number;
-    readonly readinessPollMs: number;
-    readonly refreshMarginSeconds: number;
   };
 }
 
@@ -36,10 +32,6 @@ export const KALSHI_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
   },
   a2t: {
     tokenPath: '/api/v2/kalshi/token',
-    requestTimeoutMs: 15_000,
-    readinessTimeoutMs: 15_000,
-    readinessPollMs: 200,
-    refreshMarginSeconds: 60,
   },
 };
 
