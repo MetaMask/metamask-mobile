@@ -133,6 +133,11 @@ export const FeatureNotificationsGateSheet = () => {
     setIsEnabling(true);
     try {
       const isPushGranted = await promptOsPushPermissionIfNeeded();
+      // Read before enableNotifications: first-time setup seeds every feature
+      // with push on, which would hide whether the user had already chosen it.
+      // A denied OS prompt must not clear a push preference that is shared
+      // with the user's other devices.
+      const nextPushEnabled = isPushGranted || isPushEnabled;
 
       if (!isMasterEnabled) {
         await enableNotifications();
@@ -149,12 +154,12 @@ export const FeatureNotificationsGateSheet = () => {
 
       if (
         refreshedFeaturePreferences.pushNotificationsEnabled !==
-          isPushGranted ||
+          nextPushEnabled ||
         !refreshedFeaturePreferences.inAppNotificationsEnabled
       ) {
         await updatePreferencesSection(feature, (section) => ({
           ...section,
-          pushNotificationsEnabled: isPushGranted,
+          pushNotificationsEnabled: nextPushEnabled,
           inAppNotificationsEnabled: true,
         }));
       }
@@ -175,6 +180,7 @@ export const FeatureNotificationsGateSheet = () => {
     basicFunctionalityEnabled,
     feature,
     isMasterEnabled,
+    isPushEnabled,
     navigation,
     refetch,
     showEnableErrorToast,
