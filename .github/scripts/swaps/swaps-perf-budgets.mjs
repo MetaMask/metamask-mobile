@@ -16,7 +16,6 @@
  *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
  *   DRY_RUN                      `true` logs the Slack message instead
  *   AS_OF                        optional YYYY-MM-DD (UTC); evaluate as of that day
- *   SWAPS_ONCALL_SLACK_GROUP_ID  optional; mentioned when a rule breaches
  *   SENTRY_API_BASE, GITHUB_RUN_URL  optional
  *
  * Exits 1 when any Sentry query failed, after posting the other results.
@@ -130,7 +129,7 @@ export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
 }
 
 /** The Slack message for this run, or null when every rule is within budget. */
-export function buildSlackMessage(results, { mentionGroupId = '', runUrl = '' } = {}) {
+export function buildSlackMessage(results, { runUrl = '' } = {}) {
   const sections = [
     [STATUS.BREACH, '*Over the guardrail* · 14-day p90'],
     [STATUS.NOT_EVALUABLE, '*Not evaluable*'],
@@ -142,9 +141,6 @@ export function buildSlackMessage(results, { mentionGroupId = '', runUrl = '' } 
   }
   const breached = results.some((result) => result.status === STATUS.BREACH);
   const lines = ['*Swaps performance budgets*'];
-  if (breached && mentionGroupId) {
-    lines.push(`<!subteam^${mentionGroupId}>`);
-  }
   for (const [title, items] of sections) {
     lines.push('', title, ...items.map((result) => `• <${result.url}|${resultLine(result)}>`));
   }
@@ -194,10 +190,7 @@ async function main() {
   }
   errors.forEach((error) => console.error(`- [error] ${error}`));
 
-  const message = buildSlackMessage(results, {
-    mentionGroupId: env.SWAPS_ONCALL_SLACK_GROUP_ID || '',
-    runUrl: env.GITHUB_RUN_URL || '',
-  });
+  const message = buildSlackMessage(results, { runUrl: env.GITHUB_RUN_URL || '' });
   if (!message) {
     console.log('\nEvery rule is within its guardrail; no Slack post.');
   } else if (dryRun) {

@@ -23,16 +23,13 @@ test('the message lists breaches and not-evaluable rules, and nothing else', () 
   const ok = result('Within', STATUS.OK, { p90: 4000, n: 4176 });
   const breach = result('Over', STATUS.BREACH, { p90: 5300, n: 4176 });
   const low = result('Sparse', STATUS.NOT_EVALUABLE, { p90: 9000, n: 120 });
-  const options = { mentionGroupId: 'S123', runUrl: 'https://example.com/run' };
+  const options = { runUrl: 'https://example.com/run' };
 
   assert.equal(buildSlackMessage([ok], options), null);
 
   const message = buildSlackMessage([ok, breach, low], options);
-  assert.match(message, /<!subteam\^S123>/);
   assert.match(message, /\*Over the guardrail\*[^]*Over: p90 5,300ms, guardrail 5,199ms, n=4,176>/);
   assert.match(message, /\*Not evaluable\*[^]*Sparse: not evaluable \(n below 400\)/);
   assert.doesNotMatch(message, /Within/);
   assert.match(message, /<https:\/\/example\.com\/run\|GitHub Actions>/);
-
-  assert.doesNotMatch(buildSlackMessage([low], options), /subteam/);
 });

@@ -11,9 +11,6 @@
 #   only. Sentry is never written to.
 # - SWAPS_PERF_SLACK_WEBHOOK: incoming webhook for the alerts channel; the
 #   webhook decides the channel.
-# Variable (optional):
-# - SWAPS_ONCALL_SLACK_GROUP_ID: Slack user group mentioned when a rule breaches.
-#   Unset: no mention.
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
 # on the default branch. After this lands on `main`, run it from Actions.
@@ -68,7 +65,6 @@ jobs:
       - name: Check budgets
         env:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
-          SWAPS_ONCALL_SLACK_GROUP_ID: ${{ vars.SWAPS_ONCALL_SLACK_GROUP_ID }}
           AS_OF: ${{ inputs.as_of || '' }}
         run: node .github/scripts/swaps/swaps-perf-budgets.mjs
 
