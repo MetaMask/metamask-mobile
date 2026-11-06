@@ -74,6 +74,40 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 
 type FundingApprovalMode = 'onboarding' | 'reapprove';
 
+const getFundingApprovalDescriptionKey = (
+  isMoneyAccountMode: boolean,
+  isReapprove: boolean,
+): string => {
+  if (isMoneyAccountMode) {
+    return 'card.card_onboarding.immersve_funding_approval.money_account_description';
+  }
+  if (isReapprove) {
+    return 'card.card_onboarding.immersve_funding_approval.reapprove.description';
+  }
+  return 'card.card_onboarding.immersve_funding_approval.description';
+};
+
+const resolveFundingAccountGroupName = ({
+  displayAccount,
+  selectedAccount,
+  selectedGroupName,
+  accountGroupName,
+}: {
+  displayAccount: InternalAccount | null;
+  selectedAccount: InternalAccount | null | undefined;
+  selectedGroupName: string | null;
+  accountGroupName: string | null;
+}): string | null => {
+  if (
+    displayAccount &&
+    selectedAccount &&
+    areAddressesEqual(displayAccount.address, selectedAccount.address)
+  ) {
+    return selectedGroupName;
+  }
+  return accountGroupName;
+};
+
 const BASE_CAIP_CHAIN_ID = cardNetworkInfos.base.caipChainId;
 const BASE_NETWORK_IMAGE = getNetworkImageSource({
   chainId: safeFormatChainIdToHex(BASE_CAIP_CHAIN_ID),
@@ -124,6 +158,62 @@ const ReadOnlyAccountRow = ({
     )}
   </Box>
 );
+
+const useMoneyAccountFundingApprove = ({
+  isReapprove,
+  confirmLinkInBackground,
+  refresh,
+  setIsSettling,
+}: {
+  isReapprove: boolean;
+  confirmLinkInBackground: (options: {
+    delegationAmountHuman: string;
+    entrypoint: CardEntryPoint;
+  }) => Promise<boolean>;
+  refresh: () => Promise<unknown>;
+  setIsSettling: (settling: boolean) => void;
+}) => {
+  const navigation = useNavigation();
+
+  return useCallback(async () => {
+    setIsSettling(true);
+    try {
+      const linked = await confirmLinkInBackground({
+        delegationAmountHuman: BAANX_MAX_LIMIT,
+        entrypoint: isReapprove
+          ? CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
+          : CardEntryPoint.SIGN_UP,
+      });
+      if (!linked) {
+        setIsSettling(false);
+        return;
+      }
+      if (isReapprove) {
+        try {
+          await Engine.context.CardController.fetchCardHomeData({
+            force: true,
+          });
+        } catch {
+          // A failed refresh should not strand a completed reapprove.
+        }
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+        return;
+      }
+      await refresh();
+    } catch {
+      setIsSettling(false);
+    }
+  }, [
+    confirmLinkInBackground,
+    isReapprove,
+    navigation,
+    refresh,
+    setIsSettling,
+  ]);
+};
 
 const ReadOnlyTokenRow = () => (
   <Box
@@ -218,14 +308,14 @@ const ImmersveFundingApproval = () => {
   const displayAccount = fundingAccount ?? selectedAccount ?? null;
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const selectedGroupName = useAccountGroupName();
-  const accountGroupName =
-    displayAccount &&
-    selectedAccount &&
-    areAddressesEqual(displayAccount.address, selectedAccount.address)
-      ? selectedGroupName
-      : ((displayAccount
-          ? accountToGroupMap[displayAccount.id]?.metadata.name
-          : null) ?? null);
+  const accountGroupName = resolveFundingAccountGroupName({
+    displayAccount,
+    selectedAccount,
+    selectedGroupName,
+    accountGroupName: displayAccount
+      ? (accountToGroupMap[displayAccount.id]?.metadata.name ?? null)
+      : null,
+  });
 
   const { nextAction, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
@@ -309,33 +399,16 @@ const ImmersveFundingApproval = () => {
     }
   }, [cardHomeData?.card, createCard, fundingSourceId, navigation]);
 
+  const approveMoneyAccount = useMoneyAccountFundingApprove({
+    isReapprove,
+    confirmLinkInBackground,
+    refresh,
+    setIsSettling,
+  });
+
   const runApprove = useCallback(() => {
     if (isMoneyAccountMode) {
-      setIsSettling(true);
-      confirmLinkInBackground({
-        delegationAmountHuman: BAANX_MAX_LIMIT,
-        entrypoint: isReapprove
-          ? CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
-          : CardEntryPoint.SIGN_UP,
-      })
-        .then(async (linked) => {
-          if (!linked) {
-            setIsSettling(false);
-            return;
-          }
-          if (isReapprove) {
-            await Engine.context.CardController.fetchCardHomeData({
-              force: true,
-            }).catch(() => undefined);
-            navigation.reset({
-              index: 0,
-              routes: [{ name: Routes.CARD.HOME }],
-            });
-            return;
-          }
-          refresh();
-        })
-        .catch(() => setIsSettling(false));
+      approveMoneyAccount().catch(() => undefined);
       return;
     }
 
@@ -371,7 +444,7 @@ const ImmersveFundingApproval = () => {
   }, [
     isReapprove,
     isMoneyAccountMode,
-    confirmLinkInBackground,
+    approveMoneyAccount,
     buildApproveWrite,
     nextAction,
     executeFunding,
@@ -447,11 +520,10 @@ const ImmersveFundingApproval = () => {
   const titleKey = isReapprove
     ? 'card.card_onboarding.immersve_funding_approval.reapprove.title'
     : 'card.card_onboarding.immersve_funding_approval.title';
-  const descriptionKey = isMoneyAccountMode
-    ? 'card.card_onboarding.immersve_funding_approval.money_account_description'
-    : isReapprove
-      ? 'card.card_onboarding.immersve_funding_approval.reapprove.description'
-      : 'card.card_onboarding.immersve_funding_approval.description';
+  const descriptionKey = getFundingApprovalDescriptionKey(
+    isMoneyAccountMode,
+    isReapprove,
+  );
   const confirmButtonKey = isReapprove
     ? 'card.card_onboarding.immersve_funding_approval.reapprove.confirm_button'
     : 'card.card_onboarding.immersve_funding_approval.confirm_button';

@@ -92,23 +92,18 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
     primaryMoneyAccount?.address,
   );
   const lockToMoneyAccount = useIsImmersveMoneyAccountCountry(country);
+  const lockedAddresses = useMemo(
+    () => (moneyAccountAddress ? [moneyAccountAddress] : []),
+    [moneyAccountAddress],
+  );
   const candidateAddresses = useMemo(
     () =>
-      lockToMoneyAccount
-        ? moneyAccountAddress
-          ? [moneyAccountAddress]
-          : []
-        : discovered.candidateAddresses,
-    [lockToMoneyAccount, moneyAccountAddress, discovered.candidateAddresses],
+      lockToMoneyAccount ? lockedAddresses : discovered.candidateAddresses,
+    [lockToMoneyAccount, lockedAddresses, discovered.candidateAddresses],
   );
   const deviceAddresses = useMemo(
-    () =>
-      lockToMoneyAccount
-        ? moneyAccountAddress
-          ? [moneyAccountAddress]
-          : []
-        : discovered.deviceAddresses,
-    [lockToMoneyAccount, moneyAccountAddress, discovered.deviceAddresses],
+    () => (lockToMoneyAccount ? lockedAddresses : discovered.deviceAddresses),
+    [lockToMoneyAccount, lockedAddresses, discovered.deviceAddresses],
   );
   const candidateAddressesRef = useRef(candidateAddresses);
   const deviceAddressesRef = useRef(deviceAddresses);

@@ -335,8 +335,23 @@ export const selectIsCardStateResolved = createSelector(
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardFeatureFlag,
-  (cardFeatureFlag): VedaTokenConfig | null =>
-    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
+  selectImmersveMoneyAccountMode,
+  selectImmersveFundingChannelForSelectedCountry,
+  (
+    cardFeatureFlag,
+    isImmersveMoneyAccountMode,
+    channel,
+  ): VedaTokenConfig | null => {
+    if (isImmersveMoneyAccountMode && isMoneyAccountFundingChannel(channel)) {
+      return {
+        caipChainId: channel.caipChainId,
+        address: channel.tokenAddress,
+        decimals: channel.decimals,
+        delegationContract: channel.spenderAddress,
+      };
+    }
+    return getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains);
+  },
 );
 
 export const selectCardCountryOfResidence = createSelector(

@@ -883,6 +883,23 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
+    it('opens the Link Card sheet when the provider does not report verification', () => {
+      mockMoneyAccountChannel();
+      mockUseCardCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: true,
+        reportsVerificationStatus: false,
+      } as ReturnType<typeof useCardCapabilities>);
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        ...expectedLinkCardSheetRoute(),
+      });
+    });
+
     it('no-ops when the user is authenticated and the Money Account is already delegated', () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();
@@ -1185,6 +1202,32 @@ describe('useMoneyAccountCardLinkage', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
       },
     );
+
+    it('opens the Link Card sheet for a pending link when the provider does not report verification', () => {
+      mockMoneyAccountChannel();
+      const previous = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation(
+        (selector: (s: unknown) => unknown) => {
+          if (selector === selectPendingMoneyAccountCardLink) {
+            return CardEntryPoint.MONEY_LINK_CARD_SHEET;
+          }
+          return previous?.(selector);
+        },
+      );
+      mockUseCardCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: true,
+        reportsVerificationStatus: false,
+      } as ReturnType<typeof useCardCapabilities>);
+
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        ...expectedLinkCardSheetRoute(),
+      });
+    });
 
     it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
       applySelectorMocks(

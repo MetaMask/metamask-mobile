@@ -13,6 +13,7 @@ let mockProviderId: string | null = 'immersve';
 let mockReduxFundingSourceId: string | null = 'fs-1';
 let mockSelectedCountry: string | null = 'GB';
 let mockFundingChannelId: string | undefined = 'base-channel';
+let mockCountryFunding: Record<string, unknown> = {};
 let mockIsFocused = true;
 const mockDispatch = jest.fn();
 
@@ -35,7 +36,7 @@ jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
   selectCardImmersveConfig: () => ({
     fundingChannelId: mockFundingChannelId,
   }),
-  selectCardImmersveCountryFunding: () => ({}),
+  selectCardImmersveCountryFunding: () => mockCountryFunding,
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({
   selectImmersveFundingSourceId: () => mockReduxFundingSourceId,
@@ -106,6 +107,7 @@ describe('useImmersveCardProvisioning', () => {
     mockReduxFundingSourceId = 'fs-1';
     mockSelectedCountry = 'GB';
     mockFundingChannelId = 'base-channel';
+    mockCountryFunding = {};
     mockIsFocused = true;
     mockResolve.mockImplementation(
       async ({ existingId }: { existingId?: string | null }) =>
@@ -348,6 +350,34 @@ describe('useImmersveCardProvisioning', () => {
       expect(mockResolve).toHaveBeenCalledWith({
         fundingChannelId: 'base-channel',
         existingId: null,
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'card/setImmersveFundingSourceId',
+        payload: 'fs-resolved',
+      });
+    });
+
+    it('replaces a stored wallet funding source when the channel is a Money account', async () => {
+      mockReduxFundingSourceId = 'fs-base';
+      mockSelectedCountry = 'NZ';
+      mockCountryFunding = {
+        NZ: {
+          source: 'moneyAccount',
+          fundingChannelId: 'money-channel',
+        },
+      };
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await waitFor(() => {
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledWith(
+          'fs-resolved',
+          expect.objectContaining({ kycRegion: 'NZ' }),
+        );
+      });
+      expect(mockResolve).toHaveBeenCalledWith({
+        fundingChannelId: 'money-channel',
+        existingId: undefined,
       });
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'card/setImmersveFundingSourceId',

@@ -169,6 +169,12 @@ jest.mock('../../hooks/useRegions', () => ({
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
 
+let mockIsMoneyAccountCountry = false;
+jest.mock('../../hooks/useImmersveFundingChannel', () => ({
+  useIsImmersveMoneyAccountCountry: () => mockIsMoneyAccountCountry,
+  useImmersveFundingChannel: () => null,
+}));
+
 // Mock only the version-gated Immersve flag selector (avoids the real device-info
 // version gate); keep the rest of the card selectors actual.
 jest.mock('../../../../../selectors/moneyAccountController', () => {
@@ -403,6 +409,12 @@ describe('SignUp Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMoneyAccountCountry = false;
+    const { selectPrimaryMoneyAccount } = jest.requireMock(
+      '../../../../../selectors/moneyAccountController',
+    );
+    selectPrimaryMoneyAccount.mockReset();
+    selectPrimaryMoneyAccount.mockImplementation(() => null);
     mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
     mockRecordCardActivated.mockResolvedValue(undefined);
     capturedOnValueChange = null;
@@ -1205,6 +1217,50 @@ describe('SignUp Component', () => {
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
+    });
+
+    it('locks sign-up to the Money account when one exists', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      const moneySelectors = jest.requireMock(
+        '../../../../../selectors/moneyAccountController',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      moneySelectors.selectPrimaryMoneyAccount.mockReturnValue({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+      mockIsMoneyAccountCountry = true;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId('signup-immersve-money-account-row'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-account-select')).toBeNull();
+      expect(queryByTestId('signup-money-account-required')).toBeNull();
+    });
+
+    it('asks for a Money account when the country requires one and none exists', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      mockIsMoneyAccountCountry = true;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-money-account-required')).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-money-account-row')).toBeNull();
+      expect(queryByTestId('signup-immersve-account-select')).toBeNull();
     });
 
     // Unit fallback: SignUp has no *.view.test.tsx; this file already renders

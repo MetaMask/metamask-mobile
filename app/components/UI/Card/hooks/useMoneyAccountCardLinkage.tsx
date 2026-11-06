@@ -292,10 +292,11 @@ export const useMoneyAccountCardLinkage =
     const hasRequirements =
       hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
+    const isVerifiedForLinking = isCardVerified || !reportsVerificationStatus;
     const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
-        (isCardVerified || !reportsVerificationStatus) &&
+        isVerifiedForLinking &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled &&
         isMoneyAccountLinkingSupported,
@@ -482,7 +483,7 @@ export const useMoneyAccountCardLinkage =
         }
 
         if (isCardAuthenticated) {
-          if (!isCardVerified) {
+          if (!isVerifiedForLinking) {
             return;
           }
 
@@ -530,7 +531,7 @@ export const useMoneyAccountCardLinkage =
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
-        isCardVerified,
+        isVerifiedForLinking,
         isAlreadyDelegated,
         isCardholder,
         isResidencyBlocked,
@@ -551,7 +552,7 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
-      if (!isCardVerified) {
+      if (!isVerifiedForLinking) {
         if (
           cardHomeDataStatus === 'success' ||
           cardHomeDataStatus === 'error'
@@ -611,7 +612,7 @@ export const useMoneyAccountCardLinkage =
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
       isMoneyAccountLinkingSupported,
-      isCardVerified,
+      isVerifiedForLinking,
       hasMoneyAccountBaseRequirements,
       isMoneyAccountCardSupported,
       moneyAccountCardToken,

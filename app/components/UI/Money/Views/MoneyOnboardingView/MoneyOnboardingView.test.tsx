@@ -437,6 +437,23 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
+    it('returns to Card onboarding when the post-onboarding redirect is Card', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
     it('initiates the post-onboarding deposit during E2E and performance tests', () => {
       const preferredPaymentToken = {
         address: '0xabc' as const,
