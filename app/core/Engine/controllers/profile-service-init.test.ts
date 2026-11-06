@@ -1,7 +1,7 @@
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 import {
-  MOCK_PROFILE_API_RESPONSE,
   ProfileService,
+  type ProfileApiResponse,
   type ProfileServiceMessenger,
 } from '@metamask/profile-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
@@ -10,6 +10,27 @@ import { getProfileServiceMessenger } from '../messengers/profile-service-messen
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import type { MessengerClientInitRequest } from '../types';
 import { profileServiceInit } from './profile-service-init';
+
+/**
+ * Local stand-in for the `MOCK_PROFILE_API_RESPONSE` fixture that
+ * `@metamask/profile-controller` removed in 2.0.0. Typed against the exported
+ * `ProfileApiResponse` so it fails to compile if the API shape changes.
+ */
+const mockProfileApiResponse: ProfileApiResponse = {
+  profile_id: 'p-1',
+  username: 'monte',
+  display_name: 'Monte',
+  bio: null,
+  linked_addresses: [
+    'eip155:1:0x0000000000000000000000000000000000000001',
+    'eip155:1:0x0000000000000000000000000000000000000002',
+  ],
+  avatar_url: 'foxicon://zombie/background4',
+  trading_privacy: 'public',
+  connected_to_x: false,
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-01-01T00:00:00.000Z',
+};
 
 type BaseMessenger = ExtendedMessenger<
   MockAnyNamespace,
@@ -42,7 +63,7 @@ describe('profileServiceInit', () => {
 
   it('refetches the profile after an update instead of serving the cached one', async () => {
     const staleProfile = {
-      ...MOCK_PROFILE_API_RESPONSE,
+      ...mockProfileApiResponse,
       profile_id: 'p-1',
       avatar_url: 'https://avatar.test/old.png',
     };
@@ -102,7 +123,7 @@ describe('profileServiceInit', () => {
 
     await expect(
       request.controllerMessenger.call('ProfileService:updateProfile', 'p-1', {
-        linked_addresses: [MOCK_PROFILE_API_RESPONSE.linked_addresses[0]],
+        linked_addresses: [mockProfileApiResponse.linked_addresses[0]],
       }),
     ).rejects.toThrow(
       `ProfileService: failed to update profile: 403: ${apiMessage}`,
