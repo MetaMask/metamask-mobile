@@ -17,6 +17,8 @@ export interface MoneyMetaMaskCardModeInput {
   isCardStateResolved: boolean;
   /** Card home data has settled. Used when the provider has no verification status. */
   isCardHomeDataResolved: boolean;
+  /** The last card home fetch failed. Unresolved means nothing is cached. */
+  hasCardHomeDataFailed: boolean;
   isMoneyCardSectionAvailable?: boolean;
   /**
    * When false, the provider has no Baanx-style verification status. Wait for
@@ -36,6 +38,7 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountRequirements,
   isCardStateResolved,
   isCardHomeDataResolved,
+  hasCardHomeDataFailed,
   isMoneyCardSectionAvailable = true,
   reportsVerificationStatus = true,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
@@ -47,6 +50,11 @@ export const deriveMoneyMetaMaskCardMode = ({
     ? isCardStateResolved
     : isCardHomeDataResolved;
   if (!isResolved) {
+    // A failed first fetch stays 'error' for the freshness window, and the
+    // automatic retry never fires again. Hide the section instead of spinning.
+    if (!reportsVerificationStatus && hasCardHomeDataFailed) {
+      return null;
+    }
     return isMoneyAccountVisible ? 'loading' : null;
   }
 

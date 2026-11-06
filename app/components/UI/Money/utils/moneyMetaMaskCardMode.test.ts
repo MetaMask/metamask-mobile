@@ -11,6 +11,7 @@ const baseInput = {
   hasMoneyAccountRequirements: true,
   isCardStateResolved: true,
   isCardHomeDataResolved: true,
+  hasCardHomeDataFailed: false,
   isMoneyCardSectionAvailable: true,
 };
 
@@ -192,6 +193,44 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardStateResolved: false,
         isCardAuthenticated: true,
         isMoneyAccountVisible: false,
+      }),
+    ).toBeNull();
+  });
+
+  it('hides the card section when a provider without verification status failed its first card fetch', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardHomeDataResolved: false,
+        isCardAuthenticated: true,
+        reportsVerificationStatus: false,
+        hasCardHomeDataFailed: true,
+      }),
+    ).toBeNull();
+  });
+
+  it('keeps loading when a provider that reports verification status failed its first card fetch', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardAuthenticated: true,
+        reportsVerificationStatus: true,
+        hasCardHomeDataFailed: true,
+      }),
+    ).toBe('loading');
+  });
+
+  it('returns null for an authenticated unverified user when the Money account is hidden', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardholder: false,
+        isMoneyAccountVisible: false,
+        reportsVerificationStatus: false,
       }),
     ).toBeNull();
   });

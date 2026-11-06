@@ -297,6 +297,7 @@ const MoneyHomeView = () => {
     hasMoneyAccountRequirements,
     isCardStateResolved,
     isCardHomeDataResolved,
+    hasCardHomeDataFailed: cardHomeDataStatus === 'error',
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
   });
