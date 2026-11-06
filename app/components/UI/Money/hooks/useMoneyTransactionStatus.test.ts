@@ -1,3 +1,4 @@
+import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   CHAIN_IDS,
   TransactionMeta,
@@ -32,6 +33,23 @@ jest.mock(
     selectAccountToGroupMap: jest.fn(() => ({})),
   }),
 );
+
+let mockActiveMfaFlow:
+  | { result: Promise<unknown>; reason: { operation: string } }
+  | undefined;
+const mockMfaFlowListeners = new Set<() => void>();
+jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
+  getActiveMfaFlow: () => mockActiveMfaFlow,
+  subscribeToActiveMfaFlow: (listener: () => void) => {
+    mockMfaFlowListeners.add(listener);
+    return () => mockMfaFlowListeners.delete(listener);
+  },
+}));
+
+const mockSelectPrimaryMoneyAccount = jest.fn();
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () => mockSelectPrimaryMoneyAccount(),
+}));
 
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
@@ -294,6 +312,7 @@ describe('useMoneyTransactionStatus', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
     Object.keys(mockTransactionPayData).forEach((key) => {
@@ -838,6 +857,172 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
       expect(depositFailedFn).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('MPC Money account 2-step verification', () => {
+    const MPC_ADDRESS = '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6';
+    const originalContext = Engine.context;
+
+    const buildMpcWithdraw = (status: TransactionStatus) =>
+      buildTxMeta({
+        type: TransactionType.moneyAccountWithdraw,
+        status,
+        txParams: { from: MPC_ADDRESS, data: '0x' },
+      });
+
+    const startVerification = (
+      result: Promise<unknown>,
+      operation = 'money.mpcSign',
+    ) => {
+      mockActiveMfaFlow = { result, reason: { operation } };
+      mockMfaFlowListeners.forEach((listener) => listener());
+    };
+
+    beforeEach(() => {
+      mockActiveMfaFlow = undefined;
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          KeyringController: {
+            state: {
+              keyrings: [
+                { type: KeyringTypes.mpcMoney, accounts: [MPC_ADDRESS] },
+              ],
+            },
+          },
+        },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Engine, 'context', {
+        value: originalContext,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('shows in-progress only after verification succeeds', async () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildMpcWithdraw(TransactionStatus.approved);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+
+      startVerification(Promise.resolve({}));
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores verifications other than signing', async () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildMpcWithdraw(TransactionStatus.approved);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      startVerification(Promise.resolve({}), 'money.mpcRestore');
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+    });
+
+    it('does not show in-progress when verification is cancelled', async () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildMpcWithdraw(TransactionStatus.approved);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      startVerification(Promise.reject(new Error('flow_cancelled')));
+      await Promise.resolve();
+      await Promise.resolve();
+      statusUpdatedHandler({
+        transactionMeta: buildMpcWithdraw(TransactionStatus.failed),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+      expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no failure toast when the user declines verification', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildMpcWithdraw(TransactionStatus.approved),
+      });
+      statusUpdatedHandler({
+        transactionMeta: {
+          ...buildMpcWithdraw(TransactionStatus.failed),
+          error: {
+            name: 'Error',
+            message:
+              'Gas Station 7702: Keyring Controller signTypedMessage: User rejected the request.',
+          },
+        } as TransactionMeta,
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+      expect(withdrawFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('waits for verification when the Money account pays for a Predict deposit', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MPC_ADDRESS });
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildTxMeta({
+        id: 'predict-tx-1',
+        type: TransactionType.predictDeposit,
+        status: TransactionStatus.approved,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          targetFiat: '1',
+          totalFiat: '1.04',
+        },
+      } as unknown as Partial<TransactionMeta>);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      statusUpdatedHandler({
+        transactionMeta: { ...approved, status: TransactionStatus.signed },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+
+      mockControllerTransactions[0] = {
+        ...approved,
+        status: TransactionStatus.signed,
+      };
+      startVerification(Promise.resolve({}));
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(sendInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows in-progress at submitted when no verification runs', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildMpcWithdraw(TransactionStatus.approved),
+      });
+      statusUpdatedHandler({
+        transactionMeta: buildMpcWithdraw(TransactionStatus.submitted),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
     });
   });
 

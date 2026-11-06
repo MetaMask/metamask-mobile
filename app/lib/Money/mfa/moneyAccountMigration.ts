@@ -1,5 +1,8 @@
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
+import { describeError } from '../../../util/describeError';
 
 export type MoneyAccountMigrationStatus =
   | 'not_started'
@@ -9,8 +12,6 @@ export type MoneyAccountMigrationStatus =
 
 export const MONEY_ACCOUNT_MIGRATION_STORAGE_KEY =
   '@MetaMask:moneyAccountMigration';
-
-const STUB_DELAY_MS = 2000;
 
 const STATUSES: MoneyAccountMigrationStatus[] = [
   'not_started',
@@ -25,6 +26,7 @@ const readPersisted = (): MoneyAccountMigrationStatus => {
 };
 
 let status: MoneyAccountMigrationStatus = readPersisted();
+let lastError: string | undefined;
 // Bumped by reset and clear so a migration already running can't write its result.
 let generation = 0;
 const listeners = new Set<() => void>();
@@ -40,13 +42,10 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
 /**
  * Moves the Money account to the MPC account that 2-step verification
  * protects.
- *
- * Placeholder until the migration API lands in core (MPC keyring: core#10694):
- * the status is saved on the device and `start` resolves after a short delay.
- * The real migration sets `failed` and rejects when it fails.
  */
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
+  getLastError: (): string | undefined => lastError,
   subscribe: (listener: () => void) => {
     listeners.add(listener);
     return () => {
@@ -58,15 +57,30 @@ export const moneyAccountMigration = {
     const startedIn = generation;
     setStatus('migrating');
     try {
-      await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
+      const { MoneyAccountController } = Engine.context;
+      // A resumed migration reuses the account an earlier run created.
+      const existing = Object.values(
+        MoneyAccountController.state.moneyAccounts,
+      ).find(
+        ({ options }) =>
+          options.entropy.type === KeyringAccountEntropyTypeOption.Mpc,
+      );
+      const account =
+        existing ??
+        (await MoneyAccountController.createMoneyAccount({
+          type: KeyringAccountEntropyTypeOption.Mpc,
+        }));
+      if (startedIn !== generation) {
+        throw new Error('Money account migration was cancelled');
+      }
+      MoneyAccountController.setDefaultMoneyAccount(account.id);
     } catch (error) {
       if (startedIn === generation) {
+        lastError = describeError(error);
+        Logger.error(error as Error, 'Money account migration failed');
         setStatus('failed');
       }
       throw error;
-    }
-    if (startedIn !== generation) {
-      throw new Error('Money account migration was cancelled');
     }
     setStatus('done');
   },

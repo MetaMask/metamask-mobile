@@ -10342,6 +10342,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/eth-money-mpc-keyring@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/eth-money-mpc-keyring@npm:0.3.0"
+  dependencies:
+    "@ethereumjs/util": "npm:^9.1.0"
+    "@metamask/account-api": "npm:^2.2.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/eth-sig-util": "npm:^9.0.0"
+    "@metamask/keyring-api": "npm:^24.3.0"
+    "@metamask/keyring-sdk": "npm:^4.1.0"
+    "@metamask/keyring-utils": "npm:^5.0.0"
+    "@metamask/mfa-wallet-cl24": "npm:^0.2.0"
+    "@metamask/mfa-wallet-dkls23": "npm:^0.1.0"
+    "@metamask/mfa-wallet-network": "npm:^0.2.0"
+    "@metamask/money-account-mfa-whitelist": "npm:^0.1.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/84964a9b9d5f7e5fec0572be72c482f240cdb6dbe517c28fea72c1b5393ce16d0689a6d6d8fca4c963acb82090192937bd2c359b7e4be2893765b1ad13f482b9
+  languageName: node
+  linkType: hard
+
 "@metamask/eth-qr-keyring@npm:^2.1.0":
   version: 2.1.0
   resolution: "@metamask/eth-qr-keyring@npm:2.1.0"
@@ -10782,13 +10803,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-sdk@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/keyring-sdk@npm:4.0.0"
+"@metamask/keyring-sdk@npm:^4.0.0, @metamask/keyring-sdk@npm:^4.1.0":
+  version: 4.2.0
+  resolution: "@metamask/keyring-sdk@npm:4.2.0"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/eth-sig-util": "npm:^9.0.0"
-    "@metamask/keyring-api": "npm:^24.2.0"
+    "@metamask/keyring-api": "npm:^24.3.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/superstruct": "npm:^3.4.1"
@@ -10797,7 +10818,7 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     ethereum-cryptography: "npm:^2.2.1"
     uuid: "npm:^9.0.1"
-  checksum: 10/36137f174ac10518fd072df8688d85fbb28a2e1c6621b9376fc28e5cf0138c65a0f10fe7a68c45fff8dfd4609eb6e30325b4683013367459de9e9be40b1342af
+  checksum: 10/6e6c00a719e3615cef4b5b6aac393478ee2a9448783d9ab582e2d4920a3b2e3c632f69ee632231eff05331341ed4b6a5c664dbfa526987a5787b467305f32b16
   languageName: node
   linkType: hard
 
@@ -10988,6 +11009,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mfa-wallet-cl24@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mfa-wallet-cl24@npm:0.2.0"
+  dependencies:
+    "@metamask/cryptography": "npm:^1.1.0"
+    "@metamask/mpc-interface": "npm:^0.2.0"
+  checksum: 10/5c0fabd651386a6f177db45729a0a97f125aa3f627f539f26faf85adeb436b5ee9ce1cc9433654c782443f96f58aeef37d362758afc05b4e4b697ab79090bbb7
+  languageName: node
+  linkType: hard
+
 "@metamask/mfa-wallet-dkls23@npm:^0.1.0":
   version: 0.1.0
   resolution: "@metamask/mfa-wallet-dkls23@npm:0.1.0"
@@ -11004,6 +11035,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mfa-wallet-interface@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mfa-wallet-interface@npm:0.2.0"
+  checksum: 10/8c502f231b3cf6d50184f9a7babac3ad5c397a5a43547bb5f7b9fca7f47a6829180c32c56852ca75e922b5009832db77183278542ba93ffd1ea6de1f04087919
+  languageName: node
+  linkType: hard
+
 "@metamask/mfa-wallet-network@npm:^0.1.0":
   version: 0.1.0
   resolution: "@metamask/mfa-wallet-network@npm:0.1.0"
@@ -11013,6 +11051,18 @@ __metadata:
     "@noble/hashes": "npm:^1.8.0"
     centrifuge: "npm:^5.7.2"
   checksum: 10/a32cc4b7b07b8666f4208b942a2df22548fa23996057c7d094d3ae20a90904d9d715ebb7c300c0a50f72ffefdd205aa1ad4129a740e7c155716678c751539508
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-network@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mfa-wallet-network@npm:0.2.0"
+  dependencies:
+    "@metamask/cryptography": "npm:^1.1.0"
+    "@metamask/mfa-wallet-interface": "npm:^0.2.0"
+    "@noble/hashes": "npm:^1.8.0"
+    centrifuge: "npm:^5.7.2"
+  checksum: 10/afde1881033a206bcd080c9e078cdb116da9bb86e13979ba02ac0d1dca9434d9df55cb9539bd1dfa15517f5d45a9b8b6b41346c3a18a8d95600e0ab604e0cc07
   languageName: node
   linkType: hard
 
@@ -11094,15 +11144,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-mfa-whitelist@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/money-account-mfa-whitelist@npm:0.1.0"
+"@metamask/money-account-mfa-whitelist@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/money-account-mfa-whitelist@npm:0.2.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/73cbe3e723b0aff74b649b693fd95fd81da053f930ab882fc92a889d73faf876808bf84732ff989a23589f1495c1ab90da38084028b3ebd9d271e467a90e23cb
+  checksum: 10/431140cb5abaa56c2d60ed290e6805ed8d261919f12518044779d3e57fc01ca57282ef375e6240d2875c9b0f1334b02018898e2b42e8f0b29ce69a2dce4a9ed8
   languageName: node
   linkType: hard
 
@@ -11146,16 +11196,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mpc-react-native@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@metamask/mpc-react-native@npm:0.2.1"
+"@metamask/mpc-react-native@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@metamask/mpc-react-native@npm:0.2.2"
   dependencies:
     "@metamask/mpc-interface": "npm:0.2.0"
     uniffi-bindgen-react-native: "npm:^0.31.0-2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/81883f6bf6cb1ef9289e04996e26e97152734ca798a7d7317ecd23d79db95cb00e07844ff544c5023c2841d39db614a4bbd6ac84c86ab8e619a006e8310b300e
+  checksum: 10/516f862755aab0fc280ed5337126ecb4e7bf4bc5c0d04316ddae394050463ae76eb6a49852abe298876677ed85c94c15572c7c53a09310db726defc44f3f9508
   languageName: node
   linkType: hard
 
@@ -12602,7 +12652,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^30.4.3":
+"@metamask/transaction-pay-controller@npm:30.4.3":
   version: 30.4.3
   resolution: "@metamask/transaction-pay-controller@npm:30.4.3"
   dependencies:
@@ -12628,6 +12678,35 @@ __metadata:
     immer: "npm:^11.1.18"
     lodash-es: "npm:^4.18.1"
   checksum: 10/929a4d092c78dc7698dbf80ed53c09c81e45a9178183d03905cd1fb5be29b8754ca96ddfd2bf37340f9606b319d04061693c139df31a8cca3b357ba172a96339
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A30.4.3#~/.yarn/patches/@metamask-transaction-pay-controller-npm-30.4.3.patch":
+  version: 30.4.3
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A30.4.3#~/.yarn/patches/@metamask-transaction-pay-controller-npm-30.4.3.patch::version=30.4.3&hash=2da18b"
+  dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.8.0"
+    "@metamask/accounts-controller": "npm:^40.1.0"
+    "@metamask/assets-controller": "npm:^20.2.2"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/gas-fee-controller": "npm:^27.1.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^37.1.1"
+    "@metamask/ramps-controller": "npm:^29.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/sentinel-api-service": "npm:^2.1.0"
+    "@metamask/transaction-controller": "npm:^73.1.1"
+    "@metamask/utils": "npm:^12.0.1"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.5"
+    immer: "npm:^11.1.18"
+    lodash-es: "npm:^4.18.1"
+  checksum: 10/a0b4336cc2fd6128540572be80ac283e8b4eb328e7e1f882794febbc21dca72c2da9f079f9c680739e7bafc2054059edb8784355d2334fec99462ba673384a76
   languageName: node
   linkType: hard
 
@@ -38348,7 +38427,7 @@ __metadata:
     "@metamask/eth-json-rpc-middleware": "npm:^26.0.0"
     "@metamask/eth-ledger-bridge-keyring": "npm:^13.1.0"
     "@metamask/eth-money-keyring": "npm:^4.0.0"
-    "@metamask/eth-money-mpc-keyring": "npm:^0.2.0"
+    "@metamask/eth-money-mpc-keyring": "npm:^0.3.0"
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^9.0.0"
@@ -38384,9 +38463,10 @@ __metadata:
     "@metamask/money-account-api-data-service": "npm:^2.3.1"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
+    "@metamask/money-account-mfa-whitelist": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
     "@metamask/money-account-utils": "npm:^2.1.0"
-    "@metamask/mpc-react-native": "npm:^0.2.1"
+    "@metamask/mpc-react-native": "npm:^0.2.2"
     "@metamask/multichain-account-service": "npm:^14.1.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"
@@ -38451,7 +38531,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^73.0.0"
-    "@metamask/transaction-pay-controller": "npm:^30.4.3"
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A30.4.3#~/.yarn/patches/@metamask-transaction-pay-controller-npm-30.4.3.patch"
     "@metamask/tron-wallet-snap": "npm:^4.3.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^18.0.0"

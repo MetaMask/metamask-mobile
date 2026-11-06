@@ -3,6 +3,11 @@ import type { MoneyAccount } from '@metamask/money-account-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import { MOCK_HD_KEYRING_METADATA } from '../keyringController/testUtils';
+import { isMpcMoneyKeyringBuildEnabled } from '../../constants/featureFlags';
+
+jest.mock('../../constants/featureFlags', () => ({
+  isMpcMoneyKeyringBuildEnabled: jest.fn(() => false),
+}));
 
 const MOCK_MONEY_ACCOUNT: MoneyAccount = {
   id: 'account-1',
@@ -39,21 +44,29 @@ describe('MoneyAccountController selectors', () => {
 
   describe('selectPrimaryMoneyAccount', () => {
     it('returns the money account matching the primary HD keyring', () => {
-      const result = selectPrimaryMoneyAccount.resultFunc(MOCK_MONEY_ACCOUNTS, {
-        type: KeyringTypes.hd,
-        accounts: [],
-        metadata: MOCK_HD_KEYRING_METADATA,
-      });
+      const result = selectPrimaryMoneyAccount.resultFunc(
+        MOCK_MONEY_ACCOUNTS,
+        {
+          type: KeyringTypes.hd,
+          accounts: [],
+          metadata: MOCK_HD_KEYRING_METADATA,
+        },
+        null,
+      );
 
       expect(result).toEqual(MOCK_MONEY_ACCOUNT);
     });
 
     it('returns undefined when no account matches the primary HD keyring', () => {
-      const result = selectPrimaryMoneyAccount.resultFunc(MOCK_MONEY_ACCOUNTS, {
-        type: KeyringTypes.hd,
-        accounts: [],
-        metadata: { id: 'different-keyring-id', name: '' },
-      });
+      const result = selectPrimaryMoneyAccount.resultFunc(
+        MOCK_MONEY_ACCOUNTS,
+        {
+          type: KeyringTypes.hd,
+          accounts: [],
+          metadata: { id: 'different-keyring-id', name: '' },
+        },
+        null,
+      );
 
       expect(result).toBeUndefined();
     });
@@ -66,15 +79,57 @@ describe('MoneyAccountController selectors', () => {
           accounts: [],
           metadata: MOCK_HD_KEYRING_METADATA,
         },
+        null,
       );
 
       expect(result).toBeUndefined();
+    });
+
+    describe('after the Money account moved to MPC', () => {
+      const MPC_MONEY_ACCOUNT = {
+        ...MOCK_MONEY_ACCOUNT,
+        id: 'mpc-account',
+        address: '0xmpc',
+        options: { entropy: { type: 'mpc' }, exportable: false },
+      } as unknown as MoneyAccount;
+      const accounts = {
+        ...MOCK_MONEY_ACCOUNTS,
+        [MPC_MONEY_ACCOUNT.id]: MPC_MONEY_ACCOUNT,
+      };
+      const keyring = {
+        type: KeyringTypes.hd,
+        accounts: [],
+        metadata: MOCK_HD_KEYRING_METADATA,
+      };
+
+      it('returns the default MPC Money account in builds with the MPC keyring', () => {
+        jest.mocked(isMpcMoneyKeyringBuildEnabled).mockReturnValueOnce(true);
+
+        expect(
+          selectPrimaryMoneyAccount.resultFunc(
+            accounts,
+            keyring,
+            MPC_MONEY_ACCOUNT.id,
+          ),
+        ).toEqual(MPC_MONEY_ACCOUNT);
+      });
+
+      it('keeps the SRP Money account in builds without the MPC keyring', () => {
+        expect(
+          selectPrimaryMoneyAccount.resultFunc(
+            accounts,
+            keyring,
+            MPC_MONEY_ACCOUNT.id,
+          ),
+        ).toEqual(MOCK_MONEY_ACCOUNT);
+      });
     });
 
     it('returns undefined when there is no primary HD keyring', () => {
       const result = selectPrimaryMoneyAccount.resultFunc(
         MOCK_MONEY_ACCOUNTS,
         undefined,
+        null,
       );
 
       expect(result).toBeUndefined();
