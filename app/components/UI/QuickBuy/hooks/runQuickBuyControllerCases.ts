@@ -4332,19 +4332,12 @@ export const runQuickBuyControllerCases = ({
             expectNormalQuickBuyFeedback();
           });
 
-          it('keeps the create profile sheet below the minimum amount', async () => {
+          it('uses normal toasts for create profile below the minimum amount', async () => {
             mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
             await submit(false, '5');
 
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                product: 'spot',
-                status: 'pending',
-                variant: 'create_profile',
-              }),
-            );
-            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expectNormalQuickBuyFeedback();
           });
 
           it('uses normal toasts for copy-trades below the minimum amount', async () => {

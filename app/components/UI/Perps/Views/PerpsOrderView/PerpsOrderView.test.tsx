@@ -7611,6 +7611,17 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     const submitOrder = async () => {
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
@@ -7644,6 +7655,7 @@ describe('PerpsOrderView', () => {
       clearPostTradeShareSession();
       mockIsPerpsProModeActive = false;
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7750,6 +7762,48 @@ describe('PerpsOrderView', () => {
 
       expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
       expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('uses the normal toast for a share sheet when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('does not open create profile or mark it seen when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('uses the confirmed toast without Post to feed when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(showToast).toHaveBeenCalled();
+      expect(
+        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+      ).toBeUndefined();
     });
   });
 });
