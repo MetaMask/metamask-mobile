@@ -12,7 +12,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
-import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyCardReturnScreen,
+} from '../../../Money/types/navigation';
 
 export const MoneyAccountIdentity = ({
   testID = 'money-account-identity',
@@ -20,7 +23,13 @@ export const MoneyAccountIdentity = ({
   testID?: string;
 }) => (
   <Box twClassName="flex-row items-center gap-2 shrink min-w-0" testID={testID}>
-    <MoneyBalanceIcon width={24} height={24} name="money-balance" />
+    <MoneyBalanceIcon
+      width={24}
+      height={24}
+      name="money-balance"
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+    />
     <Text
       variant={TextVariant.BodyMd}
       twClassName="text-text-default font-medium self-center shrink"
@@ -53,16 +62,21 @@ export const MoneyAccountRow = ({
  * The CTA opens Money onboarding and returns to Card afterwards.
  */
 export const MoneyAccountRequired = ({
+  returnTo,
   testID = 'money-account-required',
 }: {
+  returnTo: MoneyCardReturnScreen;
   testID?: string;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const onPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.ONBOARDING, {
-      postOnboardingRedirect: { type: MoneyPostOnboardingRedirectType.CARD },
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.CARD,
+        cardScreen: returnTo,
+      },
     });
-  }, [navigation]);
+  }, [navigation, returnTo]);
 
   return (
     <Box twClassName="gap-3" testID={testID}>

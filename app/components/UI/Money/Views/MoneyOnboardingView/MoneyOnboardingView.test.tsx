@@ -50,6 +50,7 @@ let mockRouteParams:
         };
         autoSelectFiatPayment?: boolean;
         intent?: 'convert' | 'addMusd' | 'card';
+        cardScreen?: 'authentication' | 'onboarding';
       };
     }
   | undefined;
@@ -437,6 +438,24 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
+    it('returns to Card sign-in when the Card redirect asks for it', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
     it('returns to Card onboarding when the post-onboarding redirect is Card', () => {
       mockIsE2EOrPerformanceTest = true;
       mockRouteParams = {
@@ -701,6 +720,24 @@ describe('MoneyOnboardingView', () => {
           payload: { seen: true },
         }),
       );
+    });
+
+    it('returns to Card sign-in after onboarding when the redirect asks for it', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('initiates deposit with preferred token after completing onboarding', async () => {

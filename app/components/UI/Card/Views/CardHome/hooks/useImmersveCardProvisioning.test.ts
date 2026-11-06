@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   CardProviderError,
@@ -14,6 +15,7 @@ let mockReduxFundingSourceId: string | null = 'fs-1';
 let mockSelectedCountry: string | null = 'GB';
 let mockFundingChannelId: string | undefined = 'base-channel';
 let mockCountryFunding: Record<string, unknown> = {};
+let mockPrimaryMoneyAccount: { address: string } | null = null;
 let mockIsFocused = true;
 const mockDispatch = jest.fn();
 
@@ -30,6 +32,15 @@ jest.mock('../../../../../../selectors/cardController', () => ({
   selectCardSelectedCountry: () => mockSelectedCountry,
 }));
 jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, { source?: string }> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return countryFunding[country.toUpperCase()] ?? null;
+  },
   isMoneyAccountFundingChannel: (
     channel: { source?: string } | null | undefined,
   ) => channel?.source === 'moneyAccount',
@@ -37,6 +48,12 @@ jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
     fundingChannelId: mockFundingChannelId,
   }),
   selectCardImmersveCountryFunding: () => mockCountryFunding,
+}));
+jest.mock('../../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () => mockPrimaryMoneyAccount,
+}));
+jest.mock('../../../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({
   selectImmersveFundingSourceId: () => mockReduxFundingSourceId,
@@ -108,6 +125,7 @@ describe('useImmersveCardProvisioning', () => {
     mockSelectedCountry = 'GB';
     mockFundingChannelId = 'base-channel';
     mockCountryFunding = {};
+    mockPrimaryMoneyAccount = null;
     mockIsFocused = true;
     mockResolve.mockImplementation(
       async ({ existingId }: { existingId?: string | null }) =>
@@ -350,6 +368,7 @@ describe('useImmersveCardProvisioning', () => {
       expect(mockResolve).toHaveBeenCalledWith({
         fundingChannelId: 'base-channel',
         existingId: null,
+        moneyAccountAddress: undefined,
       });
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'card/setImmersveFundingSourceId',
@@ -360,6 +379,9 @@ describe('useImmersveCardProvisioning', () => {
     it('replaces a stored wallet funding source when the channel is a Money account', async () => {
       mockReduxFundingSourceId = 'fs-base';
       mockSelectedCountry = 'NZ';
+      mockPrimaryMoneyAccount = {
+        address: '0x000000000000000000000000000000000000dead',
+      };
       mockCountryFunding = {
         NZ: {
           source: 'moneyAccount',
@@ -378,11 +400,38 @@ describe('useImmersveCardProvisioning', () => {
       expect(mockResolve).toHaveBeenCalledWith({
         fundingChannelId: 'money-channel',
         existingId: undefined,
+        moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
       });
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'card/setImmersveFundingSourceId',
         payload: 'fs-resolved',
       });
+    });
+
+    it('does not resolve a wallet source when the Money account address is missing', async () => {
+      mockSelectedCountry = 'NZ';
+      mockPrimaryMoneyAccount = null;
+      mockCountryFunding = {
+        NZ: {
+          source: 'moneyAccount',
+          fundingChannelId: 'money-channel',
+        },
+      };
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'useImmersveCardProvisioning: Money account address is missing',
+        }),
+        expect.any(Object),
+      );
+      expect(mockResolve).not.toHaveBeenCalled();
+      expect(controller.getSpendingPrerequisites).not.toHaveBeenCalled();
     });
 
     it('swallows a 409 Conflict on createCard', async () => {

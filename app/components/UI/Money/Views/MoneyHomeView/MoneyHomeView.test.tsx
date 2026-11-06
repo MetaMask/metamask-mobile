@@ -342,6 +342,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectHasMetalCard: jest.fn(),
   selectCardHomeDataStatus: jest.fn(() => 'idle'),
   selectIsCardStateResolved: jest.fn(() => true),
+  selectIsCardHomeDataResolved: jest.fn(() => true),
   selectCardActiveProviderId: jest.fn(() => null),
   selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));

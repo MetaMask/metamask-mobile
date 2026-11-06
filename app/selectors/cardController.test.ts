@@ -20,6 +20,7 @@ import {
   selectCardHomeDataStatus,
   selectCardHomeDataError,
   selectCardHomeDataFetchedThisSession,
+  selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -867,6 +868,52 @@ describe('selectCardHomeDataFetchedThisSession', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+});
+
+describe('selectIsCardHomeDataResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when the home data fetch succeeded', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns true when data is already present during a refresh', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns false while an authenticated user is still loading', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
   });
 });
 

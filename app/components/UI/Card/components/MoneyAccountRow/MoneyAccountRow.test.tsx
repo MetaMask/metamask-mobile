@@ -39,13 +39,21 @@ describe('MoneyAccountRow', () => {
     expect(getByTestId('money-account-identity')).toBeOnTheScreen();
   });
 
-  it('opens Money onboarding and returns to Card', () => {
-    const { getByTestId } = render(<MoneyAccountRequired />);
+  it.each(['authentication', 'onboarding'] as const)(
+    'opens Money onboarding and returns to Card %s',
+    (returnTo) => {
+      const { getByTestId } = render(
+        <MoneyAccountRequired returnTo={returnTo} />,
+      );
 
-    fireEvent.press(getByTestId('money-account-required-cta'));
+      fireEvent.press(getByTestId('money-account-required-cta'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
-      postOnboardingRedirect: { type: MoneyPostOnboardingRedirectType.CARD },
-    });
-  });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: returnTo,
+        },
+      });
+    },
+  );
 });

@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import {
+  immersveFundingChannelForCountry,
   isMoneyAccountFundingChannel,
   selectCardImmersveCountryFunding,
   type ImmersveFundingChannel,
@@ -14,10 +15,7 @@ export function useImmersveFundingChannel(
   country: string | null | undefined,
 ): ImmersveFundingChannel | null {
   const countryFunding = useSelector(selectCardImmersveCountryFunding);
-  if (!country || !countryFunding) {
-    return null;
-  }
-  return countryFunding[country.toUpperCase()] ?? null;
+  return immersveFundingChannelForCountry(countryFunding, country);
 }
 
 /** True when `country` is claimed by an Immersve Money account channel. */

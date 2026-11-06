@@ -120,6 +120,17 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, unknown> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return (
+      (countryFunding as Record<string, unknown>)[country.toUpperCase()] ?? null
+    );
+  },
   isMoneyAccountFundingChannel: (
     channel: { source?: string } | null | undefined,
   ) => channel?.source === 'moneyAccount',

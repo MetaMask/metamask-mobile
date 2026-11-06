@@ -11,6 +11,10 @@ import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
 import { selectCardImmersveCountryFunding } from '../../../../../selectors/featureFlagController/card';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -541,6 +545,28 @@ describe('ImmersveFundingApproval', () => {
     });
     expect(mockCreateCard).not.toHaveBeenCalled();
     expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a Conflict from createCard as an existing card and goes to Card Home', async () => {
+    mockCreateCard.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        'Conflict on createCard',
+        409,
+      ),
+    );
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+    expect(mockCreateCard).toHaveBeenCalledTimes(1);
   });
 
   it('does not re-create the card on re-render while still active', async () => {
