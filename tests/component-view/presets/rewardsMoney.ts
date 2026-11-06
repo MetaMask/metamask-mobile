@@ -409,10 +409,6 @@ export function referralMeFixture(
   };
 }
 
-/**
- * Referee `GET /referral/me` whose Ways to earn title is the backend string.
- * Kept off {@link REFERRAL_LOCALIZED_TEXT} so other screens keep the shared copy.
- */
 export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
 
 export function referralMeWithInvitedBenefit(
@@ -468,10 +464,7 @@ export interface RewardsMoneyViewStateOptions {
    * gear and referral field read this cache, the `REFERRER` role, and geo.
    */
   referralMe?: ReferralMeDto;
-  /**
-   * When false, the profile has no cached referral me. The screen has to
-   * load `GET /referral/me` before a persona can render.
-   */
+  /** When false, referral me is loaded by the screen instead of the preset. */
   seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;

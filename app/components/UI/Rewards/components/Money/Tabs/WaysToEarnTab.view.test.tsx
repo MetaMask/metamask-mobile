@@ -1,9 +1,3 @@
-/**
- * Ways to earn benefit copy comes from referral me, not from app strings.
- * The tab stays on the skeleton until getReferralMe settles.
- *
- * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.view.test.tsx --runInBand --coverage=false
- */
 import '../../../../../../../tests/component-view/mocks';
 import { waitFor, within } from '@testing-library/react-native';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
@@ -26,11 +20,6 @@ function referralMeCalls(engine: jest.Mock): unknown[][] {
   );
 }
 
-/**
- * Referrer payload still carries the referee title. The card must show
- * earnEligibleFees; a render of invitedBenefitTitle would fail the absence
- * check even though that string is on the response.
- */
 function referrerWithRefereeTitle(): ReferralMeDto {
   const referralMe = referralMeFixture('referrer');
   return {

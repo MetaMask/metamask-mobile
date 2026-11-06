@@ -12,12 +12,6 @@ import {
   REFEREE_INVITED_BENEFIT_TITLE,
 } from '../../api-mocking/mock-responses/rewards-money.js';
 
-/**
- * Appium, not component-view: the case is an OS URL dispatch into the built
- * app (`openE2EUrl` → `handleUniversalLink` → `setPendingDeeplink` →
- * RewardsNavigator). Component-view can register the route, and there is no
- * controller seam an integration test could drive instead.
- */
 const MONEY_CAMPAIGN_DEEPLINK =
   'https://link.metamask.io/rewards?campaign=money';
 
@@ -47,8 +41,6 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
-          // Rewards links are whitelisted in handleUniversalLink, so no
-          // "Proceed with caution" interstitial is shown before navigation.
           await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
 
           await RewardsMoneyView.expectRefereeHeroVisible();

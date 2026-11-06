@@ -2435,12 +2435,7 @@ class FixtureBuilder {
     return this;
   }
 
-  /**
-   * Opts the fixture account into Rewards and stores a referee `referral/me`.
-   * The signed-in profile id is minted at login, so the deeplink spec still
-   * mocks `GET /referral/me` for the live session.
-   * @returns - The FixtureBuilder instance for method chaining.
-   */
+  /** Referee `referral/me` for the fixture account. Login still mocks the live read. */
   withRewardsMoneyReferee() {
     const referralMe = referralMeWithInvitedBenefit();
     const background = this.fixture.state.engine.backgroundState;

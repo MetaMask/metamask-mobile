@@ -25,11 +25,6 @@ import { withAdbHostLockSync } from './services/appium/adbHostLock.ts';
 
 const logger = createAppiumLogger('AppiumUtilities');
 
-/**
- * Process arguments from the last iOS `mobile: launchApp`. `activateApp` does
- * not pass them, so a killed app boots without the fixture port and the login
- * treats the missing vault as corruption.
- */
 let lastIosLaunchArguments: string[] | undefined;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
@@ -1092,13 +1087,6 @@ class AppiumUtilities {
     });
   }
 
-  /**
-   * Start the app again after it has been terminated.
-   *
-   * `activateApp` only foregrounds a running process. On iOS a new process
-   * does not keep the fixture launch arguments, so the app cannot reach the
-   * fixture server. Android keeps working through the reversed fallback ports.
-   */
   static async relaunchTerminatedApp(
     currentDeviceDetails: CurrentDeviceDetails,
   ): Promise<void> {

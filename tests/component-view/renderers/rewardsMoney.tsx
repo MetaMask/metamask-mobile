@@ -56,7 +56,6 @@ export type InitiateClaimMode = 'hang' | 'under_review';
 
 export interface RewardsMoneyEngineOptions {
   referralMe?: ReferralMeDto;
-  /** `null` is an empty cache, which is what surfaces the earnings error banner. */
   summary?: EarningsSummaryDto | null;
   /** Returned by the unwindowed summary read after an under-review refusal. */
   summaryAfterRefusal?: EarningsSummaryDto;
@@ -391,11 +390,6 @@ export function renderRewardsSettingsView(
   };
 }
 
-/**
- * Ways to earn stays on the skeleton until `useRewardsMoneyTabRouting` writes
- * the referral-me response. Passing the payload as a prop paints the title on
- * the first render, so a findBy would not be waiting on a load.
- */
 function WaysToEarnAfterReferralLoad() {
   const { moneyReferralResolved, moneyPersona } = useRewardsMoneyTabRouting();
   const profileId = useSelector(selectSessionProfileId);
@@ -420,10 +414,6 @@ function WaysToEarnAfterReferralLoad() {
   );
 }
 
-/**
- * Ways to earn after the Rewards tab resolves referral me. The cache starts
- * empty, so the title appears only once `getReferralMe` settles.
- */
 export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
   return renderMoneyScreen(WaysToEarnAfterReferralLoad, 'WaysToEarnTab', {
     seedReferralMe: false,

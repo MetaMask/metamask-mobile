@@ -9,18 +9,10 @@ import type { EarningsSummaryDto } from '../../../app/core/Engine/controllers/re
 
 export { REFEREE_INVITED_BENEFIT_TITLE, referralMeWithInvitedBenefit };
 
-/**
- * Session id the fixture seeds. A signed-in e2e wallet mints its own profile
- * id, so the dashboard read still goes through the mocks below.
- */
 export const REWARDS_MONEY_E2E_PROFILE_ID = 'rewards-money-referee';
 
 export const REWARDS_MONEY_SUBSCRIPTION_ID = 'rewards-money-subscription';
 
-/**
- * Dev, UAT, and prod. e2e builds use the UAT Money host unless
- * REWARDS_MONEY_API_URL is set; Rewards itself stays on prod.
- */
 const REWARDS_MONEY_HOST = String.raw`https:\/\/rewards-money\.(?:dev-|uat-)?api\.cx\.metamask\.io`;
 
 const REWARDS_HOST = String.raw`https:\/\/rewards\.(?:dev-|uat-)?api\.cx\.metamask\.io`;
@@ -32,10 +24,6 @@ const EMPTY_LEDGER = {
   window: null,
 };
 
-/**
- * Authenticated Money reads plus the Rewards login the opted-in account
- * attempts. An empty campaigns list keeps `?campaign=money` on the dashboard.
- */
 export async function mockRewardsMoneyApi(
   mockServer: Mockttp,
   summary: EarningsSummaryDto = CLAIMABLE_EARNINGS_SUMMARY,
@@ -106,5 +94,14 @@ export async function mockRewardsMoneyApi(
     ),
     responseCode: 200,
     response: { results: [], has_more: false, cursor: null },
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: new RegExp(
+      `^${REWARDS_MONEY_HOST}\\/referral\\/me\\/commissions(?:\\?.*)?$`,
+    ),
+    responseCode: 200,
+    response: EMPTY_LEDGER,
   });
 }

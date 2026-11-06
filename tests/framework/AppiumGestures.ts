@@ -547,9 +547,8 @@ export default class AppiumGestures {
   }
 
   /**
-   * Bring an already running app to the foreground.
-   * After `terminateApp` on iOS, use {@link relaunchApp} so the fixture
-   * process arguments are passed again.
+   * Activate the app
+   * @param currentDeviceDetails - The current device details
    */
   @boxedStep
   static async activateApp(
@@ -586,10 +585,6 @@ export default class AppiumGestures {
     throw new Error('Package name or app id is not available');
   }
 
-  /**
-   * Start the app again after `terminateApp`, keeping the iOS fixture
-   * launch arguments from the last `launchApp`.
-   */
   @boxedStep
   static async relaunchApp(
     currentDeviceDetails: CurrentDeviceDetails,

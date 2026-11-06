@@ -96,9 +96,6 @@ describe('RewardsMoneyDashboard', () => {
   });
 
   it('refetches the earnings summary once when Retry is pressed after a 503 (E4, RWDS-1674)', async () => {
-    // Summary reads throw RewardsMoneyHttpError. A 503 with Retry-After 2 is
-    // the data service's short busy refusal (`failure: 'UNAVAILABLE'` on the
-    // quote error is the same status). No cached summary, or the banner stays hidden.
     let rejectSummary = true;
     const refereeRebateTotal = formatMusdBaseUnits(
       selfEarnedLifetime(

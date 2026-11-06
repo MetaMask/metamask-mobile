@@ -547,10 +547,6 @@ export default class Gestures {
     await AppiumGestures.activateApp(currentDeviceDetails, packageId);
   }
 
-  /**
-   * Relaunch after `terminateApp`. On iOS this repeats the fixture launch
-   * arguments. `activateApp` only foregrounds an app that is still running.
-   */
   static async relaunchApp(
     currentDeviceDetails: CurrentDeviceDetails,
   ): Promise<void> {

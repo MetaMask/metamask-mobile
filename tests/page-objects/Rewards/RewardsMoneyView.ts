@@ -9,13 +9,8 @@ import {
   type AppiumElement,
 } from '../../framework';
 
-/** Same budget deeplink-navigation uses for a screen opened from a URL. */
 const DEEPLINK_SCREEN_TIMEOUT = 20_000;
 
-/**
- * Rewards Money dashboard. Readiness is the referee hero, which only mounts
- * after referral me has resolved to the referee persona.
- */
 class RewardsMoneyView {
   get refereeHeroCard(): Promise<AppiumElement> {
     return Matchers.getElementByID(REFEREE_HERO_CARD_TEST_IDS.CONTAINER);
