@@ -6,6 +6,7 @@ import type { PredictFeedId, PredictVenueId } from '../types';
 import {
   FEED_SCREENS,
   NFL_FEED_SCREEN_ID,
+  POLITICS_FEED_SCREEN_ID,
   getFeedScreen,
   getFeedScreenTab,
   resolveFeedScreenTabs,
@@ -68,6 +69,25 @@ describe('feedScreens', () => {
       expect(result).toEqual([
         { id: 'games', label: 'Games', feedId: 'venue-nfl-games' },
         { id: 'props', label: 'Props', feedId: 'venue-nfl-props' },
+      ]);
+    });
+
+    it('resolves the Politics topic tabs in Trump, Congress, Iran order', () => {
+      const capabilities = readyCapabilities({
+        'politics-iran': 'politics-iran',
+        'politics-trump': 'politics-trump',
+        'politics-congress': 'politics-congress',
+      });
+
+      const result = resolveFeedScreenTabs(
+        POLITICS_FEED_SCREEN_ID,
+        capabilities,
+      );
+
+      expect(result).toEqual([
+        { id: 'trump', label: 'Trump', feedId: 'politics-trump' },
+        { id: 'congress', label: 'Congress', feedId: 'politics-congress' },
+        { id: 'iran', label: 'Iran', feedId: 'politics-iran' },
       ]);
     });
 
