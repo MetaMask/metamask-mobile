@@ -8,6 +8,7 @@ import {
 } from '@walletconnect/relay-auth';
 import { getPublicKeyEd25519 } from '@metamask/native-utils';
 import { Ed } from 'react-native-quick-crypto';
+import Logger from '../util/Logger';
 import {
   generateKeyPair,
   isNativeEd25519ActiveForTests,
@@ -66,6 +67,17 @@ jest.mock('react-native-quick-crypto', () => ({
   ),
 }));
 
+jest.mock('../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+const settle = (promise: Promise<string>) =>
+  promise.then(
+    (value) => ({ value }),
+    (error: Error) => ({ error: error.message }),
+  );
+
 const seeds = [
   new Uint8Array(32),
   Uint8Array.from({ length: 32 }, (_, i) => i + 1),
@@ -91,6 +103,7 @@ describe('walletconnect-relay-auth shim', () => {
       expect(Array.from(native.secretKey)).toEqual(Array.from(js.secretKey));
       expect(getPublicKeyEd25519).toHaveBeenCalledWith(seed);
       expect(isNativeEd25519ActiveForTests()).toBe(true);
+      expect(Logger.error).not.toHaveBeenCalled();
     },
   );
 
@@ -103,6 +116,7 @@ describe('walletconnect-relay-auth shim', () => {
       expect(native).toBe(js);
       expect(Ed).toHaveBeenCalledWith('ed25519', {});
       expect(isNativeEd25519ActiveForTests()).toBe(true);
+      expect(Logger.error).not.toHaveBeenCalled();
       await expect(verifyJWT(native)).resolves.toBe(true);
     },
   );
@@ -136,6 +150,17 @@ describe('walletconnect-relay-auth shim', () => {
     generateKeyPair(seeds[1]);
     expect(getPublicKeyEd25519).toHaveBeenCalledTimes(1);
     expect(isNativeEd25519ActiveForTests()).toBe(false);
+    // Reported once, without key material.
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('native module missing'),
+      expect.objectContaining({
+        context: {
+          name: 'walletconnect_relay_auth',
+          data: { call: 'publicKey', fallback: 'js' },
+        },
+      }),
+    );
 
     // Signing is a separate native call and is unaffected.
     const jwt = await signJWT(SUB, AUD, TTL, keyPair, IAT);
@@ -154,6 +179,11 @@ describe('walletconnect-relay-auth shim', () => {
     expect(jwt).toBe(await jsSignJWT(SUB, AUD, TTL, keyPair, IAT));
     await signJWT(SUB, AUD, TTL, keyPair, IAT);
     expect(Ed).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect((Logger.error as jest.Mock).mock.calls[0][1].context.data).toEqual({
+      call: 'sign',
+      fallback: 'js',
+    });
 
     generateKeyPair(seeds[1]);
     expect(getPublicKeyEd25519).toHaveBeenCalledWith(seeds[1]);
@@ -166,6 +196,10 @@ describe('walletconnect-relay-auth shim', () => {
     const keyPair = jsGenerateKeyPair(seeds[1]);
     const jwt = await signJWT(SUB, AUD, TTL, keyPair, IAT);
     expect(jwt).toBe(await jsSignJWT(SUB, AUD, TTL, keyPair, IAT));
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('native sign returned a malformed result'),
+      expect.anything(),
+    );
   });
 
   it('falls back when the native public key is malformed', () => {
@@ -176,6 +210,37 @@ describe('walletconnect-relay-auth shim', () => {
     expect(Array.from(keyPair.publicKey)).toEqual(
       Array.from(jsGenerateKeyPair(seeds[1]).publicKey),
     );
+  });
+
+  it('signs a key of the wrong length with JS and keeps native signing on', async () => {
+    const keyPair = jsGenerateKeyPair(seeds[1]);
+    const shortKey = {
+      publicKey: keyPair.publicKey,
+      secretKey: keyPair.secretKey.slice(0, 32),
+    };
+    expect(await settle(signJWT(SUB, AUD, TTL, shortKey, IAT))).toEqual(
+      await settle(jsSignJWT(SUB, AUD, TTL, shortKey, IAT)),
+    );
+    expect(Ed).not.toHaveBeenCalled();
+    expect(isNativeEd25519ActiveForTests()).toBe(true);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    // A well-formed key afterwards still signs natively.
+    await signJWT(SUB, AUD, TTL, keyPair, IAT);
+    expect(Ed).toHaveBeenCalledWith('ed25519', {});
+  });
+
+  it('resolves the single relay-auth copy that @walletconnect/core uses', () => {
+    // The shim imports the hoisted relay-auth. If the lockfile ever holds a
+    // second version, core could get a different copy than the shim wraps.
+    const { readFileSync } = jest.requireActual('fs');
+    const { resolve } = jest.requireActual('path');
+    const lockfile: string = readFileSync(
+      resolve(__dirname, '../../yarn.lock'),
+      'utf8',
+    );
+    const entries = lockfile.match(/^"@walletconnect\/relay-auth@[^"]*":$/gm);
+    expect(entries).toHaveLength(1);
   });
 
   it('re-exports the rest of relay-auth unchanged', async () => {

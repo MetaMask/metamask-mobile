@@ -26,8 +26,9 @@
  * native module in memory, the same way it is passed to the JS implementation,
  * and is never logged or stored by this file.
  */
-// relay-auth is a dependency of @walletconnect/core, not of the app; importing
-// the same copy core resolves keeps this shim on core's version.
+// relay-auth is a dependency of @walletconnect/core, not of the app. This
+// resolves the hoisted copy, which is core's as long as the lockfile has a
+// single relay-auth (the test checks that).
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import {
   JWT_IRIDIUM_ALG,
@@ -41,12 +42,14 @@ import {
 } from '@walletconnect/relay-auth';
 import { getPublicKeyEd25519 } from '@metamask/native-utils';
 import { Ed, getRandomValues } from 'react-native-quick-crypto';
+import Logger from '../util/Logger';
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 export * from '@walletconnect/relay-auth';
 
 const SEED_LENGTH = 32;
 const PUBLIC_KEY_LENGTH = 32;
+const SECRET_KEY_LENGTH = SEED_LENGTH + PUBLIC_KEY_LENGTH;
 const SIGNATURE_LENGTH = 64;
 
 type NativeCall = 'publicKey' | 'sign';
@@ -65,20 +68,33 @@ function nativeSign(data: Uint8Array, seed: Uint8Array): Uint8Array {
   return new Uint8Array(new Ed('ed25519', {}).signSync(data, seed));
 }
 
-/** Runs a native call; on any failure turns that call off for the session. */
+/**
+ * Runs a native call; on any failure turns that call off for the session and
+ * reports it once, so a broken native library doesn't silently cost the
+ * ~500 ms this shim saves. The report never includes key material.
+ */
 function tryNative<T>(
   call: NativeCall,
   run: () => T,
   isValid: (result: T) => boolean,
 ): T | null {
   if (!nativeAvailable[call]) return null;
+  let error: Error;
   try {
     const result = run();
     if (isValid(result)) return result;
-  } catch {
-    // Fall through to the JS implementation.
+    error = new Error(`native ${call} returned a malformed result`);
+  } catch (cause) {
+    error = cause instanceof Error ? cause : new Error(String(cause));
   }
   nativeAvailable[call] = false;
+  Logger.error(error, {
+    tags: { feature: 'walletconnect', operation: 'relay_auth_native_ed25519' },
+    context: {
+      name: 'walletconnect_relay_auth',
+      data: { call, fallback: 'js' },
+    },
+  });
   return null;
 }
 
@@ -119,12 +135,15 @@ export async function signJWT(
   const iss = encodeIss(keyPair.publicKey);
   const payload = { iss, sub, aud, iat, exp: iat + ttl };
   const data = encodeData({ header, payload });
-  const seed = keyPair.secretKey.slice(0, SEED_LENGTH);
-  const signature = tryNative(
-    'sign',
-    () => nativeSign(data, seed),
-    (sig) => sig.length === SIGNATURE_LENGTH,
-  );
+  // A key of the wrong shape goes to JS without turning native signing off.
+  const signature =
+    keyPair.secretKey.length === SECRET_KEY_LENGTH
+      ? tryNative(
+          'sign',
+          () => nativeSign(data, keyPair.secretKey.slice(0, SEED_LENGTH)),
+          (sig) => sig.length === SIGNATURE_LENGTH,
+        )
+      : null;
   if (!signature) return jsSignJWT(sub, aud, ttl, keyPair, iat);
   return encodeJWT({ header, payload, signature });
 }
