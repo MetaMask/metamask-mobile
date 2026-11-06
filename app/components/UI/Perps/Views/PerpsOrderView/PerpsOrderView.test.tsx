@@ -2390,6 +2390,39 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('checks and places the order on the route venue', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        providerId: 'lighter',
+      },
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter');
+    expect(placeOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'ETH',
+        providerId: 'lighter',
+      }),
+    );
+  });
+
   describe('when the Trade sheet closes while account support is pending', () => {
     const arrangePendingAccountSupport = async () => {
       let resolveAccountSupport: (
