@@ -1,8 +1,9 @@
-import {
-  SUBSCRIPTION_STATUSES,
-  type SubscriptionStatus,
-} from '@metamask/subscription-controller';
+import type { SubscriptionStatus } from '@metamask/subscription-controller';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  isConfirmedSubscriptionStatus,
+  isFundingSubscriptionStatus,
+} from '../../../../util/subscription/moneyAccountPlusStatus';
 import type {
   HardwareTier,
   NetworkTier,
@@ -46,33 +47,6 @@ export const PROVISIONAL_POLL_INTERVAL_MS = 15_000;
 /** Slower refresh for a constrained device or a slow cellular link. */
 export const PROVISIONAL_POLL_SLOW_INTERVAL_MS = 60_000;
 
-const ACTIVATED_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-]);
-
-const STILL_FUNDING_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.provisional,
-  SUBSCRIPTION_STATUSES.awaitingFunds,
-]);
-
-/**
- * True for a funding status, whether or not this session started the checkout.
- *
- * `awaiting_funds` is also the long-lived low-balance state Pro Hub shows as
- * Active. Callers that announce a checkout must already have seen
- * `provisional` in this session before treating `awaiting_funds` as that
- * payment.
- *
- * @param status - Latest Plus status, or undefined when the plan is gone.
- * @returns Whether the status is provisional or awaiting funds.
- */
-export function isStillFundingSubscriptionStatus(
-  status: SubscriptionStatus | undefined,
-): boolean {
-  return status !== undefined && STILL_FUNDING_STATUSES.has(status);
-}
-
 /**
  * True when a MetaMask Pay top-up is an on-ramp or card payment.
  *
@@ -114,7 +88,7 @@ export function resolveProSubscriptionStartOutcome(
     return StartProSubscriptionOutcome.Ready;
   }
 
-  if (STILL_FUNDING_STATUSES.has(status)) {
+  if (isFundingSubscriptionStatus(status)) {
     return StartProSubscriptionOutcome.Processing;
   }
 
@@ -135,11 +109,11 @@ export function resolveProSubscriptionStartOutcome(
 export function resolveProvisionalPaymentTransition(
   status: SubscriptionStatus | undefined,
 ): ProvisionalPaymentTransition {
-  if (status !== undefined && ACTIVATED_STATUSES.has(status)) {
+  if (isConfirmedSubscriptionStatus(status)) {
     return ProvisionalPaymentTransition.Activated;
   }
 
-  if (status !== undefined && STILL_FUNDING_STATUSES.has(status)) {
+  if (isFundingSubscriptionStatus(status)) {
     return ProvisionalPaymentTransition.Pending;
   }
 

@@ -23,10 +23,10 @@ import {
   getActivationToastOwed,
   subscribeActivationToastDebt,
 } from '../utils/activationToastDebt';
+import { isFundingSubscriptionStatus } from '../../../../util/subscription/moneyAccountPlusStatus';
 import {
   ProvisionalPaymentTransition,
   getProvisionalSubscriptionPollIntervalMs,
-  isStillFundingSubscriptionStatus,
   resolveProvisionalPaymentTransition,
 } from '../utils/proSubscriptionPaymentStatus';
 import { useProSubscriptionPaymentToasts } from './useProSubscriptionPaymentToasts';
@@ -39,14 +39,15 @@ const UNSEEN_STATUS = Symbol('unseen-subscription-status');
  * The first observed status is recorded and not announced, so opening the
  * app onto an already active or awaiting-funds plan does not toast.
  * Awaiting-funds on its own is an existing membership with a low balance.
- * A later change from provisional, or from awaiting-funds after this
- * session saw provisional, to active or trialing shows the membership
- * toast. Showing the processing toaster also owes that toast once, including
- * when Redux is already active before this effect records provisional. A
- * later change out of provisional, or out of awaiting-funds after this
- * session saw provisional, opens the payment-failed sheet. A plan that was
- * already canceled when the processing toaster was shown is not that
- * checkout.
+ * This session owns the checkout once it has seen provisional, or once the
+ * processing toaster was shown, which covers a top-up that starts in
+ * awaiting-funds. A later change from provisional, or from awaiting-funds
+ * of an owned checkout, to active or trialing shows the membership toast.
+ * The processing toaster also owes that toast once, including when Redux is
+ * already active before this effect records provisional. A later change out
+ * of provisional, or out of awaiting-funds of an owned checkout, opens the
+ * payment-failed sheet. A plan that was already canceled when the
+ * processing toaster was shown is not that checkout.
  * A hop between those two funding statuses stays quiet and keeps watching.
  *
  * While that checkout is still funding, subscriptions refresh faster than
@@ -73,17 +74,20 @@ export function useProSubscriptionPaymentMonitor(): {
   const networkTier = useNetworkTier();
   const status = subscription?.status;
   const isProvisional = status === SUBSCRIPTION_STATUSES.provisional;
-  const isCheckoutInFlight =
-    isProvisional ||
-    (status === SUBSCRIPTION_STATUSES.awaitingFunds && sawProvisionalCheckout);
-  const pollInterval = getProvisionalSubscriptionPollIntervalMs(
-    hardwareTier,
-    networkTier,
-  );
   const activationToastOwed = useSyncExternalStore(
     subscribeActivationToastDebt,
     getActivationToastOwed,
     getActivationToastOwed,
+  );
+  // The processing toaster marks this session's checkout, so a top-up that
+  // lands on awaiting_funds without passing provisional is still watched.
+  const ownsCheckout = sawProvisionalCheckout || activationToastOwed;
+  const isCheckoutInFlight =
+    isProvisional ||
+    (status === SUBSCRIPTION_STATUSES.awaitingFunds && ownsCheckout);
+  const pollInterval = getProvisionalSubscriptionPollIntervalMs(
+    hardwareTier,
+    networkTier,
   );
   const previousStatusRef = useRef<
     SubscriptionStatus | undefined | typeof UNSEEN_STATUS
@@ -109,10 +113,7 @@ export function useProSubscriptionPaymentMonitor(): {
 
     if (isProvisional) {
       setSawProvisionalCheckout(true);
-    } else if (
-      !isStillFundingSubscriptionStatus(status) &&
-      sawProvisionalCheckout
-    ) {
+    } else if (!isFundingSubscriptionStatus(status) && sawProvisionalCheckout) {
       setSawProvisionalCheckout(false);
     }
 
@@ -120,7 +121,7 @@ export function useProSubscriptionPaymentMonitor(): {
       previousStatus !== UNSEEN_STATUS &&
       (previousStatus === SUBSCRIPTION_STATUSES.provisional ||
         (previousStatus === SUBSCRIPTION_STATUSES.awaitingFunds &&
-          sawProvisionalCheckout));
+          ownsCheckout));
     const transition = resolveProvisionalPaymentTransition(status);
     const owesThisCheckout = observedThisCheckout || activationToastOwed;
 
@@ -145,6 +146,7 @@ export function useProSubscriptionPaymentMonitor(): {
     activationToastOwed,
     dismissPaymentToast,
     isProvisional,
+    ownsCheckout,
     sawProvisionalCheckout,
     showActiveToast,
     status,

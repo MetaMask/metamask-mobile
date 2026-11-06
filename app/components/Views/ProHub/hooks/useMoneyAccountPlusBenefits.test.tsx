@@ -352,6 +352,48 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.items).toHaveLength(3);
   });
 
+  it.each([SUBSCRIPTION_STATUSES.pastDue, SUBSCRIPTION_STATUSES.awaitingFunds])(
+    'hides the section without fetching for a %s plan with no entitlement',
+    (subscriptionStatus) => {
+      mockAccess(MoneyAccountPlusAccess.Eligible);
+
+      const { result } = renderBenefits(createState({ subscriptionStatus }));
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).not.toHaveBeenCalled();
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    },
+  );
+
+  it('fetches paused usage again when the billing period changes but the status stays paused', async () => {
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+    const { result, store } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+    expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+
+    Object.assign(Engine, {
+      state: {
+        SubscriptionController: {
+          subscriptions: [
+            {
+              ...createPlusSubscription(SUBSCRIPTION_STATUSES.paused),
+              currentPeriodEnd: '2026-10-15T12:00:00.000Z',
+            },
+          ],
+          trialedProducts: [],
+        },
+      },
+    });
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'SubscriptionController' }));
+    });
+
+    await waitFor(() => expect(mockGetPausedBenefits).toHaveBeenCalledTimes(2));
+  });
+
   it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {
     mockAccess(MoneyAccountPlusAccess.Subscriber, false);
 

@@ -8,6 +8,8 @@ import {
 } from '../selectors/subscriptionController';
 import {
   MoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccess,
   useMoneyAccountPlusAccessState,
 } from './useMoneyAccountPlusAccess';
@@ -176,6 +178,55 @@ describe('useMoneyAccountPlusAccessState', () => {
         access: MoneyAccountPlusAccess.Subscriber,
         isSubscriptionsSettled: expected,
       });
+    },
+  );
+});
+
+describe('resolveMoneyAccountPlusEntry', () => {
+  it.each([
+    [
+      MoneyAccountPlusAccess.Disabled,
+      true,
+      true,
+      MoneyAccountPlusEntry.Disabled,
+    ],
+    [MoneyAccountPlusAccess.Unknown, true, false, MoneyAccountPlusEntry.Hub],
+    [MoneyAccountPlusAccess.Eligible, true, true, MoneyAccountPlusEntry.Hub],
+    [MoneyAccountPlusAccess.Eligible, false, true, MoneyAccountPlusEntry.Join],
+    [
+      MoneyAccountPlusAccess.Subscriber,
+      false,
+      true,
+      MoneyAccountPlusEntry.Join,
+    ],
+    [
+      MoneyAccountPlusAccess.Subscriber,
+      false,
+      false,
+      MoneyAccountPlusEntry.Pending,
+    ],
+    [
+      MoneyAccountPlusAccess.Eligible,
+      false,
+      false,
+      MoneyAccountPlusEntry.Pending,
+    ],
+    [
+      MoneyAccountPlusAccess.Unknown,
+      false,
+      true,
+      MoneyAccountPlusEntry.Pending,
+    ],
+  ])(
+    'resolves %s access with membership %s and settled %s to %s',
+    (access, hasMembership, isSubscriptionsSettled, expected) => {
+      expect(
+        resolveMoneyAccountPlusEntry({
+          access,
+          hasMembership,
+          isSubscriptionsSettled,
+        }),
+      ).toBe(expected);
     },
   );
 });

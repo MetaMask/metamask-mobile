@@ -16,6 +16,8 @@ import {
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import Engine from '../../../core/Engine';
@@ -74,8 +76,16 @@ const ProSubscription = () => {
 
   // Dismiss when the Pro flag is off. A Plus status the hub can show already
   // owns a membership, so send them to the hub instead of Benefits.
+  // Same rule as the Orange row and Pro Hub. Resolved access stands in for a
+  // settled subscriptions list.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled: proAccess !== MoneyAccountPlusAccess.Unknown,
+  });
+
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Disabled) {
+    if (entry === MoneyAccountPlusEntry.Disabled) {
       navigation.goBack();
       return;
     }
@@ -84,19 +94,13 @@ const ProSubscription = () => {
     // become a member while Benefits is still mounted. Keep this screen up
     // until Success is showing.
     if (
-      hasMembership &&
+      entry === MoneyAccountPlusEntry.Hub &&
       currentScreen !== ProSubscriptionScreen.Success &&
       !isCheckoutInProgress
     ) {
       navigation.dispatch(openProHubFromSubscriptionModal);
     }
-  }, [
-    proAccess,
-    hasMembership,
-    currentScreen,
-    isCheckoutInProgress,
-    navigation,
-  ]);
+  }, [entry, currentScreen, isCheckoutInProgress, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -181,7 +185,8 @@ const ProSubscription = () => {
           still-loading fetch, sees Benefits instead of a blank page. */}
       {(currentScreen === ProSubscriptionScreen.Success ||
         isCheckoutInProgress ||
-        (!hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)) &&
+        (entry !== MoneyAccountPlusEntry.Hub &&
+          entry !== MoneyAccountPlusEntry.Disabled)) &&
         screenContent}
     </SafeAreaView>
   );

@@ -199,6 +199,43 @@ describe('useProSubscriptionPaymentMonitor', () => {
     expect(mockDismissPaymentToast).not.toHaveBeenCalled();
   });
 
+  it('polls and opens the failed sheet when a processing checkout goes from awaiting funds to canceled', () => {
+    status = SUBSCRIPTION_STATUSES.awaitingFunds;
+    markActivationToastOwed();
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    expect(mockedUseQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        refetchInterval: PROVISIONAL_POLL_INTERVAL_MS,
+      }),
+    );
+
+    status = SUBSCRIPTION_STATUSES.canceled;
+    rerender(undefined);
+
+    expect(result.current.isPaymentFailedSheetOpen).toBe(true);
+    expect(mockDismissPaymentToast).toHaveBeenCalledTimes(1);
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
+  });
+
+  it('shows the active toast once when a processing checkout goes from awaiting funds to active', () => {
+    status = SUBSCRIPTION_STATUSES.awaitingFunds;
+    markActivationToastOwed();
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    status = SUBSCRIPTION_STATUSES.active;
+    rerender(undefined);
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+  });
+
   it('shows the active toast once when processing was shown and the plan is already active', () => {
     status = SUBSCRIPTION_STATUSES.active;
     const { rerender } = renderHook(() => useProSubscriptionPaymentMonitor());

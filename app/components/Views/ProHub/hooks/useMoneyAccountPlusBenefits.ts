@@ -19,10 +19,14 @@ import Logger from '../../../../util/Logger';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
-  selectIsMoneyAccountPlusSubscriber,
   selectMoneyAccountPlusSubscription,
   selectSubscriptionBenefits,
 } from '../../../../selectors/subscriptionController';
+import {
+  MembershipBenefitsMode,
+  getMembershipBenefitsMode,
+  isConfirmedSubscriptionStatus,
+} from '../../../../util/subscription/moneyAccountPlusStatus';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccessState,
@@ -86,18 +90,22 @@ const toPausedBenefitsSnapshot = (
 /**
  * Maps current-period Plus benefit usage for Member pricing.
  *
- * getSubscriptions() already fetches benefits for active subscribers and
- * clears state.benefits for any other status. This hook only fetches when
- * that refresh left no snapshot. `past_due` gets Empty so we don't render a
- * snapshot core is about to delete. `paused` and `unpaid` are Deactivated:
- * the client controller refuses getBenefits for them and drops an
+ * The data source comes from `getMembershipBenefitsMode`, so it follows the
+ * stored status rather than access. getSubscriptions() already fetches
+ * benefits for active subscribers and clears state.benefits for any other
+ * status. This hook only fetches when that refresh left no snapshot.
+ * `past_due` and `awaiting_funds` get Empty so we don't render a snapshot
+ * core is about to delete, even when access settles to Eligible. `paused`
+ * and `unpaid` are Deactivated: the client controller refuses getBenefits
+ * for them and drops an
  * `eligible: false` payload, so this hook reads SubscriptionService and
  * shows the current period's usage with the waiver off. A provisional
  * subscriber whose benefits response is not eligible, or fails validation
  * because usage fields are omitted, gets Pending. An active or trialing
  * subscriber whose response is still not eligible gets Unavailable.
- * Subscription status is part of the benefits query key, so confirming a
- * provisional membership fetches again instead of reusing that error.
+ * Subscription status, id, and period end are part of the benefits query
+ * key, so confirming a provisional membership fetches again instead of
+ * reusing that error, and a new paused period does not reuse old usage.
  *
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
@@ -105,23 +113,30 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
-  const isActiveSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
   const benefits = useSelector(selectSubscriptionBenefits);
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
   const queryClient = useQueryClient();
 
+  const status = plusSubscription?.status;
+  const benefitsMode = getMembershipBenefitsMode(status);
   const isHubSubscriber = access === MoneyAccountPlusAccess.Subscriber;
   const isDeactivatedMembership =
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.paused ||
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.unpaid;
-  const canLoadBenefits = isActiveSubscriber || isDeactivatedMembership;
+    benefitsMode === MembershipBenefitsMode.Paused;
+  const canLoadBenefits = benefitsMode !== MembershipBenefitsMode.None;
   const canFetch = canLoadBenefits && isSignedIn && isUnlocked;
   const hasCache = benefits !== undefined;
 
   const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     // A cached UserNotSubscribed or StructError belongs to the status that
     // produced it. Confirming a provisional membership must not reuse it.
-    queryKey: [...BENEFITS_QUERY_KEY, plusSubscription?.status],
+    // Paused usage belongs to one plan and billing period, so a new plan or
+    // period with the same status fetches again.
+    queryKey: [
+      ...BENEFITS_QUERY_KEY,
+      status,
+      plusSubscription?.id,
+      plusSubscription?.currentPeriodEnd,
+    ],
     queryFn: async (): Promise<SubscriptionBenefitsState | null> => {
       if (isDeactivatedMembership) {
         // Optional messenger client: absent when the subscription build omits it.
@@ -161,9 +176,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   // before the controller can read `eligible`.
   const isIncompleteBenefitsResponse =
     error instanceof Error && error.name === 'StructError';
-  const isConfirmedMember =
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.active ||
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.trialing;
+  const isConfirmedMember = isConfirmedSubscriptionStatus(status);
   const isConfirmedMemberNotEligible =
     !hasCache &&
     canFetch &&
@@ -211,7 +224,9 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     plusSubscription?.currentPeriodEnd,
   );
 
-  if (!isHubSubscriber && !isDeactivatedMembership) {
+  // No stored plan yet: wait for subscriptions unless an entitlement already
+  // makes this a hub subscriber.
+  if (!plusSubscription && !isHubSubscriber) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
@@ -221,7 +236,9 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     };
   }
 
-  // past_due etc: core wipes benefits on the subscriptions refresh.
+  // past_due, awaiting_funds, and ended plans have no usage to show. Core
+  // wipes benefits on the subscriptions refresh. This does not depend on
+  // access, which can settle to Eligible for these statuses.
   if (!canLoadBenefits) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Empty,
@@ -250,7 +267,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     !hasDisplay &&
     canFetch &&
     isError &&
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.provisional &&
+    status === SUBSCRIPTION_STATUSES.provisional &&
     (isUserNotSubscribedError || isIncompleteBenefitsResponse)
   ) {
     return {

@@ -36,6 +36,8 @@ import { useResumeMembership } from './hooks/useResumeMembership';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
@@ -149,11 +151,17 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
+  // Same rule as the Orange row. Resolved access means the subscriptions
+  // query has produced a result, so it stands in for a settled list here.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled: proAccess !== MoneyAccountPlusAccess.Unknown,
+  });
   // A cached membership is enough to render the hub. Access stays Unknown
   // for past-due, awaiting-funds, and unpaid plans until the subscriptions
   // query settles, and a failed refresh would otherwise leave only the header.
-  const showHubContent =
-    hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled;
+  const showHubContent = entry === MoneyAccountPlusEntry.Hub;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -163,13 +171,13 @@ const ProHub = () => {
   // first fetch. A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
     if (
-      proAccess === MoneyAccountPlusAccess.Unknown ||
-      (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
+      entry === MoneyAccountPlusEntry.Hub ||
+      entry === MoneyAccountPlusEntry.Pending
     ) {
       return;
     }
     navigation.goBack();
-  }, [hasMembership, navigation, proAccess]);
+  }, [entry, navigation]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
