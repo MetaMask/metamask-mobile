@@ -7408,10 +7408,22 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     beforeEach(() => {
       mockSelectedEvmAccount = { address: '0xTRADER' };
       mockMessengerCall.mockResolvedValue({});
       clearPostTradeShareSession();
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7494,6 +7506,31 @@ describe('PerpsOrderView', () => {
 
     it('keeps the normal toasts for a copied market order from a private profile', async () => {
       mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order below $10 margin', async () => {
+      mockOrderSize('50', 10);
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),
