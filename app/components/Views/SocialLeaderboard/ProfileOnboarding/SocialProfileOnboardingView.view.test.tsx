@@ -75,12 +75,8 @@ const leaveReadyStep = async () => {
 };
 
 const FeedExitStackProbe = () => {
-  const navigation = useNavigation();
   const route = useRoute();
-  const routeNames = (navigation.getState()?.routes ?? [])
-    .map((entry) => entry.name)
-    .join(',');
-  const screen =
+  const tabName =
     route.params &&
     typeof route.params === 'object' &&
     'screen' in route.params &&
@@ -88,11 +84,7 @@ const FeedExitStackProbe = () => {
       ? route.params.screen
       : '';
 
-  return (
-    <Text testID={getRouteProbeTestId(Routes.HOME_TABS)}>
-      {`${routeNames}:${screen}`}
-    </Text>
-  );
+  return <Text testID={getRouteProbeTestId(Routes.HOME_TABS)}>{tabName}</Text>;
 };
 
 const pressBack = () => {
@@ -284,10 +276,9 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('writes a manual profile with the typed username casing and opens the feed', async () => {
-    renderSocialProfileOnboarding(
-      [{ name: Routes.HOME_TABS, Component: FeedExitStackProbe }],
-      { underneath: [Routes.HOME_TABS] },
-    );
+    renderSocialProfileOnboarding([
+      { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+    ]);
 
     fireEvent.press(
       screen.getByTestId(
@@ -357,10 +348,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).toHaveTextContent(`${Routes.HOME_TABS}:${Routes.SOCIAL.TAB}`);
-    expect(
-      screen.getByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).not.toHaveTextContent(Routes.SOCIAL.PROFILE_ONBOARDING);
+    ).toHaveTextContent(Routes.SOCIAL.TAB);
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
         handle,

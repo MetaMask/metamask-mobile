@@ -6,6 +6,7 @@ import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/stora
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { resolveABTestAssignment } from '../../../../util/abTest';
 import {
+  finishProfileOnboardingToSocialTab,
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
   isSocialV1Treatment,
@@ -434,5 +435,20 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       );
     });
+  });
+});
+
+describe('finishProfileOnboardingToSocialTab', () => {
+  it('pops onboarding back to Home and selects the Social tab', () => {
+    const navigate = jest.fn();
+
+    finishProfileOnboardingToSocialTab({ navigate });
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB },
+      { pop: true },
+    );
   });
 });

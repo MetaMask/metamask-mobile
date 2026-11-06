@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { NavigationContainer, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
@@ -130,7 +130,7 @@ export const createRouteParamsProbe =
  */
 export function renderScreenWithRoutes(
   Component: React.ComponentType,
-  options: { name: string; underneath?: string[] },
+  options: { name: string },
   extraRoutes: {
     name: string;
     Component?: React.ComponentType<object>;
@@ -164,22 +164,5 @@ export function renderScreenWithRoutes(
     </QueryClientBoundary>
   );
 
-  const underneath = options.underneath ?? [];
-  if (underneath.length === 0) {
-    return renderWithProvider(stackTree, providerValues);
-  }
-
-  const history = [...underneath, options.name];
-  return renderWithProvider(
-    <NavigationContainer
-      initialState={{
-        index: history.length - 1,
-        routes: history.map((name) => ({ name })),
-      }}
-    >
-      {stackTree}
-    </NavigationContainer>,
-    providerValues,
-    false,
-  );
+  return renderWithProvider(stackTree, providerValues);
 }

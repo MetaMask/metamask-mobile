@@ -47,6 +47,7 @@ import {
   XAuthErrorType,
 } from '../../../../core/XAuthService';
 import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
@@ -945,13 +946,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
       return;
     }
-    // Home already hosts the Social tab. Popping back to it shows the bottom
-    // bar, and Back returns to the tab that was open before onboarding.
-    navigation.navigate(
-      Routes.HOME_TABS,
-      { screen: Routes.SOCIAL.TAB },
-      { pop: true },
-    );
+    finishProfileOnboardingToSocialTab(navigation);
   }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);

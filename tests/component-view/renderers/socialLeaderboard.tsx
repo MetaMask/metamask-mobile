@@ -316,7 +316,7 @@ const buildOnboardingAccountTree = (
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean; underneath?: string[] } = {},
+  options: { includeSecondEvmAccount?: boolean } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -398,10 +398,7 @@ export function renderSocialProfileOnboarding(
 
   return renderScreenWithRoutes(
     SocialProfileOnboardingView as unknown as React.ComponentType,
-    {
-      name: Routes.SOCIAL.PROFILE_ONBOARDING,
-      underneath: options.underneath,
-    },
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
     { state },
   );
