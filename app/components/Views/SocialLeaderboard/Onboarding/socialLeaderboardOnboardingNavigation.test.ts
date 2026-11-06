@@ -5,7 +5,9 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { resolveABTestAssignment } from '../../../../util/abTest';
+import { hasAcceptedSocialTerms } from '../terms/socialTermsAcceptance';
 import {
+  canOpenSocialTabDirectly,
   finishProfileOnboardingToSocialTab,
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
@@ -17,7 +19,10 @@ import {
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
 
-jest.mock('../terms/socialTermsAcceptance');
+jest.mock('../terms/socialTermsAcceptance', () => ({
+  ...jest.requireActual('../terms/__mocks__/socialTermsAcceptance'),
+  hasAcceptedSocialTerms: jest.fn(() => true),
+}));
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn() } },
@@ -391,6 +396,46 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       expect(navigate).not.toHaveBeenCalledWith(
         Routes.SOCIAL.PROFILE_ONBOARDING,
       );
+    });
+  });
+
+  describe('canOpenSocialTabDirectly', () => {
+    it('is true for Social V1 once terms, profile and onboarding are done', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(true);
+    });
+
+    it('is false for Social V1 when the terms are not accepted', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue('true');
+      jest.mocked(hasAcceptedSocialTerms).mockReturnValueOnce(false);
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('is false for Social V1 when no profile exists', () => {
+      enableSocialV1();
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('is false while the leaderboard onboarding is still due', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue(null);
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('ignores the V1 terms and profile gates for control', () => {
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(true);
     });
   });
 

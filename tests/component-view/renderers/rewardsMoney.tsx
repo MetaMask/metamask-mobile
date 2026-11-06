@@ -1,18 +1,23 @@
 import '../mocks';
 import React from 'react';
-import { Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
+import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
+import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
 import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
+import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
+import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -434,5 +439,168 @@ export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {
     RewardsEarningsHistoryView,
     Routes.REWARDS_EARNINGS_HISTORY_VIEW,
     options,
+  );
+}
+
+export interface RenderRewardsMoneyInviteSheetOptions
+  extends RenderRewardsMoneyOptions {
+  referralCode?: string;
+  entryType?: MoneyReferralEntryType;
+}
+
+export const REFERRAL_SPLASH_JOURNEY_TEST_IDS = {
+  OPEN: 'open-referral-splash',
+} as const;
+
+export const REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE = 'ReferralDestination';
+
+export const REFERRAL_INVITE_JOURNEY_TEST_IDS = {
+  HOST: 'referral-invite-host',
+} as const;
+
+function ReferralInviteJourneyHost() {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  React.useEffect(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_MONEY_INVITE_SHEET);
+  }, [navigation]);
+
+  return <Text testID={REFERRAL_INVITE_JOURNEY_TEST_IDS.HOST}>Swap</Text>;
+}
+
+/**
+ * Deeplink invite sheet pushed over a destination, with the accepted splash
+ * registered as a probe. Code validation and referee registration are Engine
+ * calls. Used to exercise the real accept/dismiss navigation.
+ */
+export function renderRewardsMoneyInviteSheet(
+  options: RenderRewardsMoneyInviteSheetOptions = {},
+) {
+  const persona = options.persona ?? 'plain';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const engine = installRewardsMoneyEngine({
+    ...options,
+    referralMe,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:validateReferralCode': () =>
+        Promise.resolve({ success: true }),
+      'RewardsMoneyController:registerReferee': () => Promise.resolve(),
+      ...options.handlers,
+    },
+  });
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    moneyControllerEnabled: options.moneyControllerEnabled ?? true,
+  });
+
+  function InviteSheetScreen() {
+    return (
+      <AcceptInviteSheet
+        route={{
+          params: {
+            referralCode: options.referralCode,
+            entryType: options.entryType,
+          },
+        }}
+      />
+    );
+  }
+
+  return {
+    ...renderScreenWithRoutes(
+      ReferralInviteJourneyHost as unknown as React.ComponentType,
+      { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
+      [
+        {
+          name: Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+          Component: InviteSheetScreen as unknown as React.ComponentType,
+        },
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+      ],
+      { state },
+    ),
+    engine,
+  };
+}
+
+function ReferralSplashJourneyDestination() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
+
+  return (
+    <Pressable
+      testID={REFERRAL_SPLASH_JOURNEY_TEST_IDS.OPEN}
+      onPress={() =>
+        navigation.navigate(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW)
+      }
+    >
+      {isFocused ? (
+        <Text
+          testID={getRouteProbeTestId(
+            REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE,
+          )}
+        >
+          Swap
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
+/**
+ * Real splash pushed over a Swap destination. Used to assert that closing the
+ * splash returns to the link's destination, not the Money dashboard.
+ */
+export function renderRewardsMoneyReferralSplashJourney(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'referee';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    pendingReferralCode: options.pendingReferralCode ?? 'KOL1',
+  });
+
+  return renderScreenWithRoutes(
+    ReferralSplashJourneyDestination as unknown as React.ComponentType,
+    { name: REFERRAL_SPLASH_JOURNEY_DESTINATION_ROUTE },
+    [
+      {
+        name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+        Component:
+          RewardsMoneyReferralAcceptedSplashView as unknown as React.ComponentType,
+      },
+      { name: Routes.REWARDS_VIEW },
+    ],
+    { state },
+  );
+}
+
+/**
+ * Splash with no back stack. Closing it must open the Money dashboard.
+ */
+export function renderRewardsMoneyReferralAcceptedSplash(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'referee';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    pendingReferralCode: options.pendingReferralCode ?? 'KOL1',
+  });
+
+  return renderScreenWithRoutes(
+    RewardsMoneyReferralAcceptedSplashView as unknown as React.ComponentType,
+    { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+    [{ name: Routes.REWARDS_VIEW }],
+    { state },
   );
 }
