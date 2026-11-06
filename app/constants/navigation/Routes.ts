@@ -465,6 +465,7 @@ const Routes = {
     EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
     POSITION_SHEET: 'SocialPositionDetailsSheet',
+    POSITION_SHARE_COMPOSER: 'SocialPositionShareComposerView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',

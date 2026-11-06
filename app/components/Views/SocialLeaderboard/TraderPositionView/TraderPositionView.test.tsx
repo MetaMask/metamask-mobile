@@ -44,6 +44,7 @@ const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
+const mockSelectAiSocialPositionShareCardEnabled = jest.fn(() => false);
 
 interface MockRouteParams {
   positionId?: string;
@@ -323,6 +324,8 @@ jest.mock(
     selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
+    selectAiSocialPositionShareCardEnabled: () =>
+      mockSelectAiSocialPositionShareCardEnabled(),
   }),
 );
 
@@ -403,6 +406,7 @@ describe('TraderPositionView', () => {
       isLoading: false,
     });
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockSelectAiSocialPositionShareCardEnabled.mockReturnValue(false);
     // Default the A/B test to control (Buy opens QuickBuy). clearAllMocks resets
     // call data but not implementations, so re-assert it for test isolation.
     mockUseABTest.mockReturnValue({
@@ -419,7 +423,7 @@ describe('TraderPositionView', () => {
     };
   });
 
-  it('shares the position deeplink from the header', () => {
+  it('shares the position deeplink from the header when the share card is off', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -432,6 +436,30 @@ describe('TraderPositionView', () => {
       url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
       failOnCancel: false,
     });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHARE_COMPOSER,
+      expect.anything(),
+    );
+  });
+
+  it('opens the share composer with the loaded position when the share card is on', () => {
+    mockSelectAiSocialPositionShareCardEnabled.mockReturnValue(true);
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHARE_COMPOSER,
+      expect.objectContaining({
+        position: expect.objectContaining({ positionId: 'pepe-base' }),
+        traderId: 'trader-1',
+        traderName: 'trader1',
+        traderAddress: '0xabc',
+      }),
+    );
+    expect(Share.open).not.toHaveBeenCalled();
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share position');

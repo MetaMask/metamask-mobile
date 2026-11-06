@@ -13,6 +13,7 @@ import ManageProfileViewScreen, {
 } from './ManageProfileView';
 import TraderProfileViewScreen from './TraderProfileView';
 import TraderPositionViewScreen from './TraderPositionView';
+import PositionShareComposerViewScreen from './PositionShareComposerView';
 import SocialLeaderboardOnboardingScreen from './Onboarding';
 import SocialProfileOnboardingViewScreen from './ProfileOnboarding';
 
@@ -46,6 +47,9 @@ export const EditProfileAvatarView = withSocialAccountGate(
 export const TraderProfileView = withSocialAccountGate(TraderProfileViewScreen);
 export const TraderPositionView = withSocialAccountGate(
   TraderPositionViewScreen,
+);
+export const PositionShareComposerView = withSocialAccountGate(
+  PositionShareComposerViewScreen,
 );
 export const SocialLeaderboardOnboarding = withSocialAccountGate(
   SocialLeaderboardOnboardingScreen,

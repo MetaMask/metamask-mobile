@@ -122,7 +122,10 @@ import {
   type PerpMetrics,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
-import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectAiSocialPositionShareCardEnabled,
+  selectSocialLeaderboardPerpsEnabled,
+} from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -154,6 +157,9 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const isShareCardEnabled = useSelector(
+    selectAiSocialPositionShareCardEnabled,
+  );
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
@@ -245,6 +251,19 @@ const TraderPositionView = () => {
     if (!effectivePositionId) {
       return;
     }
+    if (isShareCardEnabled && displayPosition) {
+      navigation.navigate(Routes.SOCIAL.POSITION_SHARE_COMPOSER, {
+        position: displayPosition,
+        traderId,
+        traderName,
+        traderImageUrl,
+        traderAddress,
+        isClosed: isClosedParam,
+        source: sourceParam,
+      });
+      return;
+    }
+    // Flag off, or no loaded position to draw a card from: share the link.
     const source = getSocialEventSource(sourceParam);
     shareSocialTraderPosition(effectivePositionId, traderId, () => {
       trackSocialPost({
@@ -254,7 +273,19 @@ const TraderPositionView = () => {
         ...(source ? { source } : {}),
       });
     });
-  }, [effectivePositionId, sourceParam, trackSocialPost, traderId]);
+  }, [
+    displayPosition,
+    effectivePositionId,
+    isClosedParam,
+    isShareCardEnabled,
+    navigation,
+    sourceParam,
+    trackSocialPost,
+    traderAddress,
+    traderId,
+    traderImageUrl,
+    traderName,
+  ]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {

@@ -223,6 +223,7 @@ import {
   EditProfileAvatarView,
   TraderProfileView,
   TraderPositionView,
+  PositionShareComposerView,
   PositionDetailsSheet,
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
@@ -1595,6 +1596,11 @@ const MainNavigator = () => {
             name={Routes.SOCIAL.POSITION_SHEET}
             component={PositionDetailsSheet}
             options={transparentModalStackOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POSITION_SHARE_COMPOSER}
+            component={PositionShareComposerView}
+            options={fullScreenModalSlideFromBottomNativeOptions}
           />
         </>
       )}
