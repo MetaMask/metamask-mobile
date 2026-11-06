@@ -41,6 +41,12 @@ PredictNext/
   homeSection/
     index.ts                   # Wallet Homepage Predictions section
     PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders nothing yet
+  trending/
+    index.ts                   # Explore (TrendingView) prediction feeds, carousel, cards and search rows
+    usePredictTrendingFeed.ts  # Feed and search projection; legacy code moved as-is to Predict/trending
+    usePredictSportsMarketsFeed.ts
+    usePredictTrendingSupported.ts # False while resolving and for next Venues until PRED-1408
+    internal/                  # Opaque-market casts for the legacy branch
   events/
     cards/
       index.ts                 # Supported Event-card API

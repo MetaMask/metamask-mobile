@@ -4,6 +4,7 @@ import type {
   SocialPostPerpsPreview,
   SocialPostTradePreview,
 } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../analytics/socialEvents';
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
@@ -32,6 +33,11 @@ interface PostTradeShareSessionBase {
   pairLabel?: string;
   tradeInFlightChain?: string;
   reopenRequested: boolean;
+  /**
+   * Social Screen Viewed source for the share sheet and composer.
+   * Set from the trade that opened the session.
+   */
+  analyticsSource?: SocialEventSource;
 }
 
 export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {

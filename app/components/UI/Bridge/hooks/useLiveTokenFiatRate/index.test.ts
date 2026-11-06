@@ -6,7 +6,7 @@ import { createMockToken } from '../../testUtils/fixtures';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useOHLCVRealtime } from '../../../Charts/AdvancedChart/useOHLCVRealtime';
 import { useTokenFiatRate } from '../useTokenFiatRate';
-import { useLiveTokenFiatRate } from './index';
+import { useLiveTokenFiatRate, useLiveTokenFiatRateState } from './index';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -207,5 +207,44 @@ describe('useLiveTokenFiatRate', () => {
     });
 
     expect(result.current).toBe(FALLBACK_RATE);
+  });
+
+  describe('useLiveTokenFiatRateState', () => {
+    it('returns the candle close as the rate, not loading', () => {
+      mockLatestBar(createBar(LIVE_CLOSE));
+
+      const { result } = renderHook(() => useLiveTokenFiatRateState(token));
+
+      expect(result.current).toEqual({ rate: LIVE_CLOSE, isLoading: false });
+    });
+
+    it('is loading while the stream looks up a token Redux cannot price', () => {
+      mockUseTokenFiatRate.mockReturnValue(undefined);
+      mockLatestBar(null, true);
+
+      const { result } = renderHook(() => useLiveTokenFiatRateState(token));
+
+      expect(result.current).toEqual({ rate: undefined, isLoading: true });
+    });
+
+    it('is not loading while the stream looks up a token Redux can price', () => {
+      mockLatestBar(null, true);
+
+      const { result } = renderHook(() => useLiveTokenFiatRateState(token));
+
+      expect(result.current).toEqual({
+        rate: FALLBACK_RATE,
+        isLoading: false,
+      });
+    });
+
+    it('is not loading once the stream finds no price for the token', () => {
+      mockUseTokenFiatRate.mockReturnValue(undefined);
+      mockLatestBar(null, false);
+
+      const { result } = renderHook(() => useLiveTokenFiatRateState(token));
+
+      expect(result.current).toEqual({ rate: undefined, isLoading: false });
+    });
   });
 });

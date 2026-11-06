@@ -54,6 +54,8 @@ export interface HeaderGlassProps {
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the `animated` backdrop fades in. */
   fadeInDistance?: number;
+  /** Extra backdrop height below the header, for content pinned under it. */
+  backdropExtension?: number | SharedValue<number>;
   /**
    * On, the header is taken out of flow and pinned to the top of its parent
    * over its backdrop. Off, it keeps its place in flow with no backdrop.
@@ -76,6 +78,7 @@ const HeaderGlass = ({
   backdrop = 'animated',
   scrollDistance,
   fadeInDistance,
+  backdropExtension,
   isFloating = true,
   testID,
 }: HeaderGlassProps) => {
@@ -96,6 +99,7 @@ const HeaderGlass = ({
         <HeaderGlassBackdrop
           scrollDistance={backdrop === 'animated' ? scrollDistance : undefined}
           fadeInDistance={fadeInDistance}
+          extension={backdropExtension}
           testID={FLOATING_HEADER_FADE_TEST_ID}
         />
       )}

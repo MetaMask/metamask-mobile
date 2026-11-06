@@ -94,21 +94,8 @@ const predictCompositionFiles = [
  * instead, and add the export you need to its public API.
  */
 const predictImportBurndownFiles = [
-  'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.test.tsx',
-  'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
   'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.test.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionsSkeleton.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/usePredictionsFeed.ts',
-  'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.test.ts',
-  'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.ts',
-  'app/components/Views/TrendingView/feeds/search-utils.ts',
-  'app/components/Views/TrendingView/search/SearchFeedRow.test.tsx',
-  'app/components/Views/TrendingView/search/SearchFeedRow.tsx',
-  'app/components/Views/TrendingView/tabs/SportsTab.tsx',
   'app/components/Views/confirmations/__mocks__/controllers/other-controllers-mock.ts',
   'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.test.tsx',
   'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx',

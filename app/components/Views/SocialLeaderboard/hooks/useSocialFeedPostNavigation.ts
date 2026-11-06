@@ -4,6 +4,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import type { SocialFeedPositionPressContext } from '../../../UI/SocialFeed/components/SocialFeed.types';
+import { socialFeedSurfaceOrderSource } from '../../../UI/SocialFeed/socialFeedOrderSource';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -19,9 +20,12 @@ export interface SocialFeedPostNavigation {
 }
 
 /** Where a Social V1 tab's feed post goes when its author or card is tapped. */
-export const useSocialFeedPostNavigation = (): SocialFeedPostNavigation => {
+export const useSocialFeedPostNavigation = (
+  location?: string,
+): SocialFeedPostNavigation => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const orderSource = socialFeedSurfaceOrderSource(location);
 
   const onAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -54,9 +58,10 @@ export const useSocialFeedPostNavigation = (): SocialFeedPostNavigation => {
           post.item.variant === 'perpsClosed' ||
           post.item.variant === 'spotClosed',
         isSnapshotLive: context?.isSnapshotLive === true,
+        ...(orderSource ? { orderSource } : {}),
       });
     },
-    [navigation],
+    [navigation, orderSource],
   );
 
   return useMemo(
