@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { SUBSCRIPTION_STATUSES } from '@metamask/subscription-controller';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +8,10 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { SUBSCRIPTIONS_QUERY_KEY } from '../../../hooks/useSubscriptions';
+import {
+  clearActivationToastDebt,
+  markActivationToastOwed,
+} from '../utils/activationToastDebt';
 import { PROVISIONAL_POLL_INTERVAL_MS } from '../utils/proSubscriptionPaymentStatus';
 import { useProSubscriptionPaymentMonitor } from './useProSubscriptionPaymentMonitor';
 
@@ -56,6 +60,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearActivationToastDebt();
     status = undefined;
     mockedUseNetworkTier.mockReturnValue('WIFI');
     mockedGetHardwareTier.mockReturnValue('HIGH');
@@ -192,6 +197,56 @@ describe('useProSubscriptionPaymentMonitor', () => {
     expect(result.current.isPaymentFailedSheetOpen).toBe(false);
     expect(mockShowActiveToast).not.toHaveBeenCalled();
     expect(mockDismissPaymentToast).not.toHaveBeenCalled();
+  });
+
+  it('shows the active toast once when processing was shown and the plan is already active', () => {
+    status = SUBSCRIPTION_STATUSES.active;
+    const { rerender } = renderHook(() => useProSubscriptionPaymentMonitor());
+
+    act(() => {
+      markActivationToastOwed();
+    });
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the active toast once when a processing checkout later activates', () => {
+    status = SUBSCRIPTION_STATUSES.provisional;
+    const { rerender } = renderHook(() => useProSubscriptionPaymentMonitor());
+
+    act(() => {
+      markActivationToastOwed();
+    });
+    status = SUBSCRIPTION_STATUSES.active;
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show the active toast after a processing checkout fails', () => {
+    status = SUBSCRIPTION_STATUSES.provisional;
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    act(() => {
+      markActivationToastOwed();
+    });
+    status = SUBSCRIPTION_STATUSES.canceled;
+    rerender(undefined);
+
+    expect(result.current.isPaymentFailedSheetOpen).toBe(true);
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
+
+    status = SUBSCRIPTION_STATUSES.active;
+    rerender(undefined);
+
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
   });
 
   it('does not toast when an unrelated plan becomes active', () => {

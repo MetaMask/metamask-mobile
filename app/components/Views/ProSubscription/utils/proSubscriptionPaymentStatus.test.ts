@@ -7,10 +7,40 @@ import {
   StartProSubscriptionOutcome,
   getProvisionalSubscriptionPollIntervalMs,
   isStillFundingSubscriptionStatus,
+  membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
   resolveProvisionalPaymentTransition,
   shouldShowActiveMembershipCta,
 } from './proSubscriptionPaymentStatus';
+
+describe('membershipTopUpAwaitsExternalFunds', () => {
+  it('returns false for a crypto top-up', () => {
+    const awaitsExternalFunds = membershipTopUpAwaitsExternalFunds(
+      false,
+      undefined,
+    );
+
+    expect(awaitsExternalFunds).toBe(false);
+  });
+
+  it('returns true when the pay transaction carries a fiat payload', () => {
+    const awaitsExternalFunds = membershipTopUpAwaitsExternalFunds(
+      true,
+      undefined,
+    );
+
+    expect(awaitsExternalFunds).toBe(true);
+  });
+
+  it('returns true when a card payment method is selected', () => {
+    const awaitsExternalFunds = membershipTopUpAwaitsExternalFunds(
+      false,
+      'card',
+    );
+
+    expect(awaitsExternalFunds).toBe(true);
+  });
+});
 
 describe('resolveProSubscriptionStartOutcome', () => {
   it('keeps a funded crypto checkout on the success path', () => {
@@ -31,28 +61,41 @@ describe('resolveProSubscriptionStartOutcome', () => {
     expect(outcome).toBe(StartProSubscriptionOutcome.Ready);
   });
 
-  it('returns processing when a top-up is still provisional', () => {
+  it('keeps a crypto top-up on the success path while it is provisional', () => {
     const outcome = resolveProSubscriptionStartOutcome(
       false,
       SUBSCRIPTION_STATUSES.provisional,
+      false,
+    );
+
+    expect(outcome).toBe(StartProSubscriptionOutcome.Ready);
+  });
+
+  it('returns processing when a fiat top-up is still provisional', () => {
+    const outcome = resolveProSubscriptionStartOutcome(
+      false,
+      SUBSCRIPTION_STATUSES.provisional,
+      true,
     );
 
     expect(outcome).toBe(StartProSubscriptionOutcome.Processing);
   });
 
-  it('returns processing when a top-up is still awaiting funds', () => {
+  it('returns processing when a fiat top-up is still awaiting funds', () => {
     const outcome = resolveProSubscriptionStartOutcome(
       false,
       SUBSCRIPTION_STATUSES.awaitingFunds,
+      true,
     );
 
     expect(outcome).toBe(StartProSubscriptionOutcome.Processing);
   });
 
-  it('returns ready when a top-up has already activated', () => {
+  it('returns ready when a fiat top-up has already activated', () => {
     const outcome = resolveProSubscriptionStartOutcome(
       false,
       SUBSCRIPTION_STATUSES.trialing,
+      true,
     );
 
     expect(outcome).toBe(StartProSubscriptionOutcome.Ready);

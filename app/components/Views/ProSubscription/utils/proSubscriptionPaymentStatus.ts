@@ -11,10 +11,11 @@ import type {
 /**
  * How checkout finishes after `startSubscriptionWithDelegation` resolves.
  *
- * `ready` opens the success screen. That is the crypto path, where the Money
- * Account already held the funds. `processing` is an on-ramp or bridge top-up
- * that is still moving funds: the subscription stays provisional, so checkout
- * shows a toast and opens Pro Hub instead of the success screen.
+ * `ready` opens the success screen. That is a crypto payment: the Money
+ * Account already held the funds, or MetaMask Pay moved crypto such as mUSD.
+ * `processing` is an on-ramp or card top-up that is still moving funds: the
+ * subscription stays provisional, so checkout shows a toast and opens Pro Hub
+ * instead of the success screen.
  */
 export const StartProSubscriptionOutcome = {
   Ready: 'ready',
@@ -73,22 +74,43 @@ export function isStillFundingSubscriptionStatus(
 }
 
 /**
+ * True when a MetaMask Pay top-up is an on-ramp or card payment.
+ *
+ * Crypto, including an mUSD payment, is not waiting on an external provider.
+ * Either signal is enough: the pay transaction's fiat payload, or a selected
+ * fiat payment method that has not been copied onto the transaction yet.
+ *
+ * @param hasPayFiat - True when the approved transaction carries a fiat payload.
+ * @param selectedPaymentMethodId - Fiat method chosen for this transaction.
+ * @returns Whether checkout should keep waiting on external funds.
+ */
+export function membershipTopUpAwaitsExternalFunds(
+  hasPayFiat: boolean,
+  selectedPaymentMethodId: string | undefined,
+): boolean {
+  return hasPayFiat || Boolean(selectedPaymentMethodId);
+}
+
+/**
  * Chooses the post-checkout screen from how the membership was funded.
  *
- * A balance that was already sufficient is a crypto payment and opens the
- * success screen even if the returned status is still provisional. A top-up
- * opens the processing path only while the server is still waiting on funds.
- * A top-up that has already activated opens the success screen.
+ * A balance that was already sufficient, and a crypto MetaMask Pay top-up,
+ * open the success screen even if the returned status is still provisional.
+ * An on-ramp or card top-up opens the processing path only while the server
+ * is still waiting on funds. A top-up that has already activated opens the
+ * success screen.
  *
  * @param fundedFromBalance - True when checkout did not need a top-up.
  * @param status - Status returned by the subscription start.
+ * @param awaitsExternalFunds - True for an on-ramp or card top-up.
  * @returns Whether checkout should show success or keep waiting.
  */
 export function resolveProSubscriptionStartOutcome(
   fundedFromBalance: boolean,
   status: SubscriptionStatus,
+  awaitsExternalFunds = false,
 ): StartProSubscriptionOutcome {
-  if (fundedFromBalance) {
+  if (fundedFromBalance || !awaitsExternalFunds) {
     return StartProSubscriptionOutcome.Ready;
   }
 
