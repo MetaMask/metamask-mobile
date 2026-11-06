@@ -24,7 +24,6 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import {
   isTransactionMarkedAsGasFeeSponsored,
