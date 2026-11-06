@@ -14,4 +14,9 @@ export interface PositionDetailsSheetParams {
    * Anything else makes the sheet fetch the position on open.
    */
   isSnapshotLive?: boolean;
+  /**
+   * Quick Buy `source` and Perps order source for a sheet opened from a feed
+   * tab. Profile and follow events keep their existing source.
+   */
+  orderSource?: 'social_trending' | 'social_following' | 'social_live_trades';
 }

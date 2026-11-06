@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform } from 'react-native';
 import { renderHook, waitFor } from '@testing-library/react-native';
 
+import type { HardwareTier } from '../../util/deviceCapability';
 import { ThemeContext } from '../../util/theme';
 import { AppThemeKey } from '../../util/theme/models';
 import { useBlurMaterial } from './useBlurMaterial';
@@ -31,12 +32,18 @@ jest.mock('expo-modules-core', () => ({
     mockRequireOptionalNativeModule(name),
 }));
 
+let mockHardwareTier: HardwareTier | null;
+jest.mock('../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
 describe('useBlurMaterial', () => {
   const originalOS = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
     Platform.OS = 'ios';
+    mockHardwareTier = 'MID';
     mockRemembered = undefined;
     mockRequireOptionalNativeModule.mockReturnValue({});
     jest
@@ -112,6 +119,34 @@ describe('useBlurMaterial', () => {
     expect(
       AccessibilityInfo.isReduceTransparencyEnabled,
     ).not.toHaveBeenCalled();
+  });
+
+  it('stays opaque on a low-end device, which struggles to draw a live blur', () => {
+    mockHardwareTier = 'LOW';
+    mockRemembered = false;
+
+    const { result } = renderBlurMaterial();
+
+    expect(result.current.isBlurAvailable).toBe(false);
+  });
+
+  it('does not read the accessibility setting on a low-end device', () => {
+    mockHardwareTier = 'LOW';
+
+    renderBlurMaterial();
+
+    expect(
+      AccessibilityInfo.isReduceTransparencyEnabled,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps the blur when the hardware tier is unknown', () => {
+    mockHardwareTier = null;
+    mockRemembered = false;
+
+    const { result } = renderBlurMaterial();
+
+    expect(result.current.isBlurAvailable).toBe(true);
   });
 
   it('stays opaque when the user has turned Reduce Transparency on', async () => {

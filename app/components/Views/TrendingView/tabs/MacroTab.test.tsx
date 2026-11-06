@@ -36,6 +36,11 @@ jest.mock('../../../UI/PredictNext', () => ({
     openPredict: jest.fn(() => true),
     canOpenPredict: jest.fn(() => true),
   }),
+  usePredictTrendingFeed: jest.fn(),
+  PredictTrendingCarousel: function MockPredictionsCarouselSection() {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="predictions-carousel" />;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -49,14 +54,6 @@ jest.mock('../search/analytics', () => ({
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed');
-jest.mock('../feeds/predictions/usePredictionsFeed');
-
-jest.mock('../feeds/predictions/PredictionsCarouselSection', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockPredictionsCarouselSection() {
-    return <View testID="predictions-carousel" />;
-  };
-});
 
 jest.mock('../feeds/perps/PerpsSectionProvider', () => {
   const { Fragment } = jest.requireActual('react');
@@ -108,11 +105,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import MacroTab from './MacroTab';
 
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
-const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 
 const mockNavigation = { navigate: jest.fn() };
 
