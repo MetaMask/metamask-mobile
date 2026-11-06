@@ -26,10 +26,15 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
 import type { EarningsSummaryEntry } from '../../../../../../reducers/rewardsMoney';
 import {
+  isCopyTradingOnly,
+  refereeMoneySections,
   selectEarningsSummaryEntry,
+  selectReferralMeEntry,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
+  type RefereeMoneySections,
 } from '../../../../../../reducers/rewardsMoney/selectors';
+import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import type {
   ClaimDto,
   EarningsSummaryDto,
@@ -44,9 +49,12 @@ import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
+import { useFollowTradeClaimOpen } from '../../../hooks/useFollowTradeClaimOpen';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import {
   canClaimEarnings,
+  claimRouteOptions,
   isPendingClaimRow,
   mergeInFlightClaims,
   type EarningsHistoryListItem,
@@ -57,7 +65,6 @@ import {
   underReviewBlockedBaseUnits,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
-import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
 import type {
   ClaimsPausedLabels,
@@ -252,6 +259,8 @@ function breakdownRows(
   persona: MoneyDashboardPersona,
   summary: EarningsSummaryDto | null,
   localizedText: ReferralLocalizedText,
+  sections: RefereeMoneySections,
+  socialEnabled: boolean,
 ): BreakdownRow[] {
   if (persona === 'plain') {
     return [];
@@ -282,10 +291,17 @@ function breakdownRows(
   };
 
   if (persona === 'referrer') {
-    return [referrals, social];
+    return socialEnabled ? [referrals, social] : [referrals];
   }
 
-  return [trading, social];
+  const rows: BreakdownRow[] = [];
+  if (sections.tradingRebates) {
+    rows.push(trading);
+  }
+  if (sections.socialRewards && socialEnabled) {
+    rows.push(social);
+  }
+  return rows;
 }
 
 const BreakdownSkeleton: React.FC<{ rows: number }> = ({ rows }) => {
@@ -373,6 +389,8 @@ const HistorySection: React.FC<{
   state: HistorySectionState;
   /** A section above this one supplies the divider and header spacing. */
   followsSection: boolean;
+  /** Copy-trading-only sharers get the copy-trading empty copy and action. */
+  copyTradingOnly: boolean;
   /** Under-review base units from the summary, or null when none are held. */
   pausedBaseUnits: string | null;
   onEmptyAction: () => void;
@@ -381,6 +399,7 @@ const HistorySection: React.FC<{
   localizedText,
   state,
   followsSection,
+  copyTradingOnly,
   pausedBaseUnits,
   onEmptyAction,
   onOpenList,
@@ -404,12 +423,20 @@ const HistorySection: React.FC<{
               iconProps={{ color: IconColor.IconDefault }}
             />
           }
-          description={localizedText.tradingActivityEmptyDescription}
+          description={
+            copyTradingOnly
+              ? localizedText.copyTradingEmptyDescription
+              : localizedText.tradingActivityEmptyDescription
+          }
           descriptionProps={{
             variant: TextVariant.BodyMd,
             color: TextColor.TextAlternative,
           }}
-          actionButtonText={localizedText.tradingActivityEmptyAction}
+          actionButtonText={
+            copyTradingOnly
+              ? localizedText.copyTradingEmptyAction
+              : localizedText.tradingActivityEmptyAction
+          }
           actionButtonProps={{
             variant: ButtonVariant.Primary,
             size: ButtonSize.Lg,
@@ -491,6 +518,16 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
+  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const roles = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  );
+  const sections = refereeMoneySections(roles);
+  const copyTradingOnly = isCopyTradingOnly(roles);
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
+  }, [navigation]);
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
@@ -580,10 +617,18 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     last7.error && !last7.data,
     history.error,
   );
-  const rows = breakdownRows(persona, summary.data, localizedText);
-  const showBreakdown =
-    summary.show && rows.length > 0 && SHOW_TRADING_COMMISSIONS;
-  const claimEnabled = canClaimEarnings(summary.data, persona);
+  const rows = breakdownRows(
+    persona,
+    summary.data,
+    localizedText,
+    sections,
+    showTradingCommissions,
+  );
+  // One earning type does not need a split. The section appears only when
+  // two rows remain after the role and Social V1 filters.
+  const showBreakdown = summary.show && rows.length >= 2;
+  const routeOptions = claimRouteOptions(followTradeClaimOpen);
+  const claimEnabled = canClaimEarnings(summary.data, persona, routeOptions);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
@@ -662,12 +707,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           localizedText={localizedText}
           state={history}
           followsSection={summary.show || showBreakdown}
+          copyTradingOnly={copyTradingOnly}
           pausedBaseUnits={
             summary.loading || history.loading
               ? null
               : underReviewBlockedBaseUnits(summary.data)
           }
-          onEmptyAction={openTradeActions}
+          onEmptyAction={copyTradingOnly ? openSocialTab : openTradeActions}
           onOpenList={openHistory}
         />
       ) : null}

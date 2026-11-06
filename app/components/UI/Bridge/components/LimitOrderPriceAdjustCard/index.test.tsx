@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Skeleton } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
@@ -92,6 +93,33 @@ describe('LimitOrderPriceAdjustCard', () => {
     );
 
     expect(onLimitPriceInputPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a limit price skeleton while the limit price is loading', () => {
+    const { getByTestId, queryByTestId } = renderCard({
+      limitPrice: '',
+      isLimitPriceLoading: true,
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+    ).toBeNull();
+    expect(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('forwards the loading animation setting to the limit price skeleton', () => {
+    const { UNSAFE_getByType } = renderCard({
+      limitPrice: '',
+      isLimitPriceLoading: true,
+      isLimitPriceLoadingAnimated: false,
+    });
+
+    expect(UNSAFE_getByType(Skeleton).props.autoPlay).toBe(false);
   });
 
   it('forwards preset presses to the parent handlers', () => {

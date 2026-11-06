@@ -342,8 +342,12 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       }),
   },
   [SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT]: {
-    execute: () => handleMoneyDeposit(),
-    resolve: () => createMoneyDepositDeeplinkIntent(),
+    execute: ({ actionBasedRampPath }) =>
+      handleMoneyDeposit({ moneyDepositPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createMoneyDepositDeeplinkIntent({
+        moneyDepositPath: actionBasedRampPath,
+      }),
   },
 };
 
@@ -909,7 +913,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.MONEY: {
-      handleMoney();
+      handleMoney({ moneyPath: actionBasedRampPath });
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

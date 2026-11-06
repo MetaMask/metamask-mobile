@@ -1,6 +1,8 @@
+import { captureException } from '@sentry/react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
 import {
+  act,
   fireEvent,
   screen,
   waitFor,
@@ -29,10 +31,11 @@ jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   default: () => true,
 }));
 
+const mockTrackComposerInteraction = jest.fn();
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialInteraction: () => jest.fn(),
-  useSocialScreenAnalytics: () => jest.fn(),
+  useSocialScreenAnalytics: () => mockTrackComposerInteraction,
 }));
 
 const mockPositionCardBody = jest.fn<null, [unknown]>();
@@ -215,6 +218,17 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../UI/SocialFeed/moderationApi', () => ({
+  ...jest.requireActual('../../../UI/SocialFeed/moderationApi'),
+  invalidateModerationStatus: () => mockInvalidateModerationStatus(),
 }));
 
 jest.mock('../../../../core/ReactQueryService', () => ({
@@ -574,6 +588,14 @@ describe('SocialPostComposerView', () => {
         source: 'metamask-mobile',
       });
     });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith('post_shared', {
+      share_destination: 'metamask_post',
+      trade_type: 'spot',
+    });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_submitted',
+      expect.not.objectContaining({ share_destination: expect.anything() }),
+    );
 
     await waitFor(() => {
       expect(getPendingPostsSnapshot()[0]?.post.gifUri).toBe(
@@ -694,6 +716,34 @@ describe('SocialPostComposerView', () => {
     expect(getPendingPostsSnapshot()).toHaveLength(0);
   });
 
+  it('refetches the moderation status when the post is refused with a 403', async () => {
+    mockCreateSwapComment.mockRejectedValue(
+      Object.assign(new Error('forbidden'), { httpStatus: 403 }),
+    );
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockInvalidateModerationStatus).toHaveBeenCalled();
+    });
+    expect(mockShowToast).toHaveBeenCalled();
+  });
+
   it('stays on the composer and shows a toast when createSwapComment fails', async () => {
     mockCreateSwapComment.mockRejectedValue(new Error('409'));
 
@@ -722,6 +772,49 @@ describe('SocialPostComposerView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
+    mockCreateSwapComment.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(6999);
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(captureException).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1);
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'social_leaderboard.composer.post_failed' }],
+      }),
+    );
+    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(getPendingPostsSnapshot()).toHaveLength(0);
   });
 
   it('closes the composer from the header close button', () => {

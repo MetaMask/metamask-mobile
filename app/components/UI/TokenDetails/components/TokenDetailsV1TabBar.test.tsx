@@ -10,12 +10,14 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import type { TabItem } from '../../../../component-library/components-temp/Tabs';
 import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
-  TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
   getTokenDetailsV1TabBarInset,
   resolveSwipeTargetTab,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from './TokenDetailsV1TabBar';
+import { TokenDetailsIds } from '../testIds';
+
+const TOKEN_DETAILS_V1_TAB_BAR_TEST_ID = TokenDetailsIds.tabBar;
 
 jest.mock('../../../../component-library/components-temp/Tabs', () => ({
   __esModule: true,

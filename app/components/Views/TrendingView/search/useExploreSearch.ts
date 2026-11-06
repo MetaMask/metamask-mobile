@@ -5,7 +5,10 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import {
+  usePredictTrendingFeed,
+  usePredictTrendingSupported,
+} from '../../../UI/PredictNext';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
@@ -49,6 +52,7 @@ export const useExploreSearch = (
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isExploreEarnEnabled = useSelector(selectIsExploreEarnSectionVisible);
+  const isPredictionsSupported = usePredictTrendingSupported('search');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
@@ -60,10 +64,7 @@ export const useExploreSearch = (
   const tokens = useTokensFeed({ query: debouncedQuery });
   const perps = usePerpsFeed({ query: debouncedQuery });
   const stocks = useStocksFeed({ query: debouncedQuery });
-  const predictions = usePredictionsFeed({
-    variant: 'trending',
-    query: debouncedQuery,
-  });
+  const predictions = usePredictTrendingFeed({ query: debouncedQuery });
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
     query: debouncedQuery,
@@ -118,18 +119,22 @@ export const useExploreSearch = (
           total: stocks.totalCount,
         }),
       },
-      {
-        feedId: 'predictions',
-        title: strings('trending.search_tabs.predictions'),
-        items: predictions.data,
-        isLoading: isDebouncing || predictions.isLoading,
-        ...(exposePagination && {
-          fetchMore: predictions.fetchMore,
-          isFetchingMore: predictions.isFetchingMore,
-          hasMore: predictions.hasMore,
-          total: predictions.total,
-        }),
-      },
+      ...(isPredictionsSupported
+        ? [
+            {
+              feedId: 'predictions' as const,
+              title: strings('trending.search_tabs.predictions'),
+              items: predictions.data,
+              isLoading: isDebouncing || predictions.isLoading,
+              ...(exposePagination && {
+                fetchMore: predictions.fetchMore,
+                isFetchingMore: predictions.isFetchingMore,
+                hasMore: predictions.hasMore,
+                total: predictions.total,
+              }),
+            },
+          ]
+        : []),
       {
         feedId: 'sites',
         title: strings('trending.search_tabs.sites'),
@@ -143,6 +148,7 @@ export const useExploreSearch = (
     isDebouncing,
     isPerpsEnabled,
     isExploreEarnEnabled,
+    isPredictionsSupported,
     exposePagination,
     tokens.data,
     tokens.isLoading,

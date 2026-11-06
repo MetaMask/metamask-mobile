@@ -76,7 +76,7 @@ describe('microdeposits', () => {
 
       const display = microdepositDisplayInfo(row);
 
-      expect(display.label).toBe('Test Deposit');
+      expect(display.label).toBe('Verification deposit');
       expect(display.description).toBe('From CHASE');
       expect(display.primaryAmount).toBe('+0.34 USD');
       expect(display.isIncoming).toBe(true);

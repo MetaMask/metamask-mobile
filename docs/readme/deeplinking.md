@@ -304,11 +304,32 @@ https://link.metamask.io/swap?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1
 - Limit Orders require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
 - If the Limit Orders tab is unavailable, the link falls back to the Market tab.
 
+#### Recurring Buy Link
+
+Use the existing `swap` action with `tab=recurring`:
+
+```
+https://link.metamask.io/swap?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&every=2&unit=week&repeatCount=8
+```
+
+- `from`, `to`, and `amount` are optional and use the same CAIP-19 and atomic-unit formats as market swap links.
+- `every` and `unit` form an optional interval pair. If either is missing or invalid, the interval uses the default of every 1 hour.
+- `unit` accepts `minute`, `hour`, `day`, `week`, or `month`.
+- `every` must be a positive integer. Its maximum is 60 minutes, 24 hours, 7 days, 4 weeks, or 6 months, depending on `unit`.
+- `repeatCount` is optional. A missing or invalid value uses the default of 10 repeats.
+- A valid `repeatCount` is preserved when the interval pair falls back to its default.
+- The complete schedule cannot exceed 180 days. A month is treated as 30 days for this validation.
+- If the schedule exceeds 180 days after applying the supplied or default repeat count, the complete default schedule is used: every 1 hour, repeated 10 times.
+- Recurring Buys require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
+- If the Recurring Buy tab is unavailable, the link falls back to the Market tab.
+
 #### Money account deposit link
 
 ```
 https://link.metamask.io/money-account-deposit
 metamask://money-account-deposit
+https://link.metamask.io/money-account-deposit?tokenType=atoken
+metamask://money-account-deposit?tokenType=atoken
 ```
 
 Both forms enter the same React bridge route. The bridge checks the Money
@@ -318,6 +339,13 @@ user is geo-blocked, the existing Money deeplink messaging is shown. Eligible
 users who have not seen Money onboarding are sent through onboarding first,
 then continue to the deposit confirmation. Users who have already seen
 onboarding open the editable deposit confirmation directly.
+
+`tokenType` is optional. `tokenType=atoken` prefers pre-selecting positive-balance Aave
+output token with the highest fiat balance as the deposit payment token. If the
+user has no positive-balance aToken, the link opens the normal deposit flow
+without a preferred token. Missing and unsupported `tokenType` values also keep
+the normal deposit behavior, allowing new token types to be added without
+changing the route.
 
 #### Private Link (Signed)
 
@@ -1004,7 +1032,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 
 | Action                   | Purpose                     | Handler Function                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------ | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19); `tab=limit` opens the Limit Order form and accepts `expiresInMinutes` and `priceTolerance`                                                                                                                                                                                                                                                                                               |
+| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19); `tab=limit` opens the Limit Order form and accepts `expiresInMinutes` and `priceTolerance`; `tab=recurring` opens the Recurring Buy form and accepts the optional `every`/`unit` interval pair and optional `repeatCount`                                                                                                                                                                |
 | `buy` / `buy-crypto`     | Buy crypto                  | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `sell` / `sell-crypto`   | Sell crypto                 | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `send`                   | Send transaction            | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |

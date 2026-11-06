@@ -39,11 +39,12 @@ export const BridgeRecurringBuyFooterView = ({
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const repeatCount = useSelector(selectRecurringRepeatCount);
-  const { activeQuote, isLoading, needsNewQuote } = useBridgeQuoteDataContext();
+  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+  const isInitialQuoteLoading = isLoading && !activeQuote;
 
   const hasValidEvery = parsePositiveInteger(everyValue) !== undefined;
   const hasValidRepeat = parsePositiveInteger(repeatCount) !== undefined;
@@ -66,11 +67,11 @@ export const BridgeRecurringBuyFooterView = ({
         })
       : undefined;
 
-  if (isLoading && !activeQuote && !needsNewQuote) {
+  if (!isValidSourceAmount) {
     return null;
   }
 
-  if (!activeQuote || !isValidSourceAmount || !quotesLastFetched) {
+  if (!isInitialQuoteLoading && (!activeQuote || !quotesLastFetched)) {
     return null;
   }
 
@@ -92,7 +93,7 @@ export const BridgeRecurringBuyFooterView = ({
         disabled={isPreviewDisabled}
         loading={isLoading}
       />
-      {spendSummary ? (
+      {activeQuote && spendSummary ? (
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}

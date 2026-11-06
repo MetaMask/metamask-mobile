@@ -17,6 +17,10 @@ PredictNext/
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   availability/
     index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  venueSelection/
+    index.ts                   # Venue picker for the Predict home headers (PRED-1401)
+    PredictVenueSelectorButton.tsx
+    internal/                  # Picker sheet and the preference-writing hook
   analytics/
     index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
@@ -27,6 +31,25 @@ PredictNext/
     internal/
       legacy/                  # Legacy list hook, mapper and details templates, moved as-is
       next/                    # Canonical Activity mapper, list hook, details lookup and templates
+  notifications/
+    index.ts                   # Order completion toast registrations, mounted by App.tsx
+  portfolio/
+    index.ts                   # Portfolio value projection for the wallet balance breakdown
+    usePredictPortfolioValue.ts
+    internal/
+      legacy/                  # usePredictPortfolio pass-through, unchanged
+  homeSection/
+    index.ts                   # Wallet Homepage Predictions section
+    PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders Positions or discovery
+    PredictDiscoveryListSlotWidget.tsx # UI Slots `predict-discovery-list` widget, imported directly by UiSlots/registry.ts
+    internal/next/             # Positions rows, PnL row and slot-driven discovery for next Venues
+  trending/
+    index.ts                   # Explore (TrendingView) prediction feeds, carousel, cards and search rows
+    usePredictTrendingFeed.ts  # Feed and search projection; legacy code moved as-is to Predict/trending
+    usePredictSportsMarketsFeed.ts # Legacy-only All Sports list (Polymarket tags, no Feed key)
+    usePredictTrendingSupported.ts # Per surface: search (descriptor) and allSports (legacy only)
+    internal/                  # Opaque-market minting: legacy casts, next Events
+      next/                    # Next branch: Feed/search reads, carousel, card, search row, actions
   events/
     cards/
       index.ts                 # Supported Event-card API
@@ -61,6 +84,11 @@ PredictNext/
   hooks/                       # Existing cross-screen React query integration
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
+    entry/                     # Intents, openPredict and usePredictEntryActions (PRED-1379)
+      internal/
+        legacy/                # Today's legacy routes and params for each intent
+        next/                  # PredictNext routes with the Active Venue
+    appRoutes.ts               # Predict's root-navigator route types for NavigationService
 
   auth/                        # Internal P-256, A2T, and bundled profile primitives
     p256DeviceKey.ts           # Profile-bound P-256 implementation
