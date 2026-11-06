@@ -322,11 +322,11 @@ describe('Predict boundary fence', () => {
   it.each([
     [
       'burn-down Views file',
-      'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.tsx',
+      'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx',
     ],
     [
       'burn-down non-Views file',
-      'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
+      'app/components/UI/UrlAutocomplete/index.tsx',
     ],
     ['burn-down test support', 'app/selectors/featureFlagController/mocks.ts'],
     ['composition file', 'app/core/Engine/types.ts'],

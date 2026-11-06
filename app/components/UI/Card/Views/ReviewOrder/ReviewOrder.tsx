@@ -12,7 +12,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,6 +28,8 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../../util/buildUserAddress';
 import { useSelector } from 'react-redux';
 import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type { ShippingAddress };
 
@@ -48,6 +49,7 @@ const ReviewOrder = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
 
@@ -229,7 +231,9 @@ const ReviewOrder = () => {
       edges={['bottom']}
       testID={ReviewOrderSelectors.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

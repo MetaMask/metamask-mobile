@@ -247,6 +247,24 @@ describe('usePerpsProKeyboardScroll', () => {
     expect(onRequestScrollBy).toHaveBeenCalledWith(-40);
   });
 
+  it('starts the visible band below a header floating over the scroll view', async () => {
+    const onRequestScrollBy = jest.fn();
+    const { result } = renderHook(() =>
+      usePerpsProKeyboardScroll({
+        onRequestScrollBy,
+        scrollViewRef: { current: fakeScrollView() },
+        viewportTopInset: 64,
+      }),
+    );
+    // Inside the scroll view but 44px under the header's bottom edge.
+    result.current.cardRef.current = fakeCard({ cardTop: VIEWPORT_TOP + 20 });
+    act(() => result.current.onFocus());
+
+    await raiseKeyboard();
+
+    expect(onRequestScrollBy).toHaveBeenCalledWith(-44);
+  });
+
   it('treats the whole screen as the band without a scroll view', async () => {
     // viewportTop falls back to 0, so a card at 60 is no longer off the top and
     // nothing needs correcting.

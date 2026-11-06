@@ -42,7 +42,6 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
 import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
@@ -77,7 +76,6 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 import useTronUnstake from '../../hooks/useTronUnstake';
-import useTronStakeApy from '../../hooks/useTronStakeApy';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
@@ -131,7 +129,6 @@ const EarnWithdrawInputViewContent = ({
     confirmUnstake: tronConfirmUnstake,
     tronAccountId,
   } = useTronUnstake({ token });
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
 
   // Flag to conditionally show Tron-specific UI
   let showTronUnstakingUI = false;
@@ -213,7 +210,6 @@ const EarnWithdrawInputViewContent = ({
     percentageOptions,
     handleQuickAmountPress,
     handleKeypadChange,
-    earnBalanceValue,
   } = useEarnWithdrawInput({
     earnToken: withdrawalToken as EarnTokenDetails,
     conversionRate,
@@ -222,21 +218,6 @@ const EarnWithdrawInputViewContent = ({
 
   // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-
-  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered (TRON only)
-  const quickAmounts = useMemo(() => {
-    if (isTronEnabled && !isPreviewVisible && isNonZeroAmount) {
-      const modified = [...percentageOptions];
-      modified[modified.length - 1] = {
-        ...modified[modified.length - 1],
-        label: strings('onboarding_success.done'),
-        isHighlighted: true,
-      };
-      return modified;
-    }
-
-    return percentageOptions;
-  }, [isTronEnabled, isPreviewVisible, isNonZeroAmount, percentageOptions]);
 
   useEffect(() => {
     trackEvent(
@@ -308,8 +289,6 @@ const EarnWithdrawInputViewContent = ({
     withdrawalToken?.address,
     withdrawalToken?.chainId,
   ]);
-
-  const stakedBalanceText = strings('stake.staked_balance');
 
   const stakingNavBarOptions = {
     hasCancelButton: true,
@@ -403,13 +382,6 @@ const EarnWithdrawInputViewContent = ({
     }
     navigation.goBack();
   }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
-
-  const headerSubtitle = receiptTokenToUse ? (
-    <EarnHeaderSubtitle
-      earnToken={receiptTokenToUse}
-      aprOverride={isTronEnabled ? tronApyPercent : null}
-    />
-  ) : undefined;
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
@@ -653,6 +625,15 @@ const EarnWithdrawInputViewContent = ({
     handleUnstakeWithdrawalFlow,
   ]);
 
+  const handleReviewPress = useCallback(async () => {
+    if (showTronUnstakingUI && !isPreviewVisible) {
+      setIsPreviewVisible(true);
+      return;
+    }
+
+    await handleWithdrawPress();
+  }, [handleWithdrawPress, isPreviewVisible, showTronUnstakingUI]);
+
   /**
    * Displayed when user has borrow positions detected outside the wallet
    * If a user has debt they won't be able to withdraw their full collateral or they'd risk liquidation.
@@ -718,8 +699,8 @@ const EarnWithdrawInputViewContent = ({
       return strings('earn.amount_exceeds_safe_withdrawal_limit');
     }
 
-    // Tron unstaking confirms directly without a review screen
-    if (showTronUnstakingUI) {
+    // Tron unstaking confirms directly from the preview, matching stake.
+    if (showTronUnstakingUI && isPreviewVisible) {
       return strings('stake.unstake');
     }
 
@@ -729,6 +710,7 @@ const EarnWithdrawInputViewContent = ({
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
+    isPreviewVisible,
     showTronUnstakingUI,
     withdrawalToken?.ticker,
     withdrawalToken?.symbol,
@@ -842,21 +824,9 @@ const EarnWithdrawInputViewContent = ({
     ],
   );
 
-  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as 100% quick amount
   const onRightActionPress = useCallback(() => {
-    if (isTronEnabled && isNonZeroAmount && !isPreviewVisible) {
-      setIsPreviewVisible(true);
-      return;
-    }
-
-    // Fallback: keep existing 100% quick amount behavior
     handleQuickAmountPressWithTracking({ value: 1 });
-  }, [
-    isTronEnabled,
-    isNonZeroAmount,
-    isPreviewVisible,
-    handleQuickAmountPressWithTracking,
-  ]);
+  }, [handleQuickAmountPressWithTracking]);
   const handleKeypadChangeWithValidation = useCallback(
     (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       handleKeypadChange(data);
@@ -875,12 +845,12 @@ const EarnWithdrawInputViewContent = ({
     isTronUnstakeValidating;
 
   const isWithdrawButtonDisabled =
-    (showTronUnstakingUI
-      ? !isNonZeroAmount || isTronValidating
-      : isWithdrawingMoreThanAvailableForLendingToken ||
-        isOverMaximum.isOverMaximumToken ||
-        isOverMaximum.isOverMaximumEth ||
-        !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction;
+    isWithdrawingMoreThanAvailableForLendingToken ||
+    isOverMaximum.isOverMaximumToken ||
+    isOverMaximum.isOverMaximumEth ||
+    !isNonZeroAmount ||
+    (showTronUnstakingUI && isTronValidating) ||
+    isSubmittingStakeWithdrawalTransaction;
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -888,7 +858,6 @@ const EarnWithdrawInputViewContent = ({
         isGlass={isGlassHeader}
         isFloating={false}
         title={title}
-        subtitle={headerSubtitle ?? undefined}
         onBack={navBarOptions.hasBackButton ? handleHeaderBackPress : undefined}
         backButtonProps={
           navBarOptions.hasBackButton
@@ -906,7 +875,6 @@ const EarnWithdrawInputViewContent = ({
           ) : undefined
         }
         includesTopInset
-        style={headerSubtitle ? styles.headerWithSubtitle : undefined}
       />
       {isPooledStakingWithdrawal &&
         isPooledStakingServiceInterruptionBannerEnabled && (
@@ -933,9 +901,6 @@ const EarnWithdrawInputViewContent = ({
           contentContainerStyle={styles.scrollViewContent}
         >
           <InputDisplay
-            isOverMaximum={isOverMaximum}
-            balanceText={stakedBalanceText}
-            balanceValue={earnBalanceValue}
             amountToken={amountToken}
             amountFiatNumber={amountFiatNumber}
             isFiat={isFiat}
@@ -945,11 +910,6 @@ const EarnWithdrawInputViewContent = ({
             currencyToggleValue={currencyToggleValue}
             maxWithdrawalAmount={maxRiskAwareWithdrawalText}
             onPressAmount={() => setIsPreviewVisible(false)}
-            error={
-              isWithdrawingMoreThanAvailableForLendingToken
-                ? strings('earn.amount_exceeds_safe_withdrawal_limit')
-                : undefined
-            }
           />
           {isStablecoinLendingEnabled && (
             <View style={styles.earnTokenSelectorContainer}>
@@ -968,13 +928,30 @@ const EarnWithdrawInputViewContent = ({
             mode="unstake"
           />
         )}
+        {isNonZeroAmount && !isPreviewVisible && (
+          <View style={styles.reviewButtonContainer}>
+            <Button
+              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
+              label={buttonLabel}
+              size={ButtonSize.Lg}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              variant={ButtonVariants.Primary}
+              loading={isSubmittingStakeWithdrawalTransaction}
+              isDisabled={isWithdrawButtonDisabled}
+              width={ButtonWidthTypes.Full}
+              onPress={handleReviewPress}
+            />
+          </View>
+        )}
         {!isPreviewVisible && (
           <>
-            <QuickAmounts
-              amounts={quickAmounts}
-              onAmountPress={handleQuickAmountPressWithTracking}
-              onMaxPress={onRightActionPress}
-            />
+            {!isNonZeroAmount && (
+              <QuickAmounts
+                amounts={percentageOptions}
+                onAmountPress={handleQuickAmountPressWithTracking}
+                onMaxPress={onRightActionPress}
+              />
+            )}
             <Keypad
               value={isFiat ? amountFiatNumber : amountToken}
               onChange={handleKeypadChangeWithValidation}
@@ -997,22 +974,7 @@ const EarnWithdrawInputViewContent = ({
               loading={isSubmittingStakeWithdrawalTransaction}
               isDisabled={isTronWithdrawButtonDisabled}
               width={ButtonWidthTypes.Full}
-              onPress={handleWithdrawPress}
-            />
-          </View>
-        )}
-        {!isTronEnabled && (
-          <View style={styles.reviewButtonContainer}>
-            <Button
-              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
-              label={buttonLabel}
-              size={ButtonSize.Lg}
-              labelTextVariant={TextVariant.BodyMDMedium}
-              variant={ButtonVariants.Primary}
-              loading={isSubmittingStakeWithdrawalTransaction}
-              isDisabled={isWithdrawButtonDisabled}
-              width={ButtonWidthTypes.Full}
-              onPress={handleWithdrawPress}
+              onPress={handleReviewPress}
             />
           </View>
         )}

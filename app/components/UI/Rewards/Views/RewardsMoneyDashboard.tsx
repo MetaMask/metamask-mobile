@@ -7,13 +7,14 @@ import React, {
 } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
   IconName,
   TitleStandard,
   useHeaderStandardAnimated,
@@ -39,6 +40,10 @@ import {
   selectSettingsReferralAvailable,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import EarningsTab from '../components/Money/Tabs/EarningsTab';
@@ -48,7 +53,8 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { canClaimEarnings } from '../utils/claimEarnings';
+import { canClaimEarnings, claimRouteOptions } from '../utils/claimEarnings';
+import { useFollowTradeClaimOpen } from '../hooks/useFollowTradeClaimOpen';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -102,6 +108,10 @@ const RewardsMoneyDashboard: React.FC = () => {
   const floatingTabBarInset = useFloatingTabBarInset();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
   const collapsingBlockStyle = useAnimatedStyle(() => {
     const maxShift = titleSectionHeightSv.value;
     const shift =
@@ -141,9 +151,11 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
   const referralMe = referralMeEntry?.data;
+  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,
     moneyDashboardPersona(referralMe),
+    claimRouteOptions(followTradeClaimOpen),
   );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
@@ -231,7 +243,8 @@ const RewardsMoneyDashboard: React.FC = () => {
 
   const headerEndAccessory = settingsDisabled ? null : (
     <Box twClassName="flex-row gap-2">
-      <ButtonIcon
+      <ButtonIconGlass
+        isCapsule={isGlassHeader}
         iconName={IconName.Setting}
         onPress={() =>
           navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
@@ -298,11 +311,15 @@ const RewardsMoneyDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsMoneyDashboard">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        // A floating header pads the status bar itself, so content scrolls under both.
+        edges={isGlassHeader ? {} : { top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER}
       >
-        <HeaderStandardAnimated
+        <HeaderStandardAnimatedGlass
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          includesTopInset={isGlassHeader}
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeightSv}
           title={strings('rewards.main_title')}
@@ -317,6 +334,7 @@ const RewardsMoneyDashboard: React.FC = () => {
           <Animated.View
             style={[
               tw.style('absolute top-0 right-0 bottom-0 left-0'),
+              { paddingTop: headerInset },
               collapsingBlockStyle,
             ]}
           >
