@@ -71,6 +71,7 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
       context.intent,
       context.primaryError,
       pageSource,
+      context.knownLocators,
     );
     const result = await this.provider.analyzeImage(prompt, screenshot);
 
@@ -107,17 +108,25 @@ export function createClaudeLocatorRecoveryProvider():
   }
 }
 
-function createLocatorRecoveryPrompt(
+export function createLocatorRecoveryPrompt(
   intent: string,
   primaryError: string,
   pageSource: string,
+  knownLocators: RecoveredLocator[] = [],
 ): string {
+  const knownLocatorsSection =
+    knownLocators.length > 0
+      ? `Locators that matched this control before (they no longer match):
+${knownLocators.map((l) => `- ${l.strategy}: ${l.value}`).join('\n')}
+
+`
+      : '';
   return `Recover a native mobile Appium locator for this user intent.
 
 Intent: ${intent}
 Primary locator error: ${primaryError}
 
-Accessibility tree:
+${knownLocatorsSection}Accessibility tree:
 ${pageSource}
 
 Return only valid JSON with this exact shape:
