@@ -5,11 +5,13 @@ import nock from 'nock';
 import {
   OHLCVApiCandle,
   OHLCVApiResponse,
+  ohlcvChartQueryOptions,
   useOHLCVChart,
 } from './useOHLCVChart';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_HOST = 'https://price.api.cx.metamask.io';
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 const ASSET_ID = 'eip155:1/slip44:60';
 
@@ -86,6 +88,52 @@ function renderChartHook<Props>(
 function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
   return renderChartHook(() => useOHLCVChart(options));
 }
+
+describe('useOHLCVChart - host', () => {
+  beforeEach(() => {
+    nock.disableNetConnect();
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    jest.restoreAllMocks();
+  });
+
+  // Social Leaderboard's trader charts and the legacy Token Details page both
+  // reach this hook without a provider, so prod is what it must ask for.
+  it('requests prod outside a PriceApiHostProvider', async () => {
+    const scope = arrangeNockOhlcvAPISuccessResponse();
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it('requests the given host instead of prod', async () => {
+    const devScope = nock(DEV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query(true)
+      .reply(200, createSuccessBody());
+
+    const { result } = renderUseOHLCVChart({
+      ...arrangeDefaultOptions(),
+      baseUrl: DEV_HOST,
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(devScope.isDone()).toBe(true);
+  });
+
+  // Two hosts can disagree about the same asset, so they must not share an
+  // entry in the cache.
+  it('keys the query by host', () => {
+    expect(
+      ohlcvChartQueryOptions({ ...arrangeDefaultOptions(), baseUrl: DEV_HOST })
+        .queryKey,
+    ).not.toEqual(ohlcvChartQueryOptions(arrangeDefaultOptions()).queryKey);
+  });
+});
 
 describe('useOHLCVChart - initial load', () => {
   beforeEach(() => {

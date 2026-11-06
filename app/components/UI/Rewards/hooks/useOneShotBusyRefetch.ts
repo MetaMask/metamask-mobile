@@ -44,6 +44,8 @@ function retryAfterSeconds(error: unknown): number | undefined {
 export function useOneShotBusyRefetch(): {
   cancel: () => void;
   arm: (error: unknown, refetch: () => void) => void;
+  /** False before the first focus, and again after blur. */
+  isFocused: () => boolean;
 } {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // False until the first focus effect. A network failure cannot land before
@@ -88,5 +90,7 @@ export function useOneShotBusyRefetch(): {
     [cancel],
   );
 
-  return { cancel, arm };
+  const isFocused = useCallback(() => focusedRef.current, []);
+
+  return { cancel, arm, isFocused };
 }

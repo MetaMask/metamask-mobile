@@ -4,6 +4,13 @@ import { mobileMfaControllerAdapter } from './bindings';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
 import Logger from '../../Logger';
+import {
+  MetaMetricsEvents,
+  type IMetaMetricsEvent,
+} from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
+import { analytics } from '../../analytics/analytics';
+import type { MfaEvent } from './engine/analytics';
 import type {
   EnrollOptions,
   MfaFlowOptions,
@@ -11,9 +18,18 @@ import type {
   VerifyOrEnrollOptions,
 } from './engine/types';
 
+const EVENTS: Record<MfaEvent, IMetaMetricsEvent> = {
+  'MFA Flow Status Updated': MetaMetricsEvents.MFA_FLOW_STATUS_UPDATED,
+  'MFA Step Viewed': MetaMetricsEvents.MFA_STEP_VIEWED,
+  'MFA Error Viewed': MetaMetricsEvents.MFA_ERROR_VIEWED,
+  'MFA Error CTA Clicked': MetaMetricsEvents.MFA_ERROR_CTA_CLICKED,
+  'MFA Method Selected': MetaMetricsEvents.MFA_METHOD_SELECTED,
+  'MFA Code Resent': MetaMetricsEvents.MFA_CODE_RESENT,
+};
+
 const clientOptions: Pick<
   MfaFlowOptions,
-  'platform' | 'controller' | 'passkey' | 'reportError'
+  'platform' | 'controller' | 'passkey' | 'reportError' | 'trackEvent'
 > = {
   platform: 'mobile',
   controller: mobileMfaControllerAdapter,
@@ -23,9 +39,15 @@ const clientOptions: Pick<
       tags: { feature: 'mfa', mfaCode: code, operation },
       context: { name: 'mfa_flow', data: { step } },
     }),
+  trackEvent: (event, properties) =>
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(EVENTS[event])
+        .addProperties(properties)
+        .build(),
+    ),
 };
 
-const verifyOrEnroll = ({
+export const verifyOrEnroll = ({
   reason,
   ...request
 }: VerifyOrEnrollOptions): Promise<MfaFlowResult> =>

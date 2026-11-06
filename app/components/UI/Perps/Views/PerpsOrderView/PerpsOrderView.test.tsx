@@ -13,6 +13,10 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
 import Engine from '../../../../../core/Engine';
+import {
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 
 // Local reanimated mock needed: Reanimated.default.call override is required
 // for RewardsAnimations component rendering.
@@ -85,7 +89,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -237,6 +244,7 @@ const mockDefaultUsePerpsOrderForm = () => ({
   handleMaxAmount: jest.fn(),
   optimizeOrderAmount: jest.fn(),
   maxPossibleAmount: 1000,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 1000,
   calculations: {
     marginRequired: 11,
@@ -352,11 +360,18 @@ jest.mock('../../hooks', () => {
     })),
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
+    usePerpsQuotedFeeReservation: jest.fn(),
+    usePerpsFeeDisplayAbTest: jest.fn(() => ({
+      feeDisplayMode: 'dollar',
+      variantName: 'control',
+      isActive: false,
+    })),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
       protocolFee: 45,
       metamaskFee: 0,
+      totalFeeRate: 0.00045,
       protocolFeeRate: 0.00045,
       metamaskFeeRate: 0,
       isLoadingMetamaskFee: false,
@@ -492,7 +507,7 @@ jest.mock(
 jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(() => ({
     onConfirm: jest.fn(),
-    onReject: jest.fn(),
+    onReject: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -639,53 +654,105 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
+let mockIsPerpsProModeActive = false;
+let mockProfileTradingActivityPrivate = false;
+const mockResolvePostTradePrompt = jest.fn();
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+);
+
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../../utils/perpsModeSwitch'),
+  useIsPerpsProModeActive: () => mockIsPerpsProModeActive,
+}));
+
+jest.mock('../../../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+  markClaimSheetSeen: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+  () => ({
+    ...jest.requireActual(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    ),
+    openPostTradeComposer: jest.fn(),
+  }),
+);
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(() => jest.fn()),
-  useSelector: jest.fn((selector) => {
-    // reselect selectors do not carry their export name in `toString()`, so
-    // match this one by identity.
-    const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
-      '../../selectors/featureFlags',
-    );
-    if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
-      return mockTradeWithAnyTokenEnabled;
-    }
-    const { selectSelectedInternalAccountByScope } = jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accounts',
-    );
-    if (selector === selectSelectedInternalAccountByScope) {
-      return () => mockSelectedEvmAccount;
-    }
-    if (
-      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
-      selector.toString().includes('perpsAdvancedChart')
-    ) {
-      return mockPerpsAdvancedChartEnabled;
-    }
-    if (selector.toString().includes('selectTokenList')) {
-      return {};
-    }
-    if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
-      return false;
-    }
-    if (selector.toString().includes('selectPaymentOverrideByTransactionId')) {
-      return mockPaymentOverride;
-    }
-    if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
-      return {};
-    }
-    if (
-      selector.toString().includes('selectSelectedAccountGroupInternalAccounts')
-    ) {
-      return [];
-    }
-    return null;
-  }),
-}));
+jest.mock('react-redux', () => {
+  const orderBookByUnit = {
+    usd: { currency: 'usd', metric: 'total' },
+    asset: { currency: 'base', metric: 'total' },
+  };
+
+  return {
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(() => jest.fn()),
+    useSelector: jest.fn((selector) => {
+      // reselect selectors do not carry their export name in `toString()`, so
+      // match this one by identity.
+      const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
+        '../../selectors/featureFlags',
+      );
+      const { selectPerpsOrderBookPreferences } = jest.requireActual(
+        '../../selectors/perpsController',
+      );
+      if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
+        return mockTradeWithAnyTokenEnabled;
+      }
+      if (selector === selectPerpsOrderBookPreferences) {
+        return orderBookByUnit[mockPerpsSizeDenomination];
+      }
+      const { selectSelectedInternalAccountByScope } = jest.requireActual(
+        '../../../../../selectors/multichainAccounts/accounts',
+      );
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => mockSelectedEvmAccount;
+      }
+      const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+        '../../../../../selectors/profileController',
+      );
+      if (selector === selectIsProfileTradingActivityPrivate) {
+        return mockProfileTradingActivityPrivate;
+      }
+      if (
+        selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+        selector.toString().includes('perpsAdvancedChart')
+      ) {
+        return mockPerpsAdvancedChartEnabled;
+      }
+      if (selector.toString().includes('selectTokenList')) {
+        return {};
+      }
+      if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
+        return false;
+      }
+      if (
+        selector.toString().includes('selectPaymentOverrideByTransactionId')
+      ) {
+        return mockPaymentOverride;
+      }
+      if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
+        return {};
+      }
+      if (
+        selector
+          .toString()
+          .includes('selectSelectedAccountGroupInternalAccounts')
+      ) {
+        return [];
+      }
+      return null;
+    }),
+  };
+});
 
 // Rewards feature flag removed - rewards are always enabled
 
@@ -1163,6 +1230,7 @@ const defaultMockHooks = {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
   },
 };
@@ -1327,11 +1395,13 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
+    mockProfileTradingActivityPrivate = false;
     (usePerpsOrderValidation as jest.Mock).mockReturnValue({
       isValid: true,
       errors: [],
@@ -1460,6 +1530,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -2879,6 +2950,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -3266,6 +3338,7 @@ describe('PerpsOrderView', () => {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
     ...overrides,
   });
@@ -3535,6 +3608,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -3583,6 +3657,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -4080,6 +4155,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4134,6 +4210,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4188,6 +4265,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4245,6 +4323,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4302,6 +4381,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4358,6 +4438,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4435,6 +4516,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '10',
@@ -4679,6 +4761,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4882,6 +4965,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -4914,6 +4998,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5025,6 +5110,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5057,6 +5143,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5406,6 +5493,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
@@ -5448,6 +5536,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5514,6 +5603,8 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Control/treatment fee-row behavior is covered in PerpsOrderView.view.test.tsx.
+
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {
       // Arrange - Rewards are always enabled
@@ -5570,6 +5661,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '20.00', // Truthy value - triggers formatPrice path
@@ -5611,6 +5703,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '', // Falsy value - triggers fallback path
@@ -5652,6 +5745,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '16.67',
@@ -5696,6 +5790,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
@@ -5750,6 +5845,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '6.25',
@@ -5883,6 +5979,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
@@ -5994,6 +6091,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
@@ -6878,6 +6976,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
@@ -7100,7 +7199,7 @@ describe('PerpsOrderView', () => {
 
     it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
       jest.useFakeTimers();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const view = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Nothing before the 1s debounce window elapses.
       act(() => {
@@ -7131,11 +7230,26 @@ describe('PerpsOrderView', () => {
           [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
           [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
 
+      mockPerpsSizeDenomination = 'asset';
+      act(() => {
+        view.rerender(<PerpsOrderView />);
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(1);
+
       jest.useRealTimers();
     });
+
+    // Full-screen vs Trade-sheet size_unit, including a saved coin unit before
+    // the price can project it, is covered in PerpsOrderView.view.test.tsx
+    // against the real sheet and settings store.
 
     it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
       // Quote request in flight (custom pay token selected by default).
@@ -7297,6 +7411,12 @@ describe('PerpsOrderView', () => {
     beforeEach(() => {
       mockSelectedEvmAccount = { address: '0xTRADER' };
       mockMessengerCall.mockResolvedValue({});
+      clearPostTradeShareSession();
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+      applyDefaultHookMocks();
     });
 
     it('posts a perps intent for the placed order on the copied market', async () => {
@@ -7329,6 +7449,131 @@ describe('PerpsOrderView', () => {
       expect(mockMessengerCall).not.toHaveBeenCalled();
     });
 
+    it('opens the share sheet for a copied market order and skips the success toast', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      const pending = getPostTradeShareSession();
+      expect(pending?.product).toBe('perps');
+      expect(pending?.status).toBe('pending');
+      expect(showToast).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await getOnSuccess()(undefined, {
+          success: true,
+          orderId: '42',
+          averagePrice: '3200',
+        });
+      });
+
+      const completed = getPostTradeShareSession();
+      expect(completed?.status).toBe('complete');
+      if (completed?.product !== 'perps') {
+        return;
+      }
+      expect(completed.orderId).toBe('42');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order from a private profile', async () => {
+      mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('marks the share sheet failed and skips the error toast', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: false });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onError) {
+        throw new Error('usePerpsOrderExecution was not given onError');
+      }
+      act(() => {
+        options.onError?.({ error: 'rejected' });
+      });
+
+      expect(getPostTradeShareSession()?.status).toBe('failed');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the submitted toast when the order is not a social copy-trade', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
     it('completes the order success when the intent action is not registered', () => {
       mockMessengerCall.mockImplementation(() => {
         throw new Error(
@@ -7344,6 +7589,167 @@ describe('PerpsOrderView', () => {
         getOnSuccess()(undefined, { success: true, orderId: '42' }),
       ).not.toThrow();
       expect(mockMessengerCall).toHaveBeenCalled();
+    });
+  });
+
+  describe('post-trade prompt', () => {
+    const { incrementShareSheetCount, markClaimSheetSeen } = jest.requireMock(
+      '../../../../../util/social/postTradePromptStorage',
+    );
+    const { openPostTradeComposer } = jest.requireMock(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    );
+    const countKey = { address: '0xlinked', product: 'perps' };
+
+    const getOnSuccess = () => {
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onSuccess) {
+        throw new Error('usePerpsOrderExecution was not given onSuccess');
+      }
+      return options.onSuccess;
+    };
+
+    const submitOrder = async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({ stayOnCurrentScreen: true });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+      showToast.mockClear();
+      return showToast;
+    };
+
+    const fill = async (orderId: string | undefined = '42') => {
+      await act(async () => {
+        await getOnSuccess()(undefined, {
+          success: true,
+          orderId,
+          averagePrice: '3200',
+        });
+      });
+    };
+
+    beforeEach(() => {
+      clearPostTradeShareSession();
+      mockIsPerpsProModeActive = false;
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+      applyDefaultHookMocks();
+    });
+
+    it('opens a counted share sheet for a Lite market order', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(getPostTradeShareSession()?.status).toBe('pending');
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(incrementShareSheetCount).toHaveBeenCalledWith(
+        '0xlinked',
+        'perps',
+      );
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not count a share sheet when the fill has no order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill('');
+
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('opens a create profile sheet at submit and marks it seen on fill', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'pending',
+        }),
+      );
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the create profile sheet seen without an order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      await submitOrder();
+      await fill('');
+
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+    });
+
+    it('adds Post to feed to the confirmed toast', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      const toast = showToast.mock.calls.at(-1)?.[0];
+      expect(toast.linkButtonOptions.label).toBe(
+        'social_leaderboard.post_trade_share.post_to_feed',
+      );
+
+      toast.linkButtonOptions.onPress();
+
+      expect(openPostTradeComposer).toHaveBeenCalledWith({
+        tradeInFlight: expect.objectContaining({
+          orderId: '42',
+          chain: 'hyperliquid',
+        }),
+        preview: expect.objectContaining({ product: 'perps' }),
+      });
+    });
+
+    it('skips the prompt in Pro mode', async () => {
+      mockIsPerpsProModeActive = true;
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      await submitOrder();
+
+      expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
     });
   });
 });

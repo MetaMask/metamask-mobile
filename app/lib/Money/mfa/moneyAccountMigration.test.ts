@@ -20,6 +20,7 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountController: {
+        state: { moneyAccounts: {} },
         createMoneyAccount: jest.fn(),
         setDefaultMoneyAccount: jest.fn(),
       },
@@ -50,6 +51,7 @@ describe('moneyAccountMigration', () => {
   afterEach(() => {
     moneyAccountMigration.reset();
     jest.clearAllMocks();
+    mockMoneyAccountController.state.moneyAccounts = {};
   });
 
   it('starts as not started', () => {
@@ -109,6 +111,46 @@ describe('moneyAccountMigration', () => {
     expect(moneyAccountMigration.getLastError()).toMatch(
       /^Error: MPC service unavailable\n {2}at /u,
     );
+  });
+
+  it('rejects without saving a result when reset while the account is created', async () => {
+    let finishCreate: (account: unknown) => void = () => undefined;
+    mockMoneyAccountController.createMoneyAccount.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishCreate = resolve as (account: unknown) => void;
+      }) as ReturnType<typeof mockMoneyAccountController.createMoneyAccount>,
+    );
+    const promise = moneyAccountMigration.start();
+    moneyAccountMigration.reset();
+    mockSetItem.mockClear();
+
+    finishCreate({ id: 'mpc-account' });
+
+    await expect(promise).rejects.toThrow('cancelled');
+    expect(moneyAccountMigration.getStatus()).toBe('not_started');
+    expect(mockSetItem).not.toHaveBeenCalled();
+    expect(
+      mockMoneyAccountController.setDefaultMoneyAccount,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('reuses an MPC Money account an earlier run created', async () => {
+    mockMoneyAccountController.state.moneyAccounts = {
+      'mpc-existing': {
+        id: 'mpc-existing',
+        options: { entropy: { type: KeyringAccountEntropyTypeOption.Mpc } },
+      },
+    } as unknown as typeof mockMoneyAccountController.state.moneyAccounts;
+
+    await moneyAccountMigration.start();
+
+    expect(
+      mockMoneyAccountController.createMoneyAccount,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockMoneyAccountController.setDefaultMoneyAccount,
+    ).toHaveBeenCalledWith('mpc-existing');
+    expect(moneyAccountMigration.getStatus()).toBe('done');
   });
 
   it('saves each status and notifies subscribers', async () => {

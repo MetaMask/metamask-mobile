@@ -20,28 +20,7 @@
     "reasoning": {
       "type": "string",
       "description": "Why these E2E tags were selected"
-    },
-    "performance_tests": {
-      "type": "object",
-      "properties": {
-        "selected_tags": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Performance tags to run. Use [\"ALL\"] to run every performance tag, or [] to run none."
-        },
-        "reasoning": {
-          "type": "string",
-          "description": "Why these performance tags were selected"
-        }
-      },
-      "required": ["selected_tags", "reasoning"]
     }
   },
-  "required": [
-    "selected_tags",
-    "risk_level",
-    "confidence",
-    "reasoning",
-    "performance_tests"
-  ]
+  "required": ["selected_tags", "risk_level", "confidence", "reasoning"]
 }

@@ -97,6 +97,7 @@ describe('TraderPositionPnlSection', () => {
       pnl: { amount: '+$50.00', percentage: '+50.00%', isProfit: true },
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -149,6 +150,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition,
         isLoading: false,
+        isPositionLoading: false,
       });
     });
 
@@ -174,6 +176,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition: null,
         isLoading: false,
+        isPositionLoading: false,
       });
 
       renderSection();
@@ -202,23 +205,23 @@ describe('TraderPositionPnlSection', () => {
     });
   });
 
-  it('passes a loading header through before a value arrives', () => {
+  it('hides the position row while loading when there is no value yet', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: true,
+      isPositionLoading: true,
     });
 
     renderSection();
 
-    expect(positionProp()).toEqual(
-      expect.objectContaining({ isLoading: true, positionValue: undefined }),
-    );
+    expect(positionProp()).toBeUndefined();
   });
 
   it('hides the position row when there is no value and no load in flight', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -230,6 +233,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
     mockUseTokenBalance.mockReturnValue({
       balance: '0',

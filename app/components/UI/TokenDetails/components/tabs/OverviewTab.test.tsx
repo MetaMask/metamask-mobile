@@ -6,8 +6,6 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
 import {
   useTokenTransactions,
@@ -22,14 +20,17 @@ import {
 } from '../../constants/constants';
 import {
   OVERVIEW_TAB_ACTIVITY_TEST_ID,
-  OVERVIEW_TAB_BALANCE_TEST_ID,
-  OVERVIEW_TAB_DESCRIPTION_TEST_ID,
-  OVERVIEW_SECTION_RULE_TEST_ID,
-  OVERVIEW_TAB_TEST_ID,
-  OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
   default as OverviewTab,
 } from './OverviewTab';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../sections/PerformanceSection';
+import { TokenDetailsIds } from '../../testIds';
+
+const OVERVIEW_TAB_TEST_ID = TokenDetailsIds.overview.container;
+const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
+const OVERVIEW_TAB_BALANCE_TEST_ID = TokenDetailsIds.overview.balance;
+const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
+  TokenDetailsIds.overview.tokenDetails;
+const OVERVIEW_SECTION_RULE_TEST_ID = TokenDetailsIds.overview.sectionRule;
+const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 jest.mock('react-redux', () => ({
@@ -52,25 +53,25 @@ jest.mock('../../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
-
 jest.mock('../../hooks/useTokenPerformance', () => ({
   useTokenPerformance: jest.fn(),
 }));
 
 const mockUseTokenAssetDetails = jest.fn();
 jest.mock('../../queries/tokenAssetQuery', () => ({
-  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+  useTokenAssetDetails: (assetId: unknown, baseUrl: unknown) =>
+    mockUseTokenAssetDetails(assetId, baseUrl),
 }));
+
+const FLAGGED_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1',
+  () => ({
+    selectMemecoinTdpV1TokenApiBaseUrl: jest.fn(
+      () => 'https://token.dev-api.cx.metamask.io',
+    ),
+  }),
+);
 
 jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
@@ -293,6 +294,17 @@ describe('OverviewTab', () => {
     } as never);
   });
 
+  it('asks the token API host the remote config names', () => {
+    render(
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
+    );
+
+    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
+      'eip155:1/erc20:0xabc',
+      FLAGGED_TOKEN_API_BASE_URL,
+    );
+  });
+
   it('renders the description through ContentDisplay when the token has one', () => {
     const { getByTestId, getByText } = render(
       <OverviewTab
@@ -407,7 +419,6 @@ describe('OverviewTab', () => {
 
     expect(mockUseTokenPerformance).toHaveBeenCalledWith({
       marketData: null,
-      assetMarketData: null,
     });
     expect(
       getByTestId('token-details-overview-tab-performance-value-1h'),

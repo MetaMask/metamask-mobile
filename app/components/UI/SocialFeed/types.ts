@@ -10,6 +10,10 @@ import type { TradeAction } from './utils/tradeAction';
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
 
+export interface SocialFeedPageHandle {
+  scrollToOffset: (offset: number, animated?: boolean) => void;
+}
+
 export interface SocialV1FeedAsset {
   /** Ticker shown on the position card (`BTC`, `NVDA`). */
   symbol: string;
@@ -52,6 +56,12 @@ interface SocialV1FeedItemBase {
   /** Author comment. */
   comment?: string;
   /**
+   * Klipy GIF the author attached to the comment. Set on a GIF-only comment,
+   * which has no `comment` caption, so the card still counts it as commented.
+   * The card body does not render it.
+   */
+  commentGifUrl?: string;
+  /**
    * Realized P&L in USD on a closed position, current value on an open one.
    * Only the closed layout renders it; the open layout leads with P&L instead.
    */
@@ -82,6 +92,11 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   holdTimeLabel?: string;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
+  /**
+   * Composer previews set this to `false` so the card does not offer to copy
+   * the order that was just placed. Absent means the open position is copyable.
+   */
+  showCopyTrade?: boolean;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
@@ -132,14 +147,17 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   holdTimeLabel?: string;
   showCopyTrade?: boolean;
+  /** How the card's figures follow the streamed spot price, as on an open row. */
+  live?: SocialLivePriceSource;
 }
 
 /**
- * Two layouts -- open and closed -- crossed with the asset class. Open cards
- * lead with current value and offer Copy trade; closed cards lead with realized
- * P&L and offer nothing, because there is no longer a position to copy. The
- * asset class only decides which stat rows sit between. `spotShare` is the
- * composer insert of a spot position.
+ * Two layouts -- open and closed -- crossed with the asset class. Both share
+ * the header. Open cards quote a live price or market cap and offer Copy
+ * trade. Closed cards caption when the position settled and offer nothing,
+ * because there is no longer a position to copy. The asset class decides the
+ * side tag and whether entry and exit are quoted as market cap. `spotShare`
+ * is the composer insert of a spot position.
  */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
@@ -154,11 +172,18 @@ export interface SocialV1FeedPost {
   authorImageUrl?: string | null;
   timestampMs: number;
   /**
-   * Swap-comment id for the Call this post reacts to. Absent on pending
-   * composer posts and on live rows with no authorComment. The heart still
-   * renders; picks stay session-local until a Call id exists.
+   * Swap-comment id for the Call this post reacts to. Absent on live rows
+   * with no authorComment. The shell hides reaction controls without it.
+   * Pending composer posts already have one from the create response.
    */
   commentId?: string;
+  /**
+   * Language the Call was written in. `null` when the API has not detected
+   * one. Absent on older payloads. The translate control hides only for `en`.
+   */
+  sourceLanguage?: string | null;
+  /** Translations already returned with the Call, keyed by language code. */
+  translations?: Record<string, string>;
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;
@@ -177,6 +202,11 @@ export interface SocialV1FeedPost {
    * sheet so it opens without a fetch. Absent on pending and mocked posts.
    */
   position?: Position;
+  /**
+   * Socket event whose entrance this post plays once. Absent on posts that
+   * arrived without one (HTTP snapshot, revisions of rows already shown).
+   */
+  realtimeEventId?: string;
 }
 
 /**

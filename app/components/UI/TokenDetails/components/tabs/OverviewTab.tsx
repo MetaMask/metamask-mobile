@@ -1,18 +1,16 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import Balance from '../../../AssetOverview/Balance';
 import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
-// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-import {
-  DEV_TOKEN_API_BASE_URL,
-  useTokenAssetDetails,
-} from '../../queries/tokenAssetQuery';
+import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../../queries/tokenMarketData';
+import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -26,19 +24,10 @@ import PerformanceSection from '../sections/PerformanceSection';
 import ActivitySection, {
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
 } from '../sections/ActivitySection';
+import { TokenDetailsIds } from '../../testIds';
 
-export const OVERVIEW_TAB_TEST_ID = 'token-details-overview-tab';
-export const OVERVIEW_TAB_DESCRIPTION_TEST_ID =
-  'token-details-overview-tab-description';
-export const OVERVIEW_TAB_BALANCE_TEST_ID =
-  'token-details-overview-tab-balance';
-export const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
-  'token-details-overview-tab-token-details';
 export const OVERVIEW_TAB_ACTIVITY_TEST_ID =
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID;
-
-export const OVERVIEW_SECTION_RULE_TEST_ID =
-  'token-details-overview-section-rule';
 
 const SECTION_RULE = 'mt-6 border-t border-muted pt-6';
 
@@ -64,7 +53,10 @@ const OverviewSection = ({
   }
 
   return (
-    <Box testID={OVERVIEW_SECTION_RULE_TEST_ID} twClassName={SECTION_RULE}>
+    <Box
+      testID={TokenDetailsIds.overview.sectionRule}
+      twClassName={SECTION_RULE}
+    >
       {content}
     </Box>
   );
@@ -74,7 +66,7 @@ export interface OverviewTabProps {
   token: TokenDetailsRouteParams;
   assetId: CaipAssetType | null;
   securityData?: TokenSecurityData | null;
-  marketData?: FungibleAssetPrice | null;
+  marketData?: TokenMarketData | null;
 }
 
 const OverviewTab = ({
@@ -83,8 +75,8 @@ const OverviewTab = ({
   securityData,
   marketData,
 }: OverviewTabProps) => {
-  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-  const { asset } = useTokenAssetDetails(assetId, DEV_TOKEN_API_BASE_URL);
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
+  const { asset } = useTokenAssetDetails(assetId, tokenApiBaseUrl);
   const assetDescription = asset?.launchpadData?.description?.trim();
   const tokenDescription = token.description?.trim();
   // Hide the block when neither source has text. A blank string is not a description.
@@ -92,7 +84,6 @@ const OverviewTab = ({
 
   const performance = useTokenPerformance({
     marketData: marketData ?? null,
-    assetMarketData: asset?.marketData ?? null,
   });
   const hasPerformance = [
     performance.fiveMinute,
@@ -116,12 +107,12 @@ const OverviewTab = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       twClassName="pt-5 pb-6"
-      testID={OVERVIEW_TAB_TEST_ID}
+      testID={TokenDetailsIds.overview.container}
     >
       {description ? (
         <OverviewSection
           bordered={false}
-          testID={OVERVIEW_TAB_DESCRIPTION_TEST_ID}
+          testID={TokenDetailsIds.overview.description}
           twClassName="px-4"
         >
           <ContentDisplay content={description} />
@@ -137,7 +128,7 @@ const OverviewTab = ({
       {hasBalanceSection ? (
         <OverviewSection
           bordered={Boolean(description) || hasPerformance}
-          testID={OVERVIEW_TAB_BALANCE_TEST_ID}
+          testID={TokenDetailsIds.overview.balance}
         >
           <Balance
             asset={token}
@@ -149,7 +140,7 @@ const OverviewTab = ({
 
       <OverviewSection
         bordered={Boolean(description) || hasPerformance || hasBalanceSection}
-        testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID}
+        testID={TokenDetailsIds.overview.tokenDetails}
         twClassName="px-4"
       >
         <TokenDetailsSection

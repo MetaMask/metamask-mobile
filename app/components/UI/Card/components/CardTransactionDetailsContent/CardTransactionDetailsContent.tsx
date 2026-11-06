@@ -8,7 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   Text,
   TextButton,
@@ -25,6 +24,9 @@ import CopyButton from '../../../../Views/confirmations/components/UI/copy-butto
 import { strings } from '../../../../../../locales/i18n';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import type { CardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface CardTransactionDetailsContentProps {
   heroCopy: string;
@@ -69,11 +71,14 @@ const CardTransactionDetailsContent = ({
   onViewOnExplorer,
   footer,
 }: CardTransactionDetailsContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('card.transactions.details_title')}
         onBack={onBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}

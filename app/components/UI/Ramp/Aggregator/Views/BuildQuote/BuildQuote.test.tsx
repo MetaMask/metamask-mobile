@@ -32,6 +32,8 @@ import { createFiatSelectorModalNavigationDetails } from '../../components/FiatS
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { RampIntent } from '../../types';
 import { SolScope } from '@metamask/keyring-api';
+import { BottomSheetDialog } from '@metamask/design-system-react-native';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -45,8 +47,31 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-const getByRoleButton = (name?: string | RegExp) =>
-  screen.getByRole('button', { name });
+const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
+  '0': KeypadTestIds.KEY_0,
+  '1': KeypadTestIds.KEY_1,
+  '2': KeypadTestIds.KEY_2,
+  '3': KeypadTestIds.KEY_3,
+  '4': KeypadTestIds.KEY_4,
+  '5': KeypadTestIds.KEY_5,
+  '6': KeypadTestIds.KEY_6,
+  '7': KeypadTestIds.KEY_7,
+  '8': KeypadTestIds.KEY_8,
+  '9': KeypadTestIds.KEY_9,
+  '.': KeypadTestIds.KEY_DOT,
+};
+
+const getByRoleButton = (name?: string | RegExp) => {
+  const matches = screen.getAllByRole('button', { name });
+  if (matches.length === 1 || typeof name !== 'string') {
+    return matches[0];
+  }
+
+  const keypadTestID = KEYPAD_TEST_IDS_BY_LABEL[name];
+  return (
+    matches.find(({ props }) => props.testID === keypadTestID) ?? matches[0]
+  );
+};
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -298,6 +323,32 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+let mockGlassHeadersEnabled = false;
+jest.mock(
+  '../../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => mockGlassHeadersEnabled,
+  }),
+);
+
+const mockHeaderStandardGlassProps = jest.fn();
+jest.mock(
+  '../../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ActualReact = jest.requireActual('react');
+    const ActualHeaderStandardGlass = jest.requireActual(
+      '../../../../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlassProps(props);
+        return ActualReact.createElement(ActualHeaderStandardGlass, props);
+      },
+    };
+  },
+);
+
 jest.mock('../../../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
@@ -365,6 +416,7 @@ describe('BuildQuote View', () => {
       ...mockUseGasPriceEstimationInitialValue,
     };
     mockIsNonEvmAddress.mockReturnValue(false);
+    mockGlassHeadersEnabled = false;
   });
 
   //
@@ -472,6 +524,26 @@ describe('BuildQuote View', () => {
     expect(
       screen.queryByTestId('deposit-back-navbar-button'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders the plain header when glass headers are disabled', () => {
+    render(BuildQuote);
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isGlass: false, isFloating: false }),
+    );
+  });
+
+  it('renders the glass header with a working back button when glass headers are enabled', () => {
+    mockGlassHeadersEnabled = true;
+    render(BuildQuote);
+
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isGlass: true, isFloating: false }),
+    );
+    expect(mockPop).toHaveBeenCalled();
   });
 
   it('calls endTrace when the conditions are met', () => {
@@ -777,6 +849,30 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
     });
 
+    it('groups EUR input without reusing its decimal separator', () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        currentFiatCurrency: mockFiatCurrenciesData[1],
+      };
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      for (const key of ['1', '2', '3', '4']) {
+        fireEvent.press(getByRoleButton(key));
+      }
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234');
+
+      fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_DOT));
+      fireEvent.press(getByRoleButton('5'));
+      fireEvent.press(getByRoleButton('6'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234,56');
+    });
+
     it('updates the amount input with quick amount buttons', () => {
       render(BuildQuote);
       const initialAmount = '0';
@@ -869,6 +965,15 @@ describe('BuildQuote View', () => {
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('does not claim the native responder for amount keypad touches', () => {
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      const bottomSheet = screen.UNSAFE_getByType(BottomSheetDialog);
+
+      expect(bottomSheet.props.onStartShouldSetResponder).toBeUndefined();
     });
 
     it('replaces quick amounts with Done confirm when an amount is entered', () => {

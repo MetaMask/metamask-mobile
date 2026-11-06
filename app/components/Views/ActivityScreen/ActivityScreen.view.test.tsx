@@ -1,11 +1,20 @@
 import '../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo';
 
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { updateBgState } from '../../../core/redux/slices/engine';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../tests/component-view/render';
+import {
+  describeForPlatforms,
+  itForPlatforms,
+} from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
@@ -54,6 +63,7 @@ import {
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
+  initialStateActivity,
   initialStateActivityWithAccountsApi,
   initialStateActivityWithLocalTransactions,
   initialStateActivityWithPerpsDetails,
@@ -63,6 +73,21 @@ import {
   clearAccountsTransactionsApiMocks,
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupGetLimitOrderApiMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../tests/component-view/api-mocking/limitOrders';
+import { BridgeLimitOrderActivityNavigator } from '../../../../tests/component-view/renderers/bridge';
+import { MOCK_LIMIT_FILLED_ORDER } from '../../UI/Bridge/api/limitOrders/getLimitOrders/mock';
+import {
+  LimitOrderState,
+  type LimitOrder,
+} from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
+import type { LimitOrdersQueryParams } from '../../UI/Bridge/queries/limitOrders';
+import { OpenOrderRowSelectorsIDs } from '../../UI/Bridge/components/OpenOrderRow/OpenOrderRow.testIds';
+import { BridgeTabKey } from '../../UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { SwapsLimitOrderActivityPageSelectorsIDs } from '../../UI/Bridge/Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.testIds';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -80,6 +105,7 @@ const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
 const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const ACTIVITY_LIST_CONTAINER = 'activity-list';
 const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
 const monToBaseBridgeState = (
@@ -89,11 +115,6 @@ const monToBaseBridgeState = (
     | typeof activityCvBridgeMonToBaseHistoryEntry,
 ) =>
   initialStateActivityWithLocalTransactions([transaction])
-    .withRemoteFeatureFlags({
-      // List redesign + details redesign (both required for list → ActivityDetails nav).
-      tmcuActivityRedesignEnabled: true,
-      tmcuTransactionsRedesignEnabled: true,
-    })
     .withOverrides(activityMonadBaseNetworkOverride)
     .withOverrides(activityMonToBaseTokenRatesOverride)
     .withOverrides({
@@ -131,6 +152,8 @@ const activityListRowAvatarStackTestId = (hash: string): string =>
 // Container wraps the a11y-hidden spinner (PendingActivityListItemRow).
 const activityListRowPendingSpinnerTestId = (hash: string): string =>
   `activity-pending-spinner-container-${hash}`;
+const activityListLimitOrderRowTestId = (orderId: string): string =>
+  `activity-limit-order-${orderId}`;
 
 /** Patch Engine.state then UPDATE_BG_STATE so Redux selectors see live controller updates. */
 const syncEngineControllerState = (
@@ -396,6 +419,16 @@ describeForPlatforms('ActivityScreen', () => {
         lineaTx,
       ])
         .withOverrides(activityLineaNetworkOverride)
+        // The All-filter loader also waits on Predict. The flag defaults on
+        // when absent, and this test's accounts nock blocks that fetch, so
+        // the spinner can outlive the EVM rows. This case only asserts EVM
+        // network filtering.
+        .withRemoteFeatureFlags({
+          predictTradingEnabled: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        })
         .build();
 
       const { getByTestId, findByTestId, queryByTestId } =
@@ -642,11 +675,16 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByTestId } =
-      renderActivityScreenViewWithRoutes({
-        state: emptyActivityStateFunded().build(),
-        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
-      });
+    const {
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+      queryByText,
+    } = renderActivityScreenViewWithRoutes({
+      state: emptyActivityStateFunded().build(),
+      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    });
 
     await waitFor(() => {
       expect(
@@ -655,9 +693,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
+    // The funded copy is the assertion subject. The list spinner is only gone
+    // once history has settled; waiting on the spinner alone flakes when that
+    // request never leaves `isInitialLoading`.
     await waitFor(
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+        expect(queryByText(fundedDescription)).toBeOnTheScreen();
       },
       { timeout: 10000 },
     );
@@ -1543,6 +1585,330 @@ describeForPlatforms('ActivityScreen — buy/sell rows', () => {
   });
 });
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+describeForPlatforms('ActivityScreen — limit orders', () => {
+  const OLDER_FILLED_ORDER: LimitOrder = {
+    ...MOCK_LIMIT_FILLED_ORDER,
+    id: 'mock-limit-order-filled-older',
+    timingData: {
+      ...MOCK_LIMIT_FILLED_ORDER.timingData,
+      closedAt: '2026-09-02T13:00:00.000Z',
+    },
+  };
+
+  const SEND_HASH = buildConfirmedLocalSendTransaction().hash as string;
+
+  /**
+   * Renders Activity with a confirmed send and waits for its row. The list
+   * holds local rows back until the accounts API answers, so this also keeps
+   * that request from outliving the test.
+   */
+  const renderLimitOrdersActivity = async ({
+    enabled = true,
+    enabledChainIds,
+    extraRoutes = [],
+  }: {
+    enabled?: boolean;
+    enabledChainIds?: string[];
+    extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+  } = {}) => {
+    const view = renderActivityScreenViewWithRoutes({
+      state: initialStateActivityWithLocalTransactions([
+        buildConfirmedLocalSendTransaction(),
+      ])
+        .withOverrides(activityLineaNetworkOverride)
+        .withRemoteFeatureFlags({
+          swapsLimitOrder: {
+            enabled,
+            ...(enabledChainIds ? { enabledChainIds } : {}),
+          },
+        })
+        .build(),
+      extraRoutes,
+    });
+    expect(
+      await view.findByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).toBeOnTheScreen();
+    return view;
+  };
+
+  const serveLimitOrders = (orders: LimitOrder[]) => {
+    const requests: LimitOrdersQueryParams[] = [];
+    setupLimitOrdersDataServiceMock({
+      limitOrders: async ({ cursor: _cursor, ...params }) => {
+        requests.push(params);
+        return { orders, total: orders.length };
+      },
+    });
+    return requests;
+  };
+
+  const selectLimitOrdersFilter = async (
+    view: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+  ) => {
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    );
+    await waitFor(() => {
+      expect(
+        view.getAllByText(
+          selectedTypeFilterLabel(ActivityTypeFilter.LimitOrders),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+  };
+
+  beforeEach(() => {
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
+    // Also tears down the limit order nock, which shares the nock teardown.
+    clearAccountsTransactionsApiMocks();
+    clearLimitOrdersDataServiceMock();
+  });
+
+  it('shows only filled limit orders, newest first, and hides transaction rows', async () => {
+    const requests = serveLimitOrders([
+      OLDER_FILLED_ORDER,
+      MOCK_LIMIT_FILLED_ORDER,
+    ]);
+    const view = await renderLimitOrdersActivity();
+
+    await selectLimitOrdersFilter(view);
+
+    const newerRow = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.TITLE),
+    ).toHaveTextContent(
+      strings('bridge.limit.pair', {
+        source: MOCK_LIMIT_FILLED_ORDER.src.asset.symbol,
+        dest: MOCK_LIMIT_FILLED_ORDER.dest.asset.symbol,
+      }),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.PRIMARY),
+    ).toHaveTextContent('+220.00 USDC');
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.SECONDARY),
+    ).toHaveTextContent('-0.10 ETH');
+
+    const olderRow = view.getByTestId(
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    );
+    const rowIds = view
+      .getAllByTestId(/^activity-limit-order-/)
+      .map((row) => row.props.testID);
+    expect(rowIds).toEqual([
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    ]);
+    expect(olderRow).toBeOnTheScreen();
+
+    expect(
+      view.queryByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).not.toBeOnTheScreen();
+    expect(requests.at(-1)).toEqual(
+      expect.objectContaining({
+        walletAddress: ACTIVITY_CV_ACCOUNT.toLowerCase(),
+        states: [LimitOrderState.Filled],
+      }),
+    );
+  });
+
+  it('opens the limit order activity page when a filled order is pressed', async () => {
+    serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    setupGetLimitOrderApiMock({ order: MOCK_LIMIT_FILLED_ORDER });
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: BridgeLimitOrderActivityNavigator,
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+
+    const row = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    await act(async () => {
+      fireEvent.press(
+        within(row).getByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      );
+    });
+
+    expect(
+      await view.findByTestId(SwapsLimitOrderActivityPageSelectorsIDs.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Limit orders empty state, whose action opens swaps on the Limit tab', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(/^activity-limit-order-/)).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByText(strings('activity_view.empty_state.limit_orders.action')),
+    );
+
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0x1', symbol: 'ETH' },
+      },
+    });
+  });
+
+  it('opens limit swaps with the selected network default pair from the empty state', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:1', 'eip155:59144'],
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
+    );
+
+    fireEvent.press(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.action'),
+      ),
+    );
+
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0xe708' },
+      },
+    });
+  });
+
+  it('offers only limit order networks in the network filter', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+    await selectLimitOrdersFilter(view);
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+
+    expect(
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(networkOptionTestId('eip155:1')),
+    ).not.toBeOnTheScreen();
+    expect(view.getByText(strings('trending.all_networks'))).toBeOnTheScreen();
+  });
+
+  it('resets a network limit orders do not support to All networks', async () => {
+    const requests = serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    await waitFor(() => {
+      expect(
+        view.queryByText(strings('activity_view.filter_all_networks')),
+      ).toBeNull();
+    });
+
+    await selectLimitOrdersFilter(view);
+
+    await waitFor(() => {
+      expect(
+        view.getAllByText(strings('activity_view.filter_all_networks')).length,
+      ).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(requests.length).toBeGreaterThan(0);
+    });
+    expect(requests.every((params) => params.chainId === undefined)).toBe(true);
+  });
+
+  it('does not request limit orders while offline', async () => {
+    netInfoMock.__setMockNetInfo({ isInternetReachable: false });
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity();
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
+  });
+
+  it('does not offer the Limit orders filter when limit orders are disabled', async () => {
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity({ enabled: false });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+
+    expect(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.BuySell)),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
+  });
+});
+
 describeForPlatforms('ActivityScreen — perps funds', () => {
   let perpsController: PerpsControllerOverviewStubs;
 
@@ -1888,7 +2254,6 @@ describeForPlatforms('ActivityScreen — Monad bridge status', () => {
   };
 
   // One tree: pending list → live controller update → Bridged → press → Details
-  // (requires both tmcuActivityRedesignEnabled + tmcuTransactionsRedesignEnabled).
   it('shows Bridging then Bridged after dest completes, not Swap, with Amount Fee Total via details nav', async () => {
     setupAccountsTransactionsApiMock([]);
 
@@ -1929,4 +2294,55 @@ describeForPlatforms('ActivityScreen — Monad bridge status', () => {
 
     await assertDetailsAmountFeeTotal(screen);
   });
+});
+
+describe('ActivityScreen — glass header', () => {
+  const renderWithGlassHeaders = (enabled: boolean) =>
+    renderActivityScreenView({
+      state: initialStateActivity()
+        .withRemoteFeatureFlags({
+          glassHeaders: { enabled, minimumVersion: '0.0.0' },
+        })
+        .build(),
+    });
+
+  itForPlatforms(
+    'pads the list and its refresh spinner below the floating header',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(true);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+      const { paddingTop } = list.props.contentContainerStyle;
+
+      expect(paddingTop).toBeGreaterThan(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(
+        paddingTop,
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the list at the top edge when glass headers are off',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(false);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentContainerStyle.paddingTop).toBe(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(0);
+    },
+  );
+
+  itForPlatforms(
+    'opens the type filter sheet from a glass filter chip',
+    async () => {
+      const { getByTestId, findByTestId } = renderWithGlassHeaders(true);
+
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
+      ).toBeOnTheScreen();
+    },
+  );
 });

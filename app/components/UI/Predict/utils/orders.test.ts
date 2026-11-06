@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { Side, type OrderPreview } from '../types';
 import {
   buildPredictFeeBreakdownAmounts,
@@ -204,7 +203,6 @@ describe('orders utils', () => {
         preview: {
           ...preview,
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           originalFees: {
@@ -242,7 +240,6 @@ describe('orders utils', () => {
         preview: {
           ...preview,
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           originalFees: {
@@ -284,7 +281,6 @@ describe('orders utils', () => {
           preview: {
             ...preview,
             feePolicy: {
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             },
           },
@@ -329,7 +325,6 @@ describe('orders utils', () => {
           ...preview,
           side: Side.SELL,
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           originalFees: {
@@ -367,7 +362,6 @@ describe('orders utils', () => {
         getPredictBuyAllInCost({
           ...preview,
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           fees: {
@@ -398,7 +392,6 @@ describe('orders utils', () => {
           ...preview,
           side: Side.SELL,
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           fees: {

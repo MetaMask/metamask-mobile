@@ -31,6 +31,8 @@ import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
@@ -47,9 +49,10 @@ const MoneyMoreSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
-    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
-  });
+  const { trackBottomSheetViewed, trackSurfaceClicked, trackButtonClicked } =
+    useMoneyAnalytics({
+      bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+    });
   const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
@@ -105,6 +108,17 @@ const MoneyMoreSheet = () => {
   ]);
 
   const handleMfaToggle = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: isMfaOn
+        ? MONEY_BUTTON_INTENTS.DISABLE_MFA
+        : MONEY_BUTTON_INTENTS.ENABLE_MFA,
+      label_key: 'money.mfa.more_sheet_title',
+      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_MFA_TOGGLE,
+      ...(isMfaOn && {
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_TURN_OFF_SHEET,
+      }),
+    });
     sheetRef.current?.onCloseBottomSheet(() => {
       if (isMfaOn) {
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -114,7 +128,7 @@ const MoneyMoreSheet = () => {
         void turnOnMfa();
       }
     });
-  }, [isMfaOn, navigation, turnOnMfa]);
+  }, [isMfaOn, navigation, trackButtonClicked, turnOnMfa]);
 
   const options: MenuOption[] = [
     {

@@ -15,8 +15,9 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   Box,
-  HeaderStandard,
   IconName,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import {
   TabsBar,
@@ -39,6 +40,9 @@ import {
   setBridgeViewMode,
   setLimitOrderCostTolerance,
   setLimitOrderExpirationMinutes,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -59,8 +63,13 @@ import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
 import { OrdersTabKey } from '../../components/OrdersTabs';
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     selectedTab,
     renderedTab,
@@ -96,6 +105,11 @@ const BridgeView = () => {
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
     route.params?.initialLimitOrderPriceTolerance;
+  const initialRecurringSchedule = route.params?.initialRecurringSchedule;
+
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location =
+    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
@@ -165,6 +179,17 @@ const BridgeView = () => {
     navigation,
   ]);
 
+  useLayoutEffect(() => {
+    if (!initialRecurringSchedule) {
+      return;
+    }
+
+    dispatch(setRecurringEveryUnit(initialRecurringSchedule.everyUnit));
+    dispatch(setRecurringEveryValue(initialRecurringSchedule.everyValue));
+    dispatch(setRecurringRepeatCount(initialRecurringSchedule.repeatCount));
+    navigation.setParams({ initialRecurringSchedule: undefined });
+  }, [dispatch, initialRecurringSchedule, navigation]);
+
   const quoteParams = useMemo(
     (): QuoteParams => ({
       srcToken: sourceToken,
@@ -188,6 +213,8 @@ const BridgeView = () => {
   useEffect(() => {
     setQuoteParams(quoteParams);
   }, [quoteParams, setQuoteParams]);
+
+  useTrackSwapPageViewed(location);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
@@ -244,6 +271,16 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+        endAccessory: (
+          <Tag
+            severity={TagSeverity.Info}
+            startIconName={IconName.Sparkle}
+            twClassName="top-0.5"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
+          >
+            {strings('bridge.tabs.new_badge')}
+          </Tag>
+        ),
       });
     }
 
@@ -355,7 +392,9 @@ const BridgeView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleBack}
         backButtonProps={{
@@ -375,10 +414,14 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <BridgeMarketView location={location} />
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView location={location} />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <BridgeRecurringBuyView location={location} />
           ) : null}
         </Box>
       </GestureDetector>

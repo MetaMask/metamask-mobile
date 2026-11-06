@@ -32,6 +32,7 @@ import {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -46,7 +47,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   FontWeight,
   Text,
   TextColor,
@@ -77,8 +77,11 @@ import {
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsSocialLoginBasicFunctionalityLocked,
 } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const Settings: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
   const {
     styles,
@@ -367,7 +370,9 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID="header"
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
@@ -444,6 +449,9 @@ const Settings: React.FC = () => {
             dataCollectionRef={dataCollectionSectionRef}
           />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          <View style={styles.setting}>
+            <SupportConsentPreferenceSection />
+          </View>
           <DeleteWalletData />
           <TopTradersSection />
           {renderHint()}

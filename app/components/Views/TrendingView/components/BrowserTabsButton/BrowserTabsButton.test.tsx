@@ -49,7 +49,7 @@ describe('BrowserTabsButton', () => {
 
       expect(
         getByTestId(TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS),
-      ).toHaveStyle({ height: 40 });
+      ).toHaveStyle({ height: 48 });
       expect(getByText('2')).toBeOnTheScreen();
 
       fireEvent.press(getByTestId('tabs'));

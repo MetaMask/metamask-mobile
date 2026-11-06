@@ -22,6 +22,11 @@ jest.mock('./useImmersveResumeOnboarding', () => ({
   useImmersveResumeOnboarding: () => mockResumeImmersveOnboarding,
 }));
 
+const mockHandoffMfa = jest.fn();
+jest.mock('./useImmersveMfaHandoff', () => ({
+  useImmersveMfaHandoff: () => mockHandoffMfa,
+}));
+
 const mockResolveSignIn = jest.fn();
 const mockVerifyAccountForSignIn = jest.fn();
 const mockAuthenticateWithWallet = jest.fn();
@@ -119,6 +124,7 @@ describe('useCardSignIn', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHandoffMfa.mockReset();
     mockSelectedSignInAddress = SELECTED;
     mockResolveSignIn.mockResolvedValue({
       kind: 'email',
@@ -194,6 +200,10 @@ describe('useCardSignIn', () => {
       country: 'GB',
       autoSignup: false,
     });
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({ done: true }),
+      expect.objectContaining({ country: 'GB', address: SELECTED }),
+    );
     expect(mockResumeImmersveOnboarding).toHaveBeenCalledWith(
       expect.objectContaining({
         alreadyAuthenticated: true,
@@ -201,6 +211,98 @@ describe('useCardSignIn', () => {
         country: 'GB',
       }),
     );
+  });
+
+  it('hands off to MFA and skips resume when a method must be chosen', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_select',
+        options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+      },
+    });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await act(async () => {
+      await result.current.signInWithWallet({
+        option: walletOption,
+        address: SELECTED,
+        country: 'GB',
+      });
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_select' }),
+      }),
+      expect.objectContaining({
+        country: 'GB',
+        address: SELECTED,
+      }),
+    );
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('hands off to MFA when sign-in returns a code step', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'email',
+        maskedDestination: 'j***@example.com',
+        expiresAt: null,
+      },
+    });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await act(async () => {
+      await result.current.signInWithWallet({
+        option: walletOption,
+        address: SELECTED,
+        country: 'GB',
+      });
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_code' }),
+      }),
+      expect.objectContaining({ country: 'GB', address: SELECTED }),
+    );
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('does not resume when the MFA handoff rejects an unfinished login', async () => {
+    mockHandoffMfa.mockImplementation(() => {
+      throw new Error('Unexpected login step');
+    });
+    mockAuthenticateWithWallet.mockResolvedValue({ done: false });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await expect(
+      act(async () => {
+        await result.current.signInWithWallet({
+          option: walletOption,
+          address: SELECTED,
+          country: 'GB',
+        });
+      }),
+    ).rejects.toThrow('Unexpected login step');
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
   });
 
   it('retry re-runs resolveSignIn', async () => {

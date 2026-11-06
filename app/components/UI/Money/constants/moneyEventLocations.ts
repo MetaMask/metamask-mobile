@@ -34,6 +34,10 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
   MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
   MONEY_DEEPLINK_MODAL = 'money_deeplink_modal',
+  MONEY_MFA_PROMPT_SHEET = 'money_mfa_prompt_sheet',
+  MONEY_MFA_ENABLED_SHEET = 'money_mfa_enabled_sheet',
+  MONEY_MFA_SETTING_UP_SHEET = 'money_mfa_setting_up_sheet',
+  MONEY_MFA_TURN_OFF_SHEET = 'money_mfa_turn_off_sheet',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
@@ -62,6 +66,8 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_GET_STARTED_CARD = 'money_vba_get_started_card',
   /** ACCOUNT_IS_READY VBA identity-status card on Money Home (Figma node 2158-5306). */
   MONEY_VBA_ACCOUNT_READY_CARD = 'money_vba_account_ready_card',
+  /** IDENTITY_VERIFIED VBA card on Money Home: KYC approved, account not started (TRAM-4429). */
+  MONEY_VBA_IDENTITY_VERIFIED_CARD = 'money_vba_identity_verified_card',
   /** KYC_PENDING VBA identity-status card on Money Home (Figma node 2254-13372). */
   MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
   /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
@@ -112,6 +118,13 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
   MONEY_MORE_SHEET_WHAT_YOU_GET = 'money_more_sheet_what_you_get',
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
+  MONEY_MORE_SHEET_MFA_TOGGLE = 'money_more_sheet_mfa_toggle',
+
+  // — 2-step verification —
+  MONEY_MFA_PASSKEY_INTRO = 'money_mfa_passkey_intro',
+  MONEY_MFA_SETUP_CARD = 'money_mfa_setup_card',
+  MONEY_MFA_STATUS_BANNER = 'money_mfa_status_banner',
+  MONEY_MFA_HEADER_BADGE = 'money_mfa_header_badge',
 
   // — Miscellaneous —
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
@@ -134,10 +147,12 @@ export enum COMPONENT_NAMES {
   FAQ_ITEM = 'money_faq_item',
 
   // — EarnSection —
-  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
   EXPLORE_EARN_SECTION = 'explore_earn_section',
   EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
 
   // — EarnSectionListView —
   MONEY_ACCOUNT_ROW = 'money_account_row',
+
+  // - Homepage Balance Breakdown -
+  MONEY_ROW_BALANCE_BREAKDOWN = 'money_row_balance_breakdown',
 }

@@ -1,5 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import {
+  getFocusedRouteNameFromRoute,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
@@ -27,12 +33,16 @@ import {
   MoneyMfaSettingUpSheet,
   MoneyMfaTurnOffSheet,
 } from '../components/MoneyMfa';
+import MoneyDeeplinkModal from '../components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type {
   MoneyConfirmationsNavigationParamList,
   MoneyModalsNavigationParamList,
   MoneyScreensStackParamList,
 } from '../types/navigation';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+import { selectMoneyEnableMoneyAccountFlag } from '../selectors/featureFlags';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 const TabStack = createNativeStackNavigator<MoneyScreensStackParamList>();
 const ConfirmationStack =
@@ -103,9 +113,24 @@ const MoneyConfirmationScreenStack = () => {
 
 // Money modals are reachable without the Money tab (e.g. Card Home's "Add
 // money" action), so this stack must also kick off the account upgrade —
-// opening any Money sheet is the user's signal of intent to use the feature.
+// opening a Money sheet is the user's signal of intent to use the feature,
+// except the 2-step verification sheets, which open on their own.
+const MFA_SHEETS: ReadonlySet<string> = new Set([
+  Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
+  Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+  Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+  Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
+]);
+
 const MoneyModalStack = () => {
-  useUpgradeMoneyAccountOnFocus();
+  const route = useRoute();
+  const focusedSheet =
+    getFocusedRouteNameFromRoute(route) ??
+    (route.params as { screen?: string } | undefined)?.screen;
+
+  useUpgradeMoneyAccountOnFocus({
+    enabled: !focusedSheet || !MFA_SHEETS.has(focusedSheet),
+  });
 
   return (
     <ModalStack.Navigator
@@ -183,4 +208,34 @@ const MoneyModalStack = () => {
   );
 };
 
-export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };
+const MoneyModalGateway = () => {
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const handleDismiss = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  if (!isMoneyAccountEnabled) {
+    return (
+      <MoneyDeeplinkModal
+        content={{
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        }}
+        onDismiss={handleDismiss}
+      />
+    );
+  }
+
+  return <MoneyModalStack />;
+};
+
+export {
+  MoneyConfirmationScreenStack,
+  MoneyModalGateway,
+  MoneyModalStack,
+  MoneyTabScreenStack,
+};

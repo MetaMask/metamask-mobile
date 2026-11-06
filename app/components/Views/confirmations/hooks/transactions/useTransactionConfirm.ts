@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -11,7 +12,10 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
@@ -21,13 +25,21 @@ import {
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
+import {
+  isTransactionMarkedAsGasFeeSponsored,
+  shouldApplyGasFeeSponsorship,
+} from '../../utils/transaction';
+import { selectIsMoneyKeyringAddress } from '../../../../../selectors/keyringController';
+import type { RootState } from '../../../../../reducers';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { waitForMfaFlowSuccess } from '../../../../../util/identity/mfa/engine/activeFlow';
+import { MONEY_MPC_SIGN_OPERATION } from '../../../../../core/MpcMoneyKeyring/constants';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
@@ -69,13 +81,29 @@ export function useTransactionConfirm() {
     transactionMetadata?.txParams?.from ?? '',
   );
 
+  // Money keyrings implement message signing only, so a Money Account
+  // transaction can never be signed locally. Keyed on the signer (`from`), not
+  // the transaction type, so deposits, withdrawals and any other
+  // Money-account-sourced flow are covered.
+  const isSignerMoneyAccount = useSelector((state: RootState) =>
+    selectIsMoneyKeyringAddress(state, transactionMetadata?.txParams?.from),
+  );
+
   // Payer may differ from the signer (MM Pay funding account); a hardware
   // payer signs funding transactions on-device after approval, so keep the
   // confirmation waiting to drive the awaiting UI and surface errors.
   const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
+  // MPC signs only after 2-step verification, so the confirmation waits for it.
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMpcMoneyAccountTransaction =
+    isMpcMoneyAccount(transactionMetadata?.txParams?.from ?? '') ||
+    (payWithOption === PayWithOption.MoneyAccount &&
+      isMpcMoneyAccount(primaryMoneyAccount?.address ?? ''));
+
   const waitForResult =
     isPayerHardwareWallet ||
+    isMpcMoneyAccountTransaction ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -227,13 +255,29 @@ export function useTransactionConfirm() {
         transactionMeta: transactionMetadata,
         isGaslessSupported,
       });
-      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
+      // Money Account transactions are sponsored by design: the money account
+      // holds no native gas token and its keyring has no `signTransaction`.
+      // `useIsGaslessSupported` can disagree with the 7702 publish hook — it
+      // resolves asynchronously and reads the *paying* account's atomic-batch
+      // support, which for a deposit is the funding EOA rather than the money
+      // account. Clearing these flags on that disagreement falls back to local
+      // signing, which throws "keyring does not support signTransaction".
+      const isSponsoredMoneyAccountTransaction =
+        isSignerMoneyAccount &&
+        isTransactionMarkedAsGasFeeSponsored(transactionMetadata);
+
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessEligible || isSponsoredMoneyAccountTransaction;
 
       // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
       // account. When gasless isn't eligible, revert it or signing is skipped
-      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
+      // and an empty `'0x'` reaches `eth_sendRawTransaction`. Money Accounts
+      // are exempt: they cannot sign locally, so the flag must stay set for the
+      // 7702 relay to publish them.
       const isExternalSignStale =
-        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
+        Boolean(transactionMetadata.isExternalSign) &&
+        !isGaslessEligible &&
+        !isSignerMoneyAccount;
       if (isExternalSignStale) {
         updatedMetadata.isExternalSign = false;
       }
@@ -251,19 +295,30 @@ export function useTransactionConfirm() {
 
       const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
-      try {
-        await onRequestConfirm(
-          {
-            deleteAfterResult: true,
-            // Intentionally not hiding errors so we can log
-            handleErrors: false,
-            waitForResult: effectiveWaitForResult,
-          },
-          { txMeta: updatedMetadata },
-        );
-      } catch (error) {
-        log('Error confirming transaction', error);
-        options?.onError?.(error);
+      const confirmed = (async () => {
+        try {
+          await onRequestConfirm(
+            {
+              deleteAfterResult: true,
+              // Intentionally not hiding errors so we can log
+              handleErrors: false,
+              waitForResult: effectiveWaitForResult,
+            },
+            { txMeta: updatedMetadata },
+          );
+        } catch (error) {
+          log('Error confirming transaction', error);
+          options?.onError?.(error);
+        }
+      })();
+
+      if (isMpcMoneyAccountTransaction) {
+        // Leave once verification passes; the Money toasts report the rest.
+        const verified = waitForMfaFlowSuccess(MONEY_MPC_SIGN_OPERATION);
+        await Promise.race([confirmed, verified.promise]);
+        verified.stop();
+      } else {
+        await confirmed;
       }
 
       if (!options?.deferNavigation) {
@@ -286,6 +341,8 @@ export function useTransactionConfirm() {
       transactionMetadata,
       waitForResult,
       isSignerHardwareWallet,
+      isMpcMoneyAccountTransaction,
+      isSignerMoneyAccount,
     ],
   );
 

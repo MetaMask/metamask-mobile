@@ -8,6 +8,7 @@ import AssetOverviewContent, {
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from '../../../../component-library/components-temp/MainActionButton/MainActionButton.constants';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -61,10 +62,17 @@ jest.mock('../../MarketInsights', () => ({
   MarketInsightsEntryCard: ({
     onPress,
     testID,
+    isGlass,
   }: {
     onPress?: () => void;
     testID?: string;
-  }) => <MockPressable onPress={onPress} testID={testID} />,
+    isGlass?: boolean;
+  }) => (
+    <MockPressable
+      onPress={onPress}
+      testID={isGlass ? `${testID}-glass` : testID}
+    />
+  ),
   useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
   useMarketInsightsEntryTrace: () =>
     'token_details:entry_card:eip155:1/erc20:0x123',
@@ -84,6 +92,17 @@ jest.mock('../../MarketInsights', () => ({
     cache_state: cacheState,
   }),
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
+}));
+
+let mockIsTokenDetailsGlass = false;
+jest.mock('../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsTokenDetailsGlass,
+}));
+
+const mockEarnBalance = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock('../../Earn/components/EarnBalance', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockEarnBalance(props),
 }));
 
 jest.mock('../hooks/usePerpsActions', () => ({
@@ -567,6 +586,52 @@ describe('AssetOverviewContent', () => {
     });
   });
 
+  describe('brand refresh glass', () => {
+    const insightsProps: AssetOverviewContentProps = {
+      ...defaultProps,
+      token: { ...defaultToken, aggregators: ['uniswap', 'sushiswap'] },
+    };
+
+    beforeEach(() => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+    });
+
+    afterEach(() => {
+      mockIsTokenDetailsGlass = false;
+    });
+
+    it('keeps the action tiles, insights card and stake buttons plain by default', () => {
+      const { getByTestId, queryAllByTestId } = renderAssetOverviewContent(
+        <AssetOverviewContent {...insightsProps} />,
+        { state: createState(true) },
+      );
+
+      expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(mockEarnBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: false }),
+      );
+    });
+
+    it('puts the action tiles, insights card and stake buttons on glass when the flag is on', () => {
+      mockIsTokenDetailsGlass = true;
+
+      const { getAllByTestId, getByTestId } = renderAssetOverviewContent(
+        <AssetOverviewContent {...insightsProps} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).length,
+      ).toBeGreaterThan(0);
+      expect(getByTestId('market-insights-entry-card-glass')).toBeOnTheScreen();
+      expect(mockEarnBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: true }),
+      );
+    });
+  });
+
   describe('Perps / Market Insights layout ordering', () => {
     // Token with enough aggregators to pass isTokenTrustworthyForPerps (requires >= 2)
     const trustworthyToken: TokenI = {
@@ -759,7 +824,7 @@ describe('AssetOverviewContent', () => {
       fireEvent.press(
         getByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER.orderId,
+            MOCK_RECURRING_OPEN_ORDER.id,
           ),
         ),
       );

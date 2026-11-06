@@ -27,6 +27,7 @@ jest.mock('react-redux', () => ({
 const mockNavigate = jest.fn();
 const mockNavigateToClosePosition = jest.fn();
 const mockNavigateToAdjustMargin = jest.fn();
+const mockSharePosition = jest.fn();
 const mockScreenVsBottomSheetAbTest = { useBottomSheet: true };
 const mockCancelOrder = jest.fn();
 const mockEditOrder = jest.fn();
@@ -55,6 +56,10 @@ jest.mock('../../../hooks/usePerpsNavigation', () => ({
 
 jest.mock('../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
+}));
+
+jest.mock('../../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({ sharePosition: mockSharePosition }),
 }));
 
 jest.mock('../../../hooks/usePerpsTrading', () => ({
@@ -402,7 +407,7 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
-  it('navigates to share PnL with derived mark price', async () => {
+  it('shares the position with its derived mark price', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -419,10 +424,7 @@ describe('usePerpsProPositionsPanelActions', () => {
       actions?.handleSharePosition(position);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PNL_HERO_CARD, {
-      position,
-      marketPrice: '2900',
-    });
+    expect(mockSharePosition).toHaveBeenCalledWith(position, '2900');
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 

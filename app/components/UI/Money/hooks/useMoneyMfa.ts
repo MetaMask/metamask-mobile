@@ -6,11 +6,12 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { useSelector } from 'react-redux';
-import NavigationService from '../../../../core/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import { useMfa } from '../../../../util/identity/mfa';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
@@ -19,7 +20,12 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import {
+  selectMoneyEnableMfaFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../selectors/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
+import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
@@ -34,12 +40,11 @@ export type MoneyMfaStatus =
   | 'enabled'
   | 'off';
 
-const getReason = () => ({
+const getReason = (): MfaReason => ({
   operation: 'money.mfa.setup',
-  enrollDescription: strings('money.mfa.setup_operation_description'),
 });
 
-const getTurnOffReason = () => ({
+const getTurnOffReason = (): MfaReason => ({
   operation: 'money.mfa.turnOff',
   verifyDescription: strings('money.mfa.turn_off_verify_description'),
 });
@@ -52,20 +57,28 @@ let activeMigration: Promise<void> | undefined;
  * result goes through the app-wide navigator.
  */
 const migrate = (): Promise<void> => {
-  activeMigration ??= (async () => {
+  // A wallet reset stops the status being `migrating`, so a run left over
+  // from the previous wallet is not reused.
+  if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
+    return activeMigration;
+  }
+  const run: Promise<void> = (async () => {
     try {
       await moneyAccountMigration.start();
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
-    NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: true,
+      hasUnseenEnabledConfirmation: true,
     });
   })().finally(() => {
-    activeMigration = undefined;
+    if (activeMigration === run) {
+      activeMigration = undefined;
+    }
   });
-  return activeMigration;
+  activeMigration = run;
+  return run;
 };
 
 /**
@@ -77,11 +90,16 @@ const migrate = (): Promise<void> => {
  */
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
+  const isKitEnabled = useSelector(selectMfaUiKitEnabled);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
-  const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
-    useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
+  const {
+    isMoneyAccountMfaEnabled,
+    isMigrationBannerDismissed,
+    hasUnseenEnabledConfirmation,
+  } = useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
   const migrationStatus = useSyncExternalStore(
     moneyAccountMigration.subscribe,
     moneyAccountMigration.getStatus,
@@ -99,7 +117,13 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isMfaKitEnabled()) {
+  // Turning it on creates the MPC Money account, which needs the MPC keyring.
+  if (
+    !isFlagEnabled ||
+    !isKitEnabled ||
+    !isMoneyAccountEnabled ||
+    !isMpcMoneyKeyringBuildEnabled()
+  ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
@@ -168,18 +192,22 @@ export const useMoneyMfa = () => {
 
   const turnOff = useCallback(async () => {
     try {
+      // The full list, so an empty or stale credential list can't skip the check.
       await verifyOrEnroll({
-        methods: activeMethods,
-        verifyWith: activeMethods,
+        methods: MONEY_MFA_METHODS,
+        verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
         reason: getTurnOffReason(),
       });
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: false,
+      hasUnseenEnabledConfirmation: false,
+    });
     showToast('money.mfa.toast_off');
-  }, [activeMethods, verifyOrEnroll, showToast]);
+  }, [verifyOrEnroll, showToast]);
 
   const retry = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
@@ -189,6 +217,16 @@ export const useMoneyMfa = () => {
   const dismissSettingUpBanner = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
+
+  // Money home calls this when it's on screen, so the confirmation never shows on another tab.
+  const showEnabledConfirmation = useCallback(() => {
+    if (!moneyMfaStore.getState().hasUnseenEnabledConfirmation) {
+      return false;
+    }
+    moneyMfaStore.setState({ hasUnseenEnabledConfirmation: false });
+    showToast('money.mfa.toast_on');
+    return true;
+  }, [showToast]);
 
   const refreshCredentials = useCallback(() => {
     if (status === 'unavailable') {
@@ -208,5 +246,7 @@ export const useMoneyMfa = () => {
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,
     refreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
   };
 };

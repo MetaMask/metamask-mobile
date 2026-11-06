@@ -1,5 +1,5 @@
 import { getCurrencySymbol } from '../../../../util/number/bigint';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 
 /**
  * Formatters for the Token Details V1 stat bar.
@@ -12,11 +12,6 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
  * Compact magnitudes are computed by hand rather than with
  * `Intl.NumberFormat`'s `notation: 'compact'`, which Hermes does not support.
  */
-
-/** Below this, a price needs more than two decimals to say anything. */
-const SUB_UNIT_PRICE_THRESHOLD = 1;
-const SUB_UNIT_PRICE_DECIMALS = 6;
-const STANDARD_PRICE_DECIMALS = 2;
 
 const isUsableNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -90,31 +85,26 @@ export const formatCompactFiat = (
 };
 
 /**
- * A single price, with enough decimals to stay meaningful for sub-unit tokens.
+ * A single price, formatted exactly like the Token Details price header.
  *
- * @example formatPrice(0.04312, 'USD', 'en-US') // '$0.043120'
+ * Both surfaces run through `formatPriceWithSubscriptNotation` on purpose: the
+ * header and the 24h high/low must not disagree on how many decimals a
+ * sub-unit price gets (ASSETS-4239). That means subscript notation for tokens
+ * with four or more leading zeros, up to four decimals below 1, and two at or
+ * above it.
+ *
+ * @example formatPrice(0.04312, 'USD') // '$0.0431'
+ * @example formatPrice(0.00000614, 'USD') // '$0.0₅614'
  */
 export const formatPrice = (
   value: number | null | undefined,
   currencyCode: string,
-  locale: string,
 ): string | null => {
   if (!isUsableNumber(value)) {
     return null;
   }
 
-  const decimals =
-    Math.abs(value) < SUB_UNIT_PRICE_THRESHOLD && value !== 0
-      ? SUB_UNIT_PRICE_DECIMALS
-      : STANDARD_PRICE_DECIMALS;
-
-  return getIntlNumberFormatter(locale, {
-    style: 'currency',
-    currency: currencyCode,
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
+  return formatPriceWithSubscriptNotation(value, currencyCode);
 };
 
 /**
@@ -125,10 +115,9 @@ export const formatPriceRange = (
   high: number | null | undefined,
   low: number | null | undefined,
   currencyCode: string,
-  locale: string,
 ): string | null => {
-  const formattedHigh = formatPrice(high, currencyCode, locale);
-  const formattedLow = formatPrice(low, currencyCode, locale);
+  const formattedHigh = formatPrice(high, currencyCode);
+  const formattedLow = formatPrice(low, currencyCode);
 
   if (formattedHigh == null || formattedLow == null) {
     return null;

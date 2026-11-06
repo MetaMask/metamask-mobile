@@ -12,22 +12,15 @@ export const PredictEventScreenTestIds = {
   GAME_HEADER: 'predict-next-event-game-header',
   GAME_STATUS: 'predict-next-event-game-status',
   GAME_METADATA: 'predict-next-event-game-metadata',
-  MARKETS: 'predict-next-event-markets',
-  POSITIONS_SECTION: 'predict-next-event-positions-section',
-  positionRow: (marketId: string, side: string) =>
-    `predict-next-event-position-${marketId}-${side}`,
-  positionCashOut: (marketId: string, side: string) =>
-    `predict-next-event-position-cash-out-${marketId}-${side}`,
-  market: (marketId: string) => `predict-next-event-market-${marketId}`,
-  PREDICT_SECTION: 'predict-next-event-predict-section',
+  LIVE_DOT: 'predict-next-event-game-live-dot',
   EVENT_RULES_BUTTON: 'predict-next-event-rules-button',
   team: (selection: 'away' | 'home') => `predict-next-event-team-${selection}`,
   teamLogo: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo`,
   teamLogoFallback: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo-fallback`,
-  teamName: (selection: 'away' | 'home') =>
-    `predict-next-event-team-${selection}-name`,
+  teamAbbreviation: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-abbreviation`,
   teamScore: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-score`,
 } as const;

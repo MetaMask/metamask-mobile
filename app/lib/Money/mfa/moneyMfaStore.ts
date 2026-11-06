@@ -6,6 +6,10 @@ export interface MoneyMfaStoreState {
   isMoneyAccountMfaEnabled: boolean;
   /** The user closed the setting-up banner of the current migration. */
   isMigrationBannerDismissed: boolean;
+  /** The user closed the wallet home prompt for good. */
+  isHomePromptDismissed: boolean;
+  /** Setup finished and Money home hasn't shown its confirmation yet. */
+  hasUnseenEnabledConfirmation: boolean;
 }
 
 export const MONEY_MFA_STORAGE_KEY = '@MetaMask:moneyMfa';
@@ -13,6 +17,8 @@ export const MONEY_MFA_STORAGE_KEY = '@MetaMask:moneyMfa';
 const initialState: MoneyMfaStoreState = {
   isMoneyAccountMfaEnabled: false,
   isMigrationBannerDismissed: false,
+  isHomePromptDismissed: false,
+  hasUnseenEnabledConfirmation: false,
 };
 
 const readPersisted = (): Partial<MoneyMfaStoreState> => {
@@ -21,11 +27,17 @@ const readPersisted = (): Partial<MoneyMfaStoreState> => {
     if (!raw) {
       return {};
     }
-    const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
-      JSON.parse(raw);
+    const {
+      isMoneyAccountMfaEnabled,
+      isMigrationBannerDismissed,
+      isHomePromptDismissed,
+      hasUnseenEnabledConfirmation,
+    } = JSON.parse(raw);
     return {
       isMoneyAccountMfaEnabled: Boolean(isMoneyAccountMfaEnabled),
       isMigrationBannerDismissed: Boolean(isMigrationBannerDismissed),
+      isHomePromptDismissed: Boolean(isHomePromptDismissed),
+      hasUnseenEnabledConfirmation: Boolean(hasUnseenEnabledConfirmation),
     };
   } catch {
     return {};

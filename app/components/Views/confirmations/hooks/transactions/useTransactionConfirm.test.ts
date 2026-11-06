@@ -26,7 +26,10 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   ConfirmationLaunchSource,
@@ -89,20 +92,56 @@ const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const isMpcMoneyAccountMock = jest.mocked(isMpcMoneyAccount);
+const mockWaitForMfaFlowSuccess = jest.fn();
+const MPC_MONEY_ADDRESS = '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6';
+jest.mock('../../../../../selectors/moneyAccountController', () => ({
+  ...jest.requireActual('../../../../../selectors/moneyAccountController'),
+  selectPrimaryMoneyAccount: () => ({
+    address: '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6',
+  }),
+}));
+jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
+  waitForMfaFlowSuccess: (...args: unknown[]) =>
+    mockWaitForMfaFlowSuccess(...args),
+}));
 const useHandleHwSendMock = jest.mocked(useHandleHwSend);
 const onFiatConfirmMock = jest.fn();
 const useParamsMock = jest.mocked(useParams);
 
-function renderHook() {
+function renderHook(stateOverrides?: Record<string, unknown>) {
   return renderHookWithProvider(() => useTransactionConfirm(), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      stateOverrides ?? {},
     ),
   });
 }
+
+const MONEY_ACCOUNT_ADDRESS = '0xAbC0000000000000000000000000000000000001';
+
+/**
+ * State in which `MONEY_ACCOUNT_ADDRESS` is held by a Money keyring, which
+ * implements message signing only and has no `signTransaction`.
+ */
+const moneyKeyringState = {
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        keyrings: [
+          {
+            type: 'Money Keyring',
+            accounts: [MONEY_ACCOUNT_ADDRESS],
+            metadata: { id: 'money-keyring-id', name: '' },
+          },
+        ],
+      },
+    },
+  },
+};
 
 // ---------- Hardware-wallet send helpers (shared by the HW-send branch tests) ----------
 
@@ -264,6 +303,78 @@ describe('useTransactionConfirm', () => {
       }),
       expect.anything(),
     );
+  });
+
+  describe('Money MPC account signer', () => {
+    beforeEach(() => {
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+      isMpcMoneyAccountMock.mockReturnValue(true);
+    });
+
+    it('navigates once signing verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: Promise.resolve(),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ waitForResult: true }),
+        expect.anything(),
+      );
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('waits for verification when the Money account pays', async () => {
+      isMpcMoneyAccountMock.mockImplementation(
+        (address: string) => address === MPC_MONEY_ADDRESS,
+      );
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('stays until verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   it('does not wait for result if smart transaction', async () => {
@@ -1089,6 +1200,124 @@ describe('useTransactionConfirm', () => {
         txMeta: expect.objectContaining({
           isExternalSign: true,
           isGasFeeSponsored: true,
+        }),
+      });
+    });
+  });
+
+  describe('money account signer', () => {
+    // Regression: Money keyrings implement message signing only. Clearing
+    // `isExternalSign` for a money-account sender makes TransactionController
+    // sign locally, which throws "The keyring for the current address does not
+    // support the method signTransaction" and fails the deposit.
+    const setupMoneyAccountTransaction = (
+      overrides: Partial<TransactionMeta> = {},
+    ) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        isGasFeeSponsored: true,
+        isExternalSign: true,
+        txParams: { from: MONEY_ACCOUNT_ADDRESS },
+        ...overrides,
+      } as unknown as TransactionMeta);
+    };
+
+    it('keeps isExternalSign and sponsorship for a money account deposit when gasless is unsupported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      setupMoneyAccountTransaction({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      const { result } = renderHook(moneyKeyringState);
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: true,
+          isGasFeeSponsored: true,
+        }),
+      });
+    });
+
+    it('keeps isExternalSign for a money account withdraw when gasless is unsupported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      setupMoneyAccountTransaction({
+        type: TransactionType.moneyAccountWithdraw,
+      });
+
+      const { result } = renderHook(moneyKeyringState);
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: true,
+          isGasFeeSponsored: true,
+        }),
+      });
+    });
+
+    it('does not mark a money account transaction as sponsored when the controller did not sponsor it', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      setupMoneyAccountTransaction({
+        isGasFeeSponsored: false,
+        isExternalSign: false,
+      });
+
+      const { result } = renderHook(moneyKeyringState);
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({ isGasFeeSponsored: false }),
+      });
+    });
+
+    it('still reverts isExternalSign for a non-money sender when gasless is unsupported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        isGasFeeSponsored: true,
+        isExternalSign: true,
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook(moneyKeyringState);
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isExternalSign: false,
+          isGasFeeSponsored: false,
         }),
       });
     });

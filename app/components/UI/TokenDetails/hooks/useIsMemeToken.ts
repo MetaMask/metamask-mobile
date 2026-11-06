@@ -1,9 +1,7 @@
+import { useSelector } from 'react-redux';
 import type { CaipAssetType } from '@metamask/utils';
-// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-import {
-  DEV_TOKEN_API_BASE_URL,
-  useTokenAssetDetails,
-} from '../queries/tokenAssetQuery';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 
 export interface UseIsMemeTokenOptions {
   assetId: CaipAssetType | null;
@@ -27,10 +25,12 @@ export const useIsMemeToken = ({
   assetId,
   enabled = true,
 }: UseIsMemeTokenOptions): UseIsMemeTokenResult => {
-  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  // The same host the page itself reads. Detection has to ask whoever returns
+  // `launchpadData`, or no token is ever recognised as a meme token.
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
   const { asset, isLoading } = useTokenAssetDetails(
     enabled ? assetId : null,
-    DEV_TOKEN_API_BASE_URL,
+    tokenApiBaseUrl,
   );
 
   return {

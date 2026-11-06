@@ -5,9 +5,12 @@ import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { mockTheme } from '../../../../util/theme';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
+import { selectMoneyEnableMoneyAccountFlag } from '../selectors/featureFlags';
 import {
   MoneyConfirmationScreenStack,
+  MoneyModalGateway,
   MoneyModalStack,
   MoneyTabScreenStack,
 } from './index';
@@ -19,6 +22,17 @@ jest.mock('../hooks/useUpgradeMoneyAccountOnFocus', () => ({
 const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
   useUpgradeMoneyAccountOnFocus,
 );
+const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
+);
+
+jest.mock('../selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
+}));
+
+let mockRoute: { name: string; params?: { screen?: string } } = {
+  name: Routes.MONEY.MODALS.ROOT,
+};
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -36,6 +50,7 @@ jest.mock(
 );
 
 const EXPECTED_CARD_BACKGROUND = mockTheme.colors.background.default;
+const mockGoBack = jest.fn();
 
 const themeWithCustomBackground = {
   ...mockTheme,
@@ -92,6 +107,14 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+  useRoute: () => mockRoute,
+}));
+
 jest.mock('../Views/MoneyHomeView', () => () => (
   <MockView testID="mock-money-home-view" />
 ));
@@ -134,6 +157,27 @@ jest.mock('../../../Views/confirmations/components/confirm', () => ({
 jest.mock('../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet', () => () => (
   <MockView testID="mock-money-geo-block-sheet" />
 ));
+jest.mock('../components/MoneyDeeplinkModal/MoneyDeeplinkModal', () => ({
+  __esModule: true,
+  default: ({
+    content,
+    onDismiss,
+  }: {
+    content?: {
+      title?: string;
+      description?: string;
+    };
+    onDismiss?: () => void;
+  }) => (
+    <MockView testID="mock-money-deeplink-modal">
+      <MockText>{content?.title}</MockText>
+      <MockText>{content?.description}</MockText>
+      <MockText testID="mock-money-deeplink-modal-close" onPress={onDismiss}>
+        close
+      </MockText>
+    </MockView>
+  ),
+}));
 
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
@@ -253,6 +297,37 @@ describe('MoneyConfirmationScreenStack', () => {
 describe('MoneyModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute = { name: Routes.MONEY.MODALS.ROOT };
+  });
+
+  it('enables the account upgrade when a Money sheet opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: true,
+    });
+  });
+
+  it('skips the account upgrade when the 2-step verification prompt opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('calls useUpgradeMoneyAccountOnFocus', () => {
@@ -350,5 +425,49 @@ describe('MoneyModalStack', () => {
     });
 
     expect(getByTestId(`money-screen-${name}`)).toBeOnTheScreen();
+  });
+});
+
+describe('MoneyModalGateway', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the disabled notice without mounting the modal stack when the feature is disabled', () => {
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <MoneyModalGateway />,
+      { theme: themeWithCustomBackground },
+    );
+
+    expect(getByTestId('mock-money-deeplink-modal')).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.deeplink_modal.money_account_disabled.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('money.deeplink_modal.money_account_disabled.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('money-stack-navigator')).not.toBeOnTheScreen();
+    expect(mockUseUpgradeMoneyAccountOnFocus).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId('mock-money-deeplink-modal-close'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('mounts the modal stack when the feature is enabled', () => {
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyModalGateway />,
+      { theme: themeWithCustomBackground },
+    );
+
+    expect(getByTestId('money-stack-navigator')).toBeOnTheScreen();
+    expect(queryByTestId('mock-money-deeplink-modal')).not.toBeOnTheScreen();
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });

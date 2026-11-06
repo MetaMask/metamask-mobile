@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import type { Caip19AssetId } from '@metamask/assets-controller';
+import { BigNumber } from 'ethers';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -27,13 +28,49 @@ import { ToastSeverity } from '@metamask/design-system-react-native';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { InsufficientBalanceBannerSelectorsIDs } from './InsufficientBalanceBanner/testIds';
 import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
+import { FeatureId } from '@metamask/bridge-controller';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { OrderType } from '../../types/advancedOrders';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    order_type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('order_type');
+  expect(added).not.toHaveProperty('type');
+  expect(added).not.toHaveProperty('orderType');
+};
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
 const mockSetLimitOrdersTab = jest.fn();
+const mockSetSelectedTab = jest.fn();
+const mockSetRenderedTab = jest.fn();
+let mockLatestSourceBalance:
+  | { displayBalance: string; atomicBalance: BigNumber }
+  | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -63,7 +100,12 @@ jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
 }));
 
 jest.mock('../../hooks/useBridgeSession', () => ({
-  useBridgeSession: () => ({ setLimitOrdersTab: mockSetLimitOrdersTab }),
+  useBridgeSession: () => ({
+    setLimitOrdersTab: mockSetLimitOrdersTab,
+    setSelectedTab: mockSetSelectedTab,
+    setRenderedTab: mockSetRenderedTab,
+    latestSourceBalance: mockLatestSourceBalance,
+  }),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -240,6 +282,10 @@ function renderScreen(state?: DeepPartial<RootState>) {
 describe('LimitOrderConfirmationModalScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLatestSourceBalance = {
+      displayBalance: '1',
+      atomicBalance: BigNumber.from('1000000000000000000'),
+    };
     mockUseParams.mockReturnValue(mockParams);
     mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
     mockUseAutoUpgradeEIP7702Account.mockReturnValue({
@@ -298,6 +344,82 @@ describe('LimitOrderConfirmationModalScreen', () => {
       ),
     ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+  });
+
+  describe('insufficient balance warning', () => {
+    const setLowBalance = () => {
+      mockLatestSourceBalance = {
+        displayBalance: '0.00013',
+        atomicBalance: BigNumber.from('130000000000000'),
+      };
+    };
+
+    it('displays the warning without blocking confirmation when the balance is below the paying amount', () => {
+      setLowBalance();
+
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      expect(
+        getByTestId(InsufficientBalanceBannerSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBeFalsy();
+    });
+
+    it('does not display the warning when the balance covers the paying amount', () => {
+      mockLatestSourceBalance = {
+        displayBalance: '0.1',
+        atomicBalance: BigNumber.from(mockOrder.sourceAmount),
+      };
+
+      const { queryByTestId } = renderScreen(createBridgeTestState({}));
+
+      expect(
+        queryByTestId(InsufficientBalanceBannerSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('does not display the warning while the balance is loading', () => {
+      mockLatestSourceBalance = undefined;
+
+      const { queryByTestId } = renderScreen(createBridgeTestState({}));
+
+      expect(
+        queryByTestId(InsufficientBalanceBannerSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('opens a Market swap into the source token when the link is pressed', () => {
+      setLowBalance();
+      const { getByTestId, store } = renderScreen(
+        createBridgeTestState({
+          bridgeReducerOverrides: {
+            sourceToken: mockSourceToken,
+            destToken: mockDestToken,
+            sourceAmount: '0.1',
+            destAmount: '341.22',
+          },
+        }),
+      );
+
+      fireEvent.press(
+        getByTestId(
+          InsufficientBalanceBannerSelectorsIDs.SWAP_INTO_SOURCE_TOKEN_LINK,
+        ),
+      );
+
+      const bridgeState = store.getState().bridge;
+      expect(bridgeState.sourceToken).toEqual(mockDestToken);
+      expect(bridgeState.destToken).toEqual(mockSourceToken);
+      expect(bridgeState.sourceAmount).toBeUndefined();
+      expect(bridgeState.destAmount).toBeUndefined();
+      expect(mockSetSelectedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
+      expect(mockSetRenderedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+    });
   });
 
   describe('USD price notice', () => {
@@ -433,7 +555,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
       }),
     );
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
+  });
+
+  it('displays the remote default cost tolerance when none is set in bridge state', () => {
+    const { getByText } = renderScreen(
+      merge(
+        {},
+        createBridgeTestState({
+          bridgeReducerOverrides: { limitOrderCostTolerance: undefined },
+        }),
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsLimitOrder: { defaultPriceTolerance: 1.5 },
+                },
+              },
+            },
+          },
+        },
+      ),
+    );
+
+    expect(getByText('1.5%')).toBeOnTheScreen();
   });
 
   // The limit order screen writes the live comparison to
@@ -905,7 +1051,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
     expect(mockUseFetchLimitOrdersDelegations).toHaveBeenCalledWith({
       ...mockOrder,
-      costTolerance: '2',
+      costTolerance: '3',
     });
   });
 
@@ -998,5 +1144,109 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(
       queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
     ).toBeNull();
+  });
+
+  describe('advanced order events', () => {
+    it('tracks ADVANCED_ORDER_COMPLETED with an order_type key after the order is created', async () => {
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(
+        MetaMetricsEvents.ADVANCED_ORDER_COMPLETED,
+        {
+          location: 'Main View',
+          feature_id: FeatureId.LIMIT_ORDER,
+          order_type: OrderType.BUY_ABOVE,
+        },
+      );
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when account auto-upgrade fails', async () => {
+      mockAutoUpgradeEIP7702Account.mockRejectedValue(
+        new Error('Upgrade failed'),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    // CV cannot cover MixPanel properties: this screen's hook mocks live in
+    // the existing unit file, and CV forbids mocking useAnalytics.
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the delegations cannot be fetched', async () => {
+      mockFetchLimitOrdersDelegations.mockRejectedValue(new Error('boom'));
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockSignLimitOrderDelegations).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the delegations cannot be signed', async () => {
+      mockSignLimitOrderDelegations.mockRejectedValue(
+        new Error('keyring locked'),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the order cannot be created', async () => {
+      mockCreateLimitOrder.mockRejectedValue(new Error('boom'));
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'boom',
+      });
+    });
   });
 });

@@ -58,15 +58,6 @@ describe('MoneyHeader', () => {
     expect(mockOnMenuPress).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the same horizontal padding as the Home page header', () => {
-    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
-
-    expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toHaveStyle({
-      paddingLeft: 16,
-      paddingRight: 12,
-    });
-  });
-
   describe('back button', () => {
     it('is not rendered without an onBack handler', () => {
       const { queryByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
@@ -192,6 +183,23 @@ describe('MoneyHeader', () => {
       const { queryByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
       expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
+    });
+
+    it('renders the badge on the pushed header and opens the sheet', () => {
+      const onMfaBadgePress = jest.fn();
+      const { getByTestId } = render(
+        <MoneyHeader
+          {...pushedProps}
+          onMenuPress={jest.fn()}
+          onBack={jest.fn()}
+          isMfaEnabled
+          onMfaBadgePress={onMfaBadgePress}
+        />,
+      );
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(onMfaBadgePress).toHaveBeenCalledTimes(1);
     });
   });
 });

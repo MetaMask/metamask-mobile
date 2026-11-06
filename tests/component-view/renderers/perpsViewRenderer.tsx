@@ -379,13 +379,29 @@ function focusedPriceChannel(cachedFocusedPrice: PriceUpdate | null = null) {
 /**
  * Candles channel. The cached series is a synchronous read for the trade
  * sheet header. It is not pushed through the live candle subscription.
+ * `liveCandles` is delivered once to a subscriber with the same symbol and
+ * interval.
  */
 function candlesChannel(
   cachedCandles: CandleData | null,
   chartCacheFresh: boolean,
+  liveCandles: CandleData | null,
 ) {
   return {
-    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribe: (params?: {
+      symbol: string;
+      interval: CandlePeriod;
+      callback: (data: CandleData) => void;
+    }): (() => void) => {
+      if (
+        liveCandles &&
+        params?.symbol === liveCandles.symbol &&
+        params.interval === liveCandles.interval
+      ) {
+        params.callback(liveCandles);
+      }
+      return noopUnsubscribe;
+    },
     getSnapshot: () => cachedCandles,
     getCachedData: (
       symbol: string,
@@ -530,6 +546,8 @@ export interface PerpsStreamOverrides {
    * series is seeded, otherwise false.
    */
   chartCacheFresh?: boolean;
+  /** Candle series delivered to `candles.subscribe` for a matching symbol and interval. */
+  liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
 }
@@ -570,7 +588,11 @@ function createTestStreamManager(
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
     ),
-    candles: candlesChannel(cachedCandles, chartCacheFresh),
+    candles: candlesChannel(
+      cachedCandles,
+      chartCacheFresh,
+      streamOverrides?.liveCandles ?? null,
+    ),
     retryOrderStreams: (): void => {
       orders.clearCache();
       fills.clearCache();
@@ -624,6 +646,20 @@ interface RenderPerpsViewOptions {
   streamOverrides?: PerpsStreamOverrides;
   /** Optional extra routes so navigation can be asserted (e.g. [{ name: Routes.PERPS.MARKET_LIST }]). */
   extraRoutes?: PerpsExtraRoute[];
+  /**
+   * Nest the main Component one level deeper than 'perps-root' extraRoutes —
+   * inside its own nested "modal" navigator within Routes.PERPS.ROOT — instead
+   * of mounting it at the outer stack. Use for modal screens whose production
+   * navigation calls `navigation.getParent()?.reset(...)` against the
+   * Perps-root stack (e.g. PerpsModeSelectionView, nested under a Modals
+   * stack within PERPS.ROOT): this makes getParent() resolve to the same
+   * PERPS.ROOT navigator that owns the sibling 'perps-root' extraRoutes being
+   * reset onto.
+   *
+   * Applied only when `extraRoutes` is non-empty. A caller that sets this
+   * without extra routes still gets the single-screen mount.
+   */
+  mainMount?: 'perps-modal';
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
   crossMarginEnabled?: boolean;
@@ -653,6 +689,7 @@ export function renderPerpsView(
     initialParams,
     streamOverrides,
     extraRoutes,
+    mainMount,
     mode,
     connectionValue,
     includeToasts,
@@ -709,8 +746,29 @@ export function renderPerpsView(
     // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
+    const nestMain = mainMount === 'perps-modal';
+    // Modal navigator nested one level inside PERPS.ROOT, alongside the
+    // 'perps-root' extraRoutes. Mirrors production's Modals stack, so
+    // navigation.getParent() from inside Component resolves to the SAME
+    // PERPS.ROOT navigator the extraRoutes are reset onto, not the outer stack.
+    const ModalStack = createNativeStackNavigator();
+    const NestedModalStack = () => (
+      <ModalStack.Navigator screenOptions={{ presentation: 'modal' }}>
+        <ModalStack.Screen
+          name={routeName}
+          component={WrappedComponent as unknown as React.ComponentType}
+          initialParams={initialParams}
+        />
+      </ModalStack.Navigator>
+    );
     const nestedScreens = (
       <>
+        {nestMain && (
+          <InnerStack.Screen
+            name={Routes.PERPS.MODALS.ROOT}
+            component={NestedModalStack as unknown as React.ComponentType}
+          />
+        )}
         {nestedPerpsRoutes.map(({ name, Component: Extra }) => (
           // Extra routes can render real views (not only probes), so keep provider parity.
           <InnerStack.Screen
@@ -724,15 +782,23 @@ export function renderPerpsView(
       </>
     );
     const NestedPerpsStack = () => (
-      <InnerStack.Navigator>{nestedScreens}</InnerStack.Navigator>
+      <InnerStack.Navigator
+        initialRouteName={nestMain ? Routes.PERPS.MODALS.ROOT : undefined}
+      >
+        {nestedScreens}
+      </InnerStack.Navigator>
     );
     const stackTree = (
-      <Stack.Navigator>
-        <Stack.Screen
-          name={routeName}
-          component={WrappedComponent as unknown as React.ComponentType}
-          initialParams={initialParams}
-        />
+      <Stack.Navigator
+        initialRouteName={nestMain ? Routes.PERPS.ROOT : undefined}
+      >
+        {!nestMain && (
+          <Stack.Screen
+            name={routeName}
+            component={WrappedComponent as unknown as React.ComponentType}
+            initialParams={initialParams}
+          />
+        )}
         {rootRoutes.map(({ name, Component: Extra }) => (
           <Stack.Screen
             key={`root-${name}`}
@@ -742,7 +808,7 @@ export function renderPerpsView(
             )}
           />
         ))}
-        {nestedPerpsRoutes.length ? (
+        {nestedPerpsRoutes.length || nestMain ? (
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={NestedPerpsStack as unknown as React.ComponentType}
@@ -861,6 +927,8 @@ export function renderPerpsMarketDetailsView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     extraRoutes?: PerpsExtraRoute[];
+    socialEnabled?: boolean;
+    includeToasts?: boolean;
   } = {},
 ) {
   const {
@@ -868,11 +936,20 @@ export function renderPerpsMarketDetailsView(
     initialParams = { market: defaultMarketDetailsMarket },
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
     extraRoutes,
+    socialEnabled,
+    includeToasts,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides, extraRoutes },
+    {
+      overrides,
+      initialParams,
+      streamOverrides,
+      extraRoutes,
+      socialEnabled,
+      includeToasts,
+    },
   );
 }
 
@@ -996,6 +1073,7 @@ export function renderPerpsClosePositionView(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    includeToasts?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;

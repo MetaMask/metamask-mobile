@@ -1,18 +1,19 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-function getFontSize(length: number) {
-  if (length <= 8) return 64;
+/** Returns the legacy font size breakpoints used by confirmation amounts. */
+export const getFontSizeForConfirmationAmount = (length: number): number => {
+  if (length <= 8) return 88;
   if (length <= 13) return 40;
   if (length <= 18) return 30;
   return 20;
-}
+};
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSize(params.vars.amountLength);
+  const fontSize = getFontSizeForConfirmationAmount(params.vars.amountLength);
 
   return StyleSheet.create({
     container: {
@@ -20,13 +21,12 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      minHeight: 70,
+      minHeight: 88,
     },
     input: {
       textAlign: 'center',
       fontSize,
-      lineHeight: fontSize * 1.1,
-      fontWeight: '500',
+      lineHeight: fontSize,
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.vars.disabled
@@ -38,9 +38,16 @@ const styleSheet = (params: {
     },
     cursor: {
       width: 1,
-      height: Math.round(fontSize * 0.7),
-      backgroundColor: params.theme.colors.primary.default,
-      transform: [{ translateY: Math.round(fontSize * -0.08) }],
+      height: Math.round(fontSize * 0.95),
+      backgroundColor: params.theme.colors.text.muted,
+      // Android renders glyphs lower than iOS in a line box equal to fontSize.
+      transform: [
+        {
+          translateY: Math.round(
+            fontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+          ),
+        },
+      ],
     },
     alertMessage: {
       textAlign: 'center',

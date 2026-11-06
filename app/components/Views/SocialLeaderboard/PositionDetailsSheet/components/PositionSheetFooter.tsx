@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -45,11 +46,14 @@ const PositionSheetFooter = ({
     if (!isClosed) {
       return (
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           startIconName={IconName.SwapHorizontal}
-          onPress={onCopyTrade}
+          onPress={() => {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onCopyTrade();
+          }}
           testID={PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON}
         >
           {strings('social_leaderboard.feed.position_card.copy_trade')}
@@ -98,7 +102,10 @@ const PositionSheetFooter = ({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => onSpotTrade('buy')}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
           style={halfWidth}
           testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
         >
@@ -112,7 +119,7 @@ const PositionSheetFooter = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       gap={3}
-      twClassName="px-4 pt-2 pb-5"
+      twClassName="px-4 pt-4 pb-5"
     >
       {renderActions()}
     </Box>

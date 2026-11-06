@@ -67,9 +67,6 @@ const signTestMessage = async (): Promise<string> => {
   }`;
 };
 
-/**
- * Non-production buttons that create the MPC Money account and sign with it.
- */
 const MoneyMpcQaPresets = () => {
   const mfa = useMfa();
   const [result, setResult] = useState<string>();

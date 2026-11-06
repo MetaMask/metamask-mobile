@@ -1,5 +1,4 @@
 export enum EARN_MODULE_SCREEN_NAMES {
-  WALLET_HOME = 'wallet_home',
   EXPLORE_NOW_TAB = 'explore_now_tab',
   EXPLORE_CRYPTO_TAB = 'explore_crypto_tab',
   EXPLORE = 'explore',
@@ -12,7 +11,6 @@ export enum EARN_MODULE_BOTTOM_SHEET_NAMES {
 }
 
 export enum EARN_MODULE_ENTRY_POINTS {
-  HOMEPAGE = 'homepage',
   EXPLORE = 'explore',
   EXPLORE_NOW_TAB = 'explore_now_tab',
   EXPLORE_CRYPTO_TAB = 'explore_crypto_tab',
@@ -36,7 +34,6 @@ export enum EARN_MODULE_BUTTON_INTENTS {
 }
 
 export enum EARN_MODULE_COMPONENT_NAMES {
-  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
   EARN_SECTION_HEADER = 'earn_section_header',
   EXPLORE_EARN_SECTION = 'explore_earn_section',
   EXPLORE_SEARCH_EARN_SECTION = 'explore_search_earn_section',

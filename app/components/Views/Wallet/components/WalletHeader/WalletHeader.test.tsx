@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
@@ -37,6 +38,7 @@ jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
 }));
 
+const mockWalletHeaderProfileAvatar = jest.fn();
 jest.mock('./WalletHeaderProfileAvatar', () => {
   const { View } = jest.requireActual('react-native');
   const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
@@ -44,7 +46,11 @@ jest.mock('./WalletHeaderProfileAvatar', () => {
   );
   return {
     __esModule: true,
-    default: () => <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />,
+    SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER: 40,
+    default: (props: { diameter?: number }) => {
+      mockWalletHeaderProfileAvatar(props);
+      return <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />;
+    },
   };
 });
 
@@ -331,11 +337,12 @@ describe('WalletHeader', () => {
     });
 
     it('uses the Social glass header with Profile, account and Rewards actions', () => {
+      const handleProfilePress = jest.fn();
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader
           {...interimProps}
           isSocialLayout
-          handleProfilePress={jest.fn()}
+          handleProfilePress={handleProfilePress}
           handleRewardsPress={jest.fn()}
         />,
       );
@@ -343,6 +350,16 @@ describe('WalletHeader', () => {
       expect(
         getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+      expect(mockWalletHeaderProfileAvatar).toHaveBeenCalledWith({
+        diameter: 40,
+      });
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+
+      expect(handleProfilePress).toHaveBeenCalledTimes(1);
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
       ).toBeOnTheScreen();
@@ -363,6 +380,37 @@ describe('WalletHeader', () => {
           WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('keeps Social header action icons transparent while pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          isSocialLayout
+          handleProfilePress={jest.fn()}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+        'pressIn',
+      );
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+        'pressIn',
+      );
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
     });
 
     it('keeps the Social account name flexible beside the chevron', () => {

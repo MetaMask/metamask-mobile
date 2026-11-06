@@ -44,6 +44,12 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
+import {
+  getMoneyHomeCardDevOverrideById,
+  setMoneyHomeCardDevOverride,
+} from '../../hooks/moneyHomeCardDevOverride';
 import {
   type MoneyHomeSegment,
   useMoneyHomePerformance,
@@ -88,7 +94,9 @@ import {
   useVbaHomeCardRefresh,
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   useVbaEligibility,
   type VbaEligibility,
@@ -220,8 +228,30 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
+  useMoneyMicrodeposits: jest.fn(() => ({
+    microdeposits: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock(
@@ -283,8 +313,12 @@ const mockMfaTurnOn = jest.fn();
 const mockMfaRetry = jest.fn();
 const mockMfaDismissBanner = jest.fn();
 const mockMfaRefreshCredentials = jest.fn();
+const mockShowEnabledConfirmation = jest.fn(() => false);
 
-const mockMfaStatus = (status: MoneyMfaStatus) =>
+const mockMfaStatus = (
+  status: MoneyMfaStatus,
+  { hasUnseenEnabledConfirmation = false } = {},
+) =>
   jest.mocked(useMoneyMfa).mockReturnValue({
     status,
     turnOn: mockMfaTurnOn,
@@ -294,6 +328,8 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
     isSettingUpBannerDismissed: false,
     dismissSettingUpBanner: mockMfaDismissBanner,
     refreshCredentials: mockMfaRefreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation: mockShowEnabledConfirmation,
   });
 
 jest.mock('../../../../../core/NavigationService', () => ({
@@ -378,6 +414,16 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectUsableVbaAutoramp = jest.fn(
+  (): { id: string } | undefined => undefined,
+);
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.createMockFromModule<
+    typeof import('../../../../../selectors/rampsController')
+  >('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: () => mockSelectUsableVbaAutoramp(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(() => ({
@@ -454,16 +500,25 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-const mockOpenVbaOnboarding = jest.fn();
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    useOpenVbaOnboarding: jest.fn(() => mockOpenVbaOnboarding),
+    openVbaEntry: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
+
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
+const mockUseActiveGroupCryptoPresence = jest.mocked(
+  useActiveGroupCryptoPresence,
+);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
   () => ({
@@ -471,6 +526,18 @@ jest.mock(
     useVbaHomeCardRefresh: jest.fn(),
   }),
 );
+
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
+}));
 
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 jest.mock(
@@ -796,7 +863,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '11.37',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       sinceInceptionQuery: {
@@ -804,7 +870,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '139.02',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       refetchInterest: mockRefetchInterest,
@@ -827,9 +892,15 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue(createLinkageMock());
 
     // Default to no VBA card so variant tests cannot leak into others.
+    setMoneyHomeCardDevOverride(null);
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockUseActiveGroupCryptoPresence.mockReturnValue({
+      hasCrypto: false,
+      isLoading: false,
+    });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
-    mockOpenVbaOnboarding.mockClear();
+    mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
+    mockOpenVbaEntry.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -962,9 +1033,18 @@ describe('MoneyHomeView', () => {
       ).forEach((testId) => {
         expect(rendered.queryByTestId(testId)).not.toBeOnTheScreen();
       });
+      expect(
+        rendered.queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     };
 
     it('renders the get_started card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
@@ -975,14 +1055,20 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the account_is_ready card', () => {
+    it('renders the identity_verified card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
+        type: 'identity_verified',
       } as VbaHomeCard);
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
       );
     });
 
@@ -1019,18 +1105,70 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the VBA card above the onboarding card', () => {
+    it('renders the forced VBA card from the developer override', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(
+        getMoneyHomeCardDevOverrideById('get_started'),
+      );
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('renders Add funds when the developer override forces that step on a funded account', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(getMoneyHomeCardDevOverrideById('add_funds'));
+
+      const { getByTestId, getByText } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.onboarding.step_1.cta')),
+      ).toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('shows the onboarding card instead of Get started when the wallet has crypto', () => {
+      mockUseActiveGroupCryptoPresence.mockReturnValue({
+        hasCrypto: true,
+        isLoading: false,
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expectTestIdBefore(
-        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
-        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
-        MoneyOnboardingCardTestIds.CONTAINER,
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
       );
+
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('wires the one-shot KYC session refresh on mount', () => {
@@ -1043,7 +1181,23 @@ describe('MoneyHomeView', () => {
       expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
     });
 
+    it('wires the VBA autoramp transaction refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
+    });
+
     it('remounts the card with fresh dismiss state when the variant changes', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
       } as VbaHomeCard);
@@ -1059,6 +1213,9 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
       ).toBeNull();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
 
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
@@ -1109,17 +1266,26 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
-    it('tracks and opens the same destination as the VBA card on press', async () => {
+    it('renders the Details button for a usable autoramp even when not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks and routes straight to the loading screen on press', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
-      mockOpenVbaOnboarding.mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
-        );
-      });
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
 
       expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
@@ -1131,7 +1297,37 @@ describe('MoneyHomeView', () => {
         button_position: 4,
         button_row_button_count: 4,
       });
-      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaEntry).toHaveBeenCalledWith(
+        expect.objectContaining({ goBack: mockGoBack }),
+        { source: 'vba-action-row-details' },
+      );
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW,
+      );
+    });
+
+    it('ignores a repeat Details tap while the first is still presenting', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+      fireEvent.press(details);
+      fireEvent.press(details);
+
+      expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not put the Details button into a busy state', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+
+      fireEvent.press(details);
+
+      expect(details.props.accessibilityState?.busy).toBeFalsy();
+      expect(details.props.accessibilityState?.disabled).toBeFalsy();
     });
 
     it('counts four buttons in the Add tracking payload when Details is shown', () => {
@@ -1162,14 +1358,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1212,13 +1408,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1247,13 +1441,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -1576,12 +1768,12 @@ describe('MoneyHomeView', () => {
         });
       });
 
-      it('disables Transfer button for sub-cent (dust) balance', () => {
+      it('enables Transfer button for sub-cent (dust) balance', () => {
         const { getByTestId } = renderWithProvider(<MoneyHomeView />);
         const transferButton = getByTestId(
           MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
         );
-        expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+        expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
       });
 
       it('hides MoneyEarnings for dust balance', () => {
@@ -1999,6 +2191,43 @@ describe('MoneyHomeView', () => {
       expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
     });
 
+    it('renders the setup card above the VBA card', () => {
+      mockMfaStatus('not_set_up');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expectTestIdBefore(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
+        MoneyMfaTestIds.SETUP_CARD,
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
+      );
+    });
+
+    it('shows the confirmation when it opens after 2-step verification turned on', () => {
+      mockMfaStatus('enabled', { hasUnseenEnabledConfirmation: true });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no confirmation without a new setup', () => {
+      mockMfaStatus('enabled');
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).not.toHaveBeenCalled();
+    });
+
     it('turns on 2-step verification when the setup card is pressed', () => {
       mockMfaStatus('not_set_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -2006,6 +2235,12 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
       expect(mockMfaTurnOn).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+        label_key: 'money.mfa.card_cta',
+        component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
+      });
     });
 
     it('renders the setting up banner while the Money account is set up', () => {
@@ -2023,6 +2258,12 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY));
 
       expect(mockMfaRetry).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.RETRY_MFA_SETUP,
+        label_key: 'money.mfa.failed_retry',
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
     });
 
     it('closes the setting-up banner', () => {
@@ -2032,6 +2273,11 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
       expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
     });
 
     it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
@@ -2046,6 +2292,12 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+          redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET,
+        }),
+      );
     });
 
     it('opens the Transfer sheet when 2-step verification is enabled', () => {
@@ -2068,6 +2320,24 @@ describe('MoneyHomeView', () => {
     });
 
     it('opens the 2-step verification sheet from the header badge', () => {
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_HEADER_BADGE,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_ENABLED_SHEET,
+      });
+    });
+
+    it('opens the 2-step verification sheet from the badge on the pushed header', () => {
+      mockRouteParams = { showBackButton: true };
       mockMfaStatus('enabled');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -2117,7 +2387,7 @@ describe('MoneyHomeView', () => {
       expect(transferButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('disables Transfer button when account has zero balance', () => {
+    it('enables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -2131,10 +2401,10 @@ describe('MoneyHomeView', () => {
         MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
       );
 
-      expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+      expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
     });
 
-    it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
+    it('navigates to Transfer sheet when Transfer button is pressed with zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -2147,7 +2417,7 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
     });
@@ -2554,13 +2824,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2587,13 +2855,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2614,13 +2880,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: { interest_earned_usd: 'invalid' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: 'NaN' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2644,13 +2908,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2670,14 +2932,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,

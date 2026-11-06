@@ -9,7 +9,9 @@ import {
   SocialFeedError,
   SocialFeedPostShell,
   SocialFeedSkeleton,
+  SocialFeedSurfaceProvider,
   SocialV1FeedPostList,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
   useSocialFeed,
   type SocialFeedSource,
   type SocialV1FeedPost,
@@ -20,10 +22,11 @@ import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/
 export const PERPS_TRENDING_POST_COUNT = 3;
 
 const PERPS_TRENDING_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  assetClass: 'perps',
+  scope: 'trending',
+  chains: [HYPERLIQUID_CAIP2_CHAIN_ID],
 };
+
+const SOURCE = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME;
 
 const PerpsSocialTrending: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -41,7 +44,7 @@ const PerpsSocialTrending: React.FC = () => {
         traderAddress: post.item.author.address,
         traderAvatarUri:
           post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
-        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        source: SOURCE,
         viewerProfileId: myProfile?.profileId ?? undefined,
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
@@ -58,7 +61,6 @@ const PerpsSocialTrending: React.FC = () => {
         positionId: post.position.positionId,
         position: post.position,
         author: post.item.author,
-        comment: post.item.comment,
         isClosed:
           post.item.variant === 'perpsClosed' ||
           post.item.variant === 'spotClosed',
@@ -71,6 +73,7 @@ const PerpsSocialTrending: React.FC = () => {
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
+        requireSocialTerms
         onAuthorPress={handleAuthorPress}
         onPositionPress={post.position ? handlePositionPress : undefined}
       />
@@ -95,13 +98,15 @@ const PerpsSocialTrending: React.FC = () => {
   }
 
   return (
-    <Box twClassName="gap-6">
-      <SocialV1FeedPostList
-        posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
-        dividerKeyPrefix="perps-home-trending"
-        renderPost={renderPost}
-      />
-    </Box>
+    <SocialFeedSurfaceProvider location="perps_home" analyticsSource={SOURCE}>
+      <Box twClassName="gap-6">
+        <SocialV1FeedPostList
+          posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
+          dividerKeyPrefix="perps-home-trending"
+          renderPost={renderPost}
+        />
+      </Box>
+    </SocialFeedSurfaceProvider>
   );
 };
 

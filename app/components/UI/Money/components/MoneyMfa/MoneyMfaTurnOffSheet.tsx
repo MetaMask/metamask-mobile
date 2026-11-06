@@ -14,6 +14,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import MoneyMfaInfoSheet from './MoneyMfaInfoSheet';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+} from '../../constants/moneyEvents';
 
 /** Confirms turning off 2-step verification for the Money account. */
 const MoneyMfaTurnOffSheet = () => {
@@ -21,10 +27,27 @@ const MoneyMfaTurnOffSheet = () => {
   const navigation = useNavigation();
   const { turnOff } = useMoneyMfa();
   const close = useCallback(() => sheetRef.current?.onCloseBottomSheet(), []);
+  const { trackButtonClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MFA_TURN_OFF_SHEET,
+  });
 
   const handleTurnOff = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.DISABLE_MFA,
+      label_key: 'money.mfa.turn_off_cta',
+    });
     sheetRef.current?.onCloseBottomSheet(turnOff);
-  }, [turnOff]);
+  }, [trackButtonClicked, turnOff]);
+
+  const handleCancel = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+      label_key: 'money.mfa.cancel',
+    });
+    close();
+  }, [close, trackButtonClicked]);
 
   return (
     <MoneyMfaInfoSheet
@@ -32,6 +55,7 @@ const MoneyMfaTurnOffSheet = () => {
       goBack={navigation.goBack}
       onClose={close}
       testID={MoneyMfaTestIds.TURN_OFF_SHEET}
+      bottomSheetName={BOTTOM_SHEET_NAMES.MONEY_MFA_TURN_OFF_SHEET}
       icon={
         <Icon
           name={IconName.Danger}
@@ -56,7 +80,7 @@ const MoneyMfaTurnOffSheet = () => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         isFullWidth
-        onPress={close}
+        onPress={handleCancel}
         testID={MoneyMfaTestIds.TURN_OFF_CANCEL_BUTTON}
       >
         {strings('money.mfa.cancel')}

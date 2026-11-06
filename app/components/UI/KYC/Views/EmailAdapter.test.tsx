@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import VbaEmailAdapter, { VbaEmailAdapterSelectorsIDs } from './EmailAdapter';
+import { strings } from '../../../../../locales/i18n';
 
 const mockAdvance = jest.fn();
 const mockGetState = jest.fn();
@@ -148,8 +149,7 @@ describe('VbaEmailAdapter', () => {
         verifyWith: 'email_otp',
         reason: {
           operation: 'vba.verifyEmail',
-          enrollDescription: 'placeholder for enroll description',
-          verifyDescription: 'placeholder for verify description',
+          presentation: 'card',
         },
       });
       expect(mockKycController.startSession).toHaveBeenCalledWith({
@@ -301,13 +301,13 @@ describe('VbaEmailAdapter', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
-      ).toHaveTextContent('Too many attempts. Request a new code.');
+      ).toHaveTextContent(strings('mfa.errors.too_many_attempts'));
     });
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
-  it('shows a spinner and leaves the step from the loading screen', async () => {
+  it('shows a spinner without navigation on the loading screen', () => {
     mockKycController.getSessionStatusForVendor.mockReturnValue(
       new Promise(() => undefined),
     );
@@ -320,12 +320,10 @@ describe('VbaEmailAdapter', () => {
     expect(
       screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
     ).toBeNull();
-
-    fireEvent.press(
-      screen.getByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
-    );
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+    ).toBeNull();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('does not open email OTP after leaving during session lookup', async () => {

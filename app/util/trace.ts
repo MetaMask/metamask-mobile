@@ -9,6 +9,7 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
@@ -75,6 +76,12 @@ export enum TraceName {
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RampScreenLoad = 'Ramp Screen Load',
+  VbaScreenLoad = 'VBA Screen Load',
+  KycScreenLoad = 'KYC Screen Load',
+  VbaToPixInstructions = 'VBA To Pix Instructions',
+  VbaHydrate = 'VBA Hydrate',
+  VbaAutorampSetup = 'VBA Autoramp Setup',
+  VbaPixFetch = 'VBA Pix Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -289,6 +296,7 @@ export enum TraceName {
   PredictNextGetBalance = 'PredictNext Get Balance',
   PredictNextGetPositions = 'PredictNext Get Positions',
   PredictNextGetActivity = 'PredictNext Get Activity',
+  PredictNextGetPortfolioSummary = 'PredictNext Get Portfolio Summary',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
@@ -328,6 +336,9 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  // Social V1 Performance
+  SocialTabTimeToContent = 'Social Tab Time To Content',
+  SocialTabDataFetch = 'Social Tab Data Fetch',
 }
 
 export enum TraceOperation {
@@ -408,7 +419,11 @@ export enum TraceOperation {
   // Notifications & Braze Performance
   NotificationPerformance = 'notification.performance',
   BrazeBannerPerformance = 'braze_banner.performance',
+  SocialPerformance = 'social.performance',
+  SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
+  VbaOperation = 'vba.operation',
+  KycOperation = 'kyc.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -604,6 +619,11 @@ export interface EndTraceRequest {
    * Override the end time of the trace.
    */
   timestamp?: number;
+
+  /**
+   * Final status to record on the span.
+   */
+  status?: 'ok' | 'error';
 
   /**
    * Custom data to associate with the trace when ending it.
@@ -948,6 +968,12 @@ export function endTrace(request: EndTraceRequest): void {
     for (const [attrKey, attrValue] of Object.entries(request.data)) {
       span.setAttribute(attrKey, attrValue);
     }
+  }
+
+  if (request.status && pendingTrace.span) {
+    pendingTrace.span.setStatus({
+      code: request.status === 'ok' ? SPAN_STATUS_OK : SPAN_STATUS_ERROR,
+    });
   }
 
   let endTimeRequest = timestamp;

@@ -5,14 +5,15 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -48,6 +49,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
@@ -92,15 +94,20 @@ import {
 } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import { getPositionFlagLabelKey } from '../TraderProfileView/utils/positionFlags';
 import {
   buildFollowTradingTokenContext,
+  getSocialEventSource,
   pickFollowTradingDismissedProperties,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { resolvePerpsSocialOrderSource } from '../../../UI/Perps/utils/perpsAnalyticsAttribution';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   getPerpPositionDirection,
@@ -145,6 +152,7 @@ const TraderPositionView = () => {
     isSocialV1,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -167,6 +175,10 @@ const TraderPositionView = () => {
     !isPerpsEnabled &&
     isPerpPosition(resolvedPosition);
   const displayPosition = isBlockedPerpPosition ? undefined : resolvedPosition;
+  // Any server flag excludes the position from P&L. Those positions must not
+  // be copy-traded, so the history view stays readable without Buy or Trade.
+  const isFlaggedPosition =
+    displayPosition != null && getPositionFlagLabelKey(displayPosition) != null;
 
   // Nav-param values win on first render to avoid a header flicker; once the
   // profile resolves it fills in any missing fields and powers pull-to-refresh.
@@ -228,6 +240,21 @@ const TraderPositionView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleSharePosition = useCallback(() => {
+    if (!effectivePositionId) {
+      return;
+    }
+    const source = getSocialEventSource(sourceParam);
+    shareSocialTraderPosition(effectivePositionId, traderId, () => {
+      trackSocialPost({
+        interaction_type: SocialEvent.Interaction.POST_SHARED,
+        screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+        share_destination: SocialEvent.ShareDestination.EXTERNAL,
+        ...(source ? { source } : {}),
+      });
+    });
+  }, [effectivePositionId, sourceParam, trackSocialPost, traderId]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
@@ -438,10 +465,16 @@ const TraderPositionView = () => {
       } as PerpsMarketData;
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source: 'social_leaderboard' },
+        params: {
+          market,
+          source: resolvePerpsSocialOrderSource(
+            sourceParam,
+            'social_leaderboard',
+          ),
+        },
       });
     },
-    [navigation, trackFollowTradingCtaClicked],
+    [navigation, sourceParam, trackFollowTradingCtaClicked],
   );
 
   // Tapping a trade row slides the chart to center that trade. The nonce changes
@@ -639,7 +672,7 @@ const TraderPositionView = () => {
     },
     (elevated, previous) => {
       if (elevated !== previous) {
-        runOnJS(setIsPinnedChartElevated)(elevated);
+        scheduleOnRN(setIsPinnedChartElevated, elevated);
       }
     },
   );
@@ -677,10 +710,41 @@ const TraderPositionView = () => {
     },
     (index, previous) => {
       if (index !== previous) {
-        runOnJS(setTopDayIndex)(index);
+        scheduleOnRN(setTopDayIndex, index);
       }
     },
   );
+
+  // Flagged positions stay on the history screen with Buy and Trade hidden.
+  let copyTradeAction: ReactNode;
+  if (isFlaggedPosition) {
+    copyTradeAction = null;
+  } else if (isPerp && displayPosition) {
+    copyTradeAction = (
+      <PerpsTradeButton
+        symbol={displayPosition.tokenSymbol}
+        onTrade={handlePerpTrade}
+        testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+      />
+    );
+  } else {
+    copyTradeAction = (
+      <TraderPositionBuyCta
+        position={displayPosition ?? null}
+        traderAddress={traderAddress}
+        marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+        tokenPriceFiat={
+          typeof currentPrice === 'number' ? currentPrice : undefined
+        }
+        source={quickBuySource}
+        originalEntryPoint={quickBuyOriginalEntryPoint}
+        isTraderPositionClosed={isClosed}
+        onBuyCtaClicked={handleBuyCtaClicked}
+        postTradeShare={isSocialV1 === true}
+        buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+      />
+    );
+  }
 
   const loadedPositionContent = (
     <>
@@ -840,28 +904,7 @@ const TraderPositionView = () => {
         </Animated.View>
       </View>
 
-      {isPerp && displayPosition ? (
-        <PerpsTradeButton
-          symbol={displayPosition.tokenSymbol}
-          onTrade={handlePerpTrade}
-          testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-        />
-      ) : (
-        <TraderPositionBuyCta
-          position={displayPosition ?? null}
-          traderAddress={traderAddress}
-          marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-          tokenPriceFiat={
-            typeof currentPrice === 'number' ? currentPrice : undefined
-          }
-          source={quickBuySource}
-          originalEntryPoint={quickBuyOriginalEntryPoint}
-          isTraderPositionClosed={isClosed}
-          onBuyCtaClicked={handleBuyCtaClicked}
-          postSwapShare={isSocialV1 === true}
-          buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        />
-      )}
+      {copyTradeAction}
     </>
   );
 
@@ -888,7 +931,9 @@ const TraderPositionView = () => {
             traderAddress={traderAddress}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={effectivePositionId ? handleSharePosition : undefined}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
             traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
           />
         ) : (
@@ -905,6 +950,7 @@ const TraderPositionView = () => {
             perpLeverage={displayPosition?.perpLeverage}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={effectivePositionId ? handleSharePosition : undefined}
           />
         )}
       </Box>

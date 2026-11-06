@@ -1,9 +1,13 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import type { FeedItem } from '@metamask/social-controllers';
+import { mockPerpFeedItem } from '../../SocialFeed/mocks/coreFeed.mock';
+import { formatAbbreviatedUsd } from '../../SocialFeed/utils/formatters';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { TopTrader } from '../../../Views/Homepage/Sections/TopTraders/types';
+import { SocialV1TraderRowSelectorsIDs } from '../../../Views/SocialLeaderboard/TopTradersView/components/SocialV1TraderRow.testIds';
 import {
   ALL_CHAINS,
   SPOT_CHAINS,
@@ -22,10 +26,19 @@ const mockTrack = jest.fn();
 let mockIsEnabled = true;
 let mockIsPerpsEnabled = true;
 let mockNetworkTier: string | null = 'WIFI';
+let mockIsUnlocked = true;
 let mockProfile: Record<string, unknown> | null = null;
+
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
 jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: (options: unknown) => mockUseTopTraders(options),
+}));
+
+const mockUseTokenHolders = jest.fn();
+const mockRefreshHolders = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../TokenDetails/components/tabs/holders/useTokenHolders', () => ({
+  useTokenHolders: (options: unknown) => mockUseTokenHolders(options),
 }));
 
 jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
@@ -75,6 +88,17 @@ jest.mock('../../../../util/deviceCapability', () => ({
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
+}));
+
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => mockIsUnlocked,
+}));
+
+const mockUseQuery = jest.fn();
+const mockRefetchViewerProfile = jest.fn();
+jest.mock('@metamask/react-data-query', () => ({
+  useQuery: (options: unknown) => mockUseQuery(options),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -127,6 +151,39 @@ const mockQueryResult = (overrides: Record<string, unknown> = {}) => {
   });
 };
 
+const mockHoldersResult = (
+  holders: FeedItem[] = [],
+  overrides: Record<string, unknown> = {},
+) => {
+  mockUseTokenHolders.mockReturnValue({
+    rows: holders.map((core) => ({ item: {}, core })),
+    isLoading: false,
+    isFetching: false,
+    hasFetched: true,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: mockRefreshHolders,
+    ...overrides,
+  });
+};
+
+const buildHolder = (profileId: string, positionValueUSD: number) =>
+  mockPerpFeedItem({
+    positionId: `pos-${profileId}`,
+    isOpen: true,
+    positionValueUSD,
+    pnlValueUsd: -40,
+    pnlPercent: -1,
+    actor: {
+      profileId,
+      address: `0x${profileId}`,
+      name: profileId,
+      imageUrl: null,
+    },
+  });
+
 const renderLeaderboard = (props: Partial<SocialLeaderboardProps> = {}) =>
   renderWithProvider(
     <SocialLeaderboard
@@ -151,8 +208,18 @@ describe('SocialLeaderboard', () => {
     mockIsEnabled = true;
     mockIsPerpsEnabled = true;
     mockNetworkTier = 'WIFI';
+    mockIsUnlocked = true;
     mockProfile = null;
     mockQueryResult();
+    mockHoldersResult();
+    mockRefetchViewerProfile.mockReset();
+    mockRefetchViewerProfile.mockResolvedValue(undefined);
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      refetch: mockRefetchViewerProfile,
+    });
   });
 
   it('fetches the combined ranking and renders rows ordered by PnL', () => {
@@ -172,6 +239,29 @@ describe('SocialLeaderboard', () => {
       'trader-row-mid',
       'trader-row-low',
     ]);
+  });
+
+  it('shows the window percent and follower count on each row', () => {
+    mockQueryResult({
+      traders: [
+        buildTrader({
+          id: 'rich',
+          username: 'rich',
+          pnlValue: 100,
+          percentageChange: 7.76,
+          followerCount: 4700,
+        }),
+      ],
+    });
+
+    renderLeaderboard();
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeOnTheScreen();
   });
 
   it('fetches spot chains for the tokens asset class', () => {
@@ -213,6 +303,79 @@ describe('SocialLeaderboard', () => {
     expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
   });
 
+  it('lists the holders of a perp market in the server order, with their position size', () => {
+    mockHoldersResult([buildHolder('big', 40_000), buildHolder('small', 900)]);
+
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'xyz:NVDA' } });
+
+    expect(mockUseTokenHolders).toHaveBeenCalledWith({
+      assetId: 'eip155:999/perp:xyz.NVDA',
+      enabled: true,
+    });
+    expect(mockUseTopTraders).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(rowIds()).toEqual(['trader-row-big', 'trader-row-small']);
+    expect(
+      screen
+        .getAllByTestId(SocialV1TraderRowSelectorsIDs.METRIC)
+        .map((node) => node.props.children),
+    ).toEqual([formatAbbreviatedUsd(40_000), formatAbbreviatedUsd(900)]);
+  });
+
+  it('renders rows without positions or medals when showRank is off', () => {
+    renderLeaderboard({ showRank: false });
+
+    expect(rowIds()).toHaveLength(3);
+    expect(
+      screen.queryAllByTestId(SocialV1TraderRowSelectorsIDs.RANK),
+    ).toHaveLength(0);
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+  });
+
+  it('renders the skeleton without the rank placeholder when showRank is off', () => {
+    mockQueryResult({ traders: [], isLoading: true, hasFetched: false });
+
+    renderLeaderboard({ showRank: false });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the holders empty state when a perp market has no holders', () => {
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'BTC' } });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('token_details_v1.holders_tab.empty'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the skeleton while the holders load', () => {
+    mockHoldersResult([], { isLoading: true, hasFetched: false });
+
+    renderLeaderboard({ source: { kind: 'perp', symbol: 'BTC' } });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
+    ).toBeOnTheScreen();
+  });
+
+  it('refreshes the holders, not the ranking, for a perp market', async () => {
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, source: { kind: 'perp', symbol: 'BTC' } });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefreshHolders).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
   it('renders nothing for a perps source when perps are off', () => {
     mockIsPerpsEnabled = false;
 
@@ -241,6 +404,34 @@ describe('SocialLeaderboard', () => {
     expect(
       screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the clear-filters empty state when applied filters match no traders', () => {
+    const onClearFilters = jest.fn();
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+      filteredEmpty: true,
+      onClearFilters,
+    });
+
+    fireEvent.press(screen.getByTestId('social-filter-empty-clear'));
+
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeNull();
+  });
+
+  it('shows the empty state when the cohort filter matches no traders', () => {
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+    });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
   });
 
   it('shows the empty state when the ranking has no traders', () => {
@@ -298,21 +489,167 @@ describe('SocialLeaderboard', () => {
     expect(rowIds()).toEqual(['trader-row-mid', 'trader-row-low']);
   });
 
-  it('builds a rank-less viewer card when the viewer is not ranked', () => {
+  it('builds the off-page viewer card from the trader profile', () => {
     mockProfile = {
       profileId: 'viewer',
       handle: 'me',
       displayName: 'Me',
-      pnlUsd: 12,
     };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+          imageUrl: 'foxicon://agent/background1',
+        },
+        stats: { pnl7d: 12, roiPercent7d: 2.4 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 7,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
 
     renderLeaderboard({ showViewerRow: true });
 
     expect(
       screen.getByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
     ).toBeOnTheScreen();
-    expect(screen.getByText('me')).toBeOnTheScreen();
+    expect(screen.getByText('Me')).toBeOnTheScreen();
+    expect(screen.getByText('+$12.00')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(rowIds()).toHaveLength(3);
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      }),
+    );
+  });
+
+  it('omits the off-page viewer card while the trader profile is loading', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
+    ).toBeNull();
+    expect(rowIds()).toHaveLength(3);
+  });
+
+  it('waits for the leaderboard before fetching the off-page viewer profile', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockQueryResult({ hasFetched: false });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
+    ).toBeNull();
+  });
+
+  it('shows zero metrics when the off-page profile has no pnl', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+          imageUrl: null,
+        },
+        stats: {},
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 0,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeOnTheScreen();
+  });
+
+  it('falls back to the handle on the viewer card without a display name', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: '',
+    };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+        },
+        stats: { pnl7d: 12 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 0,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(screen.getByText('me')).toBeOnTheScreen();
   });
 
   it('omits the viewer card unless asked for', () => {
@@ -354,6 +691,44 @@ describe('SocialLeaderboard', () => {
     });
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchViewerProfile).not.toHaveBeenCalled();
+  });
+
+  it('refreshes the off-page viewer profile with the leaderboard', async () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, showViewerRow: true });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchViewerProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch the viewer profile while the wallet is locked', async () => {
+    mockIsUnlocked = false;
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, showViewerRow: true });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockRefetchViewerProfile).not.toHaveBeenCalled();
   });
 
   it('renders the title when given', () => {

@@ -29,6 +29,9 @@ export interface WalletHeaderMenuButtonProps {
   touchAreaSlop: TouchAreaSlop;
 }
 
+/** Header icons sit on glass; the default press fill covers that material. */
+const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
+
 export const WalletHeaderMenuButton = ({
   handleHamburgerPress,
   touchAreaSlop,
@@ -58,6 +61,7 @@ export const WalletHeaderMenuButton = ({
         size={ButtonIconSize.Md}
         testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
         hitSlop={touchAreaSlop}
+        twClassName={HEADER_ICON_BUTTON_CLASS}
       />
     </BadgeWrapper>
   );
@@ -96,6 +100,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
         accessibilityLabel={strings('wallet.rewards_accessibility_label')}
         hitSlop={touchAreaSlop}
+        twClassName={HEADER_ICON_BUTTON_CLASS}
       />
     );
   } else if (isMoneyAccountVisible) {
@@ -108,6 +113,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
         accessibilityLabel={strings('activity_view.title')}
         hitSlop={touchAreaSlop}
+        twClassName={HEADER_ICON_BUTTON_CLASS}
       />
     );
   }
@@ -126,6 +132,7 @@ const WalletHeaderInterimActions = ({
         testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
         accessibilityLabel={strings('wallet.search_accessibility_label')}
         hitSlop={touchAreaSlop}
+        twClassName={HEADER_ICON_BUTTON_CLASS}
       />
       {secondaryAction}
       {!isSocialLayout ? (

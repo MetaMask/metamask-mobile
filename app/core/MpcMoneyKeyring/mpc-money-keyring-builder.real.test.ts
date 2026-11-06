@@ -1,10 +1,11 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
+import { getMfaRequirement } from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
+  MPC_MFA_WHITELIST_CONFIG,
   setMpcTwoFactorTokenProvider,
 } from './mpc-money-keyring-builder';
-import { applyEmptyIkmHkdfWorkaround } from './empty-ikm-hkdf-workaround';
 
 jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   MpcMoneyKeyring: Object.assign(
@@ -13,23 +14,28 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   ),
 }));
 
+jest.mock('@metamask/money-account-mfa-whitelist', () => ({
+  getMfaRequirement: jest.fn(),
+}));
+
 jest.mock('@metamask/mpc-react-native', () => ({
   cl24Lib: { name: 'cl24' },
   dkls23Lib: { name: 'dkls23' },
-}));
-
-jest.mock('./empty-ikm-hkdf-workaround', () => ({
-  applyEmptyIkmHkdfWorkaround: jest.fn(),
 }));
 
 const toBase64Url = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
 const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
 
-const buildKeyring = () => {
+const buildKeyring = (
+  getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>,
+  getTwoFactorToken?: () => Promise<string>,
+) => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
   const keyring = buildRealMpcMoneyKeyringBuilder({
     getBearerToken,
+    getTwoFactorApproval,
+    getTwoFactorToken,
   })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
@@ -37,18 +43,17 @@ const buildKeyring = () => {
 };
 
 describe('buildRealMpcMoneyKeyringBuilder', () => {
+  afterEach(() => {
+    setMpcTwoFactorTokenProvider(undefined);
+    jest.restoreAllMocks();
+  });
+
   it('is keyed by the MPC money keyring type', () => {
     const builder = buildRealMpcMoneyKeyringBuilder({
       getBearerToken: jest.fn(),
     });
 
     expect(builder.type).toBe('MPC Money Keyring');
-  });
-
-  it('applies the empty-IKM HKDF workaround', () => {
-    buildRealMpcMoneyKeyringBuilder({ getBearerToken: jest.fn() });
-
-    expect(applyEmptyIkmHkdfWorkaround).toHaveBeenCalled();
   });
 
   it('builds the real keyring with the native TSS libraries and dev MPC service', () => {
@@ -79,8 +84,93 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     );
     expect(await options.getProfileToken()).toBe(TOKEN);
     expect(getBearerToken).toHaveBeenCalledTimes(1);
+  });
 
-    setMpcTwoFactorTokenProvider(undefined);
+  it('uses a 2FA approval for the signature hash when the call needs 2FA', async () => {
+    const getTwoFactorApproval = jest.fn().mockResolvedValue('approval');
+    const { options, getBearerToken } = buildKeyring(getTwoFactorApproval);
+    const challenge = new Uint8Array(32).fill(1);
+
+    expect(await options.getProfileToken({ twoFactor: true, challenge })).toBe(
+      'approval',
+    );
+    expect(getTwoFactorApproval).toHaveBeenCalledWith(challenge);
+    expect(await options.getProfileToken()).toBe(TOKEN);
+    expect(getBearerToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses a 2FA-verified profile token when the call needs 2FA without a hash', async () => {
+    const getTwoFactorApproval = jest.fn();
+    const getTwoFactorToken = jest.fn().mockResolvedValue('aal2-token');
+    const { options, getBearerToken } = buildKeyring(
+      getTwoFactorApproval,
+      getTwoFactorToken,
+    );
+
+    expect(await options.getProfileToken({ twoFactor: true })).toBe(
+      'aal2-token',
+    );
+    expect(getTwoFactorApproval).not.toHaveBeenCalled();
+    expect(getBearerToken).not.toHaveBeenCalled();
+  });
+
+  it('uses the approval, not the 2FA-verified token, when the call has a hash', async () => {
+    const getTwoFactorApproval = jest.fn().mockResolvedValue('approval');
+    const getTwoFactorToken = jest.fn();
+    const { options } = buildKeyring(getTwoFactorApproval, getTwoFactorToken);
+
+    expect(
+      await options.getProfileToken({
+        twoFactor: true,
+        challenge: new Uint8Array(32),
+      }),
+    ).toBe('approval');
+    expect(getTwoFactorToken).not.toHaveBeenCalled();
+  });
+
+  it('prefers the QA 2FA token provider over the approval', async () => {
+    setMpcTwoFactorTokenProvider(jest.fn().mockResolvedValue('2fa-token'));
+    const getTwoFactorApproval = jest.fn();
+    const { options } = buildKeyring(getTwoFactorApproval);
+
+    expect(
+      await options.getProfileToken({
+        twoFactor: true,
+        challenge: new Uint8Array(32),
+      }),
+    ).toBe('2fa-token');
+    expect(getTwoFactorApproval).not.toHaveBeenCalled();
+  });
+
+  it('checks signatures against the pinned Money Account whitelist config', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: true, reason: 'not whitelisted' });
+    const { options } = buildKeyring();
+    const request = { type: 'personal_message', message: '0x' } as never;
+    const context = { address: '0x1', hash: '0x2' } as const;
+
+    const isRequired = await options.isMfaRequired?.(request, context);
+
+    expect(isRequired).toBe(true);
+    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
+      ...context,
+      config: MPC_MFA_WHITELIST_CONFIG,
+    });
+  });
+
+  it('skips 2FA for whitelisted signatures', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: false, rule: 'deposit' } as never);
+    const { options } = buildKeyring();
+
+    expect(
+      await options.isMfaRequired?.({} as never, {
+        address: '0x1',
+        hash: '0x2',
+      }),
+    ).toBe(false);
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {
@@ -88,6 +178,27 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
 
     expect(await options.getBackupEncryptionKey()).toStrictEqual(
       sha256(new TextEncoder().encode('mm-mobile-dev-backup:profile-1')),
+    );
+  });
+
+  it('decodes a base64url profile token as base64', async () => {
+    // This payload encodes to base64url with `-` and `_`.
+    const sub = 'profile-??>>';
+    const token = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub })}.sig`;
+    expect(token.split('.')[1]).toMatch(/[-_]/u);
+    const from = jest.spyOn(Buffer, 'from');
+    const keyring = buildRealMpcMoneyKeyringBuilder({
+      getBearerToken: jest.fn().mockResolvedValue(token),
+    })() as unknown as {
+      options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+    };
+
+    expect(await keyring.options.getBackupEncryptionKey()).toStrictEqual(
+      sha256(new TextEncoder().encode(`mm-mobile-dev-backup:${sub}`)),
+    );
+    expect(from).toHaveBeenCalledWith(
+      expect.not.stringMatching(/[-_]/u),
+      'base64',
     );
   });
 });

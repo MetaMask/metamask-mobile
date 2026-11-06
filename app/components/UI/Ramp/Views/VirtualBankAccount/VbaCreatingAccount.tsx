@@ -1,22 +1,33 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import {
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
+import vbaCreatingAccount from './assets/vba-creating-account.png';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
   BACK_BUTTON: 'vba-creating-account-back-button',
-  SPINNER: 'vba-creating-account-spinner',
+  ILLUSTRATION: 'vba-creating-account-illustration',
+  TITLE: 'vba-creating-account-title',
+  DESCRIPTION: 'vba-creating-account-description',
 } as const;
 
 interface VbaCreatingAccountProps {
@@ -30,7 +41,13 @@ const VbaCreatingAccount = ({
   onBack,
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+    contentReady: true,
+  });
   const title = strings(
     awaitingProviderApproval
       ? 'virtual_bank_account.creating_account.awaiting_provider'
@@ -43,27 +60,50 @@ const VbaCreatingAccount = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaCreatingAccountSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating
         onBack={onBack}
         backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <Box
-        twClassName="flex-1 gap-4 px-4"
+        gap={6}
+        twClassName="flex-1 px-8"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         accessible
         accessibilityRole="progressbar"
         accessibilityLabel={title}
       >
-        <ActivityIndicator testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {title}
-        </Text>
+        <Image
+          source={vbaCreatingAccount}
+          resizeMode="contain"
+          accessible={false}
+          accessibilityIgnoresInvertColors
+          style={tw.style('h-[88px] w-[94px]')}
+          testID={VbaCreatingAccountSelectorsIDs.ILLUSTRATION}
+        />
+        <Box gap={1} alignItems={BoxAlignItems.Center} twClassName="w-full">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center"
+            testID={VbaCreatingAccountSelectorsIDs.TITLE}
+          >
+            {title}
+          </Text>
+          {!awaitingProviderApproval ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+              testID={VbaCreatingAccountSelectorsIDs.DESCRIPTION}
+            >
+              {strings('virtual_bank_account.creating_account.description')}
+            </Text>
+          ) : null}
+        </Box>
       </Box>
     </SafeAreaView>
   );

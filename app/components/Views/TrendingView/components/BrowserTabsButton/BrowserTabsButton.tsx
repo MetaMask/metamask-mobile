@@ -51,7 +51,7 @@ const BrowserTabsButton: React.FC<BrowserTabsButtonProps> = ({
     >
       {isGlass ? (
         <CapsuleGlass
-          twClassName="gap-1 px-3"
+          twClassName="h-12 gap-1 px-3"
           testID={TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS}
         >
           {content}

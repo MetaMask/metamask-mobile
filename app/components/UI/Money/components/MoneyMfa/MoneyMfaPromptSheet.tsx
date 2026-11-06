@@ -1,34 +1,52 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { dismissBanner } from '../../../../../reducers/banners';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
-import { MONEY_MFA_HOME_PROMPT_ID } from '../../hooks/useMoneyMfaHomePrompt';
+import { moneyMfaStore } from '../../../../../lib/Money/mfa/moneyMfaStore';
 import MoneyMfaPasskeyIntro from './MoneyMfaPasskeyIntro';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+} from '../../constants/moneyEvents';
 
 /** Home prompt to protect the funded wallet's Money account with a passkey. */
 const MoneyMfaPromptSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const { addPasskeyAndTurnOn } = useMoneyMfa();
+  const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MFA_PROMPT_SHEET,
+  });
+
+  useMountEffect(trackBottomSheetViewed);
 
   const handleClose = useCallback(() => {
-    dispatch(dismissBanner(MONEY_MFA_HOME_PROMPT_ID));
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+    });
+    moneyMfaStore.setState({ isHomePromptDismissed: true });
     sheetRef.current?.onCloseBottomSheet();
-  }, [dispatch]);
+  }, [trackButtonClicked]);
 
   const handleAddPasskey = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+      label_key: 'money.mfa.intro_cta',
+    });
     sheetRef.current?.onCloseBottomSheet(() => {
       void addPasskeyAndTurnOn();
     });
-  }, [addPasskeyAndTurnOn]);
+  }, [addPasskeyAndTurnOn, trackButtonClicked]);
 
   return (
     <BottomSheet

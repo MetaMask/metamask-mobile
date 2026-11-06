@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Animated, {
   type SharedValue,
   runOnJS,
@@ -14,6 +15,10 @@ import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
+import { useSelector } from 'react-redux';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const COMPACT_TITLE_ENTER_OFFSET_PX = 8;
 const END_ACCESSORY_SPACER_SIZE = 40;
@@ -31,6 +36,7 @@ export interface TraderPositionAnimatedHeaderProps {
   perpLeverage?: number | null;
   onBack: () => void;
   onTraderPress: () => void;
+  onShare?: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -66,7 +72,9 @@ const TraderPositionAnimatedHeader: React.FC<
   perpLeverage,
   onBack,
   onTraderPress,
+  onShare,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const compactTokenProgress = useDerivedValue(() => {
     const hasMeasured = titleSectionHeight.value > 0;
     const isTokenSectionHidden =
@@ -107,12 +115,27 @@ const TraderPositionAnimatedHeader: React.FC<
   );
 
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       onBack={onBack}
       backButtonProps={{
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
-      endAccessory={<View style={styles.endSpacer} />}
+      endAccessory={
+        onShare ? (
+          <ButtonIconGlass
+            isCapsule={isGlassHeader}
+            iconName={IconName.Share}
+            size={ButtonIconSize.Md}
+            onPress={onShare}
+            accessibilityLabel={strings('social.profile.share_position')}
+            testID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
+          />
+        ) : (
+          <View style={styles.endSpacer} />
+        )
+      }
       testID={TraderPositionViewSelectorsIDs.HEADER}
       twClassName="bg-default"
     >
@@ -147,7 +170,7 @@ const TraderPositionAnimatedHeader: React.FC<
           />
         </Animated.View>
       </View>
-    </HeaderStandard>
+    </HeaderStandardGlass>
   );
 };
 

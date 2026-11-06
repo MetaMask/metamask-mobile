@@ -30,6 +30,11 @@ export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
 }
 
+/** Build-time gate for 2FA approvals on Money MPC signatures. Needs `MM_MONEY_MPC_REAL_KEYRING`. */
+export function isMpcTwoFactorApprovalBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_2FA_APPROVAL === 'true';
+}
+
 /**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
@@ -51,14 +56,19 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',
+  moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
+  moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
+  mfaUiKit = 'mfaUiKit',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -86,4 +96,12 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.moneyVbaPendingActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
 };
