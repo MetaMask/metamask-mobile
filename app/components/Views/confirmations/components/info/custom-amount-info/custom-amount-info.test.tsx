@@ -41,6 +41,7 @@ import { useRoute } from '@react-navigation/native';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { fireEvent, within } from '@testing-library/react-native';
 import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
+import { DEPOSIT_NATIVE_INPUT_TEST_ID } from '../../deposit-keyboard';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
@@ -814,6 +815,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders keyboard instead of the loading review while an empty perps deposit is loading', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+      txParams: { from: '0x123' },
+    } as never);
     useTransactionCustomAmountMock.mockReturnValue(
       createCustomAmountMock({
         amountFiat: '0',
@@ -827,9 +832,70 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(getByTestId(DEPOSIT_NATIVE_INPUT_TEST_ID).props.keyboardType).toBe(
+      'decimal-pad',
+    );
+    expect(queryByTestId(KeypadTestIds.KEY_1)).toBeNull();
     expect(queryByTestId('bridge-fee-row-skeleton')).not.toBeOnTheScreen();
     expect(queryByTestId('bridge-time-row-skeleton')).not.toBeOnTheScreen();
     expect(queryByTestId('total-row-skeleton')).not.toBeOnTheScreen();
+  });
+
+  it('hides the amount cursor and keypad when the area outside the amount is pressed', () => {
+    const updateTokenAmount = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        hasInput: false,
+        updateTokenAmount,
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render();
+
+    fireEvent.press(getByTestId(CustomAmountInfoTestIds.DISMISS_KEYPAD));
+
+    expect(queryByTestId('custom-amount-cursor')).not.toBeOnTheScreen();
+    expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+    expect(updateTokenAmount).not.toHaveBeenCalled();
+  });
+
+  it('shows the amount cursor and keypad when the amount is pressed after dismissal', () => {
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        hasInput: false,
+      }),
+    );
+
+    const { getByTestId } = render();
+
+    fireEvent.press(getByTestId(CustomAmountInfoTestIds.DISMISS_KEYPAD));
+    fireEvent.press(getByTestId('custom-amount-input'));
+
+    expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+  });
+
+  it('commits the amount when the keypad is dismissed after an amount is entered', async () => {
+    const updateTokenAmount = jest.fn().mockResolvedValue(undefined);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '25',
+        hasInput: true,
+        updateTokenAmount,
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CustomAmountInfoTestIds.DISMISS_KEYPAD));
+    });
+
+    expect(updateTokenAmount).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('custom-amount-cursor')).not.toBeOnTheScreen();
+    expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
   });
 
   describe('bottomBlock', () => {

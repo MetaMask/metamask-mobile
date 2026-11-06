@@ -5,8 +5,9 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from 'react';
-import { View } from 'react-native';
+import { Keyboard, LayoutAnimation, Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
@@ -21,6 +22,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
+  KEYBOARD_LAYOUT_ANIMATION,
 } from '../../deposit-keyboard';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -135,6 +137,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
+    const useNativeAmountKeyboard = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+      TransactionType.perpsDeposit,
+    ]);
     const isAddMusdIntent =
       isMoneyAccountDeposit &&
       getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
@@ -212,6 +218,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
+    const amountEntryClosedRef = useRef(false);
+    const nativeKeypadDismissedRef = useRef(false);
+    const [isAmountCursorVisible, setIsAmountCursorVisible] = useState(true);
     useMMPayNavigation(stage, setStage, isMembershipSubscription);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
@@ -285,7 +294,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
 
       isAmountUpdateInProgressRef.current = true;
-      // Enter the loading stage: keyboard hidden, totals skeletons shown.
+      // Enter the loading stage on the keyboard curve: keypad hidden, totals
+      // skeletons shown, in step with the decimal pad sliding away.
+      LayoutAnimation.configureNext(KEYBOARD_LAYOUT_ANIMATION);
+      setIsAmountCursorVisible(false);
       setStage(CustomAmountStage.Loading);
 
       try {
@@ -320,6 +332,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         // Reopen the keyboard so the user can retry; do not advance the flow.
+        amountEntryClosedRef.current = false;
+        nativeKeypadDismissedRef.current = false;
+        setIsAmountCursorVisible(true);
         setStage(CustomAmountStage.AmountInput);
         return;
       } finally {
@@ -430,10 +445,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [amountFiat, handleDone, stage]);
 
+    const [nativeKeypadFocusRequest, setNativeKeypadFocusRequest] = useState(0);
+    // Set for the amount press so a parent outside-tap does not also dismiss.
+    const amountPressConsumedRef = useRef(false);
+
     const handleAmountPress = useCallback(() => {
+      amountPressConsumedRef.current = true;
+      const wasClosed = amountEntryClosedRef.current;
+      amountEntryClosedRef.current = false;
+      nativeKeypadDismissedRef.current = false;
       hasUserOpenedKeypadRef.current = true;
+      setIsAmountCursorVisible(true);
+      if (wasClosed) {
+        LayoutAnimation.configureNext(KEYBOARD_LAYOUT_ANIMATION);
+      }
       setStage(CustomAmountStage.AmountInput);
-    }, [setStage]);
+      if (useNativeAmountKeyboard) {
+        setNativeKeypadFocusRequest((request) => request + 1);
+      }
+      queueMicrotask(() => {
+        amountPressConsumedRef.current = false;
+      });
+    }, [setStage, useNativeAmountKeyboard]);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
@@ -457,6 +490,52 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
+    const handleNativeKeyboardWillHide = useCallback(() => {
+      setIsAmountCursorVisible(false);
+    }, []);
+
+    const handleDismissKeypad = useCallback(() => {
+      if (amountPressConsumedRef.current) {
+        amountPressConsumedRef.current = false;
+        return;
+      }
+
+      if (
+        amountEntryClosedRef.current ||
+        stage !== CustomAmountStage.AmountInput ||
+        isMembershipSubscription
+      ) {
+        return;
+      }
+
+      amountEntryClosedRef.current = true;
+      setIsAmountCursorVisible(false);
+      // Mark dismissal before the decimal pad's hide event, or iOS refocuses
+      // it while the keypad slides down.
+      nativeKeypadDismissedRef.current = true;
+      LayoutAnimation.configureNext(KEYBOARD_LAYOUT_ANIMATION);
+      if (useNativeAmountKeyboard) {
+        Keyboard.dismiss();
+      }
+
+      // A non-zero amount still has to be committed. Leaving it pending would
+      // show a review screen whose confirm action uses the previous quote.
+      if (hasInput && !hasBlockingAlert) {
+        handleDonePress();
+        return;
+      }
+
+      setStage(null);
+    }, [
+      handleDonePress,
+      hasBlockingAlert,
+      hasInput,
+      isMembershipSubscription,
+      setStage,
+      stage,
+      useNativeAmountKeyboard,
+    ]);
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once quote loading takes over, reopening a picker is safe and keeps the
     // loading screen responsive.
@@ -464,7 +543,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     return (
       <Box style={styles.container}>
-        <Box style={styles.inputContainer}>
+        <Pressable
+          accessible={false}
+          onPress={handleDismissKeypad}
+          style={styles.inputContainer}
+          testID={CustomAmountInfoTestIds.DISMISS_KEYPAD}
+        >
           <View style={styles.amountBlock}>
             <CustomAmount
               amountFiat={amountFiat}
@@ -479,11 +563,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onPress={isMembershipSubscription ? undefined : handleAmountPress}
               disabled={!hasPaymentOption}
               showCursor={
+                isAmountCursorVisible &&
                 !isMembershipSubscription &&
                 stage === CustomAmountStage.AmountInput
               }
             />
-            <View style={styles.amountCaption}>
+            <View style={styles.amountCaptionInFlow}>
               {hasAlert ? (
                 <AlertMessage
                   content={alertContent}
@@ -511,7 +596,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               )}
             </View>
           </View>
-        </Box>
+        </Pressable>
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
@@ -568,6 +653,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 onChange={updatePendingAmount}
                 onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
+                useNativeKeyboard={useNativeAmountKeyboard}
+                focusRequest={nativeKeypadFocusRequest}
+                nativeKeypadDismissedRef={nativeKeypadDismissedRef}
+                onNativeKeyboardWillHide={handleNativeKeyboardWillHide}
+                onNativeKeyboardDidHide={handleDismissKeypad}
                 hasInput={hasInput}
                 hasMax={
                   (hasMax || isMoneyDepositNoFee) &&

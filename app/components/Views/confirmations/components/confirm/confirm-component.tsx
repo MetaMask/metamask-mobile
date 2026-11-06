@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useMemo } from 'react';
 import {
   BackHandler,
+  Platform,
   StyleProp,
   TouchableWithoutFeedback,
   View,
@@ -156,6 +157,21 @@ const ConfirmWrapped = ({
 }) => {
   const transaction = useTransactionMetadataRequest();
   const isScrollDisabled = useDisableScroll();
+  const usesNativeAmountKeyboard = hasTransactionType(transaction, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.perpsDeposit,
+  ]);
+  // The decimal pad stays up while the amount and keypad are used, and an
+  // outside tap can still reach the dismiss target.
+  const keyboardShouldPersistTaps = usesNativeAmountKeyboard
+    ? 'handled'
+    : undefined;
+  // iOS follows the finger and can dismiss the decimal pad mid-gesture.
+  // Bouncing lets that drag start when the amount screen already fits.
+  const keyboardDismissMode =
+    usesNativeAmountKeyboard && Platform.OS === 'ios'
+      ? 'interactive'
+      : undefined;
 
   return (
     <ConfirmationContextProvider>
@@ -171,6 +187,11 @@ const ConfirmWrapped = ({
               <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContent}
+                alwaysBounceVertical={
+                  usesNativeAmountKeyboard && Platform.OS === 'ios'
+                }
+                keyboardDismissMode={keyboardDismissMode}
+                keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                 nestedScrollEnabled
                 scrollEnabled={!isScrollDisabled}
               >
