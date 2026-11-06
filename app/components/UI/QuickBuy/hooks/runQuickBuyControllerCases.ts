@@ -3748,6 +3748,7 @@ export const runQuickBuyControllerCases = ({
             expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
               expect.objectContaining({
                 execution_time_ms: 250,
+                tx_hash: '0xabc',
               }),
             );
           } finally {
@@ -3817,6 +3818,88 @@ export const runQuickBuyControllerCases = ({
 
           expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
             expect.objectContaining({ amount_usd: 20 }),
+          );
+        });
+
+        it('omits tx_hash when an intent history item has no chain hash', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-intent' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<string, { originalTransactionId?: string }>;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'order-uid-1': { originalTransactionId: 'tx-intent' },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success' }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
+          );
+        });
+
+        it('includes tx_hash from bridge history when the submit result has none', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-stx' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<
+                  string,
+                  { status?: { srcChain?: { txHash?: string } } }
+                >;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'tx-stx': { status: { srcChain: { txHash: '0xsrc' } } },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({
+              status: 'success',
+              tx_hash: '0xsrc',
+            }),
+          );
+        });
+
+        it('omits tx_hash on success when no hash can be resolved', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-missing' });
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
           );
         });
 
@@ -4249,19 +4332,12 @@ export const runQuickBuyControllerCases = ({
             expectNormalQuickBuyFeedback();
           });
 
-          it('keeps the create profile sheet below the minimum amount', async () => {
+          it('uses normal toasts for create profile below the minimum amount', async () => {
             mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
             await submit(false, '5');
 
-            expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({
-                product: 'spot',
-                status: 'pending',
-                variant: 'create_profile',
-              }),
-            );
-            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expectNormalQuickBuyFeedback();
           });
 
           it('uses normal toasts for copy-trades below the minimum amount', async () => {

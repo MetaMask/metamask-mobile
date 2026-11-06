@@ -16,8 +16,10 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import {
+  PredictTrendingCarousel,
   selectPredictAvailability,
   usePredictEntryActions,
+  usePredictTrendingFeed,
 } from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -40,8 +42,6 @@ import { useExploreActiveTab } from '../ExploreActiveTabContext';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import {
   STOCKS_FEED_PREVIEW_PAGE_SIZE,
@@ -243,7 +243,8 @@ const NowTabContent: React.FC<TabProps> = ({
     void refreshWhatsHappening();
   }, [refresh.trigger, refreshWhatsHappening]);
 
-  const displayedPredictions = usePredictionsFeed({
+  const displayedPredictions = usePredictTrendingFeed({
+    tab: 'now',
     refresh,
     enabled: isPredictEnabled,
   });
@@ -303,7 +304,7 @@ const NowTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predict',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={displayedPredictions}
             tabName="Now"
             sectionName="predictions_trending"

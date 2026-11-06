@@ -28,11 +28,11 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
+import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
-  useValidateMoneyReferralCode,
-} from '../../hooks/useValidateMoneyReferralCode';
+} from '../../utils/moneyReferralCode';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
 /** Alphanumeric upper-case only, capped at the Money code max length. */
 const normalizeInviteCodeInput = (value: string) =>

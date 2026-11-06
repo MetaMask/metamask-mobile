@@ -755,14 +755,6 @@ jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
-// Mock useABTest to return default (control/white) variant
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variantName: 'control',
-    isActive: false,
-  }),
-}));
-
 // Mock usePerpsOICap to return not at cap by default
 jest.mock('../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({
@@ -3201,6 +3193,40 @@ describe('PerpsMarketDetailsView', () => {
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
       expect(playSelection).not.toHaveBeenCalled();
     });
+
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps a %s origin on the order instead of the asset screen',
+      async (origin) => {
+        mockRouteParams.source = origin;
+        const { useSelector } = jest.requireMock('react-redux');
+        const mockSelectPerpsEligibility = jest.requireMock(
+          '../../selectors/perpsController',
+        ).selectPerpsEligibility;
+        useSelector.mockImplementation((selector: unknown) => {
+          if (selector === mockSelectPerpsEligibility) {
+            return true;
+          }
+          return undefined;
+        });
+
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          { state: initialState },
+        );
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+          );
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ source: origin }),
+        );
+      },
+    );
 
     it('passes marketData defaults to order screen when available', async () => {
       const { useSelector } = jest.requireMock('react-redux');

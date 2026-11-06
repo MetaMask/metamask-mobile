@@ -89,6 +89,7 @@ import MyProfileCompactStats from './components/MyProfileCompactStats';
 import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
+import UncountedPositionsSheet from './components/UncountedPositionsSheet';
 import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
@@ -103,7 +104,11 @@ import {
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
 import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
-import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import {
+  SocialEvent,
+  useSocialAnalytics,
+  useSocialScreenAnalytics,
+} from '../analytics';
 
 /** Same 12px slop the home header uses so each icon stays a comfortable tap. */
 const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -111,7 +116,7 @@ const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 /** Icons sit on glass capsules; the default press fill would cover the material. */
 const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
-const { Filter, Interaction, Screen, Trade } = SocialEvent;
+const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
 const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
@@ -322,6 +327,7 @@ const MyProfileView: React.FC = () => {
     ? undefined
     : liveProfile.profile?.profile.profileId;
   const { isBlocked, block, unblock } = useTraderBlock(blockProfileId);
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
     state: [isLoading, Boolean(error), Boolean(displayProfile)],
     isActive: isOwner,
@@ -407,6 +413,7 @@ const MyProfileView: React.FC = () => {
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
+  const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const {
     scrollY: scrollYShared,
     onScroll,
@@ -452,13 +459,20 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
+  const trackProfileShared = useCallback(() => {
+    trackSocialPost({
+      interaction_type: Interaction.POST_SHARED,
+      screen_name: Screen.MY_PROFILE,
+      share_destination: ShareDestination.EXTERNAL,
+    });
+  }, [trackSocialPost]);
   const handleShareTraderDeeplink = useCallback(() => {
     if (!traderId) {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(traderId);
-  }, [traderId]);
+    shareSocialProfile(traderId, trackProfileShared);
+  }, [trackProfileShared, traderId]);
 
   const handleOpenProfileOptions = useCallback(() => {
     setIsProfileOptionsOpen(true);
@@ -467,14 +481,20 @@ const MyProfileView: React.FC = () => {
   const handleCloseProfileOptions = useCallback(() => {
     setIsProfileOptionsOpen(false);
   }, []);
+  const handleOpenUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(true);
+  }, []);
+  const handleCloseUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(false);
+  }, []);
 
   const handleShareProfile = useCallback(() => {
     if (!myProfile?.profileId) {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(myProfile.profileId);
-  }, [myProfile?.profileId]);
+    shareSocialProfile(myProfile.profileId, trackProfileShared);
+  }, [myProfile?.profileId, trackProfileShared]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>
@@ -999,6 +1019,7 @@ const MyProfileView: React.FC = () => {
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
+                    onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
                 ) : (
                   <ProfilePostsContent
@@ -1070,6 +1091,12 @@ const MyProfileView: React.FC = () => {
             traderName={displayProfile.displayName}
             onBlock={handleBlock}
             onClose={handleCloseProfileOptions}
+          />
+        ) : null}
+        {isUncountedSheetOpen ? (
+          <UncountedPositionsSheet
+            isOwner={isOwner}
+            onClose={handleCloseUncountedSheet}
           />
         ) : null}
       </SafeAreaView>

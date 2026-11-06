@@ -8,6 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { Pressable } from 'react-native';
 import TraderAvatar from '../../../../SocialFeed/components/TraderAvatar';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import {
@@ -22,6 +23,8 @@ const AVATAR_SIZE = 32;
 
 export interface TokenHolderRowProps {
   row: TraderFeedRow;
+  /** Makes the whole row pressable. Unset leaves the row inert. */
+  onPress?: () => void;
 }
 
 /**
@@ -32,7 +35,7 @@ export interface TokenHolderRowProps {
  * unrealized P&L percent beneath it is colored. The agreed design drops the
  * rank medal, win-rate tag and follow button the old leaderboard row had.
  */
-const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
+const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
   const { item, core } = row;
   // Left in USD for now, as the API prices it. Converting to the viewer's
   // currency is a deliberate follow-up, not an oversight.
@@ -43,7 +46,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
     : '';
   const pnlLabel = item.hasPnlData ? formatPercent(core.pnlPercent) : '';
 
-  return (
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -100,6 +103,20 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
         ) : null}
       </Box>
     </Box>
+  );
+
+  if (!onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      testID={TokenDetailsIds.holderRow.PRESS}
+    >
+      {content}
+    </Pressable>
   );
 };
 
