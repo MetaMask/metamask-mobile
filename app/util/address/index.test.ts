@@ -1,5 +1,6 @@
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import Engine from '../../core/Engine';
 
 import {
   isENS,
@@ -17,6 +18,7 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
   isSnapAccount,
+  isWatchOnlyAccount,
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
   renderAccountName,
@@ -649,6 +651,40 @@ describe('isSnapAccount,', () => {
     expect(
       isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBeFalsy();
+  });
+});
+
+describe('isWatchOnlyAccount', () => {
+  const watchOnlyAddress = '0x5972698398d8c5bbe67c0db74906236691020417';
+  const { keyrings } = Engine.context.KeyringController.state;
+
+  beforeEach(() => {
+    keyrings.push({
+      type: 'watch-only',
+      accounts: [watchOnlyAddress],
+      metadata: { id: 'watch-only-keyring', name: '' },
+    });
+  });
+
+  afterEach(() => {
+    keyrings.pop();
+  });
+
+  it('returns true for an account held by the watch-only keyring', () => {
+    expect(
+      isWatchOnlyAccount(watchOnlyAddress.toUpperCase().replace('0X', '0x')),
+    ).toBe(true);
+  });
+
+  it('returns false for an account held by another keyring', () => {
+    expect(isWatchOnlyAccount(mockSnapAddress1)).toBe(false);
+  });
+
+  it('returns false for an unknown or invalid address', () => {
+    expect(
+      isWatchOnlyAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBe(false);
+    expect(isWatchOnlyAccount('not-an-address')).toBe(false);
   });
 });
 

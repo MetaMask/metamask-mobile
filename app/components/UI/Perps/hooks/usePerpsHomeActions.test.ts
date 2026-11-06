@@ -90,6 +90,14 @@ const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({
+    isWatchOnly: false,
+    guard: mockGuardWatchOnly,
+  }),
+}));
+
 jest.mock('../../Compliance', () => ({
   useComplianceGate: () => ({
     gate: mockComplianceGate,
@@ -560,6 +568,29 @@ describe('usePerpsHomeActions', () => {
       await waitFor(() => {
         expect(onWithdrawSuccess).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('handleWithdraw - watch-only account', () => {
+    afterEach(() => {
+      mockGuardWatchOnly.mockReturnValue(false);
+    });
+
+    it('refuses the withdrawal before any navigation or confirmation', async () => {
+      mockGuardWatchOnly.mockReturnValue(true);
+      const onWithdrawSuccess = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ onWithdrawSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockGuardWatchOnly).toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(onWithdrawSuccess).not.toHaveBeenCalled();
     });
   });
 
