@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { ScrollView } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -14,7 +15,10 @@ import {
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import {
+  useNetworkTier,
+  type NetworkTier,
+} from '../../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog; the Polymarket section uses the same id
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
@@ -98,23 +102,27 @@ const isSameState = (a: HomeDiscoveryState, b: HomeDiscoveryState) => {
 interface DiscoveryCarouselProps {
   venueId: PredictVenueId;
   capabilities: PredictVenueCapabilities;
-  slotCount: number;
+  /** The shown slots, in the order their Events render. */
+  slotOrder: readonly HomeDiscoverySlotId[];
   reads: readonly HomeDiscoveryFeedRead[];
+  networkTier: NetworkTier | null;
   host: HomeDiscoveryHost;
 }
 
 const DiscoveryCarousel = ({
   venueId,
   capabilities,
-  slotCount,
+  slotOrder,
   reads,
+  networkTier,
   host,
 }: DiscoveryCarouselProps) => {
   const tw = useTailwind();
   const isFocused = useIsFocused();
-  const networkTier = useNetworkTier();
+  // Synchronous and uncached, so read once per mount.
+  const [hardwareTier] = useState(getHardwareTier);
   const eventsPerSlot = getHomeDiscoveryEventsPerSlot(
-    getHardwareTier(),
+    hardwareTier,
     networkTier,
   );
   const { openPredict } = usePredictEntryActions();
@@ -122,22 +130,31 @@ const DiscoveryCarousel = ({
   const { onStateChange, isVisible } = host;
 
   const events = useMemo(
-    () => reads.flatMap((read) => read.events.slice(0, eventsPerSlot)),
-    [reads, eventsPerSlot],
+    () =>
+      [...reads]
+        .sort(
+          (a, b) => slotOrder.indexOf(a.slotId) - slotOrder.indexOf(b.slotId),
+        )
+        .flatMap((read) => read.events.slice(0, eventsPerSlot)),
+    [reads, slotOrder, eventsPerSlot],
   );
-  // Live prices and scores only while the section is on screen, the
-  // Homepage is focused, and the device is known to be online.
-  const liveEvents = useEventsWithLiveData(venueId, events, {
-    isVisible: isVisible && isFocused && networkTier !== 'NONE',
-    marketScope: 'card',
-  });
-
   const state = getDiscoveryState(
     capabilities,
-    slotCount,
+    slotOrder.length,
     reads,
-    liveEvents.length,
+    events.length,
   );
+  // Live prices and scores only for the cards on screen: once every slot
+  // has loaded, while the section is in view, the Homepage is focused, and
+  // the device is known to be online.
+  const liveEvents = useEventsWithLiveData(venueId, events, {
+    isVisible:
+      state.status === 'ready' &&
+      isVisible &&
+      isFocused &&
+      networkTier !== 'NONE',
+    marketScope: 'card',
+  });
   const stateRef = useRef<HomeDiscoveryState | null>(null);
   useEffect(() => {
     if (stateRef.current && isSameState(stateRef.current, state)) return;
@@ -243,22 +260,60 @@ interface DiscoveryProps {
 const Discovery = ({ host, slotIds }: DiscoveryProps) => {
   const venueId = useNextVenueId();
   const capabilities = useVenueCapabilities(venueId);
+  const networkTier = useNetworkTier();
   const slotFeeds = useMemo(
     () => resolveHomeDiscoverySlots(capabilities, slotIds),
     [capabilities, slotIds],
   );
+  const slotOrder = useMemo(
+    () => slotFeeds.map(({ sectionId }) => sectionId),
+    [slotFeeds],
+  );
 
   return (
-    <HomeDiscoveryFeedReads venueId={venueId} slotFeeds={slotFeeds}>
+    // No usable network means no fetch (device-capability UX matrix).
+    <HomeDiscoveryFeedReads
+      venueId={venueId}
+      slotFeeds={slotFeeds}
+      isEnabled={networkTier !== 'NONE'}
+    >
       {(reads) => (
         <DiscoveryCarousel
           venueId={venueId}
           capabilities={capabilities}
-          slotCount={slotFeeds.length}
+          slotOrder={slotOrder}
           reads={reads}
+          networkTier={networkTier}
           host={host}
         />
       )}
+    </HomeDiscoveryFeedReads>
+  );
+};
+
+const renderNothing = () => null;
+
+/**
+ * Starts discovery's catalog and Feed reads for the Venue's default slots
+ * without rendering anything, so discovery is ready when it mounts. The
+ * Homepage section renders it while open Positions load.
+ */
+export const HomeDiscoveryPrefetch = () => {
+  const venueId = useNextVenueId();
+  const capabilities = useVenueCapabilities(venueId);
+  const networkTier = useNetworkTier();
+  const slotFeeds = useMemo(
+    () => resolveHomeDiscoverySlots(capabilities),
+    [capabilities],
+  );
+
+  return (
+    <HomeDiscoveryFeedReads
+      venueId={venueId}
+      slotFeeds={slotFeeds}
+      isEnabled={networkTier !== 'NONE'}
+    >
+      {renderNothing}
     </HomeDiscoveryFeedReads>
   );
 };

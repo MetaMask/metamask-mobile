@@ -49,7 +49,7 @@ import {
   type HomeDiscoveryHost,
   type HomeDiscoveryState,
 } from './homeDiscoveryHost';
-import { NextHomeDiscovery } from './NextHomeDiscovery';
+import { HomeDiscoveryPrefetch, NextHomeDiscovery } from './NextHomeDiscovery';
 import { homePositionsQueryKey, useHomePositions } from './useHomePositions';
 
 /** The UI Slot the Polymarket section renders its discovery list through. */
@@ -101,6 +101,11 @@ export const NextPredictHomeSection = forwardRef<
 
   const [discovery, setDiscovery] =
     useState<HomeDiscoveryState>(DISCOVERY_LOADING);
+  // Each time discovery shows it starts over, so the section never reports
+  // the counts of an earlier discovery.
+  if (!showsDiscovery && discovery.status !== 'loading') {
+    setDiscovery(DISCOVERY_LOADING);
+  }
   const isDiscoveryLoading = showsDiscovery && discovery.status === 'loading';
   const discoveryCount =
     showsDiscovery && discovery.status === 'ready' ? discovery.itemCount : 0;
@@ -111,7 +116,9 @@ export const NextPredictHomeSection = forwardRef<
     (showsDiscovery && discovery.status !== 'hidden');
   const itemCount = hasPositions ? rows.length : discoveryCount;
 
-  const refreshUiSlots = useUiSlotsScreen('wallet-home', showsDiscovery);
+  // Loads with the Positions read, as the Polymarket section does, so a
+  // user without Positions does not wait for both in turn.
+  const refreshUiSlots = useUiSlotsScreen('wallet-home', !hasPositions);
   const { isVisible, onLayout: onVisibilityLayout } =
     useSectionViewportVisible(sectionViewRef);
   const discoveryHost = useMemo<HomeDiscoveryHost>(
@@ -254,6 +261,7 @@ export const NextPredictHomeSection = forwardRef<
               <>
                 <HomePositionRowSkeleton />
                 <HomePositionRowSkeleton />
+                <HomeDiscoveryPrefetch />
               </>
             ) : (
               rows.map((position) => (

@@ -25,7 +25,8 @@ export interface HomeDiscoveryFeedRead {
   feedId: PredictFeedId | undefined;
   /** The first page's Events, in backend order. Kept through a failed refresh. */
   events: readonly PredictEvent[];
-  /** No data yet and a read in flight (or paused offline). */
+  /** No data yet and a read in flight or paused (offline, or no usable
+   * network). */
   isLoading: boolean;
   isError: boolean;
 }
@@ -34,7 +35,10 @@ interface HomeDiscoveryFeedReadsProps {
   venueId: PredictVenueId;
   /** The slots to read, from `resolveHomeDiscoverySlots`. */
   slotFeeds: readonly PredictSurfaceFeed<HomeDiscoverySlotId>[];
-  /** Receives one read per shown slot, in display order. */
+  /** False pauses every read (no usable network); cached Events stay. */
+  isEnabled: boolean;
+  /** Receives one read per shown slot, in {@link HOME_DISCOVERY_SLOT_IDS}
+   * order. */
   children: (reads: readonly HomeDiscoveryFeedRead[]) => ReactElement | null;
 }
 
@@ -54,13 +58,16 @@ interface StepProps extends Omit<HomeDiscoveryFeedReadsProps, 'children'> {
 const HomeDiscoveryFeedReadStep = ({
   venueId,
   slotFeeds,
+  isEnabled,
   index,
   reads,
   render,
 }: StepProps) => {
   const slotId = HOME_DISCOVERY_SLOT_IDS[index];
   const feedId = slotFeeds.find((feed) => feed.sectionId === slotId)?.feedId;
-  const { data, isPending, isError } = useFeed(venueId, feedId, FEED_PARAMS);
+  const { data, isPending, isError } = useFeed(venueId, feedId, FEED_PARAMS, {
+    enabled: isEnabled,
+  });
   const events = data?.pages[0]?.events ?? NO_EVENTS;
   const isLoading = feedId !== undefined && isPending && !isError;
   const nextReads = useMemo<readonly HomeDiscoveryFeedRead[]>(
@@ -75,6 +82,7 @@ const HomeDiscoveryFeedReadStep = ({
     <HomeDiscoveryFeedReadStep
       venueId={venueId}
       slotFeeds={slotFeeds}
+      isEnabled={isEnabled}
       index={index + 1}
       reads={nextReads}
       render={render}
@@ -89,6 +97,7 @@ const HomeDiscoveryFeedReadStep = ({
 export const HomeDiscoveryFeedReads = ({
   venueId,
   slotFeeds,
+  isEnabled,
   children,
 }: HomeDiscoveryFeedReadsProps) =>
   HOME_DISCOVERY_SLOT_IDS.length === 0 ? (
@@ -97,6 +106,7 @@ export const HomeDiscoveryFeedReads = ({
     <HomeDiscoveryFeedReadStep
       venueId={venueId}
       slotFeeds={slotFeeds}
+      isEnabled={isEnabled}
       index={0}
       reads={NO_READS}
       render={children}

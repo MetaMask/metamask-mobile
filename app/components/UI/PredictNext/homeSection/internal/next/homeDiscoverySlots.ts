@@ -21,8 +21,8 @@ export const HOME_DISCOVERY_SLOT_IDS = Object.keys(
 ) as readonly HomeDiscoverySlotId[];
 
 /**
- * The slots the Venue's descriptor supports, in display order, limited to
- * `slotIds`. A slot whose Feed key the Venue lacks is absent: it is never
+ * The slots the Venue's descriptor supports, limited to `slotIds` and in
+ * their order. A slot whose Feed key the Venue lacks is absent: it is never
  * filled from another Feed or Venue. When the Venue supports none of
  * `slotIds` (a Polymarket assignment shown under Kalshi), every slot it
  * supports applies, as the renderer's bundled fallback does for an empty
@@ -36,8 +36,8 @@ export const resolveHomeDiscoverySlots = (
     capabilities,
     PREDICT_SURFACE_FEED_KEYS.homepageSlots,
   );
-  const assigned = supported.filter(({ sectionId }) =>
-    slotIds.includes(sectionId),
+  const assigned = [...new Set(slotIds)].flatMap((slotId) =>
+    supported.filter(({ sectionId }) => sectionId === slotId),
   );
   return assigned.length > 0 ? assigned : supported;
 };

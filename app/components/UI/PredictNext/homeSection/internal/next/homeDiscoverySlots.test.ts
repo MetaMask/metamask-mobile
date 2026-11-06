@@ -54,6 +54,24 @@ describe('resolveHomeDiscoverySlots', () => {
     ]);
   });
 
+  it('keeps the requested order, once per slot', () => {
+    const capabilities = ready({
+      'nfl-games': 'nfl-games',
+      'college-football-games': 'ncaa-games',
+    });
+
+    const result = resolveHomeDiscoverySlots(capabilities, [
+      'college-football-games',
+      'nfl-games',
+      'college-football-games',
+    ]);
+
+    expect(result.map(({ sectionId }) => sectionId)).toEqual([
+      'college-football-games',
+      'nfl-games',
+    ]);
+  });
+
   it.each<[string, readonly HomeDiscoverySlotId[]]>([
     ['only slots the Venue lacks', ['btc-up-down', 'world-cup']],
     ['no slot', []],

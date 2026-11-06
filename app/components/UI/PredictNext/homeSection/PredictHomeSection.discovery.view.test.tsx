@@ -209,10 +209,13 @@ const getLegacyMarkets = Engine.context.PredictController
 const getLegacyPositions = Engine.context.PredictController
   .getPositions as jest.Mock;
 
-/** Settles the catalog and every Feed read, so absence is asserted after the
- * phase that could have rendered the section. */
-const waitForDiscoveryReads = async (feedCount: number) => {
+/** Settles the Positions read, the catalog and every Feed read, so absence
+ * is asserted after the phase that could have rendered the section. */
+const waitForDiscoveryReads = async (view: View, feedCount: number) => {
   await waitFor(() => {
+    expect(
+      view.getByTestId(PredictHomeSectionTestIds.DISCOVERY_SECTION),
+    ).toBeOnTheScreen();
     expect(
       actionCalls('PredictMarketDataService:getVenueCatalog').length,
     ).toBeGreaterThan(0);
@@ -221,18 +224,23 @@ const waitForDiscoveryReads = async (feedCount: number) => {
   await act(async () => undefined);
 };
 
-/** Serves every other action as configured but never settles Feed reads. */
-const holdFeeds = () => {
+/** Serves every other read as configured but never settles `action`, or
+ * only its reads of `resourceId` when given. */
+const hold = (action: string, resourceId?: string) => {
   const serve = messengerCall.getMockImplementation() as (
     action: string,
     ...params: unknown[]
   ) => unknown;
-  messengerCall.mockImplementation((action: string, ...params: unknown[]) =>
-    action === 'PredictMarketDataService:getFeed'
+  messengerCall.mockImplementation((called: string, ...params: unknown[]) =>
+    called === action && (resourceId === undefined || params[1] === resourceId)
       ? new Promise(() => undefined)
-      : serve(action, ...params),
+      : serve(called, ...params),
   );
 };
+const holdFeeds = () => hold('PredictMarketDataService:getFeed');
+const NFL_FEED_ID = KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'];
+const NCAAF_FEED_ID =
+  KALSHI_STATIC_VENUE_CATALOG.feeds['college-football-games'];
 
 const engine = Engine as unknown as { state: Record<string, unknown> };
 const originalEngineState = engine.state;
@@ -250,10 +258,13 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
     jest.clearAllMocks();
     configurePredictNextFeeds({ positions: [] });
     getLegacyPositions.mockResolvedValue([]);
+    // Online by default: with no usable network discovery reads no Feed.
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   });
 
   afterEach(() => {
     engine.state = originalEngineState;
+    netInfoMock.__resetMockNetInfo();
     jest.restoreAllMocks();
   });
 
@@ -416,7 +427,7 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
         configurePredictNextCatalog(catalog);
 
         const view = renderSection();
-        await waitForDiscoveryReads(0);
+        await waitForDiscoveryReads(view, 0);
 
         expect(
           view.queryByTestId(PredictHomeSectionTestIds.DISCOVERY),
@@ -444,11 +455,46 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('starts the Feed reads while the Positions read is in flight', async () => {
+      hold('PredictPortfolioService:getPositions');
+
+      const view = renderSection();
+
+      await waitFor(() =>
+        expect(feedReads().map(({ feedId }) => feedId)).toEqual(
+          expect.arrayContaining([NFL_FEED_ID, NCAAF_FEED_ID]),
+        ),
+      );
+      expect(
+        view.getAllByTestId(PredictHomeSectionTestIds.POSITION_ROW_SKELETON),
+      ).toHaveLength(2);
+      expect(
+        view.queryByTestId(PredictHomeSectionTestIds.DISCOVERY),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('reads no Feed, and shows skeleton cards, without a usable network', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'none',
+        isInternetReachable: false,
+      });
+
+      const view = renderSection();
+
+      expect(
+        await view.findAllByTestId(
+          PredictHomeSectionTestIds.DISCOVERY_CARD_SKELETON,
+        ),
+      ).toHaveLength(2);
+      await act(async () => undefined);
+      expect(feedReads()).toEqual([]);
+    });
+
     it('renders nothing when every Feed is empty', async () => {
       configurePredictNextFeeds({ positions: [], nfl: [], ncaa: [] });
 
       const view = renderSection();
-      await waitForDiscoveryReads(2);
+      await waitForDiscoveryReads(view, 2);
 
       expect(
         view.queryByTestId(PredictHomeSectionTestIds.DISCOVERY),
@@ -464,7 +510,7 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       });
 
       const view = renderSection();
-      await waitForDiscoveryReads(2);
+      await waitForDiscoveryReads(view, 2);
 
       expect(
         view.queryByTestId(PredictHomeSectionTestIds.DISCOVERY),
@@ -664,7 +710,12 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       });
 
       const view = renderSection({ uiSlot: discoveryUiSlot('btc') });
-      await waitForDiscoveryReads(1);
+      await waitFor(() =>
+        expect(feedReads().map(({ feedId }) => feedId)).toContain(
+          CRYPTO_FEED_ID,
+        ),
+      );
+      await act(async () => undefined);
 
       // The fixture serves the NCAAF Events for any Feed but NFL Games.
       expect(
@@ -673,7 +724,6 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
       ).not.toBeOnTheScreen();
-      expect(feedReads().map(({ feedId }) => feedId)).toEqual([CRYPTO_FEED_ID]);
     });
   });
 
@@ -711,14 +761,6 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       );
     };
 
-    beforeEach(() => {
-      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
-    });
-
-    afterEach(() => {
-      netInfoMock.__resetMockNetInfo();
-    });
-
     const renderDiscovery = () =>
       renderComponentViewScreen(
         DiscoveryProbe,
@@ -749,20 +791,36 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       );
     });
 
-    it('watches nothing on screen while the device is offline', async () => {
+    it('keeps the cached cards, but reads and watches nothing, once the device goes offline', async () => {
+      const view = renderDiscovery();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-2'));
+      const readsBefore = feedReads().length;
+
       netInfoMock.__setMockNetInfo({
         type: 'none',
         isInternetReachable: false,
       });
-      const view = renderDiscovery();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-2'));
-
       act(() => onScreen.set(true));
       await act(async () => undefined);
 
       expect(
         view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
       ).toBeOnTheScreen();
+      expect(watchCalls()).toEqual([]);
+      expect(feedReads()).toHaveLength(readsBefore);
+    });
+
+    it('watches nothing while another slot is still loading', async () => {
+      hold('PredictMarketDataService:getFeed', NCAAF_FEED_ID);
+      const view = renderDiscovery();
+      act(() => onScreen.set(true));
+
+      await waitFor(() => expect(feedReads()).toHaveLength(2));
+      await act(async () => undefined);
+
+      expect(
+        view.getAllByTestId(PredictHomeSectionTestIds.DISCOVERY_CARD_SKELETON),
+      ).toHaveLength(2);
       expect(watchCalls()).toEqual([]);
     });
   });
