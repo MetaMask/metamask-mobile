@@ -28,6 +28,7 @@ import {
 } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { openPredictHomeFromWallet } from '../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
@@ -89,9 +90,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
         async ({ mockServer }) => {
           await loginForPredictTests();
 
-          await WalletView.scrollAndTapPredictionsSection();
-
-          await PredictHome.waitForScreenToDisplay({
+          await openPredictHomeFromWallet({
             description: 'Predict home should be visible',
           });
 
@@ -147,8 +146,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await PredictDetailsPage.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.scrollAndTapPredictionsSection();
-          await PredictHome.waitForScreenToDisplay({
+          await openPredictHomeFromWallet({
             description: 'Predict home should be visible for balance check',
           });
           await PredictHome.expectAmountDisplayed(positionDetails.newBalance);
