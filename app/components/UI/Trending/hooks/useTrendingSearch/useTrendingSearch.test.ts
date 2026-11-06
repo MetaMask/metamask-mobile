@@ -295,6 +295,48 @@ describe('useTrendingSearch', () => {
     },
   );
 
+  it.each([
+    ['$ETH', 'ETH'],
+    ['  eth  ', 'eth'],
+    ['e$th', 'e$th'],
+  ])(
+    'normalizes every search query (trim + leading-$ strip): "%s" -> "%s"',
+    async (searchQuery, expectedQuery) => {
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery, sortBy: 'h24_trending' }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      expect(mockUseSearchRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({ query: expectedQuery }),
+      );
+    },
+  );
+
+  it('shows the trending list for a lone "$" query', async () => {
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: '$', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(mockTrendingResults);
+    });
+  });
+
   it('returns trending loading state when no search query', () => {
     mockUseTrendingRequest.mockReturnValue({
       results: [],

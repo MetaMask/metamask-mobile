@@ -65,9 +65,9 @@ export const useTrendingSearch = (opts?: {
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-  // An optional ticker-style "$" prefix is stripped from the search query.
-  // This was previously gated behind the temporary LAPTOP API-ranking fork,
-  // now unconditional.
+  // Normalized search query: whitespace trimmed and an optional ticker-style
+  // "$" prefix stripped. Branch selection and the request both use this
+  // value.
   const searchRequestQuery = debouncedQuery?.trim().replace(/^\$/, '') ?? '';
 
   // Debounce the search query
@@ -107,7 +107,7 @@ export const useTrendingSearch = (opts?: {
   });
 
   const data = useMemo(() => {
-    if (!debouncedQuery?.trim()) {
+    if (!searchRequestQuery) {
       return sortTrendingTokens(
         trendingResults,
         sortTrendingTokensOptions.option,
@@ -116,11 +116,8 @@ export const useTrendingSearch = (opts?: {
       );
     }
 
-    // Search results are displayed in the API's relevance order — no
-    // client-side merge with the trending list and no re-sort (mirrors the
-    // extension's discover-search change). The API's own result objects are
-    // shown, so a duplicate assetId is no longer replaced by the trending
-    // list's copy.
+    // Results are shown in API relevance order; no client-side merge or
+    // re-sort. The API's own result objects are shown.
     return searchResults
       .filter((item) => includeStocks || !item.rwaData)
       .map((asset) => ({
@@ -140,7 +137,7 @@ export const useTrendingSearch = (opts?: {
         securityData: asset.securityData,
       }));
   }, [
-    debouncedQuery,
+    searchRequestQuery,
     searchResults,
     trendingResults,
     sortTrendingTokensOptions,
@@ -153,7 +150,7 @@ export const useTrendingSearch = (opts?: {
     prevDebouncedQuery.current = debouncedQuery;
   });
 
-  const isLoading = debouncedQuery?.trim()
+  const isLoading = searchRequestQuery
     ? searchQuery !== debouncedQuery ||
       prevDebouncedQuery.current !== debouncedQuery ||
       isSearchLoading
@@ -166,6 +163,6 @@ export const useTrendingSearch = (opts?: {
     loadMore,
     isLoadingMore,
     hasNextPage,
-    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
+    totalCount: searchRequestQuery ? totalCount : undefined,
   };
 };

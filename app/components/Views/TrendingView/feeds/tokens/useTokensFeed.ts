@@ -3,7 +3,6 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
 import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 import {
   mapTimeOptionToSortBy,
@@ -72,12 +71,8 @@ export const useTokensFeed = ({
   useFeedRefresh(refresh, refetch);
 
   const filteredData = useMemo(() => {
-    // Search results are displayed in the API relevance order — no
-    // client-side re-sort (mirrors the extension's discover-search change).
-    // The no-query trending list keeps its existing behavior.
-    const searched = query?.trim()
-      ? data
-      : fuseSearch(data, query, TOKEN_FUSE_OPTIONS);
+    // Results are shown in API relevance order; no client-side re-sort.
+    const searched = data;
 
     if (!hideRiskyTokens) return searched;
 
@@ -87,8 +82,7 @@ export const useTokensFeed = ({
         !resultType || resultType === 'Verified' || resultType === 'Benign'
       );
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, query, hideRiskyTokens]);
+  }, [data, hideRiskyTokens]);
 
   return {
     data: filteredData,
