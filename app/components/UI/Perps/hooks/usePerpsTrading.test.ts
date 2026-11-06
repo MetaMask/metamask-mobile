@@ -323,6 +323,54 @@ describe('usePerpsTrading', () => {
       });
     });
 
+    it.each([
+      [
+        'a cancelled original for a normalized post-only would-cross result',
+        'ORDER_POST_ONLY_WOULD_CROSS',
+        { reason: 'post_only_would_cross', originalOrder: 'cancelled' },
+      ],
+      [
+        'a retained original for a normalized post-only window result',
+        'ORDER_POST_ONLY_WINDOW',
+        { reason: 'other', originalOrder: 'retained' },
+      ],
+      [
+        'a retained original for a normalized unknown result',
+        'UNKNOWN_ERROR',
+        { reason: 'other', originalOrder: 'retained' },
+      ],
+    ])('reports %s', async (_label, code, expected) => {
+      // Arrange: the exact shape Core's createErrorResult returns
+      const providerResult = {
+        success: false,
+        error: code,
+        errorCode: code,
+        errorDetails: { code, provider: 'hyperliquid' },
+      };
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        providerResult,
+      );
+      const { result } = renderHook(() => usePerpsTrading());
+
+      // Act
+      const response = await result.current.editOrder({
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit',
+          price: '51000',
+        },
+      });
+
+      // Assert
+      expect(response).toEqual({
+        ...providerResult,
+        rejection: { ...expected, error: code },
+      });
+    });
+
     it('strips watchPriceUpdate before calling the controller', async () => {
       (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
         {
