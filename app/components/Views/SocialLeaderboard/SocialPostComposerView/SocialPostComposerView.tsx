@@ -343,7 +343,6 @@ const ComposerPostButton = ({
 };
 
 interface ComposerPreviewProps {
-  store: ComposerTextStore;
   selectedPosition: { position: Position; isClosed: boolean } | null;
   tradeInFlightPreview: SocialPostComposerPreview | undefined;
   composerAuthor: SocialV1FeedAuthor;
@@ -354,11 +353,11 @@ interface ComposerPreviewProps {
 }
 
 /**
- * Preview card. Subscribes to the caption store so its comment follows typing
- * without re-rendering the rest of the screen.
+ * Preview card. The caption never shows here — PositionCardBody renders the
+ * card, not the comment, and `expanded` fixes the layout — so the item maps
+ * once with an empty comment and typing does not rebuild it.
  */
 const ComposerPreview = ({
-  store,
   selectedPosition,
   tradeInFlightPreview,
   composerAuthor,
@@ -367,17 +366,15 @@ const ComposerPreview = ({
   isTradeInFlightLocked,
   onRemovePosition,
 }: ComposerPreviewProps) => {
-  const caption = useComposerText(store, (value) => value.trim());
-
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
     if (tradeInFlightPreview) {
       if ('product' in tradeInFlightPreview) {
-        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, caption, {
+        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, '', {
           author: composerAuthor,
           commentGifUrl: gifUri ?? undefined,
         });
       }
-      return mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
+      return mapTradeInFlightToFeedItem(tradeInFlightPreview, '', {
         author: composerAuthor,
         commentGifUrl: gifUri ?? undefined,
       });
@@ -385,14 +382,13 @@ const ComposerPreview = ({
     if (!selectedPosition) {
       return null;
     }
-    return mapPositionToFeedItem(selectedPosition.position, caption, {
+    return mapPositionToFeedItem(selectedPosition.position, '', {
       isClosed: selectedPosition.isClosed,
       author: composerAuthor,
       commentGifUrl: gifUri ?? undefined,
       liveTicks: isLivePreview,
     });
   }, [
-    caption,
     composerAuthor,
     gifUri,
     isLivePreview,
@@ -485,8 +481,8 @@ const SocialPostComposerView: React.FC = () => {
     [authorName, profile?.imageUrl, profile?.profileId],
   );
 
-  // The preview card maps itself from the store inside ComposerPreview, so
-  // the analytics trade type is derived from the raw inputs here.
+  // The preview maps itself inside ComposerPreview, so the analytics trade
+  // type is derived from the raw inputs here.
   const analyticsTradeType = tradeInFlightPreview
     ? 'product' in tradeInFlightPreview
       ? Trade.PERPS
@@ -821,7 +817,6 @@ const SocialPostComposerView: React.FC = () => {
             </Box>
 
             <ComposerPreview
-              store={textStore}
               selectedPosition={selectedPosition}
               tradeInFlightPreview={tradeInFlightPreview}
               composerAuthor={composerAuthor}

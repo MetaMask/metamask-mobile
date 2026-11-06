@@ -896,37 +896,24 @@ describe('SocialPostComposerView', () => {
     expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
   });
 
-  it('keeps the preview caption in step with typing', () => {
+  it('does not rebuild the preview while typing', () => {
     mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
     renderWithProvider(<SocialPostComposerView />);
     const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const previewRendersBeforeTyping = mockPositionCardBody.mock.calls.length;
 
     fireEvent.changeText(input, 'this is alpha');
 
+    // The card never shows the caption, so typing leaves the preview alone.
+    expect(mockPositionCardBody).toHaveBeenCalledTimes(
+      previewRendersBeforeTyping,
+    );
     const [props] = mockPositionCardBody.mock.lastCall ?? [];
     expect(props).toEqual(
       expect.objectContaining({
-        item: expect.objectContaining({ comment: 'this is alpha' }),
+        item: expect.objectContaining({ comment: '' }),
       }),
     );
-  });
-
-  it('keeps the preview caption in step while the header stays idle', () => {
-    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
-    renderWithProvider(<SocialPostComposerView />);
-    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
-    const headerRendersBeforeTyping = mockHeaderRender.mock.calls.length;
-
-    fireEvent.changeText(input, 'this is alpha');
-
-    // Typing re-renders the subscribed preview but not the header.
-    const [props] = mockPositionCardBody.mock.lastCall ?? [];
-    expect(props).toEqual(
-      expect.objectContaining({
-        item: expect.objectContaining({ comment: 'this is alpha' }),
-      }),
-    );
-    expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
   });
 
   it('keeps the character count a constant width with equal-width digits', () => {
