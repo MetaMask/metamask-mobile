@@ -52,6 +52,7 @@ jest.mock('./usePredictLiveNowSection');
 // Keep the Up/Down flag on so crypto markets route to the crypto card via the
 // real PredictMarket dispatcher.
 jest.mock('../../../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../../../selectors/featureFlags'),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
 }));
 

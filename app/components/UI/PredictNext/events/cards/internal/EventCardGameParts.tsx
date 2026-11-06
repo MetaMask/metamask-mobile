@@ -17,7 +17,11 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import { useGameTeamColors } from '../../game';
+import {
+  getMatchupSlot,
+  shouldMirrorTeamLogo,
+  useGameTeamColors,
+} from '../../game';
 import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
 import {
@@ -101,9 +105,11 @@ const Provider = ({
 const TeamLogo = ({
   selection,
   size = 'small',
+  flipped = false,
 }: {
   selection: GameSelection;
   size?: 'small' | 'large';
+  flipped?: boolean;
 }) => {
   const { event, team, abbreviation } = useTeam(selection);
 
@@ -112,6 +118,7 @@ const TeamLogo = ({
       team={team}
       abbreviation={abbreviation}
       size={size}
+      flipped={flipped}
       testID={`predict-next-game-logo-${event.id}-${selection}`}
       fallbackTestID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
     />
@@ -214,11 +221,16 @@ const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
 };
 
 const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
-  const { team } = useTeam(selection);
+  const { team, projection } = useTeam(selection);
+  const slot = getMatchupSlot(projection.teamOrder, selection);
 
   return (
     <Box twClassName="w-14 items-center gap-1">
-      <TeamLogo selection={selection} size="large" />
+      <TeamLogo
+        selection={selection}
+        size="large"
+        flipped={shouldMirrorTeamLogo(team, slot)}
+      />
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Bold}
@@ -259,9 +271,10 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 
 const ProbabilityBar = () => {
   const { event, projection, colors } = useGameCard();
-  const awayWidth = projection.awayProbabilityPercent;
+  const firstWidth = projection.firstTeamProbabilityPercent;
+  const [first, second] = projection.teamOrder;
 
-  if (awayWidth === undefined) {
+  if (firstWidth === undefined) {
     return null;
   }
 
@@ -271,17 +284,17 @@ const ProbabilityBar = () => {
       twClassName="h-0.5 flex-row overflow-hidden rounded-full"
     >
       <Box
-        testID={`predict-next-game-bar-${event.id}-away`}
+        testID={`predict-next-game-bar-${event.id}-${first}`}
         style={{
-          width: `${awayWidth}%`,
-          backgroundColor: colors.away,
+          width: `${firstWidth}%`,
+          backgroundColor: colors[first],
         }}
       />
       <Box
-        testID={`predict-next-game-bar-${event.id}-home`}
+        testID={`predict-next-game-bar-${event.id}-${second}`}
         twClassName="flex-1"
         style={{
-          backgroundColor: colors.home,
+          backgroundColor: colors[second],
         }}
       />
     </Box>
@@ -366,7 +379,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
 
 const Actions = () => {
   const { projection } = useGameCard();
-  const selections = (['away', 'home'] as const).filter(
+  const selections = projection.teamOrder.filter(
     (selection) => projection.teams[selection].quote,
   );
 

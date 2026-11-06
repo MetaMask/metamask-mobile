@@ -14,7 +14,10 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import {
+  ensureSocialTermsAccepted,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -108,6 +111,15 @@ const ensureSocialProfileCreated = (
   navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   return false;
 };
+
+/**
+ * Whether `navigateToSocialTab` would open the tab itself rather than
+ * redirecting to terms, profile setup, or onboarding.
+ */
+export const canOpenSocialTabDirectly = (): boolean =>
+  (!isSocialV1Treatment() ||
+    (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+  !shouldShowSocialLeaderboardOnboarding();
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,

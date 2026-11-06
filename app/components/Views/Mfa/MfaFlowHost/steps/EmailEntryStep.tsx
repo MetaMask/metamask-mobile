@@ -34,6 +34,7 @@ const EmailEntryStep = ({ step, state, onAction }: StepProps<'emailEntry'>) => {
 
   return (
     <StepLayout
+      onAction={onAction}
       title={strings('mfa.email_entry.title')}
       description={strings('mfa.email_entry.description')}
       error={state.error}

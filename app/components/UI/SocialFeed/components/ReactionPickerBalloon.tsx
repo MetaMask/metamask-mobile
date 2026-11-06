@@ -21,6 +21,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { playSelection } from '../../../../util/haptics';
 import { FEED_REACTION_EMOJIS } from '../reactions';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
@@ -58,6 +59,7 @@ const PickerEmoji: React.FC<PickerEmojiProps> = ({ emotion, onPick }) => {
   }));
 
   const handlePress = () => {
+    playSelection().catch(() => undefined);
     if (!prefersReducedMotion) {
       scale.value = withSequence(
         withTiming(0.72, { duration: 80 }),

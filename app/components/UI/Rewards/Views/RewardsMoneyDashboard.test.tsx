@@ -10,6 +10,10 @@ import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';

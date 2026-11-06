@@ -6,6 +6,7 @@ import {
   MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
 } from '../../constants/moneyEvents';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { selectHasAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 
 let hasEmittedCampaignEvent = false;
@@ -16,16 +17,25 @@ export const __resetMoneyDepositBrazeCampaignEventForTesting = () => {
 };
 
 /**
- * Emits the Braze campaign event once per app process when Money is visible and
- * the wallet is unlocked.
+ * Emits the Braze campaign event once per app process when the wallet is
+ * unlocked, the Money account is visible, and the user holds an Aave output
+ * token meeting the Money deposit minimum balance.
  */
 const MoneyDepositBrazeCampaignObserver = () => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const hasAaveTokenMeetingDepositMinimum = useSelector(
+    selectHasAaveTokenMeetingDepositMinimum,
+  );
   const { trackCampaignTriggered } = useMoneyAnalytics();
 
   useEffect(() => {
-    if (!isUnlocked || !isMoneyAccountVisible || hasEmittedCampaignEvent) {
+    if (
+      !isUnlocked ||
+      !isMoneyAccountVisible ||
+      !hasAaveTokenMeetingDepositMinimum ||
+      hasEmittedCampaignEvent
+    ) {
       return;
     }
 
@@ -33,14 +43,19 @@ const MoneyDepositBrazeCampaignObserver = () => {
     try {
       trackCampaignTriggered({
         campaign_name:
-          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH_ATOKENS,
         campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
       });
     } catch (error) {
       hasEmittedCampaignEvent = false;
       throw error;
     }
-  }, [isMoneyAccountVisible, isUnlocked, trackCampaignTriggered]);
+  }, [
+    hasAaveTokenMeetingDepositMinimum,
+    isMoneyAccountVisible,
+    isUnlocked,
+    trackCampaignTriggered,
+  ]);
 
   return null;
 };

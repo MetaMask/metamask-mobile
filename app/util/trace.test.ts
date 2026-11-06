@@ -1938,4 +1938,172 @@ describe('Trace', () => {
       dateNowSpy.mockRestore();
     });
   });
+
+  describe('performance timeline', () => {
+    // Jest's console has no timeStamp; React Native's runtime console does.
+    const consoleMock = console as { timeStamp?: unknown };
+    const originalTimeStamp = consoleMock.timeStamp;
+    let timeStampSpy: jest.Mock;
+    let nowSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      timeStampSpy = jest.fn();
+      consoleMock.timeStamp = timeStampSpy;
+      nowSpy = jest.spyOn(globalThis.performance, 'now').mockReturnValue(0);
+    });
+
+    afterEach(() => {
+      nowSpy.mockRestore();
+      if (originalTimeStamp === undefined) {
+        delete consoleMock.timeStamp;
+      } else {
+        consoleMock.timeStamp = originalTimeStamp;
+      }
+    });
+
+    it('adds a manual trace from trace() to endTrace()', () => {
+      nowSpy.mockReturnValueOnce(100).mockReturnValueOnce(250);
+
+      trace({ name: NAME_MOCK, id: 'timeline-manual' });
+      expect(timeStampSpy).not.toHaveBeenCalled();
+      endTrace({ name: NAME_MOCK, id: 'timeline-manual' });
+
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        100,
+        250,
+        'Traces',
+        'MetaMask',
+        'tertiary',
+      );
+    });
+
+    it('marks a manual trace that ends with an error status', () => {
+      updateCachedConsent(true);
+      nowSpy.mockReturnValueOnce(100).mockReturnValueOnce(250);
+
+      trace({ name: NAME_MOCK, id: 'timeline-manual-error' });
+      endTrace({
+        name: NAME_MOCK,
+        id: 'timeline-manual-error',
+        status: 'error',
+      });
+
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        100,
+        250,
+        'Traces',
+        'MetaMask',
+        'error',
+      );
+    });
+
+    it.each([true, false])(
+      'adds a synchronous callback trace (consent %s)',
+      (consent) => {
+        updateCachedConsent(consent);
+        nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(30);
+
+        const result = trace({ name: NAME_MOCK }, () => 'done');
+
+        expect(result).toBe('done');
+        expect(timeStampSpy).toHaveBeenCalledTimes(1);
+        expect(timeStampSpy).toHaveBeenCalledWith(
+          NAME_MOCK,
+          10,
+          30,
+          'Traces',
+          'MetaMask',
+          'tertiary',
+        );
+      },
+    );
+
+    it('adds an asynchronous callback trace once its promise settles', async () => {
+      updateCachedConsent(true);
+      nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(40);
+      let resolve: (value: string) => void = () => undefined;
+
+      const promise = trace(
+        { name: NAME_MOCK },
+        () =>
+          new Promise<string>((resolver) => {
+            resolve = resolver;
+          }),
+      );
+
+      expect(timeStampSpy).not.toHaveBeenCalled();
+      resolve('done');
+      await expect(promise).resolves.toBe('done');
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        10,
+        40,
+        'Traces',
+        'MetaMask',
+        'tertiary',
+      );
+    });
+
+    it('marks a callback trace that throws and rethrows its error', () => {
+      nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(20);
+      const error = new Error('callback failed');
+
+      expect(() =>
+        trace({ name: NAME_MOCK }, () => {
+          throw error;
+        }),
+      ).toThrow(error);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        10,
+        20,
+        'Traces',
+        'MetaMask',
+        'error',
+      );
+    });
+
+    it('never lets a failing console.timeStamp break a trace', async () => {
+      updateCachedConsent(true);
+      timeStampSpy.mockImplementation(() => {
+        throw new Error('timeline failed');
+      });
+
+      expect(trace({ name: NAME_MOCK }, () => 'sync')).toBe('sync');
+      await expect(
+        trace({ name: NAME_MOCK }, async () => 'async'),
+      ).resolves.toBe('async');
+      expect(trace({ name: NAME_MOCK, id: 'timeline-throws' })).toBeDefined();
+      expect(() =>
+        endTrace({ name: NAME_MOCK, id: 'timeline-throws' }),
+      ).not.toThrow();
+      expect(timeStampSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('skips the timeline when console.timeStamp is unavailable', () => {
+      delete consoleMock.timeStamp;
+
+      expect(trace({ name: NAME_MOCK }, () => 'done')).toBe('done');
+      trace({ name: NAME_MOCK, id: 'timeline-unavailable' });
+      endTrace({ name: NAME_MOCK, id: 'timeline-unavailable' });
+
+      expect(nowSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not add buffered traces again when they are flushed', async () => {
+      trace({ name: NAME_MOCK, id: 'timeline-flush' });
+      endTrace({ name: NAME_MOCK, id: 'timeline-flush' });
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
