@@ -1,16 +1,16 @@
 import React, { useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
-import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
-import HorizontalCarousel from '../../components/HorizontalCarousel';
-import SectionHeader from '../../components/SectionHeader';
+import type { PredictMarket as PredictMarketType } from '../types';
+import HorizontalCarousel from '../../../Views/TrendingView/components/HorizontalCarousel';
+import SectionHeader from '../../../Views/TrendingView/components/SectionHeader';
 import PredictionsSkeleton from './PredictionsSkeleton';
 import { PredictionCarouselRowItem } from './PredictionRowItem';
 import {
   trackExploreInteracted,
   type ExploreTabName,
   type ExploreSectionName,
-} from '../../search/analytics';
+} from '../../../Views/TrendingView/search/analytics';
 
 interface PredictionsCarouselSectionProps {
   feed: { data: PredictMarketType[]; isLoading: boolean };
