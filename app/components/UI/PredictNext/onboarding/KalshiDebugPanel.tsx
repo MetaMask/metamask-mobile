@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useSyncExternalStore } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -20,15 +20,7 @@ import {
 import Engine from '../../../../core/Engine';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import { requestKalshiRelink } from './internal/kalshiRelinkRequest';
-import {
-  getKalshiOnboardingState,
-  subscribeKalshiOnboardingState,
-} from './internal/kalshiOnboardingStateStore';
-import {
-  readKalshiDemoEmail,
-  summarizeA2t,
-  type A2tSummary,
-} from './internal/kalshiDebugInfo';
+import { summarizeA2t, type A2tSummary } from './internal/kalshiDebugInfo';
 
 interface DebugSnapshot {
   status?: {
@@ -38,7 +30,6 @@ interface DebugSnapshot {
   };
   statusError?: string;
   a2t: A2tSummary;
-  lastEmail?: string;
 }
 
 export const KalshiDebugTestIds = {
@@ -131,11 +122,6 @@ export const KalshiDebugPanel = ({
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snapshot, setSnapshot] = useState<DebugSnapshot>();
-  // TEMPORARY: the flow publishes its machine step for this row.
-  const flowStage = useSyncExternalStore(
-    subscribeKalshiOnboardingState,
-    getKalshiOnboardingState,
-  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -146,9 +132,6 @@ export const KalshiDebugPanel = ({
           'PredictDeviceAuthService:getA2t',
         ),
       );
-      // Keyed by this profile's id: MMKV outlives SRP switches, and an
-      // unkeyed read would show another profile's email.
-      next.lastEmail = await readKalshiDemoEmail(next.a2t.sub);
       try {
         const status = await createKalshiOnboardingClient().getStatus();
         next.status = {
@@ -211,15 +194,7 @@ export const KalshiDebugPanel = ({
             Temporary. Where this profile stands in the Kalshi demo onboarding.
           </Text>
 
-          <Row
-            label="Onboarding stage (hidden = dismissed this session)"
-            value={flowStage}
-          />
           <Row label="Server status" value={describeServerStatus(snapshot)} />
-          <Row
-            label="Email used (last attempt)"
-            value={snapshot?.lastEmail ?? 'none remembered'}
-          />
           <Row
             label="Profile ID (A2T sub)"
             value={snapshot?.a2t.sub}

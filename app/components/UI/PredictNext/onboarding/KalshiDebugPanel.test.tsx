@@ -37,7 +37,6 @@ jest.mock('./internal/kalshiRelinkRequest', () => ({
 }));
 
 jest.mock('./internal/kalshiDebugInfo', () => ({
-  readKalshiDemoEmail: jest.fn().mockResolvedValue('user@example.com'),
   summarizeA2t: (token: string | undefined) => (token ? { sub: token } : {}),
 }));
 
@@ -53,15 +52,12 @@ describe('KalshiDebugPanel', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the live flow stage, the server status and the last email', async () => {
+  it('shows the server status after opening', async () => {
     messengerCall.mockResolvedValue(profileId);
     const view = renderPanel();
 
     fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
     await view.findByText('link_pending · intent pending · expires 1793972547');
-
-    expect(view.getByText('unknown')).toBeOnTheScreen();
-    expect(view.getByText('user@example.com')).toBeOnTheScreen();
   });
 
   it('copies the profile id', async () => {

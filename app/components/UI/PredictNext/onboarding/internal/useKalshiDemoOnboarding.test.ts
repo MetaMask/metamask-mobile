@@ -8,11 +8,6 @@ import {
 } from './useKalshiDemoOnboarding';
 import type { OnboardingEvent } from './kalshiDemoOnboardingMachine';
 
-jest.mock('./kalshiDebugInfo', () => ({
-  rememberKalshiDemoEmail: jest.fn(),
-  readKalshiDemoEmail: jest.fn(),
-  summarizeA2t: jest.fn(() => ({})),
-}));
 const flush = async () => {
   for (let i = 0; i < 20; i += 1) {
     await new Promise((resolve) => {
@@ -31,10 +26,7 @@ describe('createOnboardingController', () => {
 
   let clock = 0;
 
-  const start = (
-    relink = false,
-    profileId?: () => Promise<string | undefined>,
-  ) => {
+  const start = (relink = false) => {
     const controller = createOnboardingController(
       () => ({
         client,
@@ -43,7 +35,6 @@ describe('createOnboardingController', () => {
         pollIntervalMs: 0,
         relink,
         onActivated: jest.fn(),
-        profileId,
         newKey: () => {
           const key = `key-${keys.length + 1}`;
           keys.push(key);
@@ -105,19 +96,6 @@ describe('createOnboardingController', () => {
       2,
       'User@Example.com',
       'key-2',
-    );
-  });
-
-  it('remembers the email under an async profile id (gate contract)', async () => {
-    const { rememberKalshiDemoEmail } = jest.requireMock('./kalshiDebugInfo');
-    const controller = start(false, async () => 'profile-async');
-
-    controller.submitEmail('a@example.com');
-    await flush();
-
-    expect(rememberKalshiDemoEmail).toHaveBeenCalledWith(
-      'profile-async',
-      'a@example.com',
     );
   });
 

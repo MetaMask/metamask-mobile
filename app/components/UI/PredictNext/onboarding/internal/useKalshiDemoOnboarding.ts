@@ -6,7 +6,6 @@ import Logger from '../../../../../util/Logger';
 import type { KalshiOnboardingClient } from '../../adapters/remote/KalshiOnboardingClient';
 import type { KalshiWalletNetwork } from './demoOnboardingConfig';
 import type { KalshiOnboardingState } from '../../contracts/v1/onboarding';
-import { rememberKalshiDemoEmail } from './kalshiDebugInfo';
 import {
   describeOnboardingFailure,
   initialOnboardingState,
@@ -48,11 +47,6 @@ export interface UseKalshiDemoOnboardingOptions {
   /** False while the device has no usable network. Unknown stays true. */
   canPoll?: () => boolean;
   onActivated: () => void;
-  /**
-   * Current MetaMask profile id, for per-profile debug storage. May resolve
-   * async; a rejected read or an unknown id stores nothing.
-   */
-  profileId?: (() => string | undefined) | (() => Promise<string | undefined>);
   newKey?: () => string;
   now?: () => number;
 }
@@ -247,11 +241,6 @@ export const createOnboardingController = (
       const intentKey = inputs().newKey();
       const linkKey = inputs().newKey();
       lastEmail = trimmed;
-      // Best effort debug state, off the submit path: the profile id read
-      // is async (device-auth a2t), so settle it in the background.
-      Promise.resolve(inputs().profileId?.())
-        .then((profileId) => rememberKalshiDemoEmail(profileId, trimmed))
-        .catch(() => undefined);
       perform(async () => {
         const check = guard();
         // Relink (temporary debug): Kalshi refuses a new intent for a profile

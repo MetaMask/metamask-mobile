@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useSyncExternalStore } from 'react';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -18,7 +18,6 @@ import {
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
-import { summarizeA2t } from './internal/kalshiDebugInfo';
 import { KalshiDemoOnboardingModal } from './internal/KalshiDemoOnboardingModal';
 import {
   getKalshiRelinkNonce,
@@ -28,7 +27,6 @@ import {
   useKalshiDemoOnboarding,
   type KalshiOnboardingApi,
 } from './internal/useKalshiDemoOnboarding';
-import { setKalshiOnboardingState } from './internal/kalshiOnboardingStateStore';
 
 const POLL_INTERVAL_MS = 2_000;
 /** Slow or absent links poll less. Unknown (`null`) keeps the default. */
@@ -76,24 +74,7 @@ const KalshiDemoOnboardingFlow = ({
     relink,
     canPoll: () => networkTier !== 'NONE',
     onActivated: invalidatePortfolioReads,
-    profileId: async () => {
-      try {
-        const claims = summarizeA2t(
-          await Engine.controllerMessenger.call(
-            'PredictDeviceAuthService:getA2t',
-          ),
-        );
-        return claims.sub;
-      } catch {
-        return undefined;
-      }
-    },
   });
-  // TEMPORARY debug: the panel cannot reach this hook state, so publish it.
-  useEffect(() => {
-    setKalshiOnboardingState(onboarding.state.step);
-  }, [onboarding.state.step]);
-
   if (
     onboarding.state.step === 'loading' ||
     onboarding.state.step === 'hidden'
