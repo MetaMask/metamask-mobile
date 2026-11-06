@@ -467,6 +467,22 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides the limit discovery dot after the limit tab is opened', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
@@ -475,7 +491,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveTextContent(strings('bridge.tabs.limit'));
       expect(
         getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
-      ).toHaveTextContent(strings('bridge.tabs.new_badge'));
+      ).toHaveProp('accessibilityLabel', strings('bridge.tabs.new_badge'));
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.recurring'));

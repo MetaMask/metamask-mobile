@@ -96,6 +96,8 @@ export const SOCIAL_TERMS_ACCEPTED = `${prefix}socialTermsAccepted`;
 
 export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;
 
+export const BRIDGE_LIMIT_TAB_VISITED = `${prefix}bridgeLimitTabVisited`;
+
 export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
