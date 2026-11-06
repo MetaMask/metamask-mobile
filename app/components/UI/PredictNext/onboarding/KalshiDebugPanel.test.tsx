@@ -25,6 +25,7 @@ jest.mock('./internal/createKalshiOnboardingClient', () => {
     state: 'link_pending',
     intentStatus: 'pending',
     expireTs: 1793972547,
+    balanceDollars: '10.00',
   });
   return {
     createKalshiOnboardingClient: () => ({ getStatus }),
@@ -51,7 +52,9 @@ describe('KalshiDebugPanel', () => {
     const view = renderPanel();
 
     fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
-    await view.findByText('link_pending · intent pending · expires 1793972547');
+    await view.findByText(
+      'link_pending · intent pending · expires 1793972547 · balance $10.00',
+    );
   });
 
   it('copies the profile id', async () => {
@@ -92,7 +95,9 @@ describe('KalshiDebugPanel', () => {
     fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
     await waitFor(() => {
       expect(
-        view.getByText('link_pending · intent pending · expires 1793972547'),
+        view.getByText(
+          'link_pending · intent pending · expires 1793972547 · balance $10.00',
+        ),
       ).toBeOnTheScreen();
     });
 

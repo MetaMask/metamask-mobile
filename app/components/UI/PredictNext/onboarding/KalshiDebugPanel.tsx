@@ -26,6 +26,7 @@ interface DebugSnapshot {
     state: string;
     intentStatus?: string;
     expireTs?: string | number;
+    balanceDollars?: string;
   };
   statusError?: string;
   a2t: A2tSummary;
@@ -84,7 +85,7 @@ const describeError = (error: unknown): string => {
   return String(error);
 };
 
-/** `active`, or `link_pending · intent pending · expires 1793…`. */
+/** `active · balance $10.00`, or `link_pending · intent pending · expires 1793…`. */
 const describeServerStatus = (snapshot?: DebugSnapshot): string => {
   if (!snapshot) {
     return 'reading…';
@@ -102,6 +103,9 @@ const describeServerStatus = (snapshot?: DebugSnapshot): string => {
   }
   if (status.expireTs !== undefined) {
     parts.push(`expires ${status.expireTs}`);
+  }
+  if (status.balanceDollars !== undefined) {
+    parts.push(`balance $${status.balanceDollars}`);
   }
   return parts.join(' · ');
 };
@@ -136,6 +140,7 @@ export const KalshiDebugPanel = ({
           state: status.state,
           intentStatus: status.intentStatus,
           expireTs: status.expireTs,
+          balanceDollars: status.balanceDollars,
         };
       } catch (error) {
         next.statusError = `status: ${describeError(error)}`;

@@ -126,6 +126,20 @@ describe('KalshiOnboardingClient', () => {
     );
   });
 
+  it('passes the linked balance through when the server reports it', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce(
+        json(200, { onboarded: true, balanceDollars: '10.00' }),
+      );
+    const { client } = clientWith(fetchImpl);
+
+    await expect(client.getStatus()).resolves.toEqual({
+      state: 'active',
+      balanceDollars: '10.00',
+    });
+  });
+
   it('maps a failed probe to the enrollment state the server reports', async () => {
     const fetchImpl = jest
       .fn()

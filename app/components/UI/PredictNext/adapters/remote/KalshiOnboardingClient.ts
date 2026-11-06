@@ -153,13 +153,16 @@ export class KalshiOnboardingClient {
         },
       ],
     });
+    // `{onboarded: true}` means the balance probe ran; translate it, but
+    // keep the optional balanceDollars the server sends alongside it.
     const status = parseKalshiOnboardingStatus(
-      isOnboardedPayload(value) ? { state: 'active' } : value,
+      isOnboardedPayload(value) ? { state: 'active', ...value } : value,
     );
     Logger.log('PredictNext: Kalshi onboarding status', {
       state: status.state,
       intentStatus: status.intentStatus,
       expireTs: status.expireTs,
+      balanceDollars: status.balanceDollars,
     });
     return status;
   }

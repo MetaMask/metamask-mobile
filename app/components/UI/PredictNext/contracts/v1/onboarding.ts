@@ -34,6 +34,7 @@ const StatusStruct = type({
   state: string(),
   intentStatus: optional(string()),
   expireTs,
+  balanceDollars: optional(string()),
 });
 
 export interface KalshiOnboardingStatus {
@@ -42,6 +43,8 @@ export interface KalshiOnboardingStatus {
   /** Raw Kalshi enum. Logs only: the phone branches on `state`. */
   intentStatus?: string;
   expireTs?: string | number;
+  /** Linked account's balance, present when the server probed it. */
+  balanceDollars?: string;
 }
 
 export const parseKalshiOnboardingStatus = (
@@ -54,6 +57,9 @@ export const parseKalshiOnboardingStatus = (
       ? {}
       : { intentStatus: parsed.intentStatus }),
     ...(parsed.expireTs === undefined ? {} : { expireTs: parsed.expireTs }),
+    ...(parsed.balanceDollars === undefined
+      ? {}
+      : { balanceDollars: parsed.balanceDollars }),
   };
 };
 
