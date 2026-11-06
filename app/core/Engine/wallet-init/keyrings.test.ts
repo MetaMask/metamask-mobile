@@ -49,10 +49,6 @@ jest.mock('@metamask/mpc-react-native', () => ({
   dkls23Lib: { name: 'dkls23' },
 }));
 
-jest.mock('../../MpcMoneyKeyring/empty-ikm-hkdf-workaround', () => ({
-  applyEmptyIkmHkdfWorkaround: jest.fn(),
-}));
-
 jest.mock('../../SnapKeyring', () => ({
   snapKeyringBuilder: jest.fn(() => {
     const builder = () => ({});

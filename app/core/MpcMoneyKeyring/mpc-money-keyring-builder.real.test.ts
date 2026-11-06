@@ -4,7 +4,6 @@ import {
   buildRealMpcMoneyKeyringBuilder,
   MPC_MFA_WHITELIST_CONFIG,
 } from './mpc-money-keyring-builder';
-import { applyEmptyIkmHkdfWorkaround } from './empty-ikm-hkdf-workaround';
 
 jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   MpcMoneyKeyring: Object.assign(
@@ -16,10 +15,6 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
 jest.mock('@metamask/mpc-react-native', () => ({
   cl24Lib: { name: 'cl24' },
   dkls23Lib: { name: 'dkls23' },
-}));
-
-jest.mock('./empty-ikm-hkdf-workaround', () => ({
-  applyEmptyIkmHkdfWorkaround: jest.fn(),
 }));
 
 const toBase64Url = (value: object) =>
@@ -47,12 +42,6 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     });
 
     expect(builder.type).toBe('MPC Money Keyring');
-  });
-
-  it('applies the empty-IKM HKDF workaround', () => {
-    buildRealMpcMoneyKeyringBuilder({ getBearerToken: jest.fn() });
-
-    expect(applyEmptyIkmHkdfWorkaround).toHaveBeenCalled();
   });
 
   it('builds the real keyring with the native TSS libraries and dev MPC service', () => {
