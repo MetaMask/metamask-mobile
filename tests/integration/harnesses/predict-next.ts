@@ -1,5 +1,5 @@
 import { deriveStateFromMetadata } from '@metamask/base-controller';
-import { ConstantBackoff } from '@metamask/controller-utils';
+import { ConstantBackoff } from '@metamask/base-data-service';
 import {
   GeolocationApiService,
   type GeolocationApiServiceMessenger,
@@ -217,12 +217,17 @@ export interface PredictNextIntegrationHarness {
   destroy: () => void;
 }
 
-const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response =>
-  ({
+const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response => {
+  const response = {
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
-  }) as Response;
+    clone(): Response {
+      return jsonResponse({ status, body });
+    },
+  };
+  return response as Response;
+};
 
 export const buildPredictNextIntegrationHarness = (
   responder: PredictFetchResponder,
@@ -265,6 +270,10 @@ export const buildPredictNextIntegrationHarness = (
       clientVersion: '1.0.0',
       fetch: fetchMock,
       getBearerToken: getBearerTokenMock,
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'test-envelope',
+      }),
     }),
   );
   const policyOptions = {
@@ -458,7 +467,10 @@ export const buildPredictDeviceAuthIntegrationHarness = (
       });
     },
   });
-  subscribers.set('KeyringController:lock', () => controller.clear());
+  const clearApprovals = () => {
+    controller.clearApprovals().catch(() => undefined);
+  };
+  subscribers.set('KeyringController:lock', clearApprovals);
   let wasSignedIn = authenticationState.isSignedIn;
   subscribers.set('AuthenticationController:stateChange', () => {
     if (wasSignedIn && !authenticationState.isSignedIn) {
@@ -472,7 +484,7 @@ export const buildPredictDeviceAuthIntegrationHarness = (
       authenticationState.srpSessionData['entropy-source-id']?.profile
         .canonicalProfileId;
     if (nextCanonicalProfileId !== canonicalProfileId) {
-      controller.clear();
+      clearApprovals();
     }
     canonicalProfileId = nextCanonicalProfileId;
   });

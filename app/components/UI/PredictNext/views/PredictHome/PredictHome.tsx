@@ -8,6 +8,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIconSize,
   IconName,
   Text,
@@ -22,6 +23,7 @@ import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featu
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
+import { KalshiDebugPanel } from '../../onboarding';
 import {
   FEED_SCREENS,
   type FeedScreenDefinition,
@@ -253,13 +255,24 @@ const PredictHomeView = ({
         scrollEventThrottle={16}
       >
         <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
-          <Text
-            variant={TextVariant.HeadingLg}
+          <Box
             testID={PredictHomeTestIds.TITLE_SECTION}
             onLayout={handleTitleLayout}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            gap={2}
           >
-            {homeTitle}
-          </Text>
+            <Text variant={TextVariant.HeadingLg} twClassName="shrink">
+              {homeTitle}
+            </Text>
+            {/* TEMPORARY: Kalshi demo debug. Same line as the title, so it
+                does not add a row. */}
+            <KalshiDebugPanel
+              balance={balanceQuery.data}
+              balanceError={balanceQuery.error}
+            />
+          </Box>
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}

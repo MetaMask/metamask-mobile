@@ -12,6 +12,12 @@ import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { renderStep } from '../../../app/components/UI/PredictNext/auth/signing/venueTemplates';
+import type { SignOperationInput } from '../../../app/components/UI/PredictNext/auth/signing/signOperationTypes';
+import {
+  KALSHI_DEMO_SIGNING_PROFILE,
+  type VenueOperationName,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
 import type {
   PredictGameLive,
@@ -595,16 +601,35 @@ export interface PredictNextPositionsPageFixture {
 }
 
 /**
+ * The Order sheet asks PredictDeviceAuthService whether Confirm is allowed.
+ * The component-view Engine has no signing service, so this stands in with
+ * the bundled demo profile and the real renderer.
+ */
+export const previewFromDemoProfile = (
+  operation: VenueOperationName,
+  input: SignOperationInput = {},
+) =>
+  renderStep(KALSHI_DEMO_SIGNING_PROFILE, operation, input.step ?? 'default', {
+    inputs: input.inputs,
+    values: input.values,
+    nowMs: Date.now(),
+  }).find((request) => request.display !== undefined)?.display;
+
+/**
  * Composes the real Order workflow service the way the Engine init does,
  * against whatever `globalThis.fetch` is installed when called: the concrete
  * trading adapter is bound to the stubbed transport and the bearer-token
- * provider resolves through the mocked Engine context.
+ * provider resolves through the mocked Engine context. It also installs the
+ * signing preview the Order sheet reads from Engine context.
  */
 export const composePredictNextOrderService = (
   rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  (Engine.context as Record<string, unknown>).PredictDeviceAuthService = {
+    previewOperation: previewFromDemoProfile,
+  };
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -616,6 +641,10 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'test-envelope',
+      }),
     }),
   );
   return new PredictOrderService({
@@ -642,6 +671,10 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signOperation: async () => ({
+        name: 'Venue-Authorization',
+        value: 'test-envelope',
+      }),
     }),
   );
   const portfolioService = new PredictPortfolioService({
@@ -835,7 +868,8 @@ export const makePredictNextSellPreview = (
   marketId: 'KXTEST-26-A',
   side: 'yes',
   action: 'sell',
-  requestedContracts: 75,
+  price: '0.4000',
+  count: Number(overrides.requestedContracts ?? 75).toFixed(2),
   estimatedContracts: 70,
   averagePrice: '0.4800',
   limitPrice: '0.4000',
@@ -847,6 +881,7 @@ export const makePredictNextSellPreview = (
   estimatedProceeds: '33.60',
   estimatedNetProceeds: '33.26',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  requestedContracts: 75,
   ...overrides,
 });
 

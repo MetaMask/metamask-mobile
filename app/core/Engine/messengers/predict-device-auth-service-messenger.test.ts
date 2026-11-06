@@ -22,6 +22,7 @@ describe('getPredictDeviceAuthServiceMessenger', () => {
     const ensureDeviceKey = jest.fn().mockResolvedValue(null);
     const getA2t = jest.fn().mockResolvedValue('opaque-a2t');
     const prefetch = jest.fn().mockResolvedValue(undefined);
+    const invalidateA2t = jest.fn();
     const clear = jest.fn();
     const reset = jest.fn().mockResolvedValue(undefined);
     serviceMessenger.registerActionHandler(
@@ -37,6 +38,10 @@ describe('getPredictDeviceAuthServiceMessenger', () => {
       prefetch,
     );
     serviceMessenger.registerActionHandler(
+      'PredictDeviceAuthService:invalidateA2t',
+      invalidateA2t,
+    );
+    serviceMessenger.registerActionHandler(
       'PredictDeviceAuthService:clear',
       clear,
     );
@@ -50,12 +55,14 @@ describe('getPredictDeviceAuthServiceMessenger', () => {
       rootMessenger.call('PredictDeviceAuthService:getA2t'),
     ).resolves.toBe('opaque-a2t');
     await rootMessenger.call('PredictDeviceAuthService:prefetch', false);
+    rootMessenger.call('PredictDeviceAuthService:invalidateA2t');
     rootMessenger.call('PredictDeviceAuthService:clear');
     await rootMessenger.call('PredictDeviceAuthService:reset');
 
     expect(ensureDeviceKey).toHaveBeenCalledTimes(1);
     expect(getA2t).toHaveBeenCalledTimes(1);
     expect(prefetch).toHaveBeenCalledWith(false);
+    expect(invalidateA2t).toHaveBeenCalledTimes(1);
     expect(clear).toHaveBeenCalledTimes(1);
     expect(reset).toHaveBeenCalledTimes(1);
   });

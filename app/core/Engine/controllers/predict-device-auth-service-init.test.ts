@@ -5,12 +5,14 @@ import {
 } from './predict-device-auth-service-init';
 
 const mockClear = jest.fn();
+const mockClearApprovals = jest.fn().mockResolvedValue(undefined);
 
 jest.mock(
   '../../../components/UI/PredictNext/services/PredictDeviceAuthService',
   () => ({
     PredictDeviceAuthService: jest.fn().mockImplementation(() => ({
       clear: mockClear,
+      clearApprovals: mockClearApprovals,
     })),
   }),
 );
@@ -122,14 +124,15 @@ describe('predictDeviceAuthServiceInit', () => {
     subscribers.get('AuthenticationController:stateChange')?.();
 
     expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockClearApprovals).not.toHaveBeenCalled();
   });
 
-  it('clears credentials when the wallet locks', () => {
+  it('clears credentials and confirmations when the wallet locks', () => {
     const { subscribers } = initialize();
 
     subscribers.get('KeyringController:lock')?.();
 
-    expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockClearApprovals).toHaveBeenCalledTimes(1);
   });
 
   it('keeps credentials when session data changes without a profile sign-in', () => {
@@ -143,7 +146,7 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(mockClear).not.toHaveBeenCalled();
   });
 
-  it('clears credentials when profile sign-in replaces the canonical profile', () => {
+  it('clears credentials and confirmations when profile sign-in replaces the canonical profile', () => {
     const { subscribers } = initialize();
 
     subscribers.get('AuthenticationController:profileSignIn')?.({
@@ -152,7 +155,7 @@ describe('predictDeviceAuthServiceInit', () => {
       profileIdChanged: true,
     });
 
-    expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockClearApprovals).toHaveBeenCalledTimes(1);
   });
 
   it('keeps credentials when profile sign-in does not change the canonical profile', () => {
@@ -165,6 +168,7 @@ describe('predictDeviceAuthServiceInit', () => {
     });
 
     expect(mockClear).not.toHaveBeenCalled();
+    expect(mockClearApprovals).not.toHaveBeenCalled();
   });
 
   it('remembers the session profile id after the bearer token is read', async () => {

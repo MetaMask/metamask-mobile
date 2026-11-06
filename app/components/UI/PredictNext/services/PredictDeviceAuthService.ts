@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import { v4 as uuidv4 } from 'uuid';
 
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -10,9 +11,35 @@ import {
   type P256DevicePublicMaterial,
 } from '../auth/p256DeviceKey';
 import {
+  signDeviceRequest,
+  type DeviceSigningContext,
+} from '../auth/signing/deviceRequestSigner';
+import { buildVenueAuthorization } from '../auth/signing/venueAuthorization';
+import type {
+  DeviceAuthHeader,
+  SignOperationInput,
+} from '../auth/signing/signOperationTypes';
+import {
+  claimIntentSignature,
+  clearApprovedIntents,
+} from '../auth/signing/approvedIntentLedger';
+import {
+  defaultStep,
+  renderStep,
+  TemplateError,
+  type InvariantDisplay,
+} from '../auth/signing/venueTemplates';
+import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
+import {
+  resolveBundledSigningProfile,
+  VENUE_AUTHORIZATION_HEADER,
+  type VenueOperationName,
+} from '../auth/venueSigningProfiles';
+
+export type { DeviceAuthHeader, SignOperationInput };
 
 export const PREDICT_DEVICE_AUTH_SERVICE_NAME =
   'PredictDeviceAuthService' as const;
@@ -27,9 +54,30 @@ export interface PredictDeviceAuthServiceGetA2tAction {
   handler: () => Promise<string | undefined>;
 }
 
+export interface PredictDeviceAuthServiceSignOperationAction {
+  type: 'PredictDeviceAuthService:signOperation';
+  handler: (
+    operation: VenueOperationName,
+    input?: SignOperationInput,
+  ) => Promise<DeviceAuthHeader | undefined>;
+}
+
+export interface PredictDeviceAuthServicePreviewOperationAction {
+  type: 'PredictDeviceAuthService:previewOperation';
+  handler: (
+    operation: VenueOperationName,
+    input?: SignOperationInput,
+  ) => InvariantDisplay | undefined;
+}
+
 export interface PredictDeviceAuthServicePrefetchAction {
   type: 'PredictDeviceAuthService:prefetch';
   handler: (includeA2t?: boolean) => Promise<void>;
+}
+
+export interface PredictDeviceAuthServiceInvalidateA2tAction {
+  type: 'PredictDeviceAuthService:invalidateA2t';
+  handler: () => void;
 }
 
 export interface PredictDeviceAuthServiceClearAction {
@@ -45,7 +93,10 @@ export interface PredictDeviceAuthServiceResetAction {
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
+  | PredictDeviceAuthServiceSignOperationAction
+  | PredictDeviceAuthServicePreviewOperationAction
   | PredictDeviceAuthServicePrefetchAction
+  | PredictDeviceAuthServiceInvalidateA2tAction
   | PredictDeviceAuthServiceClearAction
   | PredictDeviceAuthServiceResetAction;
 
@@ -110,8 +161,20 @@ export class PredictDeviceAuthService {
       this.getA2t.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictDeviceAuthService:signOperation',
+      this.signOperation.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:previewOperation',
+      this.previewOperation.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
       this.prefetch.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:invalidateA2t',
+      this.invalidateA2t.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:clear',
@@ -144,6 +207,146 @@ export class PredictDeviceAuthService {
     return binding.session.ensureA2T();
   }
 
+  /**
+   * Renders the operation from the active signing profile exactly as
+   * `signOperation` would, and returns the worst-case figures its invariant
+   * computed, for the confirmation sheet. Nothing is signed and nothing leaves
+   * the phone. Returns undefined when no signing profile is active, or when
+   * no request of the step carries an invariant. Throws `TemplateError` when
+   * the profile does not allow the request, which keeps Confirm disabled.
+   */
+  previewOperation(
+    operation: VenueOperationName,
+    input: SignOperationInput = {},
+  ): InvariantDisplay | undefined {
+    const binding = this.#resolveBinding();
+    const profile = binding
+      ? resolveBundledSigningProfile(binding.profileId)
+      : undefined;
+    if (!profile) {
+      return undefined;
+    }
+    const requests = renderStep(
+      profile,
+      operation,
+      input.step ?? defaultStep(profile, operation),
+      {
+        inputs: input.inputs,
+        values: input.values,
+        nowMs: this.#deps.nowMs(),
+      },
+    );
+    return requests.find((request) => request.display !== undefined)?.display;
+  }
+
+  /**
+   * Renders the operation's requests from the bundled signing profile of the
+   * active authentication profile, the caller's inputs and the server values,
+   * then signs them and returns the `Venue-Authorization` header (ADR-0004).
+   * The authority, lifetime and covered components come from the profile and
+   * the device, never from predict-api. Throws `TemplateError` and signs
+   * nothing when the profile does not allow the request, including a step
+   * that renders more requests than `maxSignatures`. Returns undefined when
+   * signing is not available (disabled, locked, signed out, no signing
+   * profile, or no A2T).
+   */
+  async signOperation(
+    operation: VenueOperationName,
+    input: SignOperationInput = {},
+  ): Promise<DeviceAuthHeader | undefined> {
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
+    const binding = this.#resolveBinding();
+    const profile = binding
+      ? resolveBundledSigningProfile(binding.profileId)
+      : undefined;
+    if (!binding || !profile) {
+      return undefined;
+    }
+    const step = input.step ?? defaultStep(profile, operation);
+    const nowMs = this.#deps.nowMs();
+    const requests = renderStep(profile, operation, step, {
+      inputs: input.inputs,
+      values: input.values,
+      nowMs,
+    });
+    const { maxSignatures } = profile.implementation.params;
+    if (requests.length > maxSignatures) {
+      throw new TemplateError('max_signatures', operation);
+    }
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+      return undefined;
+    }
+    if (!this.#deps.isSignedIn()) {
+      binding.session.clear();
+      return undefined;
+    }
+    const a2t = await binding.session.ensureA2T();
+    if (!a2t) {
+      return undefined;
+    }
+    const rule = profile.operations[operation];
+    const confirmation = rule?.confirmation;
+    if (confirmation?.kind === 'per-intent') {
+      const mutation = requests.find(
+        (request) => request.idempotencyKey !== undefined,
+      );
+      const fromInput = input.inputs?.idempotencyKey;
+      const idempotencyKey =
+        mutation?.idempotencyKey ??
+        (typeof fromInput === 'string' ? fromInput : undefined);
+      if (!idempotencyKey) {
+        throw new TemplateError('confirmation', operation);
+      }
+      const pinnedTimes = (confirmation.pinnedTimes ?? []).flatMap(
+        ({ value, maxBeforePinSec }) => {
+          const seconds = input.values?.[value];
+          return typeof seconds === 'number'
+            ? [{ seconds, maxBeforePinSec }]
+            : [];
+        },
+      );
+      await claimIntentSignature({
+        operation,
+        idempotencyKey,
+        body: mutation?.body,
+        signLimit: confirmation.signLimit,
+        pinnedTimes,
+        nowMs,
+        confirmed: input.confirmed === true,
+      });
+    }
+    const context: DeviceSigningContext = {
+      a2t,
+      deviceKey: key.publicKey,
+      salt: key.salt,
+    };
+    const signatures =
+      requests.length === 0
+        ? []
+        : await Promise.all(
+            requests.map((request) =>
+              signDeviceRequest(profile, request, context, {
+                sign: binding.deviceKey.sign,
+                requestId: () => uuidv4(),
+                now: this.#deps.now,
+              }),
+            ),
+          );
+    return {
+      name: VENUE_AUTHORIZATION_HEADER,
+      value: buildVenueAuthorization({
+        signingProfileId: profile.id,
+        step,
+        context,
+        values: input.values ?? {},
+        signatures,
+        maxSignatures,
+      }),
+    };
+  }
+
   async prefetch(includeA2t = true): Promise<void> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
@@ -159,9 +362,27 @@ export class PredictDeviceAuthService {
     }
   }
 
+  /**
+   * Drops the cached A2T only, after predict-api rejected it. The pinned
+   * intents stay: a stale A2T does not undo what the user confirmed.
+   */
+  invalidateA2t(): void {
+    this.#active?.session.clear();
+  }
+
+  /** Drops the in-memory session and device key. The pinned intents stay. */
   clear(): void {
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
+  }
+
+  /**
+   * Also drops every pinned intent, the confirmation record. Lock and a
+   * change of Predict User call this. Wallet reset drops them in `reset`.
+   */
+  async clearApprovals(): Promise<void> {
+    this.clear();
+    await clearApprovedIntents();
   }
 
   /**
@@ -176,6 +397,7 @@ export class PredictDeviceAuthService {
         'Failed to reset Predict device authentication',
       );
     };
+    await clearApprovedIntents();
     const active = this.#active;
     this.#active = undefined;
     try {

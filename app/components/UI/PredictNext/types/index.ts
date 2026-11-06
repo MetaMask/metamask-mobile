@@ -299,6 +299,8 @@ export type PredictOrderPreviewParams =
       action: 'buy';
       /** The entered maximum USD spend before fees. */
       amount: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     }
   | {
       marketId: PredictEntityId;
@@ -308,6 +310,8 @@ export type PredictOrderPreviewParams =
        * a Position is share-denominated and the Venue matches whole
        * contracts only. */
       contracts: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     };
 
 /** Wire-shape twin of PredictOrderPreviewParams for the API transport.
@@ -320,6 +324,7 @@ export type FetchOrderPreviewParams =
       marketId: string;
       side: PredictOutcomeSide;
       amount: string;
+      idempotencyKey: string;
     }
   | {
       marketId: string;
@@ -327,6 +332,7 @@ export type FetchOrderPreviewParams =
       action: 'sell';
       /** Positive-integer decimal string: whole contracts only. */
       contracts: string;
+      idempotencyKey: string;
     };
 
 /** Structured fee component source, keyed by the client into localized
@@ -352,6 +358,10 @@ interface PredictOrderPreviewBase {
   /** Backend-owned breakdown of the fee; present when the backend reports it. */
   feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
   expiresAt: PredictTimestamp;
+  /** Yes-leg limit the commit signs. Absent until predict-api quotes it. */
+  price?: PredictDecimal;
+  /** Contract count the commit signs, fixed to 2 decimals. */
+  count?: PredictAmount;
 }
 
 /** A buy Order Preview: estimated cost, fees, and potential return. */
@@ -408,7 +418,9 @@ export interface FetchOrderCommitParams {
  * `rejected` means the Venue refused the Order; nothing was filled.
  * `reconciliation_required` means the backend is still resolving the true
  * outcome; render it like an in-progress status and re-observe by committing
- * the same Order Preview again. */
+ * the same Order Preview again.
+ * `needs_manual_review` means the order scan is too old to sign. The outcome
+ * is unknown, and committing again will not look any further. */
 export type PredictOrderReceiptStatus =
   | 'pending'
   | 'submitted'
@@ -416,7 +428,8 @@ export type PredictOrderReceiptStatus =
   | 'partially_filled'
   | 'not_filled'
   | 'rejected'
-  | 'reconciliation_required';
+  | 'reconciliation_required'
+  | 'needs_manual_review';
 
 /** Shared header of a committed Order's canonical result. One Order
  * produces exactly one Order Receipt, and repeated Commits of the same
@@ -467,11 +480,21 @@ export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
   netProceeds: PredictAmount | null;
 }
 
+/** The step the next commit call signs, and the server values it renders from. */
+export interface PredictOrderContinuation {
+  step: 'submit' | 'lookup' | 'scan' | 'none';
+  values: Readonly<Record<string, string | number | boolean>>;
+}
+
 /** The canonical result of a committed Order, discriminated by the Order
  * Action. Cross-action fields fail validation at the parse boundary. */
-export type PredictOrderReceipt =
+export type PredictOrderReceipt = (
   | PredictBuyOrderReceipt
-  | PredictSellOrderReceipt;
+  | PredictSellOrderReceipt
+) & {
+  /** Present while the operation still has a step to sign. */
+  next?: PredictOrderContinuation;
+};
 
 export interface FetchPortfolioPageParams {
   cursor?: string;

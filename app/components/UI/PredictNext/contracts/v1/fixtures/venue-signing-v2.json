@@ -1,0 +1,1400 @@
+{
+  "version": 2,
+  "profile": {
+    "id": "kalshi-demo-signing-v2",
+    "authenticationProfileId": "kalshi-a2t-v1",
+    "implementation": {
+      "id": "device-p256-rfc9421-v1",
+      "params": {
+        "authority": "demo-api.kalshi.co",
+        "label": "kalshi",
+        "tag": "kalshi-device-request-v1",
+        "lifetimeSec": 60,
+        "tokenScheme": "Kalshi-A2T",
+        "headers": {
+          "requestId": "kalshi-device-request-id",
+          "key": "kalshi-device-key",
+          "salt": "kalshi-device-key-salt"
+        },
+        "maxSignatures": 4
+      }
+    },
+    "operations": {
+      "portfolio.balance": {
+        "class": "read",
+        "steps": {
+          "default": [
+            {
+              "request": "balance"
+            }
+          ]
+        }
+      },
+      "onboarding.status": {
+        "class": "read",
+        "steps": {
+          "default": [
+            {
+              "request": "balance"
+            },
+            {
+              "request": "enrollment_current"
+            }
+          ]
+        }
+      },
+      "onboarding.start": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "enrollment_intent"
+            }
+          ]
+        }
+      },
+      "onboarding.link": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "link"
+            }
+          ]
+        }
+      },
+      "onboarding.verify": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "link_verify"
+            }
+          ]
+        }
+      },
+      "onboarding.activate": {
+        "class": "mutation",
+        "confirmation": {
+          "kind": "per-intent",
+          "signLimit": 3
+        },
+        "steps": {
+          "default": [
+            {
+              "request": "wallet_register"
+            }
+          ]
+        }
+      },
+      "orders.preview": {
+        "class": "read",
+        "steps": {
+          "default": [
+            {
+              "request": "balance",
+              "when": {
+                "input": "action",
+                "equals": "buy"
+              }
+            },
+            {
+              "request": "position",
+              "when": {
+                "input": "action",
+                "equals": "sell"
+              }
+            },
+            {
+              "request": "market_restriction"
+            }
+          ]
+        }
+      },
+      "orders.commit": {
+        "class": "mutation",
+        "confirmation": {
+          "kind": "per-intent",
+          "signLimit": 3,
+          "pinnedTimes": [
+            {
+              "value": "min_ts",
+              "maxBeforePinSec": 600
+            }
+          ]
+        },
+        "steps": {
+          "submit": [
+            {
+              "request": "balance",
+              "when": {
+                "input": "action",
+                "equals": "buy"
+              }
+            },
+            {
+              "request": "position",
+              "when": {
+                "input": "action",
+                "equals": "sell"
+              }
+            },
+            {
+              "request": "order_create"
+            }
+          ],
+          "lookup": [
+            {
+              "request": "order_lookup"
+            }
+          ],
+          "scan": [
+            {
+              "request": "order_scan"
+            }
+          ],
+          "none": []
+        }
+      },
+      "portfolio.positions": {
+        "class": "read",
+        "steps": {
+          "holdings": [
+            {
+              "request": "holdings_page"
+            }
+          ],
+          "settlements": [
+            {
+              "request": "holding_settlement",
+              "each": {
+                "value": "tickers",
+                "as": "ticker",
+                "shape": {
+                  "kind": "array",
+                  "of": {
+                    "kind": "opaque",
+                    "maxLength": 256
+                  },
+                  "maxItems": 4
+                }
+              }
+            }
+          ]
+        }
+      },
+      "portfolio.summary": {
+        "class": "read",
+        "steps": {
+          "holdings": [
+            {
+              "request": "holdings_page"
+            }
+          ],
+          "balance": [
+            {
+              "request": "balance"
+            }
+          ],
+          "settlements": [
+            {
+              "request": "holding_settlement",
+              "each": {
+                "value": "tickers",
+                "as": "ticker",
+                "shape": {
+                  "kind": "array",
+                  "of": {
+                    "kind": "opaque",
+                    "maxLength": 256
+                  },
+                  "maxItems": 4
+                }
+              }
+            }
+          ]
+        }
+      },
+      "portfolio.activity": {
+        "class": "read",
+        "steps": {
+          "settlements": [
+            {
+              "request": "activity_settlements"
+            }
+          ],
+          "archive": [
+            {
+              "request": "historical_positions"
+            }
+          ]
+        }
+      }
+    },
+    "requests": {
+      "balance": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/balance"
+      },
+      "enrollment_current": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/isv/enrollment/intents/current"
+      },
+      "enrollment_intent": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/enrollment/intents",
+        "body": "empty",
+        "idempotencyKey": {
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
+        }
+      },
+      "link": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/users/link",
+        "body": {
+          "json": [
+            {
+              "key": "email",
+              "value": {
+                "input": "email",
+                "transform": "trim",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 320
+                }
+              }
+            }
+          ],
+          "maxBytes": 512
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
+        }
+      },
+      "link_verify": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/users/link/verify",
+        "body": {
+          "json": [
+            {
+              "key": "code",
+              "value": {
+                "input": "code",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 32
+                }
+              }
+            }
+          ],
+          "maxBytes": 128
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
+        }
+      },
+      "wallet_register": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/wallet/register",
+        "body": {
+          "json": [
+            {
+              "key": "wallet_address",
+              "value": {
+                "input": "walletAddress",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 128
+                }
+              }
+            },
+            {
+              "key": "network",
+              "value": {
+                "input": "network",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 32
+                }
+              }
+            }
+          ],
+          "maxBytes": 512
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
+        }
+      },
+      "position": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/positions",
+        "query": [
+          {
+            "key": "ticker",
+            "value": {
+              "input": "marketId",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 256
+              }
+            }
+          },
+          {
+            "key": "count_filter",
+            "value": {
+              "const": "position"
+            }
+          },
+          {
+            "key": "limit",
+            "value": {
+              "const": 200
+            }
+          }
+        ]
+      },
+      "market_restriction": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/isv/market-restriction",
+        "query": [
+          {
+            "key": "ticker",
+            "value": {
+              "input": "marketId",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 256
+              }
+            }
+          }
+        ]
+      },
+      "order_create": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/portfolio/events/orders",
+        "body": {
+          "json": [
+            {
+              "key": "ticker",
+              "value": {
+                "input": "marketId",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 256
+                }
+              }
+            },
+            {
+              "key": "client_order_id",
+              "value": {
+                "input": "idempotencyKey",
+                "shape": {
+                  "kind": "uuid-v4"
+                }
+              }
+            },
+            {
+              "key": "side",
+              "value": {
+                "map": {
+                  "inputs": ["action", "outcome"],
+                  "table": {
+                    "buy:yes": "bid",
+                    "buy:no": "ask",
+                    "sell:yes": "ask",
+                    "sell:no": "bid"
+                  }
+                }
+              }
+            },
+            {
+              "key": "count",
+              "value": {
+                "value": "count",
+                "shape": {
+                  "kind": "decimal",
+                  "scale": 2,
+                  "min": "1"
+                }
+              }
+            },
+            {
+              "key": "price",
+              "value": {
+                "value": "price",
+                "shape": {
+                  "kind": "decimal",
+                  "scale": 4,
+                  "min": "0.01",
+                  "max": "0.99"
+                }
+              }
+            },
+            {
+              "key": "time_in_force",
+              "value": {
+                "const": "immediate_or_cancel"
+              }
+            },
+            {
+              "key": "self_trade_prevention_type",
+              "value": {
+                "const": "taker_at_cross"
+              }
+            }
+          ],
+          "maxBytes": 1024
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey",
+          "shape": {
+            "kind": "uuid-v4"
+          }
+        },
+        "invariants": [
+          {
+            "implementation": "binary-limit-order-v1",
+            "params": {
+              "pricing": "yes-leg",
+              "feeCeilingCentsPerContract": 2,
+              "amountInput": "amountCents",
+              "contractsInput": "contracts",
+              "priceField": "price",
+              "countField": "count",
+              "actionInput": "action",
+              "outcomeInput": "outcome",
+              "minOutcomePriceInput": "minOutcomePrice"
+            }
+          }
+        ]
+      },
+      "order_lookup": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/orders/{order_id}",
+        "pathParams": {
+          "order_id": {
+            "value": "order_id",
+            "shape": {
+              "kind": "uuid-v4"
+            }
+          }
+        }
+      },
+      "order_scan": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/orders",
+        "query": [
+          {
+            "key": "ticker",
+            "value": {
+              "input": "marketId",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 256
+              }
+            }
+          },
+          {
+            "key": "min_ts",
+            "value": {
+              "value": "min_ts",
+              "shape": {
+                "kind": "time",
+                "unit": "s",
+                "maxAgeSec": 2400,
+                "maxAheadSec": 60
+              }
+            }
+          },
+          {
+            "key": "limit",
+            "value": {
+              "const": 200
+            }
+          },
+          {
+            "key": "cursor",
+            "value": {
+              "value": "cursor",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 512
+              }
+            },
+            "optional": true
+          }
+        ]
+      },
+      "holdings_page": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/positions",
+        "query": [
+          {
+            "key": "count_filter",
+            "value": {
+              "const": "position"
+            }
+          },
+          {
+            "key": "limit",
+            "value": {
+              "const": 200
+            }
+          },
+          {
+            "key": "cursor",
+            "value": {
+              "value": "cursor",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 512
+              }
+            },
+            "optional": true
+          }
+        ]
+      },
+      "holding_settlement": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/settlements",
+        "query": [
+          {
+            "key": "ticker",
+            "value": {
+              "value": "ticker",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 256
+              }
+            }
+          },
+          {
+            "key": "limit",
+            "value": {
+              "const": 10
+            }
+          }
+        ]
+      },
+      "activity_settlements": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/settlements",
+        "query": [
+          {
+            "key": "limit",
+            "value": {
+              "const": 200
+            }
+          },
+          {
+            "key": "max_ts",
+            "value": {
+              "value": "max_ts",
+              "shape": {
+                "kind": "time",
+                "unit": "s",
+                "maxAheadSec": 60
+              }
+            },
+            "optional": true
+          },
+          {
+            "key": "cursor",
+            "value": {
+              "value": "cursor",
+              "shape": {
+                "kind": "opaque",
+                "maxLength": 512
+              }
+            },
+            "optional": true
+          }
+        ]
+      },
+      "historical_positions": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/historical/positions",
+        "query": [
+          {
+            "key": "limit",
+            "value": {
+              "const": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "readComponents": [
+    "@method",
+    "@authority",
+    "@path",
+    "@query",
+    "authorization",
+    "kalshi-device-request-id",
+    "kalshi-device-key",
+    "kalshi-device-key-salt"
+  ],
+  "mutationComponents": [
+    "@method",
+    "@authority",
+    "@path",
+    "@query",
+    "authorization",
+    "kalshi-device-request-id",
+    "kalshi-device-key",
+    "kalshi-device-key-salt",
+    "content-digest",
+    "content-type",
+    "idempotency-key"
+  ],
+  "cases": [
+    {
+      "name": "balance",
+      "operation": "portfolio.balance",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding status",
+      "operation": "onboarding.status",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "enrollment_current",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/isv/enrollment/intents/current",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/enrollment/intents/current\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding start",
+      "operation": "onboarding.start",
+      "step": "default",
+      "inputs": {
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "enrollment_intent",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/enrollment/intents",
+          "query": "",
+          "body": "",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/enrollment/intents\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding link",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "User+Tag@Example.com",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link",
+          "query": "",
+          "body": "{\"email\":\"User+Tag@Example.com\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:2lEc5WplzmIlKtFjPwefk7sAGabl3IB36fKw0uM3dec=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:2lEc5WplzmIlKtFjPwefk7sAGabl3IB36fKw0uM3dec=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding link trims the email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "  user@example.com \n",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link",
+          "query": "",
+          "body": "{\"email\":\"user@example.com\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:p8W2nSiyrdmtuSb49YHusp+pXM3er/ZiwRThsUgvua8=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:p8W2nSiyrdmtuSb49YHusp+pXM3er/ZiwRThsUgvua8=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding verify",
+      "operation": "onboarding.verify",
+      "step": "default",
+      "inputs": {
+        "code": "888888",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link_verify",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link/verify",
+          "query": "",
+          "body": "{\"code\":\"888888\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:kPo2XBATxMc1ERY+FzFbaRYLN5ptMTmUmsqNskVDTRo=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link/verify\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:kPo2XBATxMc1ERY+FzFbaRYLN5ptMTmUmsqNskVDTRo=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding activate",
+      "operation": "onboarding.activate",
+      "step": "default",
+      "inputs": {
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+        "network": "base",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "wallet_register",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/wallet/register",
+          "query": "",
+          "body": "{\"wallet_address\":\"0x1234567890abcdef1234567890abcdef12345678\",\"network\":\"base\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:WQDTcaFaMJzL+eZitA7emKSNGWH1r/Z9bKJsZK6q3SI=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/wallet/register\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:WQDTcaFaMJzL+eZitA7emKSNGWH1r/Z9bKJsZK6q3SI=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order preview buy",
+      "operation": "orders.preview",
+      "step": "default",
+      "inputs": {
+        "action": "buy",
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "market_restriction",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/isv/market-restriction",
+          "query": "ticker=KXTEST-26-A",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=KXTEST-26-A\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order preview sell",
+      "operation": "orders.preview",
+      "step": "default",
+      "inputs": {
+        "action": "sell",
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "position",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/positions",
+          "query": "ticker=KXTEST-26-A&count_filter=position&limit=200",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?ticker=KXTEST-26-A&count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "market_restriction",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/isv/market-restriction",
+          "query": "ticker=KXTEST-26-A",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=KXTEST-26-A\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order submit buy",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "buy",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "amountCents": 400
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.6000"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "order_create",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/portfolio/events/orders",
+          "query": "",
+          "body": "{\"ticker\":\"KXTEST-26-A\",\"client_order_id\":\"a1b2c3d4-1111-4222-8333-444455556666\",\"side\":\"bid\",\"count\":\"6.00\",\"price\":\"0.6000\",\"time_in_force\":\"immediate_or_cancel\",\"self_trade_prevention_type\":\"taker_at_cross\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/events/orders\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order submit sell no",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "sell",
+        "outcome": "no",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "6",
+        "minOutcomePrice": "0.4000"
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.6000"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "position",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/positions",
+          "query": "ticker=KXTEST-26-A&count_filter=position&limit=200",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?ticker=KXTEST-26-A&count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "order_create",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/portfolio/events/orders",
+          "query": "",
+          "body": "{\"ticker\":\"KXTEST-26-A\",\"client_order_id\":\"a1b2c3d4-1111-4222-8333-444455556666\",\"side\":\"bid\",\"count\":\"6.00\",\"price\":\"0.6000\",\"time_in_force\":\"immediate_or_cancel\",\"self_trade_prevention_type\":\"taker_at_cross\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/events/orders\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order lookup",
+      "operation": "orders.commit",
+      "step": "lookup",
+      "inputs": {},
+      "values": {
+        "order_id": "c3d4e5f6-3333-4444-8555-666677778888"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "order_lookup",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/orders/c3d4e5f6-3333-4444-8555-666677778888",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders/c3d4e5f6-3333-4444-8555-666677778888\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order scan",
+      "operation": "orders.commit",
+      "step": "scan",
+      "inputs": {
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {
+        "min_ts": 1699999900
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "order_scan",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/orders",
+          "query": "ticker=KXTEST-26-A&min_ts=1699999900&limit=200",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders\n\"@query\": ?ticker=KXTEST-26-A&min_ts=1699999900&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order scan with cursor",
+      "operation": "orders.commit",
+      "step": "scan",
+      "inputs": {
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {
+        "min_ts": 1699999900,
+        "cursor": "next-page"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "order_scan",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/orders",
+          "query": "ticker=KXTEST-26-A&min_ts=1699999900&limit=200&cursor=next-page",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders\n\"@query\": ?ticker=KXTEST-26-A&min_ts=1699999900&limit=200&cursor=next-page\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "holdings first page",
+      "operation": "portfolio.positions",
+      "step": "holdings",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "holdings_page",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/positions",
+          "query": "count_filter=position&limit=200",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "holdings with cursor",
+      "operation": "portfolio.positions",
+      "step": "holdings",
+      "inputs": {},
+      "values": {
+        "cursor": "next-page"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "holdings_page",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/positions",
+          "query": "count_filter=position&limit=200&cursor=next-page",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?count_filter=position&limit=200&cursor=next-page\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "settlements for two tickers",
+      "operation": "portfolio.positions",
+      "step": "settlements",
+      "inputs": {},
+      "values": {
+        "tickers": ["KXTEST-26-A", "KXTEST-26-B"]
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "holding_settlement",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/settlements",
+          "query": "ticker=KXTEST-26-A&limit=10",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/settlements\n\"@query\": ?ticker=KXTEST-26-A&limit=10\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "holding_settlement",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/settlements",
+          "query": "ticker=KXTEST-26-B&limit=10",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/settlements\n\"@query\": ?ticker=KXTEST-26-B&limit=10\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "activity settlements with max_ts and cursor",
+      "operation": "portfolio.activity",
+      "step": "settlements",
+      "inputs": {},
+      "values": {
+        "max_ts": 1700000000,
+        "cursor": "next-page"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "activity_settlements",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/settlements",
+          "query": "limit=200&max_ts=1700000000&cursor=next-page",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/settlements\n\"@query\": ?limit=200&max_ts=1700000000&cursor=next-page\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "historical positions",
+      "operation": "portfolio.activity",
+      "step": "archive",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "historical_positions",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/historical/positions",
+          "query": "limit=1",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/historical/positions\n\"@query\": ?limit=1\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order commit none",
+      "operation": "orders.commit",
+      "step": "none",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": []
+    }
+  ],
+  "refusals": [
+    {
+      "name": "unknown operation",
+      "operation": "portfolio.unknown",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "rule": "operation"
+    },
+    {
+      "name": "unknown step",
+      "operation": "portfolio.balance",
+      "step": "scan",
+      "inputs": {},
+      "values": {},
+      "rule": "step"
+    },
+    {
+      "name": "link without email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "input"
+    },
+    {
+      "name": "link with empty email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link with oversized email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link with a blank email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "   ",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link without idempotency key",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "a@b.co"
+      },
+      "values": {},
+      "rule": "input"
+    },
+    {
+      "name": "link with a numeric idempotency key",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "a@b.co",
+        "idempotencyKey": 5
+      },
+      "values": {},
+      "rule": "idempotency_key"
+    },
+    {
+      "name": "verify with a numeric code",
+      "operation": "onboarding.verify",
+      "step": "default",
+      "inputs": {
+        "code": 888888,
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "buy over the amount",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "buy",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "amountCents": 100
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.6000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "sell count is not the user contracts",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "sell",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "2"
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.4000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "sell below the floor",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "sell",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "6",
+        "minOutcomePrice": "0.5000"
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.4000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "order price above the range",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "buy",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "amountCents": 100000
+      },
+      "values": {
+        "count": "1.00",
+        "price": "1.0000"
+      },
+      "rule": "shape"
+    },
+    {
+      "name": "scan min_ts too old",
+      "operation": "orders.commit",
+      "step": "scan",
+      "inputs": {
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {
+        "min_ts": 1699990000
+      },
+      "rule": "shape"
+    },
+    {
+      "name": "lookup without an order id",
+      "operation": "orders.commit",
+      "step": "lookup",
+      "inputs": {},
+      "values": {},
+      "rule": "value"
+    },
+    {
+      "name": "too many settlement tickers",
+      "operation": "portfolio.positions",
+      "step": "settlements",
+      "inputs": {},
+      "values": {
+        "tickers": ["A", "B", "C", "D", "E"]
+      },
+      "rule": "shape"
+    }
+  ],
+  "vector": {
+    "nowMs": 1700000000000,
+    "authority": "demo-api.kalshi.co",
+    "profileId": "profile-1",
+    "audience": "kalshi-demo-example",
+    "issuerPublicJwk": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "KNTGSSCembqxW5vI_ngMPfFrezlmepo0NMbzF9fTnCA",
+      "y": "X70NsGIrPrgRH_92l7pyMAGC4xPfMqYAAyOeCHWVi34"
+    },
+    "a2t": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg",
+    "deviceKey": "BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8",
+    "salt": "BwcHBwcHBwcHBwcHBwcHBw",
+    "request": {
+      "name": "balance",
+      "class": "read",
+      "method": "GET",
+      "path": "/trade-api/v2/portfolio/balance",
+      "query": "",
+      "body": ""
+    },
+    "signature": {
+      "method": "GET",
+      "path": "/trade-api/v2/portfolio/balance",
+      "query": "",
+      "requestId": "a1b2c3d4-1111-4222-8333-444455556666",
+      "signatureInput": "kalshi=(\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\"",
+      "signature": "kalshi=:PQHmdPEGw833c0sZd5uSmq6g3fmkJVkYO5TSW4l3h6IgYjlN+u2GVfalxKsDr4sxAWwO5uu5UH5k0kHj9G8Qbw==:"
+    },
+    "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+  }
+}

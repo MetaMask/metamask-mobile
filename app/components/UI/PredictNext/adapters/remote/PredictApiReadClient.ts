@@ -1,5 +1,8 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
+import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import type { TemplateValues } from '../../auth/signing/venueTemplates';
+import type { VenueOperationName } from '../../auth/venueSigningProfiles';
 import type {
   FetchFeedParams,
   FetchOrderCommitParams,
@@ -13,8 +16,22 @@ import type {
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
+import {
+  sendSigned,
+  VenueSigningRefusedError,
+  VenueSigningUnavailableError,
+  type SignOperation,
+} from './signedVenueCall';
+
+/** A read that acts as the user on the venue, and what signs it. */
+interface SigningIntent {
+  operation: VenueOperationName;
+  input?: SignOperationInput;
+}
 
 export interface PredictApiReadTransport {
+  /** Drops per-account client state, such as next-page signing values. */
+  clearAccountState?(): void;
   fetchVenueStatus(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
@@ -68,8 +85,15 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     params: FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SignOperationInput,
   ): Promise<unknown>;
 }
+
+/** Signed calls one paged read may make, continuations and re-signs included. */
+const MAX_SIGNED_PAGE_CALLS = 25;
+
+/** Next-page signing values kept per client. The oldest is dropped first. */
+const MAX_REMEMBERED_CURSORS = 32;
 
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
@@ -78,11 +102,42 @@ type PredictApiReadQueryParams = FetchFeedParams &
     sort?: FetchPositionsParams['sort'];
   };
 
+const continuationOf = (
+  value: unknown,
+): { token: string; step: string; values: TemplateValues } | undefined => {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.token !== 'string' ||
+    typeof record.step !== 'string' ||
+    typeof record.values !== 'object' ||
+    record.values === null
+  ) {
+    return undefined;
+  }
+  return {
+    token: record.token,
+    step: record.step,
+    values: record.values as TemplateValues,
+  };
+};
+
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
   getBearerToken: () => Promise<string | undefined>;
+  /**
+   * Renders and signs a canonical operation from the bundled signing profile
+   * and returns the `Venue-Authorization` header. Throws `TemplateError` when
+   * the profile does not allow the request, and returns undefined when
+   * signing is unavailable. Without it, device-signed reads cannot be sent.
+   */
+  signOperation?: SignOperation;
+  /** Drops the cached A2T after `venue_authorization_invalid`. */
+  invalidateSigningSession?: () => void;
 }
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
@@ -100,12 +155,34 @@ export class PredictHttpError extends Error {
   readonly status: number;
   /** Canonical error code from the response body, when the backend sends one. */
   readonly bodyCode?: string;
+  /** The step predict-api now expects, on `venue_step_changed`. */
+  readonly next?: {
+    step: string;
+    values: Record<string, string | number | boolean>;
+  };
 
-  constructor(status: number, bodyCode?: string) {
+  constructor(
+    status: number,
+    bodyCode?: string,
+    next?: PredictHttpError['next'],
+  ) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
     this.bodyCode = bodyCode;
+    this.next = next;
+  }
+}
+
+/**
+ * The phone refused or could not sign the call, so it was never sent. The
+ * synthetic 400 maps to the generic invalid-response error rather than to a
+ * region block.
+ */
+export class PredictRequestNotSentError extends PredictHttpError {
+  constructor(bodyCode: string) {
+    super(400, bodyCode);
+    this.name = 'PredictRequestNotSentError';
   }
 }
 
@@ -114,17 +191,33 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
   readonly #getBearerToken: () => Promise<string | undefined>;
+  readonly #signOperation?: SignOperation;
+  readonly #invalidateSigningSession?: () => void;
+  /** Values the next page of a cursor must sign, from the page that named it. */
+  readonly #nextSigning = new Map<
+    string,
+    { step: string; values: TemplateValues }
+  >();
 
   constructor({
     baseUrl,
     clientVersion,
     fetch: fetchFn = global.fetch,
     getBearerToken,
+    signOperation,
+    invalidateSigningSession,
   }: PredictApiReadClientOptions) {
     this.#baseUrl = parseBaseUrl(baseUrl);
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
     this.#getBearerToken = getBearerToken;
+    this.#signOperation = signOperation;
+    this.#invalidateSigningSession = invalidateSigningSession;
+  }
+
+  /** Forgets the next-page signing values. A Predict User change calls this. */
+  clearAccountState(): void {
+    this.#nextSigning.clear();
   }
 
   fetchVenueStatus(
@@ -138,7 +231,10 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
+    // The balance is the user's own Kalshi balance, so it is device-signed.
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options, {
+      operation: 'portfolio.balance',
+    });
   }
 
   fetchPositions(
@@ -146,11 +242,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     { status, ...params }: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
+    return this.#getSignedPaged(
+      'portfolio.positions',
       ['v1', 'venues', venueId, 'positions'],
       // The route takes the status filter as a comma-separated list.
       { ...params, status: status?.length ? status.join(',') : undefined },
       options,
+      (body) => body.positions !== undefined,
     );
   }
 
@@ -158,10 +256,12 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(
+    return this.#getSignedPaged(
+      'portfolio.summary',
       ['v1', 'venues', venueId, 'portfolio', 'summary'],
       undefined,
       options,
+      (body) => body.availableBalance !== undefined,
     );
   }
 
@@ -170,7 +270,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
+    return this.#getSignedPaged(
+      'portfolio.activity',
+      ['v1', 'venues', venueId, 'activity'],
+      params,
+      options,
+      (body) => body.activity !== undefined,
+    );
   }
 
   fetchFeed(
@@ -228,24 +334,58 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'orders', 'preview'],
       params,
       options,
+      {
+        operation: 'orders.preview',
+        input: {
+          inputs: {
+            action:
+              'action' in params && params.action === 'sell' ? 'sell' : 'buy',
+            marketId: params.marketId,
+            idempotencyKey: params.idempotencyKey,
+          },
+        },
+      },
     );
   }
 
   /**
    * Commits an approved Order Preview. The body carries the Preview
-   * reference only; the backend derives every executable detail from the
-   * stored Preview and derives identity from the bearer token.
+   * reference only. `signing` is the step the phone renders and signs.
+   * `venue_step_changed` is rendered again from the body's `next` and sent
+   * once more.
    */
-  commitOrder(
+  async commitOrder(
     venueId: PredictVenueId,
     params: FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SignOperationInput,
   ): Promise<unknown> {
-    return this.#postAuthenticated(
-      ['v1', 'venues', venueId, 'orders', 'commit'],
-      params,
-      options,
-    );
+    const post = (input: SignOperationInput | undefined) =>
+      this.#postAuthenticated(
+        ['v1', 'venues', venueId, 'orders', 'commit'],
+        params,
+        options,
+        input ? { operation: 'orders.commit', input } : undefined,
+      );
+    try {
+      return await post(signing);
+    } catch (error) {
+      if (
+        !signing ||
+        !(error instanceof PredictHttpError) ||
+        error.status !== 409 ||
+        error.bodyCode !== 'venue_step_changed' ||
+        !error.next
+      ) {
+        throw error;
+      }
+      return post({
+        ...signing,
+        step: error.next.step,
+        values: error.next.values,
+        confirmed: false,
+      });
+    }
   }
 
   /**
@@ -270,10 +410,128 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return token;
   }
 
+  /**
+   * One signed venue read per call. A body without the page is a partial
+   * result: the phone signs that continuation's step and values, and posts
+   * its opaque token, until the page is present. A finished page can also
+   * name the values the next cursor must sign. The token itself is not signed.
+   */
+  async #getSignedPaged(
+    operation: VenueOperationName,
+    segments: readonly string[],
+    params: PredictApiReadQueryParams | undefined,
+    options: PredictReadOptions | undefined,
+    ready: (body: Record<string, unknown>) => boolean,
+  ): Promise<unknown> {
+    const cursor = params?.cursor;
+    const signingKey = (forCursor: string) =>
+      JSON.stringify([operation, segments, forCursor]);
+    const remembered =
+      typeof cursor === 'string'
+        ? this.#nextSigning.get(signingKey(cursor))
+        : undefined;
+    // A first page names no step. The signing profile starts the operation at
+    // its first declared one.
+    let step: string | undefined = remembered?.step;
+    let values = remembered?.values;
+    let continuation: string | undefined;
+    // ADR-0004: a moved step is re-rendered and re-signed once.
+    let stepChangeRetried = false;
+    // A rejected continuation token is dropped once. That read starts again
+    // as its first GET, and the same token is not sent again.
+    let readRestarted = false;
+    for (let calls = 0; calls < MAX_SIGNED_PAGE_CALLS; calls += 1) {
+      try {
+        const body = await this.#get(
+          segments,
+          params,
+          options,
+          { operation, input: { step, values } },
+          continuation,
+        );
+        if (typeof body !== 'object' || body === null) {
+          return body;
+        }
+        const record = body as Record<string, unknown>;
+        const next = continuationOf(record.continuation);
+        const nextCursor = record.nextCursor;
+        if (typeof nextCursor === 'string' && next) {
+          this.#rememberNextSigning(signingKey(nextCursor), {
+            step: next.step,
+            values: next.values,
+          });
+        }
+        if (ready(record) || !next) {
+          return body;
+        }
+        continuation = next.token;
+        step = next.step;
+        values = next.values;
+      } catch (error) {
+        if (
+          !stepChangeRetried &&
+          error instanceof PredictHttpError &&
+          error.status === 409 &&
+          error.bodyCode === 'venue_step_changed' &&
+          error.next
+        ) {
+          stepChangeRetried = true;
+          step = error.next.step;
+          values = error.next.values;
+          continue;
+        }
+        if (
+          continuation !== undefined &&
+          !readRestarted &&
+          error instanceof PredictHttpError &&
+          error.status === 400 &&
+          error.bodyCode === 'invalid_request'
+        ) {
+          readRestarted = true;
+          continuation = undefined;
+          step = remembered?.step;
+          values = remembered?.values;
+          // The restarted GET is a new first call of this read.
+          stepChangeRetried = false;
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new PredictHttpError(503);
+  }
+
+  #rememberNextSigning(
+    key: string,
+    signing: { step: string; values: TemplateValues },
+  ): void {
+    this.#nextSigning.delete(key);
+    this.#nextSigning.set(key, signing);
+    while (this.#nextSigning.size > MAX_REMEMBERED_CURSORS) {
+      const oldest = this.#nextSigning.keys().next().value;
+      if (oldest === undefined) {
+        return;
+      }
+      this.#nextSigning.delete(oldest);
+    }
+  }
+
+  /**
+   * `signing` marks a read that acts as the user on the venue. The phone
+   * renders and signs it before the call, so the signed call is the first
+   * call (ADR-0004). A response that says the signature or the A2T is stale
+   * is signed again and sent once more.
+   *
+   * `continuationToken` is opaque. When it is present the same path is
+   * posted as `{ continuation }` and the page parameters stay on the query
+   * string. The token is not decoded, logged, or passed to `signing`.
+   */
   async #get(
     segments: readonly string[],
     params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
+    signing?: SigningIntent,
+    continuationToken?: string,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
 
@@ -288,19 +546,37 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       }
     }
 
-    const response = await this.#fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'x-metamask-clientproduct': 'metamask-mobile',
-        'x-metamask-clientversion': this.#clientVersion,
-        Authorization: `Bearer ${bearerToken}`,
-      },
-      signal: options?.signal,
-    });
+    const continuationBody =
+      continuationToken === undefined
+        ? undefined
+        : JSON.stringify({ continuation: continuationToken });
+    const send = (deviceAuth?: {
+      name: string;
+      value: string;
+    }): Promise<Response> =>
+      this.#fetch(url.toString(), {
+        method: continuationBody === undefined ? 'GET' : 'POST',
+        headers: {
+          Accept: 'application/json',
+          ...(continuationBody === undefined
+            ? {}
+            : { 'Content-Type': 'application/json' }),
+          'x-metamask-clientproduct': 'metamask-mobile',
+          'x-metamask-clientversion': this.#clientVersion,
+          Authorization: `Bearer ${bearerToken}`,
+          ...(deviceAuth ? { [deviceAuth.name]: deviceAuth.value } : {}),
+        },
+        ...(continuationBody === undefined ? {} : { body: continuationBody }),
+        signal: options?.signal,
+      });
+
+    const response = signing
+      ? await this.#sendSignedRead(signing, send)
+      : await send();
 
     if (!response.ok) {
-      throw new PredictHttpError(response.status);
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
     }
 
     try {
@@ -317,6 +593,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     body: FetchOrderPreviewParams | FetchOrderCommitParams,
     options?: PredictReadOptions,
+    signing?: SigningIntent,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
     // A write aborted while its token resolved must not go out: the token
@@ -326,7 +603,40 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       aborted.name = 'AbortError';
       throw aborted;
     }
-    return this.#post(segments, body, bearerToken, options);
+    if (!signing) {
+      return this.#post(segments, body, bearerToken, options);
+    }
+    const url = new URL(
+      segments.map(encodeURIComponent).join('/'),
+      this.#baseUrlWithTrailingSlash(),
+    );
+    const response = await this.#sendSignedRead(signing, (deviceAuth) =>
+      this.#fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'x-metamask-clientproduct': 'metamask-mobile',
+          'x-metamask-clientversion': this.#clientVersion,
+          Authorization: `Bearer ${bearerToken}`,
+          [deviceAuth.name]: deviceAuth.value,
+        },
+        body: JSON.stringify(body),
+        signal: options?.signal,
+      }),
+    );
+    if (!response.ok) {
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
+    }
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      throw new PredictHttpError(response.status);
+    }
   }
 
   async #post(
@@ -354,8 +664,8 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     });
 
     if (!response.ok) {
-      const bodyCode = await this.#extractErrorCode(response);
-      throw new PredictHttpError(response.status, bodyCode);
+      const error = await this.#readError(response);
+      throw new PredictHttpError(response.status, error.code, error.next);
     }
 
     try {
@@ -368,13 +678,83 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
   }
 
-  /** Reads the canonical error code from an error response body, if any. */
-  async #extractErrorCode(response: Response): Promise<string | undefined> {
+  async #sendSignedRead(
+    signing: SigningIntent,
+    send: (deviceAuth: { name: string; value: string }) => Promise<Response>,
+  ): Promise<Response> {
+    const signOperation = this.#signOperation;
+    if (!signOperation) {
+      throw new PredictRequestNotSentError('venue_signing_unavailable');
+    }
     try {
-      const body = (await response.json()) as { code?: unknown };
-      return typeof body.code === 'string' ? body.code : undefined;
+      return await sendSigned(
+        {
+          signOperation,
+          invalidateSigningSession: () => this.#invalidateSigningSession?.(),
+        },
+        signing.operation,
+        signing.input,
+        send,
+        async (response) => ({
+          status: response.status,
+          // Read the code from a clone so the response can still be returned.
+          // A success has no error code to read.
+          code: response.ok
+            ? undefined
+            : (await this.#readError(response.clone())).code,
+        }),
+      );
+    } catch (error) {
+      if (error instanceof VenueSigningRefusedError) {
+        throw new PredictRequestNotSentError(
+          `venue_signing_refused_${error.rule}`,
+        );
+      }
+      if (error instanceof VenueSigningUnavailableError) {
+        throw new PredictRequestNotSentError('venue_signing_unavailable');
+      }
+      throw error;
+    }
+  }
+
+  /** Reads the canonical error code, and `next` when the step moved. */
+  async #readError(response: Response): Promise<{
+    code?: string;
+    next?: Required<PredictHttpError['next']>;
+  }> {
+    try {
+      const body = (await response.json()) as {
+        code?: unknown;
+        next?: unknown;
+      };
+      const next = body.next;
+      const values =
+        typeof next === 'object' &&
+        next !== null &&
+        'values' in next &&
+        typeof next.values === 'object' &&
+        next.values !== null
+          ? next.values
+          : undefined;
+      const step =
+        typeof next === 'object' &&
+        next !== null &&
+        'step' in next &&
+        typeof next.step === 'string'
+          ? next.step
+          : undefined;
+      return {
+        code: typeof body.code === 'string' ? body.code : undefined,
+        next:
+          step && values
+            ? {
+                step,
+                values: values as Record<string, string | number | boolean>,
+              }
+            : undefined,
+      };
     } catch {
-      return undefined;
+      return {};
     }
   }
 

@@ -20,27 +20,43 @@ const jsonResponse = (status: number, body: unknown): Response =>
 describe('PredictDeviceAuthService integration', () => {
   const originalFetch = global.fetch;
   const originalIssuerUrl = process.env.MM_A2T_URL;
+  const DEVICE_KEY_SERVICE_PREFIX = 'com.metamask.predict.device-key';
+  /** Device-key payload only. Other scopes, such as the intent ledger, stay separate. */
   let stored: string | null;
+  const secureItems = new Map<string, string>();
+
+  const scopeKey = (scope: { service?: string } | undefined): string =>
+    scope?.service ?? '';
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.MM_A2T_URL = 'https://issuer.example';
     stored = null;
+    secureItems.clear();
     jest
       .mocked(SecureKeychain.getSecureItem)
-      .mockImplementation(async () =>
-        stored ? { key: 'device-key', value: stored } : null,
-      );
+      .mockImplementation(async (scope: { service?: string }) => {
+        const value = secureItems.get(scopeKey(scope));
+        return value === undefined ? null : { key: 'item', value };
+      });
     (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
-      async (_key: string, value: string) => {
-        stored = value;
+      async (_key: string, value: string, scope?: { service?: string }) => {
+        const key = scopeKey(scope);
+        secureItems.set(key, value);
+        if (key.startsWith(DEVICE_KEY_SERVICE_PREFIX)) {
+          stored = value;
+        }
         return true;
       },
     );
     jest
       .mocked(SecureKeychain.clearSecureScope)
-      .mockImplementation(async () => {
-        stored = null;
+      .mockImplementation(async (scope: { service?: string }) => {
+        const key = scopeKey(scope);
+        secureItems.delete(key);
+        if (key.startsWith(DEVICE_KEY_SERVICE_PREFIX)) {
+          stored = null;
+        }
         return true;
       });
   });
@@ -267,4 +283,58 @@ describe('PredictDeviceAuthService integration', () => {
       expect(fetchMock).toHaveBeenCalledTimes(3);
     },
   );
+
+  describe('confirmation ledger', () => {
+    const LEDGER_SERVICE = 'com.metamask.predict.approved-intents';
+    const pinIntent = () =>
+      secureItems.set(LEDGER_SERVICE, JSON.stringify({ v: 1, entries: {} }));
+    const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+    it('keeps the pinned intents when only the A2T or the session drops', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      await harness.messenger.call('PredictDeviceAuthService:invalidateA2t');
+      await harness.messenger.call('PredictDeviceAuthService:clear');
+      harness.authenticationState.isSignedIn = false;
+      harness.emit('AuthenticationController:stateChange');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(true);
+    });
+
+    it('drops the pinned intents when the wallet locks', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      harness.keyringState.isUnlocked = false;
+      harness.emit('KeyringController:lock');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+
+    it('drops the pinned intents when another Predict User signs in', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      await harness.messenger.call('PredictDeviceAuthService:ensureDeviceKey');
+      pinIntent();
+
+      harness.authenticationState.srpSessionData[
+        'entropy-source-id'
+      ].profile.canonicalProfileId = 'replacement-profile-id';
+      harness.emit('AuthenticationController:profileSignIn');
+      await flush();
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+
+    it('drops the pinned intents on wallet reset', async () => {
+      const harness = buildPredictDeviceAuthIntegrationHarness();
+      pinIntent();
+
+      await harness.messenger.call('PredictDeviceAuthService:reset');
+
+      expect(secureItems.has(LEDGER_SERVICE)).toBe(false);
+    });
+  });
 });

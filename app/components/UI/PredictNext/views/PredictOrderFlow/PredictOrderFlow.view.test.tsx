@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
+
 import {
   act,
   fireEvent,
@@ -111,11 +112,13 @@ const stubFetch = (
     const { status = 200, body } = isCommit
       ? (commit?.() ?? { status: 200, body: makeReceipt() })
       : reply(String(url), init);
-    return {
+    const response = {
       ok: status >= 200 && status < 300,
       status,
       json: async () => body,
-    } as Response;
+      clone: (): Response => response as unknown as Response,
+    };
+    return response as unknown as Response;
   });
 };
 
@@ -134,6 +137,11 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       url: String(url),
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
+
+const previewKeys = (): unknown[] =>
+  previewCalls().map(
+    ({ body }) => (body as { idempotencyKey?: unknown }).idempotencyKey,
+  );
 
 const stubBalance = (venueStatus?: { termsUrl?: string }) =>
   mockPredictNextMessenger((action: string) => {
@@ -219,9 +227,20 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   totalDebit: '20.86',
   potentialPayout: '43.00',
   potentialProfit: '22.14',
+  price: '0.0100',
+  count: '1.00',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
+
+/** The sheet mints a fresh v4 key per open; assert the shape, not a stub. */
+const IDEMPOTENCY_KEY = expect.stringMatching(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+);
+const continuation = {
+  step: 'lookup',
+  values: { order_id: 'c1b2c3d4-1111-4222-8333-444455556666' },
+};
 
 const typeAmount = (amount: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
@@ -400,8 +419,10 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
+    // The total is the signed worst case: 1 contract at 1¢ plus the 2¢ fee
+    // ceiling, not the server's estimate.
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$20.86',
+      '$0.03',
     );
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
@@ -432,6 +453,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '20',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -447,6 +469,28 @@ describe('PredictOrderFlow', () => {
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+  });
+
+  it('keeps Review disabled when the quoted order exceeds the typed amount', async () => {
+    stubFetch((_url, init) => {
+      const body = JSON.parse(String(init?.body)) as { amount: string };
+      const echoed = Number(body.amount).toFixed(2);
+      return {
+        body: makePreview({
+          requestedAmount: echoed,
+          orderAmount: echoed,
+          price: '0.9900',
+          count: '100.00',
+        }),
+      };
+    });
+
+    await openSheet();
+    typeAmount('1');
+    await flushDebounce();
+    await waitFor(() => expect(previewCalls()).toHaveLength(1));
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
   });
 
   it('re-quotes and discards the old preview when the amount changes', async () => {
@@ -470,6 +514,9 @@ describe('PredictOrderFlow', () => {
 
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
+    // The same Order: an amount edit keeps its idempotency key.
+    const [first, second] = previewKeys();
+    expect(second).toBe(first);
   });
 
   it('keeps Review disabled while a fresh quote loads for the changed amount', async () => {
@@ -536,6 +583,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '5',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -574,6 +622,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '15',
+      idempotencyKey: IDEMPOTENCY_KEY,
     });
   });
 
@@ -665,7 +714,10 @@ describe('PredictOrderFlow', () => {
     ).toHaveTextContent('43');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toHaveTextContent('$20.86');
+    ).toHaveTextContent('$0.03');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
+    ).toHaveTextContent('$1.00');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
@@ -849,6 +901,10 @@ describe('PredictOrderFlow', () => {
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
+    // The Receipt proves an operation holds the first key: a new Order.
+    const [first, second] = previewKeys();
+    expect(second).toEqual(IDEMPOTENCY_KEY);
+    expect(second).not.toBe(first);
   }, 30000);
 
   it('renders a rejection honestly: nothing filled, balance untouched, re-quote offered', async () => {
@@ -877,7 +933,12 @@ describe('PredictOrderFlow', () => {
       commit: () => {
         commits += 1;
         return commits === 1
-          ? { body: makeUnresolvedReceipt('reconciliation_required') }
+          ? {
+              body: {
+                ...makeUnresolvedReceipt('reconciliation_required'),
+                next: continuation,
+              },
+            }
           : { body: makeReceipt() };
       },
     });
@@ -1265,6 +1326,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '70',
+        idempotencyKey: IDEMPOTENCY_KEY,
       });
     });
 
@@ -1299,6 +1361,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '75',
+        idempotencyKey: IDEMPOTENCY_KEY,
       });
     });
 
@@ -1445,9 +1508,10 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PROCEEDS),
       ).toHaveTextContent('$33.60');
+      // 75 contracts at 40¢ less the 2¢ fee ceiling, the signed worst case.
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
-      ).toHaveTextContent('$33.26');
+      ).toHaveTextContent('$28.50');
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
       ).toBeNull();
@@ -1583,7 +1647,12 @@ describe('PredictOrderFlow', () => {
         commit: () => {
           commits += 1;
           return commits === 1
-            ? { body: makeUnresolvedSellReceipt('reconciliation_required') }
+            ? {
+                body: {
+                  ...makeUnresolvedSellReceipt('reconciliation_required'),
+                  next: continuation,
+                },
+              }
             : { body: makePredictNextSellReceipt() };
         },
       });

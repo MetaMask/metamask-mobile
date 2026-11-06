@@ -1,5 +1,7 @@
 # Backend-built venue requests, signed on the phone under pinned profiles
 
+> **Superseded in part by [ADR-0004](./0004-venue-request-templates.md) (2026-11-03).** The `428 venue_signature_required` exchange, the `Kalshi-Device-Auth` header and the signing policy that checked a 428 are gone. The phone renders each venue request from its signing profile and sends it, signed, on the first call in a `Venue-Authorization` header. The trust model here is kept: the phone signs only what its pinned profile allows, and it owns identity and freshness.
+
 The Predict API builds every account-scoped Venue request. The phone signs it with a device key, but only after checking it against a signing profile that ships with the app. The phone holds no Venue-specific code. It holds a generic signer and a small block of pinned data per Venue that describes what a legitimate request looks like. The Predict API can never change that data.
 
 Status: proposed, 2026-10-27. Discussion input for [#37727](https://github.com/MetaMask/metamask-mobile/pull/37727) (PRED-1370) and PRED-1362.
@@ -8,9 +10,14 @@ Implementation status: the initial Engine capability is implemented for the
 bundled Kalshi P-256 profile and opaque A2T issuance. It keeps the current
 two-signature exchange (SRP challenge plus device proof), accepts the preferred
 `{ a2t, expiresIn }` response and temporary absolute-`exp` response without
-decoding token claims, and owns lock/profile/flag/reset invalidation. Generic
-request signing and remotely supplied signing profiles remain future work; the
-service intentionally exposes no arbitrary-byte signing action. The bundled
+decoding token claims, and owns lock/profile/flag/reset invalidation. Request
+signing is implemented for Kalshi demo onboarding: the bundled
+`KALSHI_DEMO_SIGNING_PROFILE` (`auth/venueSigningProfiles.ts`) pins the
+authority, signature settings and onboarding routes with their bound body
+fields, and `PredictDeviceAuthService:signVenueRequests` signs a predict-api
+`428` only after the L1 and L2 checks pass. Trading routes and signing
+profiles served by a separate backend remain future work; the service still
+exposes no arbitrary-byte signing action. The bundled
 profile now selects the allowlisted `device-p256-salt-v1` implementation and
 pins its stable key slot, proof prefix, and issuer paths. That implementation
 fixes the public-key encoding, signature encoding, 16-byte salt, and SHA-256

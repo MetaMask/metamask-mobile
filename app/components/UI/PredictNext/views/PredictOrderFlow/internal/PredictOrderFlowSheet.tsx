@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ActivityIndicator,
   Image,
@@ -35,6 +36,9 @@ import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
 import { PredictError, PredictErrorCode } from '../../../errors';
+import { amountToCents } from '../../../auth/signing/orderCommit';
+import { previewOperation } from '../../../auth/previewOperation';
+import { TemplateError } from '../../../auth/signing/venueTemplates';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -49,6 +53,7 @@ import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 import {
   isPreviewExpired,
+  type PredictOrderCommitSigning,
   type PredictOrderResolution,
   type PredictOrderService,
 } from '../../../services/PredictOrderService';
@@ -59,7 +64,6 @@ import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
-import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -126,6 +130,16 @@ export const PredictOrderFlowSheet = ({
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
+  // One key per Order. Quotes of the same intent reuse it, so an ambiguous
+  // Commit can never be placed again under a new key. A Receipt proves an
+  // operation holds the key, and a new intent is a new Order: either way the
+  // next quote gets a fresh key.
+  const idempotencyKeyRef = useRef<string | null>(null);
+  const isKeySpentRef = useRef(false);
+  const orderKey = useCallback((): string => {
+    idempotencyKeyRef.current ??= uuidv4();
+    return idempotencyKeyRef.current;
+  }, []);
   const breakdownSheetRef =
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
 
@@ -227,8 +241,16 @@ export const PredictOrderFlowSheet = ({
     setCommitError(null);
     setVenueExpired(false);
     requestIdRef.current += 1;
+    idempotencyKeyRef.current = null;
+    isKeySpentRef.current = false;
     releasePresentation();
   }, [intent, releasePresentation]);
+
+  useEffect(() => {
+    if (receipt) {
+      isKeySpentRef.current = true;
+    }
+  }, [receipt]);
 
   // Pre-submit work dies with the Venue change: the quote and an approval
   // that was never committed go back to an empty amount entry.
@@ -303,6 +325,11 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      if (isKeySpentRef.current) {
+        isKeySpentRef.current = false;
+        idempotencyKeyRef.current = null;
+      }
+      const idempotencyKey = orderKey();
       const params: PredictOrderPreviewParams =
         intent.action === 'buy'
           ? {
@@ -310,12 +337,14 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
+              idempotencyKey,
             }
           : {
               marketId: intent.marketId,
               side: intent.side,
               action: 'sell',
               contracts: contracts as PredictAmount,
+              idempotencyKey,
             };
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
@@ -352,6 +381,7 @@ export const PredictOrderFlowSheet = ({
     intent,
     isQuotable,
     isStale,
+    orderKey,
     phase,
     quoteNonce,
     service,
@@ -375,9 +405,54 @@ export const PredictOrderFlowSheet = ({
   // even if the quote has expired locally. Only a venue `preview_expired`
   // (commitError stays unset) makes a fresh quote the sole next step.
   const approvalExpired = commitError === null && isExpired;
+  const orderCheck = useMemo(() => {
+    if (!preview?.price || !preview.count) {
+      return undefined;
+    }
+    const quote = {
+      price: preview.price,
+      count: preview.count,
+    };
+    try {
+      if (intent.action === 'buy') {
+        const cents = amountToCents(amount);
+        if (cents === undefined) {
+          return undefined;
+        }
+        return previewOperation('orders.commit', {
+          step: 'submit',
+          values: quote,
+          inputs: {
+            action: 'buy',
+            outcome: intent.side,
+            marketId: intent.marketId,
+            idempotencyKey: orderKey(),
+            amountCents: cents,
+          },
+        });
+      }
+      return previewOperation('orders.commit', {
+        step: 'submit',
+        values: quote,
+        inputs: {
+          action: 'sell',
+          outcome: intent.side,
+          marketId: intent.marketId,
+          idempotencyKey: orderKey(),
+          contracts,
+        },
+      });
+    } catch (error) {
+      if (error instanceof TemplateError) {
+        Logger.log('PredictNext: order check refused', error.rule);
+      }
+      return undefined;
+    }
+  }, [amount, contracts, intent, orderKey, preview]);
   const canReview =
     phase === 'input' &&
     preview !== null &&
+    orderCheck !== undefined &&
     !isQuoting &&
     !isExpired &&
     !isStale;
@@ -420,10 +495,34 @@ export const PredictOrderFlowSheet = ({
   /** Commits the approved Preview. The Commit sends nothing but the Preview
    * reference; the service coalesces repeated commits and observes
    * in-progress operations, so this never places a second Order. */
+  const commitSigning = useCallback(():
+    | PredictOrderCommitSigning
+    | undefined => {
+    if (!preview?.price || !preview.count || !orderCheck) {
+      return undefined;
+    }
+    const cents = intent.action === 'buy' ? amountToCents(amount) : undefined;
+    return {
+      step: 'submit',
+      confirmed: true,
+      values: { price: preview.price, count: preview.count },
+      inputs: {
+        action: intent.action,
+        outcome: intent.side,
+        marketId: intent.marketId,
+        idempotencyKey: orderKey(),
+        ...(intent.action === 'buy'
+          ? { amountCents: cents ?? 0 }
+          : { contracts }),
+      },
+    };
+  }, [amount, contracts, intent, orderCheck, orderKey, preview]);
+
   const handleCommit = useCallback(async () => {
+    const signing = commitSigning();
     // A stale sheet never commits, not even a re-approval of an ambiguous
     // Commit: the service keeps observing that one in the background.
-    if (phase !== 'approval' || !preview || isStale) {
+    if (phase !== 'approval' || !preview || !signing || isStale) {
       return;
     }
     setCommitError(null);
@@ -441,6 +540,7 @@ export const PredictOrderFlowSheet = ({
       const committed = await service.commitPreview(
         intent.venueId,
         preview.previewId,
+        signing,
       );
       setReceipt(committed);
       setPhase('receipt');
@@ -465,7 +565,15 @@ export const PredictOrderFlowSheet = ({
         );
       }
     }
-  }, [handleResolution, intent.venueId, isStale, phase, preview, service]);
+  }, [
+    commitSigning,
+    handleResolution,
+    intent.venueId,
+    isStale,
+    phase,
+    preview,
+    service,
+  ]);
 
   /** Observes an unresolved receipt by committing the same Preview again —
    * idempotent by Preview reference, so it never places a second Order. */
@@ -576,17 +684,22 @@ export const PredictOrderFlowSheet = ({
   const displayedPrice = isQuoting
     ? contextPrice
     : (preview?.averagePrice ?? contextPrice);
+  // Totals and payout come from the invariant display, the worst case the
+  // signature allows (ADR-0004). The server quote is the fallback only while
+  // there is no display, and then Review stays disabled.
   const toWinLabel = formatUsd(
-    preview?.action === 'buy' ? preview.potentialPayout : '0.00',
+    preview?.action === 'buy'
+      ? (orderCheck?.payout ?? preview.potentialPayout)
+      : '0.00',
   );
   const netProceedsLabel = formatUsd(
     preview?.action === 'sell' && !isQuoting
-      ? preview.estimatedNetProceeds
+      ? (orderCheck?.minProceeds ?? preview.estimatedNetProceeds)
       : '0.00',
   );
   const totalLabel =
     preview && !isQuoting && preview.action === 'buy'
-      ? formatUsd(preview.totalDebit)
+      ? formatUsd(orderCheck?.maxCost ?? preview.totalDebit)
       : formatUsd(Number(amount || '0').toFixed(2));
   const balanceLabel = balanceQuery.data
     ? Number(balanceQuery.data.available).toFixed(2)
@@ -827,6 +940,7 @@ export const PredictOrderFlowSheet = ({
                   {isStale ? statusMessage : null}
                   <OrderApproval
                     preview={preview}
+                    display={orderCheck}
                     isExpired={approvalExpired}
                     isDisabled={isStale}
                     onApprove={handleCommit}
@@ -949,6 +1063,7 @@ export const PredictOrderFlowSheet = ({
             <OrderBreakdownSheet
               ref={breakdownSheetRef}
               preview={preview}
+              display={orderCheck}
               onClose={handleBreakdownClose}
             />
           )}

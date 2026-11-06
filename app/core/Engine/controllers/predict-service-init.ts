@@ -85,6 +85,15 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
+      // The balance is read as the user, so it is device-signed.
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   return {
@@ -112,6 +121,14 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   const controller = new PredictOrderService({
