@@ -15,6 +15,11 @@ const AMOUNT_MOCK = '1.23';
 const OVERRIDE_ADDRESS_MOCK =
   '0x1111111111111111111111111111111111111111' as Hex;
 
+const PAYMENT_TOKEN_MOCK = {
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
+  chainId: '0x1' as Hex,
+};
+
 const DEPOSIT_CALLS_MOCK = [
   { nestedTransactionIndex: 0, transactionData: '0xaaaa' as Hex },
 ];
@@ -107,7 +112,7 @@ describe('getTransactionPayAmountCalls', () => {
       TransactionType.moneyAccountWithdraw,
     );
 
-    it('returns the calls from the withdraw util and forwards the account override', async () => {
+    it('returns the calls from the withdraw util and forwards the account override and receive token', async () => {
       updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue(
         WITHDRAW_CALLS_MOCK,
       );
@@ -116,12 +121,14 @@ describe('getTransactionPayAmountCalls', () => {
         transactionMeta,
         AMOUNT_MOCK,
         OVERRIDE_ADDRESS_MOCK,
+        PAYMENT_TOKEN_MOCK,
       );
 
       expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
         transactionMeta,
         AMOUNT_MOCK,
         OVERRIDE_ADDRESS_MOCK,
+        PAYMENT_TOKEN_MOCK,
       );
       expect(result).toStrictEqual(WITHDRAW_CALLS_MOCK);
     });

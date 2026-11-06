@@ -1,9 +1,5 @@
 import type { Mockttp } from 'mockttp';
-import {
-  buildRelayQuoteMock,
-  mockRelayQuoteWith,
-  mockRelayStatusSuccess,
-} from './relay-mocks';
+import { buildRelayQuoteMock, mockRelayStatusSuccess } from './relay-mocks';
 import {
   TX_SENTINEL_NETWORKS_MAP,
   mockTxSentinelNetworks,
@@ -22,6 +18,17 @@ const DEV_LENS_HEX = 'a816ecd922de94c6879ad23b9a884db257f20947';
 const E2E_MONEY_ACCOUNT = '0x88e4c776e4598b098022c253159d5804d45ceca8';
 const UINT256_ZERO =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
+/** Opaque token Relay returns on execute quotes and expects back on /execute. */
+const RELAY_EXECUTE_SIGNATURE = 'money-account-withdraw-e2e-signature';
+
+interface RelayQuoteRequestBody {
+  metamask?: { executeVersion?: number };
+  user?: string;
+}
+
+interface RelayExecuteRequestBody {
+  requestId?: string;
+}
 
 function toUint256Hex(amountBaseUnits: string): string {
   return `0x${BigInt(amountBaseUnits).toString(16).padStart(64, '0')}`;
@@ -119,8 +126,91 @@ export async function MONEY_ACCOUNT_WITHDRAW_MOCKS(
     recipient,
   });
 
-  await mockRelayQuoteWith(mockServer, quote);
+  await mockRelayQuote(mockServer, quote);
+  await mockRelayExecute(mockServer);
   await mockRelayStatusSuccess(mockServer);
+}
+
+/**
+ * Serves the Relay quote. A quoted withdrawal is requested from the Money
+ * Account, which cannot sign a plain transaction, so its quote must be a
+ * gasless Relay execute quote. Quotes requested from any other account keep
+ * the plain step.
+ */
+async function mockRelayQuote(
+  mockServer: Mockttp,
+  quote: Record<string, unknown>,
+) {
+  const handler = async (request: {
+    body: { getJson(): Promise<unknown> };
+  }) => {
+    const body = ((await request.body.getJson()) ??
+      {}) as RelayQuoteRequestBody;
+    const isMoneyAccountExecute =
+      Boolean(body.metamask?.executeVersion) &&
+      body.user?.toLowerCase() === E2E_MONEY_ACCOUNT;
+
+    return {
+      statusCode: 200,
+      json: isMoneyAccountExecute
+        ? {
+            ...quote,
+            metamask: { isExecute: true, signature: RELAY_EXECUTE_SIGNATURE },
+          }
+        : quote,
+    };
+  };
+
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url?.includes('api.relay.link/quote') ||
+          url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote') ||
+          url?.includes('intents.api.cx.metamask.io/relay/quote') ||
+          url?.includes('intents.uat-api.cx.metamask.io/relay/quote'),
+      );
+    })
+    .thenCallback(handler);
+
+  await mockServer
+    .forPost(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/quote/)
+    .asPriority(1001)
+    .thenCallback(handler);
+}
+
+/**
+ * Accepts Relay execute submissions and echoes the quote request id, so the
+ * status mocks resolve its settlement.
+ */
+async function mockRelayExecute(mockServer: Mockttp) {
+  const handler = async (request: {
+    body: { getJson(): Promise<unknown> };
+  }) => {
+    const body = ((await request.body.getJson()) ??
+      {}) as RelayExecuteRequestBody;
+    return { statusCode: 200, json: { requestId: body.requestId } };
+  };
+
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url?.includes('intents.api.cx.metamask.io/relay/execute') ||
+          url?.includes('intents.uat-api.cx.metamask.io/relay/execute'),
+      );
+    })
+    .thenCallback(handler);
+
+  await mockServer
+    .forPost(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/execute/)
+    .asPriority(1001)
+    .thenCallback(handler);
 }
 
 async function mockMainnetRpc(mockServer: Mockttp) {

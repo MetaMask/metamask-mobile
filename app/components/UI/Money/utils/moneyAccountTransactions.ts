@@ -20,6 +20,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { calcTokenValue } from '../../../../util/transactions';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -284,16 +285,112 @@ export async function updateMoneyAccountDepositTokenAmount(
 }
 
 /**
+ * EVM receive token selected for a Money Account withdrawal.
+ */
+export interface MoneyAccountWithdrawPaymentToken {
+  address: Hex;
+  chainId: Hex;
+}
+
+/** Index of the ERC-20 mUSD transfer in the withdraw batch. */
+const WITHDRAW_TRANSFER_INDEX = 1;
+
+/**
+ * Picks who the nested mUSD transfer of a withdrawal pays. mUSD on the vault
+ * chain is not quoted, so it pays the recipient directly. Any other receive
+ * token is quoted, and Pay requests and submits that quote from the money
+ * account (`txParams.from`), so the mUSD stays on the money account and Pay
+ * delivers the output to the recipient in `accountOverride`.
+ *
+ * @param options - Options bag.
+ * @param options.moneyAccountAddress - Money account that sends the batch.
+ * @param options.paymentToken - Selected receive token, if any.
+ * @param options.recipient - Account that receives the withdrawal.
+ * @param options.transactionMeta - The withdrawal transaction.
+ * @returns The address the nested mUSD transfer pays.
+ */
+export function getMoneyAccountWithdrawTransferTarget({
+  moneyAccountAddress,
+  paymentToken,
+  recipient,
+  transactionMeta,
+}: {
+  moneyAccountAddress: Hex;
+  paymentToken?: MoneyAccountWithdrawPaymentToken;
+  recipient: Hex;
+  transactionMeta: TransactionMeta;
+}): Hex {
+  if (!paymentToken) {
+    return recipient;
+  }
+
+  const musdAddress =
+    transactionMeta.nestedTransactions?.[WITHDRAW_TRANSFER_INDEX]?.to;
+  const isDirect =
+    paymentToken.chainId.toLowerCase() ===
+      transactionMeta.chainId?.toLowerCase() &&
+    paymentToken.address.toLowerCase() === musdAddress?.toLowerCase();
+
+  return isDirect ? recipient : moneyAccountAddress;
+}
+
+/**
+ * Returns the transfer update needed when the receive token or recipient of a
+ * funded Money Account withdrawal changes who the nested mUSD transfer must
+ * pay. The withdraw call always redeems to the money account, so only the
+ * transfer is re-encoded, keeping its amount.
+ *
+ * @param transactionMeta - The withdrawal transaction, sent by the money account.
+ * @param recipient - Account that receives the withdrawal.
+ * @param paymentToken - Selected receive token, if any.
+ * @returns The transfer update, or `undefined` when the batch is unfunded or
+ * already pays the right target.
+ */
+export function getMoneyAccountWithdrawTransferUpdate(
+  transactionMeta: TransactionMeta,
+  recipient: Hex,
+  paymentToken?: MoneyAccountWithdrawPaymentToken,
+): UpdateTransactionPayAmountCall | undefined {
+  const transfer = decodeErc20Transfer(
+    transactionMeta.nestedTransactions?.[WITHDRAW_TRANSFER_INDEX]?.data,
+    TransactionType.tokenMethodTransfer,
+  );
+
+  if (!transfer || BigInt(transfer.amount) === 0n) {
+    return undefined;
+  }
+
+  const target = getMoneyAccountWithdrawTransferTarget({
+    moneyAccountAddress: transactionMeta.txParams.from as Hex,
+    paymentToken,
+    recipient,
+    transactionMeta,
+  });
+
+  if (transfer.recipient.toLowerCase() === target.toLowerCase()) {
+    return undefined;
+  }
+
+  return {
+    nestedTransactionIndex: WITHDRAW_TRANSFER_INDEX,
+    transactionData: buildErc20TransferData(target, BigInt(transfer.amount)),
+  };
+}
+
+/**
  * Returns the per-nested-call data updates required when the user changes
  * the withdrawal amount on a Money Account withdraw confirmation.
  *
  * Reads vault config, primary money account, and recipient from Redux, then
  * re-encodes the withdraw + ERC-20 transfer nested calls at the new amount.
+ * A quoted receive token keeps the mUSD on the money account, see
+ * {@link getMoneyAccountWithdrawTransferTarget}.
  */
 export async function updateMoneyAccountWithdrawTokenAmount(
   transactionMeta: TransactionMeta,
   amountHuman: string,
   recipientOverride?: Hex,
+  paymentToken?: MoneyAccountWithdrawPaymentToken,
 ): Promise<UpdateTransactionPayAmountCall[]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
@@ -311,13 +408,20 @@ export async function updateMoneyAccountWithdrawTokenAmount(
       .toFixed(0),
   );
 
+  const moneyAccountAddress = primaryMoneyAccount.address as Hex;
+
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId: chainIdHex,
     tellerAddress: vaultConfig.tellerAddress as Hex,
     accountantAddress: vaultConfig.accountantAddress as Hex,
-    moneyAccountAddress: primaryMoneyAccount.address as Hex,
-    recipient: recipient as Hex,
+    moneyAccountAddress,
+    recipient: getMoneyAccountWithdrawTransferTarget({
+      moneyAccountAddress,
+      paymentToken,
+      recipient: recipient as Hex,
+      transactionMeta,
+    }),
     provider,
   });
 
@@ -327,7 +431,10 @@ export async function updateMoneyAccountWithdrawTokenAmount(
 
   return [
     { nestedTransactionIndex: 0, transactionData: withdrawData },
-    { nestedTransactionIndex: 1, transactionData: transferData },
+    {
+      nestedTransactionIndex: WITHDRAW_TRANSFER_INDEX,
+      transactionData: transferData,
+    },
   ];
 }
 

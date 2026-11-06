@@ -80,12 +80,18 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
 
       const [selectedAccount] = getInternalAccountsByAddresses([address]);
 
-      replaceAccountInNestedTransactions({
-        transactionId,
-        nestedTransactions: transactionMeta?.nestedTransactions,
-        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-        newAddress: address,
-      });
+      // Withdraws re-encode the transfer once the override is set, see
+      // `useMoneyAccountWithdrawTransferSync`. A quoted withdraw transfers to
+      // the money account, which the teller withdraw also pays, so an address
+      // swap would redirect the vault redemption.
+      if (!isMoneyAccountWithdraw) {
+        replaceAccountInNestedTransactions({
+          transactionId,
+          nestedTransactions: transactionMeta?.nestedTransactions,
+          oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+          newAddress: address,
+        });
+      }
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
@@ -97,6 +103,7 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
     [
       accountOverride,
       getInternalAccountsByAddresses,
+      isMoneyAccountWithdraw,
       transactionId,
       transactionMeta,
     ],

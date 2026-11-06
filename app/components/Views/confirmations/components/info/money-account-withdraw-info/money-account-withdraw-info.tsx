@@ -4,6 +4,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useMoneyAccountWithdrawTransferSync } from '../../../hooks/pay/useMoneyAccountWithdrawTransferSync';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -19,6 +20,7 @@ export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountWithdrawInfo() {
   useNavbar(strings('confirm.title.money_account_send'));
+  useMoneyAccountWithdrawTransferSync();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 

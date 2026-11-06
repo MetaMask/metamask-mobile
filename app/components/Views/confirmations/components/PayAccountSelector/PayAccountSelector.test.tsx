@@ -294,6 +294,30 @@ describe('PayAccountSelector', () => {
     expect(config.isPostQuote).toBeUndefined();
   });
 
+  it('leaves the withdraw transfer for the transfer sync to re-encode', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0xMoneyAccount' },
+      nestedTransactions: [{ data: '0xabcd' }],
+    } as never);
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xOverrideAddress' as Hex,
+    );
+
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    expect(setTransactionConfigMock).toHaveBeenCalledWith(
+      'mock-tx-id',
+      expect.any(Function),
+    );
+  });
+
   it('does not set isPostQuote for deposit transactions', async () => {
     const { getByTestId } = render();
 
