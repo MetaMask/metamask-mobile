@@ -55,7 +55,8 @@ const WatchlistSuggestedPill: React.FC<WatchlistSuggestedPillProps> = ({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={token.name ?? token.symbol}
+        accessibilityLabel={token.symbol}
+        accessibilityHint={token.name}
         testID={WatchlistSuggestedPillsTestIds.pillBody(assetId)}
         style={({ pressed }) =>
           tw.style(
@@ -82,7 +83,9 @@ const WatchlistSuggestedPill: React.FC<WatchlistSuggestedPillProps> = ({
         iconName={IconName.Star}
         size={ButtonIconSize.Sm}
         onPress={() => onAddPress(token)}
-        accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
+        accessibilityLabel={strings('token_watchlist.add_token_to_watchlist', {
+          symbol: token.symbol,
+        })}
         testID={WatchlistSuggestedPillsTestIds.addButton(assetId)}
       />
     </Box>
@@ -110,6 +113,7 @@ const WatchlistSuggestedPills: React.FC<WatchlistSuggestedPillsProps> = ({
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         twClassName="mb-2"
+        accessibilityRole="header"
         testID={WatchlistSuggestedPillsTestIds.HEADER}
       >
         {strings('token_watchlist.suggested')}

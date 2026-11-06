@@ -316,8 +316,9 @@ describe('WatchlistSection', () => {
       getByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WatchlistSuggestedPillsTestIds.HEADER),
-    ).toBeOnTheScreen();
+      getByTestId(WatchlistSuggestedPillsTestIds.HEADER).props
+        .accessibilityRole,
+    ).toBe('header');
     expect(getByText('Suggested')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
     expect(queryByTestId('row-bitcoin')).not.toBeOnTheScreen();
@@ -327,9 +328,17 @@ describe('WatchlistSection', () => {
       expect(
         getByTestId(WatchlistSuggestedPillsTestIds.pill(assetId)),
       ).toBeOnTheScreen();
+      const addButton = getByTestId(
+        WatchlistSuggestedPillsTestIds.addButton(assetId),
+      );
+      expect(addButton).toBeOnTheScreen();
+      expect(addButton.props.accessibilityLabel).toBe(
+        `Add ${name.toUpperCase()} to watchlist`,
+      );
       expect(
-        getByTestId(WatchlistSuggestedPillsTestIds.addButton(assetId)),
-      ).toBeOnTheScreen();
+        getByTestId(WatchlistSuggestedPillsTestIds.pillBody(assetId)).props
+          .accessibilityLabel,
+      ).toBe(name.toUpperCase());
       expect(getByText(name.toUpperCase())).toBeOnTheScreen();
     });
     expect(
