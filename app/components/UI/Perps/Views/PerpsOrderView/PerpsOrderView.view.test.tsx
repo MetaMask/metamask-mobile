@@ -59,7 +59,6 @@ import {
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
-  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
