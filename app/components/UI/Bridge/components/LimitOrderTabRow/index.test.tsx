@@ -336,7 +336,7 @@ describe('LimitOrderRow', () => {
         kind: 'ratio',
         threshold: 'sideways',
         price: '2200',
-      } as LimitOrder['trigger'],
+      } as unknown as LimitOrder['trigger'],
     };
 
     const { getByText, queryByText } = renderLimitOrderRow(order);
