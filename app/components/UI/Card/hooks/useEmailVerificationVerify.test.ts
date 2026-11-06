@@ -304,6 +304,27 @@ describe('useEmailVerificationVerify', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
+    it('sends the canonical profile id when it differs from the session profile', async () => {
+      mockGetSessionProfile.mockResolvedValue({
+        profileId: 'alias-profile-id',
+        identifierId: 'mock-identifier-id',
+        metaMetricsId: 'mock-metametrics-id',
+        canonicalProfileId: 'canonical-profile-id',
+      });
+      mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
+
+      const { result } = renderHook(() => useEmailVerificationVerify());
+
+      await act(async () => {
+        await result.current.verifyEmailVerification(mockVerifyRequest);
+      });
+
+      expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
+        ...mockVerifyRequest,
+        userExternalId: 'canonical-profile-id',
+      });
+    });
+
     it('does not include userExternalId when session profile has empty profileId', async () => {
       mockGetSessionProfile.mockResolvedValue({
         profileId: '',

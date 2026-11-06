@@ -32,6 +32,7 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
+import { formatAddress, toChecksumAddress } from '../../../../util/address';
 
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
@@ -126,7 +127,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toHaveTextContent('0x...1933');
+    ).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
     expect(
       within(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).getByText(
         TOKEN_DETAILS_V1_DESCRIPTION,
@@ -304,7 +307,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     );
 
     await waitFor(() => {
-      expect(clipboardSpy).toHaveBeenCalledWith(TOKEN_DETAILS_V1_ADDRESS);
+      expect(clipboardSpy).toHaveBeenCalledWith(
+        toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS),
+      );
     });
     expect(
       await findByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
@@ -346,6 +351,27 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(
       getByTestId(tokenDetailsV1TabPageTestId('overview')),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the contract address from the header while showing it in the security row', async () => {
+    const { findByTestId, queryByTestId } = renderTokenDetailsV1View();
+
+    // Wait for the security row address to appear — proves the page has loaded.
+    const copyButton = await findByTestId(
+      SecuritySocialSectionSelectors.COPY_ADDRESS,
+      {},
+      FIND_TIMEOUT,
+    );
+
+    expect(copyButton).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
+
+    // The header subtitle must NOT contain the address or copy button — it was
+    // deduplicated so the address only appears in the security row above the
+    // stat bar.
+    expect(queryByTestId(TokenDetailsIds.header.address)).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.header.copyAddressButton)).toBeNull();
   });
 
   it('stays on the legacy page when the asset has no launchpad data', async () => {

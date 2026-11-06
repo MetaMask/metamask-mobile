@@ -252,6 +252,7 @@ import {
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
   buildPerpsPostTradeComposerParams,
@@ -367,6 +368,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'trending'
       : undefined);
   const sourceSection = route.params?.source_section;
+  const shareAnalyticsSource = getSocialEventSource(source);
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
@@ -2191,6 +2193,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               direction: orderForm.direction,
               leverage: orderForm.leverage,
               amountUsd: orderForm.amount,
+              analyticsSource: shareAnalyticsSource,
             });
         const resolvedPerpsPostTradePrompt =
           !perpsShareSessionIdRef.current &&
@@ -2217,6 +2220,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             leverage: orderForm.leverage,
             amountUsd: orderForm.amount,
             variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
+            analyticsSource: shareAnalyticsSource,
           });
         }
         navigateToMarketAfterOrder();
@@ -2372,6 +2376,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       marginRequired,
       feeResults,
       source,
+      shareAnalyticsSource,
       sourceSection,
       chartLibrary,
       isTradeWithAnyTokenEnabled,

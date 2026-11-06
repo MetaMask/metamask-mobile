@@ -1,5 +1,10 @@
 import React from 'react';
-import { View, type LayoutChangeEvent } from 'react-native';
+import {
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -41,12 +46,16 @@ export interface HeaderGlassProps {
   onLayout?: (event: LayoutChangeEvent) => void;
   /** Status bar space, when the screen doesn't already pad it. */
   topInset?: number;
+  /** Style for the floating wrapper around the header content. */
+  containerStyle?: StyleProp<ViewStyle>;
   /** @default 'animated' */
   backdrop?: HeaderGlassBackdropMode;
   /** How far the content has scrolled from its resting top; drives `animated`. */
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the `animated` backdrop fades in. */
   fadeInDistance?: number;
+  /** Extra backdrop height below the header, for content pinned under it. */
+  backdropExtension?: number | SharedValue<number>;
   /**
    * On, the header is taken out of flow and pinned to the top of its parent
    * over its backdrop. Off, it keeps its place in flow with no backdrop.
@@ -65,9 +74,11 @@ const HeaderGlass = ({
   children,
   onLayout,
   topInset = 0,
+  containerStyle,
   backdrop = 'animated',
   scrollDistance,
   fadeInDistance,
+  backdropExtension,
   isFloating = true,
   testID,
 }: HeaderGlassProps) => {
@@ -78,6 +89,7 @@ const HeaderGlass = ({
       pointerEvents="box-none"
       style={[
         isFloating && tw.style('absolute left-0 right-0 top-0 z-10'),
+        containerStyle,
         { paddingTop: topInset },
       ]}
       onLayout={onLayout}
@@ -87,6 +99,7 @@ const HeaderGlass = ({
         <HeaderGlassBackdrop
           scrollDistance={backdrop === 'animated' ? scrollDistance : undefined}
           fadeInDistance={fadeInDistance}
+          extension={backdropExtension}
           testID={FLOATING_HEADER_FADE_TEST_ID}
         />
       )}

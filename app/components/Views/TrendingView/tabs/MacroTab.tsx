@@ -7,9 +7,13 @@ import {
   type SortOptionId,
 } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictAvailability } from '../../../UI/PredictNext';
+import {
+  PredictTrendingCarousel,
+  selectPredictAvailability,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
@@ -18,8 +22,6 @@ import PerpsToggleBlock, {
   type PerpsFilterKey,
 } from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
@@ -87,13 +89,13 @@ const MacroTabContent: React.FC<TabProps> = ({
   refreshing,
   onRefresh,
 }) => {
-  const appNavigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
 
-  const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ variant: 'politics', refresh });
   const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
 
   const showPredictions =
@@ -108,7 +110,7 @@ const MacroTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={politics}
             tabName="Macro"
             sectionName="predictions_politics"
@@ -116,7 +118,7 @@ const MacroTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-rwa-politics-market-row-item"
             idPrefix="politics_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(appNavigation, 'politics')
+              navigateToExplorePredictionsList(openPredict, 'politics')
             }
             isEnabled={isPredictEnabled}
           />
@@ -145,7 +147,7 @@ const MacroTabContent: React.FC<TabProps> = ({
     showPerps,
     politics,
     isPredictEnabled,
-    appNavigation,
+    openPredict,
     refresh,
     perpsNavigation,
   ]);

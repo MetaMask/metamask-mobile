@@ -11,10 +11,9 @@ import {
 } from '@metamask/perps-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../../../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../../../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { PERPS_SECTION_HEADER_BUTTON_LOCATION } from '../../../../../UI/Perps/utils/perpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import type {
   PerpsNavigationParamList,
   PerpsStackParamList,
@@ -33,7 +32,7 @@ export const usePerpsNavigationHandlers = ({
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const marketDetailsTransactionActiveAbTests = transactionActiveAbTests?.length
     ? transactionActiveAbTests
@@ -61,9 +60,13 @@ export const usePerpsNavigationHandlers = ({
   );
 
   const navigateToPerpsHome = useCallback(
-    (analyticsContext?: NavigationAnalyticsContext) => {
+    (
+      analyticsContext?: NavigationAnalyticsContext,
+      extraParams?: Record<string, unknown>,
+    ) => {
       const homeParams = {
         ...(analyticsContext ? { analyticsContext } : { source }),
+        ...extraParams,
         ...(marketDetailsTransactionActiveAbTests?.length
           ? {
               transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
@@ -71,10 +74,10 @@ export const usePerpsNavigationHandlers = ({
           : {}),
       };
 
-      // Resolve the Pro-aware target up front (Home vs. default Pro market)
-      // so first-time users are redirected consistently with returning users
-      // once they complete the tutorial (TAT-3612).
-      const target = getPerpsHomeNavigationTarget(homeParams);
+      // Resolve the Pro-aware target up front (Home vs. default Pro market
+      // vs. market list) so first-time users are redirected consistently
+      // with returning users once they complete the tutorial (TAT-3612).
+      const target = getTarget(homeParams);
 
       if (isFirstTimePerpsUser) {
         navigation.navigate(Routes.PERPS.TUTORIAL, {
@@ -94,13 +97,16 @@ export const usePerpsNavigationHandlers = ({
       isFirstTimePerpsUser,
       navigation,
       marketDetailsTransactionActiveAbTests,
-      getPerpsHomeNavigationTarget,
+      getTarget,
       source,
     ],
   );
 
   const handleViewAllPerps = useCallback(
-    () => navigateToPerpsHome(),
+    () =>
+      navigateToPerpsHome(undefined, {
+        button_location: PERPS_SECTION_HEADER_BUTTON_LOCATION,
+      }),
     [navigateToPerpsHome],
   );
 

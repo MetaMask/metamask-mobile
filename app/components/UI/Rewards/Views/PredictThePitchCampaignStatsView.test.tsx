@@ -43,7 +43,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -106,6 +106,10 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
 }));
 
 jest.mock('../components/Campaigns/PredictThePitchStatsHeader', () => {

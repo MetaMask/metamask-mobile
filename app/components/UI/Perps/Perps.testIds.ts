@@ -467,6 +467,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
 export const PerpsMarketDetailsViewSelectorsIDs = {
   CONTAINER: 'perps-market-details-view',
   SCROLL_VIEW: 'perps-market-details-scroll-view',
+  HEADER_SPACER: 'perps-market-details-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-market-details-bottom-inset-spacer',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
@@ -520,6 +522,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   CONTAINER: 'perps-pro-market-view',
   ERROR: 'perps-pro-market-error',
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER_SPACER: 'perps-pro-market-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-pro-market-bottom-inset-spacer',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
   HEADER_BACK_BUTTON: 'perps-pro-market-header-back-button',

@@ -16,7 +16,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const controller = jest.mocked(Engine.context.AuthenticationController);
-const reason = { operation: 'test' };
+const reason = { operation: 'qa.test' };
 
 describe('mobileMfaControllerAdapter', () => {
   it('forwards refreshEnrolledCredentials', async () => {
