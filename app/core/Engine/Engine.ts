@@ -161,9 +161,7 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
-import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
-import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
@@ -326,9 +324,7 @@ export class Engine {
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
-        GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
-        GeolocationController: geolocationControllerInit,
         PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -435,7 +431,9 @@ export class Engine {
     const seedlessOnboardingController = this.#wallet.getInstance(
       'SeedlessOnboardingController',
     );
-    const geolocationController = messengerClientsByName.GeolocationController;
+    const geolocationController = this.#wallet.getInstance(
+      'GeolocationController',
+    );
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
