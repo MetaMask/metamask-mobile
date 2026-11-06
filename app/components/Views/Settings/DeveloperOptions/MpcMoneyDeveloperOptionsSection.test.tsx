@@ -57,11 +57,24 @@ const { createMoneyAccount, signPersonalMessage } = {
     mockedEngine.context.KeyringController.signPersonalMessage,
 };
 
+const MNEMONIC_ADDRESS = '0x1234567890ABCDEF1234567890ABCDEF12345678';
+
 const setMpcAccount = (address: string) => {
   mockedEngine.context.MoneyAccountController.state.moneyAccounts = {
     'account-id': {
       address,
       options: { entropy: { type: KeyringAccountEntropyTypeOption.Mpc } },
+    },
+  };
+};
+
+const setMnemonicAccount = (address: string) => {
+  const state = mockedEngine.context.MoneyAccountController.state;
+  state.moneyAccounts = {
+    ...state.moneyAccounts,
+    'mnemonic-account-id': {
+      address,
+      options: { entropy: { type: KeyringAccountEntropyTypeOption.Mnemonic } },
     },
   };
 };
@@ -89,6 +102,31 @@ describe('MpcMoneyDeveloperOptionsSection', () => {
     expect(
       getByTestId(MpcMoneyDeveloperOptionsSelectorsIDs.SECTION),
     ).toBeOnTheScreen();
+  });
+
+  it('displays the MPC and mnemonic money account addresses side by side', () => {
+    setMpcAccount(MOCK_ADDRESS);
+    setMnemonicAccount(MNEMONIC_ADDRESS);
+
+    const { getByTestId } = render(<MpcMoneyDeveloperOptionsSection />);
+
+    expect(
+      getByTestId(MpcMoneyDeveloperOptionsSelectorsIDs.MPC_ADDRESS),
+    ).toHaveTextContent(`MPC Money account: ${MOCK_ADDRESS}`);
+    expect(
+      getByTestId(MpcMoneyDeveloperOptionsSelectorsIDs.MNEMONIC_ADDRESS),
+    ).toHaveTextContent(`Mnemonic Money account: ${MNEMONIC_ADDRESS}`);
+  });
+
+  it('shows placeholders when the money accounts do not exist', () => {
+    const { getByTestId } = render(<MpcMoneyDeveloperOptionsSection />);
+
+    expect(
+      getByTestId(MpcMoneyDeveloperOptionsSelectorsIDs.MPC_ADDRESS),
+    ).toHaveTextContent('MPC Money account: not created');
+    expect(
+      getByTestId(MpcMoneyDeveloperOptionsSelectorsIDs.MNEMONIC_ADDRESS),
+    ).toHaveTextContent('Mnemonic Money account: N/A');
   });
 
   it('creates the MPC money account when the create button is pressed', async () => {

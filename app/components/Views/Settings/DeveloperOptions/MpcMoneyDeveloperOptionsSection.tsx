@@ -19,13 +19,19 @@ import styleSheet from './DeveloperOptions.styles';
 
 const TEST_MESSAGE = 'MetaMask Money MPC test';
 
-const getMpcMoneyAddress = () => {
+/**
+ * The money account addresses, to compare the MPC account with the
+ * SRP-derived mnemonic one.
+ */
+const getMoneyAccountAddresses = () => {
   const { moneyAccounts } = Engine.context.MoneyAccountController.state;
-  const account = Object.values(moneyAccounts).find(
-    ({ options }) =>
-      options.entropy?.type === KeyringAccountEntropyTypeOption.Mpc,
-  );
-  return account?.address;
+  const accounts = Object.values(moneyAccounts);
+  const findAddress = (type: KeyringAccountEntropyTypeOption) =>
+    accounts.find(({ options }) => options.entropy?.type === type)?.address;
+  return {
+    mpc: findAddress(KeyringAccountEntropyTypeOption.Mpc),
+    mnemonic: findAddress(KeyringAccountEntropyTypeOption.Mnemonic),
+  };
 };
 
 const describeError = (error: unknown): string =>
@@ -69,7 +75,7 @@ export const MpcMoneyDeveloperOptionsSection = () => {
   const sign = useCallback(
     () =>
       run('Sign test message', async () => {
-        const address = getMpcMoneyAddress();
+        const address = getMoneyAccountAddresses().mpc;
         if (!address) {
           throw new Error('No MPC Money account, create one first');
         }
@@ -87,6 +93,8 @@ export const MpcMoneyDeveloperOptionsSection = () => {
     [run],
   );
 
+  const { mpc, mnemonic } = getMoneyAccountAddresses();
+
   return (
     <Box
       twClassName="gap-2"
@@ -94,6 +102,24 @@ export const MpcMoneyDeveloperOptionsSection = () => {
     >
       <Text variant={TextVariant.HeadingLg} style={styles.heading}>
         {'Money MPC (non-production)'}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        style={styles.desc}
+        selectable
+        testID={MpcMoneyDeveloperOptionsSelectorsIDs.MPC_ADDRESS}
+      >
+        {`MPC Money account: ${mpc ?? 'not created'}`}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        style={styles.desc}
+        selectable
+        testID={MpcMoneyDeveloperOptionsSelectorsIDs.MNEMONIC_ADDRESS}
+      >
+        {`Mnemonic Money account: ${mnemonic ?? 'N/A'}`}
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
