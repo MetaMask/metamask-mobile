@@ -187,7 +187,9 @@ export const selectAccountOverrideByTransactionId = createSelector(
  */
 export const selectAccountOverrideAddressByTransactionId = createSelector(
   selectAccountOverrideByTransactionId,
-  selectInternalAccountsById,
+  // Wrapped because this module is loaded inside an import cycle with the
+  // accounts selectors, where `selectInternalAccountsById` is not yet defined.
+  (state: RootState) => selectInternalAccountsById(state),
   (accountOverride, internalAccountsById) =>
     accountOverride
       ? (internalAccountsById[accountOverride]?.address as Hex | undefined)
