@@ -211,7 +211,10 @@ export const KalshiDebugPanel = ({
             Temporary. Where this profile stands in the Kalshi demo onboarding.
           </Text>
 
-          <Row label="Onboarding stage" value={flowStage} />
+          <Row
+            label="Onboarding stage (hidden = dismissed this session)"
+            value={flowStage}
+          />
           <Row label="Server status" value={describeServerStatus(snapshot)} />
           <Row
             label="Email used (last attempt)"

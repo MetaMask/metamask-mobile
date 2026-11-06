@@ -76,10 +76,12 @@ const KalshiDemoOnboardingFlow = ({
     relink,
     canPoll: () => networkTier !== 'NONE',
     onActivated: invalidatePortfolioReads,
-    profileId: () => {
+    profileId: async () => {
       try {
         const claims = summarizeA2t(
-          Engine.controllerMessenger.call('PredictDeviceAuthService:getA2t'),
+          await Engine.controllerMessenger.call(
+            'PredictDeviceAuthService:getA2t',
+          ),
         );
         return claims.sub;
       } catch {
