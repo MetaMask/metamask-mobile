@@ -5,14 +5,15 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -93,6 +94,7 @@ import {
 } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import { getPositionFlagLabelKey } from '../TraderProfileView/utils/positionFlags';
 import {
   buildFollowTradingTokenContext,
   getSocialEventSource,
@@ -173,6 +175,10 @@ const TraderPositionView = () => {
     !isPerpsEnabled &&
     isPerpPosition(resolvedPosition);
   const displayPosition = isBlockedPerpPosition ? undefined : resolvedPosition;
+  // Any server flag excludes the position from P&L. Those positions must not
+  // be copy-traded, so the history view stays readable without Buy or Trade.
+  const isFlaggedPosition =
+    displayPosition != null && getPositionFlagLabelKey(displayPosition) != null;
 
   // Nav-param values win on first render to avoid a header flicker; once the
   // profile resolves it fills in any missing fields and powers pull-to-refresh.
@@ -666,7 +672,7 @@ const TraderPositionView = () => {
     },
     (elevated, previous) => {
       if (elevated !== previous) {
-        runOnJS(setIsPinnedChartElevated)(elevated);
+        scheduleOnRN(setIsPinnedChartElevated, elevated);
       }
     },
   );
@@ -704,10 +710,41 @@ const TraderPositionView = () => {
     },
     (index, previous) => {
       if (index !== previous) {
-        runOnJS(setTopDayIndex)(index);
+        scheduleOnRN(setTopDayIndex, index);
       }
     },
   );
+
+  // Flagged positions stay on the history screen with Buy and Trade hidden.
+  let copyTradeAction: ReactNode;
+  if (isFlaggedPosition) {
+    copyTradeAction = null;
+  } else if (isPerp && displayPosition) {
+    copyTradeAction = (
+      <PerpsTradeButton
+        symbol={displayPosition.tokenSymbol}
+        onTrade={handlePerpTrade}
+        testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+      />
+    );
+  } else {
+    copyTradeAction = (
+      <TraderPositionBuyCta
+        position={displayPosition ?? null}
+        traderAddress={traderAddress}
+        marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+        tokenPriceFiat={
+          typeof currentPrice === 'number' ? currentPrice : undefined
+        }
+        source={quickBuySource}
+        originalEntryPoint={quickBuyOriginalEntryPoint}
+        isTraderPositionClosed={isClosed}
+        onBuyCtaClicked={handleBuyCtaClicked}
+        postTradeShare={isSocialV1 === true}
+        buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+      />
+    );
+  }
 
   const loadedPositionContent = (
     <>
@@ -867,28 +904,7 @@ const TraderPositionView = () => {
         </Animated.View>
       </View>
 
-      {isPerp && displayPosition ? (
-        <PerpsTradeButton
-          symbol={displayPosition.tokenSymbol}
-          onTrade={handlePerpTrade}
-          testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-        />
-      ) : (
-        <TraderPositionBuyCta
-          position={displayPosition ?? null}
-          traderAddress={traderAddress}
-          marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-          tokenPriceFiat={
-            typeof currentPrice === 'number' ? currentPrice : undefined
-          }
-          source={quickBuySource}
-          originalEntryPoint={quickBuyOriginalEntryPoint}
-          isTraderPositionClosed={isClosed}
-          onBuyCtaClicked={handleBuyCtaClicked}
-          postTradeShare={isSocialV1 === true}
-          buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        />
-      )}
+      {copyTradeAction}
     </>
   );
 

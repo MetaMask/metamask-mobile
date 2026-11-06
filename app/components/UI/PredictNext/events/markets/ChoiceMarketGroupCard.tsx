@@ -47,7 +47,7 @@ const toRows = (markets: readonly PredictMarket[]): ChoiceRow[] =>
 
 /**
  * A card of rows, one per Market of a `choice` group, each priced by its yes
- * side: a moneyline's options or a Player's thresholds. Every row shows.
+ * side, such as a moneyline's options. Every row shows.
  */
 export const ChoiceMarketGroupCard = React.memo(
   ({

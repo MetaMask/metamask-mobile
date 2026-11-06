@@ -10,6 +10,7 @@ import {
   createGamePresentation,
   getEventGame,
   getGameTeamOrder,
+  getTeamAbbreviation,
 } from './createGamePresentation';
 
 const game: PredictGame = {
@@ -85,6 +86,26 @@ describe('getGameTeamOrder', () => {
     const result = getGameTeamOrder({ ...game, teamOrder: 'home_first' });
 
     expect(result).toEqual(['home', 'away']);
+  });
+});
+
+describe('getTeamAbbreviation', () => {
+  it('uses the Team abbreviation when the API sends one', () => {
+    const result = getTeamAbbreviation({
+      name: 'Arizona Cardinals',
+      abbreviation: 'ari',
+    });
+
+    expect(result).toBe('ARI');
+  });
+
+  it('falls back to the first three letters of the name for a blank abbreviation', () => {
+    const result = getTeamAbbreviation({
+      name: 'Carolina Panthers',
+      abbreviation: '  ',
+    });
+
+    expect(result).toBe('CAR');
   });
 });
 
