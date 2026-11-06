@@ -215,6 +215,25 @@ export function selectClaimWaitingUntil(
   return state.rewardsMoney.claimWaitingUntil?.[profileId];
 }
 
+/** Referral code a deeplink left for the invite sheet, if any. */
+export function selectPendingMoneyReferralCode(
+  state: RootState,
+): string | null {
+  return state.rewardsMoney?.pendingReferralCode ?? null;
+}
+
+/** Last referral code answered this session, if any. */
+export function selectAnsweredMoneyReferralCode(
+  state: RootState,
+): string | null {
+  return state.rewardsMoney?.answeredReferralCode ?? null;
+}
+
+/** Whether a deeplink carrying a referral code is still being handled. */
+export function selectIsReferralLinkPending(state: RootState): boolean {
+  return state.rewardsMoney?.isReferralLinkPending ?? false;
+}
+
 /** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
 export function selectClaimLock(
   state: RootState,

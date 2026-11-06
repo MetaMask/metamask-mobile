@@ -6,7 +6,10 @@ import type {
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
+  clearPendingReferralCode,
   resetRewardsMoneyState,
+  setPendingReferralCode,
+  setReferralLinkPending,
   setCashbackLedger,
   setCommissions,
   setEarningsHistory,
@@ -96,6 +99,9 @@ describe('rewardsMoneyReducer', () => {
       inFlightClaims: {},
       claimWaitingUntil: {},
       claimLocks: {},
+      pendingReferralCode: null,
+      answeredReferralCode: null,
+      isReferralLinkPending: false,
     });
   });
 
@@ -110,6 +116,9 @@ describe('rewardsMoneyReducer', () => {
       inFlightClaims: {},
       claimWaitingUntil: {},
       claimLocks: {},
+      pendingReferralCode: null,
+      answeredReferralCode: null,
+      isReferralLinkPending: false,
     });
   });
 
@@ -365,6 +374,9 @@ describe('rewardsMoneyReducer', () => {
             summaryKey: 'stale',
           },
         },
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -405,6 +417,24 @@ describe('rewardsMoneyReducer', () => {
       expect(state.claimLocks).toEqual({});
     });
 
+    it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
+      const persisted = {
+        ...initialState,
+        pendingReferralCode: 'KOL1',
+        answeredReferralCode: 'KOL0',
+        isReferralLinkPending: true,
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBeNull();
+      expect(state.isReferralLinkPending).toBe(false);
+    });
+
     it('drops a last profile id left by an older persisted slice', () => {
       const persisted = {
         referralMe: {},
@@ -427,7 +457,138 @@ describe('rewardsMoneyReducer', () => {
         inFlightClaims: {},
         claimWaitingUntil: {},
         claimLocks: {},
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       });
+    });
+  });
+
+  describe('referral link pending', () => {
+    it('marks a referral link as being handled', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setReferralLinkPending(true),
+      );
+
+      expect(state.isReferralLinkPending).toBe(true);
+    });
+
+    it('clears the mark once the link is handled', () => {
+      const pending = rewardsMoneyReducer(
+        initialState,
+        setReferralLinkPending(true),
+      );
+
+      const state = rewardsMoneyReducer(pending, setReferralLinkPending(false));
+
+      expect(state.isReferralLinkPending).toBe(false);
+    });
+  });
+
+  describe('pending referral code', () => {
+    it('stores the code a deeplink left behind', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL1');
+    });
+
+    it('replaces an older code with the newer link', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('clears the code once it is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(withCode, clearPendingReferralCode());
+
+      expect(state.pendingReferralCode).toBeNull();
+    });
+
+    it('ignores the same code once it was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('still stores a different code after one was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('keeps a newer code pending when the older one it replaced is answered', () => {
+      const replaced = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        setPendingReferralCode('KOL2'),
+      );
+
+      const state = rewardsMoneyReducer(
+        replaced,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('clears the pending code when that code is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('keeps the answered code when clearing with nothing pending', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(answered, clearPendingReferralCode());
+
+      expect(state.answeredReferralCode).toBe('KOL1');
     });
   });
 
@@ -457,6 +618,9 @@ describe('rewardsMoneyReducer', () => {
         inFlightClaims: {},
         claimWaitingUntil: {},
         claimLocks: {},
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       });
     });
   });
