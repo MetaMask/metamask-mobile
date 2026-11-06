@@ -184,6 +184,40 @@ export const openCompletedVbaAccount = (
   }
 };
 
+/**
+ * Opens the step after Identity verified: Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
+ * which creates the account. Shared by the Identity verified screen's
+ * Continue and the Money home `identity_verified` card, which skips that
+ * screen.
+ *
+ * Inside onboarding (Identity verified), Choose Currency is pushed so Back
+ * returns there. From outside it opens as the only onboarding route, so
+ * Back returns to the caller.
+ *
+ * @param navigation - Navigation from Identity verified or an entry surface.
+ * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ */
+export const openVbaAccountSetup = (
+  navigation: AppNavigationProp,
+  isChooseCurrencyEnabled: boolean,
+): void => {
+  if (!isChooseCurrencyEnabled) {
+    openCompletedVbaAccount(navigation);
+    return;
+  }
+  const isInsideOnboarding = Boolean(
+    navigation
+      .getState?.()
+      ?.routeNames?.includes(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+  );
+  if (isInsideOnboarding) {
+    navigation.dispatch(StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY));
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.CHOOSE_CURRENCY);
+};
+
 const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
   const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
   return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
