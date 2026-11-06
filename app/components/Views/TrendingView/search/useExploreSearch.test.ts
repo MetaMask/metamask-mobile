@@ -10,6 +10,7 @@
 
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useExploreSearch } from './useExploreSearch';
+import { useExploreSearchPerformance } from './useExploreSearchPerformance';
 
 // ---------------------------------------------------------------------------
 // Feed hook mocks
@@ -28,6 +29,10 @@ const mockMarkFeedReady = jest.fn();
 const mockMarkCachedTokens = jest.fn();
 const mockMarkCachedStocks = jest.fn();
 const mockMarkCachedPredictions = jest.fn();
+const mockPredictionsPerformance = {
+  startRequest: jest.fn(),
+  markCachedResult: mockMarkCachedPredictions,
+};
 const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
 let mockIsExploreEarnSectionVisible = false;
@@ -120,8 +125,7 @@ jest.mock('./useExploreSearchPerformance', () => ({
       markCachedResult: mockMarkCachedStocks,
     },
     predictions: {
-      startRequest: jest.fn(),
-      markCachedResult: mockMarkCachedPredictions,
+      ...mockPredictionsPerformance,
     },
     onFocus: mockOnFocus,
     onBlur: mockOnBlur,
@@ -217,6 +221,18 @@ describe('useExploreSearch', () => {
         'stocks',
         'sites',
       ]);
+    });
+
+    it('omits unsupported predictions from performance measurement feeds', () => {
+      mockIsPredictTrendingSupported = false;
+
+      renderExploreSearch();
+
+      expect(useExploreSearchPerformance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabledFeeds: ['tokens', 'perps', 'stocks', 'sites'],
+        }),
+      );
     });
 
     it('omits Earn when the Explore Earn section is not visible', () => {
@@ -522,6 +538,16 @@ describe('useExploreSearch', () => {
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePredictTrendingFeed).toHaveBeenCalledWith({ query: '' });
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
+    });
+
+    it('passes search performance to predictions for a non-empty query', () => {
+      renderExploreSearch('bitcoin');
+
+      expect(usePredictTrendingFeed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          performance: mockPredictionsPerformance,
+        }),
+      );
     });
 
     it('passes the visibility state to the Earn feed', () => {

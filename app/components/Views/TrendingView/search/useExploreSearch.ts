@@ -79,10 +79,10 @@ export const useExploreSearch = (
       ...(isPerpsEnabled ? (['perps'] as const) : []),
       ...(isExploreEarnEnabled ? (['earn'] as const) : []),
       'stocks',
-      'predictions',
+      ...(isPredictionsSupported ? (['predictions'] as const) : []),
       'sites',
     ],
-    [isExploreEarnEnabled, isPerpsEnabled],
+    [isExploreEarnEnabled, isPerpsEnabled, isPredictionsSupported],
   );
   const searchPerformance = useExploreSearchPerformance({
     query,
@@ -102,7 +102,12 @@ export const useExploreSearch = (
     query: debouncedQuery,
     performance: debouncedQuery.trim() ? searchPerformance.stocks : undefined,
   });
-  const predictions = usePredictTrendingFeed({ query: debouncedQuery });
+  const predictions = usePredictTrendingFeed({
+    query: debouncedQuery,
+    performance: debouncedQuery.trim()
+      ? searchPerformance.predictions
+      : undefined,
+  });
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
     query: debouncedQuery,
