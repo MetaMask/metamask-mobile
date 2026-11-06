@@ -6,6 +6,11 @@ import {
   ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
 } from '../constants';
 
+/**
+ * Legacy network -> chain map. Funding channels resolve their chain from the
+ * CAIP-19 asset id; this remains for the top-level `cardImmersveConfig`
+ * fallback used when `fundingChannels` is absent.
+ */
 export function immersveNetworkToCaipChainId(network?: string): string {
   switch (network) {
     case 'base-mainnet':
@@ -25,6 +30,7 @@ export interface ImmersveFundingTokenInfo {
   decimals: number;
 }
 
+/** Legacy network -> USDC token. See {@link immersveNetworkToCaipChainId}. */
 export function immersveNetworkToFundingToken(
   network?: string,
 ): ImmersveFundingTokenInfo {

@@ -763,7 +763,7 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
+The Kalshi V1 catalog PRED-1376 ships as static client config, now with the Politics topic Feeds (PRED-1454). `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
 
 ```json
 {
@@ -774,7 +774,10 @@ The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the V
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",
-    "college-football-props": "sports-football-ncaa-win-totals"
+    "college-football-props": "sports-football-ncaa-win-totals",
+    "politics-trump": "politics-trump",
+    "politics-congress": "politics-congress",
+    "politics-iran": "politics-iran"
   },
   "searchSupported": true
 }

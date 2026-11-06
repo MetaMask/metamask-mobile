@@ -2,6 +2,8 @@ import { RootState } from '../reducers';
 import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  selectImmersveMoneyAccountMode,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
@@ -44,6 +46,7 @@ import { FundingStatus, CardType } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS } from './featureFlagController/card/defaults';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
@@ -234,6 +237,86 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ activeProviderId: 'baanx' });
 
       expect(selectCardActiveProviderId(state)).toBe('baanx');
+    });
+  });
+
+  describe('Immersve funding channel selectors', () => {
+    const baseAssetId =
+      'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    const moneyAssetId = `eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`;
+    const fundingFlags = {
+      cardImmersveConfig: {
+        fundingChannels: {
+          usdcBase: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-base-channel',
+            assetId: baseAssetId,
+            spenderAddress: '0x1111111111111111111111111111111111111111',
+          },
+          moneyAccount: {
+            source: 'moneyAccount',
+            fundingChannelId: 'money-channel',
+            assetId: moneyAssetId,
+            spenderAddress: '0x2222222222222222222222222222222222222222',
+          },
+        },
+      },
+      cardImmersveCountries: {
+        GB: { fundingChannel: 'usdcBase' },
+        NZ: { fundingChannel: 'moneyAccount' },
+      },
+    };
+
+    it('returns null when no country is selected', () => {
+      const state = createMockRootState({}, undefined, fundingFlags);
+
+      expect(selectImmersveFundingChannelForSelectedCountry(state)).toBeNull();
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the wallet channel for GB', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'GB', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'wallet',
+        symbol: 'USDC',
+        caipChainId: 'eip155:8453',
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the Money account channel for a lowercase country code', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'nz', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'moneyAccount',
+        symbol: 'vmUSD',
+        caipChainId: 'eip155:143',
+        tokenAddress: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(true);
+    });
+
+    it('stays off when another provider is active', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
     });
   });
 
