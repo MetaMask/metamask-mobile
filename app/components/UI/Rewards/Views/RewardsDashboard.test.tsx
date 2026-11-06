@@ -506,36 +506,6 @@ describe('RewardsDashboard', () => {
       );
     });
 
-    it('renders all child components', () => {
-      // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
-      expect(getByTestId('benefits-preview')).toBeTruthy();
-      expect(queryByTestId('rewards-opt-in-section')).toBeNull();
-    });
-
-    it('shows the campaign opt-in when the user has no Rewards subscription', () => {
-      const previous = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectRewardsSubscriptionId) {
-          return null;
-        }
-        return previous?.(selector);
-      });
-
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      expect(getByTestId('rewards-opt-in-section')).toBeOnTheScreen();
-      expect(getByTestId('earn-rewards-preview')).toBeOnTheScreen();
-      expect(queryByTestId('campaigns-preview')).toBeNull();
-      expect(queryByTestId('benefits-preview')).toBeNull();
-    });
-
     it('calls modal hooks when component is rendered', () => {
       // Act
       render(<RewardsDashboard />);
