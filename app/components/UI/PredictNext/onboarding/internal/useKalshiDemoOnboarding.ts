@@ -48,6 +48,8 @@ export interface UseKalshiDemoOnboardingOptions {
   /** False while the device has no usable network. Unknown stays true. */
   canPoll?: () => boolean;
   onActivated: () => void;
+  /** Current MetaMask profile id, for per-profile debug storage. */
+  profileId?: () => string | undefined;
   newKey?: () => string;
   now?: () => number;
 }
@@ -242,7 +244,7 @@ export const createOnboardingController = (
       const intentKey = inputs().newKey();
       const linkKey = inputs().newKey();
       lastEmail = trimmed;
-      rememberKalshiDemoEmail(trimmed);
+      rememberKalshiDemoEmail(inputs().profileId?.(), trimmed);
       perform(async () => {
         const check = guard();
         // Relink (temporary debug): Kalshi refuses a new intent for a profile

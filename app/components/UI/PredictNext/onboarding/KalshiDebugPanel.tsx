@@ -121,16 +121,14 @@ export const KalshiDebugPanel = ({
       a2t: {},
     };
     try {
-      try {
-        next.lastEmail = await readKalshiDemoEmail();
-        next.a2t = summarizeA2t(
-          await Engine.controllerMessenger.call(
-            'PredictDeviceAuthService:getA2t',
-          ),
-        );
-      } catch (error) {
-        next.statusError = `a2t: ${describeError(error)}`;
-      }
+      next.a2t = summarizeA2t(
+        await Engine.controllerMessenger.call(
+          'PredictDeviceAuthService:getA2t',
+        ),
+      );
+      // Keyed by this profile's id: MMKV outlives SRP switches, and an
+      // unkeyed read would show another profile's email.
+      next.lastEmail = await readKalshiDemoEmail(next.a2t.sub);
       // Status reads Kalshi's balance and drops the amount. The figure below is
       // the portfolio query, which stays put until it is invalidated. Start both
       // together so they share one Kalshi read.
@@ -203,7 +201,7 @@ export const KalshiDebugPanel = ({
           </Text>
 
           <Row
-            label="Email typed in onboarding (this device, last attempt)"
+            label="Email typed in onboarding (this profile, last attempt)"
             value={snapshot?.lastEmail ?? 'none remembered'}
           />
           {/* TEMPORARY: the flow publishes its machine step for this row. */}

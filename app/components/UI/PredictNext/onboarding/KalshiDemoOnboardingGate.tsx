@@ -18,6 +18,7 @@ import {
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
+import { summarizeA2t } from './internal/kalshiDebugInfo';
 import { KalshiDemoOnboardingModal } from './internal/KalshiDemoOnboardingModal';
 import {
   getKalshiRelinkNonce,
@@ -75,6 +76,16 @@ const KalshiDemoOnboardingFlow = ({
     relink,
     canPoll: () => networkTier !== 'NONE',
     onActivated: invalidatePortfolioReads,
+    profileId: () => {
+      try {
+        const claims = summarizeA2t(
+          Engine.controllerMessenger.call('PredictDeviceAuthService:getA2t'),
+        );
+        return claims.sub;
+      } catch {
+        return undefined;
+      }
+    },
   });
   // TEMPORARY debug: the panel cannot reach this hook state, so publish it.
   useEffect(() => {

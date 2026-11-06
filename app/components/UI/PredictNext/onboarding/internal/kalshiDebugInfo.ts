@@ -6,20 +6,34 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
  *
  * The phone never keeps the email, and Kalshi never returns it. To tell which
  * Kalshi account a profile was linked to, the last typed email is remembered
- * on this device so the debug panel can show it.
+ * per MetaMask profile id (the A2T `sub`). MMKV outlives SRP switches, so an
+ * unkeyed "last email" would show another SRP's address.
  */
-const LAST_EMAIL_KEY = 'PredictNext.kalshiDemo.lastLinkedEmail';
+const lastEmailKey = (profileId: string): string =>
+  `PredictNext.kalshiDemo.lastLinkedEmail.${profileId}`;
 
-export const rememberKalshiDemoEmail = (email: string): void => {
-  // Best effort. A storage failure must never affect onboarding.
+export const rememberKalshiDemoEmail = (
+  profileId: string | undefined,
+  email: string,
+): void => {
+  // Best effort. A storage failure must never affect onboarding. An unknown
+  // profile id must never surface another profile's email, so store nothing.
+  if (!profileId) {
+    return;
+  }
   Promise.resolve()
-    .then(() => StorageWrapper.setItem(LAST_EMAIL_KEY, email))
+    .then(() => StorageWrapper.setItem(lastEmailKey(profileId), email))
     .catch(() => undefined);
 };
 
-export const readKalshiDemoEmail = async (): Promise<string | undefined> => {
+export const readKalshiDemoEmail = async (
+  profileId: string | undefined,
+): Promise<string | undefined> => {
+  if (!profileId) {
+    return undefined;
+  }
   try {
-    return (await StorageWrapper.getItem(LAST_EMAIL_KEY)) ?? undefined;
+    return (await StorageWrapper.getItem(lastEmailKey(profileId))) ?? undefined;
   } catch {
     return undefined;
   }
