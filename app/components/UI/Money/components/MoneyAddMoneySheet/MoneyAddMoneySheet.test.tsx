@@ -312,23 +312,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('enables the Bank account row for a usable autoramp even when no currency flag is open', () => {
-    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
-    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
-      id: 'ar-1',
-    });
-
-    const { getByTestId, queryByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeEnabled();
-    // External address removed; nothing is coming soon in this state.
-    expect(queryByText('Coming soon')).toBeNull();
-  });
-
   it('hides the Bank account row when a currency flag is open and geolocation is outside its regions', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
 

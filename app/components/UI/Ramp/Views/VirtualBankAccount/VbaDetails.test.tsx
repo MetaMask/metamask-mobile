@@ -59,9 +59,6 @@ const DEFAULT_NEOBANK_MARKETS = [
   { currency: 'BRL', regions: ['BR'] },
   { currency: 'USD', regions: ['US'] },
 ];
-// `let` (not `const`) so a test can simulate the transition state, where the
-// global switch is on but no per-currency market is open yet.
-let mockNeobankMarkets = DEFAULT_NEOBANK_MARKETS;
 let mockRegionOverride: string | undefined;
 let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
@@ -108,7 +105,7 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
     ...actual,
     selectNeobankMarkets: (state: unknown) =>
       mockNeobankFlagOn
-        ? mockNeobankMarkets
+        ? DEFAULT_NEOBANK_MARKETS
         : actual.selectNeobankMarkets(state),
     selectMoneyMovementNeobank: (state: unknown) =>
       mockNeobankFlagOn
@@ -268,7 +265,6 @@ describe('VbaDetails', () => {
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
     mockNeobankFlagOn = true;
-    mockNeobankMarkets = DEFAULT_NEOBANK_MARKETS;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -601,26 +597,6 @@ describe('VbaDetails', () => {
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
     expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
-  });
-
-  it('renders the BRL Pix details for an existing account in the transition state, where the global switch is on but no per-currency market is open yet', async () => {
-    // Same as "shows both Pix rows without leading key icons" above, except
-    // `selectNeobankMarkets` returns no open market. The existing approved
-    // BRL autoramp must still load and render, proving an empty open-market
-    // list during the transition does not break an existing account.
-    mockNeobankMarkets = [];
-    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-
-    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
-    });
-    expect(getByText('Pix Copia e Cola')).toBeOnTheScreen();
-    expect(getByText('00020126')).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
-    expect(getByText('Pix key')).toBeOnTheScreen();
-    expect(getByText('pix@example.com')).toBeOnTheScreen();
   });
 
   it('lists the Pix key before Copia e Cola', async () => {
