@@ -9568,6 +9568,11 @@
         "description": "Os dados da sua conta virtual estão prontos.",
         "cta": "Ver dados da conta"
       },
+      "identity_verified": {
+        "title": "Identidade verificada",
+        "description": "Em seguida, obtenha os dados da sua conta virtual para adicionar fundos do seu banco.",
+        "cta": "Obter dados da conta"
+      },
       "kyc_pending": {
         "title": "Verificando sua identidade",
         "description": "Estamos analisando seus dados. Avisaremos quando a verificação for concluída.",
@@ -10291,12 +10296,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Trocaremos seus tokens por pUSD na Polygon, a rede usada pela Predictions. Provedores de trocas talvez cobrem taxas, mas a MetaMask não cobra."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "A MetaMask fará a conversão para o token desejado para você. A MetaMask não aplica taxas quando você converte para mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "A MetaMask fará a conversão para o token desejado para você. A MetaMask não aplica taxas quando você converte para mUSD."
       },
       "musd_conversion": {
         "transaction_fee": "As taxas de conversão de mUSD incluem custos de rede e podem incluir taxas do provedor. A MetaMask não aplica taxas quando você converte para mUSD."

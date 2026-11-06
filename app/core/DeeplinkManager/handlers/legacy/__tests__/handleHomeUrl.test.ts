@@ -41,15 +41,15 @@ describe('navigateToHomeUrl', () => {
     const mocks = arrangeMocks();
     navigateToHomeUrl({ homePath: 'home' });
 
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
+    expect(mocks.mockSetContentPreviewToken).not.toHaveBeenCalled();
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('sends previewToken and navigates to home screen', () => {
+  it('ignores the legacy previewToken param and navigates to home screen', () => {
     const mocks = arrangeMocks();
     navigateToHomeUrl({ homePath: 'home?previewToken=ABC' });
 
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith('ABC');
+    expect(mocks.mockSetContentPreviewToken).not.toHaveBeenCalled();
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 

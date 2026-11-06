@@ -2,8 +2,18 @@
 import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
+import { getVbaEligibility } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { VbaOnboardingRoutes } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  isVbaGeoBypassEnabled,
+  selectMoneyMovementNeobank,
+  selectMoneyOnboardingStepperAnimationEnabled,
+} from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../selectors/geolocationController';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
@@ -101,10 +111,46 @@ const navigateToDeeplinkModal = (title: string, description: string) =>
     description,
   });
 
-export const handleMoney = () => {
+/** `screen` value that opens the user's money account (Pix details or the next onboarding step). */
+export const MONEY_ACCOUNT_SCREEN = 'account';
+
+// Same gate as the Add money sheet's bank account row (`useVbaEligibility`).
+const isVbaEligible = (state: RootState): boolean => {
+  const { isEnabled, regions, regionOverride } =
+    selectMoneyMovementNeobank(state);
+
+  return getVbaEligibility({
+    isFlagEnabled: isEnabled,
+    location: regionOverride ?? selectGeolocationLocation(state),
+    geolocationStatus: selectGeolocationStatus(state),
+    isDevBypassEnabled: isVbaGeoBypassEnabled(),
+    regions,
+  }).isEligible;
+};
+
+/**
+ * Handles the /money universal link.
+ *
+ * Supported URL formats:
+ * - https://link.metamask.io/money → Money home
+ * - https://link.metamask.io/money?screen=account → Money home, then the
+ *   money account flow. Its loading screen hydrates and routes to the account
+ *   details, or to the next onboarding step if the account is not ready yet.
+ *   Users who are not VBA eligible stay on Money home.
+ *
+ * Unknown `screen` values open Money home, so older links keep working.
+ *
+ * @param params - The params object
+ * @param params.moneyPath - The remainder of the URL after the action (e.g.
+ * '?screen=account')
+ */
+export const handleMoney = ({ moneyPath }: { moneyPath?: string } = {}) => {
   DevLogger.log('[handleMoney] Starting deeplink handling');
 
   try {
+    const urlParams = new URLSearchParams(
+      moneyPath?.includes('?') ? moneyPath.split('?')[1] : '',
+    );
     const state = ReduxService.store.getState();
     const isMoneyAccountGeoEligible = selectIsMoneyAccountGeoEligible(state);
     const hasSeenMoneyOnboarding = selectMoneyOnboardingSeen(state);
@@ -152,6 +198,17 @@ export const handleMoney = () => {
       },
       { pop: true },
     );
+
+    if (
+      urlParams.get('screen') === MONEY_ACCOUNT_SCREEN &&
+      isVbaEligible(state)
+    ) {
+      // Same entry as Add money > bank account: Money home stays underneath,
+      // so back returns there.
+      NavigationService.navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
+        screen: VbaOnboardingRoutes.LOADING,
+      });
+    }
   } catch (error) {
     DevLogger.log('[handleMoney] Failed to handle deeplink:', error);
     Logger.error(error as Error, '[handleMoney] Error handling money deeplink');

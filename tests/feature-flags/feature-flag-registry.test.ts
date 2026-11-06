@@ -432,6 +432,14 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('keeps the Social GIF API off until it is in production', () => {
+      expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
+        inProd: false,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
       expect(
         getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,
