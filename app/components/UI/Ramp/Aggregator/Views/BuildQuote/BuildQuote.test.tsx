@@ -323,6 +323,32 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+let mockGlassHeadersEnabled = false;
+jest.mock(
+  '../../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => mockGlassHeadersEnabled,
+  }),
+);
+
+const mockHeaderStandardGlassProps = jest.fn();
+jest.mock(
+  '../../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ActualReact = jest.requireActual('react');
+    const ActualHeaderStandardGlass = jest.requireActual(
+      '../../../../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlassProps(props);
+        return ActualReact.createElement(ActualHeaderStandardGlass, props);
+      },
+    };
+  },
+);
+
 jest.mock('../../../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
@@ -390,6 +416,7 @@ describe('BuildQuote View', () => {
       ...mockUseGasPriceEstimationInitialValue,
     };
     mockIsNonEvmAddress.mockReturnValue(false);
+    mockGlassHeadersEnabled = false;
   });
 
   //
@@ -497,6 +524,26 @@ describe('BuildQuote View', () => {
     expect(
       screen.queryByTestId('deposit-back-navbar-button'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders the plain header when glass headers are disabled', () => {
+    render(BuildQuote);
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isGlass: false, isFloating: false }),
+    );
+  });
+
+  it('renders the glass header with a working back button when glass headers are enabled', () => {
+    mockGlassHeadersEnabled = true;
+    render(BuildQuote);
+
+    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isGlass: true, isFloating: false }),
+    );
+    expect(mockPop).toHaveBeenCalled();
   });
 
   it('calls endTrace when the conditions are met', () => {

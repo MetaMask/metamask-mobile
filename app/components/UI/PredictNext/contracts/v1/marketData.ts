@@ -77,10 +77,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(
@@ -166,8 +168,8 @@ const marketSelectorGroupSchema = coerce(
 );
 
 /**
- * A card of rows, one Market per row priced by its yes side: a moneyline's
- * options, or a Player's thresholds titled with `label`.
+ * A card of rows, one Market per row priced by its yes side, such as a
+ * moneyline's options. Titled with `label` when the backend sends one.
  */
 const choiceGroupSchema = coerce(
   structType({
