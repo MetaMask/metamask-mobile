@@ -56,6 +56,17 @@ describe('findDisclaimerByKeyword', () => {
     ).toBe(idosPrivacy);
   });
 
+  it('can target the privacy notice without matching the privacy policy', () => {
+    const privacyNotice = disclaimer('idOS:privacy-2', 'idos-privacy-notice');
+
+    expect(
+      findDisclaimerByKeyword([idosPrivacy, privacyNotice], 'privacy-notice'),
+    ).toBe(privacyNotice);
+    expect(
+      findDisclaimerByKeyword([idosPrivacy], 'privacy-notice'),
+    ).toBeUndefined();
+  });
+
   it('returns undefined when the backend renamed the key', () => {
     expect(findDisclaimerByKeyword([idosTerms], 'privacy')).toBeUndefined();
   });

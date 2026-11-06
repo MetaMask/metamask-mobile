@@ -36,6 +36,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
   SUMSUB_BIOMETRICS_CONSENT_URL,
+  SUMSUB_PERSONAL_DATA_PROCESSING_URL,
   SUMSUB_PRIVACY_NOTICE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
@@ -334,6 +335,7 @@ const VbaPartnerTerms = ({
                       ),
                       sumsubNotice,
                       VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK,
+                      SUMSUB_PERSONAL_DATA_PROCESSING_URL,
                     ),
                   }}
                 />
@@ -380,14 +382,6 @@ const VbaPartnerTerms = ({
               ref={checkboxRef}
               isSelected={hasBiometricConsent}
               onChange={setHasBiometricConsent}
-              accessibilityLabel={strings(
-                'virtual_bank_account.partner_terms.biometric_consent',
-                {
-                  privacyNotice: strings(
-                    'virtual_bank_account.partner_terms.biometric_consent_privacy_notice',
-                  ),
-                },
-              )}
               testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
             />
             <Box twClassName="flex-1">
@@ -403,7 +397,7 @@ const VbaPartnerTerms = ({
                     strings(
                       'virtual_bank_account.partner_terms.biometric_consent_privacy_notice',
                     ),
-                    findDisclaimerByKeyword(idos, 'privacy'),
+                    findDisclaimerByKeyword(idos, 'privacy-notice'),
                     VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK,
                   ),
                 }}

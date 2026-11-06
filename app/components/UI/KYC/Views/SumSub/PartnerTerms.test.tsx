@@ -37,6 +37,13 @@ const IDOS_PRIVACY: KycCatalogDisclaimerLink = {
   title: 'idOS Privacy Policy',
   url: 'https://idos.example/privacy',
 };
+const IDOS_PRIVACY_NOTICE: KycCatalogDisclaimerLink = {
+  id: 'idOS:idos-privacy-notice',
+  key: 'idos-privacy-notice',
+  version: '1',
+  title: 'idOS Privacy Notice',
+  url: 'https://idos.example/privacy-notice',
+};
 const IDOS_TRANSPARENCY: KycCatalogDisclaimerLink = {
   id: 'idOS:idos-transparency',
   key: 'idos-transparency-document',
@@ -55,6 +62,7 @@ const SUMSUB_NOTICE: KycCatalogDisclaimerLink = {
 const DISCLAIMERS = [
   IDOS_TERMS,
   IDOS_PRIVACY,
+  IDOS_PRIVACY_NOTICE,
   IDOS_TRANSPARENCY,
   SUMSUB_NOTICE,
 ];
@@ -162,6 +170,11 @@ describe('VbaPartnerTerms', () => {
         `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_TERMS.id}`,
       ),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_PRIVACY_NOTICE.id}`,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens each idOS document URL from its row', () => {
@@ -196,6 +209,25 @@ describe('VbaPartnerTerms', () => {
       getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/notice');
+  });
+
+  it('falls back to the Sumsub notice URL when the catalog has no match', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen([
+      IDOS_TERMS,
+      IDOS_PRIVACY_NOTICE,
+      IDOS_TRANSPARENCY,
+    ]);
+
+    fireEvent.press(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
+    );
+
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://sumsub.com/notification-to-processing-of-personal-data/',
+    );
   });
 
   it('adds the US residents acknowledgement only for a US geolocation', () => {
@@ -236,22 +268,26 @@ describe('VbaPartnerTerms', () => {
     expect(getByText('Sumsub Terms of Service')).toBeOnTheScreen();
   });
 
-  it('links the biometric consent to the matching idOS privacy document', () => {
+  it('links the biometric consent to the idOS privacy notice, not the policy', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
-    const { getByTestId } = renderScreen();
+    const { getByTestId, getByText } = renderScreen();
 
     expect(
       getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
     ).toHaveTextContent(
       'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
     );
+    // Policy stays listed as a row; notice is reserved for the sentence link.
+    expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
 
     fireEvent.press(
       getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
     );
-    expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/privacy');
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      'https://idos.example/privacy-notice',
+    );
     expect(
       getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON),
     ).toBeDisabled();
