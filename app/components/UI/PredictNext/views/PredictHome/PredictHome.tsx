@@ -235,8 +235,9 @@ const PredictHomeView = ({
                 accessibilityRole="button"
               />
             ) : null}
-            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on the
-                demo build flag. Remove with the demo onboarding. */}
+            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on a
+                development build with Kalshi authentication on. Remove with
+                the demo onboarding. */}
             <KalshiDebugPanel
               renderTrigger={(open) => (
                 <ButtonIconGlass

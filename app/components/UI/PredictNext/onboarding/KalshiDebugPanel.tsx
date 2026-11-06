@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,7 +19,9 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Engine from '../../../../core/Engine';
+import { selectPredictConfig } from '../selectors/predictConfig';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
+import { isKalshiDebugPanelEnabled } from './internal/isKalshiDebugPanelEnabled';
 import { summarizeA2t, type A2tSummary } from './internal/kalshiDebugInfo';
 
 interface DebugSnapshot {
@@ -112,6 +115,7 @@ const describeServerStatus = (snapshot?: DebugSnapshot): string => {
 
 /**
  * TEMPORARY. Shows where this profile stands in the Kalshi demo onboarding.
+ * Renders nothing outside a development build with Kalshi authentication on.
  * Delete with the demo onboarding.
  */
 export const KalshiDebugPanel = ({
@@ -120,6 +124,8 @@ export const KalshiDebugPanel = ({
   /** Renders the trigger elsewhere, e.g. the screen header. */
   renderTrigger?: (open: () => void) => React.ReactNode;
 }) => {
+  const config = useSelector(selectPredictConfig);
+  const enabled = isKalshiDebugPanelEnabled(__DEV__, config);
   const tw = useTailwind();
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -163,6 +169,10 @@ export const KalshiDebugPanel = ({
       Clipboard.setString(profileId);
     }
   }, [snapshot?.a2t.sub]);
+
+  if (!enabled) {
+    return null;
+  }
 
   return (
     <Box>

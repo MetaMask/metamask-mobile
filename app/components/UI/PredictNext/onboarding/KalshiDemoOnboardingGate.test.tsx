@@ -80,8 +80,8 @@ describe('KalshiDemoOnboardingGate', () => {
   it('opens the flow for a signed-in, unlocked wallet with a venue auth profile', () => {
     const view = renderGate();
 
-    expect(view.getByTestId('child')).toBeTruthy();
-    expect(view.getByTestId('demo-modal')).toBeTruthy();
+    expect(view.getByTestId('child')).toBeOnTheScreen();
+    expect(view.getByTestId('demo-modal')).toBeOnTheScreen();
     expect(mockCreateClient).toHaveBeenCalledTimes(1);
   });
 
@@ -90,8 +90,8 @@ describe('KalshiDemoOnboardingGate', () => {
 
     const view = renderGate();
 
-    expect(view.getByTestId('child')).toBeTruthy();
-    expect(view.queryByTestId('demo-modal')).toBeNull();
+    expect(view.getByTestId('child')).toBeOnTheScreen();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
     expect(mockCreateClient).not.toHaveBeenCalled();
     expect(mockUseOnboarding).not.toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe('KalshiDemoOnboardingGate', () => {
 
     const view = renderGate();
 
-    expect(view.queryByTestId('demo-modal')).toBeNull();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
@@ -110,7 +110,7 @@ describe('KalshiDemoOnboardingGate', () => {
 
     const view = renderGate();
 
-    expect(view.queryByTestId('demo-modal')).toBeNull();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
@@ -120,7 +120,7 @@ describe('KalshiDemoOnboardingGate', () => {
 
       const view = renderGate();
 
-      expect(view.queryByTestId('demo-modal')).toBeNull();
+      expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
       view.unmount();
     }
   });
