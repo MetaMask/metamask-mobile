@@ -24,7 +24,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
 import { MarketListTestIds } from '../../../events/markets/MarketList.testIds';
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
-import { ChoiceMarketGroupCardTestIds } from '../../../events/markets/ChoiceMarketGroupCard.testIds';
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
 import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
@@ -1867,10 +1866,12 @@ describe('EventMarketList', () => {
     };
     const titles = (view: ReturnType<typeof renderEventMarketList>) =>
       view
-        .queryAllByTestId(/^predict-next-choice-.*-title$/)
+        .queryAllByTestId(/^predict-next-market-group-.*_yards:.*-title$/)
         .map((title) => title.props.children);
+    const lineId = (stat: string, player: string, threshold: number) =>
+      `${event.id}-${stat}-${player}-${threshold}`;
 
-    it('shows the Player props tab with one titled card per Player, rows in threshold order', async () => {
+    it('shows the Player props tab with one line picker per Player, lines ascending', async () => {
       const { view } = await renderPlayerProps();
 
       expect(
@@ -1890,40 +1891,38 @@ describe('EventMarketList', () => {
         EventMarketLayoutSectionTestIds.section('rushing_yards'),
         EventMarketLayoutSectionTestIds.section('passing_yards'),
       ]);
+      // Each card starts on its lowest line.
       expect(titles(view)).toEqual([
-        'Rhamondre Stevenson',
-        'Kenneth Walker',
-        'Drake Maye',
-        'Drake Maye',
+        'Rhamondre Stevenson: 40+',
+        'Kenneth Walker: 50+',
+        'Drake Maye: 20+',
+        'Drake Maye: 200+',
       ]);
       const stevenson = rushing('Rhamondre Stevenson');
-      expect(
-        view
-          .getAllByTestId(
-            new RegExp(`^${ChoiceMarketGroupCardTestIds.row(stevenson, '')}`),
-          )
-          .filter((row) => !/-(line|price|title)$/.test(row.props.testID))
-          .map((row) => row.props.testID),
-      ).toEqual(
-        [40, 60, 80].map((threshold) =>
-          ChoiceMarketGroupCardTestIds.row(
-            stevenson,
-            `${event.id}-rushing_yards-Rhamondre Stevenson-${threshold}`,
+      [40, 60, 80].forEach((threshold) =>
+        expect(
+          view.getByTestId(
+            MarketGroupCardTestIds.option(
+              stevenson,
+              lineId('rushing_yards', 'Rhamondre Stevenson', threshold),
+            ),
           ),
-        ),
+        ).toHaveTextContent(`${threshold}+`),
       );
-      // A Player with a single threshold still gets a card.
+      // A Player with a single line still gets a card, without a picker.
+      const maye = rushing('Drake Maye');
       expect(
-        view.getByTestId(
-          ChoiceMarketGroupCardTestIds.card(rushing('Drake Maye')),
-        ),
+        view.getByTestId(MarketGroupCardTestIds.card(maye)),
       ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.selector(maye)),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows the first three Players and expands the rest with View all, until the section closes', async () => {
       const { view } = await renderPlayerProps();
       const viewAll = EventMarketLayoutSectionTestIds.viewAll('rushing_yards');
-      const charbonnet = ChoiceMarketGroupCardTestIds.card(
+      const charbonnet = MarketGroupCardTestIds.card(
         rushing('Zach Charbonnet'),
       );
 
@@ -1955,21 +1954,40 @@ describe('EventMarketList', () => {
       expect(view.getByTestId(viewAll)).toBeOnTheScreen();
     });
 
-    it('orders from a Player row by its yes side', async () => {
+    it('switches a Player to another line and orders its Yes and No', async () => {
       const { props, view } = await renderPlayerProps();
-      const marketId = `${event.id}-rushing_yards-Kenneth Walker-70`;
+      const walker = rushing('Kenneth Walker');
+      const marketId = lineId('rushing_yards', 'Kenneth Walker', 70);
       const market = event.markets.find(({ id }) => id === marketId);
 
       fireEvent.press(
+        view.getByTestId(MarketGroupCardTestIds.option(walker, marketId)),
+      );
+
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.title(walker)),
+      ).toHaveTextContent('Kenneth Walker: 70+');
+      fireEvent.press(
         view.getByTestId(
-          ChoiceMarketGroupCardTestIds.price(
-            rushing('Kenneth Walker'),
-            marketId,
-          ),
+          MarketGroupCardTestIds.outcomeButton(walker, marketId, 'yes'),
+        ),
+      );
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.outcomeButton(walker, marketId, 'no'),
         ),
       );
 
-      expect(props.onOrder).toHaveBeenCalledWith(market, market?.outcomes[0]);
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        1,
+        market,
+        market?.outcomes[0],
+      );
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        2,
+        market,
+        market?.outcomes[1],
+      );
     });
 
     it('keeps the Game lines moneyline on its own card', async () => {
@@ -2149,8 +2167,38 @@ describe('EventMarketList', () => {
       );
     });
 
-    it('titles a player prop with its Player and threshold', async () => {
+    // A `choice` card whose outcomes each name a line, titled with its
+    // label (or not). Player prop thresholds are now `threshold` lines;
+    // titling their Positions is PRED-1471.
+    const makeChoiceCardEvent = (label?: string): PredictEvent => {
       const event = makePredictNextPlayerPropsEvent();
+      return {
+        ...event,
+        markets: event.markets.map((candidate) =>
+          candidate.group?.marketType === 'threshold'
+            ? {
+                ...candidate,
+                outcomes: [
+                  {
+                    ...candidate.outcomes[0],
+                    label: `${candidate.group.option?.value}+`,
+                  },
+                  candidate.outcomes[1],
+                ],
+                group: {
+                  key: candidate.group.key,
+                  groupType: 'choice',
+                  displayOrder: candidate.group.displayOrder,
+                  label,
+                },
+              }
+            : candidate,
+        ),
+      };
+    };
+
+    it('titles a Position on a titled choice card with its label and outcome', async () => {
+      const event = makeChoiceCardEvent('Rhamondre Stevenson');
       const market = event.markets.find((candidate) => candidate.group?.label);
       const position = makePredictNextPosition({
         marketId: market?.id,
@@ -2160,34 +2208,24 @@ describe('EventMarketList', () => {
 
       expect(
         cardOf(view, position).getByText(
-          positionTitle(position, `${market?.group?.label} 60+ yards`),
+          positionTitle(position, 'Rhamondre Stevenson 60+'),
         ),
       ).toBeOnTheScreen();
     });
 
-    it('titles an unlabelled player prop with its threshold alone', async () => {
-      const event = makePredictNextPlayerPropsEvent();
-      const markets = event.markets.map((candidate) =>
-        candidate.group?.label
-          ? {
-              ...candidate,
-              group: { ...candidate.group, label: undefined },
-            }
-          : candidate,
-      );
-      const market = markets.find((candidate) =>
-        candidate.outcomes[0].label.endsWith('yards'),
+    it('titles a Position on an untitled choice card with its outcome alone', async () => {
+      const event = makeChoiceCardEvent();
+      const market = event.markets.find(
+        (candidate) => candidate.outcomes[0].label === '60+',
       );
       const position = makePredictNextPosition({
         marketId: market?.id,
         context: undefined,
       });
-      const { view } = await renderPositions({ ...event, markets }, [position]);
+      const { view } = await renderPositions(event, [position]);
 
       expect(
-        cardOf(view, position).getByText(
-          positionTitle(position, market?.outcomes[0].label),
-        ),
+        cardOf(view, position).getByText(positionTitle(position, '60+')),
       ).toBeOnTheScreen();
     });
 

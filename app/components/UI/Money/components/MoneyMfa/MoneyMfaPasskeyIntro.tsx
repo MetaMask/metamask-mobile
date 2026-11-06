@@ -54,6 +54,7 @@ const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
           source={shieldImage}
           style={tw.style('w-[88px] h-[88px]')}
           resizeMode="contain"
+          accessible={false}
         />
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
