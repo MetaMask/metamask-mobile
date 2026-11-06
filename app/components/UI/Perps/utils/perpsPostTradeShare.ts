@@ -31,7 +31,10 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
-/** Returns whether the entered Perps amount reaches the sharing threshold. */
+/**
+ * Returns whether the Perps order's margin reaches the sharing threshold.
+ * `amountUsd` is position size (notional); margin is notional / leverage.
+ */
 export const isPerpsPostTradeShareEligible = ({
   amountUsd,
   leverage,
@@ -39,12 +42,9 @@ export const isPerpsPostTradeShareEligible = ({
   amountUsd?: string;
   leverage?: number;
 }): boolean => {
-  const amount = Number(amountUsd);
-  const leveragedAmount = amount * (leverage ?? 0);
-  return (
-    Number.isFinite(leveragedAmount) &&
-    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
-  );
+  const notional = Number(amountUsd);
+  const margin = leverage && leverage > 0 ? notional / leverage : Number.NaN;
+  return Number.isFinite(margin) && margin >= MIN_POST_TRADE_SHARE_USD;
 };
 
 export const canBeginPerpsPostTradeShare = ({

@@ -141,8 +141,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       endAccessory,
     );
 
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: () => props.onClose?.(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+      );
+    },
+  );
+
   return {
     ...actual,
+    BottomSheet: MockBottomSheet,
     HeaderStandardAnimated: MockHeaderStandardAnimated,
     useHeaderStandardAnimated: () => ({
       scrollY: { value: 0 },
@@ -589,6 +611,11 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200');
     expect(
+      screen.queryByTestId(
+        MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
+      ),
+    ).toBeNull();
+    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
     ).toHaveTextContent('3h');
     expect(
@@ -600,6 +627,78 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
     ).toBeNull();
+  });
+
+  it('fills unrealized P&L from priced open positions', () => {
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        profile: {
+          profileId: 'live-id',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'Onchain Name',
+          imageUrl: null,
+        },
+        stats: {
+          pnl30d: 1200,
+          winRate30d: 0.42,
+          medianHoldMinutes: 180,
+          tradeCount30d: 12,
+          volumeUsd30d: 50000,
+        },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 88,
+        followingCount: 3,
+        copytradedAllTime: {
+          count: 44,
+          volumeUSD: 1000,
+          distinctActors: 2,
+        },
+        rankingTag: 'dolphin',
+      } as TraderProfileResponse,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [
+        {
+          positionId: 'eth-spot',
+          tokenSymbol: 'ETH',
+          tokenName: 'Ethereum',
+          tokenAddress: '0xeth',
+          chain: 'ethereum',
+          positionAmount: 1,
+          boughtUsd: 100,
+          soldUsd: 0,
+          realizedPnl: 50,
+          costBasis: 100,
+          trades: [],
+          lastTradeAt: 1,
+          pnlValueUsd: 150,
+        },
+      ],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
+    ).toHaveTextContent('+$100');
   });
 
   it('opens followers connections on the followers tab', () => {
@@ -1767,6 +1866,70 @@ describe('MyProfileView', () => {
     });
   });
 
+  it('opens and closes the uncounted-positions sheet over the profile', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [flagged],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Why some positions aren't counted"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
+  });
+
   it('pins the owner flagged positions and opens history from that row', () => {
     const flagged: Position = {
       positionId: 'nigel',
@@ -1817,6 +1980,24 @@ describe('MyProfileView', () => {
       source: 'profile_position',
       isClosed: false,
     });
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByText(
+        'You got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("You deployed the token's contract."),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeNull();
   });
 
   it('opens position history from a flagged row on another trader profile', () => {

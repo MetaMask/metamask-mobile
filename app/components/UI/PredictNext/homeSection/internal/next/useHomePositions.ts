@@ -36,8 +36,11 @@ const ERROR: HomePositionsState = { status: 'error' };
  */
 export const useHomePositions = (
   venueId: PredictVenueId,
+  { enabled = true }: { enabled?: boolean } = {},
 ): HomePositionsState => {
-  const { data, isError } = usePositions(venueId, HOME_POSITIONS_PARAMS);
+  const { data, isError } = usePositions(venueId, HOME_POSITIONS_PARAMS, {
+    enabled,
+  });
 
   return useMemo(() => {
     if (isError) return ERROR;

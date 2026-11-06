@@ -1758,7 +1758,7 @@ export function useQuickBuyController(
       ? undefined
       : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
-    if (prompt?.kind === 'claim_sheet') {
+    if (prompt?.kind === 'claim_sheet' && canPostTradeShare) {
       trackedPostTradePrompt = prompt;
     } else if (
       prompt?.kind === 'share_sheet' &&

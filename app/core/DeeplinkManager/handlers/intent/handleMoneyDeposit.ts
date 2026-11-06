@@ -5,24 +5,46 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
+interface MoneyDepositDeeplinkArgs {
+  moneyDepositPath?: string;
+}
+
+const parseTokenType = (moneyDepositPath: string): string | undefined => {
+  const query = moneyDepositPath.includes('?')
+    ? moneyDepositPath.split('?')[1]
+    : moneyDepositPath;
+  const tokenType = new URLSearchParams(query).get('tokenType')?.trim();
+
+  return tokenType || undefined;
+};
+
 /**
  * Deeplink intent for the Money account deposit bridge route.
  *
  * Eligibility and deposit setup require React hooks and therefore stay in the
  * bridge component mounted by this route.
  */
-export const createMoneyDepositDeeplinkIntent = (): DeeplinkIntent => ({
-  target: {
-    type: 'main-stack',
-    routeName: Routes.MONEY.DEPOSIT_DEEPLINK,
-  },
-});
+export const createMoneyDepositDeeplinkIntent = ({
+  moneyDepositPath = '',
+}: MoneyDepositDeeplinkArgs = {}): DeeplinkIntent => {
+  const tokenType = parseTokenType(moneyDepositPath);
 
-export const handleMoneyDeposit = async () => {
+  return {
+    target: {
+      type: 'main-stack',
+      routeName: Routes.MONEY.DEPOSIT_DEEPLINK,
+      ...(tokenType ? { params: { tokenType } } : {}),
+    },
+  };
+};
+
+export const handleMoneyDeposit = async (
+  args: MoneyDepositDeeplinkArgs = {},
+) => {
   DevLogger.log('[handleMoneyDeposit] Starting deeplink handling');
 
   try {
-    await executeDeeplinkIntent(createMoneyDepositDeeplinkIntent());
+    await executeDeeplinkIntent(createMoneyDepositDeeplinkIntent(args));
   } catch (error) {
     DevLogger.log(
       '[handleMoneyDeposit] Failed to execute the bridge route intent:',

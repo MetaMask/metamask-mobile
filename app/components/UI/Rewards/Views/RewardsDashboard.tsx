@@ -4,10 +4,19 @@ import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  IconColor,
   IconName,
+  SectionHeader,
+  TabEmptyState,
   Text,
+  TextColor,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
@@ -31,7 +40,6 @@ import {
   selectHasAcceptedVipInvite,
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
-  selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
 import {
@@ -61,9 +69,12 @@ import {
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import { Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
@@ -75,6 +86,11 @@ import Engine from '../../../../core/Engine';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
+
+function selectRewardsDashboardReferralMe(state: RootState) {
+  const profileId = selectSessionProfileId(state);
+  return selectReferralMeEntry(state, profileId)?.data;
+}
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -94,10 +110,8 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const profileId = useSelector(selectSessionProfileId);
-  const referralMe = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
-  );
+  const referralMe = useSelector(selectRewardsDashboardReferralMe);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
@@ -113,9 +127,6 @@ const RewardsDashboard: React.FC = () => {
   useGeoRewardsMetadata({});
   useReferralDetails();
 
-  const hideUnlinkedAccountsBanner = useSelector(
-    selectHideUnlinkedAccountsBanner,
-  );
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -132,19 +143,10 @@ const RewardsDashboard: React.FC = () => {
   }, [selectedAccountGroup?.id, hideCurrentAccountNotOptedInBannerMap]);
 
   // Use the reward dashboard modals hook
-  const {
-    showUnlinkedAccountsModal,
-    showNotOptedInModal,
-    showNotSupportedModal,
-    hasShownModal,
-  } = useRewardDashboardModals();
+  const { showNotSupportedModal, hasShownModal } = useRewardDashboardModals();
 
-  // Use the opt-in summary hook to check for unlinked accounts
   const {
-    byWallet: optInByWallet,
-    bySelectedAccountGroup: optInBySelectedAccountGroup,
     currentAccountGroupPartiallySupported,
-    currentAccountGroupOptedInStatus,
     refresh: refreshOptInSummary,
   } = useRewardOptinSummary();
   const refreshOptInSummaryRef = useRef(refreshOptInSummary);
@@ -156,25 +158,6 @@ const RewardsDashboard: React.FC = () => {
 
   // Quietly finish incomplete Money Account Sweepstakes series opt-ins
   useResumePendingMasSeriesOptIn();
-
-  const totalOptedInAccountsSelectedGroup = useMemo(
-    () => optInBySelectedAccountGroup?.optedInAccounts?.length,
-    [optInBySelectedAccountGroup],
-  );
-
-  const totalAccountGroupsWithOptedOutAccounts = useMemo(
-    () =>
-      optInByWallet.reduce(
-        (accWallet, wallet) =>
-          accWallet +
-          wallet.groups.reduce(
-            (accGroup, group) => accGroup + group.optedOutAccounts.length,
-            0,
-          ),
-        0,
-      ),
-    [optInByWallet],
-  );
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
   // This handles the case where the app was closed during a bulk opt-in process.
@@ -211,52 +194,21 @@ const RewardsDashboard: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       if (
-        (totalOptedInAccountsSelectedGroup === 0 ||
-          currentAccountGroupPartiallySupported === false) &&
+        currentAccountGroupPartiallySupported === false &&
         !hideCurrentAccountNotOptedInBanner &&
         selectedAccountGroup?.id
       ) {
-        if (currentAccountGroupPartiallySupported === false) {
-          // Account group entirely not not supported (e.g. hardware wallet account group)
-          if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
-            showNotSupportedModal();
-          }
-        } else if (
-          !hasShownModal('not-opted-in' as RewardsDashboardModalType)
-        ) {
-          // Account can be opted in but hasn't been yet
-          showNotOptedInModal();
-        }
-        return; // Don't check for unlinked accounts if current account has issues
-      }
-
-      // Priority 2: Check for unlinked accounts (only if current account is good)
-      if (
-        subscriptionId &&
-        (currentAccountGroupOptedInStatus === 'fullyOptedIn' ||
-          currentAccountGroupOptedInStatus === 'partiallyOptedIn' ||
-          hideCurrentAccountNotOptedInBanner) &&
-        totalAccountGroupsWithOptedOutAccounts > 0 &&
-        !hideUnlinkedAccountsBanner
-      ) {
-        // User has other accounts that could be earning rewards
-        if (!hasShownModal('unlinked-accounts' as RewardsDashboardModalType)) {
-          showUnlinkedAccountsModal();
+        // Account group entirely not supported (e.g. hardware wallet account group)
+        if (!hasShownModal('not-supported' as RewardsDashboardModalType)) {
+          showNotSupportedModal();
         }
       }
     }, [
-      totalOptedInAccountsSelectedGroup,
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
       selectedAccountGroup?.id,
-      subscriptionId,
-      currentAccountGroupOptedInStatus,
-      totalAccountGroupsWithOptedOutAccounts,
-      hideUnlinkedAccountsBanner,
       hasShownModal,
       showNotSupportedModal,
-      showNotOptedInModal,
-      showUnlinkedAccountsModal,
     ]),
   );
 
@@ -365,6 +317,18 @@ const RewardsDashboard: React.FC = () => {
         : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
+
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
+  }, [navigation]);
+
+  const copyTradingText = referralMe?.localized_text;
+  const showCopyTrading = Boolean(
+    isSocialV1Enabled &&
+      copyTradingText?.tradingCommissionsSection &&
+      copyTradingText.copyTradingEmptyDescription &&
+      copyTradingText.copyTradingEmptyAction,
+  );
 
   const vipButtonStyle = isGlassHeader
     ? undefined
@@ -490,9 +454,59 @@ const RewardsDashboard: React.FC = () => {
             </Box>
           ) : null}
           <Box twClassName="gap-3">
-            <CampaignsPreview />
-            <EarnRewardsPreview />
-            <BenefitsPreview />
+            {subscriptionId ? (
+              <CampaignsPreview />
+            ) : (
+              <RewardsOptInSection
+                showDivider={false}
+                localizedText={{
+                  invitedOptInDescription:
+                    referralMe?.localized_text.invitedOptInDescription ||
+                    strings('rewards.onboarding.description'),
+                  invitedOptInAction:
+                    referralMe?.localized_text.invitedOptInAction ||
+                    strings('rewards.campaign.opt_in'),
+                  invitedOptInLegal:
+                    referralMe?.localized_text.invitedOptInLegal,
+                }}
+              />
+            )}
+            {showCopyTrading && copyTradingText ? (
+              <Box testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION}>
+                <SectionHeader
+                  title={copyTradingText.tradingCommissionsSection}
+                />
+                <Box twClassName="items-center px-4 py-4">
+                  <TabEmptyState
+                    icon={
+                      <AvatarIcon
+                        iconName={IconName.Activity}
+                        size={AvatarIconSize.Xl}
+                        severity={AvatarIconSeverity.Neutral}
+                        iconProps={{ color: IconColor.IconDefault }}
+                      />
+                    }
+                    description={copyTradingText.copyTradingEmptyDescription}
+                    descriptionProps={{
+                      variant: TextVariant.BodyMd,
+                      color: TextColor.TextAlternative,
+                    }}
+                    actionButtonText={copyTradingText.copyTradingEmptyAction}
+                    actionButtonProps={{
+                      variant: ButtonVariant.Primary,
+                      size: ButtonSize.Lg,
+                      twClassName: 'mt-3 self-stretch',
+                      testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
+                    }}
+                    onAction={openSocialTab}
+                    testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <EarnRewardsPreview />
+            )}
+            {subscriptionId ? <BenefitsPreview /> : null}
           </Box>
         </Animated.ScrollView>
       </SafeAreaView>
