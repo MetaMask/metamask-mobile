@@ -283,6 +283,16 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
+    // The search API owns the result set and order — results render exactly
+    // as the search endpoint returns them, with no trending merge.
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
+
     const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -316,6 +326,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
           pricePercentageChange: '+5.20%',
         },
       ],
+      missing: [{ id: TRENDING_BITCOIN_ID }, { id: TRENDING_UNISWAP_ID }],
     });
   });
 
@@ -510,6 +521,16 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       strings('trending.search_placeholder'),
     );
     expect(searchInput).toBeOnTheScreen();
+
+    // The search API owns the result set and order — the mocked search
+    // endpoint returns only Ethereum, so no trending rows are merged in.
+    const searchEthereumResult = {
+      ...mockTrendingTokensData[0],
+      pricePercentChange1d: '5.2',
+    };
+    setupTrendingApiFetchMock(mockTrendingTokensData, undefined, undefined, [
+      searchEthereumResult,
+    ]);
 
     await userEvent.type(searchInput, 'ethereum');
 
