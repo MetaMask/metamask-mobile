@@ -16,8 +16,17 @@ type WorkflowStep = {
   run?: string;
 };
 
+type WorkflowJob = {
+  needs?: string[] | string;
+  uses?: string;
+  if?: string;
+  with?: Record<string, string | boolean>;
+  'continue-on-error'?: boolean;
+  steps?: WorkflowStep[];
+};
+
 type Workflow = {
-  jobs: Record<string, { steps?: WorkflowStep[] }>;
+  jobs: Record<string, WorkflowJob>;
 };
 
 const WITH_SRP = 'main-e2e-bs-with-srp';
@@ -220,5 +229,63 @@ describe('build-android-upload-to-testmu sourcemap retention', () => {
         `android-sourcemaps-${WITHOUT_SRP}`,
       ]),
     );
+  });
+});
+
+describe('main-dev performance build', () => {
+  const job = (workflowPath: string, jobId: string) => {
+    const workflow = yaml.load(fs.readFileSync(workflowPath, 'utf8')) as {
+      jobs: Record<string, WorkflowJob>;
+    };
+    return workflow.jobs[jobId];
+  };
+
+  it('builds main-dev in parallel and outside the SRP fingerprint reuse gate', () => {
+    const build = loadWorkflow().jobs['build-main-dev'];
+
+    expect(build.uses).toBe('./.github/workflows/build.yml');
+    expect(build.with).toMatchObject({
+      build_name: 'main-dev',
+      platform: 'android',
+    });
+    // Starts with the name check only, so it does not wait for the SRP
+    // fingerprint lookup or for those Gradle jobs.
+    expect(build.needs).toEqual(['check-builds-needed']);
+    expect(build.if).toContain('inputs.build_main_dev == true');
+    expect(build['continue-on-error']).toBe(true);
+
+    const srpUpload = loadWorkflow().jobs['upload-to-browserstack'];
+    const srpNeeds = Array.isArray(srpUpload.needs)
+      ? srpUpload.needs
+      : [srpUpload.needs];
+    expect(srpNeeds).not.toContain('build-main-dev');
+  });
+
+  it('uploads the main-dev APK without coupling it to the SRP upload job', () => {
+    const upload = loadWorkflow().jobs['upload-main-dev'];
+    const download = upload.steps?.find(
+      (step) => step.name === 'Download main-dev APK',
+    );
+
+    expect(upload.needs).toEqual(['check-builds-needed', 'build-main-dev']);
+    expect(upload['continue-on-error']).toBe(true);
+    expect(download?.with).toMatchObject({
+      name: 'android-apk-main-dev',
+      path: 'artifacts/main-dev',
+    });
+  });
+
+  it('is enabled for performance runs and left off for nightly system tests', () => {
+    const performance = job(
+      path.join(__dirname, '../../../workflows/run-performance-e2e.yml'),
+      'trigger-android-dual-versions',
+    );
+    const systemTests = job(
+      path.join(__dirname, '../../../workflows/run-system-tests.yml'),
+      'trigger-android-dual-versions',
+    );
+
+    expect(performance.with?.build_main_dev).toBe(true);
+    expect(systemTests.with?.build_main_dev).toBeUndefined();
   });
 });

@@ -310,7 +310,8 @@ jobs:
     # Android runs without explicit TestMu app URLs go through this workflow.
     # It selects fingerprint reuse for app changes and latest-main artifact
     # reuse for test-only changes, with a fresh-build fallback. APKs are
-    # uploaded to TestMu only.
+    # uploaded to TestMu only. main-dev is a third APK (dev API hosts) built
+    # in parallel for social trading tests; it does not follow build_variant.
     if: >-
       always() &&
       !cancelled() &&
@@ -327,6 +328,7 @@ jobs:
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
       upload_to_browserstack: false
       upload_to_testmu: true
+      build_main_dev: true
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
