@@ -82,22 +82,19 @@ describe('Notification Services Controller', () => {
     ['dev', 'dev'],
     ['uat', 'uat'],
     ['prod', 'prd'],
-  ])(
-    'maps MM_API_ENV=%s to notification API env %s',
-    (apiEnv, expectedEnv) => {
-      process.env.MM_API_ENV = apiEnv;
+  ])('maps MM_API_ENV=%s to notification API env %s', (apiEnv, expectedEnv) => {
+    process.env.MM_API_ENV = apiEnv;
 
-      const { messenger, assertGetConstructorCall } = arrange();
-      createNotificationServicesController({ messenger });
-      const constructorParams = assertGetConstructorCall();
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesController({ messenger });
+    const constructorParams = assertGetConstructorCall();
 
-      expect(constructorParams).toStrictEqual({
-        messenger,
-        state: undefined,
-        env: expect.objectContaining({ env: expectedEnv }),
-      });
-    },
-  );
+    expect(constructorParams).toStrictEqual({
+      messenger,
+      state: undefined,
+      env: expect.objectContaining({ env: expectedEnv }),
+    });
+  });
 
   it('can pass undefined as initial state', () => {
     const { messenger, assertGetConstructorCall } = arrange();
