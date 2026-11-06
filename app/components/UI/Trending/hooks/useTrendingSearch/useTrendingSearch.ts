@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
@@ -10,8 +9,6 @@ import {
   SortDirection,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
-import { selectExploreLaptopSearchApiRankingEnabled } from '../../selectors/featureFlags';
-import { usesTemporaryApiRanking } from '../../utils/usesTemporaryApiRanking';
 import { isEqual } from 'lodash';
 import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 
@@ -67,16 +64,11 @@ export const useTrendingSearch = (opts?: {
     },
   } = useStableReference(opts ?? {});
 
-  const isLaptopApiRankingEnabled = useSelector(
-    selectExploreLaptopSearchApiRankingEnabled,
-  );
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-  const searchRequestQuery = usesTemporaryApiRanking(
-    debouncedQuery,
-    isLaptopApiRankingEnabled,
-  )
-    ? (debouncedQuery?.trim().replace(/^\$/, '') ?? '')
-    : debouncedQuery || '';
+  // An optional ticker-style "$" prefix is stripped from the search query.
+  // This was previously gated behind the temporary LAPTOP API-ranking fork,
+  // now unconditional.
+  const searchRequestQuery = debouncedQuery?.trim().replace(/^\$/, '') ?? '';
 
   // Debounce the search query
   useEffect(() => {
@@ -124,64 +116,33 @@ export const useTrendingSearch = (opts?: {
       );
     }
 
-    const query = debouncedQuery.toLowerCase().trim();
-    const trendingMatches = trendingResults.filter(
-      (item) =>
-        item.symbol?.toLowerCase().includes(query) ||
-        item.name?.toLowerCase().includes(query),
-    );
-    const trendingByAssetId = new Map(
-      trendingMatches.map((result) => [result.assetId, result]),
-    );
-
-    // TEMPORARY: Preserve API ranking only for the LAPTOP launch. All other
-    // queries retain the existing trending-first merge behavior.
-    const preserveApiRanking = usesTemporaryApiRanking(
-      debouncedQuery,
-      isLaptopApiRankingEnabled,
-    );
-    const resultMap = new Map<string, TrendingAsset>(
-      preserveApiRanking
-        ? []
-        : trendingMatches.map((result) => [result.assetId, result]),
-    );
-
-    searchResults
+    // Search results are displayed in the API's relevance order — no
+    // client-side merge with the trending list and no re-sort (mirrors the
+    // extension's discover-search change). The API's own result objects are
+    // shown, so a duplicate assetId is no longer replaced by the trending
+    // list's copy.
+    return searchResults
       .filter((item) => includeStocks || !item.rwaData)
-      .forEach((asset) => {
-        resultMap.set(
-          asset.assetId,
-          trendingByAssetId.get(asset.assetId) ?? {
-            assetId: asset.assetId,
-            symbol: asset.symbol,
-            name: asset.name,
-            decimals: asset.decimals,
-            price: asset.price,
-            aggregatedUsdVolume: asset.aggregatedUsdVolume,
-            marketCap: asset.marketCap,
-            priceChangePct: {
-              h24: asset.pricePercentChange1d,
-            },
-            rwaData: asset.rwaData as unknown as
-              | TrendingAsset['rwaData']
-              | undefined,
-            securityData: asset.securityData,
-          },
-        );
-      });
-
-    trendingMatches.forEach((item) => {
-      if (!resultMap.has(item.assetId)) {
-        resultMap.set(item.assetId, item);
-      }
-    });
-
-    return Array.from(resultMap.values());
+      .map((asset) => ({
+        assetId: asset.assetId,
+        symbol: asset.symbol,
+        name: asset.name,
+        decimals: asset.decimals,
+        price: asset.price,
+        aggregatedUsdVolume: asset.aggregatedUsdVolume,
+        marketCap: asset.marketCap,
+        priceChangePct: {
+          h24: asset.pricePercentChange1d,
+        },
+        rwaData: asset.rwaData as unknown as
+          | TrendingAsset['rwaData']
+          | undefined,
+        securityData: asset.securityData,
+      }));
   }, [
     debouncedQuery,
-    isLaptopApiRankingEnabled,
-    trendingResults,
     searchResults,
+    trendingResults,
     sortTrendingTokensOptions,
     includeStocks,
   ]);
