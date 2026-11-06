@@ -121,6 +121,7 @@ export const handleSocialPostUrl = ({
     trackSocialNotificationClick({
       notificationSubtype,
       notificationTemplateVariant,
+      deduplicationId,
     });
 
     if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {

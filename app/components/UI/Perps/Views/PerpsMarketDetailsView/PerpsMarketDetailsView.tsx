@@ -207,7 +207,10 @@ import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
-import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import {
+  resolvePerpsSocialOrderSource,
+  toPerpsEntryAttribution,
+} from '../../utils/perpsAnalyticsAttribution';
 import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -1224,7 +1227,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           direction,
           asset: market.symbol,
           ...(market.providerId ? { providerId: market.providerId } : {}),
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          source: resolvePerpsSocialOrderSource(
+            source,
+            PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          ),
           ...(source_section ? { source_section } : {}),
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
@@ -1243,6 +1249,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       navigation,
       track,
       navigateToOrder,
+      source,
       source_section,
       transactionActiveAbTests,
       market?.symbol,

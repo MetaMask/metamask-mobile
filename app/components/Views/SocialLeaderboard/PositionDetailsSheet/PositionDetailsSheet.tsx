@@ -88,6 +88,7 @@ const PositionDetailsSheet = () => {
     author,
     isClosed: isClosedParam,
     isSnapshotLive,
+    orderSource,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -253,6 +254,7 @@ const PositionDetailsSheet = () => {
 
   const { openPerpsOrder, geoBlockSheet } = useOpenPerpsOrder({
     runNavigation: closeThen,
+    source: orderSource,
   });
 
   const quickBuyTarget = useMemo(
@@ -427,7 +429,7 @@ const PositionDetailsSheet = () => {
           onClose={navigation.goBack}
           traderAddress={author.address}
           marketCap={data.marketCap}
-          source="trader_feed"
+          source={orderSource ?? 'trader_feed'}
           originalEntryPoint="trader_feed"
           isTraderPositionClosed={data.isClosed}
           postTradeShare
