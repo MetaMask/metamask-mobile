@@ -54,6 +54,21 @@ describe('TransactionDetailsFiatOrderIdRow', () => {
     expect(getByText('order-123')).toBeDefined();
   });
 
+  it('renders the order ID for a membership subscription top-up', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta({
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.membershipSubscription },
+        ],
+      }),
+    });
+
+    const { getByText } = render();
+    expect(getByText('order-123')).toBeDefined();
+  });
+
   it('renders a short, no-slash order ID in full', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: createTransactionMeta({

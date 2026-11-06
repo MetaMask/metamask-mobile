@@ -8,6 +8,8 @@ export interface MoneyMfaStoreState {
   isMigrationBannerDismissed: boolean;
   /** The user closed the wallet home prompt for good. */
   isHomePromptDismissed: boolean;
+  /** Setup finished and Money home hasn't shown its confirmation yet. */
+  hasUnseenEnabledConfirmation: boolean;
 }
 
 export const MONEY_MFA_STORAGE_KEY = '@MetaMask:moneyMfa';
@@ -16,6 +18,7 @@ const initialState: MoneyMfaStoreState = {
   isMoneyAccountMfaEnabled: false,
   isMigrationBannerDismissed: false,
   isHomePromptDismissed: false,
+  hasUnseenEnabledConfirmation: false,
 };
 
 const readPersisted = (): Partial<MoneyMfaStoreState> => {
@@ -28,11 +31,13 @@ const readPersisted = (): Partial<MoneyMfaStoreState> => {
       isMoneyAccountMfaEnabled,
       isMigrationBannerDismissed,
       isHomePromptDismissed,
+      hasUnseenEnabledConfirmation,
     } = JSON.parse(raw);
     return {
       isMoneyAccountMfaEnabled: Boolean(isMoneyAccountMfaEnabled),
       isMigrationBannerDismissed: Boolean(isMigrationBannerDismissed),
       isHomePromptDismissed: Boolean(isHomePromptDismissed),
+      hasUnseenEnabledConfirmation: Boolean(hasUnseenEnabledConfirmation),
     };
   } catch {
     return {};

@@ -258,7 +258,9 @@ export const usePerpsProOrderEdit = ({
             );
           }
           showToast(
-            PerpsToastOptions.orderManagement.limit.editFailed(result.error),
+            PerpsToastOptions.orderManagement.limit.editFailed(
+              result.rejection,
+            ),
           );
         }
       } catch {

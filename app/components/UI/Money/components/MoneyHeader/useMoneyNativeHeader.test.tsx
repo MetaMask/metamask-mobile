@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { fireEvent, render, renderHook } from '@testing-library/react-native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
@@ -40,6 +40,10 @@ describe('useMoneyNativeHeader', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('passes the screen gate through', () => {
     expect(renderItems({ isEnabled: false }).isEnabled).toBe(false);
   });
@@ -53,6 +57,42 @@ describe('useMoneyNativeHeader', () => {
     ).toBe(true);
   });
 
+  it.each([
+    [16, 0],
+    [20, -4],
+    [24, -8],
+  ])(
+    'positions the Money tab title 16pt from a %ipt UIKit inset',
+    (nativeInset, expectedMargin) => {
+      jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+        cb(nativeInset, 0, 0, 0);
+      });
+
+      const { leftItems } = renderItems();
+      const renderedTitle = renderCustom(leftItems[0]);
+      const title = renderedTitle.getByTestId(MoneyHeaderTestIds.TITLE);
+      const titleContainer = renderedTitle.UNSAFE_getByType(View);
+      fireEvent(titleContainer, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+      });
+      fireEvent(titleContainer, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+      });
+
+      expect(leftItems).toHaveLength(1);
+      expect(leftItems[0]).toStrictEqual(
+        expect.objectContaining({
+          type: 'custom',
+          hidesSharedBackground: true,
+        }),
+      );
+      expect(title).toBeOnTheScreen();
+      expect(StyleSheet.flatten(title.props.style).marginLeft).toBe(
+        expectedMargin,
+      );
+    },
+  );
+
   it('shows a plain inline title on the Money tab', () => {
     const { leftItems } = renderItems();
 
@@ -64,8 +104,6 @@ describe('useMoneyNativeHeader', () => {
       MoneyHeaderTestIds.TITLE,
     );
     expect(title).toBeOnTheScreen();
-    // 4pt left of the UIKit inset, in line with the 16pt balance padding.
-    expect(StyleSheet.flatten(title.props.style).marginLeft).toBe(-4);
   });
 
   it('shows the 2-step verification shield next to the title and opens the sheet', () => {

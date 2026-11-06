@@ -1,20 +1,20 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import type { PredictMarket as PredictMarketType } from '../types';
+import { PredictEventValues } from '../constants/eventNames';
 import {
   PredictionCarouselRowItem,
   PredictionSearchRowItem,
 } from './PredictionRowItem';
 
-jest.mock('../../../../UI/Predict/components/PredictMarketRowItem', () => {
+jest.mock('../components/PredictMarketRowItem', () => {
   const { Text } = jest.requireActual('react-native');
   return ({ entryPoint }: { entryPoint?: string }) => (
     <Text testID="stub-predict-market-row" accessibilityLabel={entryPoint} />
   );
 });
 
-jest.mock('../../../../UI/Predict/components/PredictMarket', () => {
+jest.mock('../components/PredictMarket', () => {
   const { Text } = jest.requireActual('react-native');
   return ({ entryPoint }: { entryPoint?: string }) => (
     <Text testID="stub-predict-market-card" accessibilityLabel={entryPoint} />
