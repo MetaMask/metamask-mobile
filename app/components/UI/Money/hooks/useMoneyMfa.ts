@@ -195,7 +195,10 @@ export const useMoneyMfa = () => {
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: false,
+      hasUnseenEnabledConfirmation: false,
+    });
     showToast('money.mfa.toast_off');
   }, [verifyOrEnroll, showToast]);
 

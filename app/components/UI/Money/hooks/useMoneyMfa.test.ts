@@ -421,6 +421,27 @@ describe('useMoneyMfa', () => {
   });
 
   describe('showEnabledConfirmation', () => {
+    it('drops a pending confirmation when 2FA is turned off', async () => {
+      moneyMfaStore.setState({
+        isMoneyAccountMfaEnabled: true,
+        hasUnseenEnabledConfirmation: true,
+      });
+      setMigration('done');
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+      mockShowToast.mockClear();
+      let shown = true;
+      act(() => {
+        shown = result.current.showEnabledConfirmation();
+      });
+
+      expect(shown).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
     it('shows the success toast once after setup', async () => {
       moneyMfaStore.setState({ hasUnseenEnabledConfirmation: true });
       const { result } = arrange();
