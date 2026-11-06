@@ -443,23 +443,28 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
     displayOrder: number,
   ): PredictMarket => {
     const id = `${event.id}-${stat.key}-${player}-${threshold}`;
-    const label = `${threshold}+ yards`;
     return {
       ...template,
       id: id as PredictEntityId,
-      question: `${player}: ${label}`,
+      question: `${player}: ${threshold}+`,
       outcomes: [
         {
           ...template.outcomes[0],
           id: `${id}-yes` as PredictEntityId,
-          label,
+          label: 'Yes',
           gameSelection,
         },
-        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
       ],
       group: {
         key: `${event.id}:${stat.key}:${player}`,
-        groupType: 'choice',
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
         displayOrder,
         label: player,
       },

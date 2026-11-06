@@ -1,4 +1,5 @@
 import React from 'react';
+import { useReducedMotion } from 'react-native-reanimated';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -44,6 +45,7 @@ const MoneyMfaHeaderBadge = ({
   onPress,
   isHighlighted = false,
 }: MoneyMfaHeaderBadgeProps) => {
+  const isReducedMotion = useReducedMotion();
   const badge = (
     <ButtonIcon
       {...getMoneyMfaHeaderBadgeProps(onPress)}
@@ -52,7 +54,7 @@ const MoneyMfaHeaderBadge = ({
     />
   );
 
-  return isHighlighted ? (
+  return isHighlighted && !isReducedMotion ? (
     <TextShimmer pauseDurationMs={SHIMMER_PAUSE_MS}>{badge}</TextShimmer>
   ) : (
     badge

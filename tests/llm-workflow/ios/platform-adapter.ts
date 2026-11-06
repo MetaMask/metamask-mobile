@@ -188,14 +188,41 @@ export class IOSPlatformAdapter implements MobilePlatformAdapter {
     this.resolved = undefined;
     this.createdDriver = undefined;
 
-    if (!resolved) {
-      return;
+    if (resolved) {
+      await createdDriver?.backend
+        .closeApp(resolved.appBundleId)
+        .catch(() => undefined);
+      terminateSimulatorApp(resolved);
     }
 
-    await createdDriver?.backend
-      .closeApp(resolved.appBundleId)
-      .catch(() => undefined);
-    terminateSimulatorApp(resolved);
+    // Release the driver's own device resources (the private idb companion)
+    // after the app is closed. Core also disposes the driver it can see; this
+    // covers a failed launch, where the provider resets its state before core
+    // cleanup runs. Disposal is idempotent, and optional for older
+    // core/device-mcp releases.
+    await disposeCreatedDriver(createdDriver);
+  }
+}
+
+async function disposeCreatedDriver(
+  createdDriver: CreatedIOSDriver | undefined,
+): Promise<void> {
+  const mobileDriver = createdDriver?.driver as
+    | { dispose?: () => Promise<void> }
+    | undefined;
+  const backend = createdDriver?.backend as
+    | { dispose?: () => Promise<void> }
+    | undefined;
+  try {
+    await (mobileDriver?.dispose
+      ? mobileDriver.dispose()
+      : backend?.dispose?.());
+  } catch (error) {
+    process.stderr.write(
+      `[mm-mobile] iOS driver disposal failed: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
   }
 }
 

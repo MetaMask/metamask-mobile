@@ -12,6 +12,10 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
+
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
@@ -293,5 +297,117 @@ describe('RefereeHeroCard', () => {
     expect(
       getByTestId(REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN),
     ).toHaveTextContent(/^Offer ends in /);
+  });
+
+  it('keeps the cashback headline when copy trading is combined with rebates', () => {
+    const { getByText, getByTestId } = renderHero({
+      summary: SUMMARY,
+      referralData: {
+        roles: ['CASHBACK_EXPERIMENT', 'COPY_TRADING'],
+      } as ReferralMeDto,
+    });
+
+    expect(getByText('Your referral benefit')).toBeOnTheScreen();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+    ).toBeOnTheScreen();
+  });
+
+  it('drops the identity header for a sharer and keeps the commissions info icon', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderHero({
+      summary: SUMMARY,
+      localizedText: {
+        ...LOCALIZED_TEXT,
+        copyTradingInfoDescription: 'Earn 10% when someone copies your trade.',
+        offerEndsIn: 'Offer ends in {duration}',
+        offerDurationDays: '{count} days',
+      },
+      referralData: {
+        roles: ['COPY_TRADING'],
+        earn_rates: {
+          cashback_earning_end: '2099-01-01T00:00:00.000Z',
+        },
+      } as ReferralMeDto,
+    });
+
+    expect(
+      queryByText('Earn 10% when someone copies your trade.'),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN)).toBeNull();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(
+        `${REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}-info`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+    ).toBeNull();
+  });
+
+  it('renders no identity block for a sharer without a referral code', () => {
+    const { getByTestId, queryByTestId } = renderHero({
+      referredBy: null,
+      summary: SUMMARY,
+      referralData: {
+        roles: ['COPY_TRADING'],
+      } as ReferralMeDto,
+    });
+
+    expect(getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.IDENTITY)).toBeNull();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the referred-by code without the header for a sharer', () => {
+    const { getByText, queryByTestId } = renderHero({
+      summary: SUMMARY,
+      referralData: {
+        roles: ['COPY_TRADING'],
+      } as ReferralMeDto,
+    });
+
+    expect(getByText('INVITER')).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
+    ).toBeNull();
+  });
+
+  it('keeps the identity header for a cashback member without copy trading', () => {
+    const { getByText, getByTestId } = renderHero({
+      summary: SUMMARY,
+      referralData: {
+        roles: ['CASHBACK_EXPERIMENT'],
+      } as ReferralMeDto,
+    });
+
+    expect(getByText('Your referral benefit')).toBeOnTheScreen();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides trading commissions for a cashback experiment member', () => {
+    const { getByText, getByTestId, queryByTestId } = renderHero({
+      summary: SUMMARY,
+      referralData: {
+        roles: ['CASHBACK_EXPERIMENT'],
+      } as ReferralMeDto,
+    });
+
+    expect(getByText('Your referral benefit')).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).toBeNull();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
+    ).toBeOnTheScreen();
   });
 });

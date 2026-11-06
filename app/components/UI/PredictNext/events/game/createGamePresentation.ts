@@ -62,9 +62,12 @@ export const getEventGame = (event: PredictEvent): PredictGame | undefined =>
 const getStatusLabel = (status: PredictGameStatus) =>
   strings(`predict.game_status.${STATUS_KEYS[status]}`);
 
-/** A Team's short label: its abbreviation, else its first three letters. */
+/**
+ * A Team's short label: its abbreviation, else its first three letters. A
+ * blank abbreviation counts as missing, so the label is never empty.
+ */
 export const getTeamAbbreviation = (team: PredictTeam): string =>
-  (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
+  (team.abbreviation?.trim() || team.name.slice(0, 3)).toUpperCase();
 
 const TIME_OPTIONS: Intl.DateTimeFormatOptions = {
   hour: 'numeric',
