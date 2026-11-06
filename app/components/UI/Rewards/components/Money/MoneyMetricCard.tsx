@@ -4,6 +4,10 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
   Skeleton,
@@ -22,6 +26,8 @@ export interface MoneyMetricCardProps {
   caption: string;
   /** Renders a placeholder in place of the amount while the summary loads. */
   isLoading?: boolean;
+  /** Opens an info sheet for this metric. Hidden when omitted. */
+  onInfoPress?: () => void;
   testID: string;
 }
 
@@ -36,6 +42,7 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
   amount,
   caption,
   isLoading = false,
+  onInfoPress,
   testID,
 }) => {
   const tw = useTailwind();
@@ -48,13 +55,29 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconDefault }}
       />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
         twClassName="mt-3"
       >
-        {label}
-      </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="flex-1"
+        >
+          {label}
+        </Text>
+        {onInfoPress ? (
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.IconAlternative }}
+            onPress={onInfoPress}
+            accessibilityLabel={label}
+            testID={`${testID}-info`}
+          />
+        ) : null}
+      </Box>
       {isLoading ? (
         <Skeleton style={tw.style('mt-1 h-6 w-20 rounded-md')} />
       ) : null}

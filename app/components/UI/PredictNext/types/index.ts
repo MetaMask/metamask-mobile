@@ -271,6 +271,9 @@ export const PREDICT_FEED_KEYS = [
   'nfl-props',
   'college-football-games',
   'college-football-props',
+  'politics-trump',
+  'politics-congress',
+  'politics-iran',
 ] as const;
 export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
 

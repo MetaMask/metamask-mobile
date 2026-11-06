@@ -29,10 +29,6 @@ import {
   validateAndroidPrerequisites,
   type ResolvedAndroidLaunchOptions,
 } from './prerequisites';
-import {
-  wrapAndroidSnapshotBackend,
-  type SnapshotBackendOptions,
-} from './snapshot-backend';
 
 // MetaMask exposes no universal React-root test ID, so readiness observes any
 // canonical startup-screen container instead. These IDs also distinguish the
@@ -72,11 +68,6 @@ interface AndroidPlatformAdapterDependencies {
     appId: string,
   ) => MobilePlatformDriver;
   readonly isAdbBackend?: (backend: DeviceBackend) => boolean;
-  readonly wrapBackend?: (
-    backend: DeviceBackend,
-    serial: string,
-    options?: SnapshotBackendOptions,
-  ) => DeviceBackend;
   readonly runDeviceAdb?: typeof runDeviceAdb;
   readonly now?: () => number;
   readonly delay?: (milliseconds: number) => Promise<void>;
@@ -109,7 +100,6 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
       createDriver: (backend, appId) =>
         new MobilePlatformDriver(backend, appId),
       isAdbBackend,
-      wrapBackend: wrapAndroidSnapshotBackend,
       runDeviceAdb,
       now: Date.now,
       delay: sleep,
@@ -147,11 +137,14 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
   ): Promise<LaunchedMobileSession> {
     const android = assertAndroidOptions(resolved).android;
     assertNoDeviceSessionOverride();
-    const rawBackend = await this.dependencies.createBackend(
+    // Android UI snapshots come straight from device-mcp's AdbBackend, whose
+    // default `helper-first` mode uses its signer-verified snapshot-helper
+    // instrumentation. Set DEVICE_MCP_ADB_SNAPSHOT to override the mode.
+    const backend = await this.dependencies.createBackend(
       android.serial,
       'android',
     );
-    if (!this.dependencies.isAdbBackend(rawBackend)) {
+    if (!this.dependencies.isAdbBackend(backend)) {
       throw new AndroidLaunchError({
         code: 'MM_INVALID_CONFIG',
         message:
@@ -160,7 +153,6 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
       });
     }
 
-    const backend = this.dependencies.wrapBackend(rawBackend, android.serial);
     this.backend = backend;
     const mobileDriver = this.dependencies.createDriver(backend, ANDROID_APP_ID);
 
