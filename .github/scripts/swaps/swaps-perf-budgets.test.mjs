@@ -13,6 +13,14 @@ import {
 } from './swaps-perf-budgets.mjs';
 import { BUDGET_RULES } from './swaps-perf-budgets.config.mjs';
 
+test('both clients check the same four traces', () => {
+  const traces = (client) =>
+    BUDGET_RULES.filter(({ label }) => label.startsWith(client)).map(({ query }) => query.match(/span\.name:"([^"]+)"/)[1]);
+  const expected = ['Swap View Loaded', 'Swap Token Search', 'Swap Popular Tokens Fetch', 'Swap Quote Fetch'];
+  assert.deepEqual(traces('Mobile'), expected);
+  assert.deepEqual(traces('Extension'), expected);
+});
+
 const NOV_6 = new Date('2026-11-06T00:00:00Z');
 const TODAY_END = '2026-11-06T00:00:00Z';
 
@@ -89,7 +97,7 @@ const aggregate = (n, p90) => ({ data: [{ 'count_sample()': n, 'p90(span.duratio
 
 test('a run posts a trigger, mentions the on-call and reports failures', async () => {
   const sentry = fakeSentry(({ query, end }) => {
-    if (query.includes('Bridge Balances')) {
+    if (query.includes('Swap Token Search') && query.includes('span.op')) {
       return new Error('bad query');
     }
     if (query.includes('Swap Quote Fetch') && query.includes('device.class')) {
@@ -99,7 +107,7 @@ test('a run posts a trigger, mentions the on-call and reports failures', async (
   });
   const { results, errors } = await runBudgetCheck({ todayEnd: NOV_6, sentry });
   assert.equal(errors.length, 1);
-  assert.match(errors[0], /Bridge Balances Updated: .*bad query/);
+  assert.match(errors[0], /Extension Swap Token Search: .*bad query/);
   assert.deepEqual(
     results.filter(({ transition }) => transition).map(({ rule }) => rule.label),
     ['Mobile Swap Quote Fetch (mid-tier Android)'],

@@ -1,9 +1,9 @@
 # Swaps performance budgets: daily check
 #
-# Once a day, checks the seven Swaps budget rules (14-day p90 against a
+# Once a day, checks the eight Swaps budget rules (14-day p90 against a
 # guardrail over 14 complete UTC days, minimum 400 samples) and posts what
 # changed since yesterday to the Swaps alerts channel. The rules live in
-# .github/scripts/qa-automation/performance-tests/swaps-perf-budgets.config.mjs.
+# .github/scripts/swaps/swaps-perf-budgets.config.mjs.
 #
 # Secrets:
 # - SWAPS_SENTRY_TOKEN: Sentry internal integration token, Organization: Read
@@ -69,7 +69,7 @@ jobs:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
           SWAPS_ONCALL_SLACK_GROUP_ID: ${{ vars.SWAPS_ONCALL_SLACK_GROUP_ID }}
           AS_OF: ${{ inputs.as_of || '' }}
-        run: node .github/scripts/qa-automation/performance-tests/swaps-perf-budgets.mjs
+        run: node .github/scripts/swaps/swaps-perf-budgets.mjs
 
       - name: Post failure notice
         if: ${{ failure() && env.DRY_RUN != 'true' && env.SWAPS_PERF_SLACK_WEBHOOK != '' }}
