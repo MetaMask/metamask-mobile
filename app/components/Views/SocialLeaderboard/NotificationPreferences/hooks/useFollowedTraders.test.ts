@@ -2,15 +2,22 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { addBreadcrumb } from '@sentry/react-native';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useFollowedTraders } from './useFollowedTraders';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn().mockReturnValue([]),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/socialController', () => ({
   selectFollowingProfileIds: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -28,6 +35,7 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockMessengerCall = Engine.controllerMessenger.call as jest.Mock;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -63,6 +71,7 @@ describe('useFollowedTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(['trader-1', 'trader-2']);
+    mockMessengerCall.mockResolvedValue({ following: [] });
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
   });
@@ -123,21 +132,92 @@ describe('useFollowedTraders', () => {
       ]);
     });
 
-    it('excludes traders not present in Redux followingProfileIds', () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+    it('returns every server trader even when followingProfileIds is stale', () => {
+      mockUseSelector.mockReturnValue([]);
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: fixtureFollowing as never }),
       );
       const { result } = renderHook(() => useFollowedTraders());
 
-      expect(result.current.traders).toEqual([
-        {
-          id: 'trader-1',
-          username: 'trader1',
-          address: '0x1',
-          avatarUri: 'https://example.com/a1.png',
-        },
+      expect(result.current.traders.map((trader) => trader.id)).toEqual([
+        'trader-1',
+        'trader-2',
       ]);
+    });
+  });
+
+  describe('following state sync', () => {
+    it('does not sync when followingProfileIds matches the server list', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+
+      renderHook(() => useFollowedTraders());
+
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('calls updateFollowing when followingProfileIds differs from the server list', () => {
+      mockUseSelector.mockReturnValue(['trader-1']);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+
+      renderHook(() => useFollowedTraders());
+
+      expect(mockMessengerCall).toHaveBeenCalledTimes(1);
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        'SocialController:updateFollowing',
+      );
+    });
+
+    it('syncs at most once per mount', () => {
+      mockUseSelector.mockReturnValue([]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+      const { rerender } = renderHook(() => useFollowedTraders());
+
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { ...fixtureFollowing } as never }),
+      );
+      rerender(undefined);
+
+      expect(mockMessengerCall).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not sync when the hook is disabled', () => {
+      mockUseSelector.mockReturnValue([]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+
+      renderHook(() => useFollowedTraders({ enabled: false }));
+
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('logs a failed sync with feature:social tags', async () => {
+      const error = new Error('sync failed');
+      mockMessengerCall.mockRejectedValue(error);
+      mockUseSelector.mockReturnValue([]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureFollowing as never }),
+      );
+
+      renderHook(() => useFollowedTraders());
+      await act(async () => undefined);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'followed_traders',
+            operation: 'sync_following',
+          }),
+        }),
+      );
     });
   });
 

@@ -720,6 +720,8 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   CARD_LINK_SEEDED = 'Card Link Seeded',
+  CARD_LINK_ROUTING_DISAGREEMENT = 'Card Link Routing Disagreement',
+  CARD_LINK_MISSED_AT_LOGIN = 'Card Link Missed At Login',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -831,6 +833,14 @@ enum EVENT_NAME {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
   KYC_STATUS_UPDATED = 'KYC Status Updated',
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED = 'MFA Flow Status Updated',
+  MFA_STEP_VIEWED = 'MFA Step Viewed',
+  MFA_ERROR_VIEWED = 'MFA Error Viewed',
+  MFA_ERROR_CTA_CLICKED = 'MFA Error CTA Clicked',
+  MFA_METHOD_SELECTED = 'MFA Method Selected',
+  MFA_CODE_RESENT = 'MFA Code Resent',
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
@@ -2088,6 +2098,10 @@ const events = {
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
+  CARD_LINK_ROUTING_DISAGREEMENT: generateOpt(
+    EVENT_NAME.CARD_LINK_ROUTING_DISAGREEMENT,
+  ),
+  CARD_LINK_MISSED_AT_LOGIN: generateOpt(EVENT_NAME.CARD_LINK_MISSED_AT_LOGIN),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2256,6 +2270,14 @@ const events = {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
   KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED: generateOpt(EVENT_NAME.MFA_FLOW_STATUS_UPDATED),
+  MFA_STEP_VIEWED: generateOpt(EVENT_NAME.MFA_STEP_VIEWED),
+  MFA_ERROR_VIEWED: generateOpt(EVENT_NAME.MFA_ERROR_VIEWED),
+  MFA_ERROR_CTA_CLICKED: generateOpt(EVENT_NAME.MFA_ERROR_CTA_CLICKED),
+  MFA_METHOD_SELECTED: generateOpt(EVENT_NAME.MFA_METHOD_SELECTED),
+  MFA_CODE_RESENT: generateOpt(EVENT_NAME.MFA_CODE_RESENT),
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(

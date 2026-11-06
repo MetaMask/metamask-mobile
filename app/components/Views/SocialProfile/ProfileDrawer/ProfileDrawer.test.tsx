@@ -31,6 +31,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 const mockOpenSupportWithConsent = jest.fn();
 const mockGetBetaSupportUrl = jest.fn();
+const mockSelectGlassHeadersEnabled = jest.fn(() => false);
 
 jest.mock('../../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
@@ -41,6 +42,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => mockSelectGlassHeadersEnabled(),
 }));
 
 jest.mock('../../../hooks/useSupportConsent', () => ({
@@ -132,6 +137,7 @@ const stateWithNotifications = (
 describe('ProfileDrawer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectGlassHeadersEnabled.mockReturnValue(false);
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
     mockUseProSubscriptionEnabled.mockReturnValue({
@@ -155,6 +161,19 @@ describe('ProfileDrawer', () => {
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('uses transparent icon buttons for glass headers', () => {
+    mockSelectGlassHeadersEnabled.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    expect(getByTestId(ProfileDrawerSelectorsIDs.CLOSE_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
+    expect(getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
   });
 
   it('insets the header buttons from the screen edges', () => {

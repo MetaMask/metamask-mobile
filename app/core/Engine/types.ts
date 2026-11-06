@@ -22,7 +22,6 @@ import {
   TokensControllerState,
   AssetsContractController,
   AssetsContractControllerActions,
-  AssetsContractControllerEvents,
   DeFiPositionsController,
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
@@ -43,6 +42,7 @@ import {
   // TransactionControllerInitMessenger uses the full actions union.
   type CurrencyRateControllerActions,
   type MultichainAssetsControllerGetStateAction,
+  type NftDetectionControllerDetectNftsAction,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -82,7 +82,6 @@ import {
   type ConfigRegistryControllerEvents,
   ConfigRegistryControllerActions,
   ConfigRegistryApiServiceActions,
-  ConfigRegistryApiServiceEvents,
   ConfigRegistryApiService,
 } from '@metamask/config-registry-controller';
 import {
@@ -124,13 +123,10 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
-  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
-  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
-  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -237,7 +233,6 @@ import {
   BackendWebSocketServiceActions,
   BackendWebSocketServiceEvents,
   AccountActivityService,
-  AccountActivityServiceActions,
   AccountActivityServiceEvents,
   OHLCVService,
   OHLCVServiceActions,
@@ -490,10 +485,7 @@ import type {
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
 type DelegationControllerState = DelegationController['state'];
-import {
-  ControllerGetStateAction,
-  ControllerStateChangeEvent,
-} from '@metamask/base-controller';
+import { ControllerGetStateAction } from '@metamask/base-controller';
 import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
@@ -501,21 +493,28 @@ import {
   ProfileMetricsControllerState,
   ProfileMetricsService,
   ProfileMetricsServiceActions,
-  ProfileMetricsServiceEvents,
   ProofOfOwnershipService,
   ProofOfOwnershipServiceActions,
-  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
-type NftDetectionControllerActions = ControllerGetStateAction<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+type NftDetectionControllerActions =
+  | ControllerGetStateAction<
+      'NftDetectionController',
+      NftDetectionController['state']
+    >
+  | NftDetectionControllerDetectNftsAction;
 
-type NftDetectionControllerEvents = ControllerStateChangeEvent<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+/** Immer patch shape, inlined so this file does not depend on `immer`. */
+interface StateChangePatch {
+  op: 'replace' | 'remove' | 'add';
+  path: (string | number)[];
+  value?: unknown;
+}
+
+interface NftDetectionControllerEvents {
+  type: 'NftDetectionController:stateChange';
+  payload: [NftDetectionController['state'], StateChangePatch[]];
+}
 import {
   TransactionPayController,
   TransactionPayControllerActions,
@@ -570,7 +569,6 @@ import {
   ComplianceControllerState,
   ComplianceService,
   ComplianceServiceActions,
-  ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
 import {
   KycController,
@@ -691,7 +689,6 @@ export type GlobalActions =
   | WebSocketServiceActions
   | ExecutionServiceActions
   | BackendWebSocketServiceActions
-  | AccountActivityServiceActions
   | OHLCVServiceActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
@@ -783,7 +780,6 @@ export type GlobalEvents =
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
   | ConfigRegistryControllerEvents
-  | ConfigRegistryApiServiceEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
   | KeyringControllerEvents
@@ -821,7 +817,6 @@ export type GlobalEvents =
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
-  | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
@@ -857,10 +852,7 @@ export type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
-  | ProfileMetricsServiceEvents
-  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -868,11 +860,8 @@ export type GlobalEvents =
   | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
-  | ComplianceServiceEvents
   | KycControllerEvents
   | KycServiceEvents
-  | TransakServiceEvents
-  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
