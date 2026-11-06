@@ -16,6 +16,8 @@ import {
 import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
+
 export interface CustomAmountProps {
   amountFiat: string;
   currency?: string;
@@ -49,7 +51,10 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     isEditing,
   );
 
-  const amountLength = typedText.length + assistiveText.length;
+  const amountLength =
+    typedText.length +
+    assistiveText.length +
+    INPUT_SIDE_MARGIN_CHARACTER_RESERVE;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,

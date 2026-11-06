@@ -144,12 +144,9 @@ export const openAsOnlyOnboardingRoute = (
  * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -164,12 +161,7 @@ export const openCompletedVbaAccount = (
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
@@ -182,6 +174,40 @@ export const openCompletedVbaAccount = (
     }
     current = parent;
   }
+};
+
+/**
+ * Opens the step after Identity verified: Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
+ * which creates the account. Shared by the Identity verified screen's
+ * Continue and the Money home `identity_verified` card, which skips that
+ * screen.
+ *
+ * Inside onboarding (Identity verified), Choose Currency is pushed so Back
+ * returns there. From outside it opens as the only onboarding route, so
+ * Back returns to the caller.
+ *
+ * @param navigation - Navigation from Identity verified or an entry surface.
+ * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ */
+export const openVbaAccountSetup = (
+  navigation: AppNavigationProp,
+  isChooseCurrencyEnabled: boolean,
+): void => {
+  if (!isChooseCurrencyEnabled) {
+    openCompletedVbaAccount(navigation);
+    return;
+  }
+  const isInsideOnboarding = Boolean(
+    navigation
+      .getState?.()
+      ?.routeNames?.includes(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+  );
+  if (isInsideOnboarding) {
+    navigation.dispatch(StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY));
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.CHOOSE_CURRENCY);
 };
 
 const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {

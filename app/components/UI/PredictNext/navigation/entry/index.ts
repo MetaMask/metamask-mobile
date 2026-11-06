@@ -3,6 +3,7 @@ export {
   createNextPredictEventRef,
   createPredictCampaignEventRef,
   type PredictEventRef,
+  type PredictNextVenue,
 } from './eventRef';
 export type {
   PredictEntryPoint,
