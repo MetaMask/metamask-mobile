@@ -70,7 +70,8 @@ export const buildPerformanceCells = (
     cells.push({
       id: 'unrealizedPnl',
       value: formatSignedFullUsdNoDecimals(unrealized),
-      tone: signedUsdTone(unrealized),
+      tone:
+        Math.round(unrealized) === 0 ? 'default' : signedUsdTone(unrealized),
     });
   }
   if (isPresentNumber(stats.winRate30d)) {

@@ -157,7 +157,7 @@ describe('buildPerformanceCells', () => {
     expect(cells[1]).toEqual({
       id: 'unrealizedPnl',
       value: '$0',
-      tone: 'success',
+      tone: 'default',
     });
   });
 
@@ -169,7 +169,7 @@ describe('buildPerformanceCells', () => {
     expect(cells[1]).toEqual({
       id: 'unrealizedPnl',
       value: '$0',
-      tone: 'success',
+      tone: 'default',
     });
   });
 
