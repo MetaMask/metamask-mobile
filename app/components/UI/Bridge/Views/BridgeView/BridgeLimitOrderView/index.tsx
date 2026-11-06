@@ -178,6 +178,10 @@ const BridgeLimitOrderViewContent = ({
   } else if (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR') {
     ordersRefetchInterval = LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL;
   }
+  const isLimitPriceLoadingAnimated = !(
+    hardwareTier === 'LOW' &&
+    (networkTier === 'SLOW_CELLULAR' || networkTier === 'NONE')
+  );
   const openOrdersQuery = useLimitOrders({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
@@ -204,6 +208,7 @@ const BridgeLimitOrderViewContent = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isLimitPriceLoading,
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,
@@ -634,6 +639,8 @@ const BridgeLimitOrderViewContent = ({
               }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
+              isLimitPriceLoading={isLimitPriceLoading}
+              isLimitPriceLoadingAnimated={isLimitPriceLoadingAnimated}
               onLimitPriceInputPress={onLimitPriceInputPress}
               isLimitPriceInputPressDisabled={isCustomPercentKeypadOpen}
               limitPriceSelection={limitPriceSelection}

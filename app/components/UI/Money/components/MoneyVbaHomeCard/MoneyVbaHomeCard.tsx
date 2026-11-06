@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import { brandColor } from '@metamask/design-tokens';
 import {
@@ -13,14 +14,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
+  openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   endVbaCufJourney,
   startVbaCufJourney,
@@ -29,10 +33,13 @@ import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import {
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import {
@@ -65,22 +72,28 @@ const HERO_GRADIENT_ANGLE = 224;
 
 /**
  * VBA identity-status card on Money home. Renders every card variant
- * (get_started, account_is_ready, kyc_pending, finish_verification,
- * kyc_decision); all per-variant differences — copy, analytics names, CTA
+ * (get_started, identity_verified, account_is_ready, kyc_pending,
+ * finish_verification, kyc_decision); all per-variant differences — copy, analytics names, CTA
  * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
- * This avoids flashing a standalone full-screen loading route.
+ * This avoids flashing a standalone full-screen loading route. The failed-KYC card opens the MetaMask support article through
+ * the support consent sheet instead of that flow.
  */
 const MoneyVbaHomeCard = ({
   variant,
+  onDismiss,
 }: {
   variant: MoneyVbaHomeCardVariant;
+  /** Called after the dismissible variant hides itself. */
+  onDismiss?: () => void;
 }) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const navigation = useNavigation<AppNavigationProp>();
+  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const { openSupportWithConsent } = useSupportConsent();
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: config.componentName,
@@ -111,6 +124,19 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
+    if (config.cta.opensSupportArticle) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: config.cta.buttonIntent,
+        label_key: `${config.i18nPrefix}.cta`,
+        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+      });
+      openSupportWithConsent(
+        (url) => openInAppBrowser(navigation, url),
+        METAMASK_SUPPORT_URL,
+      );
+      return;
+    }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: config.cta.buttonIntent,
@@ -130,9 +156,8 @@ const MoneyVbaHomeCard = ({
     }
 
     // Only an Approved autoramp can open details from persisted state.
-    // account_is_ready also covers provider-final KYC with no autoramp yet,
-    // and that case must stay on the card while hydrate runs. This path is
-    // synchronous, same as the pending card, and Money home stays mounted
+    // identity_verified is the no-autoramp case and hydrates below. This path
+    // is synchronous, same as the pending card, and Money home stays mounted
     // under details, so the guard has to clear or the CTA stays dead after
     // the user comes back.
     if (variant === 'account_is_ready' && canOpenPersistedVbaDetails()) {
@@ -158,6 +183,17 @@ const MoneyVbaHomeCard = ({
         snapshot: resolved.snapshot,
         destinationId: resolved.destinationId,
       });
+      // The identity_verified card already tells the user they passed KYC,
+      // so skip the Identity verified screen and go where its Continue goes.
+      // Any other resolved destination (e.g. KYC changed since the card
+      // rendered) opens as usual.
+      if (
+        variant === 'identity_verified' &&
+        resolved.destinationId === 'identityVerified'
+      ) {
+        openVbaAccountSetup(navigation, chooseCurrency);
+        return;
+      }
       navigateToVbaOnboardingDestination(
         navigation,
         resolved.destinationId,
@@ -181,7 +217,14 @@ const MoneyVbaHomeCard = ({
         setIsRouting(false);
       }
     }
-  }, [config, navigation, trackButtonClicked, variant]);
+  }, [
+    chooseCurrency,
+    config,
+    navigation,
+    openSupportWithConsent,
+    trackButtonClicked,
+    variant,
+  ]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({
@@ -190,7 +233,8 @@ const MoneyVbaHomeCard = ({
       label_key: `${config.i18nPrefix}.dismiss`,
     });
     setIsDismissed(true);
-  }, [config, trackButtonClicked]);
+    onDismiss?.();
+  }, [config, onDismiss, trackButtonClicked]);
 
   if (isDismissed) {
     return null;
