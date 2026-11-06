@@ -1,0 +1,131 @@
+{
+  "name": "Sample",
+  "nodes": {
+    "1:2": {
+      "document": {
+        "id": "1:2",
+        "name": "Trade",
+        "type": "FRAME",
+        "children": [
+          {
+            "id": "1:3",
+            "name": "ButtonBase",
+            "type": "FRAME",
+            "children": [
+              {
+                "id": "1:4",
+                "name": "Button Label",
+                "type": "FRAME",
+                "children": [
+                  {
+                    "id": "1:5",
+                    "name": "Label",
+                    "type": "TEXT",
+                    "characters": "Continue",
+                    "visible": true,
+                    "absoluteBoundingBox": {
+                      "width": 80,
+                      "height": 20
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "1:6",
+            "name": "Header",
+            "type": "FRAME",
+            "children": [
+              {
+                "id": "1:7",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Markets",
+                "absoluteBoundingBox": {
+                  "width": 90,
+                  "height": 24
+                }
+              }
+            ]
+          },
+          {
+            "id": "1:8",
+            "name": "Hidden group",
+            "type": "FRAME",
+            "visible": false,
+            "children": [
+              {
+                "id": "1:9",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Secret action",
+                "absoluteBoundingBox": {
+                  "width": 70,
+                  "height": 20
+                }
+              }
+            ]
+          },
+          {
+            "id": "1:10",
+            "name": "fallbackText",
+            "type": "TEXT",
+            "characters": "AB",
+            "absoluteBoundingBox": {
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "id": "1:11",
+            "name": "Icon",
+            "type": "TEXT",
+            "characters": "󰀀",
+            "absoluteBoundingBox": {
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "id": "1:12",
+            "name": "Label",
+            "type": "TEXT",
+            "characters": "$4.50",
+            "absoluteBoundingBox": {
+              "width": 40,
+              "height": 16
+            }
+          },
+          {
+            "id": "1:13",
+            "name": "[copy] Price",
+            "type": "TEXT",
+            "characters": "$9",
+            "absoluteBoundingBox": {
+              "width": 30,
+              "height": 16
+            }
+          },
+          {
+            "id": "1:14",
+            "name": "Button Label",
+            "type": "FRAME",
+            "children": [
+              {
+                "id": "1:15",
+                "name": "Label",
+                "type": "TEXT",
+                "characters": "Continue to checkout",
+                "absoluteBoundingBox": {
+                  "width": 90,
+                  "height": 32
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

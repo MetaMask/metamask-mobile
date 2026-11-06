@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2 slice B
+
+- `check-figma.js` reads a Figma link through the REST API when `FIGMA_TOKEN` is set. The extract is cached under `tools/designer-language-toggle/.cache/figma/` and is not committed.
+- Classification defaults live in `references/figma-rules.json`. `[copy]` keeps a layer and `[skip]` drops it. Hidden ancestors, fallback text, SF Symbols, and data-like strings are skipped.
+- The designer report leads with what will break, then real shipped translations, then a labeled 1.4× estimate. `--lang` accepts a comma list. `--json` prints the report.
+- If there is no token, the skill tells the agent to use a Figma connection or a read-only personal access token in Replit Secrets or a gitignored `.env`. The token is never printed.
+
 ## v0.2 slice A
 
 - The length check lives in `lib/checker.js` and takes a plain string set. Repo locales and design-stage files are adapters.

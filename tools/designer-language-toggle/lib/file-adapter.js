@@ -8,7 +8,11 @@ const fs = require('fs');
 const path = require('path');
 const checker = require('./checker');
 
-const SKIP_KINDS = new Set(['placeholder_or_annotation', 'number_or_data']);
+const SKIP_KINDS = new Set([
+  'placeholder_or_annotation',
+  'number_or_data',
+  'forced_skip',
+]);
 const BUTTON_MAX_PX = 120;
 const BUTTON_MAX_CHARACTERS = 10;
 const WRAP_MIN_CHARACTERS = 25;

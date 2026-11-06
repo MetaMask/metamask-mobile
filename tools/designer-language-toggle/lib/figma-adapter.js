@@ -1,0 +1,305 @@
+/**
+ * Read TEXT from a Figma file and turn it into the design-file shape.
+ * The token is read from the environment and is never printed.
+ */
+const fs = require('fs');
+const path = require('path');
+const checker = require('./checker');
+
+const DEFAULT_RULES = {
+  includeMarker: '[copy]',
+  excludeMarker: '[skip]',
+  button: {
+    layerNames: ['Label'],
+    pathIncludes: ['Button Label', 'ButtonBase', 'FilterButton', 'Segmented Control'],
+  },
+  title: {
+    layerNames: ['title'],
+    pathIncludes: ['titleRow', 'SectionHeader', 'headerRow'],
+  },
+  navTitle: {
+    layerNames: ['Label'],
+    pathIncludes: ['Header'],
+    pathExcludes: ['SectionHeader'],
+  },
+  skipLayerNames: ['fallbackText'],
+  skipExactText: ['Heading Sm', 'Title', 'Team A', 'Team B'],
+  skipTextIncludes: ['lorem', 'Lorem'],
+  dataPatterns: ['\\$', '¢', '%', '^\\d+$', '^\\d+\\s*-\\s*\\d+$', "\\d+'", '\\d{1,2}:\\d{2}'],
+  buttonMaxPx: 120,
+  buttonMaxCharacters: 10,
+  chunkAfterChildren: 8,
+  chunkSize: 5,
+};
+
+function parseFigmaUrl(input) {
+  let url;
+  try {
+    url = new URL(String(input).trim());
+  } catch (error) {
+    throw new Error('Paste a full Figma link, including https://www.figma.com/design/...');
+  }
+  const parts = url.pathname.split('/').filter(Boolean);
+  const designIndex = parts.findIndex((part) => part === 'design' || part === 'file');
+  if (designIndex < 0 || !parts[designIndex + 1]) {
+    throw new Error('That link is not a Figma design file. Copy the link from the browser bar.');
+  }
+  let fileKey = parts[designIndex + 1];
+  const branchIndex = parts.indexOf('branch');
+  if (branchIndex >= 0 && parts[branchIndex + 1]) {
+    fileKey = parts[branchIndex + 1];
+  }
+  const rawNode = url.searchParams.get('node-id');
+  if (!rawNode) {
+    throw new Error('The link needs a frame, section, or page selected. In Figma, select it and copy the link again.');
+  }
+  const nodeId = rawNode.replace(/-/g, ':');
+  return { fileKey, nodeId };
+}
+
+function statusMessage(status) {
+  if (status === 403) {
+    return "Figma refused this token. Confirm you can open the file, and that the token is a personal access token with the read-only file content scope.";
+  }
+  if (status === 404) {
+    return "Figma couldn't find that file or frame. Check the link.";
+  }
+  if (status === 429) {
+    return 'Figma is rate-limiting requests. Wait a minute and try the same link again.';
+  }
+  return `Figma returned status ${status}. Wait a minute and try the same link again.`;
+}
+
+function readToken(root) {
+  const fromEnv = process.env.FIGMA_TOKEN;
+  if (typeof fromEnv === 'string' && fromEnv.trim()) return fromEnv.trim();
+  const envPath = path.join(root, '.env');
+  if (!fs.existsSync(envPath)) return '';
+  const text = fs.readFileSync(envPath, 'utf8');
+  const match = text.match(/^FIGMA_TOKEN=(.*)$/m);
+  if (!match) return '';
+  return match[1].trim().replace(/^['"]|['"]$/g, '');
+}
+
+function missingTokenMessage() {
+  return [
+    "FIGMA_TOKEN isn't set, so this check can't read the Figma file directly.",
+    'If this agent has a Figma connection, pull the text nodes yourself and save them as JSON with id, layer_name, frame_path, text, chars, kind, width, and visible. Then run check-file.js on that file.',
+    'Otherwise create a Figma personal access token with the read-only file content scope.',
+    'In Replit, put it in Secrets as FIGMA_TOKEN.',
+    'In Cursor, put FIGMA_TOKEN in a gitignored .env at the repo root.',
+    'Never paste the token into chat.',
+  ].join(' ');
+}
+
+function hasPrivateUseGlyph(text) {
+  for (const char of String(text)) {
+    const code = char.codePointAt(0);
+    if (code >= 0xf0000) return true;
+  }
+  return false;
+}
+
+function pathParts(framePath) {
+  return String(framePath || '')
+    .split('/')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function pathIncludes(framePath, needles) {
+  const haystack = String(framePath || '');
+  return (needles || []).some((needle) => needle && haystack.includes(needle));
+}
+
+function isNavHeader(framePath, rules) {
+  const excludes = (rules.navTitle && rules.navTitle.pathExcludes) || [];
+  const includes = (rules.navTitle && rules.navTitle.pathIncludes) || [];
+  return pathParts(framePath).some((part) => {
+    if (excludes.some((needle) => part.includes(needle))) return false;
+    return includes.some((needle) => part.includes(needle));
+  });
+}
+
+function layerIs(layer, names) {
+  return (names || []).includes(layer);
+}
+
+function compilePatterns(rules) {
+  return (rules.dataPatterns || [])
+    .map((source) => {
+      try {
+        return new RegExp(source);
+      } catch (error) {
+        throw new Error(`A data pattern in figma-rules.json is not valid: ${source}`);
+      }
+    });
+}
+
+function isDataText(text, patterns) {
+  const value = String(text || '').trim();
+  if (!value) return true;
+  return patterns.some((pattern) => pattern.test(value));
+}
+
+function isPlaceholderText(text, rules) {
+  const value = String(text || '').trim();
+  if ((rules.skipExactText || []).includes(value)) return true;
+  const lower = value.toLowerCase();
+  return (rules.skipTextIncludes || []).some((needle) => lower.includes(String(needle).toLowerCase()));
+}
+
+function classifyTextNode(node, rules) {
+  const text = node.text !== undefined ? String(node.text) : '';
+  const layer = node.layer_name || '';
+  const frame = node.frame_path || '';
+  const markerSource = `${frame} / ${layer}`;
+  if (markerSource.includes(rules.excludeMarker || '[skip]')) {
+    return { ...node, kind: 'forced_skip', chars: checker.characterCount(text) };
+  }
+  const forced = markerSource.includes(rules.includeMarker || '[copy]');
+  if (!forced && (rules.skipLayerNames || []).includes(layer)) {
+    return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
+  }
+  if (!forced && hasPrivateUseGlyph(text)) {
+    return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
+  }
+  if (!forced && isPlaceholderText(text, rules)) {
+    return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
+  }
+  const patterns = node._compiledPatterns || compilePatterns(rules);
+  if (!forced && isDataText(text, patterns)) {
+    return { ...node, kind: 'number_or_data', chars: checker.characterCount(text) };
+  }
+  let kind = 'label';
+  if (layerIs(layer, rules.button.layerNames) && pathIncludes(frame, rules.button.pathIncludes)) {
+    kind = 'button';
+  } else if (layerIs(layer, rules.title.layerNames) && pathIncludes(frame, rules.title.pathIncludes)) {
+    kind = 'title';
+  } else if (layerIs(layer, rules.navTitle.layerNames) && isNavHeader(frame, rules)) {
+    kind = 'title';
+  } else if (checker.characterCount(text) > 25) {
+    kind = 'body';
+  }
+  return { ...node, kind, chars: checker.characterCount(text) };
+}
+
+function collectTextNodes(node, ancestors, ancestorHidden, out) {
+  if (!node || typeof node !== 'object') return;
+  const name = node.name || '';
+  const hidden = ancestorHidden || node.visible === false;
+  if (node.type === 'TEXT') {
+    const box = node.absoluteBoundingBox || {};
+    out.push({
+      id: node.id || '',
+      layer_name: name,
+      frame_path: ancestors.filter(Boolean).join(' / '),
+      text: node.characters || '',
+      chars: checker.characterCount(node.characters || ''),
+      width: typeof box.width === 'number' ? box.width : null,
+      height: typeof box.height === 'number' ? box.height : null,
+      visible: !hidden,
+    });
+    return;
+  }
+  const nextAncestors = name ? [...ancestors, name] : ancestors;
+  (node.children || []).forEach((child) => collectTextNodes(child, nextAncestors, hidden, out));
+}
+
+function nodeDocument(payload, nodeId) {
+  const nodes = (payload && payload.nodes) || {};
+  if (nodes[nodeId] && nodes[nodeId].document) return nodes[nodeId].document;
+  const dashed = nodeId.replace(/:/g, '-');
+  if (nodes[dashed] && nodes[dashed].document) return nodes[dashed].document;
+  const found = Object.keys(nodes)
+    .map((key) => nodes[key])
+    .find((item) => item && item.document);
+  if (!found) {
+    throw new Error("Figma didn't return that frame. Select a page, section, or frame and copy the link again.");
+  }
+  return found.document;
+}
+
+async function figmaGet(fileKey, ids, token, fetchImpl, depth) {
+  const fetchFn = fetchImpl || fetch;
+  const depthQuery = depth ? `&depth=${depth}` : '';
+  const url = `https://api.figma.com/v1/files/${encodeURIComponent(fileKey)}/nodes?ids=${encodeURIComponent(ids.join(','))}&geometry=omit${depthQuery}`;
+  let response;
+  try {
+    response = await fetchFn(url, { headers: { 'X-Figma-Token': token } });
+  } catch (error) {
+    throw new Error("Couldn't reach Figma. Check the network and try the link again.");
+  }
+  if (!response.ok) {
+    throw new Error(statusMessage(response.status));
+  }
+  return response.json();
+}
+
+function frameChildren(document) {
+  return (document.children || []).filter((child) =>
+    ['FRAME', 'SECTION', 'COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'GROUP'].includes(child.type),
+  );
+}
+
+async function loadTextNodes(fileKey, nodeId, token, fetchImpl, rules) {
+  const activeRules = rules || DEFAULT_RULES;
+  const shallow = await figmaGet(fileKey, [nodeId], token, fetchImpl, 1);
+  const shallowDoc = nodeDocument(shallow, nodeId);
+  const children = frameChildren(shallowDoc);
+  const collected = [];
+  if (children.length >= (activeRules.chunkAfterChildren || 8)) {
+    const size = activeRules.chunkSize || 5;
+    for (let index = 0; index < children.length; index += size) {
+      const slice = children.slice(index, index + size);
+      const batch = await figmaGet(fileKey, slice.map((child) => child.id), token, fetchImpl);
+      slice.forEach((child) => {
+        const childDoc = nodeDocument(batch, child.id);
+        collectTextNodes(childDoc, [shallowDoc.name], shallowDoc.visible === false, collected);
+      });
+    }
+    return collected.map((node) => classifyTextNode(node, activeRules));
+  }
+  const full = await figmaGet(fileKey, [nodeId], token, fetchImpl);
+  const fullDoc = nodeDocument(full, nodeId);
+  collectTextNodes(fullDoc, [], false, collected);
+  return collected.map((node) => classifyTextNode(node, activeRules));
+}
+
+function cachePath(root, fileKey, nodeId) {
+  const safeId = String(nodeId).replace(/:/g, '-');
+  return path.join(root, 'tools', 'designer-language-toggle', '.cache', 'figma', `${fileKey}-${safeId}.json`);
+}
+
+function writeCache(root, fileKey, nodeId, records) {
+  const filePath = cachePath(root, fileKey, nodeId);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(records, null, 2)}\n`);
+  return filePath;
+}
+
+function loadRules(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return { ...DEFAULT_RULES };
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return {
+    ...DEFAULT_RULES,
+    ...parsed,
+    button: { ...DEFAULT_RULES.button, ...(parsed.button || {}) },
+    title: { ...DEFAULT_RULES.title, ...(parsed.title || {}) },
+    navTitle: { ...DEFAULT_RULES.navTitle, ...(parsed.navTitle || {}) },
+  };
+}
+
+module.exports = {
+  parseFigmaUrl,
+  statusMessage,
+  readToken,
+  missingTokenMessage,
+  hasPrivateUseGlyph,
+  classifyTextNode,
+  collectTextNodes,
+  loadTextNodes,
+  cachePath,
+  writeCache,
+  loadRules,
+};

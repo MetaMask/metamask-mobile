@@ -47,7 +47,8 @@ Start a new Agent chat after linking.
 | Both: show Japanese, and only list English and Japanese | `apply-locale.js --locale ja --languages en,ja` |
 | Flag strings in German for Perps | `check-strings.js --lang de --feature perps` |
 | Check Perps in German | Repo copy, then the preview. Run `check-strings.js --lang de --feature perps`. Offer `apply-locale.js --locale de` if they want to see it. |
-| Check this Figma copy in Japanese | A strings file, not the preview. Run `check-file.js --file <strings.csv> --lang ja`. Optional `--pseudo` pads accented English and labels it pseudo. It does not translate. |
+| Check this Figma screen in German | Paste the Figma link. Run `check-figma.js --url "<figma url>" --lang de`. Add more languages with `--lang de,ja,ru`. Optional `--pseudo`. No manual export. |
+| Check this Figma copy in Japanese | A strings file, when there is no Figma token. Run `check-file.js --file <strings.csv> --lang ja`. Optional `--pseudo` pads accented English and labels it pseudo. It does not translate. |
 | Same for Social, or a namespace | `--feature social` or `--namespace social_leaderboard` |
 | Show the longest real translation of every string | `apply-locale.js --pseudo longest` |
 | Find text that can't be translated (hard-coded English) | `apply-locale.js --pseudo accented` |
@@ -98,6 +99,34 @@ Over the limit is a hard failure. The Pro buttons are 10 characters. Post to fee
 `--strict` includes strings that are English in most languages (product names and tokens). Default skips those.
 
 The check never writes locale JSON. `--format json` prints the same findings as JSON when a tool needs them. Fields stay source, feature, component, description, and max_length.
+
+## Check a Figma link
+
+A designer can paste a Figma link. The link can be a page, a section, or a frame. A branch link uses the branch, not the main file.
+
+```bash
+node tools/designer-language-toggle/scripts/check-figma.js --url "<figma url>" --lang de
+```
+
+`--lang` accepts a comma list, for example `--lang de,ja,ru`. `--json` prints the report. `--pseudo` is still a labeled length stand-in, not a translation.
+
+The report leads with what will break: already over in English, breaks with a real shipped translation, then at risk using a 1.4× estimate. A short line says how many short controls fit.
+
+### Replit
+
+1. In the Figma account menu, open Settings, then Security, and create a personal access token with the read-only file content scope.
+2. In Replit, open Secrets and add `FIGMA_TOKEN`. Do not paste the token into chat.
+3. Ask the agent: check this Figma screen in German, and paste the frame link.
+
+### Cursor
+
+1. Create the same read-only Figma personal access token.
+2. Put `FIGMA_TOKEN=...` in a `.env` file at the repo root. That file is gitignored. Do not commit it or paste it into chat.
+3. Ask the agent: check this Figma screen in German, and paste the frame link.
+
+If `FIGMA_TOKEN` is not set and this agent has a Figma connection, pull the text nodes (id, name, characters, width, height, visible, and the ancestor frame path, treating a hidden ancestor as hidden) and save them as JSON in the file-adapter shape. Then run `check-file.js`. The read from the API is cached under `tools/designer-language-toggle/.cache/figma/`, which is gitignored.
+
+Classification defaults live in `references/figma-rules.json`. A layer or frame named with `[copy]` is kept. `[skip]` is dropped. Trust the text, not the layer name.
 
 ## Design-stage copy
 

@@ -1,0 +1,33 @@
+{
+  "includeMarker": "[copy]",
+  "excludeMarker": "[skip]",
+  "button": {
+    "layerNames": ["Label"],
+    "pathIncludes": ["Button Label", "ButtonBase", "FilterButton", "Segmented Control"]
+  },
+  "title": {
+    "layerNames": ["title"],
+    "pathIncludes": ["titleRow", "SectionHeader", "headerRow"]
+  },
+  "navTitle": {
+    "layerNames": ["Label"],
+    "pathIncludes": ["Header"],
+    "pathExcludes": ["SectionHeader"]
+  },
+  "skipLayerNames": ["fallbackText"],
+  "skipExactText": ["Heading Sm", "Title", "Team A", "Team B"],
+  "skipTextIncludes": ["lorem", "Lorem"],
+  "dataPatterns": [
+    "\\$",
+    "¢",
+    "%",
+    "^\\d+$",
+    "^\\d+\\s*-\\s*\\d+$",
+    "\\d+'",
+    "\\d{1,2}:\\d{2}"
+  ],
+  "buttonMaxPx": 120,
+  "buttonMaxCharacters": 10,
+  "chunkAfterChildren": 8,
+  "chunkSize": 5
+}

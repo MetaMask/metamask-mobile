@@ -545,6 +545,59 @@ function testFileAdapterAndLearned() {
   assert(direct.tooLong.length === 1, 'checker string set flags a short expansion');
 }
 
+function testFigmaAdapter() {
+  const figma = require('../lib/figma-adapter');
+  const { checkDesignFile } = require('../lib/file-adapter');
+  const parsed = figma.parseFigmaUrl(
+    'https://www.figma.com/design/FILEKEY/branch/BRANCHKEY/Name?node-id=12-34',
+  );
+  assert(parsed.fileKey === 'BRANCHKEY', 'branch link uses the branch key');
+  assert(parsed.nodeId === '12:34', 'node-id dashes become colons');
+  const plain = figma.parseFigmaUrl(
+    'https://www.figma.com/design/FILEKEY/Name?node-id=12-34',
+  );
+  assert(plain.fileKey === 'FILEKEY', 'design link uses the file key');
+  assert(!figma.statusMessage(403).includes('secret-token'), '403 message has no token');
+  assert(/refused this token/.test(figma.statusMessage(403)), '403 is designer-friendly');
+  assert(/rate-limiting/.test(figma.statusMessage(429)), '429 tells the designer to wait');
+
+  const fixturePath = path.join(
+    lib.findRepoRoot(),
+    'tools/designer-language-toggle/samples/figma-nodes-fixture.json',
+  );
+  const payload = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+  const rules = figma.loadRules(
+    path.join(lib.findRepoRoot(), 'tools/designer-language-toggle/references/figma-rules.json'),
+  );
+  const fetchImpl = async (url) => {
+    assert(!url.includes('secret-token'), 'token stays out of the URL');
+    return { ok: true, status: 200, json: async () => payload };
+  };
+  return figma.loadTextNodes('FILEKEY', '1:2', 'secret-token', fetchImpl, rules).then((records) => {
+    const byText = new Map(records.map((row) => [row.text, row]));
+    assert(byText.get('Continue').kind === 'button', 'button label is a button');
+    assert(byText.get('Markets').kind === 'title', 'header label is a nav title');
+    assert(byText.get('Secret action').visible === false, 'hidden ancestor hides the text');
+    assert(byText.get('AB').kind === 'placeholder_or_annotation', 'fallbackText is skipped');
+    const symbol = records.find((row) => row.id === '1:11');
+    assert(symbol && symbol.kind === 'placeholder_or_annotation', 'SF Symbol is skipped');
+    assert(byText.get('$4.50').kind === 'number_or_data', 'price is data');
+    assert(byText.get('$9').kind !== 'number_or_data', '[copy] keeps a price');
+    const limits = lib.loadLimits(lib.defaultLimitsPath());
+    const cache = path.join(lib.findRepoRoot(), 'tools/designer-language-toggle/.cache/figma/test-fixture.json');
+    fs.mkdirSync(path.dirname(cache), { recursive: true });
+    fs.writeFileSync(cache, JSON.stringify(records));
+    const checked = checkDesignFile(cache, { lang: 'de', limits, pseudo: false });
+    const over = checked.lengths.find((row) => row.source === 'Continue to checkout');
+    assert(over && over.status === 'over' && over.bucket === 'button', 'long button is over the 10 character limit');
+    assert(!checked.kept.some((row) => row.source_text === 'Secret action'), 'hidden text is not checked');
+    assert(!checked.kept.some((row) => row.source_text === '$4.50'), 'price is not checked');
+    fs.rmSync(cache, { force: true });
+  }).catch((error) => {
+    assert(false, error.message);
+  });
+}
+
 function main() {
   testWidthAndAccent();
   const { root, realI18n } = makeFixture();
@@ -558,11 +611,13 @@ function main() {
   }
   testPerpsRegression();
   testFileAdapterAndLearned();
+  return testFigmaAdapter().then(() => {
   if (failures > 0) {
     console.error(`${failures} failed`);
     process.exit(1);
   }
   console.log('self-test passed');
+  });
 }
 
 main();
