@@ -1,7 +1,9 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { initialState } from '../../_mocks_/initialState';
 import {
   MOCK_LIMIT_CANCELLED_ORDER,
@@ -10,10 +12,22 @@ import {
   MOCK_LIMIT_FILLED_ORDER,
   MOCK_LIMIT_OPEN_ORDER,
 } from '../../api/limitOrders/getLimitOrders/mock';
-import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import {
+  LimitOrderState,
+  type LimitOrder,
+} from '../../api/limitOrders/getLimitOrders/types';
 import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { OpenOrderRowSelectorsIDs } from '../OpenOrderRow/OpenOrderRow.testIds';
 import { LimitOrderTabRow } from '.';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 function renderLimitOrderRow(order: LimitOrder) {
   return renderWithProvider(<LimitOrderTabRow order={order} />, {
@@ -21,9 +35,13 @@ function renderLimitOrderRow(order: LimitOrder) {
   });
 }
 
-// Row press and the details sheet it opens are covered in
+// The details sheet and activity page opened from these rows are covered in
 // LimitOrderTabRow.view.test.tsx, which drives real navigation.
 describe('LimitOrderRow', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
   it.each([
     {
       state: 'open',
@@ -309,5 +327,55 @@ describe('LimitOrderRow', () => {
       getByText(strings('bridge.limit.failed_at', { date: 'Sep 1' })),
     ).toBeOnTheScreen();
     expect(queryByText(strings('bridge.limit.failed'))).not.toBeOnTheScreen();
+  });
+
+  it('renders a limit price without a comparison sign when the threshold is unrecognized', () => {
+    const order: LimitOrder = {
+      ...MOCK_LIMIT_OPEN_ORDER,
+      trigger: {
+        kind: 'ratio',
+        threshold: 'sideways',
+        price: '2200',
+      } as LimitOrder['trigger'],
+    };
+
+    const { getByText, queryByText } = renderLimitOrderRow(order);
+
+    expect(getByText('2200 USDC')).toBeOnTheScreen();
+    expect(queryByText('≥ 2200 USDC')).not.toBeOnTheScreen();
+  });
+
+  it('opens the details route for an open order', () => {
+    const { getByTestId } = renderLimitOrderRow(MOCK_LIMIT_OPEN_ORDER);
+
+    fireEvent.press(getByTestId(OpenOrderRowSelectorsIDs.CONTAINER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL,
+      params: { order: MOCK_LIMIT_OPEN_ORDER },
+    });
+  });
+
+  it('opens the activity route for a filled order', () => {
+    const { getByTestId } = renderLimitOrderRow(MOCK_LIMIT_FILLED_ORDER);
+
+    fireEvent.press(getByTestId(OpenOrderRowSelectorsIDs.CONTAINER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+      params: { order: MOCK_LIMIT_FILLED_ORDER },
+    });
+  });
+
+  it('leaves a row with an unrecognized state unpressable', () => {
+    const order: LimitOrder = {
+      ...MOCK_LIMIT_OPEN_ORDER,
+      state: 'PENDING' as LimitOrderState,
+    };
+    const { getByTestId } = renderLimitOrderRow(order);
+
+    fireEvent.press(getByTestId(OpenOrderRowSelectorsIDs.CONTAINER));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
