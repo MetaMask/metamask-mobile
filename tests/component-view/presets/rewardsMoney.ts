@@ -455,6 +455,10 @@ export interface RewardsMoneyViewStateOptions {
   geoLocation?: string | null;
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
+  /** Session-only deeplink state for the invite-sheet lifecycle. */
+  pendingReferralCode?: string | null;
+  answeredReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
   /** Remote `glassHeaders`: the header floats over the content on glass. */
   glassHeaders?: boolean;
   /**
@@ -482,6 +486,9 @@ export function rewardsMoneyViewState({
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
+  pendingReferralCode = null,
+  answeredReferralCode = null,
+  isReferralLinkPending = false,
   glassHeaders = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
@@ -537,6 +544,9 @@ export function rewardsMoneyViewState({
             data: summary,
           },
         },
+        pendingReferralCode,
+        answeredReferralCode,
+        isReferralLinkPending,
       },
       engine: {
         backgroundState: {

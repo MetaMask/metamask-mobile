@@ -958,6 +958,7 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "answeredReferralCode": null,
       "cashbackLedger": {},
       "claimLocks": {},
       "claimWaitingUntil": {},
@@ -965,6 +966,8 @@
       "earningsHistory": {},
       "earningsSummary": {},
       "inFlightClaims": {},
+      "isReferralLinkPending": false,
+      "pendingReferralCode": null,
       "referralFunnel": {},
       "referralMe": {}
     },
