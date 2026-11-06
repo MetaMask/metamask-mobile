@@ -15,14 +15,12 @@ import React, {
 } from 'react';
 import {
   Animated as RNAnimated,
-  Easing as RNEasing,
   type LayoutChangeEvent,
   StyleSheet,
   View,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  type SharedValue,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -50,14 +48,11 @@ import {
   isPillOnScreen,
   LIGHT_FADE_DURATION,
   REASSEMBLE,
-  wrapOffset,
 } from './hotTokenRailMotion';
 import SelectedHotTokenChip from './SelectedHotTokenChip';
+import { useRailCrawl } from './useRailCrawl';
 
 const EMPTY_TOKENS: SocialV1HotToken[] = [];
-
-/** Slow news-footer crawl. */
-const MARQUEE_PIXELS_PER_SECOND = 24;
 
 const styles = StyleSheet.create({
   row: {
@@ -131,8 +126,8 @@ interface HotTokenPillProps {
   dispersal: PillDispersal | null;
   /** Where the crawl sits right now, in px. Read on press and on scatter. */
   readOffset: () => number;
-  trackWidth: SharedValue<number>;
-  viewportWidth: SharedValue<number>;
+  trackWidth: number;
+  viewportWidth: number;
   onPress?: (token: SocialV1HotToken, origin: PillOrigin | null) => void;
 }
 
@@ -164,7 +159,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     if (!layout) {
       return null;
     }
-    const left = trackIndex * trackWidth.value + layout.x - readOffset();
+    const left = trackIndex * trackWidth + layout.x - readOffset();
     return { left, width: layout.width };
   }, [readOffset, trackIndex, trackWidth]);
 
@@ -175,7 +170,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
       return;
     }
     const placement = measureInViewport();
-    const viewport = viewportWidth.value;
+    const viewport = viewportWidth;
     const isOnScreen =
       placement !== null &&
       isPillOnScreen(placement.left, placement.width, viewport);
@@ -318,7 +313,7 @@ const HotTokenTrack: React.FC<
  * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
  * the chips overflow the viewport they crawl like a news ticker.
  *
- * Pressing a chip filters the feed on it: the crawl brakes, the other chips
+ * Pressing a chip filters the feed on it: the crawl stops, the other chips
  * scatter away from it, and a selected copy springs from its spot to the
  * rail's left edge, where its close icon slides open. Pressing that copy
  * clears the filter: it drops away and the chips rise back in, left to right,
@@ -429,126 +424,27 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     setDocked((current) => (current?.key === key ? null : current));
   }, []);
 
-  // Visual crawl. Native-driver timing writes translateX straight to the view,
-  // so a lap does not commit the feed tree every frame.
-  const shift = useRef(new RNAnimated.Value(0)).current;
-  const trackWidthSv = useSharedValue(0);
-  const viewportWidthSv = useSharedValue(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
-  const trackWidthRef = useRef(0);
-  const runIdRef = useRef(0);
-  const dragStartRef = useRef(0);
-  // The crawl's position, predicted on the JS clock so a press can place the
-  // chip without reading the native value every frame.
-  const lapRef = useRef({ running: false, origin: 0, startedAt: 0 });
 
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
 
-  const readOffset = useCallback(() => {
-    const lap = lapRef.current;
-    const width = trackWidthRef.current;
-    if (!lap.running || width <= 0) {
-      return lap.origin;
-    }
-    const elapsedSeconds = (Date.now() - lap.startedAt) / 1000;
-    return wrapOffset(
-      lap.origin + MARQUEE_PIXELS_PER_SECOND * elapsedSeconds,
-      width,
-    );
-  }, []);
-
-  const placeAt = useCallback(
-    (position: number) => {
-      lapRef.current = { running: false, origin: position, startedAt: 0 };
-      shift.setValue(position);
-    },
-    [shift],
-  );
-
-  // One native timing per lap. JS wakes only at the wrap, which the loop copy
-  // hides. `runIdRef` drops the callback if a stop landed during the lap.
-  const runFrom = useCallback(
-    (from: number) => {
-      const id = ++runIdRef.current;
-      const travel = (position: number) => {
-        const width = trackWidthRef.current;
-        if (width <= 0) {
-          return;
-        }
-        lapRef.current = {
-          running: true,
-          origin: position,
-          startedAt: Date.now(),
-        };
-        shift.setValue(position);
-        RNAnimated.timing(shift, {
-          toValue: width,
-          duration: ((width - position) / MARQUEE_PIXELS_PER_SECOND) * 1000,
-          easing: RNEasing.linear,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished && id === runIdRef.current) {
-            travel(0);
-          }
-        });
-      };
-      travel(wrapOffset(from, trackWidthRef.current));
-    },
-    [shift],
-  );
-
-  const stopAt = useCallback(
-    (after?: (value: number) => void) => {
-      const id = ++runIdRef.current;
-      const position = readOffset();
-      placeAt(position);
-      shift.stopAnimation(() => {
-        if (id === runIdRef.current) {
-          after?.(position);
-        }
-      });
-    },
-    [placeAt, readOffset, shift],
-  );
-
-  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isSelected;
-  const shouldRunRef = useRef(shouldRun);
-
   // A docked chip holds the crawl where it stopped, so the chips come back
   // where they left.
-  useEffect(() => {
-    shouldRunRef.current = shouldRun;
-    stopAt((value) => {
-      if (shouldRun) {
-        runFrom(value);
-      }
-    });
-    return () => {
-      runIdRef.current += 1;
-      shift.stopAnimation();
-    };
-  }, [runFrom, shift, shouldRun, stopAt, trackWidth]);
+  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isSelected;
+  const { translateX, readOffset, hold, scrubBy, release } = useRailCrawl({
+    trackWidth,
+    enabled: shouldRun,
+  });
 
-  const handleViewportLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      viewportWidthSv.value = width;
-      setViewportWidth(width);
-    },
-    [viewportWidthSv],
-  );
+  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
+    setViewportWidth(event.nativeEvent.layout.width);
+  }, []);
 
-  const handleTrackLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      trackWidthRef.current = width;
-      trackWidthSv.value = width;
-      setTrackWidth(width);
-    },
-    [trackWidthSv],
-  );
+  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    setTrackWidth(event.nativeEvent.layout.width);
+  }, []);
 
   const pan = useMemo(
     () =>
@@ -558,31 +454,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         .enabled(!isSelected)
         .activeOffsetX([-10, 10])
         .failOffsetY([-12, 12])
-        .onBegin(() => {
-          stopAt((value) => {
-            dragStartRef.current = value;
-          });
-        })
-        .onUpdate((event) => {
-          const width = trackWidthRef.current;
-          if (width <= 0) {
-            return;
-          }
-          placeAt(wrapOffset(dragStartRef.current - event.translationX, width));
-        })
-        .onFinalize(() => {
-          stopAt((value) => {
-            if (shouldRunRef.current) {
-              runFrom(value);
-            }
-          });
-        }),
-    [isSelected, placeAt, runFrom, stopAt],
+        .onBegin(hold)
+        .onUpdate((event) => scrubBy(event.translationX))
+        .onFinalize(release),
+    [hold, isSelected, release, scrubBy],
   );
 
-  const trackStyle = {
-    transform: [{ translateX: RNAnimated.multiply(shift, -1) }],
-  };
+  const trackStyle = { transform: [{ translateX }] };
 
   const loopTokens = useMemo(
     () => (shouldMarquee ? tokens : []),
@@ -628,8 +506,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const trackProps = {
     dispersal,
     readOffset,
-    trackWidth: trackWidthSv,
-    viewportWidth: viewportWidthSv,
+    trackWidth,
+    viewportWidth,
     onPress: handlePillPress,
   };
 
