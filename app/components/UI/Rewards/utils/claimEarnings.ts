@@ -20,7 +20,6 @@ import type {
   ReferralLocalizedText,
   ReferralLocalizedTextKey,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import Engine from '../../../../core/Engine';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
@@ -172,31 +171,39 @@ export interface ClaimRouteOptions {
    * leaves the route off.
    */
   includeFollowTrade?: boolean;
+  /**
+   * Revenue share needs the tax form and an open claim route. Omitted
+   * leaves that route off, even when the family balance is positive.
+   */
+  includeRevShare?: boolean;
 }
 
 /**
- * Follow-trade is included only when the tax form is on and commissions
- * reports `SOCIAL_FOLLOW_TRADE.claim_open`. An unknown route stays off.
- * Cashback does not use this: commissions has no cashback `claim_open`.
+ * Follow-trade and revenue share are included only when the tax form is on
+ * and commissions reports that route's `claim_open`. An unknown route stays
+ * off. Cashback does not use this: commissions has no cashback `claim_open`,
+ * so that family follows its own claimable balance.
  */
 export function claimRouteOptions(
   taxFormUrl: string | undefined,
   followTradeClaimOpen: boolean | undefined,
+  revShareClaimOpen: boolean | undefined = false,
 ): ClaimRouteOptions {
+  const taxFlowEnabled = isTaxFlowEnabled(taxFormUrl);
   return {
-    includeFollowTrade:
-      isTaxFlowEnabled(taxFormUrl) && followTradeClaimOpen === true,
+    includeFollowTrade: taxFlowEnabled && followTradeClaimOpen === true,
+    includeRevShare: taxFlowEnabled && revShareClaimOpen === true,
   };
 }
 
 /**
- * Cashback for a referee, then follow-trade when its route is included. Each
- * family must reach `minimum_musd_base_units` on its own. Revenue share stays
- * off. Omitted options leave follow-trade off.
+ * Cashback when that family meets the minimum, then revenue share and
+ * follow-trade when those routes are included. Each family must reach
+ * `minimum_musd_base_units` on its own. A closed route stays off no matter
+ * which persona holds the balance.
  */
 export function claimRoutesForSummary(
   summary: EarningsSummaryDto | null | undefined,
-  persona?: MoneyDashboardPersona,
   options?: ClaimRouteOptions,
 ): ClaimRouteSlug[] {
   const minimum = summary?.minimum_musd_base_units;
@@ -204,8 +211,16 @@ export function claimRoutesForSummary(
   const cashback =
     summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
       ?.claimable;
-  if (persona === 'referee' && meetsClaimMinimum(cashback, minimum)) {
+  if (meetsClaimMinimum(cashback, minimum)) {
     routes.push('referral-trade-fee-cashback');
+  }
+  const revShare =
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE?.claimable;
+  if (
+    options?.includeRevShare === true &&
+    meetsClaimMinimum(revShare, minimum)
+  ) {
+    routes.push('referral-rev-share');
   }
   const followTrade =
     summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable;
@@ -218,13 +233,15 @@ export function claimRoutesForSummary(
   return routes;
 }
 
-/** True when cashback or follow-trade reaches the summary minimum. */
+/**
+ * True when an open route's family reaches the summary minimum. A positive
+ * revenue-share balance does not count while that route is closed.
+ */
 export function canClaimEarnings(
   summary: EarningsSummaryDto | null | undefined,
-  persona: MoneyDashboardPersona | undefined,
   options?: ClaimRouteOptions,
 ): boolean {
-  return claimRoutesForSummary(summary, persona, options).length > 0;
+  return claimRoutesForSummary(summary, options).length > 0;
 }
 
 /**

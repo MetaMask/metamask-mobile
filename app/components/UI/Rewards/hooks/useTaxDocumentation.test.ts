@@ -273,7 +273,24 @@ describe('useTaxDocumentation', () => {
           profileId: PROFILE,
         }),
       );
-      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ omitFollowTrade: true });
+    });
+
+    it('does not open a second sheet when that claim is refused for tax', async () => {
+      const { result } = renderTaxHook();
+      const claim = jest.fn(async () => {
+        await result.current.openAfterClaimRefusal();
+      });
+
+      await act(async () => {
+        await result.current.onClaimPress(summary, claim);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+        expect.objectContaining({ question: 'attestation' }),
+      );
     });
 
     it('opens the renewal question and still claims when the payee is cleared', async () => {

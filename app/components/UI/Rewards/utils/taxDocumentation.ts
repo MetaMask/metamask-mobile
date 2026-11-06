@@ -447,7 +447,7 @@ export function resolveTaxFormUrl(
 /**
  * Tax documentation runs only when copy names a form page the WebView may
  * open. A hidden or empty `taxFormUrl` leaves the flow off, and follow-trade
- * claiming stays off with it.
+ * and revenue-share claiming stay off with it.
  */
 export function isTaxFlowEnabled(localizedUrl: string | undefined): boolean {
   return resolveTaxFormUrl(localizedUrl) !== null;

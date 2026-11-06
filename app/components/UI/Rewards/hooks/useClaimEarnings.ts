@@ -17,7 +17,6 @@ import {
   selectClaimLock,
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
-  type MoneyDashboardPersona,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -41,9 +40,8 @@ import {
   queueClaimRewardsInPlaceOfSettledBanner,
   suppressSettledClaimBatchBanner,
 } from '../utils/claimBatchNotifications';
-import { useFollowTradeClaimOpen } from './useFollowTradeClaimOpen';
+import { useClaimMechanisms } from './useFollowTradeClaimOpen';
 import {
-  canClaimEarnings,
   claimRouteOptions,
   claimFailureReason,
   claimOutcomeIsPartial,
@@ -157,6 +155,15 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
   ].join('|');
 }
 
+export interface ClaimEarningsOptions {
+  /**
+   * Leave follow-trade out. The tax sheet is already open and income is
+   * blocked, so submitting it comes back `TAX_DETERMINATION_REQUIRED` and
+   * would open that sheet again. Cashback still submits.
+   */
+  omitFollowTrade?: boolean;
+}
+
 /**
  * Claims referee cashback that reaches the summary minimum, signs the
  * challenges, and submits the voucher. The claim stays on the current
@@ -167,14 +174,12 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
 export function useClaimEarnings(
   profileId: string,
   {
-    persona,
     onOpened,
     onSubmitted,
     onClaimsPaused,
     onTaxRequired,
     summary: liveSummary = null,
   }: {
-    persona?: MoneyDashboardPersona;
     onOpened?: () => void;
     /**
      * A whole-claim refusal that leaves money in `held` or `blocked`. The
@@ -200,7 +205,10 @@ export function useClaimEarnings(
     summary?: EarningsSummaryDto | null;
   } = {},
 ): {
-  claim: (summary: EarningsSummaryDto) => Promise<void>;
+  claim: (
+    summary: EarningsSummaryDto,
+    options?: ClaimEarningsOptions,
+  ) => Promise<void>;
   isClaiming: boolean;
   /** True until a refusal's `Retry-After` elapses. Claim stays disabled. */
   isClaimWaiting: boolean;
@@ -276,20 +284,26 @@ export function useClaimEarnings(
     return () => clearTimeout(timer);
   }, [waitUntil, dispatch, profileId]);
 
-  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const claim = useCallback(
-    async (summary: EarningsSummaryDto) => {
+    async (summary: EarningsSummaryDto, options?: ClaimEarningsOptions) => {
       const waitingUntil = claimWaitingUntilRef.current;
       const routeOptions = claimRouteOptions(
         localizedText?.taxFormUrl,
         followTradeClaimOpen,
+        revShareClaimOpen,
+      );
+      const routes = claimRoutesForSummary(summary, routeOptions).filter(
+        (route) =>
+          !(options?.omitFollowTrade && route === 'social-follow-trade'),
       );
       if (
         !localizedText ||
         isClaimingRef.current ||
         claimLockRef.current != null ||
         (waitingUntil !== null && waitingUntil > Date.now()) ||
-        !canClaimEarnings(summary, persona, routeOptions)
+        routes.length === 0
       ) {
         return;
       }
@@ -303,7 +317,6 @@ export function useClaimEarnings(
       let lockArmed = false;
       let holdForFreshSummary = false;
       const startedAt = Date.now();
-      const routes = claimRoutesForSummary(summary, persona, routeOptions);
       let tracked = false;
       const durationMs = () => Math.max(0, Date.now() - startedAt);
       const trackFailed = (route: ClaimRouteSlug, failureReason: string) => {
@@ -558,7 +571,7 @@ export function useClaimEarnings(
     [
       localizedText,
       followTradeClaimOpen,
-      persona,
+      revShareClaimOpen,
       moneyAccount?.address,
       vaultConfig,
       isSponsorshipEnabled,

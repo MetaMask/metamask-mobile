@@ -262,6 +262,24 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the held balance and Claim for a referrer whose follow-trade is held for tax', async () => {
+    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+      persona: 'referrer',
+      summary: HELD_ONLY,
+    });
+
+    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the attestation and still submits cashback, not income', async () => {
     const { findByTestId, engine } = renderEarningsTab({
       persona: 'referee',
@@ -286,6 +304,75 @@ describe('EarningsTab tax documentation', () => {
         'referral-trade-fee-cashback',
       ]);
     });
+  });
+
+  it('opens one tax sheet and does not submit follow-trade on its own', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '1000000',
+      cashbackClaimable: '0',
+      followTradeClaimable: '1000000',
+    });
+    const { findByTestId, findAllByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(COPY.taxAttestationTitle);
+    expect(
+      await findAllByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveLength(1);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('opens one tax sheet and submits cashback without follow-trade', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '2000000',
+      cashbackClaimable: '1000000',
+      followTradeClaimable: '1000000',
+    });
+    const { findByTestId, findAllByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary,
+      claimReady: true,
+      initiateClaim: 'hang',
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(COPY.taxAttestationTitle);
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback']);
+    });
+    expect(
+      await findAllByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveLength(1);
   });
 
   it('opens the form after Yes', async () => {
@@ -665,9 +752,6 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(
-      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).not.toBeOnTheScreen();
     await waitFor(() => {
       expect(
         callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
@@ -675,6 +759,9 @@ describe('EarningsTab tax documentation', () => {
         ),
       ).toEqual(['referral-trade-fee-cashback']);
     });
+    expect(
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
     expect(
       callsFor(engine, 'RewardsMoneyController:getTaxMe').length,
     ).toBeGreaterThan(0);
@@ -733,7 +820,7 @@ describe('EarningsTab tax documentation', () => {
       pending: '0',
       claimed: '0',
     };
-    const { findByTestId, engine } = renderEarningsTab({
+    const { findByTestId, getByTestId, engine } = renderEarningsTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -755,9 +842,9 @@ describe('EarningsTab tax documentation', () => {
       },
     });
 
-    await waitFor(async () => {
+    await waitFor(() => {
       expect(
-        await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
       ).toHaveTextContent('$2.00');
     });
     fireEvent.press(

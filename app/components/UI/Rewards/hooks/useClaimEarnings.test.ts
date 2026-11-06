@@ -61,6 +61,10 @@ import { useClaimEarnings } from './useClaimEarnings';
 
 jest.mock('./useFollowTradeClaimOpen', () => ({
   useFollowTradeClaimOpen: jest.fn(() => false),
+  useClaimMechanisms: jest.fn(() => ({
+    followTradeClaimOpen: false,
+    revShareClaimOpen: false,
+  })),
 }));
 
 const mockDispatch = jest.fn();
@@ -343,10 +347,9 @@ describe('useClaimEarnings', () => {
     expect(tracked.properties.duration_ms).toBeGreaterThanOrEqual(0);
   }
 
-  function renderClaim(persona: 'referee' | 'referrer' = 'referee') {
+  function renderClaim() {
     return renderHook(() =>
       useClaimEarnings(PROFILE_ID, {
-        persona,
         onOpened,
         onSubmitted,
         onClaimsPaused,
@@ -355,11 +358,20 @@ describe('useClaimEarnings', () => {
     );
   }
 
-  it('leaves the claim unsent for a referrer', async () => {
-    const { result } = renderClaim('referrer');
+  it('leaves the claim unsent when revenue share is closed', async () => {
+    const revShare = summary('0');
+    revShare.claimable = ONE_DOLLAR;
+    revShare.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      lifetime: '0',
+      claimable: ONE_DOLLAR,
+      pending: '0',
+      claimed: '0',
+      voided: '0',
+    };
+    const { result } = renderClaim();
 
     await act(async () => {
-      await result.current.claim(summary(ONE_DOLLAR));
+      await result.current.claim(revShare);
     });
 
     expect(mockEngineCall).not.toHaveBeenCalled();
@@ -553,7 +565,6 @@ describe('useClaimEarnings', () => {
     const { result, rerender } = renderHook(
       ({ current }: { current: EarningsSummaryDto }) =>
         useClaimEarnings(PROFILE_ID, {
-          persona: 'referee',
           onOpened,
           onSubmitted,
           summary: current,
@@ -595,7 +606,6 @@ describe('useClaimEarnings', () => {
       renderHook(
         ({ live }: { live: EarningsSummaryDto }) =>
           useClaimEarnings(PROFILE_ID, {
-            persona: 'referee',
             onOpened,
             onSubmitted,
             summary: live,
@@ -1086,7 +1096,6 @@ describe('useClaimEarnings', () => {
     const { result, rerender } = renderHook(
       ({ live }) =>
         useClaimEarnings(PROFILE_ID, {
-          persona: 'referee',
           summary: live,
           onOpened,
           onSubmitted,

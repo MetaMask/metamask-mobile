@@ -54,7 +54,7 @@ import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { canClaimEarnings, claimRouteOptions } from '../utils/claimEarnings';
-import { useFollowTradeClaimOpen } from '../hooks/useFollowTradeClaimOpen';
+import { useClaimMechanisms } from '../hooks/useFollowTradeClaimOpen';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -151,12 +151,16 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
   const referralMe = referralMeEntry?.data;
-  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const localizedText = referralMe?.localized_text;
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,
-    moneyDashboardPersona(referralMe),
-    claimRouteOptions(localizedText?.taxFormUrl, followTradeClaimOpen),
+    claimRouteOptions(
+      localizedText?.taxFormUrl,
+      followTradeClaimOpen,
+      revShareClaimOpen,
+    ),
   );
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   // The three panels share this scroller. A tab press returns to the top so a

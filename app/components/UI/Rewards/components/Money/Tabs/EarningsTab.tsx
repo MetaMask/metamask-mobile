@@ -51,7 +51,7 @@ import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
-import { useFollowTradeClaimOpen } from '../../../hooks/useFollowTradeClaimOpen';
+import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import {
@@ -520,7 +520,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
-  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
   const roles = useSelector(
     (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
@@ -582,7 +583,6 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     }, [prefetchTaxMe]),
   );
   const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
-    persona,
     summary: earningsSummaryEntry?.data ?? null,
     onOpened: () => {
       inFlight.refresh({ forceFresh: true }).catch(() => undefined);
@@ -644,8 +644,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const routeOptions = claimRouteOptions(
     localizedText?.taxFormUrl,
     followTradeClaimOpen,
+    revShareClaimOpen,
   );
-  const claimEnabled = canClaimEarnings(summary.data, persona, routeOptions);
+  const claimEnabled = canClaimEarnings(summary.data, routeOptions);
   const taxHeld =
     routeOptions.includeFollowTrade === true &&
     followTradeHeldForTax(summary.data);
@@ -670,13 +671,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             <ClaimableRewardsCard
               localizedText={localizedText}
               claimable={summary.data?.claimable}
-              claimed={
-                persona === 'referee' ? summary.data?.claimed : undefined
-              }
-              held={persona === 'referee' ? summary.data?.held : undefined}
-              blocked={
-                persona === 'referee' ? summary.data?.blocked : undefined
-              }
+              claimed={summary.data?.claimed}
+              held={summary.data?.held}
+              blocked={summary.data?.blocked}
               claimableAmount={musdAmount(summary.data?.claimable)}
               heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
@@ -695,8 +692,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                       if (!summaryData) {
                         return;
                       }
-                      void onClaimPress(summaryData, () =>
-                        claim(summaryData).catch(() => undefined),
+                      void onClaimPress(summaryData, (options) =>
+                        claim(summaryData, options).catch(() => undefined),
                       );
                     }
                   : undefined

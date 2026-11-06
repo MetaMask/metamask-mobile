@@ -180,7 +180,6 @@ describe('claimRoutesForSummary', () => {
           cashback: ONE_DOLLAR,
           revShare: ONE_DOLLAR,
         }),
-        'referee',
       ),
     ).toEqual(['referral-trade-fee-cashback']);
 
@@ -191,7 +190,6 @@ describe('claimRoutesForSummary', () => {
           cashback: UNDER_DOLLAR,
           revShare: ONE_DOLLAR,
         }),
-        'referee',
       ),
     ).toEqual([]);
   });
@@ -202,23 +200,38 @@ describe('claimRoutesForSummary', () => {
       cashback: '600000',
       revShare: '600000',
     });
-    expect(canClaimEarnings(split, 'referee')).toBe(false);
-    expect(claimRoutesForSummary(split, 'referee')).toEqual([]);
+    expect(canClaimEarnings(split)).toBe(false);
+    expect(claimRoutesForSummary(split)).toEqual([]);
   });
 
-  it('treats exactly $1 of cashback as claimable for a referee', () => {
+  it('treats exactly $1 of cashback as claimable from the family balance', () => {
     const atMinimum = summary({
       claimable: ONE_DOLLAR,
       cashback: ONE_DOLLAR,
       revShare: ONE_DOLLAR,
     });
 
-    expect(claimRoutesForSummary(atMinimum, 'referee')).toEqual([
+    expect(claimRoutesForSummary(atMinimum)).toEqual([
       'referral-trade-fee-cashback',
     ]);
-    expect(canClaimEarnings(atMinimum, 'referee')).toBe(true);
-    expect(canClaimEarnings(atMinimum, 'referrer')).toBe(false);
-    expect(canClaimEarnings(atMinimum, 'plain')).toBe(false);
+    expect(canClaimEarnings(atMinimum)).toBe(true);
+    expect(claimRoutesForSummary(atMinimum, { includeRevShare: true })).toEqual(
+      ['referral-trade-fee-cashback', 'referral-rev-share'],
+    );
+  });
+
+  it('leaves revenue share off while that claim route is closed', () => {
+    const revShare = summary({
+      claimable: ONE_DOLLAR,
+      cashback: '0',
+      revShare: ONE_DOLLAR,
+    });
+
+    expect(claimRoutesForSummary(revShare)).toEqual([]);
+    expect(canClaimEarnings(revShare)).toBe(false);
+    expect(claimRoutesForSummary(revShare, { includeRevShare: true })).toEqual([
+      'referral-rev-share',
+    ]);
   });
 
   it('uses the summary minimum instead of a fixed $1', () => {
@@ -227,67 +240,63 @@ describe('claimRoutesForSummary', () => {
       cashback: ONE_DOLLAR,
       minimum: '5000000',
     });
-    expect(canClaimEarnings(underRaisedMinimum, 'referee')).toBe(false);
-    expect(claimRoutesForSummary(underRaisedMinimum, 'referee')).toEqual([]);
+    expect(canClaimEarnings(underRaisedMinimum)).toBe(false);
+    expect(claimRoutesForSummary(underRaisedMinimum)).toEqual([]);
 
     const aboveLoweredMinimum = summary({
       claimable: UNDER_DOLLAR,
       cashback: UNDER_DOLLAR,
       minimum: '500000',
     });
-    expect(canClaimEarnings(aboveLoweredMinimum, 'referee')).toBe(true);
-    expect(claimRoutesForSummary(aboveLoweredMinimum, 'referee')).toEqual([
+    expect(canClaimEarnings(aboveLoweredMinimum)).toBe(true);
+    expect(claimRoutesForSummary(aboveLoweredMinimum)).toEqual([
       'referral-trade-fee-cashback',
     ]);
   });
 
-  it('claims cashback then follow-trade for a referee with both', () => {
+  it('claims cashback then follow-trade when both families meet the minimum', () => {
     const both = summary({
       claimable: '2000000',
       cashback: ONE_DOLLAR,
       followTrade: ONE_DOLLAR,
     });
 
-    expect(
-      claimRoutesForSummary(both, 'referee', { includeFollowTrade: true }),
-    ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
-    expect(
-      canClaimEarnings(both, 'referee', { includeFollowTrade: true }),
-    ).toBe(true);
-    expect(claimRoutesForSummary(both, 'referee')).toEqual([
+    expect(claimRoutesForSummary(both, { includeFollowTrade: true })).toEqual([
+      'referral-trade-fee-cashback',
+      'social-follow-trade',
+    ]);
+    expect(canClaimEarnings(both, { includeFollowTrade: true })).toBe(true);
+    expect(claimRoutesForSummary(both)).toEqual([
       'referral-trade-fee-cashback',
     ]);
   });
 
-  it('claims only follow-trade for a referrer above the minimum', () => {
+  it('claims only follow-trade when cashback is empty and revenue share is closed', () => {
     const followTrade = summary({
       claimable: ONE_DOLLAR,
-      cashback: ONE_DOLLAR,
+      cashback: '0',
       revShare: ONE_DOLLAR,
       followTrade: ONE_DOLLAR,
     });
 
     expect(
-      claimRoutesForSummary(followTrade, 'referrer', {
+      claimRoutesForSummary(followTrade, {
         includeFollowTrade: true,
       }),
     ).toEqual(['social-follow-trade']);
-    expect(claimRoutesForSummary(followTrade, 'referrer')).toEqual([]);
+    expect(claimRoutesForSummary(followTrade)).toEqual([]);
     expect(
-      claimRoutesForSummary(followTrade, 'referrer', {
+      claimRoutesForSummary(followTrade, {
         includeFollowTrade: false,
       }),
     ).toEqual([]);
-    expect(
-      canClaimEarnings(followTrade, 'referrer', { includeFollowTrade: false }),
-    ).toBe(false);
-    expect(
-      canClaimEarnings(followTrade, 'referrer', { includeFollowTrade: true }),
-    ).toBe(true);
-    expect(
-      canClaimEarnings(followTrade, 'plain', { includeFollowTrade: true }),
-    ).toBe(true);
-    expect(canClaimEarnings(followTrade, 'referrer')).toBe(false);
+    expect(canClaimEarnings(followTrade, { includeFollowTrade: false })).toBe(
+      false,
+    );
+    expect(canClaimEarnings(followTrade, { includeFollowTrade: true })).toBe(
+      true,
+    );
+    expect(canClaimEarnings(followTrade)).toBe(false);
   });
 
   it('leaves follow-trade off below the minimum or when the family is absent', () => {
@@ -300,13 +309,15 @@ describe('claimRoutesForSummary', () => {
       cashback: ONE_DOLLAR,
     });
 
-    expect(claimRoutesForSummary(below, 'referrer')).toEqual([]);
-    expect(
-      claimRoutesForSummary(below, 'referrer', { includeFollowTrade: true }),
-    ).toEqual([]);
-    expect(canClaimEarnings(below, 'referrer')).toBe(false);
-    expect(claimRoutesForSummary(absent, 'referrer')).toEqual([]);
-    expect(canClaimEarnings(absent, 'referee')).toBe(true);
+    expect(claimRoutesForSummary(below)).toEqual([]);
+    expect(claimRoutesForSummary(below, { includeFollowTrade: true })).toEqual(
+      [],
+    );
+    expect(canClaimEarnings(below)).toBe(false);
+    expect(claimRoutesForSummary(absent)).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+    expect(canClaimEarnings(absent)).toBe(true);
   });
 
   it('does not claim when the summary minimum is missing', () => {
@@ -315,7 +326,7 @@ describe('claimRoutesForSummary', () => {
       cashback: ONE_DOLLAR,
       minimum: '',
     });
-    expect(canClaimEarnings(noMinimum, 'referee')).toBe(false);
+    expect(canClaimEarnings(noMinimum)).toBe(false);
     expect(claimRoutesForSummary(null)).toEqual([]);
   });
 
@@ -326,15 +337,12 @@ describe('claimRoutesForSummary', () => {
     });
     const open = { includeFollowTrade: true };
 
-    expect(claimRoutesForSummary(followTrade, 'referrer', open)).toEqual([
+    expect(claimRoutesForSummary(followTrade, open)).toEqual([
       'social-follow-trade',
     ]);
-    expect(claimRoutesForSummary(followTrade, 'plain', open)).toEqual([
-      'social-follow-trade',
-    ]);
-    expect(claimRoutesForSummary(followTrade, 'referee')).toEqual([]);
-    expect(canClaimEarnings(followTrade, 'referrer')).toBe(false);
-    expect(canClaimEarnings(followTrade, 'referrer', open)).toBe(true);
+    expect(claimRoutesForSummary(followTrade)).toEqual([]);
+    expect(canClaimEarnings(followTrade)).toBe(false);
+    expect(canClaimEarnings(followTrade, open)).toBe(true);
     const formUrl = 'https://tax.example/form';
     expect(claimRouteOptions(formUrl, true).includeFollowTrade).toBe(true);
     expect(claimRouteOptions(formUrl, false).includeFollowTrade).toBe(false);
@@ -347,19 +355,38 @@ describe('claimRoutesForSummary', () => {
 });
 
 describe('claimRouteOptions', () => {
+  const formUrl = 'https://tax.example/form';
+
   it('includes follow-trade only when the tax form and claim route are both open', () => {
-    expect(claimRouteOptions('https://tax.example/form', true)).toEqual({
+    expect(claimRouteOptions(formUrl, true)).toEqual({
       includeFollowTrade: true,
+      includeRevShare: false,
     });
-    expect(
-      claimRouteOptions('https://tax.example/form', false).includeFollowTrade,
-    ).toBe(false);
-    expect(
-      claimRouteOptions('https://tax.example/form', undefined)
-        .includeFollowTrade,
-    ).toBe(false);
+    expect(claimRouteOptions(formUrl, false).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(formUrl, undefined).includeFollowTrade).toBe(
+      false,
+    );
     expect(claimRouteOptions('', true).includeFollowTrade).toBe(false);
     expect(claimRouteOptions(undefined, true).includeFollowTrade).toBe(false);
+  });
+
+  it('includes revenue share only when the tax form and claim route are both open', () => {
+    expect(claimRouteOptions(formUrl, false, true)).toEqual({
+      includeFollowTrade: false,
+      includeRevShare: true,
+    });
+    expect(claimRouteOptions(formUrl, true, true)).toEqual({
+      includeFollowTrade: true,
+      includeRevShare: true,
+    });
+    expect(claimRouteOptions(formUrl, true, false).includeRevShare).toBe(false);
+    expect(claimRouteOptions(formUrl, true, undefined).includeRevShare).toBe(
+      false,
+    );
+    expect(claimRouteOptions('', false, true).includeRevShare).toBe(false);
+    expect(claimRouteOptions(undefined, false, true).includeRevShare).toBe(
+      false,
+    );
   });
 });
 

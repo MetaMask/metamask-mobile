@@ -41,6 +41,7 @@ import {
   type TaxQuestion,
   type TaxRefusalAction,
 } from '../utils/taxDocumentation';
+import type { ClaimEarningsOptions } from './useClaimEarnings';
 import { useEarningsSummary } from './useEarningsSummary';
 import useRewardsToast from './useRewardsToast';
 
@@ -77,6 +78,8 @@ export function useTaxDocumentation(profileId: string) {
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const pressBusy = useRef(false);
+  /** True while this press already has a tax sheet open that blocks income. */
+  const blockingSheetOpen = useRef(false);
   const answerBusy = useRef(false);
   const mintBusy = useRef(false);
 
@@ -527,7 +530,10 @@ export function useTaxDocumentation(profileId: string) {
   }, [noteSubmitted, openInfo, readTaxMe, refreshSummary, showTaxMe]);
 
   const onClaimPress = useCallback(
-    async (_summary: EarningsSummaryDto, claim: () => Promise<void>) => {
+    async (
+      _summary: EarningsSummaryDto,
+      claim: (options?: ClaimEarningsOptions) => Promise<void>,
+    ) => {
       if (pressBusy.current) {
         return;
       }
@@ -557,6 +563,7 @@ export function useTaxDocumentation(profileId: string) {
         if (taxMe?.reason === 'GATE_OFF') {
           refreshSummary();
         }
+        let omitFollowTrade = false;
         if (taxMe) {
           const sheet = taxSheetForClaim(taxMe, submitted);
           const blocksClaim = sheet.kind !== 'none' && taxMe.cleared === false;
@@ -567,9 +574,21 @@ export function useTaxDocumentation(profileId: string) {
           if (blocksClaim || renewalNudge) {
             openSheet(sheet);
           }
+          // Income cannot clear while this sheet is up. Submitting
+          // follow-trade on its own comes back tax-required and navigates
+          // here again from Earnings, stacking a second sheet.
+          if (blocksClaim) {
+            omitFollowTrade = true;
+            blockingSheetOpen.current = true;
+          }
         }
-        await claim();
+        if (omitFollowTrade) {
+          await claim({ omitFollowTrade: true });
+        } else {
+          await claim();
+        }
       } finally {
+        blockingSheetOpen.current = false;
         pressBusy.current = false;
       }
     },
@@ -586,6 +605,9 @@ export function useTaxDocumentation(profileId: string) {
   );
 
   const openAfterClaimRefusal = useCallback(async () => {
+    if (blockingSheetOpen.current) {
+      return;
+    }
     if (!taxFlowEnabled) {
       throw new Error('Tax flow is disabled');
     }

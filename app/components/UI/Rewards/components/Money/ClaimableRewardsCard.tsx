@@ -75,16 +75,15 @@ export interface ClaimableRewardsCardProps {
   isReferrer?: boolean;
   /**
    * Base units in `held`. A positive value, or a positive `blocked`, shows
-   * Balance and Paused. Omitted for anyone who is not a referee. When the only
-   * hold is tax documentation and nothing is claimable, the row shows this
-   * balance under Held instead.
+   * Balance and Paused. When the only hold is tax documentation and nothing
+   * is claimable, the row shows this balance under Held and stays Claim.
    */
   held?: string;
   /** Formatted `held` balance. Shown when tax documentation is the only hold. */
   heldAmount?: string;
   /**
    * Base units in `blocked`. A positive value, or a positive `held`, shows
-   * Balance and Paused. Omitted for anyone who is not a referee.
+   * Balance and Paused.
    */
   blocked?: string;
   /** Formatted lifetime total. */
