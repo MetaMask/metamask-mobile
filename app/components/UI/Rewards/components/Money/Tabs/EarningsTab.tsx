@@ -44,9 +44,12 @@ import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
+import { useFollowTradeClaimOpen } from '../../../hooks/useFollowTradeClaimOpen';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import {
   canClaimEarnings,
+  claimRouteOptions,
   isPendingClaimRow,
   mergeInFlightClaims,
   type EarningsHistoryListItem,
@@ -57,7 +60,6 @@ import {
   underReviewBlockedBaseUnits,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
-import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
 import type {
   ClaimsPausedLabels,
@@ -491,6 +493,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
+  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
@@ -582,8 +586,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   );
   const rows = breakdownRows(persona, summary.data, localizedText);
   const showBreakdown =
-    summary.show && rows.length > 0 && SHOW_TRADING_COMMISSIONS;
-  const claimEnabled = canClaimEarnings(summary.data, persona);
+    summary.show && rows.length > 0 && showTradingCommissions;
+  const routeOptions = claimRouteOptions(followTradeClaimOpen);
+  const claimEnabled = canClaimEarnings(summary.data, persona, routeOptions);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
