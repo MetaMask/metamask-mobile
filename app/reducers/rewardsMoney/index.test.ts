@@ -94,6 +94,7 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
@@ -111,6 +112,7 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
@@ -377,6 +379,7 @@ describe('rewardsMoneyReducer', () => {
         pendingReferralCode: null,
         answeredReferralCode: null,
         isReferralLinkPending: false,
+        commissionMechanisms: {},
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -415,6 +418,25 @@ describe('rewardsMoneyReducer', () => {
         persisted.claimWaitingUntil[PROFILE_A],
       );
       expect(state.claimLocks).toEqual({});
+      expect(state.commissionMechanisms).toEqual({});
+    });
+
+    it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
+      const persisted = {
+        ...initialState,
+        pendingReferralCode: 'KOL1',
+        answeredReferralCode: 'KOL0',
+        isReferralLinkPending: true,
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBeNull();
+      expect(state.isReferralLinkPending).toBe(false);
     });
 
     it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
@@ -452,6 +474,7 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},
@@ -613,6 +636,7 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},

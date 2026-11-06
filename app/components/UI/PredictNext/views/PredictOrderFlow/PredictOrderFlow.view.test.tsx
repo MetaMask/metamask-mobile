@@ -604,28 +604,29 @@ describe('PredictOrderFlow', () => {
   });
 
   it('marks an expired preview, refuses approval, and refreshes', async () => {
+    // The first quote is already expired when it is served, so the sheet
+    // reaches the expired state on the quote's own resolution rather than
+    // on a wall-clock expiry timer. The refresh returns a valid quote.
     stubFetch(() => ({
       body: makePreview({
-        expiresAt: new Date(Date.now() + 500).toISOString(),
+        expiresAt: new Date(
+          previewCalls().length === 1 ? Date.now() - 1000 : Date.now() + 60_000,
+        ).toISOString(),
       }),
     }));
 
     await openSheet();
     typeAmount('20');
     await flushDebounce();
-    await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
-    );
 
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-      ).toBeOnTheScreen(),
-    );
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.EXPIRED),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
     await flushDebounce();

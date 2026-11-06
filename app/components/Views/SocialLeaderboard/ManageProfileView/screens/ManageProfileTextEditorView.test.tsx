@@ -128,7 +128,7 @@ describe('ManageProfileTextEditorView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('checks username availability before updating the handle', async () => {
+  it('preserves username casing when checking availability and updating the handle', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkUsernameAvailability = jest.fn().mockResolvedValue({
       username: 'laser_gains',
@@ -155,7 +155,7 @@ describe('ManageProfileTextEditorView', () => {
 
     fireEvent.changeText(
       screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
-      'laser_gains',
+      ' @Laser_Gains ',
     );
 
     await act(async () => {
@@ -164,8 +164,8 @@ describe('ManageProfileTextEditorView', () => {
       );
     });
 
-    expect(checkUsernameAvailability).toHaveBeenCalledWith('laser_gains');
-    expect(updateProfile).toHaveBeenCalledWith({ username: 'laser_gains' });
+    expect(checkUsernameAvailability).toHaveBeenCalledWith('Laser_Gains');
+    expect(updateProfile).toHaveBeenCalledWith({ username: 'Laser_Gains' });
   });
 
   it('does not update the handle when the username is unavailable', async () => {

@@ -1446,6 +1446,7 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
       }
@@ -1840,6 +1841,8 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -3783,6 +3786,14 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
     },
     "search": {
@@ -3964,7 +3975,13 @@
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
       "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -8757,7 +8774,8 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
-      "get_new_code": "Get new code"
+      "get_new_code": "Get new code",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
@@ -8786,7 +8804,7 @@
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
-      "too_many_attempts": "Too many attempts. Request a new code.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
@@ -9559,6 +9577,11 @@
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Verifying your identity",
         "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
@@ -10284,10 +10307,10 @@
         "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
@@ -10441,8 +10464,7 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring",
-      "new_badge": "New"
+      "recurring": "Recurring"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
