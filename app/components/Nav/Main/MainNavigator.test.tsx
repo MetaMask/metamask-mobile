@@ -2825,6 +2825,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
           Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+          Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
         ]);
       });
 

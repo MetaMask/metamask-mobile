@@ -16,6 +16,7 @@ import {
   selectCashbackLedger,
   selectClaimLock,
   selectClaimWaitingUntil,
+  selectCommissionMechanisms,
   selectCommissions,
   selectEarningsHistory,
   selectEarningsSummaryEntry,
@@ -384,6 +385,7 @@ describe('rewardsMoney selectors', () => {
       expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissionMechanisms(state, PROFILE_A)).toBeUndefined();
       expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
       expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();

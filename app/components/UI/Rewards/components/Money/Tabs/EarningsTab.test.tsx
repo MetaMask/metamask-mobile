@@ -27,6 +27,10 @@ jest.mock('../../../../../../selectors/featureFlagController/socialV1', () => ({
 
 jest.mock('../../../hooks/useFollowTradeClaimOpen', () => ({
   useFollowTradeClaimOpen: jest.fn(() => false),
+  useClaimMechanisms: jest.fn(() => ({
+    followTradeClaimOpen: false,
+    revShareClaimOpen: false,
+  })),
 }));
 
 const mockNavigate = jest.fn();
@@ -58,6 +62,13 @@ jest.mock('../../../hooks/useLast7DaysEarnings');
 jest.mock('../../../hooks/useEarningsHistory');
 const mockClaimEarningsHandlers: { onClaimsPaused?: () => void } = {};
 
+jest.mock('../../../hooks/useTaxDocumentation', () => ({
+  useTaxDocumentation: () => ({
+    prefetchTaxMe: jest.fn(),
+    onClaimPress: (_summary: unknown, claim: () => Promise<void>) => claim(),
+    openAfterClaimRefusal: jest.fn(),
+  }),
+}));
 jest.mock('../../../hooks/useClaimEarnings', () => ({
   useClaimEarnings: (
     _profileId: string,
@@ -114,6 +125,7 @@ const LOCALIZED_TEXT = {
   copyTradingEmptyDescription:
     'Share a trade to start earning from copies of it.',
   copyTradingEmptyAction: 'Start sharing',
+  taxFormUrl: 'https://tax-form.test/form',
 } as unknown as ReferralLocalizedText;
 
 const branch = (lifetime: string) => ({
@@ -215,6 +227,7 @@ const renderTab = (
     historyError = null as string | null,
     onViewPerformance = jest.fn(),
     roles,
+    localizedText = LOCALIZED_TEXT,
   }: {
     summary?: EarningsSummaryDto | null;
     summaryLoading?: boolean;
@@ -227,6 +240,7 @@ const renderTab = (
     historyError?: string | null;
     onViewPerformance?: () => void;
     roles?: ReferralRole[];
+    localizedText?: ReferralLocalizedText;
   } = {},
 ) => {
   (useEarningsSummary as jest.Mock).mockReturnValue({ fetchEarningsSummary });
@@ -258,7 +272,7 @@ const renderTab = (
               loading: false,
               error: false,
               data: {
-                localized_text: LOCALIZED_TEXT,
+                localized_text: localizedText,
                 roles,
               } as ReferralMeDto,
             },
@@ -270,6 +284,7 @@ const renderTab = (
               data: summary,
             },
           },
+          commissionMechanisms: {},
         },
       },
     },
@@ -593,6 +608,16 @@ describe('EarningsTab', () => {
         claimable: '12000000',
         held: '0',
         blocked: '0',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '12000000',
+            },
+          },
+        },
       },
     });
 
@@ -613,19 +638,48 @@ describe('EarningsTab', () => {
     });
   });
 
-  it('does not show Paused for a referrer with a positive hold', () => {
-    const { queryByTestId } = renderTab('referrer', {
+  it('shows Paused for a referrer with a positive hold', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
       summary: { ...SUMMARY, claimable: '0', held: '100000000', claimed: '50' },
     });
 
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
+  });
+
+  it('does not offer Claim when the only balance is closed revenue share', () => {
+    const { queryByTestId, getByTestId } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        held: '0',
+        blocked: '0',
+        claimed: '0',
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            REFERRAL_REV_SHARE: {
+              ...branch('1000000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).toBeNull();
   });
 
