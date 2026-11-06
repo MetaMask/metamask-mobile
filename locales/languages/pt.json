@@ -9552,6 +9552,11 @@
         "description": "Os dados da sua conta virtual estão prontos.",
         "cta": "Ver dados da conta"
       },
+      "identity_verified": {
+        "title": "Identidade verificada",
+        "description": "Em seguida, obtenha os dados da sua conta virtual para adicionar fundos do seu banco.",
+        "cta": "Obter dados da conta"
+      },
       "kyc_pending": {
         "title": "Verificando sua identidade",
         "description": "Estamos analisando seus dados. Avisaremos quando a verificação for concluída.",
