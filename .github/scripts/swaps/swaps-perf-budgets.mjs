@@ -5,19 +5,18 @@
  * Swaps performance budgets: daily check.
  *
  * For each rule in `swaps-perf-budgets.config.mjs`: p90 and sample count over
- * the last 14 complete UTC days, and over the same window one day earlier. A
- * rule breaches when p90 > guardrail with at least MIN_SAMPLES samples and a
- * full (not downsampled) scan. Comparing the two windows keeps posting
- * stateless: triggered (breaching today, not yesterday), resolved (within the
- * guardrail today, breaching yesterday), not evaluable (today only). Nothing
- * else posts. Every rule's result is printed to the console.
+ * the last 14 complete UTC days. A rule breaches when p90 > guardrail with at
+ * least MIN_SAMPLES samples and a full (not downsampled) scan. One Slack
+ * message lists every breaching and every not-evaluable rule; nothing posts
+ * when all rules are within their guardrail. Every rule's result is printed
+ * to the console.
  *
  * Environment:
  *   SWAPS_SENTRY_TOKEN           required; read-only (org:read) Sentry token
  *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
  *   DRY_RUN                      `true` logs the Slack message instead
  *   AS_OF                        optional YYYY-MM-DD (UTC); evaluate as of that day
- *   SWAPS_ONCALL_SLACK_GROUP_ID  optional; mentioned on triggers
+ *   SWAPS_ONCALL_SLACK_GROUP_ID  optional; mentioned when a rule breaches
  *   SENTRY_API_BASE, GITHUB_RUN_URL  optional
  *
  * Exits 1 when any Sentry query failed, after posting the other results.
@@ -115,56 +114,41 @@ export function budgetStatus({ p90, n, fullScan }, guardrailMs) {
   return p90 > guardrailMs ? STATUS.BREACH : STATUS.OK;
 }
 
-/** What to post, from today's and yesterday's status; null posts nothing. */
-export function budgetTransition(today, yesterday) {
-  if (today === STATUS.BREACH && yesterday !== STATUS.BREACH) {
-    return 'triggered';
-  }
-  if (today === STATUS.OK && yesterday === STATUS.BREACH) {
-    return 'resolved';
-  }
-  if (today === STATUS.NOT_EVALUABLE && yesterday !== STATUS.NOT_EVALUABLE) {
-    return 'not-evaluable';
-  }
-  return null;
-}
-
 const formatCount = (value) => Math.round(value).toLocaleString('en-US');
 const formatMs = (value) => (value === null ? 'n/a' : `${formatCount(value)}ms`);
 
 /** One line per rule, used for both the console and Slack. */
-export function resultLine({ rule, today, status }) {
-  const measured = `p90 ${formatMs(today.p90)}, guardrail ${formatMs(rule.guardrailMs)}, n=${formatCount(today.n)}`;
+export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
+  const measured = `p90 ${formatMs(p90)}, guardrail ${formatMs(rule.guardrailMs)}, n=${formatCount(n)}`;
   if (status !== STATUS.NOT_EVALUABLE) {
     return `${rule.label}: ${measured}`;
   }
-  const reason = today.fullScan
+  const reason = fullScan
     ? `n below ${formatCount(MIN_SAMPLES)}`
     : 'Sentry scanned only part of the data';
   return `${rule.label}: not evaluable (${reason}); ${measured}`;
 }
 
-/** The Slack message for this run, or null when nothing changed. */
+/** The Slack message for this run, or null when every rule is within budget. */
 export function buildSlackMessage(results, { mentionGroupId = '', runUrl = '' } = {}) {
   const sections = [
-    ['triggered', '*Triggered* · 14-day p90 over the guardrail'],
-    ['resolved', '*Resolved*'],
-    ['not-evaluable', '*Not evaluable*'],
+    [STATUS.BREACH, '*Over the guardrail* · 14-day p90'],
+    [STATUS.NOT_EVALUABLE, '*Not evaluable*'],
   ]
-    .map(([transition, title]) => [title, results.filter((result) => result.transition === transition)])
+    .map(([status, title]) => [title, results.filter((result) => result.status === status)])
     .filter(([, items]) => items.length > 0);
   if (sections.length === 0) {
     return null;
   }
-  const triggered = results.some((result) => result.transition === 'triggered');
+  const breached = results.some((result) => result.status === STATUS.BREACH);
   const lines = ['*Swaps performance budgets*'];
-  if (triggered && mentionGroupId) {
+  if (breached && mentionGroupId) {
     lines.push(`<!subteam^${mentionGroupId}>`);
   }
   for (const [title, items] of sections) {
     lines.push('', title, ...items.map((result) => `• <${result.url}|${resultLine(result)}>`));
   }
-  if (triggered) {
+  if (breached) {
     lines.push('', 'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.');
   }
   if (runUrl) {
@@ -175,18 +159,13 @@ export function buildSlackMessage(results, { mentionGroupId = '', runUrl = '' } 
 
 export async function runBudgetCheck({ todayEnd, sentry, rules = BUDGET_RULES }) {
   const window = windowEndingAt(todayEnd);
-  const yesterdayWindow = windowEndingAt(new Date(todayEnd.getTime() - DAY_MS));
   const results = [];
   const errors = [];
   for (const rule of rules) {
     try {
-      const [today, yesterday] = await Promise.all([
-        measure(rule, window, sentry),
-        measure(rule, yesterdayWindow, sentry),
-      ]);
-      const status = budgetStatus(today, rule.guardrailMs);
-      const transition = budgetTransition(status, budgetStatus(yesterday, rule.guardrailMs));
-      results.push({ rule, window, today, status, transition, url: exploreUrl(rule, window) });
+      const measured = await measure(rule, window, sentry);
+      const status = budgetStatus(measured, rule.guardrailMs);
+      results.push({ rule, measured, status, url: exploreUrl(rule, window) });
     } catch (error) {
       errors.push(`${rule.label}: ${error.message}`);
     }
@@ -211,7 +190,7 @@ async function main() {
   });
   console.log(`Swaps performance budgets, ${window.label}, minimum n ${formatCount(MIN_SAMPLES)}`);
   for (const result of results) {
-    console.log(`- [${result.status}${result.transition ? `, ${result.transition}` : ''}] ${resultLine(result)}`);
+    console.log(`- [${result.status}] ${resultLine(result)}`);
   }
   errors.forEach((error) => console.error(`- [error] ${error}`));
 
@@ -220,7 +199,7 @@ async function main() {
     runUrl: env.GITHUB_RUN_URL || '',
   });
   if (!message) {
-    console.log('\nNothing changed since yesterday; no Slack post.');
+    console.log('\nEvery rule is within its guardrail; no Slack post.');
   } else if (dryRun) {
     console.log(`\nDry run; would post to Slack:\n\n${message}`);
   } else {

@@ -1,8 +1,9 @@
 # Swaps performance budgets: daily check
 #
 # Once a day, checks the eight Swaps budget rules (14-day p90 against a
-# guardrail over 14 complete UTC days, minimum 400 samples) and posts what
-# changed since yesterday to the Swaps alerts channel. The rules live in
+# guardrail over 14 complete UTC days, minimum 400 samples) and posts every
+# rule over its guardrail or not evaluable to the Swaps alerts channel; it
+# posts nothing when all rules are within budget. The rules live in
 # .github/scripts/swaps/swaps-perf-budgets.config.mjs.
 #
 # Secrets:
@@ -11,7 +12,7 @@
 # - SWAPS_PERF_SLACK_WEBHOOK: incoming webhook for the alerts channel; the
 #   webhook decides the channel.
 # Variable (optional):
-# - SWAPS_ONCALL_SLACK_GROUP_ID: Slack user group mentioned on triggers.
+# - SWAPS_ONCALL_SLACK_GROUP_ID: Slack user group mentioned when a rule breaches.
 #   Unset: no mention.
 #
 # NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
