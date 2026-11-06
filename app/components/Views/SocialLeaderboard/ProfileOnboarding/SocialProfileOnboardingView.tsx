@@ -939,12 +939,18 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
-    // Replace drops onboarding from the stack. navigate() would leave it under
-    // the feed, so a later back swipe could reopen it.
-    navigation.dispatch(
-      StackActions.replace(
-        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
-      ),
+    if (draft.path === 'x') {
+      // Replace drops onboarding from the stack. navigate() would leave it under
+      // the profile, so a later back swipe could reopen it.
+      navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
+      return;
+    }
+    // Home already hosts the Social tab. Popping back to it shows the bottom
+    // bar, and Back returns to the tab that was open before onboarding.
+    navigation.navigate(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB },
+      { pop: true },
     );
   }, [draft.path, navigation]);
 
