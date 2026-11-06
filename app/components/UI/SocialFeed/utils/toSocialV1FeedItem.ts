@@ -10,11 +10,11 @@ import type {
 } from '../types';
 import {
   formatAbbreviatedUsd,
-  formatHoldDuration,
   formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from './formatters';
+import { formatSocialElapsed } from './formatSocialTime';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
 import { buildLivePriceSource } from '../live/buildLivePriceSource';
@@ -77,20 +77,22 @@ export const deriveExitPrice = (core: Position): number | null => {
   const exitFills = (core.trades ?? []).filter(
     (trade) => trade.intent === 'exit',
   );
-
-  if (exitFills.length === 0) {
+  const firstExit = exitFills[0];
+  if (!firstExit) {
     return null;
   }
 
-  const lastExit = exitFills.reduce(
-    (latest, trade) =>
+  // A tied timestamp keeps the earlier fill.
+  let latest = firstExit;
+  for (const trade of exitFills) {
+    if (
       tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-        ? trade
-        : latest,
-    exitFills[0],
-  );
+    ) {
+      latest = trade;
+    }
+  }
 
-  return toUnitPrice(lastExit);
+  return toUnitPrice(latest);
 };
 
 /**
@@ -288,7 +290,7 @@ export function toSocialV1FeedItem(
     now,
   );
   const holdTimeLabel =
-    holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
+    holdDurationMs == null ? undefined : formatSocialElapsed(holdDurationMs);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);

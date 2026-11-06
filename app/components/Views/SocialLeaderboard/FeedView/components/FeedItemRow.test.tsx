@@ -15,7 +15,7 @@ import {
 } from '../FeedView.testIds';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string>) => {
+  strings: (key: string, params?: Record<string, string | number>) => {
     if (
       key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
       params
@@ -24,6 +24,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'social_leaderboard.feed.sub_header.size_at_price' && params) {
       return `${params.size} at ${params.price}`;
+    }
+    if (key === 'social_leaderboard.time.ago' && params) {
+      return `${params.duration} ago`;
+    }
+    if (key === 'social_leaderboard.time.minutes' && params) {
+      return `${params.count}m`;
+    }
+    if (key === 'social_leaderboard.time.hours' && params) {
+      return `${params.count}h`;
+    }
+    if (key === 'social_leaderboard.time.days' && params) {
+      return `${params.count}d`;
     }
     const literals: Record<string, string> = {
       'social_leaderboard.feed.sub_header.at_connector': 'at',

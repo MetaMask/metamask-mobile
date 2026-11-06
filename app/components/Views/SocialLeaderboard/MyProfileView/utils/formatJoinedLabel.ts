@@ -1,9 +1,13 @@
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import { strings } from '../../../../../../locales/i18n';
+import { formatSocialRelativeAge } from '../../../../UI/SocialFeed/utils/formatSocialTime';
 
-dayjs.extend(relativeTime);
-
+/**
+ * "Joined" line on a profile, using the shared compact age (`Joined 3mo ago`).
+ *
+ * @param joinedAt - Profile creation time as an ISO string.
+ * @param now - Wall clock used for the age.
+ * @returns Localized label, or null when the timestamp is missing or unparseable.
+ */
 export const formatJoinedLabel = (
   joinedAt: string | null | undefined,
   now: Date = new Date(),
@@ -12,12 +16,12 @@ export const formatJoinedLabel = (
     return null;
   }
 
-  const joined = dayjs(joinedAt);
-  if (!joined.isValid()) {
+  const joinedMs = Date.parse(joinedAt);
+  if (Number.isNaN(joinedMs)) {
     return null;
   }
 
   return strings('social_leaderboard.my_profile.joined', {
-    time: joined.from(now),
+    time: formatSocialRelativeAge(joinedMs, now.getTime()),
   });
 };

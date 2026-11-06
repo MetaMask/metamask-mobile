@@ -8,7 +8,28 @@ import { KLIPY_STATIC_GIF_EXAMPLE } from './klipyGifComment';
 import { getPositionCardMode } from './positionCardMode';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, unknown>) => {
+    if (key === 'social_leaderboard.time.ago') {
+      return `${String(params?.duration ?? '')} ago`;
+    }
+    if (key === 'social_leaderboard.time.compound') {
+      return `${String(params?.primary ?? '')} ${String(params?.secondary ?? '')}`;
+    }
+    const units: Record<string, string> = {
+      'social_leaderboard.time.seconds': 's',
+      'social_leaderboard.time.minutes': 'm',
+      'social_leaderboard.time.hours': 'h',
+      'social_leaderboard.time.days': 'd',
+      'social_leaderboard.time.weeks': 'w',
+      'social_leaderboard.time.months': 'mo',
+      'social_leaderboard.time.years': 'y',
+    };
+    const unit = units[key];
+    if (unit) {
+      return `${String(params?.count ?? '')}${unit}`;
+    }
+    return key;
+  },
 }));
 
 /** Runs a raw API row through the real V0 mapper, as the hook does. */

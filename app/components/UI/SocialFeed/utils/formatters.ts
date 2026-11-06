@@ -12,6 +12,7 @@ import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import I18n, { strings } from '../../../../../locales/i18n';
+import { formatSocialRelativeAge } from './formatSocialTime';
 import { tradeTimestampToMs } from './tradeTimestamp';
 
 /** Placeholder rendered wherever a numeric value is unavailable. */
@@ -303,53 +304,31 @@ export function formatTradeDayLabel(timestamp: number): string {
 }
 
 /**
- * Formats a feed item timestamp.
+ * Relative age of a V0 feed row. Same compact format as
+ * {@link formatFeedPostAge} (`4h ago`, `11d ago`, `Just now`).
  *
- * - Within the last minute: "Just now".
- * - Within the last 24 hours: compact relative time ("4m", "2h").
- * - Older than 24 hours: absolute clock time via `formatTradeTime` (e.g. `8:27 pm`).
- *
- * The whole sub-minute range collapses to one label because a second-by-second
- * age reads as stale unless it ticks live, and this feed is a paginated snapshot
- * rather than a stream. It also absorbs timestamps slightly in the future (clock
- * skew), which are genuinely "now".
- *
- * Uses manual formatting (not `toLocaleTimeString`) so output is deterministic on
- * Hermes, which ignores locale options and falls back to strings like
- * "02:16:21 GMT+0100".
+ * @param timestamp - Unix seconds or milliseconds.
+ * @param now - Wall clock in milliseconds.
+ * @returns Compact relative age.
  */
 export function formatFeedTimestamp(
   timestamp: number,
   now: number = Date.now(),
 ): string {
-  const ms = tradeTimestampToMs(timestamp);
-  const diff = now - ms;
-
-  if (diff >= DAY) {
-    return formatTradeTime(timestamp);
-  }
-
-  if (diff < MINUTE) {
-    return strings('social_leaderboard.feed.just_now');
-  }
-
-  if (diff < HOUR) {
-    return `${Math.floor(diff / MINUTE)}m`;
-  }
-
-  return `${Math.floor(diff / HOUR)}h`;
+  return formatSocialRelativeAge(timestamp, now);
 }
 
 /**
- * Duration a position was held, derived from its fills (e.g. `1d 20h`, `8h`,
- * `45m`).
+ * Duration a position was held (e.g. `1d 20h`, `8h`, `45m`).
+ *
+ * Social surfaces use `formatSocialElapsed` instead, so a translation can own
+ * the unit glyphs. This helper stays hardcoded because token details also
+ * calls it, and that copy is outside the social format.
  *
  * Multi-day holds carry their remaining hours, because `1d` alone reads the
- * same for 24 hours and 47. Below a day one unit is enough -- the card gives
- * this a single right-aligned slot, and nobody needs `8h 13m`. A whole number
- * of days drops the hours rather than padding `6d 0h`.
- *
- * Sub-minute holds round up to `1m` rather than reading `0m`.
+ * same for 24 hours and 47. Below a day one unit is enough. A whole number of
+ * days drops the hours rather than padding `6d 0h`. Sub-minute holds round up
+ * to `1m`.
  */
 export function formatHoldDuration(durationMs: number): string {
   if (!Number.isFinite(durationMs) || durationMs <= 0) {
@@ -370,37 +349,16 @@ export function formatHoldDuration(durationMs: number): string {
 }
 
 /**
- * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
+ * Relative age of a Social V1 post, closed position, or chart level.
+ * Delegates to {@link formatSocialRelativeAge} so it matches the V0 row.
  *
- * The V1 post header gives the timestamp its own right-aligned column, so
- * unlike the compact V0 row ({@link formatFeedTimestamp}) there is room for the
- * unit and the "ago" suffix. Ages of a day or more stay relative here rather
- * than switching to a clock time, because a post's position in the feed is
- * already chronological and "3 d ago" reads faster than a bare date.
+ * @param timestamp - Unix seconds or milliseconds.
+ * @param now - Wall clock in milliseconds.
+ * @returns Compact relative age.
  */
 export function formatFeedPostAge(
   timestamp: number,
   now: number = Date.now(),
 ): string {
-  const diff = now - tradeTimestampToMs(timestamp);
-
-  if (diff < MINUTE) {
-    return strings('social_leaderboard.feed.just_now');
-  }
-
-  if (diff < HOUR) {
-    return strings('social_leaderboard.feed.age.minutes', {
-      count: Math.floor(diff / MINUTE),
-    });
-  }
-
-  if (diff < DAY) {
-    return strings('social_leaderboard.feed.age.hours', {
-      count: Math.floor(diff / HOUR),
-    });
-  }
-
-  return strings('social_leaderboard.feed.age.days', {
-    count: Math.floor(diff / DAY),
-  });
+  return formatSocialRelativeAge(timestamp, now);
 }

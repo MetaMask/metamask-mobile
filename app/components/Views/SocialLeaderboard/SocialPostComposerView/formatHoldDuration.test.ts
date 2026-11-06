@@ -23,6 +23,6 @@ describe('holdDurationFromTimestamps', () => {
     const start = 1_700_000_000;
     const end = start + (21 * HOUR + 53 * MINUTE) / 1000;
 
-    expect(holdDurationFromTimestamps(start, end)).toBe('21h 53m');
+    expect(holdDurationFromTimestamps(start, end)).toBe('21h');
   });
 });

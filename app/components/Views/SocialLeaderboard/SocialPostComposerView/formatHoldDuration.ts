@@ -1,25 +1,22 @@
-import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
+import {
+  formatSocialElapsed,
+  formatSocialUnit,
+} from '../../../UI/SocialFeed/utils/formatSocialTime';
 
 /**
- * Compact hold-time label matching the composer/feed prototype (`2d 2h`, `21h`).
+ * Compact hold-time label for the composer preview. Same units as the feed
+ * card. A missing span reads `1m` rather than an em dash, because the composer
+ * still has a position to show.
+ *
+ * @param durationMs - Span in milliseconds.
+ * @returns Compact hold label.
  */
 export const formatHoldDuration = (durationMs: number): string => {
   if (!Number.isFinite(durationMs) || durationMs <= 0) {
-    return '1m';
+    return formatSocialUnit('minutes', 1);
   }
-
-  const days = Math.floor(durationMs / DAY);
-  const hours = Math.floor((durationMs % DAY) / HOUR);
-  const minutes = Math.floor((durationMs % HOUR) / MINUTE);
-
-  if (days > 0) {
-    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
-  }
-  if (hours > 0) {
-    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
-  }
-  return `${Math.max(1, minutes)}m`;
+  return formatSocialElapsed(durationMs);
 };
 
 export const holdDurationFromTimestamps = (
