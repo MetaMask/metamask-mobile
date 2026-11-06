@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
+import { selectIsAccountGroupFunded } from '../../../../selectors/assets/balances';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyMfaHomePromptSession } from '../../../../lib/Money/mfa/moneyMfaHomePromptSession';
@@ -17,14 +17,13 @@ import { useMoneyMfa } from './useMoneyMfa';
 export const useMoneyMfaHomePrompt = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { status } = useMoneyMfa();
-  const balance = useSelector(selectAccountGroupBalanceForEmptyState);
+  const isFunded = useSelector(selectIsAccountGroupFunded);
   const { isHomePromptDismissed } = useSyncExternalStore(
     moneyMfaStore.subscribe,
     moneyMfaStore.getState,
   );
   const pendingCheck = useRef<Promise<boolean> | null>(null);
 
-  const isFunded = (balance?.totalBalanceInUserCurrency ?? 0) > 0;
   const isEligible =
     status === 'not_set_up' && isFunded && !isHomePromptDismissed;
 
@@ -49,14 +48,14 @@ export const useMoneyMfaHomePrompt = () => {
         });
       pendingCheck.current
         .then((hasPasskey) => {
-          if (
-            !isFocused ||
-            hasPasskey ||
-            moneyMfaHomePromptSession.hasPrompted()
-          ) {
+          if (!isFocused || moneyMfaHomePromptSession.hasPrompted()) {
             return;
           }
+          // An existing passkey settles it for the session, so later focuses skip the check.
           moneyMfaHomePromptSession.markPrompted();
+          if (hasPasskey) {
+            return;
+          }
           navigation.navigate(Routes.MONEY.MODALS.ROOT, {
             screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
           });
