@@ -3845,6 +3845,95 @@ describe('CardController — data pass-throughs', () => {
       expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
     });
 
+    it('refetches home data when persisted delegation settings have no Veda token', async () => {
+      const staleSettings = {
+        count: 0,
+        _links: { self: '/v1/delegation/chain/config' },
+        networks: [],
+      };
+      const provider = buildMockProvider({
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest.fn().mockResolvedValue(cardHomeDataWithMonadUsdc),
+      });
+
+      const handle = buildLinkMessenger();
+      const controller = buildLinkController({
+        provider,
+        messenger: handle.messenger,
+        withDelegationSettings: false,
+      });
+      controller.update((state) => {
+        state.cardHomeData = {
+          ...cardHomeDataWithMonadUsdc,
+          delegationSettings: staleSettings,
+        } as unknown as Record<string, Json>;
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      handle.emitConfirmed();
+      await linkPromise;
+
+      expect(provider.getCardHomeData).toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          delegationSettings: cardHomeDataWithMonadUsdc.delegationSettings,
+        }),
+        mockTokenSet,
+      );
+    });
+
+    it('does not block an Immersve link when home data has no delegation settings', async () => {
+      const provider = buildMockProvider({
+        id: CardProviderIds.Immersve,
+        prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+          ...defaultLinkPreparation,
+          context: { fundingSourceId: 'fs-1' },
+        }),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest
+          .fn()
+          .mockRejectedValue(new Error('home data down')),
+      });
+
+      const handle = buildLinkMessenger();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      const controller = new CardController({
+        ...hostOptions,
+        cardService: buildMockCardService(),
+        messenger: handle.messenger,
+        providers: { [CardProviderIds.Immersve]: provider },
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+          cardHomeData: null,
+        },
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      expect(provider.getCardHomeData).not.toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationSettings: null }),
+        mockTokenSet,
+      );
+
+      handle.emitConfirmed();
+      await linkPromise;
+    });
+
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {
       const provider = buildMockProvider({
         prepareMoneyAccountLink: jest

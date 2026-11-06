@@ -105,6 +105,7 @@ import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 import { latestByUpdatedAt, pickRoutableCardLink } from './utils/cardLinks';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
@@ -3246,8 +3247,17 @@ export class CardController extends BaseController<
       const data = this.state.cardHomeData as unknown as CardHomeData | null;
       return data?.delegationSettings ?? null;
     };
-    const existing = fromState();
-    if (existing) return existing;
+
+    // Baanx spends the Veda token in these settings, so a persisted object
+    // without Monad/Veda is stale and has to be refreshed. Other providers
+    // ignore the settings, and a home-data fetch must not block their link.
+    if (this.getActiveProvider().id !== CardProviderIds.Baanx) {
+      return fromState();
+    }
+
+    if (resolveMoneyAccountCardToken(fromState())) {
+      return fromState();
+    }
 
     await this.fetchCardHomeData({ force: true });
     return fromState();
