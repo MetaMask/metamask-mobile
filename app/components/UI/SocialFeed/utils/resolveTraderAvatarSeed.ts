@@ -1,17 +1,18 @@
 /**
  * Seed for a trader's fallback identicon.
  *
- * The wallet address is the seed the profile uses, so a list row and that
- * trader's profile draw the same icon. A blank address falls back to the
- * profile id, which keeps traders who have no wallet distinct from each other.
+ * The profile id is the seed everywhere. The social API is dropping wallet
+ * addresses, so an address must not change the icon. A missing profile id
+ * falls back to the wallet address so a caller that only has one still
+ * renders a distinct icon.
  */
 export const resolveTraderAvatarSeed = (
-  address?: string | null,
   profileId?: string | null,
+  address?: string | null,
 ): string => {
-  const wallet = address?.trim() ?? '';
-  if (wallet.length > 0) {
-    return wallet;
+  const id = profileId?.trim() ?? '';
+  if (id.length > 0) {
+    return id;
   }
-  return profileId?.trim() ?? '';
+  return address?.trim() ?? '';
 };

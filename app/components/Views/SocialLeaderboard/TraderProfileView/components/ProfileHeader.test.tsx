@@ -54,7 +54,9 @@ describe('ProfileHeader', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(<ProfileHeader profile={profileNoImage} />);
     expect(screen.getByText('trader1')).toBeOnTheScreen();
-    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe('0xabc');
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('seeds the fallback icon with the profile id when the wallet address is blank', () => {

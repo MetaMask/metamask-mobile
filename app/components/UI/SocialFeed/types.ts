@@ -31,8 +31,8 @@ export interface SocialV1FeedAuthor {
   id: string;
   username: string;
   /**
-   * Wallet address. Seeds the Maskicon fallback when there is no avatar, so
-   * the icon matches the trader profile. A missing address falls back to `id`.
+   * Wallet address. The Maskicon fallback is seeded by `id`. This address is
+   * only a seed when the profile id is missing.
    */
   address?: string;
   avatarUri?: string | null;

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed trader identicons so a holder on a Perps market matches that trader's profile, and the same seed is used on the other social surfaces
+- Fixed trader identicons so a holder on a Perps market matches that trader's profile by seeding every fallback icon from the profile id
 
 ### Changed
 

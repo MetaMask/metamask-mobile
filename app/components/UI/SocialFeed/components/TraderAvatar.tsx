@@ -31,13 +31,13 @@ export interface TraderAvatarProps {
    */
   imageUrl?: string | null;
   /**
-   * Wallet address. When present, this seeds the Maskicon so it matches the
-   * trader profile. A blank address falls back to `profileId`.
+   * Wallet address. Used as the Maskicon seed only when `profileId` is
+   * missing. The social API is dropping addresses, so do not rely on this.
    */
   address?: string | null;
   /**
-   * Profile id used when `address` is missing, so traders without a wallet
-   * still get distinct icons.
+   * Profile id. This seeds the Maskicon so every surface draws the same
+   * icon for one trader, including after wallet addresses leave the API.
    */
   profileId?: string | null;
   /** Avatar diameter in pixels. */
@@ -53,8 +53,8 @@ export interface TraderAvatarProps {
 
 /**
  * TraderAvatar -- renders a trader's profile image when a real one is
- * available, otherwise falls back to a Maskicon seeded by the wallet address,
- * or by the profile id when that address is missing.
+ * available, otherwise falls back to a Maskicon seeded by the profile id.
+ * A wallet address seeds it only when no profile id was passed.
  * `foxicon://{preset}/{background}` URLs render the local profile preset.
  *
  * Centralizes the `hasRealAvatar` + Maskicon-fallback pattern shared across the
@@ -71,7 +71,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
 }) => {
   const tw = useTailwind();
   const foxicon = parseFoxiconAvatarUrl(imageUrl);
-  const avatarSeed = resolveTraderAvatarSeed(address, profileId);
+  const avatarSeed = resolveTraderAvatarSeed(profileId, address);
 
   if (foxicon) {
     return (

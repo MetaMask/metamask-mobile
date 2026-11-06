@@ -32,7 +32,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('seeds the avatar with the wallet address so it matches the trader profile', () => {
+  it('seeds the avatar with the profile id even when the trader has a wallet address', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{ ...baseTrader, avatarUri: undefined }}
@@ -41,7 +41,7 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
-      baseTrader.address,
+      'trader-1',
     );
   });
 
