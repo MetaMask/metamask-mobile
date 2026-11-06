@@ -395,6 +395,24 @@ describe('CardAuthentication', () => {
       ).toBeOnTheScreen();
     });
 
+    it('asks for a Money account without an email link on wallet sign-in', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-required')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
+        ),
+      ).toBeNull();
+    });
+
     it('shows the linked account and SIWE CTA', () => {
       setResolution({
         kind: 'wallet',

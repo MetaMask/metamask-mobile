@@ -104,11 +104,13 @@ const cardControllerSelectors = jest.requireMock(
   '../../../../selectors/cardController',
 ) as {
   selectCardHomeData: jest.Mock;
+  selectImmersveFundingChannelForSelectedCountry: jest.Mock;
 };
 const cardFeatureFlagsModule = jest.requireMock(
   '../../../../selectors/featureFlagController/card',
 ) as {
   selectCardImmersveConfig: jest.Mock;
+  selectCardImmersveCountryFunding: jest.Mock;
 };
 
 const mockTrackEvent = jest.fn();
@@ -156,6 +158,10 @@ describe('useImmersveFunding', () => {
       }),
     );
     cardControllerSelectors.selectCardHomeData.mockReturnValue(null);
+    cardControllerSelectors.selectImmersveFundingChannelForSelectedCountry.mockReturnValue(
+      null,
+    );
+    cardFeatureFlagsModule.selectCardImmersveCountryFunding.mockReturnValue({});
     cardFeatureFlagsModule.selectCardImmersveConfig.mockReturnValue({
       network: 'base-sepolia',
       spenderAddress: '0x2222222222222222222222222222222222222222',
@@ -229,6 +235,29 @@ describe('useImmersveFunding', () => {
       MetaMetricsEvents.CARD_FUNDING_PROCESS_FAILED,
     );
     expect(result.current.error).toBeNull();
+  });
+
+  it('createCard emits a failed funding event when creation fails', async () => {
+    (mockCard.createCard as jest.Mock).mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.ServerError,
+        'Card creation failed',
+        500,
+      ),
+    );
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await expect(result.current.createCard('fs-1')).rejects.toBeInstanceOf(
+        CardProviderError,
+      );
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_FAILED,
+    );
+    expect(result.current.error).toBe('Server error. Try again later.');
   });
 
   it('executeFunding submits the encoded write on Base and returns the tx hash', async () => {
@@ -498,6 +527,50 @@ describe('useImmersveFunding', () => {
       },
     });
     expect(mockTx.addTransaction).not.toHaveBeenCalled();
+  });
+
+  it('buildApproveWrite uses the selected country channel when no country is passed', () => {
+    cardControllerSelectors.selectImmersveFundingChannelForSelectedCountry.mockReturnValue(
+      {
+        spenderAddress: '0x1111111111111111111111111111111111111111',
+        tokenAddress: '0x3333333333333333333333333333333333333333',
+      },
+    );
+
+    const { result } = renderHook(() => useImmersveFunding());
+    const write = result.current.buildApproveWrite('1');
+
+    expect(write.contractAddress).toBe(
+      '0x3333333333333333333333333333333333333333',
+    );
+    expect(write.params._spender).toBe(
+      '0x1111111111111111111111111111111111111111',
+    );
+  });
+
+  it('buildApproveWrite uses the country channel when a country is passed', () => {
+    cardControllerSelectors.selectImmersveFundingChannelForSelectedCountry.mockReturnValue(
+      {
+        spenderAddress: '0x1111111111111111111111111111111111111111',
+        tokenAddress: '0x3333333333333333333333333333333333333333',
+      },
+    );
+    cardFeatureFlagsModule.selectCardImmersveCountryFunding.mockReturnValue({
+      NZ: {
+        spenderAddress: '0x4444444444444444444444444444444444444444',
+        tokenAddress: '0x5555555555555555555555555555555555555555',
+      },
+    });
+
+    const { result } = renderHook(() => useImmersveFunding({ country: 'nz' }));
+    const write = result.current.buildApproveWrite('1');
+
+    expect(write.contractAddress).toBe(
+      '0x5555555555555555555555555555555555555555',
+    );
+    expect(write.params._spender).toBe(
+      '0x4444444444444444444444444444444444444444',
+    );
   });
 
   it('buildApproveWrite throws when spenderAddress is unset', () => {

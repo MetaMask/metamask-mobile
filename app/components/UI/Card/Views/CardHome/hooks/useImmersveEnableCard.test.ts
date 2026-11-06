@@ -183,6 +183,37 @@ describe('useImmersveEnableCard', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('swallows a failed Money account re-link and stays on Card Home', async () => {
+    mockConfirmLinkInBackground.mockRejectedValueOnce(new Error('link failed'));
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectCardSelectedCountry) {
+        return 'NZ';
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'allowance_revoked', dismissable: false }],
+      } as never),
+    );
+
+    await act(async () => {
+      result.current.enableCard();
+    });
+
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('never enables the card for a non-Immersve provider', () => {
     mockUseSelector.mockImplementation((selector) => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports

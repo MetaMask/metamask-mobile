@@ -276,18 +276,17 @@ jest.mock('../../hooks/useImmersveSiweAuth', () => ({
     error: null,
   }),
 }));
-jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
-  useAccountGroupName: () => 'Account 1',
-}));
 const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => {
-  const selectByScope = () => ({
-    address: '0x1234567890123456789012345678901234567890',
-  });
-  return {
-    selectSelectedInternalAccountByScope: () => selectByScope,
-  };
-});
+let mockAccountGroupName: string | null = 'Account 1';
+let mockSelectedImmersveAccount: { address: string } | null = {
+  address: IMMERSVE_TEST_ADDRESS,
+};
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: () => mockAccountGroupName,
+}));
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () => mockSelectedImmersveAccount,
+}));
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -410,6 +409,8 @@ describe('SignUp Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMoneyAccountCountry = false;
+    mockAccountGroupName = 'Account 1';
+    mockSelectedImmersveAccount = { address: IMMERSVE_TEST_ADDRESS };
     const { selectPrimaryMoneyAccount } = jest.requireMock(
       '../../../../../selectors/moneyAccountController',
     );
@@ -1243,6 +1244,24 @@ describe('SignUp Component', () => {
       ).toBeOnTheScreen();
       expect(queryByTestId('signup-immersve-account-select')).toBeNull();
       expect(queryByTestId('signup-money-account-required')).toBeNull();
+    });
+
+    it('renders the account picker without an avatar when no account is selected', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      mockAccountGroupName = null;
+      mockSelectedImmersveAccount = null;
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
+      expect(queryByTestId('signup-immersve-account-avatar')).toBeNull();
     });
 
     it('asks for a Money account when the country requires one and none exists', () => {

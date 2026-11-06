@@ -53,6 +53,7 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
   selectIsCardStateResolved,
+  selectIsCardHomeDataResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
@@ -525,6 +526,9 @@ const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
 const mockSelectIsCardStateResolved = jest.mocked(selectIsCardStateResolved);
+const mockSelectIsCardHomeDataResolved = jest.mocked(
+  selectIsCardHomeDataResolved,
+);
 const mockSelectCardActiveProviderId = jest.mocked(selectCardActiveProviderId);
 const mockSelectIsMoneyAccountVisible = jest.mocked(
   selectIsMoneyAccountVisible,
@@ -835,6 +839,7 @@ describe('MoneyHomeView', () => {
     mockSelectHasMetalCard.mockReturnValue(false);
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
     mockSelectIsCardStateResolved.mockReturnValue(true);
+    mockSelectIsCardHomeDataResolved.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
 
@@ -3782,6 +3787,36 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the MetaMask Card section when the first card fetch fails for a provider without verification status', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectIsCardHomeDataResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('error');
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyCardSectionAvailable: true,
+          reportsVerificationStatus: false,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+          moneyAccountCardToken: MOCK_CARD_FUNDING_TOKEN,
+          canLink: true,
+        }),
+      );
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
       ).not.toBeOnTheScreen();
     });
 
