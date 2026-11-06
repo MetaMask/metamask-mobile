@@ -1,7 +1,6 @@
 import {
   TransactionMeta,
   type MetamaskPaySolanaExecution,
-  type MetamaskPaySource,
 } from '@metamask/transaction-controller';
 import type { SolanaPaySupportDiagnostics } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
@@ -10,7 +9,6 @@ import type { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { selectTransactionDataByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { selectConfirmationMetricsById } from '../../../../../../core/redux/slices/confirmationMetrics';
-import { isSolanaPaySource } from '../../../../../../util/transactions/solana-pay';
 import { useMmPayFlagsDebug } from './useMmPayFlagsDebug';
 import Engine from '../../../../../../core/Engine';
 
@@ -41,11 +39,10 @@ interface SolanaPayDiagnosticsController {
 
 export function getSolanaPaySupportDiagnosticsForTransaction(
   transactionId: string,
-  source: MetamaskPaySource | undefined,
   execution: MetamaskPaySolanaExecution | undefined,
   controller: SolanaPayDiagnosticsController,
 ): SolanaPaySupportDiagnostics | undefined {
-  return isSolanaPaySource(source) && execution
+  return execution
     ? controller.getSolanaPaySupportDiagnostics(transactionId)
     : undefined;
 }
@@ -61,7 +58,6 @@ export function useMmPayDebugData(): MmPayDebugData {
   const solanaPaySupportDiagnostics =
     getSolanaPaySupportDiagnosticsForTransaction(
       txId,
-      transactionMeta?.metamaskPay?.source,
       transactionMeta?.metamaskPay?.solanaExecution,
       Engine.context.TransactionPayController,
     );
