@@ -54,6 +54,18 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   limitPrice: string;
   /**
+   * When true a skeleton replaces the limit-price input while the market
+   * price it is seeded from is fetched.
+   */
+  isLimitPriceLoading?: boolean;
+  /**
+   * When false the limit-price loading skeleton is static instead of
+   * shimmering.
+   *
+   * @default true
+   */
+  isLimitPriceLoadingAnimated?: boolean;
+  /**
    * Fired when the limit-price input is pressed or focused. Parent owns the
    * keypad.
    */

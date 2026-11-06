@@ -21,6 +21,7 @@ import SocialFeedPostShell, {
 } from '../../../SocialFeed/components/SocialFeedPostShell';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
@@ -51,15 +52,18 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
+  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
         requireSocialTerms
+        onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
+        onPositionPress={post.position ? onPositionPress : undefined}
       />
     ),
-    [onCopyTrade],
+    [onAuthorPress, onCopyTrade, onPositionPress],
   );
   const {
     posts,

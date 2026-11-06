@@ -1,11 +1,11 @@
 import React from 'react';
-import PredictMarket from '../../../../UI/Predict/components/PredictMarket';
-import PredictMarketRowItem from '../../../../UI/Predict/components/PredictMarketRowItem';
+import PredictMarket from '../components/PredictMarket';
+import PredictMarketRowItem from '../components/PredictMarketRowItem';
 import type {
   PredictMarket as PredictMarketType,
   PredictMarketBuyButtonPress,
-} from '../../../../UI/Predict/types';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+} from '../types';
+import { PredictEventValues } from '../constants/eventNames';
 
 interface PredictionCarouselRowItemProps {
   market: PredictMarketType;
