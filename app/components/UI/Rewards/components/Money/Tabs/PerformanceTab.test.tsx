@@ -6,6 +6,7 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
+  ReferralRole,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -135,6 +136,7 @@ const renderTab = (
     funnelLoading = false,
     funnelData = { enrolled: 12, earning_generating: 5 },
     active = true,
+    roles,
   }: {
     commissions?: CommissionEntryView[];
     rebates?: LedgerEarningEntryDto[];
@@ -144,6 +146,7 @@ const renderTab = (
     funnelLoading?: boolean;
     funnelData?: { enrolled: number; earning_generating: number } | null;
     active?: boolean;
+    roles?: ReferralRole[];
   } = {},
 ) => {
   (useReferralFunnel as jest.Mock).mockReturnValue({
@@ -173,6 +176,7 @@ const renderTab = (
               error: false,
               data: {
                 localized_text: LOCALIZED_TEXT,
+                roles,
               } as ReferralMeDto,
             },
           },
@@ -255,6 +259,36 @@ describe('PerformanceTab', () => {
     });
     expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
+    });
+  });
+
+  it('hides commissions and skips that read for a cashback experiment member', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT'],
+    });
+
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+  });
+
+  it('hides rebates and skips that read for a copy-trading sharer', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['COPY_TRADING'],
+    });
+
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
     });
   });
 

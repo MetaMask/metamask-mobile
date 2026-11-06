@@ -24,10 +24,16 @@ import {
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { getOutcomeName } from '../../utils/entryCopy';
+import { formatThresholdLine } from '../../events/shared/formatting';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import type { PredictEvent, PredictMarket, PredictPosition } from '../../types';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+  PredictPosition,
+} from '../../types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -202,6 +208,23 @@ const EventLoadedHeader = ({
   );
 };
 
+/**
+ * The Outcome as the Order sheet names it. A threshold line's Outcome is just
+ * "Yes" or "No", so it also names the line: "Yes · Josh Jacobs · 60+".
+ */
+const orderOutcomeLabel = (
+  market: PredictMarket,
+  outcome: PredictOutcome,
+): string => {
+  const line = formatThresholdLine(market);
+  return line
+    ? strings('predict.market_groups.threshold_order_outcome', {
+        outcome: outcome.label,
+        line,
+      })
+    : outcome.label;
+};
+
 export const PredictEventScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
@@ -302,7 +325,8 @@ export const PredictEventScreen = () => {
         marketId: position.marketId,
         side: position.side,
         outcomeLabel:
-          outcome?.label ?? getOutcomeName(position.side, position.context),
+          (market && outcome && orderOutcomeLabel(market, outcome)) ??
+          getOutcomeName(position.side, position.context),
         eventTitle: liveEvent.title,
         eventImageUrl: liveEvent.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),
@@ -318,7 +342,7 @@ export const PredictEventScreen = () => {
         venueId,
         marketId: market.id,
         side: outcome.side,
-        outcomeLabel: outcome.label,
+        outcomeLabel: orderOutcomeLabel(market, outcome),
         eventTitle: liveEvent?.title ?? '',
         eventImageUrl: liveEvent?.imageUrl,
         askPrice: outcome.askPrice,
