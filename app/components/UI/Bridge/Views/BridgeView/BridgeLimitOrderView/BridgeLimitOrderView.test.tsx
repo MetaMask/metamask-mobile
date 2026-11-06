@@ -323,46 +323,52 @@ jest.mock('../../../components/SwapsBanners', () => {
   };
 });
 
+const mockLimitOrderPriceAdjustCard = jest.fn();
+
 jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
   return {
-    LimitOrderPriceAdjustCard: ({
-      hasVisibleBanner,
-      onMarketPresetPress,
-      onCustomPresetPress,
-      onLimitPriceInputPress,
-      isLimitPriceInputPressDisabled,
-    }: {
+    LimitOrderPriceAdjustCard: (props: {
       hasVisibleBanner: boolean;
       onMarketPresetPress?: () => void;
       onCustomPresetPress?: () => void;
       onLimitPriceInputPress?: () => void;
       isLimitPriceInputPressDisabled?: boolean;
-    }) => (
-      <View
-        testID={
-          hasVisibleBanner
-            ? 'limit-order-price-adjust-with-banner'
-            : 'limit-order-price-adjust-without-banner'
-        }
-      >
+    }) => {
+      mockLimitOrderPriceAdjustCard(props);
+      const {
+        hasVisibleBanner,
+        onMarketPresetPress,
+        onCustomPresetPress,
+        onLimitPriceInputPress,
+        isLimitPriceInputPressDisabled,
+      } = props;
+      return (
         <View
-          testID="limit-order-limit-price-input"
-          onTouchEnd={onLimitPriceInputPress}
-          pointerEvents={isLimitPriceInputPressDisabled ? 'none' : 'auto'}
-        />
-        <View
-          testID="limit-order-market-preset"
-          onTouchEnd={onMarketPresetPress}
-        />
-        <View
-          testID="limit-order-custom-preset"
-          onTouchEnd={onCustomPresetPress}
-        />
-      </View>
-    ),
+          testID={
+            hasVisibleBanner
+              ? 'limit-order-price-adjust-with-banner'
+              : 'limit-order-price-adjust-without-banner'
+          }
+        >
+          <View
+            testID="limit-order-limit-price-input"
+            onTouchEnd={onLimitPriceInputPress}
+            pointerEvents={isLimitPriceInputPressDisabled ? 'none' : 'auto'}
+          />
+          <View
+            testID="limit-order-market-preset"
+            onTouchEnd={onMarketPresetPress}
+          />
+          <View
+            testID="limit-order-custom-preset"
+            onTouchEnd={onCustomPresetPress}
+          />
+        </View>
+      );
+    },
   };
 });
 
@@ -470,6 +476,7 @@ function buildPriceAdjustMock() {
     handlePercentPress: jest.fn(),
     isCustomActive: false,
     isLimitFiatMode: false,
+    isLimitPriceLoading: false,
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
     limitPriceDecimals: 18,
@@ -1431,6 +1438,50 @@ describe('BridgeLimitOrderView', () => {
       });
     },
   );
+
+  describe('limit price loading', () => {
+    it.each([true, false])(
+      'passes isLimitPriceLoading %s from the price adjust hook to the card',
+      (isLimitPriceLoading) => {
+        jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+          ...buildPriceAdjustMock(),
+          isLimitPriceLoading,
+        }));
+
+        renderLimitOrderView();
+
+        expect(mockLimitOrderPriceAdjustCard).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isLimitPriceLoading }),
+        );
+      },
+    );
+
+    it.each([
+      { hardwareTier: 'HIGH', networkTier: 'WIFI', expected: true },
+      { hardwareTier: 'LOW', networkTier: 'WIFI', expected: true },
+      { hardwareTier: 'HIGH', networkTier: 'SLOW_CELLULAR', expected: true },
+      { hardwareTier: 'LOW', networkTier: null, expected: true },
+      { hardwareTier: null, networkTier: 'SLOW_CELLULAR', expected: true },
+      { hardwareTier: 'LOW', networkTier: 'SLOW_CELLULAR', expected: false },
+      { hardwareTier: 'LOW', networkTier: 'NONE', expected: false },
+    ] as {
+      hardwareTier: HardwareTier | null;
+      networkTier: NetworkTier | null;
+      expected: boolean;
+    }[])(
+      'animates the limit price skeleton: $expected on $hardwareTier hardware over $networkTier network',
+      ({ hardwareTier, networkTier, expected }) => {
+        mockHardwareTier = hardwareTier;
+        mockNetworkTier = networkTier;
+
+        renderLimitOrderView();
+
+        expect(mockLimitOrderPriceAdjustCard).toHaveBeenLastCalledWith(
+          expect.objectContaining({ isLimitPriceLoadingAnimated: expected }),
+        );
+      },
+    );
+  });
 
   describe('pull to refresh', () => {
     beforeEach(() => {
