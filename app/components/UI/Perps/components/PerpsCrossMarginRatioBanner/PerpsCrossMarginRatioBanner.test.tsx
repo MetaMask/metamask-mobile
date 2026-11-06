@@ -1,8 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { BannerAlertSeverity } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsCrossMarginRatioBanner from './PerpsCrossMarginRatioBanner';
 import { PerpsCrossMarginRatioBannerSelectorsIDs } from './PerpsCrossMarginRatioBanner.testIds';
+
+const descriptionFor = (ratio: string) =>
+  strings('perps.crossMarginRatio.description', { ratio });
 
 describe('PerpsCrossMarginRatioBanner', () => {
   it('renders a warning banner for an elevated ratio', () => {
@@ -13,7 +17,7 @@ describe('PerpsCrossMarginRatioBanner', () => {
       />,
     );
 
-    expect(screen.getByText('Cross margin ratio is 63%.')).toBeTruthy();
+    expect(screen.getByText(descriptionFor('63%'))).toBeOnTheScreen();
   });
 
   it('renders a danger banner for a critical ratio', () => {
@@ -24,7 +28,7 @@ describe('PerpsCrossMarginRatioBanner', () => {
       />,
     );
 
-    expect(screen.getByText('Cross margin ratio is 89%.')).toBeTruthy();
+    expect(screen.getByText(descriptionFor('89%'))).toBeOnTheScreen();
   });
 
   it('renders with the default container test ID', () => {
@@ -37,7 +41,7 @@ describe('PerpsCrossMarginRatioBanner', () => {
 
     expect(
       screen.getByTestId(PerpsCrossMarginRatioBannerSelectorsIDs.CONTAINER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('uses a custom test ID when provided', () => {
@@ -49,7 +53,7 @@ describe('PerpsCrossMarginRatioBanner', () => {
       />,
     );
 
-    expect(screen.getByTestId('custom-banner')).toBeTruthy();
+    expect(screen.getByTestId('custom-banner')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsCrossMarginRatioBannerSelectorsIDs.CONTAINER),
     ).toBeNull();
