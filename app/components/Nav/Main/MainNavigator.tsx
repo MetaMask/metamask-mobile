@@ -248,6 +248,10 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
+import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsTaxFormView from '../../UI/Rewards/Views/RewardsTaxFormView';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -488,13 +492,9 @@ const RewardsHome = () => {
     return <RewardsUpdateRequired />;
   }
 
-  // Only the Money persona gate holds the whole stack back. Candidate
-  // subscription pending still mounts onboarding as the discovery surface;
-  // OnboardingMainStep owns that skeleton and replace-to-dashboard.
-  if (
-    tabContent.status === 'pending' &&
-    tabContent.reason === 'money_referral'
-  ) {
+  // The screen itself is not behind Rewards opt-in. Wait only until the
+  // money persona or the candidate subscription is known, then open a home.
+  if (tabContent.status === 'pending') {
     return <RewardsTabSkeleton />;
   }
 
@@ -502,7 +502,7 @@ const RewardsHome = () => {
     tabContent.status === 'ready' &&
     isRewardsHomeInitialVariant(tabContent.variant)
       ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
-      : Routes.REWARDS_ONBOARDING_FLOW;
+      : Routes.REWARDS_DASHBOARD;
 
   return (
     <NativeStack.Navigator
@@ -1160,7 +1160,24 @@ const MainNavigator = () => {
           name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
           component={TermsSheet}
         />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
+          component={TaxFormQuestionSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET}
+          component={TaxFormOpenFormSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_CONTACT_SHEET}
+          component={TaxFormContactUsSheet}
+        />
       </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.REWARDS_TAX_FORM_VIEW}
+        component={RewardsTaxFormView}
+        options={{ headerShown: false }}
+      />
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the

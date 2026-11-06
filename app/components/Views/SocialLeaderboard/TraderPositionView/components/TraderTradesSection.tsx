@@ -85,6 +85,7 @@ export interface TraderTradesSectionProps {
   tradeActions: (TradeAction | undefined)[];
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   /** When provided, each row is tappable (e.g. to slide the chart to the trade). */
   onTradePress?: (trade: Trade) => void;
   /**
@@ -137,6 +138,7 @@ const TraderTradesSection = forwardRef<
       tradeActions,
       traderImageUrl,
       traderAddress,
+      traderProfileId,
       onTradePress,
       emphasizedTradeId,
       refreshControl,
@@ -323,6 +325,7 @@ const TraderTradesSection = forwardRef<
             action={item.action}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
             onPress={onTradePress}
             isEmphasized={item.trade.transactionHash === emphasizedTradeId}
           />
@@ -331,6 +334,7 @@ const TraderTradesSection = forwardRef<
       [
         traderImageUrl,
         traderAddress,
+        traderProfileId,
         onTradePress,
         emphasizedTradeId,
         handleRowLayout,

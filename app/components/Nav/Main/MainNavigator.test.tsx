@@ -2641,24 +2641,24 @@ describe('MainNavigator', () => {
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding for a plain user without a subscription', () => {
+        it('opens the points dashboard for a plain user without a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: 'plain',
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding when the referral fetch resolved with no persona', () => {
+        it('opens the points dashboard when the referral fetch resolved with no persona', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: undefined,
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
         it('keeps the points path when Money is disabled', () => {
@@ -2817,6 +2817,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
           Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+          Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
         ]);
       });
 

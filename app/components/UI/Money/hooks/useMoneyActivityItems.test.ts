@@ -113,6 +113,7 @@ function enableEnrichment() {
   mockUseCardCapabilities.mockReturnValue({
     supportsTransactionHistory: true,
     supportsMoneyAccountLinking: true,
+    reportsVerificationStatus: true,
   } as never);
 }
 
@@ -1144,6 +1145,7 @@ describe('useMoneyActivityItems', () => {
     mockUseCardCapabilities.mockReturnValue({
       supportsTransactionHistory: true,
       supportsMoneyAccountLinking: false,
+      reportsVerificationStatus: false,
     } as never);
 
     const declined: CardTransaction = {
