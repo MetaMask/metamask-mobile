@@ -1,0 +1,84 @@
+# Swaps performance budgets: daily check
+#
+# Once a day, checks the seven Swaps budget rules (14-day p90 against a
+# guardrail, minimum 400 samples) and the Mobile per-release check, and posts
+# what changed since yesterday to the Swaps alerts channel. The rules live in
+# .github/scripts/qa-automation/performance-tests/swaps-perf-budgets.config.mjs.
+#
+# Secrets:
+# - SWAPS_SENTRY_TOKEN: Sentry internal integration token, Organization: Read
+#   only. Sentry is never written to.
+# - SWAPS_PERF_SLACK_WEBHOOK: incoming webhook for the alerts channel; the
+#   webhook decides the channel.
+# Variable (optional):
+# - SWAPS_ONCALL_SLACK_GROUP_ID: Slack user group mentioned on triggers and
+#   release flags. Unset: no mention.
+#
+# NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
+# on the default branch. After this lands on `main`, run it from Actions.
+
+name: Swaps Performance Budgets
+
+on:
+  schedule:
+    # 06:00 Europe/Berlin in winter, 07:00 in summer.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log the Slack message instead of posting it'
+        required: false
+        type: boolean
+        default: true
+      as_of:
+        description: 'Evaluate as if run on this Europe/Berlin date (YYYY-MM-DD; optional)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: swaps-perf-budgets
+  cancel-in-progress: false
+
+jobs:
+  check-budgets:
+    name: Check Swaps performance budgets
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+      SWAPS_PERF_SLACK_WEBHOOK: ${{ secrets.SWAPS_PERF_SLACK_WEBHOOK }}
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Check budgets
+        env:
+          SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
+          SWAPS_ONCALL_SLACK_GROUP_ID: ${{ vars.SWAPS_ONCALL_SLACK_GROUP_ID }}
+          AS_OF: ${{ inputs.as_of || '' }}
+        run: node .github/scripts/qa-automation/performance-tests/swaps-perf-budgets.mjs
+
+      - name: Post failure notice
+        if: ${{ failure() && env.DRY_RUN != 'true' && env.SWAPS_PERF_SLACK_WEBHOOK != '' }}
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ env.SWAPS_PERF_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "*Swaps performance budgets: the daily check failed*, so today's results may be missing or incomplete. Run: ${{ env.GITHUB_RUN_URL }}"
+            }
