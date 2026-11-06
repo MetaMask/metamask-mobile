@@ -1,17 +1,10 @@
 import { SolScope } from '@metamask/keyring-api';
-import type {
-  MetamaskPaySolanaExecution,
-  MetamaskPaySource,
-} from '@metamask/transaction-controller';
+import type { MetamaskPaySolanaExecution } from '@metamask/transaction-controller';
 import type { SolanaPaySupportDiagnostics } from '@metamask/transaction-pay-controller';
 
 import { getSolanaPaySupportDiagnosticsForTransaction } from './useMmPayDebugData';
 
 const TRANSACTION_ID = 'transaction-id';
-const SOLANA_SOURCE = {
-  sourceAccountId: `${SolScope.Mainnet}:account`,
-  sourceAssetId: `${SolScope.Mainnet}/slip44:501`,
-} as MetamaskPaySource;
 const SOLANA_EXECUTION: MetamaskPaySolanaExecution = {
   atomicProductActionIncluded: true,
   atomicProductActionRequired: true,
@@ -22,6 +15,7 @@ const SOLANA_EXECUTION: MetamaskPaySolanaExecution = {
   requestId: 'relay-request-id',
   requiresNonAtomicFollowUp: false,
   sourceAmountRaw: '1',
+  sourceAssetId: `${SolScope.Mainnet}/slip44:501`,
   sourceChainId: SolScope.Mainnet,
   sourceStatus: 'confirmed',
   sourceTransactionId: 'solana-signature',
@@ -52,7 +46,6 @@ describe('getSolanaPaySupportDiagnosticsForTransaction', () => {
 
     const result = getSolanaPaySupportDiagnosticsForTransaction(
       TRANSACTION_ID,
-      SOLANA_SOURCE,
       SOLANA_EXECUTION,
       controller,
     );
@@ -70,7 +63,6 @@ describe('getSolanaPaySupportDiagnosticsForTransaction', () => {
 
     const result = getSolanaPaySupportDiagnosticsForTransaction(
       TRANSACTION_ID,
-      SOLANA_SOURCE,
       undefined,
       controller,
     );

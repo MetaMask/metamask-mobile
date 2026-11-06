@@ -54,15 +54,6 @@ describe('getSolanaPayLifecycleProperties', () => {
 
     expect(result).not.toHaveProperty('mm_pay_error_code');
   });
-
-  it('omits the source asset class when the source is unavailable', () => {
-    const { sourceAssetClass: _sourceAssetClass, ...payload } =
-      LIFECYCLE_PAYLOAD;
-
-    const result = getSolanaPayLifecycleProperties(payload);
-
-    expect(result).not.toHaveProperty('mm_pay_source_asset_class');
-  });
 });
 
 describe('trackSolanaPayLifecycle', () => {
