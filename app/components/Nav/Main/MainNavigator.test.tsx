@@ -226,7 +226,6 @@ jest.mock('../../UI/Money/selectors/visibility', () => ({
   selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
-  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {
