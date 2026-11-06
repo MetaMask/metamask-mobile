@@ -92,7 +92,6 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.followerCount).toBe(88);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual([
       'pnl',
-      'unrealizedPnl',
       'winRate',
       'holdTime',
       'volume',
@@ -115,10 +114,7 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
-      'pnl',
-      'unrealizedPnl',
-    ]);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
   });
 });
 
@@ -127,10 +123,9 @@ describe('buildPerformanceCells', () => {
     expect(buildPerformanceCells(null)).toEqual([]);
   });
 
-  it('returns realized, empty unrealized, and the other live cells in grid order', () => {
+  it('returns the live cells in grid order and omits unpriced unrealized', () => {
     expect(buildPerformanceCells(liveProfile())).toEqual([
       { id: 'pnl', value: '+$1,200', tone: 'success' },
-      { id: 'unrealizedPnl', value: '', tone: 'default' },
       { id: 'winRate', value: '42%', tone: 'default' },
       { id: 'holdTime', value: '3h', tone: 'default' },
       { id: 'volume', value: '$50,000', tone: 'default' },
@@ -174,6 +169,22 @@ describe('buildPerformanceCells', () => {
     expect(pnlCell).toEqual({ id: 'pnl', value: '-$450', tone: 'error' });
   });
 
+  it('returns no cells when live stats and priced opens are both missing', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: null,
+          winRate30d: null,
+          medianHoldMinutes: null,
+          volumeUsd30d: null,
+        },
+      }),
+      [openPosition('unpriced')],
+    );
+
+    expect(cells).toEqual([]);
+  });
+
   it('omits cells whose live value is missing', () => {
     const cells = buildPerformanceCells(
       liveProfile({
@@ -186,10 +197,6 @@ describe('buildPerformanceCells', () => {
       }),
     );
 
-    expect(cells.map((cell) => cell.id)).toEqual([
-      'unrealizedPnl',
-      'winRate',
-      'volume',
-    ]);
+    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
   });
 });

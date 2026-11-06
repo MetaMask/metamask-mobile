@@ -39,31 +39,12 @@ export interface OverlayedMyProfileStats {
   pnlLabel: string;
   hasPnl: boolean;
   isPnlPositive: boolean;
-  /**
-   * Live-only stats for the Performance grid. Realized / win rate / hold /
-   * volume omit when the live value is missing. Unrealized is always present
-   * when the grid is shown; its value is empty until open positions can be
-   * priced.
-   */
+  /** Live-only stats for the Performance grid; cells without data are omitted. */
   performanceCells: PerformanceCell[];
 }
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
-
-const unrealizedPerformanceCell = (
-  openPositions: readonly Position[],
-): PerformanceCell => {
-  const unrealized = sumUnrealizedFromOpenPositions(openPositions);
-  if (!isPresentNumber(unrealized)) {
-    return { id: 'unrealizedPnl', value: '', tone: 'default' };
-  }
-  return {
-    id: 'unrealizedPnl',
-    value: formatSignedFullUsdNoDecimals(unrealized),
-    tone: unrealized >= 0 ? 'success' : 'error',
-  };
-};
 
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
@@ -81,7 +62,14 @@ export const buildPerformanceCells = (
       tone: stats.pnl30d >= 0 ? 'success' : 'error',
     });
   }
-  cells.push(unrealizedPerformanceCell(openPositions));
+  const unrealized = sumUnrealizedFromOpenPositions(openPositions);
+  if (isPresentNumber(unrealized)) {
+    cells.push({
+      id: 'unrealizedPnl',
+      value: formatSignedFullUsdNoDecimals(unrealized),
+      tone: unrealized >= 0 ? 'success' : 'error',
+    });
+  }
   if (isPresentNumber(stats.winRate30d)) {
     cells.push({
       id: 'winRate',

@@ -35,21 +35,6 @@ describe('MyProfilePerformanceStats', () => {
     ).toHaveTextContent('$50,000');
   });
 
-  it('renders an empty unrealized cell without inventing a placeholder', () => {
-    renderWithProvider(
-      <MyProfilePerformanceStats
-        cells={[
-          { id: 'pnl', value: '+$1,200', tone: 'success' },
-          { id: 'unrealizedPnl', value: '', tone: 'default' },
-        ]}
-      />,
-    );
-
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
-    ).toHaveTextContent('');
-  });
-
   it('renders only the cells it receives', () => {
     renderWithProvider(
       <MyProfilePerformanceStats cells={[allCells[2], allCells[4]]} />,
