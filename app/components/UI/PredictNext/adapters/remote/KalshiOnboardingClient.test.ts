@@ -64,11 +64,15 @@ const clientWith = (
 
 const sent = (fetchImpl: jest.Mock, index: number) => {
   const [url, init] = fetchImpl.mock.calls[index] as [string, RequestInit];
+  const { body } = init;
+  if (body !== undefined && typeof body !== 'string') {
+    throw new Error('Kalshi onboarding test expected a string request body');
+  }
   return {
     url,
     method: init.method,
     headers: init.headers as Record<string, string>,
-    body: init.body,
+    body,
   };
 };
 
