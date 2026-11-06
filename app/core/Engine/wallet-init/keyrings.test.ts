@@ -25,6 +25,10 @@ import {
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
 import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
+import {
+  WatchOnlyKeyring,
+  WatchOnlyKeyringV1Adapter,
+} from '@metamask/watch-only-keyring';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -298,6 +302,67 @@ describe('wallet-init/keyrings', () => {
         { id: 'metadata-id', name: 'name' },
       );
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
+    });
+  });
+
+  describe('watch-only keyring registration', () => {
+    const originalFlag = process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED;
+    const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
+
+    afterEach(() => {
+      process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED = originalFlag;
+      process.env.METAMASK_ENVIRONMENT = originalEnvironment;
+      if (originalFlag === undefined) {
+        delete process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED;
+      }
+      if (originalEnvironment === undefined) {
+        delete process.env.METAMASK_ENVIRONMENT;
+      }
+    });
+
+    const getTypes = () => ({
+      v1: (getKeyringBuilders(getRootMessenger(), false) ?? []).map(
+        (builder) => builder.type,
+      ),
+      v2: (getKeyringV2Builders() ?? []).map((builder) => builder.type),
+    });
+
+    it('does not register the watch-only builders when the build flag is off', () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      delete process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED;
+
+      const { v1, v2 } = getTypes();
+
+      expect(v1).not.toContain(WatchOnlyKeyring.type);
+      expect(v2).not.toContain(WatchOnlyKeyring.type);
+    });
+
+    it('does not register the watch-only builders outside dev builds, even with the flag on', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED = 'true';
+
+      const { v1, v2 } = getTypes();
+
+      expect(v1).not.toContain(WatchOnlyKeyring.type);
+      expect(v2).not.toContain(WatchOnlyKeyring.type);
+    });
+
+    it('registers V1 and V2 watch-only builders sharing one keyring in dev builds with the flag on', () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED = 'true';
+
+      const v1Builder = (
+        getKeyringBuilders(getRootMessenger(), false) ?? []
+      ).find((builder) => builder.type === WatchOnlyKeyring.type);
+      const v2Builder = (getKeyringV2Builders() ?? []).find(
+        (builder) => builder.type === WatchOnlyKeyring.type,
+      );
+      const adapter = v1Builder?.() as unknown as WatchOnlyKeyringV1Adapter;
+
+      expect(adapter).toBeInstanceOf(WatchOnlyKeyringV1Adapter);
+      expect(
+        v2Builder?.(adapter as never, { id: 'metadata-id', name: 'name' }),
+      ).toBe(adapter.unwrap());
     });
   });
 });

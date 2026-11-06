@@ -12659,6 +12659,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/watch-only-account-service@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/watch-only-account-service@npm:0.1.0"
+  dependencies:
+    "@metamask/keyring-api": "npm:^24.3.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+  checksum: 10/1baec14ffe477e91284a3347ae61874e60478d59f264caa4d166e9e48f2a38f58ecaf719e6d3dc697ef28eaae89149da7590d800a4d6e08adc11e718a683a059
+  languageName: node
+  linkType: hard
+
 "@metamask/watch-only-keyring@npm:^0.1.1":
   version: 0.1.1
   resolution: "@metamask/watch-only-keyring@npm:0.1.1"
@@ -38421,6 +38432,8 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^4.3.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^18.0.0"
+    "@metamask/watch-only-account-service": "npm:^0.1.0"
+    "@metamask/watch-only-keyring": "npm:^0.1.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.3"
     "@noble/curves": "npm:1.9.7"

@@ -57,6 +57,7 @@ import type {
   NetworkState,
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { isWatchOnlyKeyringType } from '@metamask/accounts-controller';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
@@ -307,6 +308,17 @@ export function isHardwareAccount(
 export function isSnapAccount(address: string) {
   const keyring = getKeyringByAddress(address);
   return keyring && keyring.type === KeyringTypes.snap;
+}
+
+/**
+ * Determines if an address belongs to a watch-only account, which cannot sign.
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isWatchOnlyAccount(address: string): boolean {
+  const keyring = getKeyringByAddress(address);
+  return Boolean(keyring && isWatchOnlyKeyringType(keyring.type));
 }
 
 /**
