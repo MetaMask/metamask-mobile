@@ -785,10 +785,8 @@ const CardAuthentication = () => {
     if (view.mode === 'otp') {
       return strings('card.card_otp_authentication.confirm_button');
     }
-    if (view.mode === 'wallet') {
-      return view.origin === 'resume'
-        ? strings('card.card_authentication.continue_button')
-        : strings('card.card_authentication.siwe_button');
+    if (view.mode === 'wallet' && view.origin === 'resume') {
+      return strings('card.card_authentication.continue_button');
     }
     return strings('card.card_authentication.login_button');
   }, [view]);

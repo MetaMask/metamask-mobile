@@ -428,6 +428,7 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
+      expect(screen.getByText('Sign in')).toBeOnTheScreen();
       expect(screen.queryByText(/isn't the account your card/i)).toBeNull();
       expect(
         screen.queryByText(/this is the account you set your card up with/i),
