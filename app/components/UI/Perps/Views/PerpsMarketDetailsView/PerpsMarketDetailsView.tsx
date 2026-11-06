@@ -1216,6 +1216,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     totalBalance: account?.totalBalance,
   });
 
+  const isSupportCheckInFlightRef = useRef(false);
+
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') => {
       playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
@@ -1233,7 +1235,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         }
 
         if (useBottomSheet) {
-          const support = await checkAccountSupport(market.providerId);
+          // A press during a pending support read would pass the same check
+          // and open a second Trade sheet.
+          if (isSupportCheckInFlightRef.current) {
+            return;
+          }
+          isSupportCheckInFlightRef.current = true;
+          let support: Awaited<ReturnType<typeof checkAccountSupport>>;
+          try {
+            support = await checkAccountSupport(market.providerId);
+          } finally {
+            isSupportCheckInFlightRef.current = false;
+          }
           if (support !== 'supported' || !navigation.isFocused()) {
             return;
           }
