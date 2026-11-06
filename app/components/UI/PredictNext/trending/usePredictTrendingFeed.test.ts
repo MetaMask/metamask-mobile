@@ -4,7 +4,9 @@ import { usePredictionsFeed } from '../../Predict/trending/usePredictionsFeed';
 import { useActiveVenue } from '../implementation/activeVenue';
 import { expectInactiveHookHasNoSideEffects } from '../implementation/inactiveHook.testUtils';
 import type { ActiveVenueResolution } from '../implementation/types';
+import { useVenueCapabilities } from '../capabilities';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { SEARCH_QUERY_MAX_LENGTH } from '../hooks/useSearchEvents';
 import { readNextTrendingEvent } from './internal/nextMarkets';
 import {
   KALSHI_SPORTS_FEED_ID,
@@ -65,6 +67,33 @@ const settle = () =>
   });
 
 const KALSHI_GAMES = [makeKalshiEvent('game-1'), makeKalshiEvent('game-2')];
+const KALSHI_VENUE_ID = KALSHI_GAMES[0].venueId;
+
+/**
+ * Renders the feed beside Kalshi's capabilities, so a test can wait until
+ * the catalog has answered. Before then search is unsupported and nothing
+ * searches, so an assertion that nothing searched proves nothing.
+ */
+const renderWithCapabilities = (
+  options: Parameters<typeof usePredictTrendingFeed>[0],
+  fixture: DataServiceFixture,
+) =>
+  renderHook(
+    () => ({
+      feed: usePredictTrendingFeed(options),
+      capabilities: useVenueCapabilities(KALSHI_VENUE_ID),
+    }),
+    { wrapper: createWrapper(fixture) },
+  );
+
+const waitForCatalog = async (
+  result: ReturnType<typeof renderWithCapabilities>['result'],
+) => {
+  await waitFor(() =>
+    expect(result.current.capabilities.status).not.toBe('loading'),
+  );
+  await settle();
+};
 
 describe('usePredictTrendingFeed', () => {
   beforeEach(() => {
@@ -333,28 +362,49 @@ describe('usePredictTrendingFeed', () => {
     it('does not search when the descriptor does not support search', async () => {
       givenVenue(KALSHI);
 
-      const { result } = renderHook(
-        () => usePredictTrendingFeed({ query: 'chiefs' }),
+      const { result } = renderWithCapabilities(
+        { query: 'chiefs' },
         {
-          wrapper: createWrapper({
-            catalog: {
-              ...KALSHI_STATIC_VENUE_CATALOG,
-              searchSupported: false,
-            },
-            search: KALSHI_GAMES,
-          }),
+          catalog: { ...KALSHI_STATIC_VENUE_CATALOG, searchSupported: false },
+          search: KALSHI_GAMES,
         },
       );
-      await waitFor(() =>
-        expect(
-          callsTo(messenger, 'PredictMarketDataService:getVenueCatalog'),
-        ).toHaveLength(1),
-      );
-      await settle();
+      await waitForCatalog(result);
 
-      expect(result.current.data).toEqual([]);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.feed.data).toEqual([]);
+      expect(result.current.feed.isLoading).toBe(false);
       expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([]);
+    });
+
+    it('does not search a query longer than the backend accepts', async () => {
+      givenVenue(KALSHI);
+      const tooLong = 'a'.repeat(SEARCH_QUERY_MAX_LENGTH + 1);
+
+      const { result } = renderWithCapabilities(
+        { query: tooLong },
+        { search: KALSHI_GAMES },
+      );
+      await waitForCatalog(result);
+
+      expect(result.current.feed.data).toEqual([]);
+      expect(result.current.feed.isLoading).toBe(false);
+      expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([]);
+      expect(callsTo(messenger, GET_FEED)).toEqual([]);
+    });
+
+    it('searches a query of exactly the longest length the backend accepts', async () => {
+      givenVenue(KALSHI);
+      const longest = 'a'.repeat(SEARCH_QUERY_MAX_LENGTH);
+
+      const { result } = renderHook(
+        () => usePredictTrendingFeed({ query: longest }),
+        { wrapper: createWrapper({ search: KALSHI_GAMES }) },
+      );
+
+      await waitFor(() => expect(result.current.data).toHaveLength(2));
+      expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([
+        [SEARCH_EVENTS, 'kalshi', { q: longest, limit: 20 }],
+      ]);
     });
 
     it('refreshes through the data service on an Explore refresh', async () => {

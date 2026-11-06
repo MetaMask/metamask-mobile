@@ -1,9 +1,10 @@
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useVenueCapabilities } from '../capabilities';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
 import { useActiveVenue } from '../implementation/activeVenue';
 import type { ActiveVenueResolution } from '../implementation/types';
+import type { PredictVenueId } from '../types';
 import {
-  callsTo,
   createDataServiceMessenger,
   createDataServiceWrapper,
   type DataServiceFixture,
@@ -27,7 +28,6 @@ const KALSHI: ActiveVenueResolution = {
   source: 'rollout',
 };
 const RESOLVING: ActiveVenueResolution = { status: 'resolving' };
-const GET_CATALOG = 'PredictMarketDataService:getVenueCatalog';
 
 let messenger: DataServiceMessenger;
 
@@ -72,17 +72,25 @@ describe('usePredictTrendingSupported', () => {
   });
 
   it('leaves Kalshi search out when its descriptor does not support it', async () => {
-    const { result } = renderSupported(KALSHI, 'search', {
+    jest.mocked(useActiveVenue).mockReturnValue(KALSHI);
+    messenger = createDataServiceMessenger({
       catalog: { ...KALSHI_STATIC_VENUE_CATALOG, searchSupported: false },
     });
 
-    await waitFor(() =>
-      expect(callsTo(messenger, GET_CATALOG)).toHaveLength(1),
+    // Rendered beside the capabilities, so the assertion runs once the
+    // catalog has answered; before then search is unsupported anyway.
+    const { result } = renderHook(
+      () => ({
+        supported: usePredictTrendingSupported('search'),
+        capabilities: useVenueCapabilities('kalshi' as PredictVenueId),
+      }),
+      { wrapper: createDataServiceWrapper(messenger) },
     );
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(result.current).toBe(false);
+    await waitFor(() =>
+      expect(result.current.capabilities.status).not.toBe('loading'),
+    );
+
+    expect(result.current.supported).toBe(false);
   });
 
   it('never supports the All Sports list on Kalshi, and reads no catalog for it', () => {

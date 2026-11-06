@@ -82,7 +82,7 @@ const GAME_LIVE_UPDATED = 'PredictLiveDataService:gameLiveUpdated';
 const QUOTE_UPDATED = 'PredictLiveDataService:quoteUpdated';
 /** Kalshi's `sports` Feed key maps to its NFL Games Feed. */
 const KALSHI_SPORTS_FEED = PREDICT_NEXT_FEED_IDS.nflGames;
-const [NFL_1] = nflEvents;
+const [NFL_1, NFL_2] = nflEvents;
 
 const renderExplore = ({
   predictConfig,
@@ -320,8 +320,8 @@ describeForPlatforms('Explore prediction sections', () => {
 
       expect(view.getByText(SPORTS_PREDICTIONS_TITLE)).toBeOnTheScreen();
       expectPredictNextGameCard(
-        view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
-        'nfl-1',
+        view.getByTestId(PredictHomeTestIds.event('kalshi', NFL_1.id)),
+        NFL_1.id,
         {
           away: 'Packers',
           home: 'Steelers',
@@ -332,7 +332,7 @@ describeForPlatforms('Explore prediction sections', () => {
         },
       );
       expect(
-        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-2')),
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', NFL_2.id)),
       ).toBeOnTheScreen();
       expect(view.queryByText(ALL_SPORTS_TITLE)).not.toBeOnTheScreen();
       expect(
@@ -388,6 +388,29 @@ describeForPlatforms('Explore prediction sections', () => {
           asset_type: 'prediction',
           position: 0,
           item_clicked: NFL_1.id,
+        },
+      ]);
+    });
+
+    it('opens PredictNext Home from the Sports carousel View all, and tracks it', async () => {
+      const view = renderKalshiExplore();
+      await openKalshiSports(view);
+      trackEvent.mockClear();
+
+      fireEvent.press(
+        view.getByTestId(
+          TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_SPORTS_PREDICTIONS,
+        ),
+      );
+
+      expect(await predictRouteParams(view)).toEqual({
+        screen: PredictNextRoutes.HOME,
+      });
+      expect(trackedProperties(trackEvent, EXPLORE_INTERACTED)).toEqual([
+        {
+          interaction_type: 'section_see_all_tapped',
+          tab_name: 'Sports',
+          section_name: 'predictions_sports',
         },
       ]);
     });
@@ -469,6 +492,18 @@ describeForPlatforms('Explore prediction sections', () => {
       );
       expect(card.getByText('28')).toBeOnTheScreen();
       expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
+    });
+
+    it('holds no live watches while the device is offline', async () => {
+      // The shared NetInfo mock reports offline (`NONE`), the default here.
+      const view = renderKalshiExplore();
+
+      await openKalshiSports(view);
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', NFL_2.id)),
+      ).toBeOnTheScreen();
+
+      expect(callsTo(WATCH_EVENTS)).toEqual([]);
     });
 
     it('omits the Sports Predictions section when the Feed is empty', async () => {
@@ -582,7 +617,7 @@ describeForPlatforms('Explore prediction sections', () => {
         view.getByRole('button', { name: `${NFL_1.title}, ${chance}` }),
       ).toBe(row);
       expect(
-        view.getByTestId(PredictTrendingTestIds.searchRow('nfl-2')),
+        view.getByTestId(PredictTrendingTestIds.searchRow(NFL_2.id)),
       ).toBeOnTheScreen();
       expect(callsTo(SEARCH_EVENTS)).toEqual(
         expect.arrayContaining([
