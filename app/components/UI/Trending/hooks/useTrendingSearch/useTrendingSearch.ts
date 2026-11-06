@@ -117,9 +117,17 @@ export const useTrendingSearch = (opts?: {
     }
 
     // Results are shown in API relevance order; no client-side merge or
-    // re-sort. The API's own result objects are shown.
+    // re-sort. The API's own result objects are shown. Exact assetId repeats
+    // across responses or cursor pages are dropped, first occurrence wins.
+    const seen = new Set<string>();
     return searchResults
-      .filter((item) => includeStocks || !item.rwaData)
+      .filter((item) => {
+        if (seen.has(item.assetId)) {
+          return false;
+        }
+        seen.add(item.assetId);
+        return includeStocks || !item.rwaData;
+      })
       .map((asset) => ({
         assetId: asset.assetId,
         symbol: asset.symbol,

@@ -72,11 +72,9 @@ export const useTokensFeed = ({
 
   const filteredData = useMemo(() => {
     // Results are shown in API relevance order; no client-side re-sort.
-    const searched = data;
+    if (!hideRiskyTokens) return data;
 
-    if (!hideRiskyTokens) return searched;
-
-    return searched.filter(({ securityData }) => {
+    return data.filter(({ securityData }) => {
       const { resultType } = securityData ?? {};
       return (
         !resultType || resultType === 'Verified' || resultType === 'Benign'

@@ -337,6 +337,34 @@ describe('useTrendingSearch', () => {
     });
   });
 
+  it('drops exact assetId repeats across search results, first occurrence wins', async () => {
+    const repeated = {
+      ...mockSearchResults[0],
+    };
+    mockUseSearchRequest.mockReturnValue({
+      results: [mockSearchResults[0], repeated],
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: 'USDC', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(1);
+    });
+
+    expect(result.current.data[0].assetId).toBe('eip155:1/erc20:0x789');
+  });
+
   it('returns trending loading state when no search query', () => {
     mockUseTrendingRequest.mockReturnValue({
       results: [],
