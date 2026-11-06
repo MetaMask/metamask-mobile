@@ -485,11 +485,56 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses the Game Team order and each Team logo facing', () => {
+    const input = createEvent({
+      sports: {
+        sport: { id: 'soccer', label: 'Soccer' },
+        game: {
+          status: 'scheduled',
+          teamOrder: 'home_first',
+          homeTeam: { name: 'Arsenal', logoFacing: 'left' },
+          awayTeam: { name: 'Chelsea', logoFacing: 'right' },
+          observedAt: '2026-09-11T00:00:00Z',
+        },
+      },
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.sports?.game).toMatchObject({
+      teamOrder: 'home_first',
+      homeTeam: { logoFacing: 'left' },
+      awayTeam: { logoFacing: 'right' },
+    });
+  });
+
+  it('leaves the Team order and logo facing absent when the API omits them', () => {
+    const input = createEvent({
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        game: {
+          status: 'scheduled',
+          homeTeam: { name: 'Carolina Panthers' },
+          awayTeam: { name: 'Arizona Cardinals' },
+          observedAt: '2026-09-11T00:00:00Z',
+        },
+      },
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.sports?.game?.teamOrder).toBeUndefined();
+    expect(result.sports?.game?.homeTeam.logoFacing).toBeUndefined();
+    expect(result.sports?.game?.awayTeam.logoFacing).toBeUndefined();
+  });
+
   it.each([
     { field: 'status', value: 'playing' },
     { field: 'observedAt', value: 'yesterday' },
     { field: 'primaryColor', value: 'red' },
     { field: 'logoUrl', value: 'http://example.com/ari.png' },
+    { field: 'logoFacing', value: 'up' },
+    { field: 'teamOrder', value: 'alphabetical' },
   ])('rejects Game data with malformed $field', ({ field, value }) => {
     const game = {
       status: 'scheduled',
@@ -501,7 +546,9 @@ describe('Predict API canonical response parsers', () => {
       sports: {
         sport: { id: 'american-football', label: 'American football' },
         game:
-          field === 'primaryColor' || field === 'logoUrl'
+          field === 'primaryColor' ||
+          field === 'logoUrl' ||
+          field === 'logoFacing'
             ? {
                 ...game,
                 awayTeam: { ...game.awayTeam, [field]: value },
@@ -698,6 +745,35 @@ describe('Predict API canonical response parsers', () => {
           groupType: 'choice',
         }),
       ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
+    });
+
+    it.each([
+      {
+        key: 'game:rushing_yards:henry',
+        groupType: 'choice',
+        displayOrder: 0,
+      },
+      {
+        key: 'game:spread',
+        groupType: 'marketSelector',
+        marketType: 'spread',
+        option: { type: 'number', value: 2.5 },
+      },
+      { key: 'game:future', groupType: 'future-group-type' },
+    ])('keeps a label on a $groupType group', (group) => {
+      expect(
+        PredictMarketGroupSchema.create({ ...group, label: 'Derrick Henry' }),
+      ).toEqual({ ...group, label: 'Derrick Henry' });
+    });
+
+    it.each(['', '  '])('rejects a group label of %j', (label) => {
+      expect(() =>
+        PredictMarketGroupSchema.create({
+          key: 'game:rushing_yards:henry',
+          groupType: 'choice',
+          label,
+        }),
+      ).toThrow();
     });
 
     it('keeps a malformed choice group as an unsupported group', () => {

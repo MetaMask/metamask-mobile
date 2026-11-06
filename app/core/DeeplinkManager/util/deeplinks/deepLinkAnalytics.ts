@@ -17,6 +17,7 @@ import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { resolveSocialDeeplinkTarget } from './socialDeeplinkPath';
+import { parseMoneyReferralCode } from '../../../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -481,6 +482,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_POST]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -669,6 +671,8 @@ const mapSocialSegmentsToRoute = (pathSegments: string[]): DeepLinkRoute => {
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case 'trader':
       return DeepLinkRoute.SOCIAL_TRADER;
+    case 'post':
+      return DeepLinkRoute.SOCIAL_POST;
     default:
       return DeepLinkRoute.TOP_TRADERS;
   }
@@ -807,6 +811,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
       referral: context.urlParams.referral,
+      referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })
     .addSensitiveProperties(sensitiveProperties);

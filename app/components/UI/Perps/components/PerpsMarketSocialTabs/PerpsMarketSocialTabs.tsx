@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
+import { useSelector } from 'react-redux';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
@@ -9,6 +10,7 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectSocialLeaderboardPerpsEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import {
   HYPERLIQUID_CAIP2_CHAIN_ID,
@@ -47,17 +49,22 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   const { track } = usePerpsEventTracking();
   const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
-  const leaderboardSource = useMemo<SocialLeaderboardSource>(
+  const isPerpsLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardPerpsEnabled,
+  );
+  const holdersSource = useMemo<SocialLeaderboardSource>(
     () => ({ kind: 'perp', symbol }),
     [symbol],
   );
-  const feedAssetIds = useMemo(() => {
-    const assetId = toFeedAssetId({
-      chain: HYPERLIQUID_CHAIN_NAME,
-      tokenAddress: symbol,
-    });
-    return assetId ? [assetId] : null;
-  }, [symbol]);
+  const assetId = useMemo(
+    () =>
+      toFeedAssetId({
+        chain: HYPERLIQUID_CHAIN_NAME,
+        tokenAddress: symbol,
+      }),
+    [symbol],
+  );
+  const feedAssetIds = useMemo(() => (assetId ? [assetId] : null), [assetId]);
 
   const tabs = useMemo<TabItem[]>(
     () =>
@@ -107,13 +114,16 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
       ) : null}
       {activeTab === 'top_traders' ? (
         <Box
-          twClassName="pt-6"
+          twClassName="pt-2"
           testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_TAB_CONTENT}
         >
-          <SocialLeaderboard
-            source={leaderboardSource}
-            location="perps_market_details"
-          />
+          {isPerpsLeaderboardEnabled ? (
+            <SocialLeaderboard
+              source={holdersSource}
+              location="perps_market_details"
+              showRank={false}
+            />
+          ) : null}
         </Box>
       ) : null}
       {activeTab === 'feed' ? (

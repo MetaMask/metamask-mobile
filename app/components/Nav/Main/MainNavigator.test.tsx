@@ -85,6 +85,10 @@ jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
   useIsNativeTabBar: () => mockIsNativeTabBar,
 }));
 
+jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
+  useCanOpenSocialTabDirectly: () => false,
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({
@@ -158,6 +162,17 @@ jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
   __esModule: true,
   default: () => 'PredictRoot',
 }));
+
+// On the legacy lane Predict availability is the legacy flag. Mock the
+// selector's own module: a factory spreading the PredictNext entry point
+// re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({
+    selectPredictAvailability: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  }),
+);
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -682,6 +697,20 @@ describe('MainNavigator', () => {
       const homeScreen = screenProps?.find((screen) => screen?.name === 'Home');
 
       expect(homeScreen).toBeDefined();
+    });
+
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
     });
 
     it('includes TokensFullView screen', () => {
