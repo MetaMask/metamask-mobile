@@ -31,6 +31,7 @@ const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:createJourney',
   'KycService:getSessionStatus',
   'KycService:getSessionStatusForVendor',
+  'KycService:getDataShares',
   'UserStorageController:performGetStorage',
   'UserStorageController:performSetStorage',
   'AuthenticatedUserStorageService:putIdentitySharingConsent',
