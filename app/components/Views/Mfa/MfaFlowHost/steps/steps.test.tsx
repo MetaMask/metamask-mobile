@@ -538,6 +538,26 @@ describe('CodeStep', () => {
     expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
+  it('says the code is dead and counts down to a new one after too many attempts', () => {
+    const { onAction, getByText, getByTestId } = renderCode(otp(true), {
+      error: 'too_many_attempts',
+      resendAvailableAt: Date.now() + 30_000,
+    });
+
+    expect(
+      getByText(
+        "Too many incorrect codes. Get a new code when it's available.",
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Get new code in 30s')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(30_000);
+    });
+    expect(getByText('Get new code')).toBeOnTheScreen();
+  });
+
   it('lets the user resend once the cooldown ends, without its error', () => {
     const { onAction, getByText, queryByTestId } = renderCode(otp(true), {
       error: 'rate_limited',

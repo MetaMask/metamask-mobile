@@ -150,29 +150,54 @@ export function meetsClaimMinimum(
   }
 }
 
+export interface ClaimRouteOptions {
+  /** Follow-trade claims need an open claim route. Omitted leaves the route off. */
+  includeFollowTrade?: boolean;
+}
+
+/** Follow-trade is included only when this session has seen `claim_open`. */
+export function claimRouteOptions(
+  followTradeClaimOpen: boolean | undefined,
+): ClaimRouteOptions {
+  return { includeFollowTrade: followTradeClaimOpen === true };
+}
+
 /**
- * Pilot: only trade-fee cashback, and only when that family's own claimable
- * reaches the summary's `minimum_musd_base_units`. Revenue share and
- * follow-trade are not claimed.
+ * Cashback for a referee, then follow-trade when its route is included. Each
+ * family must reach `minimum_musd_base_units` on its own. Revenue share stays
+ * off. Omitted options leave follow-trade off.
  */
 export function claimRoutesForSummary(
   summary: EarningsSummaryDto | null | undefined,
+  persona?: MoneyDashboardPersona,
+  options?: ClaimRouteOptions,
 ): ClaimRouteSlug[] {
+  const minimum = summary?.minimum_musd_base_units;
+  const routes: ClaimRouteSlug[] = [];
   const cashback =
     summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
       ?.claimable;
-  if (!meetsClaimMinimum(cashback, summary?.minimum_musd_base_units)) {
-    return [];
+  if (persona === 'referee' && meetsClaimMinimum(cashback, minimum)) {
+    routes.push('referral-trade-fee-cashback');
   }
-  return ['referral-trade-fee-cashback'];
+  const followTrade =
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable;
+  if (
+    options?.includeFollowTrade === true &&
+    meetsClaimMinimum(followTrade, minimum)
+  ) {
+    routes.push('social-follow-trade');
+  }
+  return routes;
 }
 
-/** A referee whose cashback family reaches the summary minimum. Referrers do not claim in the pilot. */
+/** True when cashback or follow-trade reaches the summary minimum. */
 export function canClaimEarnings(
   summary: EarningsSummaryDto | null | undefined,
   persona: MoneyDashboardPersona | undefined,
+  options?: ClaimRouteOptions,
 ): boolean {
-  return persona === 'referee' && claimRoutesForSummary(summary).length > 0;
+  return claimRoutesForSummary(summary, persona, options).length > 0;
 }
 
 /**
@@ -576,13 +601,15 @@ export function claimToastText(
   return template.replaceAll('{minutes}', String(Math.ceil(seconds / 60)));
 }
 
-/** Segment `claim_type` for a claim route. Follow-trade has no route yet. */
+/** Segment `claim_type` for a claim route. */
 export function claimTypeForRoute(route: ClaimRouteSlug): string {
   switch (route) {
     case 'referral-trade-fee-cashback':
       return 'cashback';
     case 'referral-rev-share':
       return 'rev_share';
+    case 'social-follow-trade':
+      return 'follow_trade';
     default: {
       const unhandled: never = route;
       return unhandled;
