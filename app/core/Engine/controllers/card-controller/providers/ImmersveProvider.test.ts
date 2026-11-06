@@ -1860,6 +1860,75 @@ describe('ImmersveProvider', () => {
       expect(second.context).toEqual({ fundingSourceId: 'fs-money' });
     });
 
+    it('resolveMoneyAccountFundingSource reuses a source whose address matches in another case', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-other',
+            fundingChannelId: 'other-channel',
+            fundingAddress: moneyAccountAddress,
+          },
+          {
+            id: 'fs-money',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: moneyAccountAddress.toLowerCase(),
+          },
+        ],
+      });
+
+      const source = await provider.resolveMoneyAccountFundingSource(
+        moneyAccountAddress,
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(source.id).toBe('fs-money');
+    });
+
+    it('resolveMoneyAccountFundingSource creates a source with the Money account address', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({
+        id: 'fs-new',
+        network: 'monad-mainnet',
+      });
+
+      const source = await provider.resolveMoneyAccountFundingSource(
+        moneyAccountAddress,
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({ fundingAddress: moneyAccountAddress }),
+        TOKENS,
+      );
+      expect(source.id).toBe('fs-new');
+    });
+
+    it('resolveMoneyAccountFundingSource throws when the channel is not a Money account channel', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => LINEA_USDC_CHANNEL,
+      });
+
+      await expect(
+        provider.resolveMoneyAccountFundingSource(
+          '0x000000000000000000000000000000000000dEaD',
+          TOKENS,
+        ),
+      ).rejects.toThrow(
+        'Money account card delegation is not supported for this provider',
+      );
+      expect(service.get).not.toHaveBeenCalled();
+    });
+
     it('prepareMoneyAccountLink creates a source when the existing one funds another address', async () => {
       const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
       const { provider, service } = createProvider(PROGRAM_CONFIG, {
