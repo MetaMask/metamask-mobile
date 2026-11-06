@@ -718,8 +718,8 @@ describe('RewardsMoneyDashboard', () => {
     });
   });
 
-  it('renders no earnings indicator for a referrer with cashback of at least $1', () => {
-    const { queryByTestId } = renderDashboard({
+  it('renders the earnings indicator for a referrer with cashback of at least $1', () => {
+    const { getByTestId } = renderDashboard({
       earningsSummaryEntry: {
         loading: false,
         error: false,
@@ -732,6 +732,33 @@ describe('RewardsMoneyDashboard', () => {
               REFERRAL_TRADE_FEE_CASHBACK: {
                 ...emptyBranch,
                 lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders no earnings indicator when only a closed revenue-share balance is claimable', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                lifetime: '41750000',
                 claimable: '1000000',
               },
             },
