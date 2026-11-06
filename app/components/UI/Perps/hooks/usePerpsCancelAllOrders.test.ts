@@ -49,6 +49,14 @@ const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
   ...overrides,
 });
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({
+    isWatchOnly: false,
+    guard: mockGuardWatchOnly,
+  }),
+}));
+
 describe('usePerpsCancelAllOrders', () => {
   const mockNavigation = {
     goBack: jest.fn(),
@@ -58,8 +66,24 @@ describe('usePerpsCancelAllOrders', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGuardWatchOnly.mockReturnValue(false);
     mockNavigation.canGoBack.mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+  });
+
+  it('refuses a watch-only account without cancelling anything', async () => {
+    mockGuardWatchOnly.mockReturnValue(true);
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders([createMockOrder()]),
+    );
+
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    expect(Engine.context.PerpsController.cancelOrders).not.toHaveBeenCalled();
+    expect(result.current.isCanceling).toBe(false);
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
   it('initializes with correct default state', () => {

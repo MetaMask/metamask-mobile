@@ -11,6 +11,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigateToPerpsHome } from '../utils/perpsModeSwitch';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 export interface UsePerpsCloseAllPositionsOptions {
   /** Callback invoked when closing succeeds */
@@ -63,6 +64,7 @@ export const usePerpsCloseAllPositions = (
   const navigation = useNavigation<AppNavigationProp>();
   const navigateToPerpsHome = useNavigateToPerpsHome();
   const [isClosing, setIsClosing] = useState(false);
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
   const [error, setError] = useState<Error | null>(null);
 
   const {
@@ -75,6 +77,9 @@ export const usePerpsCloseAllPositions = (
   const positionCount = positions?.length || 0;
 
   const handleCloseAll = useCallback(async () => {
+    if (guardWatchOnly()) {
+      return;
+    }
     if (!positions || positions.length === 0) {
       DevLogger.log('[usePerpsCloseAllPositions] No positions to close');
       return;
@@ -152,6 +157,7 @@ export const usePerpsCloseAllPositions = (
       setIsClosing(false);
     }
   }, [
+    guardWatchOnly,
     positions,
     calculations,
     onSuccess,
