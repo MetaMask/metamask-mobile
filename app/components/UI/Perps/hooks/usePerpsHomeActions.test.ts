@@ -575,6 +575,45 @@ describe('usePerpsHomeActions', () => {
       expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('starts one withdrawal when the button is pressed again during the support check', async () => {
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+      let firstPress: Promise<void> | undefined;
+      let secondPress: Promise<void> | undefined;
+
+      act(() => {
+        firstPress = result.current.handleWithdraw();
+        secondPress = result.current.handleWithdraw();
+      });
+      await act(async () => {
+        resolveSupport?.('supported');
+        await Promise.all([firstPress, secondPress]);
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts a new withdrawal once the previous one has finished', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('handleWithdraw - eligible user', () => {
