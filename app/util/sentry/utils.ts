@@ -12,6 +12,7 @@ import { regex } from '../regex';
 import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
+import { isPerfSessionAvailable } from '../../core/Performance/perfSession';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
@@ -701,7 +702,10 @@ export async function setupSentry(
       integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: isDev || isE2EOrExpEnvironment ? 1.0 : 0.03,
-      profilesSampleRate: 1.0,
+      // The perf session (main-exp) records its own Hermes profiles. Hermes has one
+      // global sampler with one buffer, and Sentry's profiler disables it and drains
+      // the buffer at every transaction end, so the two can't run together.
+      profilesSampleRate: isPerfSessionAvailable() ? 0 : 1.0,
       beforeSend: (report) => {
         const rewritten = rewriteReport(report as SentryEvent);
         return rewritten as typeof report;

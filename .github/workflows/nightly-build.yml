@@ -60,6 +60,25 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  # The perf session sampler (MM_PERF_SESSION_ENABLED) ships only in the scheduled
+  # Friday Android exp build. Manual runs and other days build without it.
+  perf-session-day:
+    name: Perf session day
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      enabled: ${{ steps.day.outputs.enabled }}
+    steps:
+      - id: day
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$(date -u +%u)" = "5" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   android-exp-generate:
     permissions:
       id-token: write # AWS OIDC for the build number service in generate-build-version.yml
@@ -67,7 +86,7 @@ jobs:
 
   android-exp:
     name: Nightly Android exp
-    needs: [android-exp-generate]
+    needs: [android-exp-generate, perf-session-day]
     permissions:
       contents: read
       id-token: write # AWS OIDC for code signing in build.yml
@@ -78,6 +97,7 @@ jobs:
       source_branch: main
       build_number: ${{ needs.android-exp-generate.outputs.build-version }}
       build_attribution: nightly
+      perf_session: ${{ needs.perf-session-day.outputs.enabled == 'true' }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

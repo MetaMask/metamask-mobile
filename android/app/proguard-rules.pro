@@ -60,3 +60,17 @@
 
 
 -dontwarn com.facebook.react.bridge.JavaOnlyMap$Companion
+
+# Perf session `renderLoops` (nativeModules/PerfSession/PerfRenderLoops.kt) looks
+# these up by name to tell whether a view is animating: Lottie's isAnimating(),
+# Rive's and video views' isPlaying(), and Fresco's animated-image Animatable.
+-keepclassmembers class * extends android.view.View {
+    public boolean isAnimating();
+    public boolean isPlaying();
+}
+-keepclassmembers class com.facebook.drawee.view.DraweeView {
+    public *** getController();
+}
+-keepclassmembers class * implements com.facebook.drawee.interfaces.DraweeController {
+    public *** getAnimatable();
+}
