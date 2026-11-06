@@ -33,6 +33,8 @@ export interface MarketGroupOptionSelectorProps {
   markets: readonly PredictMarket[];
   selectedMarketId: PredictMarket['id'];
   onSelect: (marketId: PredictMarket['id']) => void;
+  /** Names a row for screen readers; defaults to its team, line and price. */
+  getOptionAccessibilityLabel?: (market: PredictMarket) => string;
 }
 
 const ITEM_WIDTH = 56;
@@ -71,6 +73,7 @@ export function MarketGroupOptionSelector({
   markets,
   selectedMarketId,
   onSelect,
+  getOptionAccessibilityLabel,
 }: MarketGroupOptionSelectorProps): React.JSX.Element {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -186,9 +189,9 @@ export function MarketGroupOptionSelector({
                 key={market.id}
                 testID={MarketGroupCardTestIds.option(groupKey, market.id)}
                 accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'predict.market_groups.option_accessibility_label',
-                  {
+                accessibilityLabel={
+                  getOptionAccessibilityLabel?.(market) ??
+                  strings('predict.market_groups.option_accessibility_label', {
                     team:
                       yesOutcome?.label ??
                       strings('predict.market_groups.market_option'),
@@ -198,8 +201,8 @@ export function MarketGroupOptionSelector({
                     price:
                       formatAskPrice(yesOutcome?.askPrice) ??
                       strings('predict.market_groups.price_unavailable'),
-                  },
-                )}
+                  })
+                }
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => onSelect(market.id)}
                 style={tw.style('items-center justify-center py-1', {

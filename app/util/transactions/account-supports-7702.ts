@@ -1,4 +1,6 @@
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import ExtendedKeyringTypes, {
+  MONEY_KEYRING_TYPES,
+} from '../../constants/keyringTypes';
 
 /** Minimal shape; KeyringController.getKeyringForAccount is typed as Promise<unknown>. */
 interface KeyringControllerLike {
@@ -7,12 +9,15 @@ interface KeyringControllerLike {
 
 /**
  * Keyring types that support EIP-7702 (Setup Smart Account).
- * Only HD (entropy) and simple (private key) accounts support this; hardware and snap do not.
+ *
+ * HD (entropy), simple (private key) and Money accounts support this; hardware
+ * and snap do not. Money accounts depend on it: they cannot sign transactions
+ * locally, so the 7702 relay is their only publish path.
  */
 const KEYRING_TYPES_SUPPORTING_7702: string[] = [
   ExtendedKeyringTypes.hd,
   ExtendedKeyringTypes.simple,
-  ExtendedKeyringTypes.money,
+  ...MONEY_KEYRING_TYPES,
 ];
 
 /**

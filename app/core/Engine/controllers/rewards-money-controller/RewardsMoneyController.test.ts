@@ -843,6 +843,68 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('shares one in-flight claim history read per profile', async () => {
+      let resolveHistory: (page: ClaimHistoryPageDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => {
+            resolveHistory = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getClaimHistory();
+      const second = controller.getClaimHistory();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getClaimHistory',
+        ),
+      ).toHaveLength(1);
+
+      resolveHistory(mockClaimHistory);
+      await expect(first).resolves.toEqual(mockClaimHistory);
+      await expect(second).resolves.toEqual(mockClaimHistory);
+    });
+
+    it('leaves the cache empty when an older claim history read finishes after a newer one has started', async () => {
+      const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => pending.push(resolve));
+        }
+        return undefined;
+      });
+      const olderPage = { ...mockClaimHistory, results: [mockClaim] };
+      const newerPage = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+
+      const older = controller.getClaimHistory({ forceFresh: true });
+      const newer = controller.getClaimHistory({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      pending[0](olderPage);
+      await older;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+
+      pending[1](newerPage);
+      await newer;
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]?.payload).toBe(
+        newerPage,
+      );
+    });
+
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
@@ -943,6 +1005,9 @@ describe('RewardsMoneyController', () => {
         },
       };
       mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
         if (action === 'RewardsMoneyDataService:initiateClaim') {
           return authorized;
         }
@@ -960,6 +1025,128 @@ describe('RewardsMoneyController', () => {
         'referral-rev-share',
         { money_account_address: '0xmoney' },
       );
+    });
+
+    it('drops the claim history cache after an opened claim', async () => {
+      let historyReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          historyReads += 1;
+          return Promise.resolve(mockClaimHistory);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'authorized',
+            body: {
+              claim: { id: 'claim-1' },
+              voucher: null,
+              excluded: [],
+              status: 'OPENED',
+            },
+          });
+        }
+        return undefined;
+      });
+
+      await controller.getClaimHistory();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+      await controller.getClaimHistory();
+      expect(historyReads).toBe(2);
+    });
+
+    it('keeps the claim history cache when the open asks for a proof', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return Promise.resolve(mockClaimHistory);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-1',
+              expires_at: '2026-01-01T00:00:00.000Z',
+              challenges: [],
+            },
+          });
+        }
+        return undefined;
+      });
+
+      await controller.getClaimHistory();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+      await controller.getClaimHistory();
+
+      expect(
+        controller.state.claimHistoryFirstPage[PROFILE_A]?.payload,
+      ).toEqual(mockClaimHistory);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getClaimHistory',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not let a pre-open claim history read refill the cache', async () => {
+      let resolveFirstRead: (page: ClaimHistoryPageDto) => void = () =>
+        undefined;
+      let historyReads = 0;
+      const afterOpen = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          historyReads += 1;
+          if (historyReads === 1) {
+            return new Promise<ClaimHistoryPageDto>((resolve) => {
+              resolveFirstRead = resolve;
+            });
+          }
+          return Promise.resolve(afterOpen);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'authorized',
+            body: {
+              claim: { id: 'claim-2' },
+              voucher: null,
+              excluded: [],
+              status: 'OPENED',
+            },
+          });
+        }
+        return undefined;
+      });
+
+      const pendingRead = controller.getClaimHistory();
+      await Promise.resolve();
+      await Promise.resolve();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+      resolveFirstRead(mockClaimHistory);
+      await pendingRead;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+      await expect(controller.getClaimHistory()).resolves.toEqual(afterOpen);
+      expect(historyReads).toBe(2);
     });
   });
 

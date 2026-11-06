@@ -12,6 +12,11 @@ export const PredictMarketHistoryTestIds = {
   RANGES: 'predict-market-history-ranges',
   range: (range: PredictMarketHistoryRange) =>
     `predict-market-history-range-${range}`,
+  LEGEND: 'predict-market-history-legend',
+  legendItem: (marketId: string) =>
+    `predict-market-history-legend-item-${marketId}`,
+  legendValue: (marketId: string) =>
+    `predict-market-history-legend-value-${marketId}`,
   chartLabel: (id: string) => `predict-market-history-chart-label-${id}`,
   chartValue: (id: string) => `predict-market-history-chart-value-${id}`,
 } as const;

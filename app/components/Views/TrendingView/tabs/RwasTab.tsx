@@ -12,7 +12,12 @@ import {
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictAvailability } from '../../../UI/PredictNext';
+import {
+  PredictTrendingCarousel,
+  selectPredictAvailability,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -30,8 +35,6 @@ import PerpsToggleBlock, {
 } from '../feeds/perps/PerpsToggleBlock';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
@@ -115,6 +118,7 @@ const RwasTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const appNavigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -127,7 +131,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
-  const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ tab: 'rwas', refresh });
   const stocks = useStocksFeed({
     refresh,
     pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
@@ -175,7 +179,7 @@ const RwasTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={politics}
             tabName="RWAs"
             sectionName="predictions_politics"
@@ -183,7 +187,7 @@ const RwasTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-rwa-politics-market-row-item"
             idPrefix="politics_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(appNavigation, 'politics')
+              navigateToExplorePredictionsList(openPredict, 'politics')
             }
             isEnabled={isPredictEnabled}
           />
@@ -241,6 +245,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     politics,
     isPredictEnabled,
     appNavigation,
+    openPredict,
     stocks.data,
     stocks.isLoading,
     renderStockItem,

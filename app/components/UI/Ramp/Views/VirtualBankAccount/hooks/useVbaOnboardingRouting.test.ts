@@ -4,7 +4,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
+  canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
+  openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
@@ -1101,6 +1103,29 @@ describe('resolveVbaOnboarding', () => {
     expect(calls).toEqual(['start', 'hydrate']);
   });
 
+  it('keeps a reattached provider-pending session out of SumSub after reinstall', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+    });
+
+    await expect(resolveVbaOnboarding('money-home-card')).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycPending',
+      }),
+    );
+    expect(mockGetSessionStatusForVendor).toHaveBeenCalledWith(VBA_KYC_VENDOR);
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+  });
+
   it('continues as a new user when the discovered session is gone before start', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
     mockStartSession.mockRejectedValue(
@@ -1315,6 +1340,8 @@ describe('openVbaEntry', () => {
   });
 
   it('opens details directly and hydrates in the background for an approved account', () => {
+    expect(canOpenPersistedVbaDetails()).toBe(true);
+
     openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
 
     expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
@@ -1345,6 +1372,8 @@ describe('openVbaEntry', () => {
     ['the approved autoramp belongs to another wallet', 'Approved', '0xdef'],
   ])('opens the loading screen when %s', (_case, status, walletAddress) => {
     mockRampsState.autoramps = [{ id: 'ar-1', walletAddress, status }];
+
+    expect(canOpenPersistedVbaDetails()).toBe(false);
 
     openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
 
@@ -1384,5 +1413,80 @@ describe('openVbaEntry', () => {
     expect(lastResetRoutes()[1]).toEqual(
       expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
     );
+  });
+});
+
+describe('openVbaAccountSetup', () => {
+  const dispatch = jest.fn();
+  const rootNavigation = {
+    dispatch,
+    getParent: () => undefined,
+    getState: () => ({
+      index: 0,
+      routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+      routes: [{ name: Routes.HOME_TABS }],
+    }),
+  } as unknown as AppNavigationProp;
+  const onboardingDispatch = jest.fn();
+  const onboardingNavigation = {
+    dispatch: onboardingDispatch,
+    getParent: () => rootNavigation,
+    getState: () => ({
+      index: 0,
+      routeNames: [
+        VbaOnboardingRoutes.VENDOR_TERMS,
+        VbaOnboardingRoutes.IDENTITY_VERIFIED,
+        VbaOnboardingRoutes.CHOOSE_CURRENCY,
+      ],
+      routes: [{ name: VbaOnboardingRoutes.IDENTITY_VERIFIED }],
+    }),
+  } as unknown as AppNavigationProp;
+  const lastRootResetRoutes = () =>
+    dispatch.mock.calls[dispatch.mock.calls.length - 1][0].payload.routes;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens account details from outside onboarding when Choose Currency is off', () => {
+    openVbaAccountSetup(rootNavigation, false);
+
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('opens Choose Currency as the only onboarding route from outside onboarding', () => {
+    openVbaAccountSetup(rootNavigation, true);
+
+    expect(lastRootResetRoutes()[1]).toEqual(
+      expect.objectContaining({
+        name: Routes.RAMP.VBA_ONBOARDING,
+        state: {
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.CHOOSE_CURRENCY }],
+        },
+      }),
+    );
+  });
+
+  it('pushes Choose Currency inside onboarding so Back returns to Identity verified', () => {
+    openVbaAccountSetup(onboardingNavigation, true);
+
+    expect(onboardingDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+    );
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('opens account details from inside onboarding when Choose Currency is off', () => {
+    openVbaAccountSetup(onboardingNavigation, false);
+
+    expect(onboardingDispatch).not.toHaveBeenCalled();
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
   });
 });

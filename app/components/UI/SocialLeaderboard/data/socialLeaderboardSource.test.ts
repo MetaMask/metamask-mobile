@@ -45,17 +45,29 @@ describe('resolveSocialLeaderboardSource', () => {
     },
   );
 
+  it('reports a spot token source as unavailable', () => {
+    expect(
+      resolveSocialLeaderboardSource(
+        { kind: 'token', assetId: 'eip155:1/erc20:0xabc' },
+        PERPS_ON,
+      ),
+    ).toStrictEqual({ status: 'unavailable' });
+  });
+
   it.each([
-    { kind: 'token', assetId: 'eip155:1/erc20:0xabc' },
-    { kind: 'perp', symbol: 'BTC' },
-  ] as SocialLeaderboardSource[])(
-    'reports a single-asset source as unavailable: %o',
-    (source) => {
-      expect(resolveSocialLeaderboardSource(source, PERPS_ON)).toStrictEqual({
-        status: 'unavailable',
-      });
-    },
-  );
+    ['BTC', 'eip155:999/perp:BTC'],
+    ['xyz:NVDA', 'eip155:999/perp:xyz.NVDA'],
+  ])('resolves the %s perp market to its holders', (symbol, assetId) => {
+    expect(
+      resolveSocialLeaderboardSource({ kind: 'perp', symbol }, PERPS_ON),
+    ).toStrictEqual({ status: 'holders', assetId });
+  });
+
+  it('reports a perp market with no symbol as unavailable', () => {
+    expect(
+      resolveSocialLeaderboardSource({ kind: 'perp', symbol: ' ' }, PERPS_ON),
+    ).toStrictEqual({ status: 'unavailable' });
+  });
 });
 
 describe('getLeaderboardAssetClass', () => {

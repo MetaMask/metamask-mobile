@@ -69,6 +69,51 @@ function armReadiness(): void {
 
 armReadiness();
 
+// The signer page is a 10 MB inline document; loading it blocks the Android
+// main thread for hundreds of ms. Only mount it once a call actually needs the
+// page. Calls already wait behind `ready`, so they queue until it loads.
+const demandListeners = new Set<() => void>();
+let isSignerDemanded = false;
+
+function notifyDemandListeners(): void {
+  for (const listener of demandListeners) {
+    try {
+      listener();
+    } catch {
+      // Listener errors must not block the signer request.
+    }
+  }
+}
+
+/** Ask the host to mount the signer page. Idempotent. */
+export function requestLighterSigner(): void {
+  if (isSignerDemanded) return;
+  isSignerDemanded = true;
+  notifyDemandListeners();
+}
+
+/** Forget the request, e.g. when the wallet locks and the page unmounts. */
+export function clearLighterSignerRequest(): void {
+  if (!isSignerDemanded) return;
+  isSignerDemanded = false;
+  notifyDemandListeners();
+}
+
+/** Whether a call has asked for the signer page (useSyncExternalStore snapshot). */
+export function isLighterSignerRequested(): boolean {
+  return isSignerDemanded;
+}
+
+/** Subscribe to signer requests (useSyncExternalStore subscribe). */
+export function subscribeLighterSignerRequest(
+  listener: () => void,
+): () => void {
+  demandListeners.add(listener);
+  return () => {
+    demandListeners.delete(listener);
+  };
+}
+
 function notifyResetListeners(): void {
   for (const listener of resetListeners) {
     try {
@@ -226,6 +271,7 @@ async function executeWithDeadline(
   retired: Promise<never>,
 ): Promise<unknown> {
   assertGeneration(owner);
+  requestLighterSigner();
 
   await timeoutAfter(
     Promise.race([ready, retired]),
@@ -263,8 +309,10 @@ export function connectLighterExecutor(newExecutor: LighterExecutor): void {
 
 /**
  * Revive the bridge after terminal unavailability. Only the signer host may
- * call this, and only when it is actually remounting the WebView — a late
- * executor from the dying page must never resurrect a dead signer.
+ * call this, and only when no page from before can still connect: when it is
+ * remounting the WebView, or at unlock, once a page that saw the lock ignores
+ * its messages. A late executor from the dying page must never resurrect a
+ * dead signer.
  */
 export function reviveLighterBridge(): void {
   if (!isTerminallyUnavailable) {
@@ -309,6 +357,8 @@ type LighterCreateClientResult = Awaited<
 const createClient: LighterSignerBridge['createClient'] = (params) =>
   withOwnership(async (owner, retired) => {
     assertLighterClientParameters(params);
+    // Start loading the page while the key is read from the keychain.
+    requestLighterSigner();
     const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
     const privateKey = await timeoutAfter(
       Promise.race([getOrCreatePrivateKey(params, owner), retired]),

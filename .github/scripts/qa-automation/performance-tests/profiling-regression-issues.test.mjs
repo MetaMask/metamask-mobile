@@ -229,6 +229,10 @@ test('a scenario issue follows the bug-report template and routes to its team', 
   );
   assert.match(issue.body, /\*\*1\.68×\*\*, threshold 1\.5×/);
   assert.match(issue.body, /Owner: `metamask-mobile-platform` \(@MetaMask\/mobile-platform\)/);
+  assert.match(
+    issue.body,
+    /Team tag: `team-mobile-platform`\. That label routes this bug to the owning team's Jira project\./,
+  );
   assert.match(issue.body, /`memoized` — node_modules\/reselect\/dist\/cjs\/reselect\.cjs:502 — 4,237 ms self/);
   assert.match(issue.body, /### Version\n\n7\.60\.0 \(`package\.json` at `abc1234def5678`\)/);
   assert.match(issue.body, /### Operating system\n\nAndroid/);

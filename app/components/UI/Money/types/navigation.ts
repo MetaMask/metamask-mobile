@@ -21,6 +21,14 @@ export interface MoneyPreferredPaymentToken {
   chainId: Hex;
 }
 
+export const MoneyDepositTokenType = {
+  ATOKEN: 'atoken',
+} as const;
+
+export interface MoneyDepositDeeplinkParams {
+  tokenType?: string;
+}
+
 export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
@@ -117,6 +125,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
     MoneyOnboarding: MoneyOnboardingParams | undefined;
+    MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;

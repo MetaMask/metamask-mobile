@@ -4,6 +4,8 @@ import { fireEvent } from '@testing-library/react-native';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
@@ -24,6 +26,7 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -123,6 +126,11 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -186,11 +194,48 @@ describe('MoneyAddMoneySheet', () => {
       undefined,
     );
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    (
+      selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+    ).mockReturnValue(undefined);
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
 
+  describe('Money account availability', () => {
+    it('redirects to the feature-unavailable modal when Money is disabled', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('feature_disabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(queryByTestId(MoneyAddMoneySheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+    });
+
+    it('redirects to the geo-block sheet when Money is geo-ineligible', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('geo_blocked');
+
+      const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(queryByTestId(MoneyAddMoneySheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
+    });
+  });
+
   it('renders all options', () => {
-    const { getByText, getAllByText, getByTestId } = renderWithProvider(
+    const { getByText, queryByText, queryByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
@@ -199,13 +244,13 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('$1,203.89')).toBeOnTheScreen();
     expect(getByText('mUSD')).toBeOnTheScreen();
     expect(getByText('Bank transfer')).toBeOnTheScreen();
-    expect(getByText('External address')).toBeOnTheScreen();
-    // Only External address is coming soon; Bank account is live with a "New" badge.
-    expect(getAllByText('Coming soon')).toHaveLength(1);
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(queryByText('External address')).toBeNull();
+    // Bank transfer is live with a "No fees" badge; External address row is gone.
+    expect(queryByText('Coming soon')).toBeNull();
+    expect(getByText('No fees')).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
-    ).toBeOnTheScreen();
+      queryByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
+    ).toBeNull();
   });
 
   it('renders the deposit option as "Debit card" without Apple Pay on Android', () => {
@@ -227,14 +272,14 @@ describe('MoneyAddMoneySheet', () => {
     }
   });
 
-  it('renders the Bank account row enabled with a "New" badge when moneyMovementNeobank allows Brazil', () => {
+  it('renders the Bank account row enabled with a "No fees" badge when moneyMovementNeobank allows Brazil', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
     const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
     expect(bankRow).toBeOnTheScreen();
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(getByText('No fees')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
     // Opening routes through the VBA entry helper before status is known.
@@ -255,9 +300,9 @@ describe('MoneyAddMoneySheet', () => {
       <MoneyAddMoneySheet />,
     );
 
-    // Bank account and External address are both coming soon again.
-    expect(getAllByText('Coming soon')).toHaveLength(2);
-    expect(queryByText('New')).toBeNull();
+    // Only Bank account is coming soon (External address removed).
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(queryByText('No fees')).toBeNull();
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
@@ -272,21 +317,21 @@ describe('MoneyAddMoneySheet', () => {
       id: 'ar-1',
     });
 
-    const { getByTestId, getAllByText } = renderWithProvider(
+    const { getByTestId, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
     ).toBeEnabled();
-    // Only External address is coming soon.
-    expect(getAllByText('Coming soon')).toHaveLength(1);
+    // External address removed; nothing is coming soon in this state.
+    expect(queryByText('Coming soon')).toBeNull();
   });
 
   it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
 
-    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
+    const { queryByTestId, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
@@ -294,8 +339,8 @@ describe('MoneyAddMoneySheet', () => {
       queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
     ).toBeNull();
     expect(queryByText('Bank transfer')).toBeNull();
-    expect(queryByText('New')).toBeNull();
-    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(queryByText('No fees')).toBeNull();
+    expect(queryByText('Coming soon')).toBeNull();
   });
 
   it('hides the Bank account row when the flag is on and geolocation is unknown', () => {
@@ -336,7 +381,7 @@ describe('MoneyAddMoneySheet', () => {
 
     const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
     expect(bankRow).toBeOnTheScreen();
-    expect(getByText('New')).toBeOnTheScreen();
+    expect(getByText('No fees')).toBeOnTheScreen();
 
     fireEvent.press(bankRow);
     expect(mockOpenVbaEntry).toHaveBeenCalledWith(
@@ -356,8 +401,8 @@ describe('MoneyAddMoneySheet', () => {
       <MoneyAddMoneySheet />,
     );
 
-    expect(getAllByText('Coming soon')).toHaveLength(2);
-    expect(queryByText('New')).toBeNull();
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(queryByText('No fees')).toBeNull();
   });
 
   it('renders the "Add funds" title', () => {
@@ -558,8 +603,8 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
-    ).toBeOnTheScreen();
+      queryByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
+    ).toBeNull();
   });
 
   it('shows the Deposit funds option when the region has a usable fiat provider', () => {
@@ -653,12 +698,12 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
-  it('keeps Debit card or Apple Pay active, with only External address coming soon', () => {
-    const { getByTestId, getAllByText } = renderWithProvider(
+  it('keeps Debit card or Apple Pay active with no coming-soon rows', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
-    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(queryByText('Coming soon')).toBeNull();
 
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
@@ -740,7 +785,6 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
     ]);
 
     expect(order).toEqual([
@@ -748,7 +792,6 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
     ]);
   });
 
