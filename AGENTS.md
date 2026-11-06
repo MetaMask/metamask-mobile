@@ -114,7 +114,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 
 ### User-facing copy
 
-Before writing or changing any user-facing string (`locales/languages/en.json`, UI text, errors, buttons, notifications), read and follow [`.claude/skills/mms-content-guidelines/SKILL.md`](.claude/skills/mms-content-guidelines/SKILL.md). Run `yarn skills` if that file is missing. Edit English source strings in `locales/languages/en.json`, not the generated skill copy. To change a rule, change [MetaMask/skills](https://github.com/MetaMask/skills), not this repo.
+Before writing or changing any user-facing string (`locales/languages/en.json`, UI text, errors, buttons, notifications), read and follow [`.claude/skills/mms-content-guidelines/SKILL.md`](.claude/skills/mms-content-guidelines/SKILL.md). Run `yarn skills` if that file is missing. That skill is the agent-readable implementation of the MetaMask Content Design Style Guide. If the skill and the Style Guide disagree, flag it to the content owner. Do not invent a rule. Edit English source strings in `locales/languages/en.json`, not the generated skill copy. To change a rule, change [MetaMask/skills](https://github.com/MetaMask/skills), not this repo.
 
 ### Quick Reference
 
