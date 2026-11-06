@@ -533,6 +533,36 @@ describe('SocialPostComposerView', () => {
     dismissSpy.mockRestore();
   });
 
+  it('keeps the position and gif chips above the keyboard on Android', () => {
+    const originalOS = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { get: () => 'android' });
+    const listeners = new Map<string, (event?: unknown) => void>();
+    const addListenerSpy = jest
+      .spyOn(Keyboard, 'addListener')
+      .mockImplementation((eventName, callback) => {
+        listeners.set(eventName, callback as (event?: unknown) => void);
+        return { remove: jest.fn() } as ReturnType<typeof Keyboard.addListener>;
+      });
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    act(() => {
+      listeners.get('keyboardDidShow')?.({
+        endCoordinates: { height: 320 },
+      });
+    });
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR).props
+          .style,
+      ).paddingBottom,
+    ).toBe(332);
+
+    addListenerSpy.mockRestore();
+    Object.defineProperty(Platform, 'OS', { get: () => originalOS });
+  });
+
   it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
     renderWithProvider(<SocialPostComposerView />);
 

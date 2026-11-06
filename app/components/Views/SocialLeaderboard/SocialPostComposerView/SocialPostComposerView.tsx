@@ -244,7 +244,14 @@ const SocialPostComposerView: React.FC = () => {
   const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
   });
-  const isKeyboardVisible = useKeyboardHeight() > 0;
+  const keyboardHeight = useKeyboardHeight();
+  const isKeyboardVisible = keyboardHeight > 0;
+  // iOS KeyboardAvoidingView already lifts this bar. Android edge-to-edge
+  // does not resize the window, so the bar has to clear the keyboard itself.
+  const actionBarPaddingBottom =
+    Platform.OS === 'android' && keyboardHeight > 0
+      ? keyboardHeight + Math.max(insets.bottom, 12)
+      : Math.max(insets.bottom, 12);
   const [hardwareTier] = useState(() => getHardwareTier());
   const networkTier = useNetworkTier();
   // UX matrix (app/util/deviceCapability/README.md): offline, and LOW hardware on
@@ -739,8 +746,9 @@ const SocialPostComposerView: React.FC = () => {
             gap={2}
             twClassName="px-4 pt-3"
             style={tw.style({
-              paddingBottom: Math.max(insets.bottom, 12),
+              paddingBottom: actionBarPaddingBottom,
             })}
+            testID={SocialPostComposerViewSelectorsIDs.ACTION_BAR}
           >
             {selectedPosition || isTradeInFlightLocked ? null : (
               <ComposerChip
