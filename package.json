@@ -335,6 +335,12 @@
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
     "@metamask/subscription-controller": "15.0.0"
   },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "22.1.2-preview-2c49dc768"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",

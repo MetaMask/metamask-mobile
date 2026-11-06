@@ -914,6 +914,34 @@ describe('usePerpsClosePosition', () => {
           );
         });
 
+        it('explains the post-only network-upgrade window from a normalized Core result', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'ORDER_POST_ONLY_WINDOW',
+            errorCode: 'ORDER_POST_ONLY_WINDOW',
+            errorDetails: {
+              code: 'ORDER_POST_ONLY_WINDOW',
+              provider: 'hyperliquid',
+            },
+          });
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls.at(-1)?.[0];
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.postOnlyWindow' }),
+          );
+        });
+
         it('shows passive IOC failure copy without an action', async () => {
           mockClosePosition.mockResolvedValue({
             success: false,
