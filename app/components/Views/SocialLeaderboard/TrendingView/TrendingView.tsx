@@ -106,7 +106,8 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   testID,
   scrollTestID,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_trending');
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
   // The pager mounts every page up front: hold the feed back until Trending
   // is first opened.

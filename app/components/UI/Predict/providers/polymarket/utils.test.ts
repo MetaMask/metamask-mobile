@@ -14,6 +14,7 @@ import {
   type PredictOutcome,
   type PredictSportsLeague,
 } from '../../types';
+import type { PredictFeeCollection } from '../../types/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
@@ -30,6 +31,7 @@ import {
   calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
+  clearMarketTagSlugsCache,
   createApiKey,
   deriveApiKey,
   encodeRouterRedeem,
@@ -388,6 +390,7 @@ describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();
+    clearMarketTagSlugsCache();
     mockSignTypedMessage.mockResolvedValue('0xsig');
     mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
     mockGetNetworkClientById.mockReturnValue({
@@ -3261,6 +3264,66 @@ describe('polymarket utils', () => {
     });
 
     expect(result).toEqual({ fees: waivedFees });
+  });
+
+  describe('fee waiver market lookup', () => {
+    const waiverFeeCollection: PredictFeeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.03,
+      waiveList: ['middle-east'],
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    it('fetches market tags once across repeated and overlapping previews', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          tags: [{ slug: 'middle-east' }],
+        }),
+      });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const results = await Promise.all([
+        calculateFees(params),
+        calculateFees(params),
+      ]);
+      results.push(await calculateFees(params));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      for (const { fees } of results) {
+        expect(fees.totalFee).toBe(0);
+      }
+    });
+
+    it('retries the market tags lookup after a failure', async () => {
+      mockFetch
+        .mockRejectedValueOnce(new Error('gamma unavailable'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            tags: [{ slug: 'middle-east' }],
+          }),
+        });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const failed = await calculateFees(params);
+      const retried = await calculateFees(params);
+
+      expect(failed.fees.totalFee).toBe(0.5);
+      expect(retried.fees.totalFee).toBe(0);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('uses configured service fees when no membership policy is available', async () => {

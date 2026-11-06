@@ -14,9 +14,14 @@ export const TokenDetailsIds = {
   tabPanelPrefix: 'token-details-v1-tab-panel',
   tabContent: TAB_CONTENT,
   tabBar: 'token-details-v1-tab-bar',
+  tabBarSlot: 'token-details-v1-tab-bar-slot',
+  pinnedTabBar: 'token-details-v1-tab-bar-pinned',
+  pinnedTabBarOverlay: 'token-details-v1-tab-bar-pinned-overlay',
   ageChip: 'token-details-v1-age-chip',
   pending: 'token-details-page-pending',
   tab: (tab: TokenDetailsV1TabKey) => `token-details-v1-tab-${tab}`,
+  pinnedTab: (tab: TokenDetailsV1TabKey) =>
+    `token-details-v1-tab-pinned-${tab}`,
   tabPage: (tab: TokenDetailsV1TabKey) => `${TAB_CONTENT}-page-${tab}`,
   overview: {
     container: 'token-details-overview-tab',
@@ -26,8 +31,12 @@ export const TokenDetailsIds = {
     sectionRule: 'token-details-overview-section-rule',
     performance: 'token-details-overview-tab-performance',
   },
+  /** Whole feed card, pressable while Social terms are not accepted. */
+  feedPostOnboardingPress: (postId: string) =>
+    `token-details-feed-post-onboarding-press-${postId}`,
   holderRow: {
     CONTAINER: 'token-holder-row',
+    PRESS: 'token-holder-row-press',
     NAME: 'token-holder-row-name',
     FOLLOWERS: 'token-holder-row-followers',
     POSITION_VALUE: 'token-holder-row-position-value',

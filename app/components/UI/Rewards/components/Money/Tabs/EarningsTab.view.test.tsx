@@ -12,6 +12,7 @@ import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   CLAIMED_EARNINGS_SUMMARY,
+  earningsSummaryFixture,
   EXACT_DOLLAR_EARNINGS_SUMMARY,
   PAUSED_EARNINGS_SUMMARY,
   referralMeFixture,
@@ -22,6 +23,51 @@ import {
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
+}
+
+/** $1 of follow-trade, the claim minimum. Cashback stays at zero. */
+const FOLLOW_TRADE_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '1000000',
+  claimable: '1000000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '1000000',
+});
+
+/** $1 of cashback and $1 of follow-trade, each at the claim minimum. */
+const CASHBACK_AND_FOLLOW_TRADE_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '2000000',
+  claimable: '2000000',
+  cashbackClaimable: '1000000',
+  followTradeClaimable: '1000000',
+});
+
+function commissionsPage(followTradeClaimOpen: boolean) {
+  return () =>
+    Promise.resolve({
+      results: [],
+      mechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: false, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: followTradeClaimOpen,
+          reason: followTradeClaimOpen ? null : 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      has_more: false,
+      cursor: null,
+    });
+}
+
+/** An opened claim with no voucher, so the next route can start. */
+function openedClaim() {
+  return Promise.resolve({
+    kind: 'authorized',
+    body: {
+      claim: { id: 'claim-1' },
+      voucher: null,
+      excluded: [],
+      status: 'OPENED',
+    },
+  });
 }
 
 describe('EarningsTab', () => {
@@ -83,11 +129,13 @@ describe('EarningsTab', () => {
   });
 
   it('does not offer Claim to a referrer who has exactly $1 of cashback', async () => {
+    // Social V1 off: a referrer's claimable amount row stays hidden.
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,
       initiateClaim: 'hang',
+      socialV1: false,
     });
 
     expect(
@@ -108,6 +156,80 @@ describe('EarningsTab', () => {
     expect(
       callsFor(engine, 'RewardsMoneyController:initiateClaim'),
     ).toHaveLength(0);
+  });
+
+  it('claims follow-trade for a referrer when the claim route is open', async () => {
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      initiateClaim: 'hang',
+      handlers: {
+        'RewardsMoneyController:getCommissions': commissionsPage(true),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(callsFor(engine, 'RewardsMoneyController:initiateClaim')).toEqual([
+        [
+          'RewardsMoneyController:initiateClaim',
+          'social-follow-trade',
+          { money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS },
+        ],
+      ]);
+    });
+  });
+
+  it('does not offer Claim when follow-trade is closed', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      initiateClaim: 'hang',
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$1.00');
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('claims cashback and follow-trade together for a referee', async () => {
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary: CASHBACK_AND_FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getCommissions': commissionsPage(true),
+        'RewardsMoneyController:initiateClaim': openedClaim,
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
+    });
   });
 
   it.each([

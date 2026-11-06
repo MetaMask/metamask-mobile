@@ -160,6 +160,7 @@ describe('EmptyShellTabPage profile navigation', () => {
         position,
         author: livePost.item.author,
         isSnapshotLive: false,
+        orderSource: 'social_trending',
       }),
     );
   });

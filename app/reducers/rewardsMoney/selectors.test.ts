@@ -12,6 +12,7 @@ import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  refereeMoneySections,
   selectCashbackLedger,
   selectClaimLock,
   selectClaimWaitingUntil,
@@ -20,7 +21,9 @@ import {
   selectEarningsSummaryEntry,
   selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
+  selectPendingMoneyReferralCode,
   selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
@@ -187,6 +190,26 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
+  describe('refereeMoneySections', () => {
+    it.each([
+      [undefined, true, true],
+      [['REFEREE'], true, true],
+      [['CASHBACK_EXPERIMENT'], false, true],
+      [['COPY_TRADING'], true, false],
+      [['REFEREE', 'COPY_TRADING'], true, true],
+      [['CASHBACK_EXPERIMENT', 'COPY_TRADING'], true, true],
+      [['REFERRER'], false, false],
+    ] as const)(
+      'maps %j to social %s and rebates %s',
+      (roles, social, rebates) => {
+        expect(refereeMoneySections(roles)).toEqual({
+          socialRewards: social,
+          tradingRebates: rebates,
+        });
+      },
+    );
+  });
+
   describe('canAcceptMoneyReferralInvite', () => {
     it('stays open for a plain user and a cashback-experiment member', () => {
       expect(canAcceptMoneyReferralInvite({ roles: [] })).toBe(true);
@@ -272,6 +295,46 @@ describe('rewardsMoney selectors', () => {
       } as RootState;
 
       expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
+    });
+  });
+
+  describe('selectIsReferralLinkPending', () => {
+    it('returns false when no referral link is being handled', () => {
+      const state = buildState();
+
+      expect(selectIsReferralLinkPending(state)).toBe(false);
+    });
+
+    it('returns true while a referral link is being handled', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          isReferralLinkPending: true,
+        },
+      } as RootState;
+
+      expect(selectIsReferralLinkPending(state)).toBe(true);
+    });
+  });
+
+  describe('selectPendingMoneyReferralCode', () => {
+    it('returns null when no deeplink left a code', () => {
+      const state = buildState();
+
+      expect(selectPendingMoneyReferralCode(state)).toBeNull();
+    });
+
+    it('returns the code a deeplink left behind', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          pendingReferralCode: 'KOL1',
+        },
+      } as RootState;
+
+      expect(selectPendingMoneyReferralCode(state)).toBe('KOL1');
     });
   });
 
