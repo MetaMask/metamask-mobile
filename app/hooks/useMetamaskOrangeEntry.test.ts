@@ -80,7 +80,7 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
-  it('keeps the row pending while membership is still loading', () => {
+  it('hides the row while membership is still loading', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
@@ -94,13 +94,12 @@ describe('useMetamaskOrangeEntry', () => {
 
     result.current.onPress();
 
-    expect(result.current.showOrangeEntry).toBe(true);
-    expect(result.current.isLabelPending).toBe(true);
+    expect(result.current.showOrangeEntry).toBe(false);
     expect(mockTrackButtonClicked).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('keeps the row pending while an entitlement is still loading', () => {
+  it('hides the row while an entitlement is still loading', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
@@ -114,10 +113,30 @@ describe('useMetamaskOrangeEntry', () => {
 
     result.current.onPress();
 
-    expect(result.current.showOrangeEntry).toBe(true);
-    expect(result.current.isLabelPending).toBe(true);
+    expect(result.current.showOrangeEntry).toBe(false);
     expect(mockTrackButtonClicked).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows a stored member before subscriptions settle', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(true);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Unknown,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(true);
+    expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+      source: 'accounts_menu',
+    });
   });
 
   it('invites a settled entitlement-only user to join and opens Benefits', () => {
@@ -134,7 +153,7 @@ describe('useMetamaskOrangeEntry', () => {
 
     result.current.onPress();
 
-    expect(result.current.isLabelPending).toBe(false);
+    expect(result.current.showOrangeEntry).toBe(true);
     expect(result.current.label).toBe(
       strings('accounts_menu.join_metamask_orange'),
     );

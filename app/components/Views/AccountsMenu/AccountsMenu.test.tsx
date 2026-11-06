@@ -24,7 +24,6 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
-import { METAMASK_ORANGE_MENU_SKELETON_TEST_ID } from '../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -733,7 +732,7 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows a skeleton while membership is still loading', () => {
+    it('hides the row while membership is still loading', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -743,19 +742,11 @@ describe('AccountsMenu', () => {
         isSubscriptionsSettled: false,
       });
 
-      const { getByTestId, queryByText } = render(<AccountsMenu />);
+      const { queryByTestId } = render(<AccountsMenu />);
 
       expect(
-        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(METAMASK_ORANGE_MENU_SKELETON_TEST_ID),
-      ).toBeOnTheScreen();
-      expect(queryByText('accounts_menu.metamask_orange')).toBeNull();
-      expect(queryByText('accounts_menu.join_metamask_orange')).toBeNull();
-
-      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
-
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

@@ -47,7 +47,6 @@ import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigr
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
-import MetamaskOrangeMenuSkeleton from '../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import { useMetamaskOrangeEntry } from '../../../hooks/useMetamaskOrangeEntry';
 import {
   CardFlow,
@@ -98,7 +97,6 @@ const AccountsMenu = () => {
   } = useCardUkMigrationState();
   const {
     showOrangeEntry,
-    isLabelPending: isOrangeLabelPending,
     label: orangeLabel,
     onPress: onPressOrange,
   } = useMetamaskOrangeEntry();
@@ -454,17 +452,9 @@ const AccountsMenu = () => {
             startAccessory={
               <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
             }
-            label={
-              isOrangeLabelPending ? (
-                <MetamaskOrangeMenuSkeleton />
-              ) : (
-                orangeLabel
-              )
-            }
-            isDisabled={isOrangeLabelPending}
+            label={orangeLabel}
             endAccessory={arrowRightIcon}
             onPress={onPressOrange}
-            accessibilityLabel={isOrangeLabelPending ? undefined : orangeLabel}
             testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
           />
         ) : null}

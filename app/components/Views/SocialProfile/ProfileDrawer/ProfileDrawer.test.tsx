@@ -15,7 +15,6 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
 jest.mock('../../SocialLeaderboard/terms/socialTermsAcceptance');
-import { METAMASK_ORANGE_MENU_SKELETON_TEST_ID } from '../../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -619,7 +618,7 @@ describe('ProfileDrawer', () => {
       ).toBeNull();
     });
 
-    it('shows a skeleton while membership is still loading', () => {
+    it('hides the row while membership is still loading', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -629,23 +628,11 @@ describe('ProfileDrawer', () => {
         isSubscriptionsSettled: false,
       });
 
-      const { getByTestId, queryByText } = renderWithProvider(
-        <ProfileDrawer />,
-      );
+      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
 
       expect(
-        getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(METAMASK_ORANGE_MENU_SKELETON_TEST_ID),
-      ).toBeOnTheScreen();
-      expect(queryByText(strings('accounts_menu.metamask_orange'))).toBeNull();
-      expect(
-        queryByText(strings('accounts_menu.join_metamask_orange')),
+        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
       ).toBeNull();
-
-      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
-
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

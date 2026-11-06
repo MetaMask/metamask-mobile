@@ -20,16 +20,13 @@ import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 export interface UseMetamaskOrangeEntryResult {
   /**
-   * True when the Pro flow is on. The row stays in the menu while the label
-   * is still resolving so it does not pop in later.
+   * True when the Pro flow is on and the label is already known. Home starts
+   * the subscriptions fetch, so the row is present with the right copy when
+   * the menu opens. It stays hidden until a membership is stored or the
+   * fetch settles on a non-member.
    */
   showOrangeEntry: boolean;
-  /**
-   * True while the Pro flow is on and membership is not known yet. Callers
-   * show a skeleton instead of either label.
-   */
-  isLabelPending: boolean;
-  /** Subscriber or join label, already localized. Unused while pending. */
+  /** Subscriber or join label, already localized. */
   label: string;
   /** Tracks the Accounts Menu Orange click and opens the hub or subscription flow. */
   onPress: () => void;
@@ -44,8 +41,8 @@ export interface UseMetamaskOrangeEntryResult {
  * A stored membership shows "MetaMask Orange" and opens Pro Hub. A settled
  * non-member shows "Join MetaMask Orange" and opens Benefits. That includes
  * a leftover entitlement once subscriptions have settled, because Pro Hub
- * leaves immediately unless a membership is stored. While that check is
- * still running and nothing is stored, the row stays put and shows a skeleton.
+ * leaves immediately unless a membership is stored. Home prefetches
+ * subscriptions, so this hook only reads the stored result.
  */
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
@@ -55,8 +52,8 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  // Opening the menu starts the subscriptions query. A stored plan can label
-  // the row on the first paint. Subscriber access also covers a leftover
+  // Home starts the subscriptions query. A stored plan can label the row
+  // before that refetch finishes. Subscriber access also covers a leftover
   // entitlement, including before the list loads, so it is not enough to open
   // the hub. An empty result waits until that query settles, then joins.
   const isMember = hasMembership;
@@ -64,8 +61,8 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     !isMember &&
     (access === MoneyAccountPlusAccess.Eligible ||
       (access === MoneyAccountPlusAccess.Subscriber && isSubscriptionsSettled));
-  const showOrangeEntry = isProSubscriptionEnabled;
-  const isLabelPending = showOrangeEntry && !isMember && !isKnownNonMember;
+  const showOrangeEntry =
+    isProSubscriptionEnabled && (isMember || isKnownNonMember);
   const labelKey = isKnownNonMember
     ? 'accounts_menu.join_metamask_orange'
     : 'accounts_menu.metamask_orange';
@@ -103,7 +100,6 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
 
   return {
     showOrangeEntry,
-    isLabelPending,
     label: strings(labelKey),
     onPress,
   };

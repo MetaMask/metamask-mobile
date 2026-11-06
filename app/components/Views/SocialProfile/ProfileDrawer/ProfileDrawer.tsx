@@ -26,7 +26,6 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../../hooks/useSupportConsent';
-import MetamaskOrangeMenuSkeleton from '../../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
@@ -120,7 +119,6 @@ const ProfileDrawer = () => {
 
   const {
     showOrangeEntry,
-    isLabelPending: isOrangeLabelPending,
     label: orangeLabel,
     onPress: onPressOrange,
   } = useMetamaskOrangeEntry();
@@ -177,13 +175,7 @@ const ProfileDrawer = () => {
       ? [
           {
             iconName: IconName.MetamaskFoxOutline,
-            label: isOrangeLabelPending ? (
-              <MetamaskOrangeMenuSkeleton />
-            ) : (
-              orangeLabel
-            ),
-            accessibilityLabel: isOrangeLabelPending ? undefined : orangeLabel,
-            isDisabled: isOrangeLabelPending,
+            label: orangeLabel,
             onPress: onPressOrange,
             testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
           },
