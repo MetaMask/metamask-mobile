@@ -7,7 +7,7 @@ import { usesTemporaryApiRanking } from '../../../../UI/Trending/utils/usesTempo
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
-import type { SearchRequestPerformance } from '../../../../UI/Trending/hooks/searchPerformance';
+import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 import {
   mapTimeOptionToSortBy,
   PriceChangeOption,

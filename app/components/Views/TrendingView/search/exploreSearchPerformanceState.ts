@@ -1,4 +1,4 @@
-import type { SearchRequestOutcome } from '../../../UI/Trending/hooks/searchPerformance';
+import type { SearchRequestOutcome } from '../../../../util/searchPerformance';
 
 export type ExploreSearchFeedId =
   | 'tokens'
@@ -22,6 +22,14 @@ type RequestFeedStatus =
   | 'error'
   | 'cache';
 
+interface RequestFeedState {
+  requestId?: string;
+  firstStartedAt?: number;
+  settledAt?: number;
+  attemptCount: number;
+  status: RequestFeedStatus;
+}
+
 export interface ActiveSearchMeasurement {
   id: string;
   query: string;
@@ -32,14 +40,7 @@ export interface ActiveSearchMeasurement {
   readyFeeds: Set<ExploreSearchFeedId>;
   resultCounts: Map<ExploreSearchFeedId, number>;
   feedSources: Map<ExploreSearchFeedId, FeedSource>;
-  requestFeedStates: Map<
-    ExploreSearchRequestFeedId,
-    {
-      requestId?: string;
-      settledAt?: number;
-      status: RequestFeedStatus;
-    }
-  >;
+  requestFeedStates: Map<ExploreSearchRequestFeedId, RequestFeedState>;
   requests: Map<
     string,
     {
@@ -57,6 +58,7 @@ export interface ActiveSearchMeasurement {
 export interface FeedReadyResult {
   feedId: ExploreSearchFeedId;
   readyMs: number;
+  readyFromLastInputMs: number;
   requestToReadyMs?: number;
   source: FeedSource;
 }
@@ -85,17 +87,9 @@ const createRequestFeedStates =
     new Map(
       Array.from(QUERY_FEED_IDS, (feedId) => [
         feedId,
-        { status: 'not_started' as const },
+        { status: 'not_started' as const, attemptCount: 0 },
       ]),
     );
-
-export const getQueryLengthBucket = (queryLength: number): string => {
-  if (queryLength <= 1) return '1';
-  if (queryLength === 2) return '2';
-  if (queryLength <= 4) return '3_4';
-  if (queryLength <= 8) return '5_8';
-  return '9_plus';
-};
 
 export const getTotalResultCount = (
   resultCounts: Map<ExploreSearchFeedId, number>,
@@ -125,6 +119,12 @@ export class ExploreSearchPerformanceState {
 
   get currentMeasurement(): ActiveSearchMeasurement | null {
     return this.activeMeasurement;
+  }
+
+  private updateErrorCount(measurement: ActiveSearchMeasurement): void {
+    measurement.errorCount = Array.from(
+      measurement.requestFeedStates.values(),
+    ).filter(({ status }) => status === 'error').length;
   }
 
   startGeneration({
@@ -198,8 +198,11 @@ export class ExploreSearchPerformanceState {
     }
 
     requestFeedState.requestId = requestId;
+    requestFeedState.firstStartedAt ??= startedAt;
+    requestFeedState.attemptCount += 1;
     requestFeedState.settledAt = undefined;
     requestFeedState.status = 'pending';
+    this.updateErrorCount(measurement);
     measurement.readyFeeds.delete(feedId);
     measurement.resultCounts.delete(feedId);
     measurement.feedSources.delete(feedId);
@@ -251,10 +254,7 @@ export class ExploreSearchPerformanceState {
     } else {
       requestFeedState.settledAt = endedAt;
       requestFeedState.status = effectiveOutcome;
-
-      if (effectiveOutcome === 'error') {
-        measurement.errorCount += 1;
-      }
+      this.updateErrorCount(measurement);
     }
 
     return {
@@ -284,6 +284,7 @@ export class ExploreSearchPerformanceState {
 
     requestFeedState.settledAt = timestamp;
     requestFeedState.status = 'cache';
+    this.updateErrorCount(measurement);
 
     return true;
   }
@@ -336,6 +337,10 @@ export class ExploreSearchPerformanceState {
     measurement.feedSources.set(feedId, source);
 
     const readyMs = Math.max(0, timestamp - measurement.firstInputAt);
+    const readyFromLastInputMs = Math.max(
+      0,
+      timestamp - measurement.lastInputAt,
+    );
     const requestToReadyMs =
       requestFeedState?.status === 'success' ||
       requestFeedState?.status === 'error'
@@ -345,6 +350,7 @@ export class ExploreSearchPerformanceState {
     return {
       feedId,
       readyMs,
+      readyFromLastInputMs,
       ...(requestToReadyMs === undefined ? {} : { requestToReadyMs }),
       source,
     };
@@ -384,6 +390,7 @@ export class ExploreSearchPerformanceState {
     }
 
     measurement.completed = true;
+    this.updateErrorCount(measurement);
 
     return {
       measurement,

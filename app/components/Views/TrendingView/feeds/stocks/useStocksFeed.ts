@@ -10,7 +10,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import type { SearchRequestPerformance } from '../../../../UI/Trending/hooks/searchPerformance';
+import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 
 const SHOW_ROBINHOOD_RWA_FLAG_NAME = 'ASSETS4098ShowRobinhoodRwa';
 

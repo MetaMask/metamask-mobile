@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
@@ -155,6 +156,12 @@ describe('useExploreSearchPerformance', () => {
     );
     expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
       { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.feed.tokens.ready_from_last_input_ms',
+      400,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
       'search.feed.tokens.request_to_painted_ms',
       50,
       'millisecond',
@@ -162,6 +169,18 @@ describe('useExploreSearchPerformance', () => {
     expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
       { name: 'Explore Search Query', id: 'search-trace-id' },
       'search.feed.tokens.painted_ms',
+      400,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.feed.tokens.painted_from_last_input_ms',
+      400,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.last_input_to_end_ms',
       400,
       'millisecond',
     );
@@ -223,6 +242,108 @@ describe('useExploreSearchPerformance', () => {
       'search.feed.tokens.request_to_painted_ms',
       50,
       'millisecond',
+    );
+  });
+
+  it('aggregates retry attempts into one final successful request outcome', () => {
+    const { result } = renderHook(() =>
+      useExploreSearchPerformance({
+        query: 'eth',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+      }),
+    );
+
+    now = 10;
+    const firstRequest = result.current.tokens.startRequest('eth');
+    now = 20;
+    act(() => {
+      firstRequest?.end('error');
+    });
+
+    now = 120;
+    const secondRequest = result.current.tokens.startRequest('eth');
+    now = 150;
+    act(() => {
+      secondRequest?.end('success');
+      result.current.markFeedReady('tokens', true, 1);
+    });
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.request.tokens.attempt_count',
+      2,
+      'none',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.request.tokens.ms',
+      140,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.error_count',
+      0,
+      'none',
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          success: true,
+        }),
+      }),
+    );
+  });
+
+  it('reports one final error after all retry attempts fail', () => {
+    const { result } = renderHook(() =>
+      useExploreSearchPerformance({
+        query: 'eth',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+      }),
+    );
+
+    [10, 110, 210].forEach((startedAt) => {
+      now = startedAt;
+      const request = result.current.tokens.startRequest('eth');
+      now = startedAt + 10;
+      act(() => {
+        request?.end('error');
+      });
+    });
+
+    now = 230;
+    act(() => {
+      result.current.markFeedReady('tokens', true, 0);
+    });
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.request.tokens.attempt_count',
+      3,
+      'none',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.request.tokens.ms',
+      210,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.error_count',
+      1,
+      'none',
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          success: false,
+          content_state: 'error',
+        }),
+      }),
     );
   });
 
@@ -337,6 +458,45 @@ describe('useExploreSearchPerformance', () => {
       result.current.onFocus();
     });
     expect(mockTrace).toHaveBeenCalledTimes(2);
+  });
+
+  it('distinguishes inactive interruptions from backgrounding', () => {
+    const { result } = renderHook(() =>
+      useExploreSearchPerformance({
+        query: 'eth',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+      }),
+    );
+    const appStateChangeHandler = (AppState.addEventListener as jest.Mock).mock
+      .calls[0][1] as (nextState: 'inactive' | 'background') => void;
+
+    act(() => {
+      appStateChangeHandler('inactive');
+    });
+
+    expect(mockEndTrace).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          reason: 'inactive',
+        }),
+      }),
+    );
+
+    act(() => {
+      result.current.onFocus();
+      appStateChangeHandler('background');
+    });
+
+    expect(mockEndTrace).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          reason: 'backgrounded',
+        }),
+      }),
+    );
   });
 
   it('completes a trace when the request query is normalized', () => {
@@ -596,9 +756,26 @@ describe('useExploreSearchPerformance', () => {
         data: expect.objectContaining({
           input_count: 3,
           collapsed_input_count: 2,
-          query_length_bucket: '3_4',
         }),
       }),
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.feed.tokens.ready_from_last_input_ms',
+      200,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.feed.tokens.painted_from_last_input_ms',
+      200,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: 'Explore Search Query', id: 'search-trace-id' },
+      'search.last_input_to_end_ms',
+      200,
+      'millisecond',
     );
   });
 

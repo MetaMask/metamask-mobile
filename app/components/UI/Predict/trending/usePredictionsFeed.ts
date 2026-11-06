@@ -6,7 +6,7 @@ import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh
 import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
 import { fuseSearch } from '../../../Views/TrendingView/feeds/fuseSearch';
 import { PREDICTIONS_FUSE_OPTIONS } from './predictionsFuseOptions';
-import type { SearchRequestPerformance } from '../../Trending/hooks/searchPerformance';
+import type { SearchRequestPerformance } from '../../../../util/searchPerformance';
 
 export type PredictionsVariant = 'trending' | 'sports' | 'crypto' | 'politics';
 

@@ -34,12 +34,7 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  RouteProp,
-  useIsFocused,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
@@ -86,6 +81,7 @@ import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEna
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
+  getSearchQueryFromRouteParams,
   getTrimmedInitialQuery,
   type ExploreSearchRouteParams,
 } from './ExploreSearchScreen.types';
@@ -324,7 +320,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const navigation = useNavigation();
   const [focusCount, setFocusCount] = useState(0);
-  const isFocused = useIsFocused();
+  const isFocused = navigation.isFocused();
   const { sections, performanceLifecycle } = useExploreSearch(searchQuery, {
     exposePagination: true,
     entryPoint,
@@ -745,8 +741,9 @@ const ExploreSearchScreen: React.FC = () => {
       return;
     }
 
-    if (routeParams.initialQuery !== undefined) {
-      setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
+    const routeSearchQuery = getSearchQueryFromRouteParams(routeParams);
+    if (routeSearchQuery !== undefined) {
+      setSearchQuery(routeSearchQuery);
       setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
     }
 

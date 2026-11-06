@@ -9,7 +9,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import type {
   SearchRequestOutcome,
   SearchRequestPerformance,
-} from '../../Trending/hooks/searchPerformance';
+} from '../../../../util/searchPerformance';
 
 export interface UsePredictSearchMarketDataOptions {
   q: string;
@@ -94,20 +94,6 @@ export const usePredictSearchMarketData = ({
       return fetched < lastPage.totalResults ? allPages.length + 1 : undefined;
     },
   });
-
-  useEffect(() => {
-    if (
-      !performance?.markCachedResult ||
-      !enabled ||
-      !trimmedQuery ||
-      isFetching ||
-      !data
-    ) {
-      return;
-    }
-
-    performance.markCachedResult(trimmedQuery);
-  }, [data, enabled, isFetching, performance, trimmedQuery]);
 
   useEffect(() => {
     if (!error) return;

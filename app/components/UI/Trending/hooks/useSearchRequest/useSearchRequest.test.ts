@@ -82,6 +82,42 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('does not repeat the previous query when the query is cleared', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const initialPerformance = {
+      startRequest: jest.fn(() => ({ end: jest.fn() })),
+    };
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      const searchRequest = useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+        performance: query ? initialPerformance : undefined,
+      });
+
+      return { ...searchRequest, setQuery };
+    });
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      result.current.setQuery('');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(spySearchTokens).toHaveBeenCalledTimes(1);
+
+    unmount();
+  });
+
   it('sets error state and clears results when search fails', async () => {
     const mockError = new Error('Network error');
     spySearchTokens.mockRejectedValue(mockError);

@@ -22,9 +22,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const createWrapper = () => {
+const createWrapper = (options?: { retry?: number }) => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    defaultOptions: {
+      queries: {
+        retry: options?.retry ?? false,
+        gcTime: 0,
+        ...(options?.retry ? { retryDelay: 0 } : {}),
+      },
+    },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -160,6 +166,35 @@ describe('usePredictSearchMarketData', () => {
 
     expect(performance.startRequest).toHaveBeenCalledWith('bitcoin');
     expect(requestEnd).toHaveBeenCalledWith('success');
+  });
+
+  it('reports each production-style retry attempt to the performance observer', async () => {
+    const requestEnds: string[] = [];
+    const performance = {
+      startRequest: jest.fn(() => ({
+        end: (outcome: string) => requestEnds.push(outcome),
+      })),
+    };
+    mockSearchMarkets
+      .mockRejectedValueOnce(new Error('First failure'))
+      .mockRejectedValueOnce(new Error('Second failure'))
+      .mockResolvedValueOnce(makeSearchResult(mockMarketData));
+
+    const { Wrapper } = createWrapper({ retry: 2 });
+    const { result } = renderHook(
+      () =>
+        usePredictSearchMarketData({
+          q: 'bitcoin',
+          performance,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(mockSearchMarkets).toHaveBeenCalledTimes(3);
+    expect(performance.startRequest).toHaveBeenCalledTimes(3);
+    expect(requestEnds).toEqual(['error', 'error', 'success']);
   });
 
   it('exposes totalResults from the first page', async () => {

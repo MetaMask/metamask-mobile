@@ -37,8 +37,85 @@ describe('ExploreSearchPerformanceState', () => {
     expect(state.markFeedReady('tokens', true, 2, 260)).toEqual({
       feedId: 'tokens',
       readyMs: 260,
+      readyFromLastInputMs: 260,
       requestToReadyMs: 60,
       source: 'network',
+    });
+  });
+
+  it('aggregates a failed retry into the final successful feed outcome', () => {
+    const state = new ExploreSearchPerformanceState();
+
+    state.startGeneration({
+      id: 'generation-1',
+      query: 'eth',
+      firstInputAt: 0,
+    });
+    state.startRequest({
+      feedId: 'tokens',
+      query: 'eth',
+      requestId: 'request-1',
+      startedAt: 100,
+    });
+    state.completeRequest({
+      requestId: 'request-1',
+      outcome: 'error',
+      endedAt: 200,
+    });
+    state.startRequest({
+      feedId: 'tokens',
+      query: 'eth',
+      requestId: 'request-2',
+      startedAt: 300,
+    });
+    state.completeRequest({
+      requestId: 'request-2',
+      outcome: 'success',
+      endedAt: 500,
+    });
+
+    const requestState =
+      state.currentMeasurement?.requestFeedStates.get('tokens');
+    expect(requestState).toMatchObject({
+      firstStartedAt: 100,
+      settledAt: 500,
+      attemptCount: 2,
+      status: 'success',
+    });
+    expect(state.currentMeasurement?.errorCount).toBe(0);
+  });
+
+  it('counts a feed once when all retry attempts fail', () => {
+    const state = new ExploreSearchPerformanceState();
+
+    state.startGeneration({
+      id: 'generation-1',
+      query: 'eth',
+      firstInputAt: 0,
+    });
+
+    [100, 200, 300].forEach((startedAt, index) => {
+      state.startRequest({
+        feedId: 'tokens',
+        query: 'eth',
+        requestId: `request-${index + 1}`,
+        startedAt,
+      });
+      state.completeRequest({
+        requestId: `request-${index + 1}`,
+        outcome: 'error',
+        endedAt: startedAt + 50,
+      });
+    });
+
+    expect(state.currentMeasurement?.errorCount).toBe(1);
+    expect(
+      state.currentMeasurement?.requestFeedStates.get('tokens'),
+    ).toMatchObject({
+      firstStartedAt: 100,
+      settledAt: 350,
+      attemptCount: 3,
+      status: 'error',
     });
   });
 

@@ -10,7 +10,7 @@ import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds'
 import type {
   SearchRequestOutcome,
   SearchRequestPerformance,
-} from '../searchPerformance';
+} from '../../../../../util/searchPerformance';
 
 interface SearchResult {
   assetId: CaipChainId;
@@ -80,6 +80,8 @@ export const useSearchRequest = (options: {
 
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
+  const performanceRef = useRef(performance);
+  performanceRef.current = performance;
 
   const searchTokensRequest = useCallback(async () => {
     if (!debouncedQuery) {
@@ -100,7 +102,7 @@ export const useSearchRequest = (options: {
     setHasNextPage(false);
     setTotalCount(undefined);
 
-    const requestHandle = performance?.startRequest(debouncedQuery);
+    const requestHandle = performanceRef.current?.startRequest(debouncedQuery);
     let outcome: SearchRequestOutcome = 'success';
 
     try {
@@ -138,7 +140,7 @@ export const useSearchRequest = (options: {
       }
       requestHandle?.end(outcome);
     }
-  }, [stableChainIds, debouncedQuery, limit, includeMarketData, performance]);
+  }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)

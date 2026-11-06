@@ -13,7 +13,7 @@ import {
 import { selectExploreLaptopSearchApiRankingEnabled } from '../../selectors/featureFlags';
 import { usesTemporaryApiRanking } from '../../utils/usesTemporaryApiRanking';
 import { isEqual } from 'lodash';
-import type { SearchRequestPerformance } from '../searchPerformance';
+import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);

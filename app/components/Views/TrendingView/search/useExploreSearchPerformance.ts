@@ -15,11 +15,10 @@ import type {
   SearchRequestHandle,
   SearchRequestOutcome,
   SearchRequestPerformance,
-} from '../../../UI/Trending/hooks/searchPerformance';
+} from '../../../../util/searchPerformance';
 import {
   ExploreSearchPerformanceState,
   getContentState,
-  getQueryLengthBucket,
   type ExploreSearchFeedId,
   type ExploreSearchRequestFeedId,
 } from './exploreSearchPerformanceState';
@@ -85,14 +84,16 @@ export const useExploreSearchPerformance = ({
 }: UseExploreSearchPerformanceOptions): ExploreSearchPerformance => {
   const [hardwareTier] = useState(() => getHardwareTier());
   const networkTier = useNetworkTier();
-  const performanceStateRef = useRef(new ExploreSearchPerformanceState());
+  const [performanceState] = useState(
+    () => new ExploreSearchPerformanceState(),
+  );
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  const pendingFeedPaintsRef = useRef(
-    new Map<ExploreSearchFeedId, () => void>(),
+  const [pendingFeedPaints] = useState(
+    () => new Map<ExploreSearchFeedId, () => void>(),
   );
-  const paintedFeedsRef = useRef(new Set<ExploreSearchFeedId>());
+  const [paintedFeeds] = useState(() => new Set<ExploreSearchFeedId>());
   const enabledFeedsRef = useRef(enabledFeeds);
   const isDebouncingRef = useRef(isDebouncing);
   const hardwareTierRef = useRef(hardwareTier);
@@ -112,15 +113,15 @@ export const useExploreSearchPerformance = ({
   isFocusedRef.current = isFocused;
 
   const cancelPendingFeedPaints = useCallback(() => {
-    pendingFeedPaintsRef.current.forEach((cancel) => cancel());
-    pendingFeedPaintsRef.current.clear();
-    paintedFeedsRef.current.clear();
-  }, []);
+    pendingFeedPaints.forEach((cancel) => cancel());
+    pendingFeedPaints.clear();
+    paintedFeeds.clear();
+  }, [paintedFeeds, pendingFeedPaints]);
 
   const finishMeasurement = useCallback(
     (completed: boolean, reason?: string) => {
       const endTime = getPerformanceTimestamp();
-      const finished = performanceStateRef.current.finish(reason);
+      const finished = performanceState.finish(reason);
 
       if (!finished) {
         return;
@@ -179,6 +180,32 @@ export const useExploreSearchPerformance = ({
         measurement.errorCount,
         'none',
       );
+      setTraceMeasurement(
+        traceContext,
+        'search.last_input_to_end_ms',
+        Math.max(0, endTime - measurement.lastInputAt),
+        'millisecond',
+      );
+      measurement.requestFeedStates.forEach((requestState, feedId) => {
+        setTraceMeasurement(
+          traceContext,
+          `search.request.${feedId}.attempt_count`,
+          requestState.attemptCount,
+          'none',
+        );
+
+        if (
+          requestState.firstStartedAt !== undefined &&
+          requestState.settledAt !== undefined
+        ) {
+          setTraceMeasurement(
+            traceContext,
+            `search.request.${feedId}.ms`,
+            Math.max(0, requestState.settledAt - requestState.firstStartedAt),
+            'millisecond',
+          );
+        }
+      });
       endTrace({
         name: TraceName.ExploreSearchQuery,
         id: measurement.id,
@@ -188,7 +215,6 @@ export const useExploreSearchPerformance = ({
           ...(completed ? { content_state: contentState } : {}),
           ...(reason ? { reason } : {}),
           result_count: finished.resultCount,
-          query_length_bucket: getQueryLengthBucket(measurement.query.length),
           input_count: measurement.inputCount,
           collapsed_input_count: Math.max(0, measurement.inputCount - 1),
           tokens_search_mode:
@@ -203,7 +229,7 @@ export const useExploreSearchPerformance = ({
         },
       });
     },
-    [cancelPendingFeedPaints],
+    [cancelPendingFeedPaints, performanceState],
   );
 
   const startMeasurement = useCallback(
@@ -212,7 +238,7 @@ export const useExploreSearchPerformance = ({
       const id = uuidv4();
 
       cancelPendingFeedPaints();
-      performanceStateRef.current.startGeneration({
+      performanceState.startGeneration({
         id,
         query: searchQuery,
         firstInputAt,
@@ -239,19 +265,18 @@ export const useExploreSearchPerformance = ({
         },
       });
       timeoutRef.current = setTimeout(() => {
-        const activeMeasurement =
-          performanceStateRef.current.currentMeasurement;
+        const activeMeasurement = performanceState.currentMeasurement;
         if (activeMeasurement?.id === id && !activeMeasurement.completed) {
           finishMeasurement(false, 'timeout');
         }
       }, SEARCH_PERFORMANCE_TIMEOUT_MS);
     },
-    [cancelPendingFeedPaints, finishMeasurement],
+    [cancelPendingFeedPaints, finishMeasurement, performanceState],
   );
 
   const onFocus = useCallback(() => {
     isFocusedRef.current = true;
-    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+    const activeMeasurement = performanceState.currentMeasurement;
 
     if (
       (!activeMeasurement || activeMeasurement.completed) &&
@@ -259,20 +284,20 @@ export const useExploreSearchPerformance = ({
     ) {
       startMeasurement(queryRef.current.trim());
     }
-  }, [startMeasurement]);
+  }, [performanceState, startMeasurement]);
 
   const onBlur = useCallback(() => {
     isFocusedRef.current = false;
-    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+    const activeMeasurement = performanceState.currentMeasurement;
 
     if (activeMeasurement && !activeMeasurement.completed) {
       finishMeasurement(false, 'blurred');
     }
-  }, [finishMeasurement]);
+  }, [finishMeasurement, performanceState]);
 
   const updateSearchInput = useCallback(
     (searchQuery: string) => {
-      const updated = performanceStateRef.current.updateInput(
+      const updated = performanceState.updateInput(
         searchQuery,
         getPerformanceTimestamp(),
       );
@@ -282,7 +307,7 @@ export const useExploreSearchPerformance = ({
 
       cancelPendingFeedPaints();
     },
-    [cancelPendingFeedPaints],
+    [cancelPendingFeedPaints, performanceState],
   );
 
   const startRequest = useCallback(
@@ -293,7 +318,7 @@ export const useExploreSearchPerformance = ({
       const requestId = uuidv4();
       const startedAt = getPerformanceTimestamp();
       if (
-        !performanceStateRef.current.startRequest({
+        !performanceState.startRequest({
           feedId,
           query: searchQuery,
           requestId,
@@ -305,47 +330,26 @@ export const useExploreSearchPerformance = ({
 
       return {
         end: (outcome: SearchRequestOutcome) => {
-          const completion = performanceStateRef.current.completeRequest({
+          performanceState.completeRequest({
             requestId,
             outcome,
             endedAt: getPerformanceTimestamp(),
           });
-          if (!completion) {
-            return;
-          }
-
-          const currentMeasurement =
-            performanceStateRef.current.currentMeasurement;
-          if (!currentMeasurement) {
-            return;
-          }
-
-          if (completion.effectiveOutcome !== 'superseded') {
-            setTraceMeasurement(
-              {
-                name: TraceName.ExploreSearchQuery,
-                id: currentMeasurement.id,
-              },
-              `search.request.${completion.feedId}.ms`,
-              completion.durationMs,
-              'millisecond',
-            );
-          }
         },
       };
     },
-    [],
+    [performanceState],
   );
 
   const markCachedResult = useCallback(
     (feedId: ExploreSearchRequestFeedId, searchQuery: string) => {
-      performanceStateRef.current.markCachedResult(
+      performanceState.markCachedResult(
         feedId,
         searchQuery,
         getPerformanceTimestamp(),
       );
     },
-    [],
+    [performanceState],
   );
 
   const recordFeedReady = useCallback(
@@ -354,14 +358,14 @@ export const useExploreSearchPerformance = ({
       isReady: boolean,
       loadedResultCount: number,
     ) => {
-      const ready = performanceStateRef.current.markFeedReady(
+      const ready = performanceState.markFeedReady(
         feedId,
         isReady,
         loadedResultCount,
         getPerformanceTimestamp(),
       );
       if (ready) {
-        const measurement = performanceStateRef.current.currentMeasurement;
+        const measurement = performanceState.currentMeasurement;
         if (!measurement) {
           return;
         }
@@ -370,6 +374,12 @@ export const useExploreSearchPerformance = ({
           { name: TraceName.ExploreSearchQuery, id: measurement.id },
           `search.feed.${feedId}.ready_ms`,
           ready.readyMs,
+          'millisecond',
+        );
+        setTraceMeasurement(
+          { name: TraceName.ExploreSearchQuery, id: measurement.id },
+          `search.feed.${feedId}.ready_from_last_input_ms`,
+          ready.readyFromLastInputMs,
           'millisecond',
         );
         if (ready.requestToReadyMs !== undefined) {
@@ -388,9 +398,8 @@ export const useExploreSearchPerformance = ({
               )?.settledAt
             : undefined;
         const recordPaintedFeed = () => {
-          pendingFeedPaintsRef.current.delete(feedId);
-          const currentMeasurement =
-            performanceStateRef.current.currentMeasurement;
+          pendingFeedPaints.delete(feedId);
+          const currentMeasurement = performanceState.currentMeasurement;
           if (
             !currentMeasurement ||
             currentMeasurement.id !== generationId ||
@@ -405,10 +414,20 @@ export const useExploreSearchPerformance = ({
             0,
             paintedAt - currentMeasurement.firstInputAt,
           );
+          const paintedFromLastInputMs = Math.max(
+            0,
+            paintedAt - currentMeasurement.lastInputAt,
+          );
           setTraceMeasurement(
             { name: TraceName.ExploreSearchQuery, id: generationId },
             `search.feed.${feedId}.painted_ms`,
             paintedMs,
+            'millisecond',
+          );
+          setTraceMeasurement(
+            { name: TraceName.ExploreSearchQuery, id: generationId },
+            `search.feed.${feedId}.painted_from_last_input_ms`,
+            paintedFromLastInputMs,
             'millisecond',
           );
           const requestToPaintedMs =
@@ -423,16 +442,16 @@ export const useExploreSearchPerformance = ({
               'millisecond',
             );
           }
-          paintedFeedsRef.current.add(feedId);
+          paintedFeeds.add(feedId);
 
           const allFeedsPainted =
             enabledFeedsRef.current.length > 0 &&
             enabledFeedsRef.current.every((enabledFeed) =>
-              paintedFeedsRef.current.has(enabledFeed),
+              paintedFeeds.has(enabledFeed),
             );
           if (
             allFeedsPainted &&
-            performanceStateRef.current.isComplete(
+            performanceState.isComplete(
               enabledFeedsRef.current,
               isDebouncingRef.current,
             )
@@ -442,18 +461,17 @@ export const useExploreSearchPerformance = ({
         };
 
         const cancelPaint = scheduleAfterPaint(recordPaintedFeed);
-        const currentMeasurement =
-          performanceStateRef.current.currentMeasurement;
+        const currentMeasurement = performanceState.currentMeasurement;
         if (
           currentMeasurement?.id === generationId &&
           !currentMeasurement.completed &&
-          !paintedFeedsRef.current.has(feedId)
+          !paintedFeeds.has(feedId)
         ) {
-          pendingFeedPaintsRef.current.set(feedId, cancelPaint);
+          pendingFeedPaints.set(feedId, cancelPaint);
         }
       }
     },
-    [finishMeasurement],
+    [finishMeasurement, paintedFeeds, pendingFeedPaints, performanceState],
   );
 
   const markFeedReady = useCallback(
@@ -463,20 +481,25 @@ export const useExploreSearchPerformance = ({
       loadedResultCount: number,
     ) => {
       if (!isReady) {
-        const cancelPaint = pendingFeedPaintsRef.current.get(feedId);
+        const cancelPaint = pendingFeedPaints.get(feedId);
         cancelPaint?.();
-        pendingFeedPaintsRef.current.delete(feedId);
-        paintedFeedsRef.current.delete(feedId);
+        pendingFeedPaints.delete(feedId);
+        paintedFeeds.delete(feedId);
       }
 
       recordFeedReady(feedId, isReady, loadedResultCount);
     },
-    [recordFeedReady],
+    [paintedFeeds, pendingFeedPaints, recordFeedReady],
+  );
+
+  const getCurrentMeasurement = useCallback(
+    () => performanceState.currentMeasurement,
+    [performanceState],
   );
 
   useEffect(() => {
     const searchQuery = query.trim();
-    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+    const activeMeasurement = getCurrentMeasurement();
 
     if (!isFocusedRef.current) {
       if (activeMeasurement && !activeMeasurement.completed) {
@@ -510,6 +533,7 @@ export const useExploreSearchPerformance = ({
     startMeasurement(searchQuery);
   }, [
     finishMeasurement,
+    getCurrentMeasurement,
     isFocused,
     isDebouncing,
     query,
@@ -522,10 +546,8 @@ export const useExploreSearchPerformance = ({
       return;
     }
 
-    const debounceMs = performanceStateRef.current.markDebounce(
-      getPerformanceTimestamp(),
-    );
-    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+    const debounceMs = performanceState.markDebounce(getPerformanceTimestamp());
+    const activeMeasurement = getCurrentMeasurement();
 
     if (debounceMs === undefined || !activeMeasurement) {
       return;
@@ -553,12 +575,14 @@ export const useExploreSearchPerformance = ({
       debounceOverheadMs,
       'millisecond',
     );
-  }, [isDebouncing, query]);
+  }, [getCurrentMeasurement, isDebouncing, performanceState, query]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
+      if (nextState === 'background') {
         finishMeasurement(false, 'backgrounded');
+      } else if (nextState === 'inactive') {
+        finishMeasurement(false, 'inactive');
       }
     });
 
