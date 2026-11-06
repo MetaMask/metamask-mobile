@@ -437,6 +437,21 @@ jest.mock(
   }),
 );
 
+const mockUseSwapsRebate = jest.fn();
+jest.mock('../../hooks/useSwapsRebate', () => ({
+  useSwapsRebate: (...args: unknown[]) => mockUseSwapsRebate(...args),
+}));
+
+jest.mock('../../../shared/RebateBanner', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'mock-swaps-rebate-banner' }),
+  };
+});
+
 const mockUseIsGasIncluded7702Supported = jest.fn();
 jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
   useIsGasIncluded7702Supported: (chainId?: string) =>
@@ -454,6 +469,7 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSwapsRebate.mockReturnValue(null);
     mockFocusEffects.length = 0;
     mockRoute.params = {
       sourcePage: 'test',
@@ -1376,6 +1392,132 @@ describe('BridgeView', () => {
       expect(
         queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeNull();
+    });
+
+    it('renders the rebate banner above the keypad confirm button', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, getAllByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        ).toBeTruthy();
+      });
+      // The footer copy stays mounted under the sheet so its layout never shifts.
+      expect(getAllByTestId('mock-swaps-rebate-banner')).toHaveLength(2);
+      expect(mockUseSwapsRebate).toHaveBeenCalledWith(
+        mockQuoteWithMetadata.quote,
+      );
+    });
+
+    it('hides the keypad rebate banner when a new quote is needed', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+          needsNewQuote: true,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        ).toBeTruthy();
+      });
+      expect(queryByTestId('mock-swaps-rebate-banner')).toBeNull();
+    });
+
+    it('renders the rebate banner in the footer when the keypad is closed', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, getAllByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+      ).toBeNull();
+      expect(getAllByTestId('mock-swaps-rebate-banner')).toHaveLength(1);
     });
 
     it('shows zero mode with trending section and without quote content', () => {

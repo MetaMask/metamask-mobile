@@ -91,6 +91,7 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
@@ -105,6 +106,7 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
@@ -365,6 +367,7 @@ describe('rewardsMoneyReducer', () => {
             summaryKey: 'stale',
           },
         },
+        commissionMechanisms: {},
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -403,6 +406,7 @@ describe('rewardsMoneyReducer', () => {
         persisted.claimWaitingUntil[PROFILE_A],
       );
       expect(state.claimLocks).toEqual({});
+      expect(state.commissionMechanisms).toEqual({});
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -422,6 +426,7 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},
@@ -452,6 +457,7 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},
