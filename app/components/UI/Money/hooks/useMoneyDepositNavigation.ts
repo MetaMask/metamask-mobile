@@ -6,10 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { selectMoneyEntryContext } from '../selectors/entry';
-import {
-  getMoneyEntryDecision,
-  type MoneyEntryDecision,
-} from '../navigation/moneyEntryDecision';
+import { getMoneyEntryDecision } from '../navigation/moneyEntryDecision';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
