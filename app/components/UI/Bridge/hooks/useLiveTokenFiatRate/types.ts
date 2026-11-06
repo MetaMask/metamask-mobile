@@ -27,3 +27,15 @@ export interface UseLiveTokenFiatRateOptions {
    */
   enabled?: boolean;
 }
+
+export interface LiveTokenFiatRateState {
+  /**
+   * Fiat rate of one token, or undefined when no source can price it yet.
+   */
+  rate: number | undefined;
+  /**
+   * True while there is no rate and the stream's first lookup for the token
+   * has not answered.
+   */
+  isLoading: boolean;
+}

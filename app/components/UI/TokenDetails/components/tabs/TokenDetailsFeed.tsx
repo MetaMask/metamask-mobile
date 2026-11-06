@@ -21,6 +21,7 @@ import SocialFeedPostShell, {
 } from '../../../SocialFeed/components/SocialFeedPostShell';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import { TokenDetailsIds } from '../../testIds';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
@@ -53,6 +54,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
+  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   // Set only before Social terms are accepted: a tap anywhere on a card opens
   // onboarding. The card's own buttons keep their (also gated) press.
   const onOnboardingPress = useSocialOnboardingPress();
@@ -62,7 +64,9 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
         <SocialFeedPostShell
           post={post}
           requireSocialTerms
+          onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
+          onPositionPress={post.position ? onPositionPress : undefined}
         />
       );
       if (!onOnboardingPress) {
@@ -80,7 +84,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
         </Pressable>
       );
     },
-    [onCopyTrade, onOnboardingPress],
+    [onAuthorPress, onCopyTrade, onOnboardingPress, onPositionPress],
   );
   const {
     posts,

@@ -77,6 +77,8 @@ const toRow = (index: number): TraderFeedRow => {
 const baseState: TokenHoldersState = {
   rows: [],
   isLoading: false,
+  isFetching: false,
+  hasFetched: true,
   isFetchingNextPage: false,
   hasNextPage: false,
   loadMore: jest.fn(),
