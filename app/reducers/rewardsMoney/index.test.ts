@@ -1,5 +1,6 @@
 import { Action } from '@reduxjs/toolkit';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -8,6 +9,10 @@ import rewardsMoneyReducer, {
   resetRewardsMoneyState,
   setCashbackLedger,
   setCommissions,
+  setEarningsHistory,
+  setClaimLock,
+  setClaimWaitingUntil,
+  setInFlightClaims,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
@@ -44,6 +49,7 @@ const mockReferralMe: ReferralMeDto = {
   },
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const mockEarningsSummary = {
@@ -86,6 +92,10 @@ describe('rewardsMoneyReducer', () => {
       referralFunnel: {},
       commissions: {},
       cashbackLedger: {},
+      earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
+      claimLocks: {},
     });
   });
 
@@ -96,6 +106,10 @@ describe('rewardsMoneyReducer', () => {
       referralFunnel: {},
       commissions: {},
       cashbackLedger: {},
+      earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
+      claimLocks: {},
     });
   });
 
@@ -313,6 +327,44 @@ describe('rewardsMoneyReducer', () => {
             },
           ],
         },
+        earningsHistory: {
+          [PROFILE_A]: [
+            {
+              type: 'earning' as const,
+              id: 'earn-1',
+              earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+              musd_amount: '1000000',
+              voided_musd_amount: '0',
+              fee_amount_usd: '1',
+              entry_count: 1,
+              transaction_hash: null,
+              chain_id: null,
+              ledger_timestamp: '2026-09-01T00:00:00.000Z',
+              claim_status: 'unclaimed',
+              claimable_at: '2026-09-02T00:00:00.000Z',
+              swaps_source: null,
+              perps_source: null,
+              predict_source: null,
+            },
+          ],
+        },
+        inFlightClaims: {
+          [PROFILE_A]: [
+            {
+              id: 'claim-open',
+              status: 'AUTHORIZED',
+            },
+          ] as ClaimDto[],
+        },
+        claimWaitingUntil: {
+          [PROFILE_A]: 1_800_000_000_000,
+        },
+        claimLocks: {
+          [PROFILE_A]: {
+            status: 'in_progress' as const,
+            summaryKey: 'stale',
+          },
+        },
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -341,6 +393,16 @@ describe('rewardsMoneyReducer', () => {
       expect(state.cashbackLedger[PROFILE_A]).toEqual(
         persisted.cashbackLedger[PROFILE_A],
       );
+      expect(state.earningsHistory[PROFILE_A]).toEqual(
+        persisted.earningsHistory[PROFILE_A],
+      );
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(
+        persisted.inFlightClaims[PROFILE_A],
+      );
+      expect(state.claimWaitingUntil[PROFILE_A]).toBe(
+        persisted.claimWaitingUntil[PROFILE_A],
+      );
+      expect(state.claimLocks).toEqual({});
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -361,6 +423,10 @@ describe('rewardsMoneyReducer', () => {
         referralFunnel: {},
         commissions: {},
         cashbackLedger: {},
+        earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
+        claimLocks: {},
       });
     });
   });
@@ -387,6 +453,10 @@ describe('rewardsMoneyReducer', () => {
         referralFunnel: {},
         commissions: {},
         cashbackLedger: {},
+        earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
+        claimLocks: {},
       });
     });
   });
@@ -456,6 +526,104 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.cashbackLedger[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches unified earnings history by profile', () => {
+      const items = [
+        {
+          type: 'earning' as const,
+          id: 'earn-1',
+          earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+          musd_amount: '1000000',
+          voided_musd_amount: '0',
+          fee_amount_usd: '1',
+          entry_count: 1,
+          transaction_hash: null,
+          chain_id: null,
+          ledger_timestamp: '2026-09-01T00:00:00.000Z',
+          claim_status: 'unclaimed',
+          claimable_at: '2026-09-02T00:00:00.000Z',
+          swaps_source: null,
+          perps_source: null,
+          predict_source: null,
+        },
+        {
+          type: 'claim' as const,
+          id: 'claim-1',
+          route: 'REFERRAL_TRADE_FEE_CASHBACK',
+          gross_amount: '1000000',
+          net_amount: '1000000',
+          withholding_rate_bps: 0,
+          status: 'SETTLED',
+          ledger_timestamp: '2026-09-02T00:00:00.000Z',
+          settled_at: '2026-09-02T00:00:00.000Z',
+          payout_method: 'VOUCHER',
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setEarningsHistory({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.earningsHistory[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches open claims by profile', () => {
+      const claims = [
+        {
+          id: 'claim-open',
+          status: 'AUTHORIZED' as const,
+        },
+      ] as ClaimDto[];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setInFlightClaims({ profileId: PROFILE_A, claims }),
+      );
+
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(claims);
+    });
+
+    it('keeps a claim wait by profile and clears it', () => {
+      const waiting = rewardsMoneyReducer(
+        initialState,
+        setClaimWaitingUntil({
+          profileId: PROFILE_A,
+          until: 1_800_000_000_000,
+        }),
+      );
+
+      expect(waiting.claimWaitingUntil[PROFILE_A]).toBe(1_800_000_000_000);
+
+      const cleared = rewardsMoneyReducer(
+        waiting,
+        setClaimWaitingUntil({ profileId: PROFILE_A, until: null }),
+      );
+
+      expect(cleared.claimWaitingUntil[PROFILE_A]).toBeUndefined();
+    });
+
+    it('keeps a claim lock by profile and clears it', () => {
+      const locked = rewardsMoneyReducer(
+        initialState,
+        setClaimLock({
+          profileId: PROFILE_A,
+          lock: { status: 'awaiting_fresh_summary', summaryKey: 'before' },
+        }),
+      );
+
+      expect(locked.claimLocks[PROFILE_A]).toEqual({
+        status: 'awaiting_fresh_summary',
+        summaryKey: 'before',
+      });
+
+      const cleared = rewardsMoneyReducer(
+        locked,
+        setClaimLock({ profileId: PROFILE_A, lock: null }),
+      );
+
+      expect(cleared.claimLocks[PROFILE_A]).toBeUndefined();
     });
   });
 });

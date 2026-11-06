@@ -148,7 +148,6 @@ describe('logs :: generateStateLogs', () => {
           ...backgroundState,
           NftController: { nfts: [] },
           TokensController: { tokens: [] },
-          AssetsController: { assetsBalance: {} },
           NftDetectionController: { detectedNfts: [] },
           PhishingController: { whitelist: [] },
           AssetsContractController: { assets: [] },
@@ -166,7 +165,6 @@ describe('logs :: generateStateLogs', () => {
 
     expect(logs.includes('NftController')).toBe(false);
     expect(logs.includes('TokensController')).toBe(false);
-    expect(logs.includes('AssetsController')).toBe(false);
     expect(logs.includes('AssetsContractController')).toBe(false);
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
@@ -882,6 +880,7 @@ describe('logs :: generateStateLogs', () => {
       Reflect.deleteProperty(Engine.context, 'QrSyncController');
       Reflect.deleteProperty(Engine.context, 'CardController');
       Reflect.deleteProperty(Engine.context, 'AuthenticationController');
+      Reflect.deleteProperty(Engine.context, 'AssetsController');
     });
 
     it('drops fields marked false and applies sanitizer functions', () => {
@@ -905,6 +904,37 @@ describe('logs :: generateStateLogs', () => {
         status: 'idle',
         session: { hasSession: true },
       });
+    });
+
+    it('exports full AssetsController state even when its metadata excludes fields', () => {
+      const assetsControllerState = {
+        assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
+        assetsBalance: {
+          'account-1': { 'eip155:1/slip44:60': { amount: '1.5' } },
+        },
+        assetsPrice: { 'eip155:1/slip44:60': { price: 3000 } },
+        customAssets: { 'account-1': ['eip155:1/erc20:0xabc'] },
+        assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
+        selectedCurrency: 'usd',
+        assetsLoadingStatus: { isLoading: false },
+      };
+      Reflect.set(Engine.context, 'AssetsController', {
+        metadata: {
+          assetsInfo: stateLogsMetadata(false),
+          assetsBalance: stateLogsMetadata(false),
+          assetsPrice: stateLogsMetadata(false),
+          customAssets: stateLogsMetadata(false),
+          assetPreferences: stateLogsMetadata(false),
+          selectedCurrency: stateLogsMetadata(false),
+          assetsLoadingStatus: stateLogsMetadata(true),
+        },
+      });
+
+      const logs = generateParsedLogs({
+        AssetsController: assetsControllerState,
+      });
+
+      expect(logs.AssetsController).toStrictEqual(assetsControllerState);
     });
 
     it('keeps controller state unchanged when the controller has no metadata', () => {
@@ -1000,6 +1030,7 @@ describe('logs :: generateStateLogs', () => {
         },
         enrolledCredentials: [
           {
+            id: 'email_otp',
             type: 'email_otp',
             status: 'active',
             enrolledAt: 1700000000000,

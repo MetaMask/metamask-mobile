@@ -346,7 +346,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               accessible={false}
             >
               {balanceBreakdownSectionProps ? (
-                <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+                <BalanceBreakdownSection
+                  {...balanceBreakdownSectionProps}
+                  deviceCapability={homepageDeviceCapability}
+                />
               ) : null}
               {showTopTradersAboveAllocation && (
                 <TopTradersSection

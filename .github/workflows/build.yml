@@ -50,6 +50,14 @@ on:
         required: false
         type: string
         default: ''
+      cache_mode:
+        description: >-
+          The caller's effective `cache-mode` (none, read, write or write-only). Namespace runners
+          do not expose ACTIONS_CACHE_MODE, so callers that may use caches must pass it. The
+          default, `none`, disables every cache in this workflow.
+        required: false
+        type: string
+        default: 'none'
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -156,8 +164,24 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
-      should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
+      should_cache: ${{ (startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch') && steps.cache-mode.outputs.mode == 'write' }}
+      cache_mode: ${{ steps.cache-mode.outputs.mode }}
     steps:
+      # Callers can restrict cache access with `cache-mode`. The node_modules cache handoff
+      # needs full access. The Namespace cache is not governed by `cache-mode` and always both
+      # restores and commits, so it only runs when the mode is `write`.
+      - name: Resolve cache mode
+        id: cache-mode
+        env:
+          CACHE_MODE_INPUT: ${{ inputs.cache_mode }}
+        run: |
+          mode="${ACTIONS_CACHE_MODE:-${CACHE_MODE_INPUT:-none}}"
+          case "$mode" in
+            none|read|write|write-only) ;;
+            *) echo "::error::Unknown cache mode '${mode}'"; exit 1 ;;
+          esac
+          echo "Cache mode: ${mode}"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
@@ -169,7 +193,7 @@ jobs:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -239,6 +263,7 @@ jobs:
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
+      cache_mode: ${{ needs.prepare.outputs.cache_mode }}
 
   # Build
   build:
@@ -321,7 +346,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      # release/* branches and manual workflow_dispatch: restore node_modules from GitHub Actions cache (fast, no artifact download).
+      # release/* branches and manual workflow_dispatch, when the caller's `cache-mode` is `write`:
+      # restore node_modules from GitHub Actions cache (fast, no artifact download).
       - name: Compute node_modules cache key
         id: cache-key
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
@@ -516,8 +542,18 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.release android/gradle.properties
 
+      - name: Configure Namespace Gradle cache (Android)
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' && needs.prepare.outputs.cache_mode == 'write' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: gradle
+          path: |
+            ${{ env.GRADLE_USER_HOME }}/caches
+            ${{ env.GRADLE_USER_HOME }}/wrapper
+
+      # Rollback (`current`) arm only; Namespace runners use the cache volume above.
       - name: Restore Gradle dependencies from branch cache (Android)
-        if: matrix.platform == 'android'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' }}
         id: gradle-cache-restore
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -527,7 +563,7 @@ jobs:
           key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore Gradle dependencies from main cache (Android)
-        if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
@@ -640,22 +676,6 @@ jobs:
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
-
-      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
-      # The lint + Slack report run for every main release build so RC gets Slack feedback.
-      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
-      - name: Cache bundletool (Android Play bundle validation)
-        id: bundletool-cache-play-check
-        if: >-
-          success() &&
-          matrix.platform == 'android' &&
-          env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT == 'production'
-        uses: actions/cache@v6
-        with:
-          path: ${{ runner.temp }}/bundletool-all.jar
-          key: bundletool-1.18.3-jar
 
       - name: Android Play Store lint and bundle validation (prodRelease, non-blocking)
         if: >-

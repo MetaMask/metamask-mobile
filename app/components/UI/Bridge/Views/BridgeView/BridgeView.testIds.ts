@@ -10,6 +10,11 @@ export const BridgeViewSelectorsIDs = {
   CONFIRM_BUTTON: 'bridge-confirm-button',
   CONFIRM_BUTTON_KEYPAD: 'bridge-confirm-button-keypad',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  /**
+   * Countdown text beside Rate. Tapping Rate opens its tooltip, so keypad
+   * dismissal uses this plain text instead.
+   */
+  QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',

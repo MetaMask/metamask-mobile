@@ -3,6 +3,7 @@ export const ManageProfileViewSelectorsIDs = {
   HEADER: 'manage-profile-view-header',
   BACK_BUTTON: 'manage-profile-view-back-button',
   AVATAR: 'manage-profile-view-avatar',
+  EDIT_AVATAR_BUTTON: 'manage-profile-view-edit-avatar-button',
   ABOUT_SECTION: 'manage-profile-view-about-section',
   PRIVACY_SECTION: 'manage-profile-view-privacy-section',
   DISPLAY_NAME_ROW: 'manage-profile-view-display-name-row',
@@ -12,6 +13,7 @@ export const ManageProfileViewSelectorsIDs = {
   TRADING_ACTIVITY_ROW: 'manage-profile-view-trading-activity-row',
   LINKED_ACCOUNT_ROW: 'manage-profile-view-linked-account-row',
   LINKED_ACCOUNT_AVATAR: 'manage-profile-view-linked-account-avatar',
+  X_CONNECT_ERROR: 'manage-profile-view-x-connect-error',
 } as const;
 
 export const ManageProfileEditorSelectorsIDs = {

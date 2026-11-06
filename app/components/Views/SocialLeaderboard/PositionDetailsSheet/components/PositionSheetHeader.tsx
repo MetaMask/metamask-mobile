@@ -7,11 +7,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,13 +15,7 @@ import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
-import { MOCK_MARKER } from '../../../../UI/SocialFeed/mockMarker';
-import { useSocialFeedSurface } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
-import {
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../../../../UI/SocialFeed/utils/traderStats';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -47,10 +37,10 @@ const PositionSheetHeader = ({
   isOwnPost,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
-  const { showMockedFields } = useSocialFeedSurface();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
-  const { followWithSetup } = useFollowWithNotificationSetup();
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
 
   const handleFollowPress = useCallback(
     () =>
@@ -111,27 +101,6 @@ const PositionSheetHeader = ({
             username: author.username,
           })}
         </Text>
-        {showMockedFields ? (
-          <>
-            <Icon
-              name={IconName.VerifiedFilled}
-              size={IconSize.Sm}
-              twClassName="text-info-default shrink-0"
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
-              twClassName="shrink-0"
-            >
-              {MOCK_MARKER}
-            </Text>
-          </>
-        ) : null}
-        {cohortEmoji ? (
-          <Text variant={TextVariant.BodySm} twClassName="shrink-0">
-            {cohortEmoji}
-          </Text>
-        ) : null}
       </Box>
 
       {isOwnPost ? null : (

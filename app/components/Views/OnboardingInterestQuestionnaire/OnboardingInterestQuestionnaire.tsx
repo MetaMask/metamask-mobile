@@ -9,7 +9,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
-  ListItemMultiSelect,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ListItemSelect,
   ListItemVariant,
   Text,
   TextVariant,
@@ -231,7 +235,7 @@ const OnboardingInterestQuestionnaire = () => {
         includesTopInset
       />
 
-      <Box twClassName="px-4" style={{ marginTop: headerInset }}>
+      <Box twClassName="px-4 pb-6" style={{ marginTop: headerInset }}>
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -247,12 +251,20 @@ const OnboardingInterestQuestionnaire = () => {
           const isSelected = selectedIds.has(option.id);
           const isOtherOption = option.id === 'other';
           return (
-            <ListItemMultiSelect
+            <ListItemSelect
               key={option.id}
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
+              showSelectedIcon
+              endAccessory={
+                <Icon
+                  name={IconName.Add}
+                  size={IconSize.Lg}
+                  color={IconColor.IconDefault}
+                />
+              }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border px-6 py-4 ${
+              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={

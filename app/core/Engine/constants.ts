@@ -32,6 +32,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'KycService',
   'QrSyncProvisioningService',
   'SocialService',
+  'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',

@@ -90,6 +90,8 @@ interface PerpsPositionCardProps {
   onAutoClosePress?: () => void;
   onFlipPress?: () => void;
   onMarginPress?: () => void;
+  /** Rendered before the share icon in the header. */
+  postToFeedButton?: React.ReactNode;
   onSharePress?: () => void;
   /** Test ID for the card */
   testID?: string;
@@ -107,6 +109,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onAutoClosePress,
   onFlipPress: _onFlipPress,
   onMarginPress,
+  postToFeedButton,
   onSharePress,
   testID,
   szDecimals,
@@ -211,7 +214,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const sectionTitle =
-    onSharePress || isCross ? (
+    onSharePress || postToFeedButton || isCross ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -236,14 +239,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Tag>
           )}
         </Box>
-        {onSharePress && (
-          <ButtonIcon
-            size={ButtonIconSize.Sm}
-            iconName={IconName.Share}
-            onPress={onSharePress}
-            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-          />
-        )}
+        {postToFeedButton || onSharePress ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {postToFeedButton}
+            {onSharePress ? (
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                variant={ButtonIconVariant.Filled}
+                iconName={IconName.Share}
+                onPress={onSharePress}
+                testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+              />
+            ) : null}
+          </Box>
+        ) : null}
       </Box>
     ) : (
       strings('perps.position.card.position_title')

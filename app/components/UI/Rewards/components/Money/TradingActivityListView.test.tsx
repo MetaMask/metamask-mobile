@@ -3,7 +3,7 @@ import { ActivityIndicator, Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
-import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton.testIds';
 import TradingActivityListView, {
   TRADING_ACTIVITY_LIST_EMPTY_TEST_ID,
 } from './TradingActivityListView';

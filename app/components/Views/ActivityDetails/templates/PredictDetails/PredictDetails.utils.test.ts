@@ -3,11 +3,25 @@ import {
   getPolymarketActivityUrl,
   getPredictFundsSteps,
   getPredictFundsStepTitle,
+  getPredictSettlementOutcome,
 } from './PredictDetails.utils';
 
 const TS = 1_765_361_640_000;
 
 describe('PredictDetails.utils', () => {
+  describe('getPredictSettlementOutcome', () => {
+    it.each([
+      ['yes', 'yes', 'won'],
+      ['no', 'no', 'won'],
+      ['yes', 'no', 'lost'],
+      ['no', 'yes', 'lost'],
+      ['yes', 'scalar', 'partial'],
+      ['no', 'scalar', 'partial'],
+    ] as const)('held %s, result %s → %s', (side, result, expected) => {
+      expect(getPredictSettlementOutcome(side, result)).toBe(expected);
+    });
+  });
+
   describe('getPolymarketActivityUrl', () => {
     it('returns undefined for missing activity or a non-Polymarket provider', () => {
       expect(getPolymarketActivityUrl(undefined)).toBeUndefined();

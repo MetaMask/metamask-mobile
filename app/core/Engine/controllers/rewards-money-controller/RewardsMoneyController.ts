@@ -11,6 +11,9 @@ import {
   REWARDS_MONEY_CONTROLLER_NAME,
   type ClaimDto,
   type ClaimHistoryPageDto,
+  type ClaimRouteSlug,
+  type InitiateClaimBody,
+  type InitiateClaimResult,
   type CommissionsPageDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
@@ -19,6 +22,7 @@ import {
   type GetClaimHistoryDto,
   type GetCommissionsDto,
   type GetEarningsLedgerDto,
+  type EarningsSummaryQuery,
   type GetEarningsSummaryDto,
   type GetReferralCodesDto,
   type GetReferralFunnelDto,
@@ -132,6 +136,29 @@ export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
 }
 
 /**
+ * Cache key for an earnings summary.
+ *
+ * The default call — no window, claimability included — stays on the origin-type
+ * key the heroes already read. A windowed lifetime is a different figure and
+ * omits `claimable`, so it must not land in that bucket.
+ */
+export function summaryScopeKey(
+  originTypes?: EarningOriginType[],
+  query?: EarningsSummaryQuery,
+): string {
+  const base = originTypeScopeKey(originTypes);
+  const from = query?.from;
+  const to = query?.to;
+  const hasWindow = Boolean(from || to);
+  const includeClaimable = query?.includeClaimable !== false;
+  if (!hasWindow && includeClaimable) {
+    return base;
+  }
+  const windowPart = hasWindow ? `${from ?? ''}..${to ?? ''}` : 'all-time';
+  return `${base}|window:${windowPart}|claimable:${includeClaimable ? '1' : '0'}`;
+}
+
+/**
  * Cache key for ledger first pages. `include_claims` is not in the server
  * cursor, so with/without claims must not share a bucket.
  */
@@ -195,6 +222,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimById',
   'getSwapsRebateQuote',
   'getPerpsRebateQuote',
+  'initiateClaim',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -215,6 +243,8 @@ export class RewardsMoneyController extends BaseController<
   readonly #isDisabled: () => boolean;
   readonly #referralMeRequestGeneration = new Map<string, number>();
   readonly #referralMeInFlight = new Map<string, Promise<ReferralMeDto>>();
+  readonly #claimHistoryRequestGeneration = new Map<string, number>();
+  readonly #claimHistoryWrittenGeneration = new Map<string, number>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -521,10 +551,12 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    const { originTypes, forceFresh } = params;
+    const { originTypes, forceFresh, from, to, includeClaimable } = params;
+    const query = { from, to, includeClaimable };
     const profileId = await this.#getProfileId();
-    const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
-    const fetchFresh = () => this.#fetchEarningsSummary(key, originTypes);
+    const key = profileCacheKey(profileId, summaryScopeKey(originTypes, query));
+    const fetchFresh = () =>
+      this.#fetchEarningsSummary(key, originTypes, query);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
@@ -609,12 +641,30 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getClaimHistory', null);
+    let generation = 0;
+    const fetchFresh = () => {
+      generation =
+        (this.#claimHistoryRequestGeneration.get(profileId) ?? 0) + 1;
+      this.#claimHistoryRequestGeneration.set(profileId, generation);
+      return this.messenger.call(
+        'RewardsMoneyDataService:getClaimHistory',
+        null,
+      );
+    };
+    // Overlapping fetches can answer out of order. Keep the newest page.
+    const writeIfLatest = (payload: ClaimHistoryPageDto) => {
+      if (
+        generation <= (this.#claimHistoryWrittenGeneration.get(profileId) ?? 0)
+      ) {
+        return;
+      }
+      this.#claimHistoryWrittenGeneration.set(profileId, generation);
+      this.#writeClaimHistoryFirstPage(profileId, payload);
+    };
 
     if (forceFresh) {
       const fresh = await fetchFresh();
-      this.#writeClaimHistoryFirstPage(profileId, fresh);
+      writeIfLatest(fresh);
       return fresh;
     }
 
@@ -623,8 +673,7 @@ export class RewardsMoneyController extends BaseController<
       ttl: CLAIM_HISTORY_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.claimHistoryFirstPage[key],
       fetchFresh,
-      writeCache: (key, payload) =>
-        this.#writeClaimHistoryFirstPage(key, payload),
+      writeCache: (_key, payload) => writeIfLatest(payload),
     });
   }
 
@@ -677,6 +726,21 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  async initiateClaim(
+    route: ClaimRouteSlug,
+    body: InitiateClaimBody,
+  ): Promise<InitiateClaimResult> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:initiateClaim',
+      route,
+      body,
+    );
+  }
+
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
@@ -711,6 +775,7 @@ export class RewardsMoneyController extends BaseController<
   #fetchEarningsSummary(
     key: string,
     originTypes: EarningOriginType[] | undefined,
+    query?: EarningsSummaryQuery,
   ): Promise<EarningsSummaryDto> {
     const inFlight = this.#earningsSummaryInFlight.get(key);
     if (inFlight) {
@@ -718,7 +783,7 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const pending = this.messenger
-      .call('RewardsMoneyDataService:getEarningsSummary', originTypes)
+      .call('RewardsMoneyDataService:getEarningsSummary', originTypes, query)
       .finally(() => {
         if (this.#earningsSummaryInFlight.get(key) === pending) {
           this.#earningsSummaryInFlight.delete(key);

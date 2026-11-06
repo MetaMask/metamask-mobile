@@ -19,7 +19,10 @@ const LOCALIZED_TEXT = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
+  voided: 'Voided',
 } as unknown as ReferralLocalizedText;
 
 const amountColor = (
@@ -113,10 +116,42 @@ describe('PerformanceActivityRows', () => {
     expect(queryByText('Predictions')).toBeNull();
   });
 
-  it('shows the remaining rebate in green when only part is voided', () => {
+  it('labels a swaps cashback row as swaps volume', () => {
+    const { getByText } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({ earning_origin_type: 'SWAPS_FEE_CASHBACK' })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
+  });
+
+  it('labels a predict cashback row from localized_text', () => {
+    const { getByText } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({
+          predict_source: {
+            condition_id: 'c1',
+            token_id: 't1',
+            side: 'yes',
+            tx_hash: null,
+          },
+        })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Predictions')).toBeOnTheScreen();
+  });
+
+  it('shows a partially voided rebate as the net credit in green', () => {
     const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
       <PerformanceRebateRow
-        item={rebate({ musd_amount: '2500000', voided_musd_amount: '1000000' })}
+        item={rebate({
+          musd_amount: '2500000',
+          voided_musd_amount: '1000000',
+        })}
         localizedText={LOCALIZED_TEXT}
       />,
     );
@@ -125,21 +160,31 @@ describe('PerformanceActivityRows', () => {
     expect(amountColor(UNSAFE_getAllByType, '+$1.50')).toBe(
       TextColor.SuccessDefault,
     );
+    expect(queryByText('Voided')).toBeNull();
     expect(queryByText('+$2.50')).toBeNull();
   });
 
-  it('does not show a fully voided rebate as a green credit', () => {
+  it('shows a fully voided rebate as the original amount in gray, marked voided', () => {
     const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
       <PerformanceRebateRow
-        item={rebate({ musd_amount: '2500000', voided_musd_amount: '2500000' })}
+        item={rebate({
+          musd_amount: '2500000',
+          voided_musd_amount: '2500000',
+        })}
         localizedText={LOCALIZED_TEXT}
       />,
     );
 
-    expect(getByText('$0.00')).toBeOnTheScreen();
-    expect(amountColor(UNSAFE_getAllByType, '$0.00')).toBe(
+    expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.TextAlternative,
     );
-    expect(queryByText('+$2.50')).toBeNull();
+    expect(
+      getByText(
+        formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Voided')).toBeOnTheScreen();
+    expect(queryByText('$0.00')).toBeNull();
   });
 });

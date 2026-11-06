@@ -8,7 +8,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import { useCashbackLedger } from '../hooks/useCashbackLedger';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import RewardsTradingRebatesView, {
   REWARDS_TRADING_REBATES_VIEW_TEST_IDS,
@@ -41,6 +41,8 @@ const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',

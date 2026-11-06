@@ -1,6 +1,30 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { usePushProvisioning } from './usePushProvisioning';
+
+interface FocusEffectHarness {
+  latest?: () => void | (() => void);
+}
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const harness: FocusEffectHarness = {};
+  (
+    globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness }
+  ).__pushProvisioningFocusHarness = harness;
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        harness.latest = effect;
+        return effect();
+      }, [effect]);
+    },
+  };
+});
+
+const getFocusEffect = () =>
+  (globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness })
+    .__pushProvisioningFocusHarness?.latest;
 import { ProvisioningError, ProvisioningErrorCode } from '../types';
 
 let mockAppleProvisioningEnabled = true;
@@ -219,6 +243,129 @@ describe('usePushProvisioning', () => {
           '1234',
           undefined,
         );
+      });
+
+      unmount();
+    });
+
+    it('re-checks eligibility when the screen regains focus', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      mockWalletAdapter.getEligibility.mockClear();
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'active',
+      });
+
+      await act(async () => {
+        getFocusEffect()?.();
+      });
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith(
+          '1234',
+          undefined,
+        );
+        expect(result.current.isCardInWallet).toBe(true);
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+      expect(result.current.isLoading).toBe(false);
+
+      unmount();
+    });
+
+    it('keeps the current add state while a same-card refocus check is in flight', async () => {
+      let resolveRecheck: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        existingCardStatus: 'active';
+      }) => void = () => undefined;
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveRecheck = resolve;
+        }),
+      );
+
+      act(() => {
+        getFocusEffect()?.();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.canAddToWallet).toBe(true);
+
+      await act(async () => {
+        resolveRecheck({
+          isAvailable: true,
+          canAddCard: false,
+          existingCardStatus: 'active',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      unmount();
+    });
+
+    it('shows loading when the card changes before the new eligibility check resolves', async () => {
+      let resolveNext: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        recommendedAction: 'add_card';
+      }) => void = () => undefined;
+      const { result, rerender, unmount } = renderHook(
+        ({ walletProvisioning }) =>
+          usePushProvisioning({ ...defaultOptions, walletProvisioning }),
+        { initialProps: { walletProvisioning: mockWalletProvisioning } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveNext = resolve;
+        }),
+      );
+
+      rerender({
+        walletProvisioning: { ...mockWalletProvisioning, lastFour: '5678' },
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+
+      await act(async () => {
+        resolveNext({
+          isAvailable: true,
+          canAddCard: true,
+          recommendedAction: 'add_card',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
       });
 
       unmount();
@@ -571,6 +718,116 @@ describe('usePushProvisioning', () => {
       });
 
       expect(result.current.canAddToWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+  });
+
+  describe('Immersve Apple Pay flag off', () => {
+    const walletState = {
+      isAvailable: true,
+      canAddCard: false,
+      existingCardStatus: 'active' as const,
+      devices: { phone: 'active' as const },
+      pendingVerificationDevices: ['phone' as const],
+    };
+
+    it('skips the wallet check and hides wallet state on iOS', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).not.toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+      expect(result.current.isCardInWallet).toBe(false);
+      expect(result.current.pendingVerificationDevices).toEqual([]);
+      expect(result.current.canOpenInWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Immersve on Android', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockGoogleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
+      expect(result.current.pendingVerificationDevices).toEqual(['phone']);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Baanx when its Apple Pay flag is off', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'baanx';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
 
       Object.defineProperty(Platform, 'OS', {
         value: originalPlatform,
@@ -1036,6 +1293,64 @@ describe('usePushProvisioning', () => {
         status: 'success',
         tokenId: 'token-abc',
       });
+      unmount();
+    });
+
+    it('forwards the pass activation state and records it on the completed event', async () => {
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-abc',
+        activationState: 'requires_activation',
+      });
+      const onSuccess = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith({
+        status: 'success',
+        tokenId: 'token-abc',
+        activationState: 'requires_activation',
+      });
+      const addProperties =
+        mockCreateEventBuilder.mock.results[0]?.value.addProperties;
+      expect(addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          activation_state: 'requires_activation',
+        }),
+      );
+      unmount();
+    });
+
+    it('treats a canceled result as idle without success or error callbacks', async () => {
+      mockInitiateProvisioning.mockResolvedValue({ status: 'canceled' });
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess, onError }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('idle');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
       unmount();
     });
 

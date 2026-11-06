@@ -4,7 +4,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../RewardsOptInSection';
-import WaysToEarnTab, { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab';
+import WaysToEarnTab from './WaysToEarnTab';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 const PROFILE_ID = 'profile-a';
 
@@ -55,7 +56,7 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   invitedBenefitTitle: 'Your referral benefit',
   invitedReferredBy: 'Referred by',
   invitedOptInDescription: 'Opt in to Rewards to start earning.',
@@ -88,6 +89,7 @@ const createReferralMe = (
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -118,6 +120,7 @@ const renderTab = ({
           referralFunnel: {},
           commissions: {},
           cashbackLedger: {},
+          earningsHistory: {},
         },
       },
     },

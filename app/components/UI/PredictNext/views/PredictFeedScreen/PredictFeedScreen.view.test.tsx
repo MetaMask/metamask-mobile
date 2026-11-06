@@ -1,10 +1,15 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictFeedScreen } from '../../../../../../tests/component-view/renderers/predictNext';
-import { publishPredictNextGameLiveUpdate } from '../../../../../../tests/component-view/fixtures/predictNext';
+import {
+  PREDICT_NEXT_FEED_IDS,
+  answerPredictNextCatalog,
+  configurePredictNextCatalog,
+  publishPredictNextGameLiveUpdate,
+  resetPredictNextCatalog,
+} from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
-  KALSHI_VENUE_ID,
   type PredictDecimal,
   type PredictEntityId,
   type PredictEvent,
@@ -13,18 +18,16 @@ import {
   type PredictOutcome,
   type PredictTimestamp,
 } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import {
   NCAA_FEED_SCREEN_ID,
-  NCAA_GAMES_FEED_ID,
-  NCAA_WIN_TOTALS_FEED_ID,
   NFL_FEED_SCREEN_ID,
-  NFL_GAMES_FEED_ID,
-  NFL_WIN_TOTALS_FEED_ID,
 } from '../../navigation/feedScreens';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 
 const makeOutcome = (
   id: string,
@@ -102,6 +105,12 @@ type FeedResponse =
   | ((cursor?: string) => FeedResponseValue);
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
+const {
+  nflGames: NFL_GAMES_FEED_ID,
+  nflProps: NFL_WIN_TOTALS_FEED_ID,
+  ncaaGames: NCAA_GAMES_FEED_ID,
+  ncaaProps: NCAA_WIN_TOTALS_FEED_ID,
+} = PREDICT_NEXT_FEED_IDS;
 
 const getFeedCalls = () =>
   messengerCall.mock.calls.filter(
@@ -117,6 +126,10 @@ const configureFeeds = (feeds: Partial<Record<string, FeedResponse>> = {}) => {
       _params: unknown,
       cursor?: string,
     ): Promise<unknown> => {
+      const catalogResponse = answerPredictNextCatalog(action);
+      if (catalogResponse) {
+        return catalogResponse;
+      }
       if (action !== 'PredictMarketDataService:getFeed') {
         return Promise.resolve(undefined);
       }
@@ -192,7 +205,89 @@ const invalidFeedScreenParams = {
 describe('PredictFeedScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNextCatalog();
     configureFeeds();
+  });
+
+  describe('Venue capabilities', () => {
+    it('shows only the tabs whose Feed key the Venue supports', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: { 'nfl-props': NFL_WIN_TOTALS_FEED_ID },
+      });
+      configureFeeds({ [NFL_WIN_TOTALS_FEED_ID]: [gameEvent] });
+
+      const view = renderPredictFeedScreen({
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId: NFL_FEED_SCREEN_ID,
+      });
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.tab('props')),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictFeedScreenTestIds.tab('games')),
+      ).not.toBeOnTheScreen();
+      expect(getFeedCalls().map(([, , feedId]) => feedId)).toEqual([
+        NFL_WIN_TOTALS_FEED_ID,
+      ]);
+    });
+
+    it('shows loading and reads no Feed while capabilities load', async () => {
+      configurePredictNextCatalog('pending');
+
+      const view = renderPredictFeedScreen({
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId: NFL_FEED_SCREEN_ID,
+      });
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictFeedScreenTestIds.TABS),
+      ).not.toBeOnTheScreen();
+      expect(getFeedCalls()).toHaveLength(0);
+    });
+
+    it('retries a failed capability read and then loads the Feed', async () => {
+      configurePredictNextCatalog(new Error('Catalog unavailable'));
+
+      const view = renderPredictFeedScreen({
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId: NFL_FEED_SCREEN_ID,
+      });
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.ERROR),
+      ).toBeOnTheScreen();
+      expect(getFeedCalls()).toHaveLength(0);
+
+      configurePredictNextCatalog(KALSHI_STATIC_VENUE_CATALOG);
+      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.RETRY));
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.tab('games')),
+      ).toBeOnTheScreen();
+      await waitFor(() => expect(getFeedCalls()).toHaveLength(1));
+    });
+
+    it.each([
+      ['no supported tab', { ...KALSHI_STATIC_VENUE_CATALOG, feeds: {} }],
+      ['a malformed catalog', { venueId: 'kalshi', feeds: [] }],
+    ])('shows the unavailable state for %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+
+      const view = renderPredictFeedScreen({
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId: NFL_FEED_SCREEN_ID,
+      });
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.UNAVAILABLE),
+      ).toBeOnTheScreen();
+      expect(getFeedCalls()).toHaveLength(0);
+    });
   });
 
   it('shows an unavailable state for an unknown Feed Screen and returns Home', async () => {
@@ -361,11 +456,12 @@ describe('PredictFeedScreen', () => {
     let resolveFeed: (value: unknown) => void = () => undefined;
     messengerCall.mockImplementation(
       (action: string): Promise<unknown> =>
-        action === 'PredictMarketDataService:getFeed'
+        answerPredictNextCatalog(action) ??
+        (action === 'PredictMarketDataService:getFeed'
           ? new Promise((resolve) => {
               resolveFeed = resolve;
             })
-          : Promise.resolve(undefined),
+          : Promise.resolve(undefined)),
     );
 
     const view = renderPredictFeedScreen({
@@ -373,9 +469,15 @@ describe('PredictFeedScreen', () => {
       feedScreenId: NFL_FEED_SCREEN_ID,
     });
 
-    expect(
-      await view.findByTestId(PredictFeedScreenTestIds.LOADING),
-    ).toBeOnTheScreen();
+    // Capabilities and the Feed share LOADING. The catalog promise can
+    // unmount the capabilities skeleton between findBy and toBeOnTheScreen.
+    // Wait until getFeed is in flight, then re-query the Feed loading node.
+    await waitFor(() => {
+      expect(getFeedCalls()).toHaveLength(1);
+      expect(
+        view.getByTestId(PredictFeedScreenTestIds.LOADING),
+      ).toBeOnTheScreen();
+    });
 
     await act(async () => {
       resolveFeed({
@@ -461,6 +563,10 @@ describe('PredictFeedScreen', () => {
         _params: unknown,
         cursor?: string,
       ): Promise<unknown> => {
+        const catalogResponse = answerPredictNextCatalog(action);
+        if (catalogResponse) {
+          return catalogResponse;
+        }
         if (action !== 'PredictMarketDataService:getFeed') {
           return Promise.resolve(undefined);
         }

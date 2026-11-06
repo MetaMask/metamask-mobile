@@ -8,7 +8,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
-import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { MfaMethodDetailsSelectorsIDs } from '../Mfa.testIds';
@@ -56,18 +55,11 @@ jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
   startMfaFlow: jest.fn(),
 }));
 
-jest.mock('../../../../util/identity/mfa/bindings', () => ({
-  mobileMfaControllerAdapter: { refreshEnrolledCredentials: jest.fn() },
-}));
-
 jest.mock('../../../../util/identity/mfa/removeMfaCredential', () => ({
   removeMfaCredential: jest.fn(),
 }));
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
-const mockRefresh = jest.mocked(
-  mobileMfaControllerAdapter.refreshEnrolledCredentials,
-);
 const mockRemove = jest.mocked(removeMfaCredential);
 const mockShowToast = jest.fn();
 
@@ -78,6 +70,7 @@ const token = {
   claims: { sub: 'profile', amr: ['email_otp'], exp: 0 },
 };
 const email: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   email: 'a@b.co',
@@ -85,9 +78,15 @@ const email: EnrolledCredential = {
   enrolledAt: new Date(2026, 8, 17, 11, 23).getTime(),
 };
 const passkey: EnrolledCredential = {
+  id: 'passkey-id',
   type: 'passkey',
   status: 'active',
   displayName: '1Password',
+};
+const totpCredential: EnrolledCredential = {
+  id: 'totp',
+  type: 'totp',
+  status: 'active',
 };
 
 const renderDetails = (
@@ -134,7 +133,6 @@ describe('MfaMethodDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartMfaFlow.mockResolvedValue({ credentials: [], token });
-    mockRefresh.mockResolvedValue([]);
     mockRemove.mockResolvedValue();
   });
 
@@ -148,10 +146,51 @@ describe('MfaMethodDetails', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
+  it.each([
+    ['passkey', passkey, email, 'Remove passkey'],
+    ['email_otp', email, passkey, 'Remove email'],
+    ['totp', totpCredential, email, 'Remove authenticator app'],
+  ] as const)(
+    'centers the %s removal confirmation title',
+    (method, credential, otherCredential, title) => {
+      const { getByTestId, getAllByText } = renderDetails(
+        { method, index: 0 },
+        [credential, otherCredential],
+      );
+
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+      expect(
+        getAllByText(title).some((node) =>
+          JSON.stringify(node.props.style).includes('"center"'),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each([
+    ['passkey', passkey, 'Passkey can’t be deleted'],
+    ['email_otp', email, 'Email can’t be removed'],
+    ['totp', totpCredential, 'Authenticator app can’t be removed'],
+  ] as const)(
+    'centers the last %s method title',
+    (method, credential, title) => {
+      const { getByTestId, getByText } = renderDetails({ method, index: 0 }, [
+        credential,
+      ]);
+
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+      expect(JSON.stringify(getByText(title).props.style)).toContain(
+        '"center"',
+      );
+    },
+  );
+
   it('describes an authenticator app without an app name', () => {
     const { getAllByText, getByText } = renderDetails(
       { method: 'totp', index: 0 },
-      [{ type: 'totp', status: 'active' }],
+      [{ id: 'totp', type: 'totp', status: 'active' }],
     );
 
     // The header and the card both say what it is: the server cannot know
@@ -162,6 +201,7 @@ describe('MfaMethodDetails', () => {
 
   it('removes an authenticator app after verifying with another method', async () => {
     const authenticatorApp: EnrolledCredential = {
+      id: 'totp',
       type: 'totp',
       status: 'active',
     };
@@ -178,7 +218,9 @@ describe('MfaMethodDetails', () => {
         reason: { operation: 'settings.removeAuthenticatorApp' },
       }),
     );
-    expect(mockRemove).toHaveBeenCalledWith(authenticatorApp, token);
+    expect(mockRemove).toHaveBeenCalledWith(authenticatorApp, {
+      operation: 'settings.removeAuthenticatorApp',
+    });
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Authenticator app removed' }],
@@ -188,7 +230,7 @@ describe('MfaMethodDetails', () => {
 
   it('names the passkey by its position', () => {
     const { getByText } = renderDetails({ method: 'passkey', index: 1 }, [
-      { type: 'passkey', status: 'active' },
+      { id: 'first-passkey-id', type: 'passkey', status: 'active' },
       passkey,
     ]);
 
@@ -220,6 +262,26 @@ describe('MfaMethodDetails', () => {
     expect(mockStartMfaFlow).not.toHaveBeenCalled();
   });
 
+  it('refuses to remove a passkey when only passkeys are left', () => {
+    const other = { ...passkey, id: 'icloud-id', displayName: 'iCloud' };
+    const { getByTestId, getByText } = renderDetails(
+      { method: 'passkey', index: 0 },
+      [passkey, other],
+    );
+
+    fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+    expect(
+      getByTestId(MfaMethodDetailsSelectorsIDs.LAST_METHOD_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        'Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.',
+      ),
+    ).toBeOnTheScreen();
+    expect(mockStartMfaFlow).not.toHaveBeenCalled();
+  });
+
   it('closes the confirmation on cancel', () => {
     const { getByTestId, getByText, queryByTestId } = renderDetails(
       { method: 'email_otp', index: 0 },
@@ -239,7 +301,7 @@ describe('MfaMethodDetails', () => {
     const { getByTestId } = renderDetails({ method: 'email_otp', index: 0 }, [
       email,
       passkey,
-      { ...passkey, displayName: undefined },
+      { ...passkey, id: 'other-passkey-id', displayName: undefined },
     ]);
 
     await confirmRemoval(getByTestId);
@@ -254,8 +316,9 @@ describe('MfaMethodDetails', () => {
         reason: { operation: 'settings.removeEmail' },
       }),
     );
-    expect(mockRemove).toHaveBeenCalledWith(email, token);
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRemove).toHaveBeenCalledWith(email, {
+      operation: 'settings.removeEmail',
+    });
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Email verification removed' }],
@@ -266,22 +329,25 @@ describe('MfaMethodDetails', () => {
     );
   });
 
-  it('verifies with another passkey to remove one', async () => {
-    const other = { ...passkey, displayName: 'iCloud' };
+  it('verifies with another type of method to remove a passkey', async () => {
+    const other = { ...passkey, id: 'icloud-id', displayName: 'iCloud' };
     const { getByTestId } = renderDetails({ method: 'passkey', index: 0 }, [
       passkey,
       other,
+      email,
     ]);
 
     await confirmRemoval(getByTestId);
 
     expect(mockStartMfaFlow).toHaveBeenCalledWith(
       expect.objectContaining({
-        request: expect.objectContaining({ verifyWith: ['passkey'] }),
+        request: expect.objectContaining({ verifyWith: ['email_otp'] }),
         reason: { operation: 'settings.removePasskey' },
       }),
     );
-    expect(mockRemove).toHaveBeenCalledWith(passkey, token);
+    expect(mockRemove).toHaveBeenCalledWith(passkey, {
+      operation: 'settings.removePasskey',
+    });
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Passkey removed' }],

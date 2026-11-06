@@ -49,6 +49,7 @@ import {
 } from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
@@ -177,6 +178,7 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { socialRealtimeServiceInit } from './controllers/social-realtime-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { profileServiceInit } from './controllers/profile-service-init';
@@ -389,6 +391,7 @@ export class Engine {
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
+        SocialRealtimeService: socialRealtimeServiceInit,
         SocialController: socialControllerInit,
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
@@ -684,6 +687,7 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
+      SocialRealtimeService: messengerClientsByName.SocialRealtimeService,
       SocialController: socialController,
       ProfileService: messengerClientsByName.ProfileService,
       ProfileController: messengerClientsByName.ProfileController,
@@ -1351,6 +1355,8 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      PredictOrderService,
+      PredictPortfolioService,
     } = this.context;
 
     // Remove all permissions.
@@ -1395,6 +1401,22 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // PredictNext account state. A wallet reset replaces the Predict User
+    // within one process, so the previous person's account reads and their
+    // Order observation must not outlive it. Commits are abandoned before the
+    // reads are dropped, so no receipt can refill the cache afterwards. The
+    // Venue-scoped market-data and live-data caches carry public data and stay.
+    try {
+      PredictOrderService.abandonCommits();
+      await PredictPortfolioService.clearAccountData();
+    } catch (error) {
+      // Housekeeping a replaced person must never break the reset itself.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    }
   };
 
   removeAllListeners() {

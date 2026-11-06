@@ -319,6 +319,90 @@ describe('depositWallet', () => {
     });
   });
 
+  describe('batch deadline', () => {
+    const deviceNowSeconds = 1_800_000_000;
+    const calls = [
+      {
+        target: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        value: '0',
+        data: '0x1234',
+      },
+    ];
+
+    function getSignedDeadline(): unknown {
+      const [params] = jest.mocked(signer.signTypedMessage).mock.calls[0];
+      return (params.data as { message: { deadline: unknown } }).message
+        .deadline;
+    }
+
+    async function submitBatch(): Promise<void> {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({ nonce: '9' }))
+        .mockResolvedValueOnce(mockResponse({ transactionID: 'relayer-2' }));
+
+      await executeDepositWalletBatch({
+        signer,
+        walletAddress: deriveDepositWalletAddress(ownerAddress),
+        calls,
+      });
+    }
+
+    let dateNowSpy: jest.SpyInstance<number, []>;
+
+    beforeEach(() => {
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(deviceNowSeconds * 1000);
+    });
+
+    afterEach(() => {
+      dateNowSpy.mockRestore();
+    });
+
+    it('counts 600s from the latest Polygon block when the device clock is behind', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds + 120).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      const expectedDeadline = String(deviceNowSeconds + 120 + 600);
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        'getBlockByNumber',
+        ['latest', false],
+      );
+      expect(getSignedDeadline()).toBe(expectedDeadline);
+      expect(getFetchBody(1)).toEqual(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            depositWalletParams: expect.objectContaining({
+              deadline: expectedDeadline,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('counts 600s from the device clock when it is ahead of the latest Polygon block', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds - 30).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
+    });
+
+    it('falls back to the device clock when the Polygon block cannot be read', async () => {
+      mockQuery.mockRejectedValue(new Error('network offline'));
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
+    });
+  });
+
   it('polls by relayer id until wallet transaction hash is available', async () => {
     mockFetch.mockResolvedValue(
       mockResponse({

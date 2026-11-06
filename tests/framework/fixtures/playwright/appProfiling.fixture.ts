@@ -25,10 +25,10 @@ const logger = createAppiumLogger('appProfiling');
  * workflows set that flag; PR runs leave it unset so they skip background +
  * `pullFile` harvest (analyze-app-profiling never consumes PR artifacts).
  *
- * Nothing here starts profiling: the app arms itself on startup, so the trace
- * covers the launch the launch-time specs measure, and a spec that restarts the
- * app gets the new process profiled for free. This fixture only decides when to
- * harvest what the app has recorded.
+ * Nothing here starts profiling. The app arms itself on startup so a cold
+ * launch is in the trace. Specs that measure a later team-specific flow call
+ * `enableHermesAppProfiling` to drop the setup samples before that flow. This
+ * fixture only decides when to harvest what the app has recorded.
  *
  * A session cannot outlive the process that opened it, so specs that kill the
  * app have to be harvested first — `terminateApp` runs the before-terminate

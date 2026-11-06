@@ -966,6 +966,7 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
     "userRegion": null,
@@ -1029,7 +1030,8 @@
     "orders": []
   },
   "MoneyAccountController": {
-    "moneyAccounts": {}
+    "moneyAccounts": {},
+    "defaultMoneyAccountId": null
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}

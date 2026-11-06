@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, memo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, memo, useState } from 'react';
+import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
-import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -19,13 +20,15 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
-import ReferredByCodeSection from './ReferredByCodeSection';
 import OptOutSection from './OptOutSection';
+import ReferredByCodeSection from './ReferredByCodeSection';
+import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from './RewardSettingsAccountGroupList.testIds';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -33,8 +36,6 @@ import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
-const REFERRAL_INPUT_SCROLL_VIEW_POSITION = 0.2;
-const REFERRAL_INPUT_SCROLL_DELAY_MS = 100;
 
 // Separate component for progress section to prevent header remounting on progress updates
 interface AccountProgressSectionProps {
@@ -92,32 +93,36 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
     return (
       <Box
         testID="rewards-settings-bulk-link-progress"
-        twClassName="p-4 rounded-xl bg-background-muted gap-2 my-4"
+        twClassName="rounded-xl bg-background-muted px-4 py-4 mb-4"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
           alignItems={BoxAlignItems.Center}
+          twClassName="mb-3"
         >
           {isBulkLinkRunning ? (
             <>
               <Text
                 testID="rewards-settings-account-status"
-                variant={TextVariant.HeadingSm}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('rewards.settings.linking_progress', {
                   current: bulkLinkLinkedAccounts,
                   total: bulkLinkTotalAccounts,
                 })}
               </Text>
-              <Text variant={TextVariant.HeadingSm}>{progressPercent}%</Text>
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+                {progressPercent}%
+              </Text>
             </>
           ) : (
             <>
-              <Text variant={TextVariant.HeadingSm}>
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
                 {strings('rewards.settings.accounts_added')}
               </Text>
-              <Text variant={TextVariant.HeadingSm}>
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
                 {linkedAccounts}/{totalAccounts}
               </Text>
             </>
@@ -158,15 +163,10 @@ interface RewardSettingsAccountGroupListProps {
   onRequestOptOut?: () => void;
 }
 
-const RewardSettingsAccountGroupList: React.FC<
+const SubscribedRewardSettingsAccountGroupList: React.FC<
   RewardSettingsAccountGroupListProps
 > = ({ onRequestOptOut }) => {
   const tw = useTailwind();
-
-  const flashListRef =
-    useRef<FlashListRef<RewardSettingsAccountGroupListFlatListItem> | null>(
-      null,
-    );
 
   // State to track which wallets are expanded
   const [expandedWallets, setExpandedWallets] = useState<Set<string>>(
@@ -277,7 +277,6 @@ const RewardSettingsAccountGroupList: React.FC<
         }
       });
 
-      items.push({ type: 'referredByCode' });
       if (onRequestOptOut) {
         items.push({ type: 'optOut' });
       }
@@ -285,25 +284,6 @@ const RewardSettingsAccountGroupList: React.FC<
 
       return items;
     }, [byWallet, allAddresses, expandedWallets, onRequestOptOut]);
-
-  const referralSectionIndex = useMemo(
-    () => flattenedData.findIndex((item) => item.type === 'referredByCode'),
-    [flattenedData],
-  );
-
-  const handleReferralInputFocus = useCallback(() => {
-    if (referralSectionIndex < 0) {
-      return;
-    }
-
-    setTimeout(() => {
-      flashListRef.current?.scrollToIndex({
-        index: referralSectionIndex,
-        viewPosition: REFERRAL_INPUT_SCROLL_VIEW_POSITION,
-        animated: true,
-      });
-    }, REFERRAL_INPUT_SCROLL_DELAY_MS);
-  }, [referralSectionIndex]);
 
   const renderFlatListItem: ListRenderItem<RewardSettingsAccountGroupListFlatListItem> =
     useCallback(
@@ -345,7 +325,7 @@ const RewardSettingsAccountGroupList: React.FC<
             return (
               <ButtonBase
                 testID={`show-more-button-${walletId}`}
-                twClassName="bg-background-default"
+                twClassName="h-12 bg-background-default"
                 style={({ pressed }) =>
                   tw.style(pressed && 'bg-background-pressed')
                 }
@@ -376,10 +356,6 @@ const RewardSettingsAccountGroupList: React.FC<
               </ButtonBase>
             );
           }
-          case 'referredByCode':
-            return (
-              <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
-            );
           case 'optOut':
             return onRequestOptOut ? (
               <OptOutSection onErasePress={onRequestOptOut} />
@@ -390,13 +366,7 @@ const RewardSettingsAccountGroupList: React.FC<
             return null;
         }
       },
-      [
-        avatarAccountType,
-        handleReferralInputFocus,
-        onRequestOptOut,
-        toggleWalletExpanded,
-        tw,
-      ],
+      [avatarAccountType, onRequestOptOut, toggleWalletExpanded, tw],
     );
 
   const getItemType = useCallback(
@@ -420,10 +390,6 @@ const RewardSettingsAccountGroupList: React.FC<
         return `showMore-${item.walletId}`;
       }
 
-      if (item.type === 'referredByCode') {
-        return 'referredByCode';
-      }
-
       if (item.type === 'optOut') {
         return 'optOut';
       }
@@ -437,10 +403,17 @@ const RewardSettingsAccountGroupList: React.FC<
     [],
   );
 
-  const ListHeaderComponent = useCallback(
-    () => (
-      <Box testID="rewards-settings-header" twClassName="gap-4 px-4">
-        <Box twClassName="gap-2">
+  // An element, not a component function. FlashList mounts a function header
+  // with createElement, so a new callback identity remounts the referral field
+  // and drops the typed code.
+  const listHeader = (
+    <>
+      <ReferredByCodeSection showTrailingDivider />
+      <Box
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.HEADER}
+        twClassName="px-4"
+      >
+        <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
           </Text>
@@ -448,7 +421,9 @@ const RewardSettingsAccountGroupList: React.FC<
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {strings('rewards.settings.description')}
           </Text>
+        </Box>
 
+        <Box twClassName="pt-3">
           <AccountProgressSection
             linkedAccounts={linkedAccounts}
             totalAccounts={totalAccounts}
@@ -456,14 +431,12 @@ const RewardSettingsAccountGroupList: React.FC<
           />
         </Box>
       </Box>
-    ),
-    [linkedAccounts, totalAccounts, isLoadingOptInSummary],
+    </>
   );
 
   const SettingsFooterSections = useCallback(
     () => (
-      <Box twClassName="gap-4">
-        <ReferredByCodeSection />
+      <Box>
         {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
@@ -473,15 +446,15 @@ const RewardSettingsAccountGroupList: React.FC<
 
   if (isLoadingOptInSummary) {
     return (
-      <Box testID="rewards-settings-loading" twClassName="gap-4">
-        <ListHeaderComponent />
+      <Box testID="rewards-settings-loading">
+        {listHeader}
 
-        <Box twClassName="gap-3 px-4">
+        <Box twClassName="mt-4 px-4">
           {[...Array(3)].map((_, index) => (
             <Box
               key={`rewards-settings-skeleton-${index}`}
               testID={`rewards-settings-skeleton-${index}`}
-              twClassName="flex-row items-center gap-3 py-2 rounded-lg"
+              twClassName="h-16 flex-row items-center gap-3 rounded-lg"
             >
               <Skeleton
                 height={40}
@@ -500,10 +473,10 @@ const RewardSettingsAccountGroupList: React.FC<
 
   if (hasErrorOptInSummary) {
     return (
-      <Box testID="rewards-settings-error" twClassName="gap-4">
-        <ListHeaderComponent />
+      <Box testID="rewards-settings-error">
+        {listHeader}
 
-        <Box twClassName="px-4">
+        <Box twClassName="mt-4 px-4">
           <RewardsErrorBanner
             testID="rewards-settings-error-banner"
             title={strings(
@@ -529,16 +502,41 @@ const RewardSettingsAccountGroupList: React.FC<
   // Account list using FlashList for better performance
   return (
     <FlashList
-      ref={flashListRef}
-      testID="rewards-settings-flash-list"
+      testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.FLASH_LIST}
       data={flattenedData}
       renderItem={renderFlatListItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
-      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponent={listHeader}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
+    />
+  );
+};
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut }) => {
+  const tw = useTailwind();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  if (!subscriptionId) {
+    return (
+      <ScrollView
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.REFERRAL_ONLY}
+        keyboardShouldPersistTaps="handled"
+        style={tw.style('flex-1')}
+      >
+        <ReferredByCodeSection />
+        <RewardsEnvironmentToggle />
+      </ScrollView>
+    );
+  }
+
+  return (
+    <SubscribedRewardSettingsAccountGroupList
+      onRequestOptOut={onRequestOptOut}
     />
   );
 };
