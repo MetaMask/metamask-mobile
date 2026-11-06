@@ -15,7 +15,6 @@
  *   SWAPS_SENTRY_TOKEN           required; read-only (org:read) Sentry token
  *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
  *   DRY_RUN                      `true` logs the Slack message instead
- *   AS_OF                        optional YYYY-MM-DD (UTC); evaluate as of that day
  *   SENTRY_API_BASE, GITHUB_RUN_URL  optional
  *
  * Exits 1 when any Sentry query failed, after posting the other results.
@@ -36,16 +35,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const STATUS = { BREACH: 'breach', OK: 'ok', NOT_EVALUABLE: 'not-evaluable' };
 
-/** 00:00 UTC of `AS_OF` (YYYY-MM-DD), or of today when unset. */
-export function startOfDayUtc(asOf, now = new Date()) {
-  if (!asOf) {
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  }
-  const day = new Date(`${asOf}T00:00:00Z`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf) || day.toISOString().slice(0, 10) !== asOf) {
-    throw new Error(`AS_OF must be a YYYY-MM-DD date, got "${asOf}"`);
-  }
-  return day;
+/** 00:00 UTC today. */
+function startOfTodayUtc(now = new Date()) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
 /** The `WINDOW_DAYS` complete UTC days ending at `end`. */
@@ -181,7 +173,7 @@ async function main() {
   }
 
   const { window, results, errors } = await runBudgetCheck({
-    todayEnd: startOfDayUtc(env.AS_OF),
+    todayEnd: startOfTodayUtc(),
     sentry: { token, apiBase: env.SENTRY_API_BASE || undefined },
   });
   console.log(`Swaps performance budgets, ${window.label}, minimum n ${formatCount(MIN_SAMPLES)}`);

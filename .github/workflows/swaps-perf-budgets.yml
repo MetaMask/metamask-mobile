@@ -27,11 +27,6 @@ on:
         required: false
         type: boolean
         default: true
-      as_of:
-        description: 'Evaluate as if run on this UTC date (YYYY-MM-DD; optional)'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -65,7 +60,6 @@ jobs:
       - name: Check budgets
         env:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
-          AS_OF: ${{ inputs.as_of || '' }}
         run: node .github/scripts/swaps/swaps-perf-budgets.mjs
 
       - name: Post failure notice
