@@ -2807,6 +2807,28 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
   }
 
+  /**
+   * Funding source id for this Money account address on the active provider's
+   * channel. Reuses a matching source, or creates one.
+   */
+  async resolveMoneyAccountFundingSourceId(
+    moneyAccountAddress: string,
+  ): Promise<string> {
+    const provider = this.getActiveProvider();
+    const resolveMoneyAccountFundingSource =
+      provider.resolveMoneyAccountFundingSource?.bind(provider);
+    if (!resolveMoneyAccountFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account funding source resolution not supported',
+      );
+    }
+    const source = await this.#withAuthRetry((tokens) =>
+      resolveMoneyAccountFundingSource(moneyAccountAddress, tokens),
+    );
+    return source.id;
+  }
+
   async createFundingSource(): Promise<CardFundingSourceResult> {
     const provider = this.getActiveProvider();
     const createFundingSource = provider.createFundingSource?.bind(provider);
