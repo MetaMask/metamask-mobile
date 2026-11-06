@@ -22,6 +22,10 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import {
+  getCardHomeHeaderMode,
+  useIsCardEmbedded,
+} from '../../CardEmbeddedContext';
 import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -625,7 +629,10 @@ const CardHome = () => {
     vedaConfig,
   ]);
 
-  const headerHandlers = useCardHeaderHandlers('back');
+  const cardEmbedded = useIsCardEmbedded();
+  const headerHandlers = useCardHeaderHandlers(
+    getCardHomeHeaderMode(cardEmbedded),
+  );
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   const arrival = useCardArrivalAnimation({

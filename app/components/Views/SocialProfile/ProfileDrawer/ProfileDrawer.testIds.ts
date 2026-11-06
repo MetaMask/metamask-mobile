@@ -14,6 +14,7 @@ export const ProfileDrawerSelectorsIDs = {
   PROFILE_HANDLE: 'profile-drawer-profile-handle',
   NOTIFICATIONS_ROW: 'profile-drawer-notifications-row',
   ACTIVITY_ROW: 'profile-drawer-activity-row',
+  REWARDS_ROW: 'profile-drawer-rewards-row',
   METAMASK_ORANGE: 'profile-drawer-metamask-orange-row',
   SETTINGS_ROW: 'profile-drawer-settings-row',
   HELP_AND_SUPPORT_ROW: 'profile-drawer-help-and-support-row',

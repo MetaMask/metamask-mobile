@@ -4,8 +4,14 @@ import type { NativeBottomTabNavigationProp } from '@react-navigation/bottom-tab
 import type { ParamListBase } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  enterMoneySection,
+  enterTradeDashboard,
+  exitContextualSection,
+  getContextualNavState,
+} from '../contextualNav/contextualSection';
+import { setActiveHomeTab } from '../contextualNav/footerPresence';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { buildBottomNavClickedProperties } from '../../../../core/Analytics/events/navigation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
@@ -31,9 +37,22 @@ export interface UseHomeTabDefinitionsParams {
 
 type NativeTabNavigation = NativeBottomTabNavigationProp<ParamListBase>;
 
+const exitHomeFooterSection = (): void => {
+  const section = getContextualNavState().section;
+  if (
+    section === 'money' ||
+    section === 'explore' ||
+    section === 'trading' ||
+    section === 'collectibles'
+  ) {
+    exitContextualSection();
+  }
+};
+
 interface NativeTabListeners {
   tabPress: () => void;
   blur?: () => void;
+  focus?: () => void;
 }
 
 export interface UseHomeTabDefinitionsResult {
@@ -46,8 +65,8 @@ export interface UseHomeTabDefinitionsResult {
 
 /** The single tab list both navigators render from, analytics attached once. */
 export const useHomeTabDefinitions = ({
-  isMoneyAccountVisible,
-  showSocialTab,
+  isMoneyAccountVisible: _isMoneyAccountVisible,
+  showSocialTab: _showSocialTab,
   isSocialV1Enabled,
   showSocialTabNewBadge,
   trackMoneyTabPress,
@@ -80,6 +99,7 @@ export const useHomeTabDefinitions = ({
       rootScreenName: Routes.WALLET_VIEW,
       nativeIcon: NATIVE_TAB_ICONS.home,
       onPress: () => {
+        exitHomeFooterSection();
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
             .addProperties({
@@ -102,6 +122,7 @@ export const useHomeTabDefinitions = ({
         rootScreenName === Routes.TRENDING_VIEW ||
         rootScreenName === Routes.BROWSER.HOME,
       onPress: () => {
+        exitHomeFooterSection();
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
         TrendingFeedSessionManager.getInstance().startSession('tab_press');
       },
@@ -124,13 +145,16 @@ export const useHomeTabDefinitions = ({
       freezeOnBlur: false,
     };
 
-    const activity: HomeTabDefinition = {
-      key: 'activity',
-      name: Routes.TRANSACTIONS_VIEW,
-      iconKey: TabBarIconKey.Activity,
-      rootScreenName: Routes.TRANSACTIONS_VIEW,
-      nativeIcon: NATIVE_TAB_ICONS.activity,
-      freezeOnBlur: false,
+    const trade: HomeTabDefinition = {
+      key: 'trade',
+      name: Routes.TRADE_DASHBOARD,
+      iconKey: TabBarIconKey.Actions,
+      rootScreenName: Routes.TRADE_DASHBOARD,
+      nativeIcon: NATIVE_TAB_ICONS.trade,
+      nativeSfSymbol: 'arrow.left.arrow.right',
+      onPress: () => {
+        enterTradeDashboard();
+      },
     };
 
     const money: HomeTabDefinition = {
@@ -139,7 +163,10 @@ export const useHomeTabDefinitions = ({
       iconKey: TabBarIconKey.Money,
       rootScreenName: Routes.MONEY.HOME,
       nativeIcon: NATIVE_TAB_ICONS.money,
-      onPress: trackMoneyTabPress,
+      onPress: () => {
+        enterMoneySection();
+        trackMoneyTabPress();
+      },
     };
 
     const rewards: HomeTabDefinition = {
@@ -149,6 +176,7 @@ export const useHomeTabDefinitions = ({
       rootScreenName: Routes.REWARDS_VIEW,
       nativeIcon: NATIVE_TAB_ICONS.rewards,
       freezeOnBlur: false,
+      isHidden: true,
       hidesTabBarFor: shouldHideRewardsTabBar,
     };
 
@@ -165,30 +193,12 @@ export const useHomeTabDefinitions = ({
       ...(isSocialV1Enabled ? { tabBarSelectionEnabled: false } : null),
     };
 
-    if (isSocialV1Enabled) {
-      return [
-        home,
-        explore,
-        browser,
-        isMoneyAccountVisible ? money : activity,
-        social,
-      ];
-    }
-
-    return [
-      home,
-      explore,
-      browser,
-      isMoneyAccountVisible ? money : activity,
-      ...(showSocialTab ? [social] : [rewards]),
-    ];
+    return [home, explore, trade, browser, money, rewards, social];
   }, [
     accountsLength,
     chainId,
     createEventBuilder,
-    isMoneyAccountVisible,
     isSocialV1Enabled,
-    showSocialTab,
     showSocialTabNewBadge,
     trackEvent,
     trackMoneyTabPress,
@@ -203,8 +213,12 @@ export const useHomeTabDefinitions = ({
       }): NativeTabListeners => ({
         tabPress: () => {
           playImpact(ImpactMoment.TabChange);
+          setActiveHomeTab(tab.name);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
+          if (tab.key !== 'money' && tab.key !== 'trade') {
+            exitHomeFooterSection();
+          }
           // User taps on a selectable tab have already selected it. Social V1
           // opts out, so this listener is what selects that tab after the gate.
           switch (tab.rootScreenName) {
@@ -213,14 +227,11 @@ export const useHomeTabDefinitions = ({
                 screen: Routes.WALLET_VIEW,
               });
               break;
-            case Routes.TRANSACTIONS_VIEW:
-              navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-                screen: Routes.TRANSACTIONS_VIEW,
-                params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },
-              });
-              break;
             case Routes.MONEY.HOME:
               navigateToMoneyHome();
+              break;
+            case Routes.TRADE_DASHBOARD:
+              navigation.navigate(Routes.TRADE_DASHBOARD);
               break;
             case Routes.SOCIAL.TAB:
               navigateToSocialTab(navigation.navigate, {
@@ -231,7 +242,34 @@ export const useHomeTabDefinitions = ({
               break;
           }
         },
-        ...(tab.onLeave ? { blur: tab.onLeave } : null),
+        ...(tab.onLeave || tab.key === 'money' || tab.key === 'explore'
+          ? {
+              blur: () => {
+                tab.onLeave?.();
+                const section = getContextualNavState().section;
+                if (
+                  (tab.key === 'money' && section === 'money') ||
+                  (tab.key === 'explore' && section === 'explore')
+                ) {
+                  exitContextualSection();
+                }
+              },
+            }
+          : null),
+        ...(tab.key === 'money' || tab.key === 'trade'
+          ? {
+              // UIKit can select the tab without a JS tabPress. Focus still
+              // records the section so the overlay footer updates on device.
+              focus: () => {
+                setActiveHomeTab(tab.name);
+                if (tab.key === 'money') {
+                  enterMoneySection();
+                  return;
+                }
+                enterTradeDashboard();
+              },
+            }
+          : null),
       }),
     [navigateToMoneyHome, trackBottomNavPress],
   );

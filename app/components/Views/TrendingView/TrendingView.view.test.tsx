@@ -109,16 +109,17 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
-    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
+    const { getByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
+        within(
+          getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
+        ).getByText('Trending'),
       ).toBeOnTheScreen();
-      expect(getByText('Explore')).toBeOnTheScreen();
     });
 
     // Now tab is active by default and contains the scroll view
@@ -230,7 +231,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user switches between Explore tabs and sees tab-specific sections', async () => {
-    const { getByTestId, getByText, queryAllByTestId } =
+    const { getByTestId, getByText, getAllByText, queryAllByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -245,7 +246,10 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
       ).toBeOnTheScreen();
-      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
+      // "Trending" is also the header title, so the section heading can match more than once.
+      expect(
+        getAllByText(strings('trending.trending_tokens')).length,
+      ).toBeGreaterThan(0);
       expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
     });
 

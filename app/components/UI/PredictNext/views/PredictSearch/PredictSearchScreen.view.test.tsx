@@ -52,17 +52,12 @@ describe('PredictSearchScreen', () => {
     configurePredictNextFeeds();
   });
 
-  it('opens from the Home header search button', async () => {
+  it('does not show a search button on Home', async () => {
     const view = renderPredictNext();
 
-    // The entry appears once the Venue's capabilities report search support.
-    fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
+    await view.findByTestId(PredictHomeTestIds.HOME);
 
-    expect(
-      await view.findByTestId(PredictSearchScreenTestIds.VIEW),
-    ).toBeOnTheScreen();
-    expect(view.getByTestId(PredictSearchScreenTestIds.IDLE)).toBeOnTheScreen();
-    expect(searchCalls()).toHaveLength(0);
+    expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
   });
 
   it('debounces typing into one search and renders the results', async () => {

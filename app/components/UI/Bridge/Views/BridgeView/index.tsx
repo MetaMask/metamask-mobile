@@ -21,6 +21,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useIsTradingHub } from '../../../../Nav/Main/contextualNav/contextualSection';
 import Engine from '../../../../../core/Engine';
 import {
   resetBridgeState,
@@ -75,6 +76,7 @@ const BridgeView = () => {
     setQuoteParams,
   } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
+  const openedFromTradeFooter = useIsTradingHub('swap');
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -381,11 +383,15 @@ const BridgeView = () => {
         isGlass={isGlassHeader}
         isFloating={false}
         title={headerTitle}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: BridgeViewSelectorsIDs.BACK_BUTTON,
-          accessibilityLabel: strings('navigation.back'),
-        }}
+        {...(openedFromTradeFooter
+          ? {}
+          : {
+              onBack: handleBack,
+              backButtonProps: {
+                testID: BridgeViewSelectorsIDs.BACK_BUTTON,
+                accessibilityLabel: strings('navigation.back'),
+              },
+            })}
         endButtonIconProps={endButtonIconProps}
         includesTopInset
       />

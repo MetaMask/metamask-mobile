@@ -375,29 +375,28 @@ describe('MainNavigator', () => {
       expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
     });
 
-    it.each([
-      Routes.BROWSER.HOME,
-      Routes.TRANSACTIONS_VIEW,
-      Routes.REWARDS_VIEW,
-    ])('keeps freeze-on-blur off for %s', (tabName) => {
-      // Given HomeTabs is rendered
-      const HomeTabs = getHomeTabsComponent();
+    it.each([Routes.BROWSER.HOME, Routes.REWARDS_VIEW])(
+      'keeps freeze-on-blur off for %s',
+      (tabName) => {
+        // Given HomeTabs is rendered
+        const HomeTabs = getHomeTabsComponent();
 
-      // When the tab screens are inspected
-      const { root: homeRoot } = renderWithProvider(
-        <HomeTabs route={{ params: {} }} />,
-        { state: initialRootState },
-      );
-      const tabScreen = homeRoot.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'TabScreen' &&
-          node.props?.name === tabName,
-      )[0];
+        // When the tab screens are inspected
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabs route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabScreen = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabScreen' &&
+            node.props?.name === tabName,
+        )[0];
 
-      // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
-      // frozen subtree suspends the wrapper's unmount and keeps the tab alive
-      expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
-    });
+        // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
+        // frozen subtree suspends the wrapper's unmount and keeps the tab alive
+        expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
+      },
+    );
 
     describe('Rewards tab bar visibility', () => {
       // Only the three Rewards home screens live under the tab; every sub-page
@@ -489,7 +488,7 @@ describe('MainNavigator', () => {
       ).toHaveLength(0);
     });
 
-    it('registers the visible tabs plus the system search slot, not Browser or Trade', () => {
+    it('registers Home, Trending, Trade, Money and Social, with no system slot', () => {
       const { root } = renderHomeTabs();
 
       expect(
@@ -497,10 +496,45 @@ describe('MainNavigator', () => {
       ).toEqual([
         Routes.WALLET.HOME,
         Routes.TRENDING_VIEW,
-        Routes.TRANSACTIONS_VIEW,
-        Routes.REWARDS_VIEW,
-        'SearchTab',
+        Routes.TRADE_DASHBOARD,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
       ]);
+    });
+
+    it('draws the JS pill on the initial Home route while the system bar is hidden', () => {
+      const { getByTestId, root } = renderHomeTabs();
+
+      expect(getByTestId('contextual-footer')).toBeOnTheScreen();
+      expect(getByTestId('footer-tab-home')).toBeOnTheScreen();
+      expect(getByTestId('footer-tab-home').props.accessibilityState).toEqual({
+        selected: true,
+      });
+      expect(getByTestId('footer-tab-trade')).toBeOnTheScreen();
+
+      const homeScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.WALLET.HOME,
+      );
+      expect(homeScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
+    });
+
+    it('hides the system tab bar on Money so the contextual pill can replace it', () => {
+      const { root } = renderHomeTabs();
+      const moneyScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.MONEY.ROOT,
+      );
+      const trendingScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.TRENDING_VIEW,
+      );
+
+      expect(moneyScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
+      expect(trendingScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
     });
 
     it('gives every tab a title, an icon and press listeners', () => {
@@ -514,50 +548,12 @@ describe('MainNavigator', () => {
       expect(typeof homeScreen?.props.listeners).toBe('function');
     });
 
-    it('hides the bar on Rewards sub-pages through a stable style identity', () => {
+    it('keeps Rewards off the native bar because that bar cannot hide a single item in place', () => {
       const { root } = renderHomeTabs();
-      const rewardsScreen = findNativeScreens(root).find(
-        (screen) => screen.props.name === Routes.REWARDS_VIEW,
-      );
-      const resolveOptions = rewardsScreen?.props.options as (args: {
-        route: unknown;
-      }) => { tabBarStyle?: { display: string } };
 
-      const onDashboard = resolveOptions({
-        route: {
-          name: Routes.REWARDS_VIEW,
-          state: {
-            routes: [
-              {
-                name: Routes.REWARDS_VIEW,
-                state: {
-                  index: 0,
-                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
-                },
-              },
-            ],
-          },
-        },
-      });
-      const onSubPage = resolveOptions({
-        route: {
-          name: Routes.REWARDS_VIEW,
-          state: {
-            routes: [
-              {
-                name: Routes.REWARDS_VIEW,
-                state: {
-                  index: 0,
-                  routes: [{ name: 'OndoCampaignDetails' }],
-                },
-              },
-            ],
-          },
-        },
-      });
-
-      expect(onDashboard.tabBarStyle).toBeUndefined();
-      expect(onSubPage.tabBarStyle).toEqual({ display: 'none' });
+      expect(
+        findNativeScreens(root).map((screen) => screen.props.name),
+      ).not.toContain(Routes.REWARDS_VIEW);
     });
 
     it('reports the native bar height so scroll views clear it', () => {
@@ -2047,9 +2043,22 @@ describe('MainNavigator', () => {
 
         expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
 
-        const tabs = homeTabNames(container, state);
+        const homeRoot = renderHomeTabs(container, state);
+        const tabs = homeRoot
+          .findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'TabScreen',
+          )
+          .map((node) => node.props.name);
+        const rewardsTab = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabScreen' &&
+            node.props?.name === Routes.REWARDS_VIEW,
+        )[0];
         expect(tabs).toContain(Routes.SOCIAL.TAB);
-        expect(tabs).not.toContain(Routes.REWARDS_VIEW);
+        expect(tabs).toContain(Routes.TRADE_DASHBOARD);
+        // Kept registered so Rewards still resolves, but hidden from the footer.
+        expect(rewardsTab?.props?.options?.isHidden).toBe(true);
         expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       },
     );
@@ -2064,8 +2073,9 @@ describe('MainNavigator', () => {
 
       const tabs = homeTabNames(container, state);
       expect(tabs).toContain(Routes.REWARDS_VIEW);
-      expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+      expect(tabs).toContain(Routes.TRADE_DASHBOARD);
+      expect(tabs).toContain(Routes.SOCIAL.TAB);
+      expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
     });
 
     it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
@@ -2100,7 +2110,9 @@ describe('MainNavigator', () => {
       expect(tabs).toEqual([
         Routes.WALLET.HOME,
         Routes.TRENDING_VIEW,
+        Routes.TRADE_DASHBOARD,
         Routes.MONEY.ROOT,
+        Routes.REWARDS_VIEW,
         Routes.SOCIAL.TAB,
       ]);
       expect(rootStackScreenNames(container)).toContain(
@@ -2108,7 +2120,7 @@ describe('MainNavigator', () => {
       );
       expect(
         renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-      ).toBe('trade');
+      ).toBeUndefined();
     });
 
     it('keeps legacy Social users on the existing tab layout', () => {
@@ -2119,25 +2131,24 @@ describe('MainNavigator', () => {
       expect(homeTabNames(container, state)).toEqual([
         Routes.WALLET.HOME,
         Routes.TRENDING_VIEW,
+        Routes.TRADE_DASHBOARD,
         Routes.BROWSER.HOME,
         Routes.MONEY.ROOT,
+        Routes.REWARDS_VIEW,
         Routes.SOCIAL.TAB,
       ]);
       expect(rootStackScreenNames(container)).not.toContain(Routes.SOCIAL.V1);
     });
 
-    it.each([
-      ['searchFocused', 'search'],
-      ['tradeFocused', 'trade'],
-    ])(
-      'hands the %s arm trailing action to the floating bar',
-      (arm, trailingAction) => {
+    it.each(['searchFocused', 'tradeFocused'])(
+      'omits the circle button on the %s floating bar',
+      (arm) => {
         const state = stateForArm(arm);
         const container = renderWithProvider(<MainNavigator />, { state });
 
         expect(
           renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-        ).toBe(trailingAction);
+        ).toBeUndefined();
       },
     );
 
@@ -2173,18 +2184,19 @@ describe('MainNavigator', () => {
 
         const tabs = homeTabNames(container, state);
         expect(tabs).toContain(Routes.REWARDS_VIEW);
-        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+        expect(tabs).toContain(Routes.SOCIAL.TAB);
+        expect(tabs).toContain(Routes.TRADE_DASHBOARD);
         expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       },
     );
 
-    it('hands the trade button to the floating bar when the interim flag is on', () => {
+    it('omits the circle button when the interim flag is on', () => {
       const state = stateForInterim('control');
       const container = renderWithProvider(<MainNavigator />, { state });
 
       expect(
         renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-      ).toBe('trade');
+      ).toBeUndefined();
     });
 
     const socialTabComponentName = (
@@ -2434,10 +2446,10 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders TransactionsHome', () => {
+      it('renders the Trade dashboard', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
-          Routes.TRANSACTIONS_VIEW,
+          Routes.TRADE_DASHBOARD,
           'TabScreen',
         );
         expect(renderInner(Component).toJSON()).toBeTruthy();
@@ -2978,35 +2990,21 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when account is visible', () => {
+      it('keeps Money in the footer even when the account flag is off', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
+        expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
+      });
+
+      it('keeps Money in the footer when the account is visible', () => {
         mockSelectIsMoneyAccountVisible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-      });
-
-      it('excludes Money route when account is not visible', () => {
-        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
-      });
-
-      it('gives the Money slot to Activity in regions without Money', () => {
-        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
-        expect(tabScreenNames).toContain(Routes.TRANSACTIONS_VIEW);
-      });
-
-      it('keeps Activity out of the tab set when Money is available', () => {
-        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
-
-        const tabScreenNames = getHomeTabsScreenNames();
-
         expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
       });
     });

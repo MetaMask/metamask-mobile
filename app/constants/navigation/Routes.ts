@@ -114,6 +114,11 @@ const Routes = {
   // Activity details screen. Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
+  COLLECTIBLES_VIEW: 'CollectiblesView',
+  /** Trade tab. Opens on Explore, with Swap, Perps, and Predictions. */
+  TRADE_DASHBOARD: 'TradeDashboard',
+  /** Placeholder trading hub when Perps or Predictions is not registered. */
+  TRADE_HUB: 'TradeHub',
   REWARDS_FLOW: 'RewardsFlow',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',

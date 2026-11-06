@@ -21,6 +21,7 @@ export const NATIVE_TAB_ICONS: Record<
 > = {
   home: { source: tabIconHome, selectedSource: tabIconHomeSelected },
   explore: { source: tabIconExplore, selectedSource: tabIconExploreSelected },
+  trade: { source: tabIconTrade, selectedSource: tabIconTrade },
   money: { source: tabIconMoney, selectedSource: tabIconMoneySelected },
   activity: {
     source: tabIconActivity,

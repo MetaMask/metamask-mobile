@@ -36,8 +36,8 @@ import {
 } from './TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from './TabBarFloating.utils';
 
-/** What the circular button beside the pill does. */
-export type TabBarFloatingTrailingAction = 'search' | 'trade';
+/** What the circular button beside the pill does. `none` omits the circle. */
+export type TabBarFloatingTrailingAction = 'search' | 'trade' | 'none';
 
 export interface TabBarFloatingProps extends TabBarProps {
   /**
@@ -160,6 +160,9 @@ const TabBarFloating = ({
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
             break;
+          case Routes.TRADE_DASHBOARD:
+            navigation.navigate(Routes.TRADE_DASHBOARD);
+            break;
         }
       };
 
@@ -190,6 +193,13 @@ const TabBarFloating = ({
     ],
   );
 
+  const homeTabs = state.routes.flatMap(
+    (route: TabBarFloatingRoute, index: number) => {
+      const node = renderTabBarItem(route, index);
+      return node ? [{ key: route.key, node }] : [];
+    },
+  );
+
   return (
     <View
       style={[
@@ -202,7 +212,7 @@ const TabBarFloating = ({
       testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
       onLayout={handleLayout}
     >
-      <View style={ROW_STYLE}>
+      <View style={trailingAction === 'none' ? undefined : ROW_STYLE}>
         <TabBarFloatingSurface
           isBlurAvailable={isBlurAvailable}
           colorScheme={colorScheme}
@@ -210,35 +220,37 @@ const TabBarFloating = ({
           style={{ height: TAB_BAR_FLOATING_HEIGHT }}
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
         >
-          {state.routes.map((route: TabBarFloatingRoute, index: number) =>
-            renderTabBarItem(route, index),
-          )}
+          {homeTabs.map((tab) => tab.node)}
         </TabBarFloatingSurface>
-        <TabBarFloatingSurface
-          isBlurAvailable={isBlurAvailable}
-          colorScheme={colorScheme}
-          twClassName="items-center justify-center rounded-full"
-          style={{
-            height: TAB_BAR_FLOATING_HEIGHT,
-            width: TAB_BAR_FLOATING_HEIGHT,
-          }}
-        >
-          {trailingAction === 'trade' ? (
-            <TabBarFloatingTradeButton
-              testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
-            />
-          ) : (
-            <ButtonIcon
-              iconName={IconName.Search}
-              iconProps={{ color: IconColor.IconDefault }}
-              size={ButtonIconSize.Md}
-              onPress={handleSearchPress}
-              testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
-              accessibilityLabel={strings('wallet.search_accessibility_label')}
-              twClassName="h-full w-full rounded-full bg-transparent"
-            />
-          )}
-        </TabBarFloatingSurface>
+        {trailingAction === 'none' ? null : (
+          <TabBarFloatingSurface
+            isBlurAvailable={isBlurAvailable}
+            colorScheme={colorScheme}
+            twClassName="items-center justify-center rounded-full"
+            style={{
+              height: TAB_BAR_FLOATING_HEIGHT,
+              width: TAB_BAR_FLOATING_HEIGHT,
+            }}
+          >
+            {trailingAction === 'trade' ? (
+              <TabBarFloatingTradeButton
+                testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
+              />
+            ) : (
+              <ButtonIcon
+                iconName={IconName.Search}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleSearchPress}
+                testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+                accessibilityLabel={strings(
+                  'wallet.search_accessibility_label',
+                )}
+                twClassName="h-full w-full rounded-full bg-transparent"
+              />
+            )}
+          </TabBarFloatingSurface>
+        )}
       </View>
     </View>
   );

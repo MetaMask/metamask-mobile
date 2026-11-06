@@ -22,6 +22,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { openPredictHeaderSearch } from '../../hooks/predictHeaderSearch';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -231,17 +232,17 @@ describe('PredictFeed', () => {
 
   describe('search interaction', () => {
     it('opens the search overlay when the user presses the search icon', async () => {
-      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+      const { findByPlaceholderText } = renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });
 
     it('tracks the search opened event with the active feed tab and entry point', async () => {
-      const { getByTestId } = renderPredictFeedView();
+      renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       expect(
         Engine.context.PredictController.trackSearchInteracted,
@@ -260,9 +261,9 @@ describe('PredictFeed', () => {
         'searchMarkets',
       );
 
-      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+      const { findByPlaceholderText } = renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
@@ -280,14 +281,10 @@ describe('PredictFeed', () => {
     });
 
     it('closes the search overlay when the user presses Cancel', async () => {
-      const {
-        getByTestId,
-        findByText,
-        findByPlaceholderText,
-        queryByPlaceholderText,
-      } = renderPredictFeedView();
+      const { findByText, findByPlaceholderText, queryByPlaceholderText } =
+        renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       await findByPlaceholderText(SEARCH_PLACEHOLDER);
 
       fireEvent.press(await findByText(CANCEL_TEXT));
@@ -303,7 +300,7 @@ describe('PredictFeed', () => {
       const { getByTestId, findByPlaceholderText, queryByTestId } =
         renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'ethereum');
@@ -324,10 +321,9 @@ describe('PredictFeed', () => {
     });
 
     it('shows a "no results" message that includes the typed query when getMarkets returns empty', async () => {
-      const { getByTestId, getByText, findByPlaceholderText } =
-        renderPredictFeedView();
+      const { getByText, findByPlaceholderText } = renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'xyznotfound');
@@ -352,11 +348,10 @@ describe('PredictFeed', () => {
         markets: [MOCK_PREDICT_MARKET],
         totalResults: 1,
       });
-      const { getByTestId, findByPlaceholderText, findByTestId } =
-        renderPredictFeedView();
+      const { findByPlaceholderText, findByTestId } = renderPredictFeedView();
 
       // Act — user opens search and types a query
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 
@@ -399,10 +394,10 @@ describe('PredictFeed', () => {
         markets: [MOCK_PREDICT_MARKET],
         totalResults: 42,
       });
-      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+      const { findByPlaceholderText } = renderPredictFeedView();
 
       // Act — user opens search and types a query
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 
@@ -436,7 +431,7 @@ describe('PredictFeed', () => {
         .trackSearchInteracted as jest.Mock;
       const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       trackSearchInteractedMock.mockClear();
 
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
@@ -478,7 +473,7 @@ describe('PredictFeed', () => {
         totalResults: 1,
       });
 
-      const { getByTestId, findByPlaceholderText, findByTestId } =
+      const { findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
           extraRoutes: [
             {
@@ -488,7 +483,7 @@ describe('PredictFeed', () => {
           ],
         });
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
 
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
@@ -765,7 +760,7 @@ describe('PredictFeed', () => {
         extraRoutes: [{ name: Routes.PREDICT.ROOT }],
       });
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       fireEvent.changeText(
         await findByPlaceholderText(SEARCH_PLACEHOLDER),
         'btc',
@@ -902,10 +897,9 @@ describe('PredictFeed', () => {
       );
       searchMarketsSpy.mockRejectedValue(new Error('Network error'));
 
-      const { getByTestId, findByPlaceholderText, findByTestId } =
-        renderPredictFeedView();
+      const { findByPlaceholderText, findByTestId } = renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 
@@ -929,10 +923,10 @@ describe('PredictFeed', () => {
       );
       searchMarketsSpy.mockRejectedValue(new Error('Network error'));
 
-      const { getByTestId, findByPlaceholderText, findByTestId, findByText } =
+      const { findByPlaceholderText, findByTestId, findByText } =
         renderPredictFeedView();
 
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      expect(openPredictHeaderSearch()).toBe(true);
       const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
       fireEvent.changeText(searchInput, 'bitcoin');
 

@@ -2196,7 +2196,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders only the avatar and rewards entry points in treatment', () => {
+  it('renders only the avatar entry point in treatment', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId, queryByTestId } = render(Wallet);
@@ -2206,8 +2206,8 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBeOnTheScreen();
     expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
     expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
-    ).toBeOnTheScreen();
+      queryByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).not.toBeOnTheScreen();
 
     for (const removed of [
       WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
@@ -2521,15 +2521,6 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
-  });
-
-  it('opens rewards from the treatment gift icon', () => {
-    mockHeaderNavBarVariantName = 'searchFocused';
-
-    const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
   it('opens the account hub from the account name above the balance', () => {

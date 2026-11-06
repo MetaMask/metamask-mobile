@@ -172,7 +172,7 @@ export const waitForOrderScreenVisible = async (
 };
 
 /**
- * Opens Perps from the wallet and waits until the Perps home search control is
+ * Opens Perps from the wallet and waits until the Perps home back control is
  * visible.
  *
  * Uses Trade → Perps (same actions-sheet entry as Predict withdraw / deposit
@@ -187,12 +187,7 @@ export const waitForOrderScreenVisible = async (
 export const openPerpsHomeFromWallet = async (): Promise<void> => {
   await Utilities.executeWithRetry(
     async () => {
-      if (
-        await Utilities.isElementVisible(
-          PerpsMarketListView.homeSearchToggle,
-          1_000,
-        )
-      ) {
+      if (await Utilities.isElementVisible(PerpsHomeView.backHome, 1_000)) {
         return;
       }
 
@@ -200,19 +195,16 @@ export const openPerpsHomeFromWallet = async (): Promise<void> => {
       await WalletActionsBottomSheet.tapPerpsButton();
       await completePerpsModeSelectionIfPresent();
       await dismissPerpsOnboardingTutorialIfPresent();
-      await Assertions.expectElementToBeVisible(
-        PerpsMarketListView.homeSearchToggle,
-        {
-          description: 'Perps home search control is visible',
-          timeout: 10_000,
-        },
-      );
+      await Assertions.expectElementToBeVisible(PerpsHomeView.backHome, {
+        description: 'Perps home back control is visible',
+        timeout: 10_000,
+      });
     },
     {
       timeout: 60_000,
       interval: 1_000,
       description: 'open Perps home from wallet',
-      elemDescription: 'Perps home search control',
+      elemDescription: 'Perps home back control',
     },
   );
 };

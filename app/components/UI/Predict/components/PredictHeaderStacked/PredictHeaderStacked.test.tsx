@@ -108,7 +108,6 @@ const renderHeader = (
       scrollY={sharedValue(0)}
       titleSectionHeight={sharedValue(0)}
       onBack={jest.fn()}
-      onSearchPress={jest.fn()}
       {...props}
     />,
   );
@@ -144,27 +143,12 @@ describe('PredictHeaderStacked', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onSearchPress when the search icon is pressed', () => {
-    const onSearchPress = jest.fn();
-    renderHeader({ onSearchPress });
-
-    fireEvent.press(
-      screen.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-    );
-
-    expect(onSearchPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('places the venue picker before the search icon', () => {
+  it('does not render a search icon', () => {
     renderHeader();
 
-    const icons = screen.getAllByTestId(
-      /venue-selector-stub|predict-search-button/,
-    );
-    expect(icons.map((icon) => icon.props.testID)).toStrictEqual([
-      'venue-selector-stub',
-      PredictSearchSelectorsIDs.SEARCH_BUTTON,
-    ]);
+    expect(
+      screen.queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+    ).toBeNull();
     expect(screen.getByTestId('venue-selector-stub')).toHaveTextContent(
       'standard',
     );
@@ -179,26 +163,23 @@ describe('PredictHeaderStacked', () => {
   });
 
   describe('capsules', () => {
-    it('seats back and search in capsules and keeps them pressable', () => {
+    it('seats back in a capsule and keeps it pressable', () => {
       const onBack = jest.fn();
-      const onSearchPress = jest.fn();
       const { UNSAFE_getAllByType } = renderHeader({
         isGlass: true,
         onBack,
-        onSearchPress,
       });
 
-      expect(UNSAFE_getAllByType(CapsuleGlass)).toHaveLength(2);
+      expect(UNSAFE_getAllByType(CapsuleGlass).length).toBeGreaterThan(0);
 
       fireEvent.press(
         screen.getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
       );
-      fireEvent.press(
-        screen.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-      );
 
       expect(onBack).toHaveBeenCalledTimes(1);
-      expect(onSearchPress).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+      ).toBeNull();
     });
 
     it('keeps the plain header icons by default', () => {

@@ -14,11 +14,11 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useIsTradingHub } from '../../../../Nav/Main/contextualNav/contextualSection';
 
 import {
   BottomSheetRef,
   Button,
-  ButtonIconSize,
   ButtonVariant,
   ButtonSize,
   TextColor,
@@ -136,7 +136,6 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
@@ -163,6 +162,7 @@ const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
+  const openedFromTradeFooter = useIsTradingHub('perps');
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -617,35 +617,6 @@ const PerpsHomeView = () => {
       }),
     },
   });
-
-  const handleSearchToggle = useCallback(() => {
-    // Track button click
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
-        .addProperties({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-        })
-        .build(),
-    );
-    perpsNavigation.navigateToMarketList({
-      defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      fromHome: true,
-      button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
-      button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
-    });
-  }, [
-    perpsNavigation,
-    trackEvent,
-    createEventBuilder,
-    transactionActiveAbTests,
-  ]);
 
   const handleWhatsHappeningHeaderPress = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1270,37 +1241,26 @@ const PerpsHomeView = () => {
       scrollY={headerScrollY}
       titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
-      onBack={handleBackPress}
-      backButtonProps={{
-        accessibilityLabel: 'Back',
-        testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-      }}
+      {...(openedFromTradeFooter
+        ? {}
+        : {
+            onBack: handleBackPress,
+            backButtonProps: {
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            },
+          })}
       endAccessory={
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-        >
-          <ButtonIconGlass
+        isPerpsProModeEnabled ? (
+          <PerpsModeToggle
+            mode={perpsMode}
+            onChange={handleModeChange}
+            variant="active"
+            enableHaptics
             isCapsule={isBrandRefresh}
-            iconName={IconName.Search}
-            size={ButtonIconSize.Md}
-            onPress={handleSearchToggle}
-            accessibilityLabel="Search"
-            testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           />
-          {isPerpsProModeEnabled ? (
-            <PerpsModeToggle
-              mode={perpsMode}
-              onChange={handleModeChange}
-              variant="active"
-              enableHaptics
-              isCapsule={isBrandRefresh}
-              source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            />
-          ) : null}
-        </Box>
+        ) : undefined
       }
       testID="perps-home"
     />

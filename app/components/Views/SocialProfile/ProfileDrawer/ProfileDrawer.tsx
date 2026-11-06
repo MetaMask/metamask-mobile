@@ -102,6 +102,10 @@ const ProfileDrawer = () => {
     });
   }, [navigation]);
 
+  const handleRewards = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_VIEW);
+  }, [navigation]);
+
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   // Offline or low-memory devices stay on the profile already in the
@@ -168,6 +172,12 @@ const ProfileDrawer = () => {
       label: strings('profile_drawer.activity'),
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
+    },
+    {
+      iconName: IconName.Gift,
+      label: strings('bottom_nav.rewards'),
+      onPress: handleRewards,
+      testID: ProfileDrawerSelectorsIDs.REWARDS_ROW,
     },
     ...(showOrangeEntry
       ? [

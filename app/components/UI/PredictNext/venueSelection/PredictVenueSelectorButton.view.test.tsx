@@ -171,7 +171,7 @@ describe('PredictVenueSelectorButton', () => {
     expect(storedPreference(view)).toBe('polymarket');
   });
 
-  it('places the picker next to search on the redesigned legacy home', async () => {
+  it('places the picker on the redesigned legacy home', async () => {
     const view = renderRoot({
       remoteFeatureFlags: {
         predictHomeRedesign: {
@@ -186,8 +186,8 @@ describe('PredictVenueSelectorButton', () => {
       await view.findByTestId(PredictHomeSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-    ).toBeOnTheScreen();
+      view.queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+    ).toBeNull();
     await chooseVenue(view, 'kalshi');
 
     expect(await findNextHome(view)).toBeOnTheScreen();
@@ -212,8 +212,8 @@ describe('PredictVenueSelectorButton', () => {
     const legacy = renderRoot({ predictConfig: gateOff });
     await findLegacyHome(legacy);
     expect(
-      legacy.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-    ).toBeOnTheScreen();
+      legacy.queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+    ).toBeNull();
     expect(
       legacy.queryByTestId(PredictVenueSelectorTestIds.BUTTON),
     ).not.toBeOnTheScreen();
@@ -225,9 +225,8 @@ describe('PredictVenueSelectorButton', () => {
         sessionDefault: { venue: 'kalshi', source: 'geolocation' },
       },
     });
-    expect(
-      await next.findByTestId(PredictHomeTestIds.SEARCH),
-    ).toBeOnTheScreen();
+    expect(await next.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+    expect(next.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
     expect(
       next.queryByTestId(PredictVenueSelectorTestIds.BUTTON),
     ).not.toBeOnTheScreen();
@@ -254,9 +253,8 @@ describe('PredictVenueSelectorButton', () => {
       },
     });
 
-    expect(
-      await view.findByTestId(PredictHomeTestIds.SEARCH),
-    ).toBeOnTheScreen();
+    expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+    expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
     await waitFor(() =>
       expect(
         view.queryByTestId(PredictVenueSelectorTestIds.BUTTON),

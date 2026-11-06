@@ -923,10 +923,6 @@ const Wallet = ({
     navigation.navigate(Routes.SOCIAL_PROFILE.DRAWER);
   }, [navigation]);
 
-  const handleRewardsPress = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_VIEW);
-  }, [navigation]);
-
   const {
     isSearchHeaderEnabled: isHomepageSearchHeaderEnabled,
     showPastePill,
@@ -1139,7 +1135,6 @@ const Wallet = ({
       handleActivityPress={handleActivityPress}
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
-      handleRewardsPress={handleRewardsPress}
       handleProfilePress={handleProfilePress}
       touchAreaSlop={touchAreaSlop}
       headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
@@ -1412,7 +1407,6 @@ const Wallet = ({
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
                   displayName={displayName}
-                  handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
                   handleSearchPress={
                     isHeaderSearchEnabled || isSearchHeaderEnabled

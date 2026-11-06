@@ -9,7 +9,6 @@ import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
-import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   KALSHI_STATIC_VENUE_CATALOG,
@@ -94,12 +93,7 @@ describe('PredictHome', () => {
       view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
         .paddingTop,
     ).toBeGreaterThan(0);
-
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
-
-    expect(
-      await view.findByTestId(PredictSearchScreenTestIds.VIEW),
-    ).toBeOnTheScreen();
+    expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
   });
 
   it('keeps the solid header when the Predict brand refresh is off', async () => {
@@ -760,7 +754,7 @@ describe('PredictHome', () => {
     const buyButtons = (view: ReturnType<typeof renderPredictNext>) =>
       view.queryAllByLabelText(/, buy$/);
 
-    it('renders every section the Venue supports, with search and buy', async () => {
+    it('renders every section the Venue supports, with buy', async () => {
       const view = renderPredictNext();
 
       expect(
@@ -769,7 +763,7 @@ describe('PredictHome', () => {
       expect(
         view.getByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
       ).toBeOnTheScreen();
-      expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+      expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
       expect(buyButtons(view).length).toBeGreaterThan(0);
       expect(
         view.queryByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
@@ -1014,7 +1008,7 @@ describe('PredictHome', () => {
         expect(
           await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
         ).toBeOnTheScreen();
-        expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+        expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
         expect(calls('PredictPortfolioService:getBalance')).toEqual([
           ['PredictPortfolioService:getBalance', venueId],
         ]);
@@ -1040,22 +1034,11 @@ describe('PredictHome', () => {
         );
       });
 
-      it('opens search for the Active Venue', async () => {
+      it('does not show a search button for the Active Venue', async () => {
         const view = renderPredictNext(false, { venueId });
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-        fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
-        fireEvent.changeText(
-          await view.findByTestId(PredictSearchScreenTestIds.INPUT),
-          'chiefs',
-        );
-
-        await waitFor(() =>
-          expect(messengerCall).toHaveBeenCalledWith(
-            'PredictMarketDataService:searchEvents',
-            venueId,
-            expect.objectContaining({ q: 'chiefs' }),
-          ),
-        );
+        expect(view.queryByTestId(PredictHomeTestIds.SEARCH)).toBeNull();
       });
     });
   });

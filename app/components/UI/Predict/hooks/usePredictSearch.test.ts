@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePredictSearch } from './usePredictSearch';
 
-const mockRouteParams: { query?: string } = {};
+const mockRouteParams: { query?: string; openSearch?: boolean } = {};
 const focusCallbacks: (() => void)[] = [];
 
 jest.mock('@react-navigation/native', () => ({
@@ -22,6 +22,7 @@ describe('usePredictSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams.query = undefined;
+    mockRouteParams.openSearch = undefined;
     focusCallbacks.length = 0;
   });
 
@@ -38,6 +39,19 @@ describe('usePredictSearch', () => {
       const { result } = renderHook(() => usePredictSearch());
 
       expect(result.current.isSearchVisible).toBe(true);
+    });
+
+    it('opens when the footer asks for search and closes when it clears it', () => {
+      mockRouteParams.openSearch = true;
+      const { result, rerender } = renderHook(() => usePredictSearch());
+
+      expect(result.current.isSearchVisible).toBe(true);
+
+      mockRouteParams.openSearch = false;
+      rerender({});
+
+      expect(result.current.isSearchVisible).toBe(false);
+      expect(result.current.searchQuery).toBe('');
     });
   });
 

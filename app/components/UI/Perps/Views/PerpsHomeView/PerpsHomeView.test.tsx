@@ -716,32 +716,32 @@ describe('PerpsHomeView', () => {
 
   it('renders without crashing', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
 
     // Assert - Component renders with essential elements
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
   });
 
   it('shows header with navigation controls', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
 
     // Assert
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
   });
 
-  it('shows search toggle button', () => {
+  it('does not show a search button in the header', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    const { queryByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
   });
 
   it('gives the header the status-bar inset when no outreach banner is shown', () => {
@@ -817,11 +817,10 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the active-mode pill sits in endAccessory
+    // Assert - back remains and the active-mode pill sits in endAccessory
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
@@ -853,10 +852,10 @@ describe('PerpsHomeView', () => {
     mockUseSelector.mockReturnValue(false);
 
     // Act
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
+    const { queryByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
@@ -944,27 +943,6 @@ describe('PerpsHomeView', () => {
     );
   });
 
-  it('navigates to market list view with search enabled when search button is pressed', () => {
-    // Arrange
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
-
-    // Assert - Search bar should not be visible initially
-    expect(queryByTestId('perps-home-search-bar')).toBeNull();
-
-    // Act - Press search toggle
-    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
-
-    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      fromHome: true,
-      button_clicked: 'magnifying_glass',
-      button_location: 'perps_home',
-    });
-    // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
-    expect(queryByTestId('perps-home-search-bar')).toBeNull();
-  });
-
   it('forwards scroll events to the latest section tracking callback', async () => {
     const initialTracking = mockScrollTracking();
     const latestTracking = mockScrollTracking();
@@ -999,32 +977,6 @@ describe('PerpsHomeView', () => {
         contentOffset: { x: 0, y: 240 },
         layoutMeasurement: { width: 0, height: 844 },
       },
-    });
-  });
-
-  it('carries route transactionActiveAbTests when search opens market list', () => {
-    const transactionActiveAbTests = [
-      createActiveABTestAssignment(
-        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
-        'treatment',
-      ),
-    ];
-    mockRouteParams = {
-      source: 'home_section',
-      transactionActiveAbTests,
-    };
-
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
-
-    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      fromHome: true,
-      button_clicked: 'magnifying_glass',
-      button_location: 'perps_home',
-      transactionActiveAbTests,
     });
   });
 
@@ -1548,11 +1500,11 @@ describe('PerpsHomeView', () => {
 
   describe('header', () => {
     it('renders the header by default', () => {
-      const { getByTestId } = render(<PerpsHomeView />);
+      const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
       expect(
         getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
       ).toBeTruthy();
-      expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+      expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
     });
   });
 

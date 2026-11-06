@@ -632,6 +632,7 @@ export type RootStackParamList = {
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
+  CollectiblesView: undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;

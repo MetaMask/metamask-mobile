@@ -383,7 +383,7 @@ describe('TrendingView', () => {
   it('renders title in header', () => {
     const { getByText } = renderTrendingView();
 
-    expect(getByText('Explore')).toBeOnTheScreen();
+    expect(getByText('Trending')).toBeOnTheScreen();
   });
 
   it('wraps screen in SafeAreaView', () => {

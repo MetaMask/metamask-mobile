@@ -52,6 +52,11 @@ import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
+import {
+  getContextualNavState,
+  setContextualTab,
+  useContextualNavState,
+} from '../../../Nav/Main/contextualNav/contextualSection';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { canClaimEarnings, claimRouteOptions } from '../utils/claimEarnings';
 import { useFollowTradeClaimOpen } from '../hooks/useFollowTradeClaimOpen';
@@ -173,9 +178,37 @@ const RewardsMoneyDashboard: React.FC = () => {
       panelScrollRef.current?.scrollTo({ y: 0, animated: false });
       scrollY.value = 0;
       setActiveTab(nextTab);
+      if (getContextualNavState().section === 'rewards') {
+        setContextualTab(
+          nextTab === 'earnings'
+            ? 'claim'
+            : nextTab === 'performance'
+              ? 'performance'
+              : 'earn',
+        );
+      }
     },
     [activeTab, scrollY],
   );
+  const contextualNav = useContextualNavState();
+
+  useEffect(() => {
+    if (contextualNav.section !== 'rewards') {
+      return;
+    }
+    const index =
+      contextualNav.tab === 'claim'
+        ? TAB_ORDER.indexOf('earnings')
+        : contextualNav.tab === 'performance'
+          ? TAB_ORDER.indexOf('performance')
+          : contextualNav.tab === 'earn'
+            ? TAB_ORDER.indexOf('waysToEarn')
+            : -1;
+    if (index === -1) {
+      return;
+    }
+    selectTab(index);
+  }, [contextualNav.section, contextualNav.tab, selectTab]);
 
   // The scroller's layout box includes the title overdraw, which the parent
   // clips. A short panel in that band cannot scroll to its own end.

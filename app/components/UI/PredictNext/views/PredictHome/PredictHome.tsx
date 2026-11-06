@@ -6,10 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIconSize,
-  IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
@@ -17,7 +13,6 @@ import {
 import Reanimated from 'react-native-reanimated';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
-import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
@@ -30,7 +25,6 @@ import {
 import {
   PREDICT_SURFACE_FEED_KEYS,
   canPerformVenueAction,
-  isVenueSearchSupported,
   resolveSurfaceFeeds,
   useVenueCapabilities,
   type PredictVenueCapabilities,
@@ -38,6 +32,7 @@ import {
 import { useNextVenueId } from '../../implementation';
 import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useIsTradingHub } from '../../../../Nav/Main/contextualNav/contextualSection';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import type {
@@ -82,6 +77,7 @@ const PredictHomeView = ({
 }: PredictHomeViewProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const openedFromTradeFooter = useIsTradingHub('predictions');
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -159,13 +155,6 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  const openSearch = useCallback(
-    () =>
-      navigation.navigate(PredictNextRoutes.SEARCH, {
-        venueId,
-      }),
-    [navigation, venueId],
-  );
   const openFeedScreen = useCallback(
     (feedScreenId: FeedScreenId) =>
       navigation.navigate(PredictNextRoutes.FEED, {
@@ -212,28 +201,11 @@ const PredictHomeView = ({
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
         endAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <PredictVenueSelectorButton
-              variant={isGlassHeader ? 'glass' : 'standard'}
-            />
-            {isVenueSearchSupported(capabilities) ? (
-              <ButtonIconGlass
-                isCapsule={isGlassHeader}
-                size={ButtonIconSize.Md}
-                iconName={IconName.Search}
-                onPress={openSearch}
-                testID={PredictHomeTestIds.SEARCH}
-                accessibilityLabel={strings('predict_next.search.placeholder')}
-                accessibilityRole="button"
-              />
-            ) : null}
-          </Box>
+          <PredictVenueSelectorButton
+            variant={isGlassHeader ? 'glass' : 'standard'}
+          />
         }
-        {...(navigation.canGoBack()
+        {...(!openedFromTradeFooter && navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
               backButtonProps: { testID: PredictHomeTestIds.BACK },

@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -26,7 +25,6 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
@@ -39,7 +37,6 @@ import {
   PredictFeedViewSelectorsIDs,
   getPredictFeedViewSelector,
   PredictMarketListSelectorsIDs,
-  PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { resolvePredictFilterLabel } from '../../utils/feed';
 import type { PredictNavigationParamList } from '../../types/navigation';
@@ -104,13 +101,8 @@ const PredictFeedView: React.FC = () => {
       (!filters.some((f) => f.id === initialFilterId) ||
         activeFilterId === initialFilterId));
 
-  const {
-    isSearchVisible,
-    searchQuery,
-    setSearchQuery,
-    showSearch,
-    clearSearchAndClose,
-  } = usePredictSearch();
+  const { isSearchVisible, searchQuery, setSearchQuery, clearSearchAndClose } =
+    usePredictSearch();
 
   const {
     markets,
@@ -180,15 +172,6 @@ const PredictFeedView: React.FC = () => {
     }
     navigation.navigate(Routes.PREDICT.ROOT);
   }, [navigation]);
-
-  const handleShowSearch = useCallback(() => {
-    Engine.context.PredictController.trackSearchInteracted({
-      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
-      predictFeedTab: activeTabId,
-      entryPoint,
-    });
-    showSearch();
-  }, [activeTabId, entryPoint, showSearch]);
 
   // Unknown feed -> bounce back so the user never lands on an empty shell.
   useEffect(() => {
@@ -388,17 +371,6 @@ const PredictFeedView: React.FC = () => {
         title={title}
         onBack={header?.showBackButton ? handleBack : undefined}
         backButtonProps={{ testID: PredictMarketListSelectorsIDs.BACK_BUTTON }}
-        endButtonIconProps={
-          header?.showSearchButton
-            ? [
-                {
-                  iconName: IconName.Search,
-                  onPress: handleShowSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]
-            : undefined
-        }
         testID={PredictFeedViewSelectorsIDs.HEADER}
       />
 

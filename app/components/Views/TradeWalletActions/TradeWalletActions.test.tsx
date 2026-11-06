@@ -1160,11 +1160,11 @@ describe('TradeWalletActions', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the legacy Earn button when user is eligible and feature is enabled', () => {
+  it('does not render Earn in the add menu', () => {
     jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
     jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(true);
 
-    const { getByTestId } = renderScreen(
+    const { queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -1175,8 +1175,8 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeOnTheScreen();
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
   });
 
   it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
@@ -1363,9 +1363,6 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
-    const earnButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-    );
     const perpsButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
     );
@@ -1375,7 +1372,6 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
-    fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);
 
@@ -1641,6 +1637,43 @@ describe('TradeWalletActions', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
       });
+    });
+
+    it('does not list Collectibles in the trade menu', () => {
+      (
+        selectPerpsEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectPredictAvailability as jest.MockedFunction<
+          typeof selectPredictAvailability
+        >
+      ).mockReturnValue(true);
+
+      const { queryByTestId, queryByText } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON),
+      ).toBeNull();
+      expect(queryByText('Collectibles')).toBeNull();
+      expect(queryByText('Explore packs and cards')).toBeNull();
+    });
+
+    it('does not offer Rewards from the add menu', () => {
+      const { queryByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.REWARDS_BUTTON),
+      ).toBeNull();
     });
 
     it('calls navigation goBack when parent navigator cannot go back', async () => {

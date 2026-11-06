@@ -55,6 +55,10 @@ export interface PredictMarketListRouteParams {
    */
   tabId?: string;
   query?: string;
+  /** Opens the market-list search overlay. `false` closes it. */
+  openSearch?: boolean;
+  /** Bumps so a later footer tap opens search again. */
+  searchNonce?: number;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 

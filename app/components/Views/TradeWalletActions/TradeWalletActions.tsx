@@ -91,7 +91,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
+import { enterTradingHub } from '../../Nav/Main/contextualNav/contextualSection';
 import {
   MORPH_COLLAPSE,
   MORPH_CONTENT_FADE_IN,
@@ -364,16 +364,9 @@ function TradeWalletActions() {
     onDismiss,
   ]);
 
-  const onActionSelected = useCallback(
-    (callback: () => void | Promise<void>) => {
-      postCallback.current = callback;
-      handleNavigateBack();
-    },
-    [handleNavigateBack],
-  );
-
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
+      enterTradingHub('swap');
       goToSwapsBase();
     };
     handleNavigateBack();
@@ -381,6 +374,7 @@ function TradeWalletActions() {
 
   const onPerps = useCallback(() => {
     postCallback.current = async () => {
+      enterTradingHub('perps');
       if (isPerpsProModeEnabled) {
         const hasCompletedModeSelection =
           await hasCompletedPerpsModeSelection();
@@ -408,6 +402,7 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
+      enterTradingHub('predictions');
       openPredict({
         type: 'home',
         entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
@@ -495,10 +490,6 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      <EarnTradeMenuRow
-        onActionSelected={onActionSelected}
-        isDisabled={!canSignTransactions}
-      />
     </>
   );
 
