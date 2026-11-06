@@ -1,20 +1,24 @@
+import { act, renderHook } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 
-import { KalshiOnboardingHttpError } from '../../adapters/remote/KalshiOnboardingClient';
+import Logger from '../../../../../util/Logger';
+import {
+  KalshiOnboardingHttpError,
+  KalshiOnboardingPolicyError,
+} from '../../adapters/remote/KalshiOnboardingClient';
 import type { KalshiLinkVerify } from '../../contracts/v1/onboarding';
 import {
   createOnboardingController,
+  useKalshiDemoOnboarding,
   type KalshiOnboardingApi,
 } from './useKalshiDemoOnboarding';
 import type { OnboardingEvent } from './kalshiDemoOnboardingMachine';
 
 const flush = async () => {
-  for (let i = 0; i < 20; i += 1) {
-    await new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
-  }
+  await jest.runAllTimersAsync();
 };
+
+const WALLET = '0x1234567890AbcdEF1234567890aBcdef12345678';
 
 const statusOf = (state: string) =>
   ({ state }) as Awaited<ReturnType<KalshiOnboardingApi['getStatus']>>;
@@ -23,18 +27,25 @@ describe('createOnboardingController', () => {
   const events: OnboardingEvent[] = [];
   const keys: string[] = [];
   let client: jest.Mocked<KalshiOnboardingApi>;
-
+  let onActivated: jest.Mock;
   let clock = 0;
 
-  const start = (relink = false) => {
+  const start = (
+    overrides: {
+      omitWallet?: boolean;
+      canPoll?: () => boolean;
+      pollIntervalMs?: number;
+    } = {},
+  ) => {
+    onActivated = jest.fn();
     const controller = createOnboardingController(
       () => ({
         client,
-        walletAddress: '0x1234567890AbcdEF1234567890aBcdef12345678',
+        ...(overrides.omitWallet ? {} : { walletAddress: WALLET }),
         network: 'base',
-        pollIntervalMs: 0,
-        relink,
-        onActivated: jest.fn(),
+        pollIntervalMs: overrides.pollIntervalMs ?? 0,
+        canPoll: overrides.canPoll,
+        onActivated,
         newKey: () => {
           const key = `key-${keys.length + 1}`;
           keys.push(key);
@@ -53,6 +64,7 @@ describe('createOnboardingController', () => {
   };
 
   beforeEach(() => {
+    jest.useFakeTimers();
     events.length = 0;
     clock = 0;
     keys.length = 0;
@@ -70,6 +82,10 @@ describe('createOnboardingController', () => {
       runDemoKyc: jest.fn(async () => statusOf('approved')),
       activate: jest.fn(async () => ({ intentStatus: 'ACTIVATED' })),
     } as unknown as jest.Mocked<KalshiOnboardingApi>;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('reuses the intent and link keys when the same email action is retried', async () => {
@@ -199,5 +215,267 @@ describe('createOnboardingController', () => {
       state: 'approved',
       initial: false,
     });
+  });
+
+  it('calls onActivated when demo KYC returns active', async () => {
+    client.getStatus.mockResolvedValueOnce(statusOf('kyc_pending'));
+    client.runDemoKyc.mockResolvedValueOnce(statusOf('active'));
+    const controller = start();
+
+    controller.start();
+    await flush();
+
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+    expect(onActivated).toHaveBeenCalledTimes(1);
+  });
+
+  it('polls when demo KYC stays in review', async () => {
+    client.getStatus
+      .mockResolvedValueOnce(statusOf('kyc_pending'))
+      .mockResolvedValueOnce(statusOf('approved'));
+    client.runDemoKyc.mockResolvedValueOnce(statusOf('kyc_review'));
+    const controller = start();
+
+    controller.start();
+    await flush();
+
+    expect(events.at(-1)).toMatchObject({ type: 'status', state: 'approved' });
+  });
+
+  it('does not call onActivated when the profile is already active', async () => {
+    client.getStatus.mockResolvedValueOnce(statusOf('active'));
+    const controller = start();
+
+    controller.start();
+    await flush();
+
+    expect(onActivated).not.toHaveBeenCalled();
+    expect(events).toContainEqual({
+      type: 'status',
+      state: 'active',
+      initial: true,
+    });
+  });
+
+  it('polls a review without running demo KYC', async () => {
+    client.getStatus
+      .mockResolvedValueOnce(statusOf('kyc_review'))
+      .mockResolvedValueOnce(statusOf('approved'));
+    const controller = start({ canPoll: () => true });
+
+    controller.start();
+    await flush();
+
+    expect(client.runDemoKyc).not.toHaveBeenCalled();
+    expect(events.at(-1)).toMatchObject({ type: 'status', state: 'approved' });
+  });
+
+  it('fails the poll when the device has no usable network', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_review'));
+    const controller = start({ canPoll: () => false });
+
+    controller.start();
+    await flush();
+
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+    expect(events.at(-1)).toMatchObject({
+      type: 'failed',
+      failure: { message: 'generic', next: 'retry' },
+    });
+  });
+
+  it('skips a poll read while the app is backgrounded', async () => {
+    AppState.currentState = 'background';
+    client.getStatus
+      .mockResolvedValueOnce(statusOf('kyc_review'))
+      .mockResolvedValueOnce(statusOf('approved'));
+    const controller = start({ pollIntervalMs: 1_000 });
+
+    controller.start();
+    await jest.advanceTimersByTimeAsync(1_000);
+
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+
+    AppState.currentState = 'active';
+    await jest.advanceTimersByTimeAsync(1_000);
+
+    expect(client.getStatus).toHaveBeenCalledTimes(2);
+    expect(events.at(-1)).toMatchObject({ type: 'status', state: 'approved' });
+  });
+
+  it('resends the code for the email already submitted', async () => {
+    const controller = start();
+
+    controller.submitEmail('a@example.com');
+    await flush();
+    controller.resendCode();
+    await flush();
+
+    expect(client.createIntent).toHaveBeenCalledTimes(1);
+    expect(client.submitEmail).toHaveBeenNthCalledWith(
+      2,
+      'a@example.com',
+      'key-3',
+    );
+  });
+
+  it('leaves the wallet unchanged when activate has no address', async () => {
+    const controller = start({ omitWallet: true });
+
+    controller.activate();
+    await flush();
+
+    expect(client.activate).not.toHaveBeenCalled();
+    expect(events).toEqual([]);
+  });
+
+  it('registers the wallet and calls onActivated when status becomes active', async () => {
+    client.getStatus.mockResolvedValueOnce(statusOf('active'));
+    const controller = start();
+
+    controller.activate();
+    await flush();
+
+    expect(client.activate).toHaveBeenCalledWith(WALLET, 'base', 'key-1');
+    expect(onActivated).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a status that arrives after dismiss', async () => {
+    let resolveStatus: (status: ReturnType<typeof statusOf>) => void = () =>
+      undefined;
+    client.getStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveStatus = resolve;
+      }),
+    );
+    const controller = start();
+
+    controller.start();
+    controller.dismiss();
+    resolveStatus(statusOf('approved'));
+    await flush();
+
+    expect(events.map((event) => event.type)).toEqual([
+      'started',
+      'busy',
+      'dismissed',
+    ]);
+  });
+
+  it('drops a failure from an action dismissed while in flight', async () => {
+    let rejectStatus: (error: Error) => void = () => undefined;
+    client.getStatus.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectStatus = reject;
+      }),
+    );
+    const controller = start();
+
+    controller.start();
+    controller.dismiss();
+    rejectStatus(new Error('late'));
+    await flush();
+
+    expect(events.map((event) => event.type)).not.toContain('failed');
+  });
+
+  it('reports a policy failure by rule', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    client.createIntent.mockRejectedValueOnce(
+      new KalshiOnboardingPolicyError('signing_unavailable'),
+    );
+    const controller = start();
+
+    controller.submitEmail('a@example.com');
+    await flush();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Kalshi demo onboarding failed: policy:signing_unavailable',
+      }),
+      'PredictNext: Kalshi demo onboarding failed',
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('reads status on retry after a failure that restarts the email step', async () => {
+    client.createIntent.mockRejectedValueOnce(
+      new KalshiOnboardingHttpError(409, 'onboarding_intent_missing'),
+    );
+    client.getStatus.mockResolvedValueOnce(statusOf('none'));
+    const controller = start();
+
+    controller.submitEmail('a@example.com');
+    await flush();
+    controller.retry();
+    await flush();
+
+    expect(client.createIntent).toHaveBeenCalledTimes(1);
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads status on retry when the failure asks for a fresh status', async () => {
+    client.submitEmail.mockRejectedValueOnce(
+      new KalshiOnboardingHttpError(409, 'onboarding_not_ready'),
+    );
+    client.getStatus.mockResolvedValueOnce(statusOf('link_pending'));
+    const controller = start();
+
+    controller.submitEmail('a@example.com');
+    await flush();
+    controller.retry();
+    await flush();
+
+    expect(client.submitEmail).toHaveBeenCalledTimes(1);
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads status when verify is unverified and names no second factor', async () => {
+    client.verifyCode.mockResolvedValueOnce({ verified: false });
+    client.getStatus.mockResolvedValueOnce(statusOf('approved'));
+    const controller = start();
+
+    controller.verifyCode('123456');
+    await flush();
+
+    expect(events.map((event) => event.type)).toContain('verifying');
+    expect(events).not.toContainEqual(
+      expect.objectContaining({ type: 'mfa_required' }),
+    );
+  });
+
+  it('clears a pending poll when dismissed', async () => {
+    client.getStatus.mockResolvedValue(statusOf('kyc_review'));
+    const controller = start({ pollIntervalMs: 5_000 });
+
+    controller.start();
+    await jest.advanceTimersByTimeAsync(0);
+    controller.dismiss();
+    await flush();
+
+    expect(events.at(-1)).toEqual({ type: 'dismissed' });
+    expect(events.map((event) => event.type)).not.toContain('review_timed_out');
+  });
+
+  it('reads status on mount and stops on unmount', async () => {
+    client.getStatus.mockResolvedValue(statusOf('none'));
+    const view = renderHook(() =>
+      useKalshiDemoOnboarding({
+        client,
+        network: 'base',
+        pollIntervalMs: 1_000,
+        onActivated: jest.fn(),
+      }),
+    );
+
+    await act(async () => {
+      await flush();
+    });
+
+    expect(view.result.current.state.step).toBe('email');
+
+    view.unmount();
   });
 });

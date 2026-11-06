@@ -95,7 +95,7 @@ describe('KalshiOnboardingClient', () => {
     const fetchImpl = jest
       .fn()
       .mockResolvedValueOnce(json(200, { onboarded: true }));
-    const { client } = clientWith(fetchImpl);
+    const { client, signDeviceProof } = clientWith(fetchImpl);
 
     await expect(client.getStatus()).resolves.toEqual({ state: 'active' });
 
@@ -112,6 +112,14 @@ describe('KalshiOnboardingClient', () => {
     expect(decoded.credential).toEqual(CONTEXT);
     expect(decoded.values).toEqual({});
     expect(decoded.signatures).toHaveLength(2);
+    // The first signature must cover the enrollment-intent read: the
+    // server's verifyOperation array is order-sensitive.
+    const firstSignedMessage = Buffer.from(
+      signDeviceProof.mock.calls[0][0] as Uint8Array,
+    ).toString('utf8');
+    expect(firstSignedMessage).toContain(
+      '"@path": /trade-api/v2/isv/enrollment/intents/current',
+    );
   });
 
   it('maps a failed probe to the enrollment state the server reports', async () => {

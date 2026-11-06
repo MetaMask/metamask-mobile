@@ -136,18 +136,18 @@ export class KalshiOnboardingClient {
       method: 'GET',
       route: ['onboarded'],
       // The temporary onboarded probe: the server verifies one envelope
-      // covering both requests it may relay — the balance probe, then the
-      // enrollment-intent fallback.
+      // covering both requests it may relay — the enrollment-intent read
+      // first, then the balance probe it only sends on ACTIVATED.
       request: {
         method: 'GET',
-        path: '/trade-api/v2/portfolio/balance',
+        path: '/trade-api/v2/isv/enrollment/intents/current',
         query: '',
         body: '',
       },
       alsoSign: [
         {
           method: 'GET',
-          path: '/trade-api/v2/isv/enrollment/intents/current',
+          path: '/trade-api/v2/portfolio/balance',
           query: '',
           body: '',
         },
