@@ -16,10 +16,10 @@ interface PillHubProps {
 }
 
 /**
- * Content-layer pills. The footer stays mounted in the parent tab navigator.
+ * Content-layer tabs. The footer stays mounted in the parent tab navigator.
  * Only the selected destination is mounted.
  *
- * Each screen renders the pill row under its own header. The hub keeps the
+ * Each screen renders the tab row under its own header. The hub keeps the
  * real top inset so that header can clear the status bar, and zeros the
  * bottom inset because the footer already covers the home indicator.
  */

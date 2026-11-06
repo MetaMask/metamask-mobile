@@ -430,7 +430,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pt-4')}
+          contentContainerStyle={tw.style('flex-grow pt-8')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}

@@ -588,7 +588,7 @@ const FeedView: React.FC<FeedViewProps> = ({
             ? BoxJustifyContent.Center
             : BoxJustifyContent.Between
         }
-        twClassName="px-4 py-3"
+        twClassName="px-4 pt-8 pb-3"
         gap={3}
         onLayout={handleFilterRowLayout}
         testID={FeedViewSelectorsIDs.FILTER_ROW}

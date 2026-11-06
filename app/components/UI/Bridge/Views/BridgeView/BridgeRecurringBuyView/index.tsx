@@ -9,6 +9,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { ScrollingChrome } from '../../../../../Nav/Main/FixedTabNav/ScrollingChrome';
 import { FixedHubChromeSpacer } from '../../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import { SWAPS_HUB_EXTRA_CONTENT_GAP } from '../BridgeView.constants';
 import { useSelector } from 'react-redux';
 import {
   FeatureId,
@@ -320,7 +321,7 @@ const BridgeRecurringBuyViewContent = ({
             />
           }
         >
-          <FixedHubChromeSpacer />
+          <FixedHubChromeSpacer extraGap={SWAPS_HUB_EXTRA_CONTENT_GAP} />
           <ScrollingChrome />
           <SwapsInputs
             inputRef={inputRef}

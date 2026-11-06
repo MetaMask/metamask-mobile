@@ -68,6 +68,7 @@ import FixedTabPillRow, {
 } from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
 import { ScrollingChromeProvider } from '../../../../Nav/Main/FixedTabNav/ScrollingChrome';
 import { FixedHubChrome } from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import { usePillHubSheetHost } from '../../../../Nav/Main/FixedTabNav/PillHubSheetHost';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
@@ -426,6 +427,12 @@ const BridgeView = () => {
   // nearest ancestor, so it is hoisted to the screen root below, where it
   // anchors to the bottom edge of the screen.
   //
+  // Inside the Trade hub even the screen root sits in the tab scene, which the
+  // absolutely-positioned footer paints over — so the sheet is hoisted one
+  // level further, to the navigator-level `PillHubSheetHost` (same pattern as
+  // `QuickBuySheetHost`), where it and its backdrop cover the footer. Outside
+  // a hub there is no host and the sheet renders inline as before.
+  //
   // `orderTypeSheetSession` increments on every trigger press and is used as
   // the sheet's React key. Pressing the trigger while a previous sheet is
   // still animating closed (e.g. right after picking an option) therefore
@@ -442,6 +449,36 @@ const BridgeView = () => {
     () => setOrderTypeSheetSession(-1),
     [],
   );
+  const sheetHost = usePillHubSheetHost();
+
+  const orderTypeSheet = useMemo(
+    () =>
+      showTabsBar && orderTypeSheetSession >= 0 ? (
+        <BridgeOrderTypeSheet
+          key={orderTypeSheetSession}
+          options={tabs}
+          selectedKey={selectedTab}
+          onClose={closeOrderTypeSheet}
+          onSelect={handleSelectTabKey}
+        />
+      ) : null,
+    [
+      showTabsBar,
+      orderTypeSheetSession,
+      tabs,
+      selectedTab,
+      closeOrderTypeSheet,
+      handleSelectTabKey,
+    ],
+  );
+
+  // Publish the open sheet to the hub host (which paints above the footer);
+  // clear it when the session ends or BridgeView unmounts. The host is null
+  // outside a hub, where the sheet renders inline below instead. The host
+  // holds one sheet per owner, so a re-publish swaps without a stale sheet.
+  useEffect(() => {
+    sheetHost?.setHostedSheet(orderTypeSheet);
+  }, [sheetHost, orderTypeSheet]);
 
   const scrollingChrome = showTabsBar ? (
     <Box testID={BridgeViewSelectorsIDs.TABS_BAR}>
@@ -485,15 +522,7 @@ const BridgeView = () => {
           </Box>
         </GestureDetector>
       </ScrollingChromeProvider>
-      {showTabsBar && orderTypeSheetSession >= 0 ? (
-        <BridgeOrderTypeSheet
-          key={orderTypeSheetSession}
-          options={tabs}
-          selectedKey={selectedTab}
-          onClose={closeOrderTypeSheet}
-          onSelect={handleSelectTabKey}
-        />
-      ) : null}
+      {!sheetHost ? orderTypeSheet : null}
     </Box>
   );
 };

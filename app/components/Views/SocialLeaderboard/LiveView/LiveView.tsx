@@ -121,7 +121,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         isFilterActive={isFilterActive}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
         testID={LiveViewSelectorsIDs.FILTER_BAR}
-        twClassName="px-4 pt-4 pb-2"
+        twClassName="px-4 pt-8 pb-2"
       >
         <SocialFeedLiveButton onPausedChange={handlePausedChange} />
       </SocialTabFilterBar>

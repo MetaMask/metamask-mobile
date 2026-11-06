@@ -15,6 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { ScrollingChrome } from '../../../../../Nav/Main/FixedTabNav/ScrollingChrome';
 import { FixedHubChromeSpacer } from '../../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import { SWAPS_HUB_EXTRA_CONTENT_GAP } from '../BridgeView.constants';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FeatureId,
@@ -595,7 +596,7 @@ const BridgeLimitOrderViewContent = ({
             />
           }
         >
-          <FixedHubChromeSpacer />
+          <FixedHubChromeSpacer extraGap={SWAPS_HUB_EXTRA_CONTENT_GAP} />
           <ScrollingChrome />
           <Box
             twClassName="flex-1"

@@ -798,7 +798,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pt-4 pb-4"
+          twClassName="px-4 pt-8 pb-4"
         >
           <Box flexDirection={BoxFlexDirection.Row} gap={2}>
             {showTypeFilter && (

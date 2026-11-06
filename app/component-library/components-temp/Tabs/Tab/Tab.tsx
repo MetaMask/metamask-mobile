@@ -43,7 +43,7 @@ const Tab: React.FC<TabProps> = ({
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center gap-1 relative',
+          'px-0 pt-1 pb-2 flex-row items-center justify-center gap-1 relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -55,7 +55,7 @@ const Tab: React.FC<TabProps> = ({
         <View>
           {/* Hidden bold text that determines layout size */}
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             fontWeight={FontWeight.Bold}
             numberOfLines={1}
             style={tw.style('opacity-0')}
@@ -65,7 +65,7 @@ const Tab: React.FC<TabProps> = ({
 
           {/* Visible text positioned absolutely over the hidden text */}
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             fontWeight={
               isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
             }

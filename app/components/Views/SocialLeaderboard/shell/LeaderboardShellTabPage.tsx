@@ -212,7 +212,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
             style={tw.style('flex-1')}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style(
-              `pt-4 pb-[${24 + floatingTabBarInset}px]`,
+              `pt-8 pb-[${24 + floatingTabBarInset}px]`,
             )}
             onScroll={onScroll}
             scrollEventThrottle={16}

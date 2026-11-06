@@ -32,21 +32,23 @@ const TRADE_PILLS: readonly FixedTabPill[] = [
 ];
 
 describe('PillHub', () => {
-  it('opens the first pill and swaps content while the pill row stays', () => {
-    const { getByText, getByTestId, queryByText } = renderWithProvider(
-      <PillHub testID="fixed-tab-trade" pills={TRADE_PILLS} />,
-    );
+  it('opens the first pill and swaps content while the tab row stays', () => {
+    const { getByText, getAllByText, getByTestId, queryByText } =
+      renderWithProvider(
+        <PillHub testID="fixed-tab-trade" pills={TRADE_PILLS} />,
+      );
 
     expect(getByText('Trending screen')).toBeOnTheScreen();
     expect(queryByText('Perps screen')).toBeNull();
-    expect(getByTestId('fixed-tab-trade-pills')).toBeOnTheScreen();
+    expect(getByTestId('fixed-tab-trade-tabs')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId('fixed-tab-trade-pill-perps'));
+    fireEvent.press(getByTestId('fixed-tab-trade-tab-perps'));
 
     expect(getByText('Perps screen')).toBeOnTheScreen();
     expect(queryByText('Trending screen')).toBeNull();
-    expect(getByText('Trending')).toBeOnTheScreen();
-    expect(getByText('Perps')).toBeOnTheScreen();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    // Each Tab renders a hidden sizing label plus the visible one.
+    expect(getAllByText('Trending').length).toBeGreaterThan(0);
+    expect(getAllByText('Perps').length).toBeGreaterThan(0);
+    expect(getAllByText('Swaps').length).toBeGreaterThan(0);
   });
 });

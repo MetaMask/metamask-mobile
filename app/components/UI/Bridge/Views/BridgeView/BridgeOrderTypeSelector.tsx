@@ -50,8 +50,9 @@ const NewBadge = ({ testID }: { testID: string }) => (
  * Order-type (Market / Limit / Recurring) picker trigger styled like the
  * Collect "Popular networks" control: a `SelectButton` dropdown affordance.
  *
- * The sheet itself is `BridgeOrderTypeSheet`, which must be rendered at the
- * screen root (outside any ScrollView) so the design-system `BottomSheet`
+ * The sheet itself is `BridgeOrderTypeSheet`, which BridgeView renders via the
+ * hub sheet host (or at the screen root outside a hub) — never inside the
+ * ScrollView — so the design-system `BottomSheet`
  * (`absolute inset-0 justify-end`) anchors to the bottom edge of the screen
  * instead of to its mount position inside the scroll content.
  */
@@ -92,10 +93,12 @@ interface BridgeOrderTypeSheetProps {
 }
 
 /**
- * Bottom sheet listing the order types. Render this at the screen root — the
- * design-system `BottomSheet` is absolutely positioned over its nearest
- * ancestor, so mounting it outside the ScrollView anchors it to the bottom
- * edge of the screen with its backdrop, like every other sheet in the app.
+ * Bottom sheet listing the order types. In the Trade hub, BridgeView publishes
+ * this to the `PillHubSheetHost` above the fixed footer; on a standalone route
+ * it renders inline at the screen root. Either way it must stay out of the
+ * ScrollView: the design-system `BottomSheet` is absolutely positioned over
+ * its nearest ancestor (`absolute inset-0 justify-end`), so mounting outside
+ * the scroll content anchors it to the bottom edge of the screen.
  *
  * Mount this component only while the sheet should be visible; the parent
  * keys it per open session so a trigger press during the close animation

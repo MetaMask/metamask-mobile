@@ -302,7 +302,7 @@ describe('EmptyShellTabPage', () => {
     });
   });
 
-  it('pads Trending 16px below the tabs', () => {
+  it('pads Trending 32px below the tabs', () => {
     renderWithProvider(
       <EmptyShellTabPage
         tab="trending"
@@ -316,10 +316,10 @@ describe('EmptyShellTabPage', () => {
       StyleSheet.flatten(
         screen.getByTestId('trending-page-scroll').props.contentContainerStyle,
       ),
-    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    ).toEqual(expect.objectContaining({ paddingTop: 32 }));
   });
 
-  it('pads the Following filter bar 16px below the tabs and 8px above the feed', () => {
+  it('pads the Following filter bar 32px below the tabs and 8px above the feed', () => {
     renderWithProvider(
       <EmptyShellTabPage
         tab="following"
@@ -333,7 +333,7 @@ describe('EmptyShellTabPage', () => {
       StyleSheet.flatten(
         screen.getByTestId('following-page-scroll').props.contentContainerStyle,
       ),
-    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    ).toEqual(expect.objectContaining({ paddingTop: 32 }));
     expect(
       StyleSheet.flatten(
         screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR).props

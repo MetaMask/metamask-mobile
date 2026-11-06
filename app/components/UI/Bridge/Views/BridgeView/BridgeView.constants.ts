@@ -21,6 +21,14 @@ export const TAB_TO_FEATURE_ID = {
 export const DEBOUNCE_WAIT = 300;
 
 /**
+ * Extra clearance below the pinned Trade hub chrome that only the Swaps
+ * screen wants. Added on top of the shared `FIXED_HUB_CONTENT_GAP` inside
+ * `FixedHubChromeSpacer` by each Swaps tab, so the Swaps content sits 8px
+ * further from the tabs than the other hub screens without moving them.
+ */
+export const SWAPS_HUB_EXTRA_CONTENT_GAP = 8;
+
+/**
  * Feature IDs that have been migrated to use the SwapQuotesProvider
  * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
  */

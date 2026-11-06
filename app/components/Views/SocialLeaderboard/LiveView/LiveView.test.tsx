@@ -167,14 +167,14 @@ describe('LiveView', () => {
     jest.clearAllMocks();
   });
 
-  it('pads the Live filter bar 16px below the tabs and 8px above the feed', () => {
+  it('pads the Live filter bar 32px below the tabs and 8px above the feed', () => {
     renderWithProvider(<LiveView />, { state });
 
     expect(
       StyleSheet.flatten(
         screen.getByTestId(LiveViewSelectorsIDs.FILTER_BAR).props.style,
       ),
-    ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
+    ).toEqual(expect.objectContaining({ paddingTop: 32, paddingBottom: 8 }));
   });
 
   it('renders the all-traders feed in virtualized realtime mode', () => {

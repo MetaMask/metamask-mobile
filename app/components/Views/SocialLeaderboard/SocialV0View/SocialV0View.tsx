@@ -452,7 +452,7 @@ const SocialV0View: React.FC = () => {
         </Box>
       ) : null}
 
-      <Box>
+      <Box twClassName="border-b border-muted">
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}

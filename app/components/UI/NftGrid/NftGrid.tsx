@@ -17,6 +17,7 @@ import { useNftRefresh } from './useNftRefresh';
 import { FlashList, type FlashListProps } from '@shopify/flash-list';
 import { useScrollingChrome } from '../../Nav/Main/FixedTabNav/ScrollingChrome';
 import {
+  FIXED_HUB_CONTENT_GAP,
   useFixedHubChromeInset,
   useFixedHubChromeScroll,
 } from '../../Nav/Main/FixedTabNav/FixedHubChrome';
@@ -349,7 +350,12 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           contentContainerStyle={
             !isFullView
               ? undefined
-              : [tw`px-4`, chromeInset > 0 ? { paddingTop: chromeInset } : null]
+              : [
+                  tw`px-4`,
+                  chromeInset > 0
+                    ? { paddingTop: chromeInset + FIXED_HUB_CONTENT_GAP }
+                    : null,
+                ]
           }
           ListHeaderComponent={
             isFullView ? (

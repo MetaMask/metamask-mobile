@@ -19,6 +19,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '@metamask/design-system-react-native';
 import { ScrollingChrome } from '../../../../../Nav/Main/FixedTabNav/ScrollingChrome';
 import { FixedHubChromeSpacer } from '../../../../../Nav/Main/FixedTabNav/FixedHubChrome';
+import { SWAPS_HUB_EXTRA_CONTENT_GAP } from '../BridgeView.constants';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import {
   selectSourceAmount,
@@ -601,7 +602,7 @@ const BridgeMarketViewContent = ({
           }
           onScroll={shouldTrackNearBottom ? handleScroll : undefined}
         >
-          <FixedHubChromeSpacer />
+          <FixedHubChromeSpacer extraGap={SWAPS_HUB_EXTRA_CONTENT_GAP} />
           <ScrollingChrome />
           <Box style={styles.inputsContainer}>
             <Box style={styles.inputCardsWrapper}>

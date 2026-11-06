@@ -196,7 +196,7 @@ describe('LeaderboardShellTabPage', () => {
     );
   });
 
-  it('pads the ranking filter bar 16px below the tabs and above the rows', () => {
+  it('pads the ranking filter bar 32px below the tabs and 16px above the rows', () => {
     renderWithProvider(
       <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
     );
@@ -206,7 +206,7 @@ describe('LeaderboardShellTabPage', () => {
         screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
           .contentContainerStyle,
       ),
-    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    ).toEqual(expect.objectContaining({ paddingTop: 32 }));
     expect(
       StyleSheet.flatten(
         screen.getByTestId(TopTradersViewSelectorsIDs.FILTER_BAR).props.style,

@@ -8,12 +8,8 @@ import React, {
   type ReactNode,
 } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import { makeMutable, type SharedValue } from 'react-native-reanimated';
-import { HeaderGlassBackdrop } from '../../../../component-library/components-temp/HeaderGlass';
-
-// Height of the pill row pinned under the header (py-4 padding plus the
-// capsule), so the backdrop blurs through it instead of fading at the seam.
-const PILL_ROW_HEIGHT = 64;
+import type { SharedValue } from 'react-native-reanimated';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const styles = StyleSheet.create({
   host: {
@@ -31,28 +27,27 @@ const styles = StyleSheet.create({
   },
 });
 
-/**
- * Backdrop driver for a screen that publishes chrome but no scroll yet (e.g.
- * Swaps). Zero keeps the backdrop transparent at rest; without it the
- * backdrop defaults to always-on and dims the content under the pills.
- */
-const RESTING_SCROLL_DISTANCE = makeMutable(0);
-
 interface ChromeStore {
   node: ReactNode;
-  /** Scroll distance driving the overlay's blur; published by the screen. */
-  scrollDistance: SharedValue<number> | null;
   listeners: Set<() => void>;
 }
 
 const ChromeStoreContext = createContext<ChromeStore | null>(null);
 const ChromeInsetContext = createContext(0);
 
+/**
+ * Gap between the pinned chrome (header + tab row) and the first scrollable
+ * content below it. Added on top of the measured chrome height so content
+ * starts 16px under the tabs.
+ */
+export const FIXED_HUB_CONTENT_GAP = 16;
+
 const ChromeOverlay = ({
   onLayout,
 }: {
   onLayout: (event: LayoutChangeEvent) => void;
 }) => {
+  const tw = useTailwind();
   const store = useContext(ChromeStoreContext);
   const [, setTick] = useState(0);
 
@@ -74,21 +69,25 @@ const ChromeOverlay = ({
   }
 
   return (
-    <View pointerEvents="box-none" style={styles.overlay} onLayout={onLayout}>
-      <HeaderGlassBackdrop
-        scrollDistance={store.scrollDistance ?? RESTING_SCROLL_DISTANCE}
-        extension={PILL_ROW_HEIGHT}
-        testID="fixed-hub-chrome-backdrop"
-      />
+    <View
+      pointerEvents="box-none"
+      style={[styles.overlay, tw.style('bg-default')]}
+      onLayout={onLayout}
+      testID="fixed-hub-chrome-backdrop"
+    >
+      {/* The overlay itself carries the default background (in place of the
+        old scroll-blur sibling fill), so the pinned header and tabs keep a
+        solid fill that covers the whole laid-out chrome area and cannot be
+        detached from it by a child's layout. */}
       {store.node}
     </View>
   );
 };
 
 /**
- * Pins hub chrome over the page. A screen publishes its header and pills;
- * this draws them above the scroll with no fill, so content can pass under
- * the glass.
+ * Pins hub chrome over the page on a solid fill. A screen publishes its
+ * header and tabs; this draws them fixed above the scroll on the default
+ * background, so the top chrome stays put like the Social screen's.
  */
 export const FixedHubChromeProvider = ({
   children,
@@ -96,7 +95,7 @@ export const FixedHubChromeProvider = ({
   children: ReactNode;
 }) => {
   const store = useMemo<ChromeStore>(
-    () => ({ node: null, scrollDistance: null, listeners: new Set() }),
+    () => ({ node: null, listeners: new Set() }),
     [],
   );
   const [inset, setInset] = useState(0);
@@ -123,38 +122,36 @@ export const useFixedHubChromeInset = (): number =>
   useContext(ChromeInsetContext);
 
 /**
- * Publishes the screen's scroll distance so the pinned chrome's backdrop
- * blurs as content passes under it. Null outside a hub is a no-op.
+ * @deprecated The pinned chrome no longer blurs on scroll, so there is no
+ * backdrop for a scroll distance to drive. Kept as a no-op so the hub screens
+ * that still publish their scroll do not have to change; safe to remove call
+ * by call.
  */
 export const useFixedHubChromeScroll = (
-  scrollDistance: SharedValue<number> | null,
-): void => {
-  const store = useContext(ChromeStoreContext);
-  const scrollRef = useRef(scrollDistance);
-  scrollRef.current = scrollDistance;
+  _scrollDistance: SharedValue<number> | null,
+): void => undefined;
 
-  useLayoutEffect(() => {
-    if (!store) {
-      return undefined;
-    }
-    store.scrollDistance = scrollRef.current;
-    store.listeners.forEach((listener) => listener());
-    return () => {
-      if (store.scrollDistance === scrollRef.current) {
-        store.scrollDistance = null;
-        store.listeners.forEach((listener) => listener());
-      }
-    };
-  });
-};
-
-/** First child of a hub scroll. Scrolls away so content passes under the chrome. */
-export const FixedHubChromeSpacer = () => {
+/**
+ * First child of a hub scroll. Scrolls away so content passes under the
+ * chrome. `extraGap` lets a single screen push its content further below the
+ * pinned tabs without changing the shared clearance every other hub screen
+ * gets (e.g. the Swaps tabs sit 8px lower than the default).
+ */
+export const FixedHubChromeSpacer = ({
+  extraGap = 0,
+}: {
+  extraGap?: number;
+}) => {
   const inset = useFixedHubChromeInset();
   if (inset <= 0) {
     return null;
   }
-  return <View style={{ height: inset }} />;
+  return (
+    <View
+      testID="fixed-hub-chrome-spacer"
+      style={{ height: inset + FIXED_HUB_CONTENT_GAP + extraGap }}
+    />
+  );
 };
 
 /**
