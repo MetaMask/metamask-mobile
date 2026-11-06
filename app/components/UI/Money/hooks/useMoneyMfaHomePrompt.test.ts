@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
+import { selectIsAccountGroupFunded } from '../../../../selectors/assets/balances';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa, type MoneyMfaStatus } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -88,10 +88,8 @@ const arrange = ({
     showEnabledConfirmation: jest.fn(() => false),
   });
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectAccountGroupBalanceForEmptyState) {
-      return hasBalance
-        ? { totalBalanceInUserCurrency: totalBalance }
-        : undefined;
+    if (selector === selectIsAccountGroupFunded) {
+      return hasBalance && totalBalance > 0;
     }
     return undefined;
   });
@@ -160,6 +158,17 @@ describe('useMoneyMfaHomePrompt', () => {
 
     expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not check credentials again once an existing passkey was found', async () => {
+    const { rerender } = arrange({ credentials: [activePasskey] });
+    await flushPromises();
+
+    rerender({});
+    await flushPromises();
+
+    expect(moneyMfaHomePromptSession.hasPrompted()).toBe(true);
+    expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
   });
 
   it('opens the prompt when the refreshed passkey is still pending', async () => {
