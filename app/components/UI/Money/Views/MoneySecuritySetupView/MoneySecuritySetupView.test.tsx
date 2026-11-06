@@ -10,6 +10,18 @@ const mockGoBack = jest.fn();
 let mockPasskeyCount = 0;
 let mockIsAuthenticatorAdded = false;
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('expo-font', () => ({
+  useFonts: () => [true],
+}));
+jest.mock(
+  '../../../../../fonts/GrotzecCond-Bold.otf',
+  () => 'GrotzecCond-Bold',
+);
+jest.mock('rive-react-native', () =>
+  jest.requireActual('../../../../../__mocks__/rive-react-native'),
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -37,22 +49,34 @@ describe('MoneySecuritySetupView', () => {
     mockIsAuthenticatorAdded = false;
   });
 
-  it('matches the 2-step verification setup content', () => {
-    const { getByText } = renderWithProvider(<MoneySecuritySetupView />);
+  it('shows benefits before the required methods', () => {
+    const { getByText, queryByText, getByTestId } = renderWithProvider(
+      <MoneySecuritySetupView />,
+    );
+
+    expect(getByText('Protect your\nMoney account')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'Confirm it’s you before money moves, adding protection even if your password or recovery phrase is compromised.',
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('Passkey')).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(MoneySecuritySetupViewTestIds.GET_STARTED_BUTTON),
+    );
 
     expect(getByText('Set up 2-step verification')).toBeOnTheScreen();
     expect(
       getByText(
-        "We'll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
+        'Use two methods to confirm it’s you, so you have a backup if one isn’t available.',
       ),
     ).toBeOnTheScreen();
     expect(getByText('Passkey')).toBeOnTheScreen();
-    expect(
-      getByText('Confirm with your device or password manager'),
-    ).toBeOnTheScreen();
+    expect(getByText('Use your face or fingerprint.')).toBeOnTheScreen();
     expect(getByText('Authenticator app')).toBeOnTheScreen();
     expect(
-      getByText('Use a 6-digit code from your authenticator app'),
+      getByText('Get codes from an app like Google Authenticator.'),
     ).toBeOnTheScreen();
     expect(getByText('Get started')).toBeOnTheScreen();
   });
@@ -63,6 +87,9 @@ describe('MoneySecuritySetupView', () => {
     fireEvent.press(
       getByTestId(MoneySecuritySetupViewTestIds.GET_STARTED_BUTTON),
     );
+    fireEvent.press(
+      getByTestId(MoneySecuritySetupViewTestIds.GET_STARTED_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
@@ -70,10 +97,19 @@ describe('MoneySecuritySetupView', () => {
     });
   });
 
-  it('returns to Money when the back button is pressed', () => {
+  it('returns to Money from a resumed methods step', () => {
+    mockPasskeyCount = 1;
     const { getByTestId } = renderWithProvider(<MoneySecuritySetupView />);
 
     fireEvent.press(getByTestId(MoneySecuritySetupViewTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns to Money when Not now is pressed on the splash', () => {
+    const { getByTestId } = renderWithProvider(<MoneySecuritySetupView />);
+
+    fireEvent.press(getByTestId(MoneySecuritySetupViewTestIds.NOT_NOW_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

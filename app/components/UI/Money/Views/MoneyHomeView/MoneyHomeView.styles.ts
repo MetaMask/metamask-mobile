@@ -22,20 +22,45 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 12,
       paddingLeft: 16,
     },
-    protectMoneyBanner: {
+    protectMoneyRiveBanner: {
+      height: 168,
+      overflow: 'hidden',
       borderRadius: 16,
-      paddingTop: 16,
-      paddingRight: 16,
-      paddingBottom: 16,
-      paddingLeft: 16,
+      backgroundColor: params.theme.colors.background.section,
     },
-    protectMoneyIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
+    protectMoneyRiveCopy: {
+      zIndex: 1,
+      width: '62%',
+      height: '100%',
+      padding: 16,
+    },
+    protectMoneyRiveTitle: {
+      width: 240,
+      color: params.theme.colors.text.default,
+    },
+    protectMoneyRiveDescription: {
+      width: 220,
+      marginTop: 8,
+      color: params.theme.colors.text.alternative,
+    },
+    protectMoneyRiveButton: {
+      alignSelf: 'flex-start',
       justifyContent: 'center',
-      backgroundColor: params.theme.colors.info.muted,
+      minHeight: 40,
+      marginTop: 14,
+      paddingHorizontal: 18,
+      borderRadius: 20,
+      backgroundColor: params.theme.colors.icon.default,
+    },
+    protectMoneyRiveButtonLabel: {
+      color: params.theme.colors.icon.inverse,
+    },
+    protectMoneyRiveArtwork: {
+      position: 'absolute',
+      top: 36,
+      right: 14,
+      width: '34%',
+      height: 112,
     },
   });
 

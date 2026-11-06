@@ -7900,21 +7900,25 @@
     },
     "protect_money_banner": {
       "title": "Protect your Money account",
-      "description": "Add 2-step verification for your Money account transactions.",
+      "description": "Add 2-step verification on transactions.",
       "action": "Set up now",
       "completion_title": "Money account protected",
-      "completion_description": "Passkey and authenticator app are ready."
+      "completion_description": "Passkey and authenticator app are ready.",
+      "completion_status": "Protected"
     },
     "security_setup": {
       "back": "Back",
+      "not_now": "Not now",
+      "benefits_title": "Protect your\nMoney account",
+      "benefits_description": "Confirm it’s you before money moves, adding protection even if your password or recovery phrase is compromised.",
       "title": "Set up 2-step verification",
-      "description": "We'll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
+      "description": "Use two methods to confirm it’s you, so you have a backup if one isn’t available.",
       "methods_title": "You’ll set up",
       "passkey_title": "Passkey",
-      "passkey_description": "Confirm with your device or password manager",
+      "passkey_description": "Use your face or fingerprint.",
       "passkey_saved_description": "Saved to this device",
       "authenticator_title": "Authenticator app",
-      "authenticator_description": "Use a 6-digit code from your authenticator app",
+      "authenticator_description": "Get codes from an app like Google Authenticator.",
       "authenticator_added_description": "Added to this account",
       "get_started": "Get started",
       "continue": "Continue"

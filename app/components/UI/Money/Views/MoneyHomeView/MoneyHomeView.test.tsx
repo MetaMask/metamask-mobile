@@ -124,6 +124,10 @@ jest.mock('../../hooks/useMoneyDepositTokens', () => ({
   useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
 }));
 
+jest.mock('rive-react-native', () =>
+  jest.requireActual('../../../../../__mocks__/rive-react-native'),
+);
+
 // Animated Rive graphic pulls in device sensors; not exercised by these tests.
 jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   __esModule: true,
@@ -642,7 +646,7 @@ describe('MoneyHomeView', () => {
     ).toBeOnTheScreen();
     expect(getByText('Protect your Money account')).toBeOnTheScreen();
     expect(
-      getByText('Add 2-step verification for your Money account transactions.'),
+      getByText('Add 2-step verification on transactions.'),
     ).toBeOnTheScreen();
   });
 

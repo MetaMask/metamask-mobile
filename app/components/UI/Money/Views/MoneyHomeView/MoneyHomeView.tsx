@@ -9,19 +9,17 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   type StyleProp,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
   interpolate,
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,9 +37,11 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Rive, { Alignment, Fit } from 'rive-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -139,6 +139,7 @@ import {
   MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED,
   resetPrototypeMoneySendFallback,
 } from '../../constants/moneySendPrototype';
+import moneyTwoFactorAnimation from '../../../../../animations/money_2fa_v2.riv';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -147,124 +148,135 @@ const PROTECTION_SUCCESS_HOLD_MS = 3000;
 const PROTECTION_DISMISS_MS = 700;
 
 const protectionIconStyles = StyleSheet.create({
-  layer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  celebrationClip: {
-    overflow: 'hidden',
-  },
   bannerClip: {
     overflow: 'hidden',
   },
+  celebrationBanner: {
+    height: 168,
+    overflow: 'hidden',
+    borderRadius: 16,
+  },
+  celebrationHalo: {
+    position: 'absolute',
+    top: 27,
+    right: 5,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  celebrationStatus: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 32,
+    marginTop: 14,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+  },
+  celebrationStatusLabel: {
+    marginLeft: 6,
+  },
 });
 
-const MoneyProtectionIcon = ({
+const MoneyProtectionRiveArtwork = ({
   style,
-  isCelebrating = false,
+  delayMs = 1500,
+}: {
+  style: ViewStyle;
+  delayMs?: number;
+}) => {
+  const [runId, setRunId] = useState(0);
+  const [shouldPlay, setShouldPlay] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setShouldPlay(false);
+      setRunId((currentRunId) => currentRunId + 1);
+
+      const playTimer = setTimeout(() => {
+        setShouldPlay(true);
+      }, delayMs);
+
+      return () => {
+        clearTimeout(playTimer);
+      };
+    }, [delayMs]),
+  );
+
+  return (
+    <Rive
+      key={`${runId}-${shouldPlay ? 'playing' : 'waiting'}`}
+      source={moneyTwoFactorAnimation}
+      stateMachineName="State Machine 1"
+      autoplay={shouldPlay}
+      fit={Fit.Contain}
+      alignment={Alignment.Center}
+      style={style}
+      testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER_ICON}
+    />
+  );
+};
+
+const MoneyProtectionCelebrationBanner = ({
+  style,
+  copyStyle,
+  titleStyle,
+  descriptionStyle,
+  artworkStyle,
 }: {
   style: StyleProp<ViewStyle>;
-  isCelebrating?: boolean;
+  copyStyle: StyleProp<ViewStyle>;
+  titleStyle: StyleProp<TextStyle>;
+  descriptionStyle: StyleProp<TextStyle>;
+  artworkStyle: ViewStyle;
 }) => {
   const { colors } = useTheme();
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = 0;
-    if (isCelebrating) {
-      progress.value = withTiming(1, {
-        duration: 2100,
-        easing: Easing.inOut(Easing.cubic),
-      });
-      return () => cancelAnimation(progress);
-    }
-
-    progress.value = withDelay(
-      600,
-      withRepeat(
-        withSequence(
-          withTiming(1, {
-            duration: 1400,
-            easing: Easing.inOut(Easing.cubic),
-          }),
-          withDelay(
-            2600,
-            withTiming(0, {
-              duration: 1400,
-              easing: Easing.inOut(Easing.cubic),
-            }),
-          ),
-          withDelay(1800, withTiming(0, { duration: 0 })),
-        ),
-        -1,
-        false,
-      ),
-    );
+    progress.value = withTiming(1, {
+      duration: 2200,
+      easing: Easing.inOut(Easing.cubic),
+    });
 
     return () => cancelAnimation(progress);
-  }, [isCelebrating, progress]);
+  }, [progress]);
 
-  const lockAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.34, 0.58], [1, 1, 0]),
-    transform: [
-      {
-        scale: interpolate(progress.value, [0, 0.34, 0.58], [1, 1, 0.82]),
-      },
-      {
-        translateY: interpolate(progress.value, [0, 0.34, 0.58], [0, 0, -6]),
-      },
-    ],
-  }));
-  const checkAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.44, 0.68, 1], [0, 0, 1, 1]),
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
         scale: interpolate(
           progress.value,
-          [0, 0.44, 0.76, 1],
-          [0.82, 0.82, 1.08, 1],
-        ),
-      },
-      {
-        translateY: interpolate(
-          progress.value,
-          [0, 0.44, 0.72, 1],
-          [8, 8, 0, 0],
+          [0, 0.3, 0.62, 1],
+          [1, 0.985, 1.025, 1],
         ),
       },
     ],
   }));
-  const celebrationAnimatedStyle = useAnimatedStyle(() => ({
-    backgroundColor: colors.background.muted,
-    transform: [
-      {
-        scale: interpolate(
-          progress.value,
-          [0, 0.4, 0.76, 1],
-          [1, 0.98, 1.06, 1],
-        ),
-      },
-    ],
-  }));
-  const setupTransitionAnimatedStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
+  const haloAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
       progress.value,
-      [0, 0.45, 0.72, 1],
-      [
-        colors.info.muted,
-        colors.info.muted,
-        colors.success.muted,
-        colors.success.muted,
-      ],
+      [0, 0.18, 0.52, 0.86, 1],
+      [0, 0, 0.42, 0.18, 0],
     ),
+    transform: [
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 0.18, 0.62, 1],
+          [0.9, 0.9, 1.25, 1.45],
+        ),
+      },
+    ],
   }));
-  const successFillAnimatedStyle = useAnimatedStyle(() => ({
+  const statusAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.42, 0.68, 1], [0, 0, 1, 1]),
     transform: [
       {
         translateY: interpolate(
           progress.value,
-          [0, 0.34, 0.72, 1],
-          [36, 36, 0, 0],
+          [0, 0.42, 0.72, 1],
+          [6, 6, 0, 0],
         ),
       },
     ],
@@ -272,54 +284,56 @@ const MoneyProtectionIcon = ({
 
   return (
     <Animated.View
-      style={[
-        style,
-        isCelebrating && protectionIconStyles.celebrationClip,
-        isCelebrating && celebrationAnimatedStyle,
-        !isCelebrating && setupTransitionAnimatedStyle,
-      ]}
-      testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER_ICON}
+      style={[style, protectionIconStyles.celebrationBanner, cardAnimatedStyle]}
+      testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
     >
-      {isCelebrating && (
+      <Box style={copyStyle}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          style={titleStyle}
+        >
+          {strings('money.protect_money_banner.completion_title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          style={descriptionStyle}
+        >
+          {strings('money.protect_money_banner.completion_description')}
+        </Text>
         <Animated.View
-          pointerEvents="none"
           style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: colors.success.muted,
-            },
-            successFillAnimatedStyle,
+            protectionIconStyles.celebrationStatus,
+            { backgroundColor: colors.success.muted },
+            statusAnimatedStyle,
           ]}
-        />
-      )}
+        >
+          <Icon
+            name={IconName.SecurityTick}
+            size={IconSize.Sm}
+            color={IconColor.SuccessDefault}
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+            style={protectionIconStyles.celebrationStatusLabel}
+          >
+            {strings('money.protect_money_banner.completion_status')}
+          </Text>
+        </Animated.View>
+      </Box>
       <Animated.View
+        pointerEvents="none"
         style={[
-          StyleSheet.absoluteFill,
-          protectionIconStyles.layer,
-          lockAnimatedStyle,
+          protectionIconStyles.celebrationHalo,
+          { backgroundColor: colors.success.muted },
+          haloAnimatedStyle,
         ]}
-      >
-        <Icon
-          name={IconName.Lock}
-          size={IconSize.Md}
-          color={
-            isCelebrating ? IconColor.IconAlternative : IconColor.InfoDefault
-          }
-        />
-      </Animated.View>
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          protectionIconStyles.layer,
-          checkAnimatedStyle,
-        ]}
-      >
-        <Icon
-          name={IconName.SecurityTick}
-          size={IconSize.Md}
-          color={IconColor.SuccessDefault}
-        />
-      </Animated.View>
+      />
+      <MoneyProtectionRiveArtwork delayMs={100} style={artworkStyle} />
     </Animated.View>
   );
 };
@@ -1312,49 +1326,53 @@ const MoneyHomeView = () => {
             ]}
           >
             <Box twClassName="px-4 pt-2 pb-2">
-              <BannerAlert
-                severity={
-                  protectionBannerPhase === 'celebrating'
-                    ? BannerAlertSeverity.Success
-                    : BannerAlertSeverity.Neutral
-                }
-                startAccessory={
-                  <MoneyProtectionIcon
-                    style={styles.protectMoneyIcon}
-                    isCelebrating={protectionBannerPhase === 'celebrating'}
+              {protectionBannerPhase === 'setup' ? (
+                <Box
+                  style={styles.protectMoneyRiveBanner}
+                  testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
+                >
+                  <Box style={styles.protectMoneyRiveCopy}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      numberOfLines={1}
+                      style={styles.protectMoneyRiveTitle}
+                    >
+                      {strings('money.protect_money_banner.title')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      style={styles.protectMoneyRiveDescription}
+                    >
+                      {strings('money.protect_money_banner.description')}
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={handleSetUpPasskey}
+                      style={styles.protectMoneyRiveButton}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                        style={styles.protectMoneyRiveButtonLabel}
+                      >
+                        {strings('money.protect_money_banner.action')}
+                      </Text>
+                    </TouchableOpacity>
+                  </Box>
+                  <MoneyProtectionRiveArtwork
+                    style={styles.protectMoneyRiveArtwork}
                   />
-                }
-                title={strings(
-                  protectionBannerPhase === 'celebrating'
-                    ? 'money.protect_money_banner.completion_title'
-                    : 'money.protect_money_banner.title',
-                )}
-                titleProps={{
-                  variant: TextVariant.BodyMd,
-                  fontWeight: FontWeight.Medium,
-                }}
-                description={strings(
-                  protectionBannerPhase === 'celebrating'
-                    ? 'money.protect_money_banner.completion_description'
-                    : 'money.protect_money_banner.description',
-                )}
-                descriptionProps={{
-                  variant: TextVariant.BodySm,
-                  color: TextColor.TextAlternative,
-                }}
-                actionButtonLabel={
-                  protectionBannerPhase === 'setup'
-                    ? strings('money.protect_money_banner.action')
-                    : undefined
-                }
-                actionButtonOnPress={
-                  protectionBannerPhase === 'setup'
-                    ? handleSetUpPasskey
-                    : undefined
-                }
-                style={styles.protectMoneyBanner}
-                testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
-              />
+                </Box>
+              ) : (
+                <MoneyProtectionCelebrationBanner
+                  style={styles.protectMoneyRiveBanner}
+                  copyStyle={styles.protectMoneyRiveCopy}
+                  titleStyle={styles.protectMoneyRiveTitle}
+                  descriptionStyle={styles.protectMoneyRiveDescription}
+                  artworkStyle={styles.protectMoneyRiveArtwork}
+                />
+              )}
             </Box>
           </Animated.View>
         )}
