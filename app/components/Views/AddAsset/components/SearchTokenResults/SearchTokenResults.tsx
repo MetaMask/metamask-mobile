@@ -80,7 +80,8 @@ const SearchTokenResultRow = React.memo(
 
     return (
       <Pressable
-        accessibilityRole="button"
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isChecked, disabled: isDisabled }}
         disabled={isDisabled}
         onPress={() => onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
@@ -95,8 +96,16 @@ const SearchTokenResultRow = React.memo(
       >
         <Checkbox
           isSelected={isChecked}
-          onChange={() => onSelect(item)}
+          isDisabled={isDisabled}
+          onChange={() => {
+            if (!isDisabled) {
+              onSelect(item);
+            }
+          }}
           pointerEvents="none"
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
         />
         <AddAssetTokenRow asset={item} networkName={networkName} />
       </Pressable>
