@@ -23,11 +23,20 @@ jest.mock('react-native-device-info', () => ({
 
 describe('Notification Services Controller', () => {
   const originalPlatformOs = Platform.OS;
+  const originalApiEnv = process.env.MM_API_ENV;
 
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(getVersion).mockReturnValue('7.42.0');
     Platform.OS = originalPlatformOs;
+  });
+
+  afterEach(() => {
+    if (originalApiEnv === undefined) {
+      delete process.env.MM_API_ENV;
+    } else {
+      process.env.MM_API_ENV = originalApiEnv;
+    }
   });
 
   const arrangeFirebaseMocks = () => {
@@ -72,6 +81,7 @@ describe('Notification Services Controller', () => {
         config: {
           appVersion?: string;
           os?: string;
+          env?: string;
         };
       };
 
@@ -149,6 +159,24 @@ describe('Notification Services Controller', () => {
       );
     },
   );
+
+  it.each([
+    ['dev', 'dev'],
+    ['uat', 'uat'],
+    ['prod', 'prd'],
+  ])('maps MM_API_ENV=%s to push API env %s', (apiEnv, expectedEnv) => {
+    process.env.MM_API_ENV = apiEnv;
+
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesPushController({ messenger });
+
+    const constructorParams = assertGetConstructorCall();
+    expect(constructorParams?.config).toEqual(
+      expect.objectContaining({
+        env: expectedEnv,
+      }),
+    );
+  });
 
   it('passes mobile OS metadata for push registration', () => {
     Platform.OS = 'android';

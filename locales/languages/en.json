@@ -1732,7 +1732,7 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
-      "joined": "Joined {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
@@ -1823,6 +1823,7 @@
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
@@ -1841,6 +1842,9 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
       "open_asset_accessibility_hint": "Opens the asset page",
       "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
@@ -3795,6 +3799,9 @@
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Search markets",
@@ -9728,7 +9735,8 @@
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon",
-      "new_badge": "New"
+      "new_badge": "New",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "More",
