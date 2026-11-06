@@ -6,6 +6,7 @@ import DeleteIdentityData from './DeleteIdentityData';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { MfaFlowError } from '../../../../../util/identity/mfa/engine/errors';
 import { selectKycSessionStatus } from '../../../../../selectors/kycController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON } from '../SecuritySettings.constants';
@@ -14,6 +15,16 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: { deleteEncryptedStorage: jest.fn() },
   },
+}));
+
+const mockVerifyOrEnroll = jest.fn();
+
+jest.mock('../../../../../util/identity/mfa', () => ({
+  useMfa: () => ({
+    credentials: [],
+    verifyOrEnroll: mockVerifyOrEnroll,
+    enroll: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -37,6 +48,8 @@ const mockDeleteEncryptedStorage = jest.mocked(
 );
 const mockSelectKycSessionStatus = jest.mocked(selectKycSessionStatus);
 const mockSelectMoneyMovementNeobank = jest.mocked(selectMoneyMovementNeobank);
+
+const AAL2_TOKEN = 'aal2-token';
 
 const SESSION_STATUS = {
   id: 'session-1',
@@ -69,6 +82,9 @@ const arrange = ({
 describe('DeleteIdentityData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVerifyOrEnroll.mockResolvedValue({
+      token: { accessToken: AAL2_TOKEN },
+    });
   });
 
   it('renders the delete section when verification has started', () => {
@@ -121,6 +137,7 @@ describe('DeleteIdentityData', () => {
         'This cannot be undone.',
         expect.any(Array),
       );
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
       expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
     });
 
@@ -150,7 +167,66 @@ describe('DeleteIdentityData', () => {
           'Your encrypted identity verification data has been deleted.',
         ),
       );
-      expect(mockDeleteEncryptedStorage).toHaveBeenCalledTimes(1);
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+        reason: { operation: 'ukyc.deleteData' },
+      });
+      expect(mockDeleteEncryptedStorage).toHaveBeenCalledWith({
+        aal2Token: AAL2_TOKEN,
+      });
+    });
+
+    it('does nothing when the customer cancels email verification', async () => {
+      mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
+      const { getByTestId } = arrange();
+      const { alertSpy, confirm } = pressDelete(getByTestId);
+
+      await act(async () => {
+        await confirm?.onPress?.();
+      });
+
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports the MFA error when email verification fails', async () => {
+      const error = new MfaFlowError('too_many_attempts');
+      mockVerifyOrEnroll.mockRejectedValue(error);
+      const { getByTestId } = arrange();
+      const { alertSpy, confirm } = pressDelete(getByTestId);
+
+      act(() => {
+        confirm?.onPress?.();
+      });
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenLastCalledWith(
+          "Couldn't delete identity data",
+          'Something went wrong. Please try again.',
+        ),
+      );
+      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(String));
+    });
+
+    it('does not delete when MFA returns no token', async () => {
+      mockVerifyOrEnroll.mockResolvedValue({});
+      const { getByTestId } = arrange();
+      const { alertSpy, confirm } = pressDelete(getByTestId);
+
+      act(() => {
+        confirm?.onPress?.();
+      });
+
+      await waitFor(() =>
+        expect(alertSpy).toHaveBeenLastCalledWith(
+          "Couldn't delete identity data",
+          'Something went wrong. Please try again.',
+        ),
+      );
+      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
     });
 
     it('logs and reports an error when deletion fails', async () => {

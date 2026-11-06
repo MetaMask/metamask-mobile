@@ -10,9 +10,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { useMfa } from '../../../../../util/identity/mfa';
 import { selectKycSessionStatus } from '../../../../../selectors/kycController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON } from '../SecuritySettings.constants';
@@ -28,16 +30,31 @@ const DeleteIdentityData = () => {
   );
   const kycSessionStatus = useSelector(selectKycSessionStatus);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { verifyOrEnroll } = useMfa();
 
   const deleteIdentityData = useCallback(async () => {
     setIsDeleting(true);
     try {
-      await Engine.context.KycController.deleteEncryptedStorage();
+      const result = await verifyOrEnroll({
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+        reason: { operation: 'ukyc.deleteData' },
+      });
+      const aal2Token = result.token?.accessToken;
+      if (!aal2Token) {
+        throw new Error('DeleteIdentityData: MFA returned no AAL2 token');
+      }
+
+      await Engine.context.KycController.deleteEncryptedStorage({ aal2Token });
       Alert.alert(
         strings('identity_verification.delete_success_title'),
         strings('identity_verification.delete_success_message'),
       );
     } catch (error) {
+      if (getMfaErrorCode(error) === 'flow_cancelled') {
+        return;
+      }
+
       Logger.error(
         error as Error,
         'DeleteIdentityData: failed to delete identity data',
@@ -49,7 +66,7 @@ const DeleteIdentityData = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, []);
+  }, [verifyOrEnroll]);
 
   const handleDeletePress = useCallback(() => {
     Alert.alert(
