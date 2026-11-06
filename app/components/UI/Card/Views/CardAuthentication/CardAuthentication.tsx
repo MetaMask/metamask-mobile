@@ -166,6 +166,9 @@ const CardAuthentication = () => {
   const hasAutoSelectedCountry = useRef(false);
   const walletSignInLock = useRef(false);
   const emailCodeRequestId = useRef(0);
+  const emailAuthLock = useRef(false);
+  const clearAuthFailureRef = useRef<() => void>(() => undefined);
+  const [emailLoginAttempt, setEmailLoginAttempt] = useState(0);
   const geoLocation = useSelector(selectGeolocationLocation);
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
@@ -343,6 +346,7 @@ const CardAuthentication = () => {
     setEmailCode('');
     setEmailCodeSent(false);
     setLatestEmailCodeSubmitted(null);
+    clearAuthFailureRef.current();
   }, [countryKey, resetTransientAuthState]);
 
   useResetOnResolvedKind(resolution?.kind, resetTransientAuthState);
@@ -367,6 +371,7 @@ const CardAuthentication = () => {
     if (requestEmailCode.error) requestEmailCode.reset();
     setBanner((current) => (current === 'bad_creds' ? null : current));
   }, [initiate, submit, requestEmailCode]);
+  clearAuthFailureRef.current = clearAuthFailure;
 
   const handleEmailChange = useCallback(
     (newEmail: string) => {
@@ -460,6 +465,11 @@ const CardAuthentication = () => {
   const performEmailLogin = useCallback(
     async (otpCode?: string) => {
       if (!countryKey || !emailOption) return;
+      const passwordlessEmailCodeLogin = isBaanxPasswordless && !isOtpStep;
+      if (passwordlessEmailCodeLogin && emailAuthLock.current) return;
+      if (passwordlessEmailCodeLogin) {
+        emailAuthLock.current = true;
+      }
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -562,6 +572,11 @@ const CardAuthentication = () => {
         ) {
           setBanner('bad_creds');
         }
+      } finally {
+        if (passwordlessEmailCodeLogin) {
+          emailAuthLock.current = false;
+          setEmailLoginAttempt((attempt) => attempt + 1);
+        }
       }
     },
     [
@@ -602,6 +617,7 @@ const CardAuthentication = () => {
       !isBaanxPasswordless ||
       !emailCodeSent ||
       isOtpStep ||
+      emailAuthLock.current ||
       emailCode.length !== CODE_LENGTH ||
       latestEmailCodeSubmitted === emailCode
     ) {
@@ -612,6 +628,7 @@ const CardAuthentication = () => {
   }, [
     emailCode,
     emailCodeSent,
+    emailLoginAttempt,
     isBaanxPasswordless,
     isOtpStep,
     latestEmailCodeSubmitted,
@@ -778,18 +795,36 @@ const CardAuthentication = () => {
 
   const handleRequestEmailCode = useCallback(async () => {
     const requestedEmail = email.trim();
-    if (!countryKey || !emailOption || !requestedEmail || loading) return;
+    if (
+      !countryKey ||
+      !emailOption ||
+      !requestedEmail ||
+      loading ||
+      emailAuthLock.current
+    ) {
+      return;
+    }
     const requestId = emailCodeRequestId.current;
+    emailAuthLock.current = true;
     selectOption(emailOption, countryKey);
     clearAuthFailure();
     try {
       await initiate.mutateAsync(mapCountryToLocation(countryKey));
       await requestEmailCode.mutateAsync(requestedEmail);
       if (requestId !== emailCodeRequestId.current) return;
+      setEmailCode('');
+      setLatestEmailCodeSubmitted(null);
       setEmailCodeSent(true);
       setResendCooldown(60);
     } catch (err) {
+      if (requestId !== emailCodeRequestId.current) {
+        initiate.reset();
+        requestEmailCode.reset();
+        return;
+      }
       Logger.log('CardAuthentication::Request email code failed', err);
+    } finally {
+      emailAuthLock.current = false;
     }
   }, [
     countryKey,
