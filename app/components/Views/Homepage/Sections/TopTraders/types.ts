@@ -56,6 +56,11 @@ export interface TraderRowMetric {
   label: string;
   /** Renders the value in success green rather than error red. */
   isPositive: boolean;
+  /**
+   * Renders the value in the default text color, ignoring `isPositive`. For a
+   * holding such as a position size, which is not a gain or a loss.
+   */
+  isNeutral?: boolean;
 }
 
 /**

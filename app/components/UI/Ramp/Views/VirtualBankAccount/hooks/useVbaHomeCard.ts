@@ -48,6 +48,13 @@ export type VbaHomeCard =
    */
   | { type: 'account_is_ready' }
   /**
+   * IDENTITY_VERIFIED — KYC approved, but the Money account has no usable
+   * autoramp yet (none, or only Rejected/Cancelled ones), so account setup
+   * has not started. Its CTA skips the Identity verified screen and opens the
+   * step after it (TRAM-4429).
+   */
+  | { type: 'identity_verified' }
+  /**
    * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
    * submitted.
    */
@@ -110,9 +117,10 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
 
 /**
  * Pure decision resolving the single VBA status card for Money home. An
- * approved session always gets `account_is_ready`: the onboarding funnel
- * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
- * exists and Identity verified when it does not, and details creates it.
+ * approved session gets `account_is_ready` when a usable autoramp exists and
+ * `identity_verified` when it does not. The latter's CTA opens the step after
+ * Identity verified (account details, which creates the autoramp, or Choose
+ * Currency).
  *
  * Only provider-final approval (`finalStatus === 'approved'`) completes KYC.
  * Relay approval alone stays pending while the provider makes its decision.
@@ -176,12 +184,11 @@ export function getVbaHomeCard({
 
   const isApproved = sessionStatus?.finalStatus === 'approved';
 
-  // 3. KYC approved. Identity is no longer being verified, so show
-  // account_is_ready with or without a usable autoramp. Its CTA opens
-  // onboarding, which sends a user without one through Identity verified to
-  // the details screen, where the autoramp is created.
+  // 3. KYC approved, but no usable autoramp (a usable one already returned
+  // account_is_ready above). Account setup has not started, so the account
+  // is not ready yet. The CTA skips Identity verified and opens account setup.
   if (isApproved) {
-    return { type: 'account_is_ready' };
+    return { type: 'identity_verified' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question
