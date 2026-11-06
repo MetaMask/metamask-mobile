@@ -301,6 +301,11 @@ interface OrderRouteParams {
   useBottomSheet?: boolean;
 }
 
+type PlaceOrderHandler = (
+  forceTrade?: boolean,
+  hasCheckedAccountSupport?: boolean,
+) => Promise<'accountUnsupported' | undefined>;
+
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
@@ -490,6 +495,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // approval and unmounts this view while the user is still on the sheet, and
   // that path still needs to leave once the confirmation settles.
   const isClosedByUserRef = useRef(false);
+  // Bumped on a real exit (back, gesture, tab switch) that may leave this view
+  // mounted, so a user submit awaiting a check started before it is retired.
+  const submissionGenerationRef = useRef(0);
+  const retireSubmissionAttempts = useCallback(() => {
+    submissionGenerationRef.current += 1;
+  }, []);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -1314,6 +1325,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsAbandonOrderTracking({
     getAbandonProperties,
     hasCommittedRef: hasPlacedOrderRef,
+    onExit: retireSubmissionAttempts,
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
@@ -1805,28 +1817,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
-  const buildDataMonitoringIntent = useCallback(() => {
-    const asset = orderForm.asset;
-    const initialPosition = stream.positions
-      .getSnapshot()
-      ?.find((position) => position.symbol === asset);
-
-    return {
-      asset,
-      monitorOrders: true,
-      monitorPositions: true,
-      initialOrderCount: (stream.orders.getSnapshot() ?? []).filter(
-        (order) => order.symbol === asset,
-      ).length,
-      initialPosition: initialPosition
-        ? {
-            size: initialPosition.size,
-            entryPrice: initialPosition.entryPrice,
-          }
-        : null,
-    };
-  }, [orderForm.asset, stream]);
-
   const navigateToMarketAfterOrder = useCallback(() => {
     if (stayOnCurrentScreen) {
       // A pay-token deposit already dismissed back to the presenting screen.
@@ -1847,20 +1837,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           symbol: orderForm.asset,
           name: orderForm.asset,
         },
-        monitoringIntent: buildDataMonitoringIntent(),
+        monitoringIntent: {
+          asset: orderForm.asset,
+          monitorOrders: true,
+          monitorPositions: true,
+        },
       },
       pop: true,
     });
-  }, [
-    buildDataMonitoringIntent,
-    navigation,
-    navigationMarketData,
-    orderForm.asset,
-    stayOnCurrentScreen,
-  ]);
+  }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
-  const handlePlaceOrder = useCallback(
-    async (forceTrade = false) => {
+  const submissionInputKey = JSON.stringify({
+    orderForm,
+    payTokenIdentity,
+    hasCustomTokenSelected,
+  });
+  const submissionInputKeyRef = useRef(submissionInputKey);
+  submissionInputKeyRef.current = submissionInputKey;
+  const handlePlaceOrderRef = useRef<PlaceOrderHandler>(async () => undefined);
+
+  const handlePlaceOrder = useCallback<PlaceOrderHandler>(
+    async (forceTrade = false, hasCheckedAccountSupport = false) => {
       if (
         isSubmittingRef.current ||
         (!forceTrade && isConfirmingDepositRef.current)
@@ -1885,7 +1882,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // the post-deposit re-invocation, not a user tap, so it is excluded. The
       // active A/B assignment (e.g. button color) is auto-injected onto this
       // PERPS_UI_INTERACTION event via enrichWithABTests().
-      if (!forceTrade) {
+      if (!forceTrade && !hasCheckedAccountSupport) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
@@ -1900,28 +1897,54 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
       }
 
-      // Cover this await with the submit lock. The validating path sets the
-      // same lock only after this read, so a second tap in the same turn
-      // would otherwise start a parallel placement.
-      isSubmittingRef.current = true;
-      const accountSupport = await checkAccountSupport().finally(() => {
-        isSubmittingRef.current = false;
-      });
-      // A user-initiated submit no longer owns the action once its view has
-      // closed. Keep the committed post-deposit re-entry running so a
-      // confirmed deposit still produces its order. That re-entry runs after
-      // this view unmounts, so an unmounted support read is not a reason to
-      // drop it. A changed account context still is.
-      if (!forceTrade && isDismissedRef.current) {
-        return;
+      // A user-initiated submit no longer owns the action once the user has
+      // left: sheet close, unmount, or a real exit that keeps this view
+      // mounted. The committed post-deposit re-entry keeps running so a
+      // confirmed deposit still produces its order.
+      const attemptGeneration = submissionGenerationRef.current;
+      const isAttemptRetired = () =>
+        !forceTrade &&
+        (isDismissedRef.current ||
+          submissionGenerationRef.current !== attemptGeneration);
+
+      if (!hasCheckedAccountSupport) {
+        const inputKeyAtTap = submissionInputKeyRef.current;
+        // Cover this await with the submit lock. The validating path sets the
+        // same lock only after this read, so a second tap in the same turn
+        // would otherwise start a parallel placement.
+        isSubmittingRef.current = true;
+        const accountSupport = await checkAccountSupport().finally(() => {
+          isSubmittingRef.current = false;
+        });
+        // The post-deposit re-entry runs after this view unmounts, so an
+        // unmounted support read is not a reason to drop it. A changed
+        // account context still is.
+        if (isAttemptRetired()) {
+          return;
+        }
+        if (accountSupport === 'unsupported') {
+          return 'accountUnsupported';
+        }
+        if (
+          accountSupport === 'stale' ||
+          (accountSupport === 'unmounted' && !forceTrade)
+        ) {
+          return;
+        }
+        // Inputs edited during the check describe an order the user has not
+        // submitted yet. Otherwise continue on the latest render so blockers,
+        // validation and price reflect the state after the wait.
+        if (submissionInputKeyRef.current !== inputKeyAtTap) {
+          return;
+        }
+        return handlePlaceOrderRef.current(forceTrade, true);
       }
-      if (accountSupport === 'unsupported') {
-        return 'accountUnsupported' as const;
-      }
-      if (
-        accountSupport === 'stale' ||
-        (accountSupport === 'unmounted' && !forceTrade)
-      ) {
+
+      // An already-valid form skips the validating-branch guard. Read dismissal
+      // again on this continuation, which is what can still submit after the
+      // support request resolves. A committed post-deposit re-entry is not
+      // retired.
+      if (isAttemptRetired()) {
         return;
       }
 
@@ -1986,7 +2009,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // has left — the deposit branch itself navigates away once the
         // confirmation resolves — and the confirmed deposit is a commitment
         // that must still produce the order.
-        if (!forceTrade && isDismissedRef.current) {
+        if (isAttemptRetired()) {
           return;
         }
       }
@@ -2091,7 +2114,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       symbol: orderForm.asset,
                       name: orderForm.asset,
                     },
-                    monitoringIntent: buildDataMonitoringIntent(),
+                    monitoringIntent: {
+                      asset: orderForm.asset,
+                      monitorOrders: true,
+                      monitorPositions: true,
+                    },
                   },
                 },
               ],
@@ -2332,7 +2359,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       assetData.price,
       navigation,
       navigationMarketData,
-      buildDataMonitoringIntent,
       navigateToMarketAfterOrder,
       currentMarketPosition,
       executeOrder,
@@ -2369,6 +2395,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       fireImpact,
     ],
   );
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash

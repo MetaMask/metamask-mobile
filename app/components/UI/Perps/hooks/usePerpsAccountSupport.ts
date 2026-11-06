@@ -1,30 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import type {
-  GetAccountSupportParams,
   PerpsAccountSupport,
   PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import type { RootState } from '../../../../reducers';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-
-interface AccountSupportController {
-  getAccountSupport: (
-    params?: GetAccountSupportParams,
-  ) => Promise<PerpsAccountSupport>;
-}
-
-const hasAccountSupport = (
-  controller: unknown,
-): controller is AccountSupportController =>
-  typeof controller === 'object' &&
-  controller !== null &&
-  'getAccountSupport' in controller &&
-  typeof controller.getAccountSupport === 'function';
 
 export type PerpsAccountSupportCheckResult =
   | 'supported'
@@ -40,40 +33,42 @@ export interface UsePerpsAccountSupportReturn {
   closeAccountUnsupportedModal: () => void;
 }
 
+const getSupportContextKey = (
+  state: RootState,
+  providerId?: PerpsProviderType,
+) =>
+  `${selectSelectedInternalAccountAddress(state) ?? ''}:${
+    providerId ?? selectPerpsProvider(state) ?? ''
+  }:${selectPerpsNetwork(state)}`;
+
 /**
  * Reads provider-owned account support before actions that can sign.
  *
- * The controller owns detection and caching. Missing support on an older
- * controller and transient errors fail open; Core still enforces the check
- * immediately before supported providers sign.
+ * The controller owns detection and caching. A failed read fails open; Core
+ * still enforces the check immediately before supported providers sign.
  */
 export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const provider = useSelector(selectPerpsProvider);
-  const network = useSelector(selectPerpsNetwork);
-  const contextKey = `${selectedAddress ?? ''}:${provider ?? ''}:${network}`;
-  const contextRef = useRef({ selectedAddress, provider, network });
-  contextRef.current = { selectedAddress, provider, network };
+  const store = useStore<RootState>();
+  const contextKey = useSelector((state: RootState) =>
+    getSupportContextKey(state),
+  );
   const isMountedRef = useRef(true);
 
-  const [
-    isAccountUnsupportedModalVisible,
-    setIsAccountUnsupportedModalVisible,
-  ] = useState(false);
+  // Keyed to the context it was shown for so a switch hides it at once,
+  // before the next support read settles.
+  const [unsupportedContextKey, setUnsupportedContextKey] = useState<
+    string | null
+  >(null);
+  const isAccountUnsupportedModalVisible = unsupportedContextKey === contextKey;
 
   const readAccountSupport = useCallback(
-    async (providerId?: PerpsProviderType) => {
-      const controller = Engine.context?.PerpsController;
-      if (!hasAccountSupport(controller)) {
-        return { isSupported: true } as const;
-      }
-
+    async (providerId?: PerpsProviderType): Promise<PerpsAccountSupport> => {
       try {
-        return await controller.getAccountSupport(
+        return await Engine.context.PerpsController.getAccountSupport(
           providerId ? { providerId } : undefined,
         );
       } catch {
-        return { isSupported: true } as const;
+        return { isSupported: true };
       }
     },
     [],
@@ -90,31 +85,26 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
     };
   }, []);
 
-  const checkAccountSupport = useCallback(
+  const resolveSupportCheck = useCallback(
     async (
       providerId?: PerpsProviderType,
     ): Promise<PerpsAccountSupportCheckResult> => {
-      const requested = contextRef.current;
-      const requestedRoute = providerId ?? requested.provider;
-      const requestedContext = `${requested.selectedAddress ?? ''}:${
-        requestedRoute ?? ''
-      }:${requested.network}`;
+      const requestedContext = getSupportContextKey(
+        store.getState(),
+        providerId,
+      );
       const support = await readAccountSupport(providerId);
       const unmounted = !isMountedRef.current;
-      const current = contextRef.current;
-      const currentRoute = providerId ?? current.provider;
-      const currentContext = `${current.selectedAddress ?? ''}:${
-        currentRoute ?? ''
-      }:${current.network}`;
-      // A changed account, provider, or network is stale even if the view
-      // also went away. Unmount alone is a separate result so a committed
-      // post-deposit order can still be placed.
-      if (currentContext !== requestedContext) {
+      // Read the live store, not render state: a committed post-deposit
+      // order resolves after its view unmounts and must still see a switch.
+      if (
+        getSupportContextKey(store.getState(), providerId) !== requestedContext
+      ) {
         return 'stale';
       }
       if (!support.isSupported) {
         if (!unmounted) {
-          setIsAccountUnsupportedModalVisible(true);
+          setUnsupportedContextKey(getSupportContextKey(store.getState()));
         }
         return 'unsupported';
       }
@@ -123,11 +113,40 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
       }
       return 'supported';
     },
-    [readAccountSupport],
+    [readAccountSupport, store],
+  );
+
+  const checkAccountSupport = useCallback(
+    async (
+      providerId?: PerpsProviderType,
+    ): Promise<PerpsAccountSupportCheckResult> => {
+      const traceId = uuidv4();
+      let result: PerpsAccountSupportCheckResult | undefined;
+      trace({
+        name: TraceName.PerpsAccountSupportCheck,
+        id: traceId,
+        op: TraceOperation.PerpsOperation,
+        tags: {
+          provider:
+            providerId ?? selectPerpsProvider(store.getState()) ?? 'unknown',
+        },
+      });
+      try {
+        result = await resolveSupportCheck(providerId);
+        return result;
+      } finally {
+        endTrace({
+          name: TraceName.PerpsAccountSupportCheck,
+          id: traceId,
+          data: { result: result ?? 'error' },
+        });
+      }
+    },
+    [resolveSupportCheck, store],
   );
 
   const closeAccountUnsupportedModal = useCallback(() => {
-    setIsAccountUnsupportedModalVisible(false);
+    setUnsupportedContextKey(null);
   }, []);
 
   return {

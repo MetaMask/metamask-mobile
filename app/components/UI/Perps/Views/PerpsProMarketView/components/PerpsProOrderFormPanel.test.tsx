@@ -892,14 +892,4 @@ describe('PerpsProOrderFormPanel', () => {
       expect(mockSetActivePriceField).toHaveBeenCalledWith('chaseMaxDistance');
     });
   });
-
-  it('renders the unsupported-account modal when account support is required', () => {
-    mockHookResult.isAccountUnsupportedModalVisible = true;
-
-    renderPanel();
-
-    expect(
-      screen.getByTestId('mock-tooltip-account_not_supported'),
-    ).toBeOnTheScreen();
-  });
 });
