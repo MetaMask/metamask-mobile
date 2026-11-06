@@ -157,7 +157,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                       // centering leaves it looking slightly high next to the text.
                       twClassName="mt-[1.25px]"
                     >
-                      {strings('money.add_money_sheet.new_badge')}
+                      {strings('money.add_money_sheet.no_fees')}
                     </Tag>
                   ) : null}
                 </Box>
