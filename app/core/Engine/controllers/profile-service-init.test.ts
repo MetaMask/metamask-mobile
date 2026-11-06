@@ -1,9 +1,21 @@
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 import {
-  MOCK_PROFILE_API_RESPONSE,
   ProfileService,
   type ProfileServiceMessenger,
 } from '@metamask/profile-controller';
+
+const MOCK_PROFILE_API_RESPONSE = {
+  profile_id: 'mock-profile-id',
+  username: 'mock_user',
+  display_name: 'Mock User',
+  bio: null,
+  linked_addresses: [] as string[],
+  avatar_url: '',
+  trading_privacy: 'public' as const,
+  connected_to_x: false,
+  created_at: '2024-01-01T00:00:00.000Z',
+  updated_at: '2024-01-01T00:00:00.000Z',
+};
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getProfileServiceMessenger } from '../messengers/profile-service-messenger';

@@ -197,9 +197,6 @@ async function connectXSession(signal?: AbortSignal): Promise<XProfile> {
 
   let session: ConnectXSession;
   try {
-    // Go through ProfileController, not ProfileService: with the mock profile
-    // service the controller delegates to messenger handlers that work for
-    // both mock and real services, while the service instance is only a stub.
     session = await ProfileController.getXAuthorizationUrl();
   } catch (error) {
     throwIfXConnectCancelled(signal);
