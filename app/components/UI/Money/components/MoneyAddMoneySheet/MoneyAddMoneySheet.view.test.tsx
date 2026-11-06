@@ -3,6 +3,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import {
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
@@ -100,7 +101,10 @@ const emptyOnboardingSnapshot = {
 describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHydrateVbaOnboarding.mockReset();
+    mockHydrateVbaOnboarding.mockResolvedValue(emptyOnboardingSnapshot);
     mockFetchVendorDisclaimers.mockResolvedValue([disclaimer]);
+    mockGetDepositInstructions.mockReset();
     previousRampsState = rampsController.state;
     delete engineContext.NeoBankService;
   });
@@ -368,7 +372,9 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     );
 
     expect(bankAccountRow).toBeEnabled();
-    expect(queryByText('Coming soon')).toBeNull();
+    expect(
+      queryByText(strings('money.add_money_sheet.coming_soon')),
+    ).toBeNull();
 
     fireEvent.press(bankAccountRow);
 
@@ -397,13 +403,17 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
     ).toBeOnTheScreen();
-    expect(getByText('Pix Copia e Cola')).toBeOnTheScreen();
-    expect(getByText('00020126')).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.vba_details.copia_cola_label')),
+    ).toBeOnTheScreen();
+    expect(getByText(pixInstructions.brCode)).toBeOnTheScreen();
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
     ).toBeOnTheScreen();
-    expect(getByText('Pix key')).toBeOnTheScreen();
-    expect(getByText('pix@example.com')).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.vba_details.pix_key_label')),
+    ).toBeOnTheScreen();
+    expect(getByText(pixInstructions.pixKey)).toBeOnTheScreen();
     expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
   });
 });
