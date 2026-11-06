@@ -73,7 +73,9 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveView from '../LiveView';
+import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { SocialFeedPageActiveContext } from '../../../UI/SocialFeed/components/SocialFeedPageActiveContext';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -93,6 +95,7 @@ import {
   type QuickBuyTarget,
   type QuickBuyTradeMode,
 } from '../../../UI/QuickBuy';
+import type { QuickBuySheetSource } from '../../../UI/QuickBuy/analytics';
 import { useQuickBuySheet } from '../../../UI/QuickBuy/QuickBuySheetHost';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
@@ -171,6 +174,18 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
   live: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
+
+const SocialFeedPageProviders: React.FC<{
+  isActive: boolean;
+  rotatesTraderStats: boolean;
+  children: React.ReactNode;
+}> = ({ isActive, rotatesTraderStats, children }) => (
+  <SocialFeedPageActiveContext.Provider value={isActive}>
+    <TraderStatRotationContext.Provider value={rotatesTraderStats}>
+      {children}
+    </TraderStatRotationContext.Provider>
+  </SocialFeedPageActiveContext.Provider>
+);
 
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
@@ -283,6 +298,9 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
+  }, [openSheet]);
+  const handleOpenTrendingFilters = useCallback(() => {
+    openSheet('trending');
   }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
@@ -462,6 +480,7 @@ const SocialV1ViewContent: React.FC = () => {
   });
 
   const handleOpenMyProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
   }, [navigation]);
 
@@ -483,21 +502,28 @@ const SocialV1ViewContent: React.FC = () => {
 
   // Rendered outside the PagerView, where a page would clip the inline sheet; null inside the home tabs host.
   const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
+  const quickBuySourceRef = useRef<QuickBuySheetSource>(
+    SocialEvent.Source.SOCIAL_TRENDING,
+  );
   const openQuickBuy = useCallback(
     (
       target: QuickBuyTarget,
       copyTradeOrigin?: CopyTradeOrigin,
       tradeMode: QuickBuyTradeMode = 'buy',
-    ) =>
+      source?: QuickBuySheetSource,
+    ) => {
+      const resolvedSource = source ?? quickBuySourceRef.current;
+      quickBuySourceRef.current = resolvedSource;
       showQuickBuy({
         target,
         copyTradeOrigin,
         features: TOP_TRADERS_QUICK_BUY_FEATURES,
         initialTradeMode: tradeMode,
-        analyticsContext: { source: 'trader_feed' },
+        analyticsContext: { source: resolvedSource },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
-      }),
+      });
+    },
     [showQuickBuy],
   );
   // The Social tab stays mounted under a pushed feed route; only the visible feed may reopen.
@@ -506,7 +532,11 @@ const SocialV1ViewContent: React.FC = () => {
     isFocused ? PostTradeShareOwner.socialV1Feed : undefined,
   );
   const handleCopyTrade = useCallback(
-    (item: SocialV1FeedItem, commentId?: string) => {
+    (
+      item: SocialV1FeedItem,
+      commentId: string | undefined,
+      source: QuickBuySheetSource,
+    ) => {
       if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
         return;
       }
@@ -525,6 +555,31 @@ const SocialV1ViewContent: React.FC = () => {
           chain,
         },
         commentId ? { commentId } : undefined,
+        'buy',
+        source,
+      );
+    },
+    [openQuickBuy],
+  );
+  const handleTrendingCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      handleCopyTrade(item, commentId, SocialEvent.Source.SOCIAL_TRENDING);
+    },
+    [handleCopyTrade],
+  );
+  const handleLiveCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      handleCopyTrade(item, commentId, SocialEvent.Source.SOCIAL_LIVE_TRADES);
+    },
+    [handleCopyTrade],
+  );
+  const openFollowingQuickBuy = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      openQuickBuy(
+        target,
+        copyTradeOrigin,
+        'buy',
+        SocialEvent.Source.SOCIAL_FOLLOWING,
       );
     },
     [openQuickBuy],
@@ -699,7 +754,7 @@ const SocialV1ViewContent: React.FC = () => {
                 twClassName="bg-transparent"
               />
               <ButtonIcon
-                iconName={IconName.Edit}
+                iconName={IconName.FeedPost}
                 iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
@@ -773,8 +828,9 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    <TraderStatRotationContext.Provider
-                      value={activeIndex === pageIndex}
+                    <SocialFeedPageProviders
+                      isActive={isFocused && activeIndex === pageIndex}
+                      rotatesTraderStats={activeIndex === pageIndex}
                     >
                       {tab === 'leaderboard' ? (
                         <LeaderboardShellTabPage
@@ -797,42 +853,47 @@ const SocialV1ViewContent: React.FC = () => {
                           source={analyticsSource}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
-                          onCopyTrade={handleCopyTrade}
+                          onCopyTrade={handleLiveCopyTrade}
                           onOpenFilters={handleOpenLiveFilters}
                           isFilterActive={hasActiveFilters('live')}
                           onClearFilters={() => clearAppliedFilters('live')}
                           appliedFilters={applied.live}
+                        />
+                      ) : tab === 'trending' ? (
+                        <TrendingView
+                          isActive={activeIndex === trendingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.trending}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleTrendingCopyTrade}
+                          onOpenFilters={handleOpenTrendingFilters}
+                          isFilterActive={hasActiveFilters('trending')}
+                          onClearFilters={() => clearAppliedFilters('trending')}
+                          appliedFilters={applied.trending}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
                         />
                       ) : (
                         <EmptyShellTabPage
                           tab={tab}
                           source={analyticsSource}
                           performance={socialPerformanceByTab[tab]}
-                          isActive={
-                            tab === 'trending'
-                              ? activeIndex === trendingIndex
-                              : activeIndex === followingIndex
-                          }
+                          isActive={activeIndex === followingIndex}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           containerTestID={testIds.container}
                           scrollTestID={testIds.scroll}
-                          onOpenFilters={
-                            tab === 'following'
-                              ? handleOpenFollowingFilters
-                              : undefined
-                          }
+                          onOpenFilters={handleOpenFollowingFilters}
                           isFilterActive={hasActiveFilters('following')}
                           onClearFilters={() =>
                             clearAppliedFilters('following')
                           }
-                          appliedFilters={
-                            tab === 'following' ? applied.following : undefined
-                          }
-                          onQuickBuy={openQuickBuy}
+                          appliedFilters={applied.following}
+                          onQuickBuy={openFollowingQuickBuy}
                         />
                       )}
-                    </TraderStatRotationContext.Provider>
+                    </SocialFeedPageProviders>
                   </View>
                 );
               })}

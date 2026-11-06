@@ -232,7 +232,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          twClassName="mb-3"
         >
           {strings('price_alerts.enter_target_price')}
         </Text>

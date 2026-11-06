@@ -438,26 +438,38 @@ describe('SecurityTab', () => {
         },
       });
 
-    it.each([
-      ['pass', 'Sells work'],
-      ['fail', 'Sells may fail'],
-    ] as const)(
-      'shows a %s check with its glyph and wording',
-      (outcome, value) => {
-        const { getByTestId } = renderCheck({ outcome, value });
+    it('shows a pass check in green with no glyph', () => {
+      const { getByTestId, queryByTestId } = renderCheck({
+        outcome: 'pass',
+        value: 'Sells work',
+      });
 
-        expect(
-          getByTestId(
-            SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot),
-          ),
-        ).toHaveTextContent(value);
-        expect(
-          getByTestId(
-            SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot),
-          ),
-        ).toBeOnTheScreen();
-      },
-    );
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot)),
+      ).toHaveTextContent('Sells work');
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot)),
+      ).toHaveStyle({ color: mockTheme.colors.success.default });
+      expect(
+        queryByTestId(
+          SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot),
+        ),
+      ).toBeNull();
+    });
+
+    it('shows a fail check with its glyph and wording', () => {
+      const { getByTestId } = renderCheck({
+        outcome: 'fail',
+        value: 'Sells may fail',
+      });
+
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot)),
+      ).toHaveTextContent('Sells may fail');
+      expect(
+        getByTestId(SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot)),
+      ).toBeOnTheScreen();
+    });
 
     // Blockaid reports the risks it detected, never the checks it ran, so a
     // tick on an unresolved check would assert a result the API never

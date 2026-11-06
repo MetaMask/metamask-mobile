@@ -1,10 +1,13 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import { mapFeedItem } from '../../../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from './tokenHolders.fixture';
-import TokenHolderRow, { TokenHolderRowSelectorsIDs } from './TokenHolderRow';
+import TokenHolderRow from './TokenHolderRow';
+import { TokenDetailsIds } from '../../../testIds';
+
+const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
 
 /**
  * A fixture holder, with room to override either half of the row: `core` is
@@ -136,5 +139,20 @@ describe('TokenHolderRow', () => {
     expect(
       screen.getByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('is inert without a press handler', () => {
+    renderWithProvider(<TokenHolderRow row={toRow(0)} />);
+
+    expect(screen.queryByTestId(TokenHolderRowSelectorsIDs.PRESS)).toBeNull();
+  });
+
+  it('calls the press handler when the row is tapped', () => {
+    const onPress = jest.fn();
+
+    renderWithProvider(<TokenHolderRow row={toRow(0)} onPress={onPress} />);
+    fireEvent.press(screen.getByTestId(TokenHolderRowSelectorsIDs.PRESS));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -108,7 +108,10 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -584,14 +587,50 @@ describe('RewardsDashboard', () => {
       ).not.toBeOnTheScreen();
     });
 
+    describe('with glass headers on', () => {
+      beforeEach(() => {
+        const defaultSelector = mockUseSelector.getMockImplementation();
+        mockUseSelector.mockImplementation((selector) =>
+          selector === selectGlassHeadersEnabled
+            ? true
+            : defaultSelector?.(selector),
+        );
+      });
+
+      it('floats the tab header over the content', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+
+      it('keeps settings pressable in its glass capsule', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_SETTINGS_VIEW,
+          params: undefined,
+        });
+      });
+    });
+
+    it('keeps the solid header when glass headers are off', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
     it('renders settings button in header', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByLabelText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+      expect(getByLabelText('rewards.settings.title')).toBeOnTheScreen();
     });
   });
 
@@ -821,7 +860,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('settings button state', () => {
-    it('disables settings button when user is not opted in', () => {
+    it('enables settings and navigates when the user is not opted in', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
@@ -834,6 +873,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return true;
         return undefined;
       });
 
@@ -842,9 +882,38 @@ describe('RewardsDashboard', () => {
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
+      fireEvent.press(settingsButton);
 
       // Assert
-      expect(settingsButton).toBeDisabled();
+      expect(settingsButton).not.toBeDisabled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('hides settings when the user is not opted in and the money referral is unavailable', () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === selectSettingsReferralAvailable) return false;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('enables settings button when user is opted in', () => {

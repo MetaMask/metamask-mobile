@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
   SocialFeedEventListener,
@@ -9,6 +10,7 @@ import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from './socialFeedRealtime';
+import { resetSocialRealtimeLeases } from './socialRealtimeLease';
 import { useSocialFeedRealtime } from './useSocialFeedRealtime';
 
 const mockAddListener = jest.fn();
@@ -75,6 +77,13 @@ const buildEvent = (
 const positionIds = (posts: SocialV1FeedPost[]) =>
   posts.map((post) => post.position?.positionId);
 
+const buildCall = (uid: string): AuthorComment => ({
+  uid,
+  text: 'this is alpha',
+  timestamp: 1_700_000_000,
+  engagement: { reactions: [], userReaction: null },
+});
+
 describe('useSocialFeedRealtime', () => {
   let listener: SocialFeedEventListener | undefined;
   let reconnectListener: (() => void) | undefined;
@@ -118,6 +127,7 @@ describe('useSocialFeedRealtime', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSocialRealtimeLeases();
     listener = undefined;
     reconnectListener = undefined;
     refresh = jest.fn().mockResolvedValue(undefined);
@@ -149,7 +159,7 @@ describe('useSocialFeedRealtime', () => {
 
     expect(mockSetScopes).toHaveBeenCalledWith(['trending']);
     expect(mockAddReconnectListener).toHaveBeenCalledTimes(1);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 
   it('does not subscribe while inactive', () => {
@@ -241,6 +251,20 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(0);
   });
 
+  it('reveals posts held at the top past one drain batch and keeps the count at zero', async () => {
+    const { result } = renderRealtime({ holdNewPosts: true });
+    emitMany(5);
+    const heldCount = result.current?.realtime.pendingNewCount;
+
+    act(() => {
+      result.current?.realtime.revealPending();
+    });
+
+    expect(heldCount).toBe(5);
+    expect(result.current?.posts).toHaveLength(5);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
   it('holds new posts at the top when asked to, but applies updates', () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result } = renderRealtime({ rows, holdNewPosts: true });
@@ -283,15 +307,18 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
     const heldPnl = result.current?.posts[0]?.position?.pnlValueUsd;
     const heldCount = result.current?.realtime.pendingNewCount;
+    const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
 
     rerender({ rows, paused: false });
 
     expect(heldPnl).not.toBe(99);
     expect(heldCount).toBe(0);
+    expect(wasHeld).toBe(true);
     await waitFor(() =>
       expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
     );
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });
 
   it('caps socket-only posts and refreshes to catch up', async () => {
@@ -389,13 +416,52 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
   });
 
-  it('keeps socket posts while inactive', () => {
+  it('clears the rest authorComment when a realtime update carries a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
+  });
+
+  it('keeps the rest authorComment when a realtime update omits authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2 }));
+
+    expect(result.current?.posts[0]?.commentId).toBe('call-rest');
+  });
+
+  it('clears the comment when a server row promotes a socket-only post with a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const { result, rerender } = renderRealtime();
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+      ],
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
+  });
+
+  it('keeps socket posts while inactive', async () => {
     const { result, rerender } = renderRealtime();
     emit(buildEvent('pos-a'));
 
     rerender({ active: false });
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 });

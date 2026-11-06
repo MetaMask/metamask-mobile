@@ -127,15 +127,40 @@ const immersveApplePayEnabled = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          immersveAppleWalletInAppProvisioningEnabled: {
+          cardImmersveProvisioning: {
             enabled: true,
             minimumVersion: '0.0.0',
+            countries: {
+              NZ: {
+                enabled: true,
+                ios: {
+                  apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+                },
+              },
+            },
           },
         },
       },
     },
   },
 } satisfies DeepPartial<RootState>;
+
+/**
+ * Immersve Apple Pay resolves only when the card's country matches an enabled
+ * leaf. The instructions row is the fallback when that leaf is on and the
+ * card still cannot be added.
+ */
+const immersveProvisioningCountry = {
+  cardHomeData: {
+    walletProvisioning: {
+      eligible: true,
+      cardholderName: 'Test User',
+      lastFour: '1234',
+      network: 'MASTERCARD' as const,
+      countryCode: 'NZ',
+    },
+  },
+};
 
 describe('CardHome', () => {
   afterEach(() => {
@@ -193,6 +218,7 @@ describe('CardHome', () => {
               backgroundState: {
                 ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
+                  ...immersveProvisioningCountry,
                   activeProviderId: 'immersve',
                   providerData: {
                     immersve: { location: 'international' },
@@ -274,6 +300,7 @@ describe('CardHome', () => {
               backgroundState: {
                 ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
+                  ...immersveProvisioningCountry,
                   activeProviderId: 'immersve',
                   providerData: {
                     immersve: { location: 'international' },

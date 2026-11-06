@@ -11,7 +11,10 @@ import type {
   SocialFeedRealtimeScope,
   TokenFeedChain,
 } from '@metamask/social-controllers';
-import { FEED_CAIP2_CHAINS } from './feed-constants';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from './feed-constants';
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
@@ -301,33 +304,71 @@ export interface SocialFeedAssetRef {
   tokenSymbol?: string;
 }
 
+const PERP_ASSET_NAMESPACE = 'perp';
+
+const isHyperliquidAsset = (chainName: string): boolean =>
+  chainName.trim().toLowerCase() === HYPERLIQUID_CHAIN_NAME;
+
+/**
+ * The market id of a Hyperliquid row. Global-feed perp rows can arrive with an
+ * empty `tokenAddress`, so the symbol wins.
+ */
+const perpMarketOf = ({ tokenAddress, tokenSymbol }: SocialFeedAssetRef) =>
+  tokenSymbol?.trim() || tokenAddress.trim();
+
+/**
+ * The CAIP-19 asset type a feed row is about, as the feed's `assetIds` filter
+ * expects it, or `null` when the row's chain or asset has none.
+ *
+ * - EVM: `eip155:<id>/erc20:<lowercased address>`
+ * - Solana: `solana:<ref>/token:<mint>`
+ * - Hyperliquid: `eip155:999/perp:<market>`
+ *
+ * CAIP-19 references cannot hold a colon, so a HIP-3 market such as
+ * `xyz:NVDA` becomes `xyz.NVDA`.
+ */
+export const toFeedAssetId = (
+  assetRef: SocialFeedAssetRef,
+): CaipAssetType | null => {
+  const chain = assetRef.chain.trim().toLowerCase();
+  const address = assetRef.tokenAddress.trim();
+  let assetId: string;
+  if (isHyperliquidAsset(chain)) {
+    const market = perpMarketOf(assetRef);
+    if (!market) {
+      return null;
+    }
+    assetId = `${HYPERLIQUID_CAIP2_CHAIN_ID}/${PERP_ASSET_NAMESPACE}:${market.replace(/:/gu, '.')}`;
+  } else {
+    const caip2 = chain && address ? chainNameToId(chain) : undefined;
+    if (!caip2) {
+      return null;
+    }
+    const chainNamespace = caip2.split(':')[0];
+    const assetNamespace = TOKEN_ASSET_NAMESPACE[chainNamespace];
+    if (!assetNamespace) {
+      return null;
+    }
+    assetId = `${caip2}/${assetNamespace}:${normaliseContractAddress(
+      chainNamespace,
+      address,
+    )}`;
+  }
+  return isCaipAssetType(assetId) ? assetId : null;
+};
+
 /**
  * Builds the source for the asset a feed row is about. Hyperliquid rows become
  * perp sources keyed by their market symbol, because global-feed perp rows can
  * arrive with an empty `tokenAddress`.
  */
-export const socialFeedSourceFromAsset = ({
-  chain: chainName,
-  tokenAddress,
-  tokenSymbol,
-}: SocialFeedAssetRef): SocialFeedSource | null => {
-  const chain = chainName.trim().toLowerCase();
-  const address = tokenAddress.trim();
-  if (chain === HYPERLIQUID_CHAIN_NAME) {
-    const symbol = tokenSymbol?.trim() || address;
+export const socialFeedSourceFromAsset = (
+  assetRef: SocialFeedAssetRef,
+): SocialFeedSource | null => {
+  if (isHyperliquidAsset(assetRef.chain)) {
+    const symbol = perpMarketOf(assetRef);
     return symbol ? { kind: 'perp', symbol } : null;
   }
-  if (!chain || !address) {
-    return null;
-  }
-  const caip2 = chainNameToId(chain);
-  if (!caip2) {
-    return null;
-  }
-  const assetNamespace = TOKEN_ASSET_NAMESPACE[caip2.split(':')[0]];
-  if (!assetNamespace) {
-    return null;
-  }
-  const assetId = `${caip2}/${assetNamespace}:${address}`;
-  return isCaipAssetType(assetId) ? { kind: 'token', assetId } : null;
+  const assetId = toFeedAssetId(assetRef);
+  return assetId ? { kind: 'token', assetId } : null;
 };

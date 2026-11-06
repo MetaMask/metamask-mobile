@@ -41,15 +41,29 @@ import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEna
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
-import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyOnboardingCard, {
+  MONEY_ONBOARDING_TOTAL_STEPS,
+} from '../../components/MoneyOnboardingCard';
 import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
+import {
+  getMoneyHomeCard,
+  type MoneyHomeVbaVariant,
+} from '../../hooks/getMoneyHomeCard';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
+import {
+  getKycDecisionDismissDevOverride,
+  setMoneyHomeCardDevOverride,
+  useMoneyHomeCardDevOverride,
+} from '../../hooks/moneyHomeCardDevOverride';
+import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { selectOnboardingStepperProgress } from '../../../../../reducers/user/selectors';
 import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
@@ -65,6 +79,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyMetaMaskCardMode,
@@ -176,6 +191,7 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
+    tokenTotal,
     isBalanceLoading,
     lastKnownTotalFiatFormatted,
     refetchBalance,
@@ -197,17 +213,34 @@ const MoneyHomeView = () => {
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
-  // At most one VBA identity-status card; `none` renders nothing. The focus
-  // refresh is the one-shot KYC session GET.
+  // One card for the whole slot. The VBA hook still names the identity
+  // variant; the routing table decides whether that variant, the onboarding
+  // stepper, or nothing is mounted. The focus refresh is the one-shot KYC
+  // session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
+  const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
+    useVbaEligibility();
+  const { hasCrypto, isLoading: isCryptoBalanceLoading } =
+    useActiveGroupCryptoPresence();
+  const devOverride = useMoneyHomeCardDevOverride();
+  const onboardingProgress = useSelector(selectOnboardingStepperProgress);
+  const [dismissedVbaVariant, setDismissedVbaVariant] =
+    useState<MoneyHomeVbaVariant | null>(null);
+  if (dismissedVbaVariant && dismissedVbaVariant !== vbaHomeCard.type) {
+    setDismissedVbaVariant(null);
+  }
+  // One-shot autoramp transaction read per focus and app resume. The
+  // controller owns the last-seen-status record, so repeated reads do not
+  // emit duplicate Money VBA Transaction Updated events.
+  useVbaTransactionRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
-  // the same eligibility gate the home cards use). Like the cards, it opens the
-  // loading screen immediately; that screen hydrates and forwards to the PIX
-  // details screen for a complete account, or the first incomplete module.
-  const { isEligible: isVbaEligible } = useVbaEligibility();
+  // the same eligibility gate the home cards use) and for an existing account.
+  // An approved account opens its details directly; otherwise the loading
+  // screen hydrates and forwards to the first incomplete module.
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
   const hasPendingDetailsOpenRef = useRef(false);
-  const showVbaDetailsButton = isVbaEligible;
+  const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
     : ACTION_BUTTON_ROW_BASE_COUNT;
@@ -276,6 +309,31 @@ const MoneyHomeView = () => {
     isResidencyBlocked,
     isMoneyCardSectionAvailable,
   } = useMoneyAccountCardLinkage();
+
+  const isMoneyAccountFunded = Boolean(
+    !isBalanceLoading && tokenTotal?.isGreaterThan(0),
+  );
+  const isCardStepSkipped =
+    (onboardingProgress[STEPPER_IDS.MONEY] ?? 0) >=
+    MONEY_ONBOARDING_TOTAL_STEPS;
+  const liveHomeCard = getMoneyHomeCard({
+    isEligibilityLoading: isVbaEligibilityLoading,
+    isMoneyBalanceLoading: isBalanceLoading,
+    isCryptoBalanceLoading,
+    isCardStateResolved,
+    vbaCard: vbaHomeCard,
+    isVbaEligible,
+    hasCrypto,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+    isMoneyAccountFunded,
+    isCardLinked: isCardLinkedToMoneyAccount,
+    isResidencyBlocked,
+    isCardStepSkipped,
+    isKycDecisionDismissed:
+      dismissedVbaVariant === 'kyc_decision' &&
+      vbaHomeCard.type === 'kyc_decision',
+  });
+  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -594,10 +652,10 @@ const MoneyHomeView = () => {
       button_row_button_count: actionButtonRowCount,
     });
 
-    // Route immediately: the loading screen hydrates and replaces itself with
-    // the next destination, so Details never shows an in-place busy state
-    // while status resolves.
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+    // Route immediately: an approved account opens its details directly.
+    // Otherwise the loading screen hydrates and replaces itself with the next
+    // destination, so Details never shows an in-place busy state.
+    openVbaEntry(navigation, {
       source: 'vba-action-row-details',
     });
   }, [navigation, trackButtonClicked, actionButtonRowCount]);
@@ -1116,7 +1174,9 @@ const MoneyHomeView = () => {
           }}
           transfer={{
             onPress: handleTransferPress,
-            disabled: !hasSpendableBalance,
+            // Keep Send available at $0 so pre-deposit users can inspect
+            // withdrawal routes before adding funds.
+            disabled: !hasBalanceValue,
           }}
           card={{ onPress: handleActionButtonCardPress }}
           details={
@@ -1127,10 +1187,33 @@ const MoneyHomeView = () => {
               : undefined
           }
         />
-        {vbaHomeCard.type !== 'none' && (
-          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        {moneyHomeCard.type === 'vba' && (
+          <MoneyVbaHomeCard
+            key={devOverride?.id ?? moneyHomeCard.variant}
+            variant={moneyHomeCard.variant}
+            onDismiss={() => {
+              if (devOverride?.card.type === 'vba') {
+                if (devOverride.card.variant === 'kyc_decision') {
+                  setMoneyHomeCardDevOverride(
+                    getKycDecisionDismissDevOverride(isMoneyAccountFunded),
+                  );
+                }
+                return;
+              }
+              setDismissedVbaVariant(moneyHomeCard.variant);
+            }}
+          />
         )}
-        <MoneyOnboardingCard isGlass={isGlass} />
+        {moneyHomeCard.type === 'onboarding' && (
+          <MoneyOnboardingCard
+            isGlass={isGlass}
+            forcedStep={
+              devOverride?.card.type === 'onboarding'
+                ? devOverride.onboardingStep
+                : undefined
+            }
+          />
+        )}
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}

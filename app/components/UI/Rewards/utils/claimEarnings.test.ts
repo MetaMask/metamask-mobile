@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { base58 } from 'ethers/lib/utils';
+import { SolScope } from '@metamask/keyring-api';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -24,10 +26,15 @@ import {
 import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
+  claimRouteOptions,
   claimRoutesForSummary,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimToastKey,
@@ -40,11 +47,17 @@ import {
   submitClaimVoucher,
 } from './claimEarnings';
 
+jest.mock('@metamask/eth-snap-keyring/v2', () => ({
+  isSnapKeyring: (keyring: { submitRequest?: unknown }) =>
+    typeof keyring?.submitRequest === 'function',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn() },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -104,6 +117,7 @@ function summary(options: {
   claimable: string;
   cashback?: string;
   revShare?: string;
+  followTrade?: string;
   minimum?: string;
 }): EarningsSummaryDto {
   return {
@@ -144,6 +158,13 @@ function summary(options: {
           claimed: '0',
           voided: '0',
         },
+        SOCIAL_FOLLOW_TRADE: {
+          lifetime: '0',
+          claimable: options.followTrade,
+          pending: '0',
+          claimed: '0',
+          voided: '0',
+        },
       },
     },
   };
@@ -158,6 +179,7 @@ describe('claimRoutesForSummary', () => {
           cashback: ONE_DOLLAR,
           revShare: ONE_DOLLAR,
         }),
+        'referee',
       ),
     ).toEqual(['referral-trade-fee-cashback']);
 
@@ -168,6 +190,7 @@ describe('claimRoutesForSummary', () => {
           cashback: UNDER_DOLLAR,
           revShare: ONE_DOLLAR,
         }),
+        'referee',
       ),
     ).toEqual([]);
   });
@@ -179,7 +202,7 @@ describe('claimRoutesForSummary', () => {
       revShare: '600000',
     });
     expect(canClaimEarnings(split, 'referee')).toBe(false);
-    expect(claimRoutesForSummary(split)).toEqual([]);
+    expect(claimRoutesForSummary(split, 'referee')).toEqual([]);
   });
 
   it('treats exactly $1 of cashback as claimable for a referee', () => {
@@ -189,7 +212,7 @@ describe('claimRoutesForSummary', () => {
       revShare: ONE_DOLLAR,
     });
 
-    expect(claimRoutesForSummary(atMinimum)).toEqual([
+    expect(claimRoutesForSummary(atMinimum, 'referee')).toEqual([
       'referral-trade-fee-cashback',
     ]);
     expect(canClaimEarnings(atMinimum, 'referee')).toBe(true);
@@ -204,7 +227,7 @@ describe('claimRoutesForSummary', () => {
       minimum: '5000000',
     });
     expect(canClaimEarnings(underRaisedMinimum, 'referee')).toBe(false);
-    expect(claimRoutesForSummary(underRaisedMinimum)).toEqual([]);
+    expect(claimRoutesForSummary(underRaisedMinimum, 'referee')).toEqual([]);
 
     const aboveLoweredMinimum = summary({
       claimable: UNDER_DOLLAR,
@@ -212,7 +235,7 @@ describe('claimRoutesForSummary', () => {
       minimum: '500000',
     });
     expect(canClaimEarnings(aboveLoweredMinimum, 'referee')).toBe(true);
-    expect(claimRoutesForSummary(aboveLoweredMinimum)).toEqual([
+    expect(claimRoutesForSummary(aboveLoweredMinimum, 'referee')).toEqual([
       'referral-trade-fee-cashback',
     ]);
   });
@@ -225,6 +248,27 @@ describe('claimRoutesForSummary', () => {
     });
     expect(canClaimEarnings(noMinimum, 'referee')).toBe(false);
     expect(claimRoutesForSummary(null)).toEqual([]);
+  });
+
+  it('adds follow-trade only when the route is open and that family meets the minimum', () => {
+    const followTrade = summary({
+      claimable: '0',
+      followTrade: ONE_DOLLAR,
+    });
+    const open = { includeFollowTrade: true };
+
+    expect(claimRoutesForSummary(followTrade, 'referrer', open)).toEqual([
+      'social-follow-trade',
+    ]);
+    expect(claimRoutesForSummary(followTrade, 'plain', open)).toEqual([
+      'social-follow-trade',
+    ]);
+    expect(claimRoutesForSummary(followTrade, 'referee')).toEqual([]);
+    expect(canClaimEarnings(followTrade, 'referrer')).toBe(false);
+    expect(canClaimEarnings(followTrade, 'referrer', open)).toBe(true);
+    expect(claimRouteOptions(true).includeFollowTrade).toBe(true);
+    expect(claimRouteOptions(false).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(undefined).includeFollowTrade).toBe(false);
   });
 });
 
@@ -381,12 +425,26 @@ describe('claimToastKey', () => {
     ).toBe('claimFailureRetryToast');
   });
 
+  it('uses the retry sentence when the Money Account check does not answer', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
+        },
+      ]),
+    ).toBe('claimFailureRetryToast');
+  });
+
   it.each([
     ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
     ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
     ['UNSUPPORTED_EARNING_ADDRESS', 'claimFailureUnavailableToast'],
     ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
     ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'claimFailureUnavailableToast'],
   ] as const)(
     'uses the %s sentence when the claim pays nothing',
     (reason, toast) => {
@@ -511,6 +569,170 @@ describe('bitcoinProofHex', () => {
   it('returns null for an empty or odd-length signature', () => {
     expect(bitcoinProofHex('')).toBeNull();
     expect(bitcoinProofHex('0x0')).toBeNull();
+  });
+});
+
+const STELLAR_ADDRESS =
+  'GDVEU3DD4KOFECV66VIHWEZOYX4ZKR3WV27L464SIIPOU2IUI3JCZA57';
+const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
+
+describe('solanaAddressFromEarningAddress', () => {
+  it('keeps the base58 case', () => {
+    expect(solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS}`)).toBe(
+      SOLANA_ADDRESS,
+    );
+    expect(
+      solanaAddressFromEarningAddress(`solana:${SOLANA_ADDRESS.toLowerCase()}`),
+    ).toBe(SOLANA_ADDRESS.toLowerCase());
+    expect(SOLANA_ADDRESS.toLowerCase()).not.toBe(SOLANA_ADDRESS);
+  });
+});
+
+describe('stellarAddressFromEarningAddress', () => {
+  it('keeps a G address and refuses a lowercase copy', () => {
+    expect(stellarAddressFromEarningAddress(`stellar:${STELLAR_ADDRESS}`)).toBe(
+      STELLAR_ADDRESS,
+    );
+    expect(
+      stellarAddressFromEarningAddress(
+        `stellar:${STELLAR_ADDRESS.toLowerCase()}`,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('signSolanaClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+  const signatureBytes = Buffer.alloc(64, 7);
+
+  function keyringReturning(result: unknown) {
+    const submitRequest = jest.fn().mockResolvedValue(result);
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    return submitRequest;
+  }
+
+  it('sends the base64 challenge and returns the base58 reply as 0x hex', async () => {
+    const submitRequest = keyringReturning({
+      signature: base58.encode(signatureBytes),
+    });
+
+    const signature = await signSolanaClaimMessage(
+      'sol-account',
+      SOLANA_ADDRESS,
+      'solana challenge',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: SolScope.Mainnet,
+        account: 'sol-account',
+        request: {
+          method: 'signMessage',
+          params: {
+            account: { address: SOLANA_ADDRESS },
+            message: Buffer.from('solana challenge', 'utf8').toString('base64'),
+          },
+        },
+      }),
+    );
+    expect(signature).toBe(`0x${signatureBytes.toString('hex')}`);
+  });
+
+  it('fails with SIGN_FAILED when the reply is not a 64-byte signature', async () => {
+    keyringReturning({ signature: base58.encode(Buffer.from([1, 2, 3])) });
+
+    await expect(
+      signSolanaClaimMessage('sol-account', SOLANA_ADDRESS, 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+});
+
+describe('signStellarClaimMessage', () => {
+  const withKeyringV2 = Engine.context.KeyringController
+    .withKeyringV2 as jest.Mock;
+
+  it('sends the raw challenge and returns signedMessage as 0x hex', async () => {
+    const submitRequest = jest.fn().mockResolvedValue({
+      signedMessage: Buffer.from([1, 2, 3]).toString('base64'),
+      signerAddress: STELLAR_ADDRESS,
+    });
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+
+    const signature = await signStellarClaimMessage(
+      'xlm-account',
+      'sign the claim',
+    );
+
+    expect(submitRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: 'stellar:pubnet',
+        account: 'xlm-account',
+        request: {
+          method: 'signMessage',
+          params: { message: 'sign the claim' },
+        },
+      }),
+    );
+    expect(signature).toBe('0x010203');
+  });
+
+  it('fails with SIGN_FAILED when the snap returns signature instead of signedMessage', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest.fn().mockResolvedValue({
+              signature: Buffer.from([1, 2, 3]).toString('base64'),
+            }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+
+  it('fails with SIGN_FAILED when signedMessage is not base64', async () => {
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) =>
+        operation({
+          keyring: {
+            submitRequest: jest
+              .fn()
+              .mockResolvedValue({ signedMessage: '!!!' }),
+          },
+        }),
+    );
+
+    await expect(
+      signStellarClaimMessage('xlm-account', 'challenge'),
+    ).rejects.toThrow('SIGN_FAILED');
   });
 });
 
@@ -1314,7 +1536,9 @@ describe('claim metrics', () => {
     ['ADDRESS_SCREENING_UNAVAILABLE', 'retry'],
     ['PAIRING_PENDING', 'retry'],
     ['PROOF_UNAVAILABLE', 'retry'],
+    ['MONEY_ACCOUNT_CHECK_UNAVAILABLE', 'retry'],
     ['VOIDED', 'other'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'other'],
     ['UNKNOWN', 'other'],
   ])('maps %s to %s', (reason, failureReason) => {
     expect(claimFailureReason(reason)).toBe(failureReason);

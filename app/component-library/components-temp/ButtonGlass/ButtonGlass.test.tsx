@@ -4,7 +4,6 @@ import { GlassView } from 'expo-glass-effect';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import ButtonGlass from './ButtonGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
-import { mockTheme } from '../../../util/theme';
 
 let mockIsGlassEnabled = true;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -84,17 +83,27 @@ describe('ButtonGlass', () => {
     expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('tints primary glass with the primary fill instead of the sheen', () => {
-    const { UNSAFE_getByType, queryByTestId } = render(
-      <ButtonGlass variant={ButtonVariant.Primary} onPress={jest.fn()}>
-        Add funds
-      </ButtonGlass>,
-    );
+  it('renders primary as the plain button, without glass', () => {
+    const onPress = jest.fn();
+    const { getByTestId, getByText, queryByTestId, UNSAFE_queryByType } =
+      render(
+        <ButtonGlass
+          isGlass
+          variant={ButtonVariant.Primary}
+          onPress={onPress}
+          testID="add-funds"
+        >
+          Add funds
+        </ButtonGlass>,
+      );
 
-    expect(UNSAFE_getByType(GlassView).props.tintColor).toBe(
-      mockTheme.colors.icon.default,
-    );
+    expect(getByText('Add funds')).toBeOnTheScreen();
+    expect(UNSAFE_queryByType(GlassView)).toBeNull();
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('add-funds'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders tertiary as the plain button, without glass', () => {

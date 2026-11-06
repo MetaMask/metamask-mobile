@@ -1,58 +1,37 @@
 import { renderHook } from '@testing-library/react-native';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
-import type { TokenAssetMarketData } from '../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 import { useTokenPerformance } from './useTokenPerformance';
 
 const marketData = (
-  overrides: Partial<FungibleAssetPrice> = {},
-): FungibleAssetPrice =>
+  overrides: Partial<TokenMarketData> = {},
+): TokenMarketData =>
   ({
+    pricePercentChange5m: 1.25,
     pricePercentChange1h: -0.52,
+    pricePercentChange4h: -4.5,
     pricePercentChange1d: 3.09,
     ...overrides,
-  }) as FungibleAssetPrice;
-
-const assetMarketData = (
-  overrides: Partial<TokenAssetMarketData> = {},
-): TokenAssetMarketData =>
-  ({
-    pricePercentChange5m: '1.25',
-    pricePercentChange4h: '-4.5',
-    ...overrides,
-  }) as TokenAssetMarketData;
+  }) as TokenMarketData;
 
 describe('useTokenPerformance', () => {
-  it('maps spot-prices 1h and 24h percentages onto the cells', () => {
+  it('maps spot-prices percentages onto the cells', () => {
     const { result } = renderHook(() =>
       useTokenPerformance({
         marketData: marketData(),
-        assetMarketData: null,
       }),
     );
 
     expect(result.current).toStrictEqual({
-      fiveMinute: null,
+      fiveMinute: 1.25,
       oneHour: -0.52,
-      fourHour: null,
+      fourHour: -4.5,
       twentyFourHour: 3.09,
     });
   });
 
-  it('maps token-api 5m and 4h percentages onto the cells', () => {
+  it('leaves every cell empty when market data is missing', () => {
     const { result } = renderHook(() =>
-      useTokenPerformance({
-        marketData: null,
-        assetMarketData: assetMarketData(),
-      }),
-    );
-
-    expect(result.current.fiveMinute).toBe(1.25);
-    expect(result.current.fourHour).toBe(-4.5);
-  });
-
-  it('leaves every cell empty when neither source has an entry', () => {
-    const { result } = renderHook(() =>
-      useTokenPerformance({ marketData: null, assetMarketData: null }),
+      useTokenPerformance({ marketData: null }),
     );
 
     expect(result.current).toStrictEqual({
@@ -63,16 +42,14 @@ describe('useTokenPerformance', () => {
     });
   });
 
-  it('drops non-finite percentages from both sources', () => {
+  it('drops non-finite percentages', () => {
     const { result } = renderHook(() =>
       useTokenPerformance({
         marketData: marketData({
+          pricePercentChange5m: Number.NaN,
           pricePercentChange1h: Number.NaN,
+          pricePercentChange4h: Number.POSITIVE_INFINITY,
           pricePercentChange1d: Number.POSITIVE_INFINITY,
-        }),
-        assetMarketData: assetMarketData({
-          pricePercentChange5m: 'nope',
-          pricePercentChange4h: '',
         }),
       }),
     );

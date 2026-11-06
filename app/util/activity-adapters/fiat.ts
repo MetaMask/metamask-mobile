@@ -43,15 +43,15 @@ export function getDisplaySignPrefix(
  * Whether the amount is raw base units of an unknown scale.
  *
  * `assetType` is only set by the EVM mappers, whose amounts are always base
- * units, so an absent `decimals` there means the scale is unknown rather than
- * 0 — scaling by 0 renders e.g. 167.1211 USDT as "167121100" and feeds that
- * same number to fiat. Sources that emit already-human amounts (ramps,
- * keyring) deliberately omit `decimals` and never set `assetType`, so they are
- * unaffected. TMCU-1303.
+ * units, so a missing or non-integer `decimals` there (the Accounts API can
+ * send `null`) means the scale is unknown rather than 0 — scaling by 0 renders
+ * e.g. 167.1211 USDT as "167121100" and feeds that same number to fiat.
+ * Sources that emit already-human amounts (ramps, keyring) deliberately omit
+ * `decimals` and never set `assetType`, so they are unaffected. TMCU-1303.
  */
 function hasUnknownScale(token: TokenAmount): boolean {
   return (
-    token.decimals === undefined &&
+    !Number.isInteger(token.decimals) &&
     (token.assetType === 'erc20' || token.assetType === 'native')
   );
 }
@@ -68,7 +68,12 @@ export function getHumanReadableTokenAmount(
     // Mapper fail-closed (client-utils / TMCU-1303) omits amount when the scale
     // is unknown but keeps symbol/assetId. Do not invent "0" — that looks like
     // a real zero transfer and scares users.
-    if (token.assetType === 'erc20' || token.assetType === 'native') {
+    if (
+      token.assetType === 'erc20' ||
+      token.assetType === 'native' ||
+      token.assetType === 'erc721' ||
+      token.assetType === 'erc1155'
+    ) {
       return undefined;
     }
     if (token.symbol || token.assetId) {

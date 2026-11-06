@@ -24,6 +24,7 @@ import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
+import { handleMoney } from '../legacy/handleMoney';
 import {
   createMoneyDepositDeeplinkIntent,
   handleMoneyDeposit,
@@ -78,6 +79,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../legacy/handleMoney');
 jest.mock('../intent/handleMoneyDeposit');
 jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
@@ -650,6 +652,30 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.MONEY', () => {
+    it('calls handleMoney with the path after the action', async () => {
+      const moneyPath = '?screen=account';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY}${moneyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({ moneyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.NOTIFICATIONS_SETTINGS', () => {
     it('calls handleNotificationsSettingsUrl with the path after the action', async () => {
       const notificationsSettingsPath = '?section=price-alerts';
@@ -1218,7 +1244,7 @@ describe('handleUniversalLink', () => {
         createPerpsDeeplinkIntent as jest.MockedFunction<
           typeof createPerpsDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,
@@ -1233,6 +1259,93 @@ describe('handleUniversalLink', () => {
       expect(result).toBe(intent);
       expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
         perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      expect(handlePerpsUrl).not.toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param on PERPS_ASSET through to the shared perps handler in execute mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH&mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=ETH&mode=pro',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param with no symbol so the handler defaults to BTC', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro',
+      });
+    });
+
+    it('returns a perps asset startup intent in resolve mode with mode=pro forwarded', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=BTC&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=BTC&mode=pro',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'Perps',
+        },
+      };
+      (
+        createPerpsDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsDeeplinkIntent
+        >
+      ).mockResolvedValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=BTC&mode=pro',
       });
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });
@@ -1918,7 +2031,7 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.MONEY_ACCOUNT_DEPOSIT', () => {
-    it('dispatches to handleMoneyDeposit for the Money deposit deeplink', async () => {
+    it('dispatches to handleMoneyDeposit for the standard Money deposit deeplink', async () => {
       const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
       const depositUrlObj = {
         ...urlObj,
@@ -1936,12 +2049,14 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
-      expect(mockHandleMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(mockHandleMoneyDeposit).toHaveBeenCalledWith({
+        moneyDepositPath: '',
+      });
       expect(handled).toHaveBeenCalled();
     });
 
     it('returns the Money deposit startup intent in resolve mode', async () => {
-      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
+      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}?tokenType=atoken&utm_source=braze`;
       const depositUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
@@ -1967,7 +2082,9 @@ describe('handleUniversalLink', () => {
       });
 
       expect(result).toBe(intent);
-      expect(mockCreateMoneyDepositDeeplinkIntent).toHaveBeenCalledTimes(1);
+      expect(mockCreateMoneyDepositDeeplinkIntent).toHaveBeenCalledWith({
+        moneyDepositPath: '?tokenType=atoken&utm_source=braze',
+      });
       expect(mockHandleMoneyDeposit).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });

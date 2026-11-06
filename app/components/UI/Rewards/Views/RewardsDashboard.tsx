@@ -4,20 +4,35 @@ import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
+  ButtonSize,
+  ButtonVariant,
+  IconColor,
   IconName,
+  SectionHeader,
+  TabEmptyState,
   Text,
+  TextColor,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import HeaderRootGlass from '../../../../component-library/components-temp/HeaderRootGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
@@ -44,7 +59,10 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../reducers/rewardsMoney/selectors';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -52,6 +70,8 @@ import {
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
@@ -67,11 +87,20 @@ import Engine from '../../../../core/Engine';
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
+function selectRewardsDashboardReferralMe(state: RootState) {
+  const profileId = selectSessionProfileId(state);
+  return selectReferralMeEntry(state, profileId)?.data;
+}
+
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
@@ -81,10 +110,8 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const profileId = useSelector(selectSessionProfileId);
-  const referralMe = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
-  );
+  const referralMe = useSelector(selectRewardsDashboardReferralMe);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
@@ -283,6 +310,10 @@ const RewardsDashboard: React.FC = () => {
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -349,49 +380,79 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
+  }, [navigation]);
+
+  const copyTradingText = referralMe?.localized_text;
+  const showCopyTrading = Boolean(
+    isSocialV1Enabled &&
+      copyTradingText?.tradingCommissionsSection &&
+      copyTradingText.copyTradingEmptyDescription &&
+      copyTradingText.copyTradingEmptyAction,
+  );
+
+  const vipButtonStyle = isGlassHeader
+    ? undefined
+    : tw.style('h-8 w-8 items-center justify-center');
+  const vipIcon = isGlassHeader ? (
+    <CapsuleGlass twClassName="w-10 justify-center">
+      <VipIcon width={24} height={24} name="VipIcon" />
+    </CapsuleGlass>
+  ) : (
+    <VipIcon width={24} height={24} name="VipIcon" />
+  );
+
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">
       {isVipProgramEnabled && isVipReferee && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipRefereePress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
       {isVipProgramEnabled && isVipEnabled && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipPress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
-      <ButtonIcon
-        disabled={!subscriptionId}
-        iconName={IconName.Setting}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-      />
+      {settingsDisabled ? null : (
+        <ButtonIconGlass
+          isCapsule={isGlassHeader}
+          iconName={IconName.Setting}
+          onPress={() =>
+            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+          }
+          size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
+          testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+        />
+      )}
     </Box>
   );
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        // A floating header pads the status bar itself, so content scrolls under both.
+        edges={isGlassHeader ? {} : { top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         {isPushedScreen ? (
-          <HeaderStandardAnimated
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
             title={strings('rewards.main_title')}
             titleProps={{
               onPress: handleTitlePress,
@@ -405,7 +466,13 @@ const RewardsDashboard: React.FC = () => {
             endAccessory={headerEndAccessory}
           />
         ) : (
-          <HeaderRoot endAccessory={headerEndAccessory}>
+          <HeaderRootGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
+            scrollY={scrollY}
+            endAccessory={headerEndAccessory}
+          >
             <Pressable
               accessibilityRole="header"
               onPress={handleTitlePress}
@@ -415,14 +482,17 @@ const RewardsDashboard: React.FC = () => {
                 {strings('rewards.main_title')}
               </Text>
             </Pressable>
-          </HeaderRoot>
+          </HeaderRootGlass>
         )}
         <Animated.ScrollView
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+          contentContainerStyle={[
+            tw.style(`pb-[${floatingTabBarInset}px]`),
+            { paddingTop: headerInset },
+          ]}
         >
           {/* Pushed only: the large title lives in the content and collapses
               into the header on scroll, as on Activity and the home redesign.
@@ -447,7 +517,41 @@ const RewardsDashboard: React.FC = () => {
           ) : null}
           <Box twClassName="gap-3">
             <CampaignsPreview />
-            <EarnRewardsPreview />
+            {showCopyTrading && copyTradingText ? (
+              <Box testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION}>
+                <SectionHeader
+                  title={copyTradingText.tradingCommissionsSection}
+                />
+                <Box twClassName="items-center px-4 py-4">
+                  <TabEmptyState
+                    icon={
+                      <AvatarIcon
+                        iconName={IconName.Activity}
+                        size={AvatarIconSize.Xl}
+                        severity={AvatarIconSeverity.Neutral}
+                        iconProps={{ color: IconColor.IconDefault }}
+                      />
+                    }
+                    description={copyTradingText.copyTradingEmptyDescription}
+                    descriptionProps={{
+                      variant: TextVariant.BodyMd,
+                      color: TextColor.TextAlternative,
+                    }}
+                    actionButtonText={copyTradingText.copyTradingEmptyAction}
+                    actionButtonProps={{
+                      variant: ButtonVariant.Primary,
+                      size: ButtonSize.Lg,
+                      twClassName: 'mt-3 self-stretch',
+                      testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
+                    }}
+                    onAction={openSocialTab}
+                    testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <EarnRewardsPreview />
+            )}
             <BenefitsPreview />
           </Box>
         </Animated.ScrollView>

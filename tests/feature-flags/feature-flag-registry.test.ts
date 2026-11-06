@@ -82,6 +82,19 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers cross margin display as in-prod, version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsCrossMarginEnabled).toMatchObject({
+        name: 'perpsCrossMarginEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',
@@ -150,17 +163,14 @@ describe('Feature Flag Registry', () => {
       );
     });
 
-    it('registers the Predict subscription fee waiver default-off and out of production', () => {
+    it('registers the Predict subscription fee waiver in production with a boolean false default', () => {
       expect(
         getRegistryEntry('predictSubscriptionFeeWaiverEnabled'),
       ).toMatchObject({
         name: 'predictSubscriptionFeeWaiverEnabled',
         type: FeatureFlagType.Remote,
-        inProd: false,
-        productionDefault: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
+        inProd: true,
+        productionDefault: false,
         status: FeatureFlagStatus.Active,
       });
     });
@@ -177,7 +187,10 @@ describe('Feature Flag Registry', () => {
         name: 'moneyVbaPendingActivityEnabled',
         type: FeatureFlagType.Remote,
         inProd: true,
-        productionDefault: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
         status: FeatureFlagStatus.Active,
       });
     });
@@ -239,7 +252,6 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
-        'musd1313AbtestEarnSectionOnHomepage',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -256,9 +268,8 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('pins Earn homepage and token-details A/B flags to control', () => {
+    it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
-        'musd1313AbtestEarnSectionOnHomepage',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
       ];
 
@@ -412,13 +423,20 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('keeps Social AI comment translation off until the flag is enabled', () => {
+    it('enables Social AI comment translation from 8.17.0', () => {
       expect(
-        getRegistryEntry('aiSocialCommentTranslationEnabled')
-          ?.productionDefault,
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '8.19.0',
+        enabled: true,
+        minimumVersion: '8.17.0',
+      });
+    });
+
+    it('keeps the Social GIF API off until it is in production', () => {
+      expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
+        inProd: false,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
       });
     });
 

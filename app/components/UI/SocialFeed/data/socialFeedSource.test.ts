@@ -2,6 +2,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   socialFeedSourceFromAsset,
+  toFeedAssetId,
   toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type FeedScope,
@@ -355,5 +356,58 @@ describe('socialFeedSourceFromAsset', () => {
       action: 'SocialService:fetchTokenFeed',
       options: { chain: 'solana', contractAddress: SOLANA_MINT },
     });
+  });
+});
+
+describe('toFeedAssetId', () => {
+  it.each<[string, SocialFeedAssetRef, CaipAssetType]>([
+    [
+      'an EVM token, lowercased',
+      {
+        chain: 'ethereum',
+        tokenAddress: '0x910037DC20FBDF3A347979A9553F3B8100B5EFEB',
+      },
+      'eip155:1/erc20:0x910037dc20fbdf3a347979a9553f3b8100b5efeb',
+    ],
+    [
+      'a Base token with a padded chain name',
+      { chain: ' Base ', tokenAddress: '0xabc' },
+      'eip155:8453/erc20:0xabc',
+    ],
+    [
+      'a Solana mint, in its exact case',
+      { chain: 'solana', tokenAddress: SOLANA_MINT },
+      `${SOLANA_MAINNET}/token:${SOLANA_MINT}`,
+    ],
+    [
+      'a Hyperliquid perp by its symbol',
+      { chain: 'hyperliquid', tokenAddress: '', tokenSymbol: 'BTC' },
+      'eip155:999/perp:BTC',
+    ],
+    [
+      'a Hyperliquid perp by its address',
+      { chain: 'hyperliquid', tokenAddress: 'ETH' },
+      'eip155:999/perp:ETH',
+    ],
+    [
+      'a HIP-3 market, with the dex joined by a dot',
+      { chain: 'Hyperliquid', tokenAddress: 'NVDA', tokenSymbol: 'xyz:NVDA' },
+      'eip155:999/perp:xyz.NVDA',
+    ],
+  ])('builds the asset id for %s', (_label, assetRef, expected) => {
+    expect(toFeedAssetId(assetRef)).toBe(expected);
+  });
+
+  it.each<[string, SocialFeedAssetRef]>([
+    ['an unknown chain', { chain: 'unknown-chain', tokenAddress: '0xabc' }],
+    ['a token with no address', { chain: 'ethereum', tokenAddress: '  ' }],
+    ['a perp with no market', { chain: 'hyperliquid', tokenAddress: '' }],
+    [
+      'a perp market CAIP-19 cannot hold',
+      { chain: 'hyperliquid', tokenAddress: '', tokenSymbol: '@107' },
+    ],
+    ['a blank chain', { chain: '', tokenAddress: '0xabc' }],
+  ])('returns null for %s', (_label, assetRef) => {
+    expect(toFeedAssetId(assetRef)).toBeNull();
   });
 });

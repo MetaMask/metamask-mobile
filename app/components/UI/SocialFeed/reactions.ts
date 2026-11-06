@@ -32,6 +32,13 @@ export interface FeedAuthorComment {
   uid: string;
   text: string;
   timestamp: number;
+  /**
+   * Language the Call was written in. `null` when detection has not run.
+   * Absent on responses from older social-api builds.
+   */
+  sourceLanguage?: string | null;
+  /** Translations keyed by language code, for example `{ en: 'Hello' }`. */
+  translations?: Record<string, string>;
   engagement: {
     reactions: FeedReaction[];
     userReaction: string | null;

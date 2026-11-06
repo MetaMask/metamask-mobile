@@ -1,8 +1,19 @@
 import { useCallback } from 'react';
+import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
+import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
+
+export interface UseFollowWithNotificationSetupOptions {
+  requireSocialTerms?: boolean;
+  /**
+   * Gates Follow behind a linked social wallet. Social V1 hosts pass this;
+   * Social V0 and other embeds leave it off.
+   */
+  requireSocialProfile?: boolean;
+}
 
 export interface UseFollowWithNotificationSetupResult {
   /**
@@ -34,23 +45,39 @@ export interface UseFollowWithNotificationSetupResult {
  * Shared by the leaderboard, the trader profile, and the home carousel, which
  * all wrap their own `toggleFollow` call in this same prompt.
  */
-export const useFollowWithNotificationSetup =
-  (): UseFollowWithNotificationSetupResult => {
-    const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+export const useFollowWithNotificationSetup = ({
+  requireSocialTerms = false,
+  requireSocialProfile = false,
+}: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
 
-    const followWithSetup = useCallback(
-      async (isFollowing: boolean, performFollow: PerformFollow) => {
-        await performFollow();
-        // Setup has no deferred follow. Passing `performFollow` would toggle
-        // again once a channel is enabled and unfollow the trader.
-        if (!isFollowing) {
-          openSetupIfNeeded();
-        }
-      },
-      [openSetupIfNeeded],
-    );
+  const followWithSetup = useCallback(
+    async (isFollowing: boolean, performFollow: PerformFollow) => {
+      if (requireSocialTerms && !ensureSocialTermsAccepted()) {
+        return;
+      }
+      if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
+        return;
+      }
+      await performFollow();
+      // Setup has no deferred follow. Passing `performFollow` would toggle
+      // again once a channel is enabled and unfollow the trader.
+      if (!isFollowing) {
+        openSetupIfNeeded();
+      }
+    },
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openSetupIfNeeded,
+      requireSocialProfile,
+      requireSocialTerms,
+    ],
+  );
 
-    return { followWithSetup };
-  };
+  return { followWithSetup };
+};
 
 export default useFollowWithNotificationSetup;

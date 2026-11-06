@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -29,6 +28,9 @@ import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { formatRewardsTimeOnly } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PredictThePitchCampaignPortfolioRouteParams = {
@@ -72,6 +74,7 @@ const PredictThePitchCampaignPortfolioSkeleton: React.FC = () => {
 };
 
 const PredictThePitchCampaignPortfolioView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -269,7 +272,9 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.predict_the_pitch_campaign.positions_title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
