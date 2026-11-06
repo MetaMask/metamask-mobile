@@ -5859,6 +5859,37 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     return { controller, provider };
   };
 
+  it('resolveMoneyAccountFundingSourceId delegates to the active provider with valid tokens', async () => {
+    const resolveMoneyAccountFundingSource = jest
+      .fn()
+      .mockResolvedValue({ id: 'fs-money' });
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource,
+    });
+
+    const result = await controller.resolveMoneyAccountFundingSourceId(
+      '0x000000000000000000000000000000000000dEaD',
+    );
+
+    expect(resolveMoneyAccountFundingSource).toHaveBeenCalledWith(
+      '0x000000000000000000000000000000000000dEaD',
+      mockTokenSet,
+    );
+    expect(result).toBe('fs-money');
+  });
+
+  it('resolveMoneyAccountFundingSourceId throws when the provider does not support it', async () => {
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource: undefined,
+    });
+
+    await expect(
+      controller.resolveMoneyAccountFundingSourceId(
+        '0x000000000000000000000000000000000000dEaD',
+      ),
+    ).rejects.toThrow('Money account funding source resolution not supported');
+  });
+
   it('createFundingSource delegates to the active provider with valid tokens', async () => {
     const createFundingSource = jest.fn().mockResolvedValue({ id: 'fs-1' });
     const { controller } = withValidSession({ createFundingSource });

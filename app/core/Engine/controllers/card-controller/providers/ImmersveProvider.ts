@@ -1006,6 +1006,36 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Finds the funding source for this Money account address on the current
+   * channel, or creates one. Matching is case-insensitive on the address.
+   */
+  async resolveMoneyAccountFundingSource(
+    moneyAccountAddress: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult> {
+    const moneyAccount = this.fundingChannel;
+    if (!isMoneyAccountFundingChannel(moneyAccount)) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account card delegation is not supported for this provider',
+      );
+    }
+
+    const existing = await this.getFundingSources(tokens);
+    const match = existing.find(
+      (source) =>
+        source.fundingChannelId === moneyAccount.fundingChannelId &&
+        Boolean(
+          source.fundingAddress &&
+            areAddressesEqual(source.fundingAddress, moneyAccountAddress),
+        ),
+    );
+    return (
+      match ?? (await this.createFundingSource(tokens, moneyAccountAddress))
+    );
+  }
+
   async createFundingSource(
     tokens: CardAuthTokens,
     fundingAddressOverride?: string,
@@ -1054,19 +1084,10 @@ export class ImmersveProvider implements ICardProvider {
       );
     }
 
-    const existing = await this.getFundingSources(tokens);
-    const match =
-      existing.find(
-        (source) =>
-          source.fundingChannelId === moneyAccount.fundingChannelId &&
-          Boolean(
-            source.fundingAddress &&
-              areAddressesEqual(
-                source.fundingAddress,
-                params.moneyAccountAddress,
-              ),
-          ),
-      ) ?? (await this.createFundingSource(tokens, params.moneyAccountAddress));
+    const match = await this.resolveMoneyAccountFundingSource(
+      params.moneyAccountAddress,
+      tokens,
+    );
 
     const { prerequisites } = await this.getSpendingPrerequisites(
       match.id,

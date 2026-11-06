@@ -825,6 +825,14 @@ export interface ICardProvider {
   ): Promise<RegistrationStatus>;
   submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
 
+  /**
+   * Finds or creates the funding source for a Money account address on the
+   * provider's current channel.
+   */
+  resolveMoneyAccountFundingSource?(
+    moneyAccountAddress: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult>;
   createFundingSource?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult>;
