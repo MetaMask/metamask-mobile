@@ -238,8 +238,6 @@ const PredictHomeView = ({
             {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on the
                 demo build flag. Remove with the demo onboarding. */}
             <KalshiDebugPanel
-              balance={balanceQuery.data}
-              balanceError={balanceQuery.error}
               renderTrigger={(open) => (
                 <ButtonIconGlass
                   isCapsule={isGlassHeader}

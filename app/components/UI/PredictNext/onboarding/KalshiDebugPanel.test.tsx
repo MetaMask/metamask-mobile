@@ -7,7 +7,8 @@ import { KalshiDebugPanel, KalshiDebugTestIds } from './KalshiDebugPanel';
 
 /**
  * Unit, not component-view: this sheet is a temporary debug modal, not a
- * registered route, and the behavior under test is the clipboard write.
+ * registered route, and the behavior under test is the clipboard write, the
+ * status read and the restart channel.
  */
 
 jest.mock('../../../../core/Engine', () => ({
@@ -16,36 +17,51 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       call: jest.fn(),
     },
-    context: {
-      PredictPortfolioService: {
-        invalidateQueries: jest.fn().mockResolvedValue(undefined),
-      },
-    },
   },
 }));
 
-jest.mock('./internal/createKalshiOnboardingClient', () => ({
-  createKalshiOnboardingClient: () => ({
-    getStatus: jest.fn().mockResolvedValue({ state: 'active' }),
-  }),
+jest.mock('./internal/createKalshiOnboardingClient', () => {
+  const getStatus = jest.fn().mockResolvedValue({
+    state: 'link_pending',
+    intentStatus: 'pending',
+    expireTs: 1793972547,
+  });
+  return {
+    createKalshiOnboardingClient: () => ({ getStatus }),
+    __getStatus: getStatus,
+  };
+});
+
+jest.mock('./internal/kalshiRelinkRequest', () => ({
+  requestKalshiRelink: jest.fn(),
 }));
 
 jest.mock('./internal/kalshiDebugInfo', () => ({
-  readKalshiDemoEmail: jest.fn().mockResolvedValue(undefined),
+  readKalshiDemoEmail: jest.fn().mockResolvedValue('user@example.com'),
   summarizeA2t: (token: string | undefined) => (token ? { sub: token } : {}),
 }));
 
 const messengerCall = Engine.controllerMessenger.call as jest.Mock;
-const invalidateQueries = Engine.context.PredictPortfolioService
-  .invalidateQueries as jest.Mock;
+const requestKalshiRelink = jest.requireMock('./internal/kalshiRelinkRequest')
+  .requestKalshiRelink as jest.Mock;
 const profileId = '2245ae33-2695-4bfe-be45-d01e38de0955';
 
-const renderPanel = () =>
-  render(<KalshiDebugPanel balance={undefined} balanceError={null} />);
+const renderPanel = () => render(<KalshiDebugPanel />);
 
 describe('KalshiDebugPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('shows the live flow stage, the server status and the last email', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+    await view.findByText('link_pending · intent pending · expires 1793972547');
+
+    expect(view.getByText('unknown')).toBeOnTheScreen();
+    expect(view.getByText('user@example.com')).toBeOnTheScreen();
   });
 
   it('copies the profile id', async () => {
@@ -61,20 +77,34 @@ describe('KalshiDebugPanel', () => {
     expect(Clipboard.setString).toHaveBeenCalledWith(profileId);
   });
 
-  it('refreshes the cached balance the app is showing', async () => {
+  it('restarts onboarding through the relink channel', async () => {
     messengerCall.mockResolvedValue(profileId);
     const view = renderPanel();
 
     fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
-    await view.findByText('active');
-    fireEvent.press(view.getByText('Refresh'));
+    fireEvent.press(await view.findByTestId(KalshiDebugTestIds.RESTART));
 
     await waitFor(() => {
-      expect(invalidateQueries).toHaveBeenCalledTimes(2);
+      expect(requestKalshiRelink).toHaveBeenCalledTimes(1);
     });
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['PredictPortfolioService:getBalance', 'kalshi'],
+  });
+
+  it('reports a status failure instead of a state', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const getStatus = jest.requireMock(
+      './internal/createKalshiOnboardingClient',
+    ).__getStatus as jest.Mock;
+    getStatus.mockRejectedValueOnce({
+      status: 403,
+      code: 'venue_authorization_invalid',
     });
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+
+    expect(
+      await view.findByText('error: status: 403 venue_authorization_invalid'),
+    ).toBeOnTheScreen();
   });
 
   it('omits the copy button when the profile id is missing', async () => {
@@ -83,7 +113,9 @@ describe('KalshiDebugPanel', () => {
 
     fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
     await waitFor(() => {
-      expect(view.getByText('active')).toBeOnTheScreen();
+      expect(
+        view.getByText('link_pending · intent pending · expires 1793972547'),
+      ).toBeOnTheScreen();
     });
 
     expect(
