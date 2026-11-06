@@ -1,5 +1,7 @@
 // Mock AppConstants FIRST to prevent import chain issues
 jest.mock('../../../core/AppConstants', () => ({
+  // The PredictNext entry point reads further constants while it loads
+  ...jest.requireActual('../../../core/AppConstants').default,
   SWAPS: {
     ACTIVE: true,
   },
@@ -595,15 +597,10 @@ describe('Result', () => {
       const predictionResult = {
         category: UrlAutocompleteCategory.Predictions,
         id: 'pred-1',
-        providerId: 'polymarket',
-        slug: 'bitcoin-100k',
         title: 'Will Bitcoin reach $100k?',
-        description: 'Prediction market for BTC price',
-        endDate: '2025-12-31',
-        image: 'https://example.com/btc.png',
-        status: 'open' as const,
-        liquidity: 1000000,
-        volume: 5000000,
+        subtitle: 'Open',
+        imageUrl: 'https://example.com/btc.png',
+        intent: { type: 'home' },
       } as const;
 
       // Act
@@ -625,15 +622,9 @@ describe('Result', () => {
       const predictionResult = {
         category: UrlAutocompleteCategory.Predictions,
         id: 'pred-2',
-        providerId: 'polymarket',
-        slug: 'eth-merge',
         title: 'ETH Merge Success',
-        description: 'Prediction about ETH merge',
-        endDate: '2024-01-01',
-        image: '',
-        status: 'resolved' as const,
-        liquidity: 500000,
-        volume: 2000000,
+        subtitle: 'resolved',
+        intent: { type: 'home' },
       } as const;
 
       // Act
@@ -654,15 +645,9 @@ describe('Result', () => {
       const predictionResult = {
         category: UrlAutocompleteCategory.Predictions,
         id: 'pred-3',
-        providerId: 'polymarket',
-        slug: 'no-image',
         title: 'No Image Prediction',
-        description: 'Test prediction without image',
-        endDate: '2025-06-01',
-        image: '',
-        status: 'open' as const,
-        liquidity: 100000,
-        volume: 500000,
+        subtitle: 'Open',
+        intent: { type: 'home' },
       } as const;
 
       // Act

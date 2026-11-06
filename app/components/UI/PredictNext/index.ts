@@ -32,7 +32,6 @@ export {
   type PredictCampaign,
 } from './campaigns';
 export {
-  createLegacyPredictEventRef,
   createPredictCampaignEventRef,
   openPredict,
   usePredictEntryActions,

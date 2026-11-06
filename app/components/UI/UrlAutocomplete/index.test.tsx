@@ -79,15 +79,10 @@ const mockPerpsData = {
 
 const mockPredictionsData = {
   id: 'pred-1',
-  providerId: 'polymarket',
-  slug: 'bitcoin-100k',
   title: 'Will Bitcoin reach $100k?',
-  description: 'Prediction market',
-  endDate: '2025-12-31',
-  image: 'https://example.com/btc.png',
-  status: 'open',
-  liquidity: '$1M',
-  volume: '$5M',
+  subtitle: 'Open',
+  imageUrl: 'https://example.com/btc.png',
+  intent: { type: 'home' as const },
 };
 
 const mockUseExploreSearchReturn = {
@@ -105,12 +100,6 @@ const mockUseExploreSearchReturn = {
       isLoading: false,
     },
     {
-      feedId: 'predictions' as const,
-      title: '',
-      items: [mockPredictionsData],
-      isLoading: false,
-    },
-    {
       feedId: 'sites' as const,
       title: '',
       items: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
@@ -121,6 +110,13 @@ const mockUseExploreSearchReturn = {
 
 jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
+}));
+// Predictions come from Predict's search source, not from Explore's sections
+jest.mock('../PredictNext', () => ({
+  usePredictSearchResults: jest.fn(() => ({
+    results: [mockPredictionsData],
+    isLoading: false,
+  })),
 }));
 jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
