@@ -80,6 +80,25 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
+  it('hides the row while an eligible refetch is still running', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Eligible,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(false);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('hides the row while membership is still loading', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,

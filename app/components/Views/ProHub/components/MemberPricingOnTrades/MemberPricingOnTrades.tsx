@@ -9,6 +9,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { strings } from '../../../../../../locales/i18n';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -22,9 +23,14 @@ import TradeAllowanceRow from './TradeAllowanceRow';
 const LoadingSkeletons = () => {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
-  // LOW memory or a known offline network gets a static bar. Unknown
-  // hardware or network keeps the animated skeleton.
-  const reduceMotion = hardwareTier === 'LOW' || networkTier === 'NONE';
+  const prefersReducedMotion = useReducedMotion();
+  // LOW memory, a known offline network, or the system Reduce Motion
+  // setting gets a static bar. Unknown hardware or network keeps the
+  // animated skeleton.
+  const pauseSkeleton =
+    hardwareTier === 'LOW' ||
+    networkTier === 'NONE' ||
+    prefersReducedMotion === true;
 
   return (
     <Box
@@ -34,17 +40,17 @@ const LoadingSkeletons = () => {
       <Skeleton
         height={72}
         twClassName="w-full rounded-xl"
-        {...(reduceMotion ? { autoPlay: false } : {})}
+        {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
       <Skeleton
         height={72}
         twClassName="w-full rounded-xl"
-        {...(reduceMotion ? { autoPlay: false } : {})}
+        {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
       <Skeleton
         height={72}
         twClassName="w-full rounded-xl"
-        {...(reduceMotion ? { autoPlay: false } : {})}
+        {...(pauseSkeleton ? { autoPlay: false } : {})}
       />
     </Box>
   );

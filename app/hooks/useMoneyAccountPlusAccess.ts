@@ -43,8 +43,10 @@ export interface MoneyAccountPlusAccessState {
  * The `subscription-money-account-orange-enabled` flag gates every Pro surface,
  * so users with the flag off get {@link MoneyAccountPlusAccess.Disabled} even
  * when they hold an active subscription. Past that, access is driven by
- * whether an existing Plus subscription is in SubscriptionController state,
- * but only after the initial subscriptions query has succeeded.
+ * whether an existing Plus subscription is in SubscriptionController state.
+ * An empty result stays unknown until that query has settled, including
+ * while a refetch is in flight. React Query 5 reports `isLoading` only when
+ * there is no data yet, so a refetch is not a finished non-member.
  *
  * Existing covers `paused` alongside the active statuses: a paused
  * subscriber has lost benefits but still owns the subscription, and needs
@@ -80,7 +82,7 @@ export function useMoneyAccountPlusAccessState(): MoneyAccountPlusAccessState {
     };
   }
 
-  if (isLoading || isError) {
+  if (isLoading || isError || !isSubscriptionsSettled) {
     return { access: MoneyAccountPlusAccess.Unknown, isSubscriptionsSettled };
   }
 

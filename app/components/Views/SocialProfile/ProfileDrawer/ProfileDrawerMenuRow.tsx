@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React from 'react';
 import {
   BadgeCount,
   ContentVariant,
@@ -11,13 +11,9 @@ import {
 
 interface ProfileDrawerMenuRowProps {
   iconName: IconName;
-  label: ReactNode;
-  /** Spoken name when `label` is not a string, such as a loading skeleton. */
-  accessibilityLabel?: string;
+  label: string;
   /** Renders a count badge before the chevron when greater than zero. */
   badgeCount?: number;
-  /** Blocks the press while the label is still resolving. */
-  isDisabled?: boolean;
   onPress: () => void;
   testID?: string;
 }
@@ -26,15 +22,12 @@ interface ProfileDrawerMenuRowProps {
 const ProfileDrawerMenuRow = ({
   iconName,
   label,
-  accessibilityLabel,
   badgeCount,
-  isDisabled = false,
   onPress,
   testID,
 }: ProfileDrawerMenuRowProps) => (
   <ListItem
     isInteractive
-    disabled={isDisabled}
     variant={ContentVariant.OneLine}
     avatar={
       <Icon name={iconName} size={IconSize.Md} color={IconColor.IconDefault} />
@@ -51,9 +44,7 @@ const ProfileDrawerMenuRow = ({
     accessoryGap={2}
     onPress={onPress}
     testID={testID}
-    accessibilityLabel={
-      accessibilityLabel ?? (typeof label === 'string' ? label : undefined)
-    }
+    accessibilityLabel={label}
   />
 );
 

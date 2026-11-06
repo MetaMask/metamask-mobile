@@ -190,10 +190,6 @@ const Membership = () => {
     // TODO: navigate to invoices
   }, []);
 
-  const handleContactSupport = useCallback(() => {
-    // TODO: navigate to support
-  }, []);
-
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);

@@ -1,13 +1,29 @@
-import type { Subscription } from '@metamask/subscription-controller';
+import {
+  INVOICE_PAYMENT_STATUSES,
+  SUBSCRIPTION_STATUSES,
+  type Subscription,
+  type SubscriptionStatus,
+} from '@metamask/subscription-controller';
 import I18n from '../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../util/intl';
 
 /**
+ * Statuses that can still be uncancelled. A payment problem keeps its own
+ * status and add-funds action, so resume does not replace it.
+ */
+const RESUMABLE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  SUBSCRIPTION_STATUSES.active,
+  SUBSCRIPTION_STATUSES.trialing,
+]);
+
+/**
  * Whether a pending period-end cancellation can still be reversed.
  *
- * Resume stays available only while `cancelAtPeriodEnd` is set and
- * `currentPeriodEnd` is a valid timestamp still in the future. A missing or
- * past period end means uncancel would fail.
+ * Resume stays available only for an active or trialing plan whose latest
+ * invoice has not failed, while `cancelAtPeriodEnd` is set and
+ * `currentPeriodEnd` is a valid timestamp still in the future. Past due,
+ * paused, unpaid, and awaiting-funds plans keep their payment state. A
+ * missing or past period end means uncancel would fail.
  *
  * @param subscription - Money Account Plus subscription, when one exists.
  * @param now - Clock used to compare `currentPeriodEnd`.
@@ -18,7 +34,10 @@ export const canResumeMembership = (
   now: Date = new Date(),
 ): boolean => {
   if (
-    subscription?.cancelAtPeriodEnd !== true ||
+    !subscription ||
+    subscription.cancelAtPeriodEnd !== true ||
+    !RESUMABLE_SUBSCRIPTION_STATUSES.has(subscription.status) ||
+    subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED ||
     !subscription.currentPeriodEnd
   ) {
     return false;

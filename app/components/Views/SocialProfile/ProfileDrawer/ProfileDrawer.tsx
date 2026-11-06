@@ -151,10 +151,8 @@ const ProfileDrawer = () => {
 
   const menuItems: {
     iconName: IconName;
-    label: React.ReactNode;
-    accessibilityLabel?: string;
+    label: string;
     badgeCount?: number;
-    isDisabled?: boolean;
     onPress: () => void;
     testID: string;
   }[] = [
@@ -316,28 +314,16 @@ const ProfileDrawer = () => {
         )}
 
         <Box>
-          {menuItems.map(
-            ({
-              iconName,
-              label,
-              accessibilityLabel,
-              badgeCount,
-              isDisabled,
-              onPress,
-              testID,
-            }) => (
-              <ProfileDrawerMenuRow
-                key={testID}
-                iconName={iconName}
-                label={label}
-                accessibilityLabel={accessibilityLabel}
-                badgeCount={badgeCount}
-                isDisabled={isDisabled}
-                onPress={onPress}
-                testID={testID}
-              />
-            ),
-          )}
+          {menuItems.map(({ iconName, label, badgeCount, onPress, testID }) => (
+            <ProfileDrawerMenuRow
+              key={testID}
+              iconName={iconName}
+              label={label}
+              badgeCount={badgeCount}
+              onPress={onPress}
+              testID={testID}
+            />
+          ))}
         </Box>
       </ScrollView>
     </SafeAreaView>

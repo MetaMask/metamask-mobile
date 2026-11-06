@@ -55,12 +55,15 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   // Home starts the subscriptions query. A stored plan can label the row
   // before that refetch finishes. Subscriber access also covers a leftover
   // entitlement, including before the list loads, so it is not enough to open
-  // the hub. An empty result waits until that query settles, then joins.
+  // the hub. Eligible is a finished non-member only once the query settles.
+  // A refetch keeps the previous empty result, and showing Join during it
+  // would open the join flow for a membership that may still arrive.
   const isMember = hasMembership;
   const isKnownNonMember =
     !isMember &&
+    isSubscriptionsSettled &&
     (access === MoneyAccountPlusAccess.Eligible ||
-      (access === MoneyAccountPlusAccess.Subscriber && isSubscriptionsSettled));
+      access === MoneyAccountPlusAccess.Subscriber);
   const showOrangeEntry =
     isProSubscriptionEnabled && (isMember || isKnownNonMember);
   const labelKey = isKnownNonMember
