@@ -19,9 +19,6 @@ import type { OnboardingMessage } from './kalshiDemoOnboardingMachine';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
 
-/** Kalshi demo accepts this email code (ISV spec A.4). Editable. */
-export const DEMO_EMAIL_CODE = '888888';
-
 /** Literal error copy. Temporary slice: no locale entries. */
 const MESSAGES: Record<OnboardingMessage, string> = {
   generic: 'Something went wrong.',
@@ -89,7 +86,7 @@ export const KalshiDemoOnboardingModal = ({
 }: KalshiDemoOnboardingModalProps) => {
   const { state } = onboarding;
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState(DEMO_EMAIL_CODE);
+  const [code, setCode] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const coolingDown = useCooldown(state.cooldownSec);
   const disabled = state.busy || coolingDown;
