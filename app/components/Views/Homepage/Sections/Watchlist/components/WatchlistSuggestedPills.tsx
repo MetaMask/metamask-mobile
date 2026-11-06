@@ -45,11 +45,15 @@ const WatchlistSuggestedPill: React.FC<WatchlistSuggestedPillProps> = ({
     tokenDetailsSource: TokenDetailsSource.WatchlistHomepage,
   });
 
+  // Optical spacing (measured on device): the star's 24px hit area insets
+  // its glyph ~3px, so a 5px box gap here lands the same visual gap between
+  // symbol and star as the 8px gap-2 between logo and symbol. pl-1.5 keeps
+  // the pill's edge padding optically symmetric around the star's inset.
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="rounded-full bg-muted pl-1 pr-1"
+      twClassName="rounded-full bg-muted gap-[5px] pl-1.5 pr-1"
       testID={WatchlistSuggestedPillsTestIds.pill(assetId)}
     >
       <Pressable
@@ -59,10 +63,7 @@ const WatchlistSuggestedPill: React.FC<WatchlistSuggestedPillProps> = ({
         accessibilityHint={token.name}
         testID={WatchlistSuggestedPillsTestIds.pillBody(assetId)}
         style={({ pressed }) =>
-          tw.style(
-            'flex-row items-center gap-2 py-1 pl-1',
-            pressed && 'opacity-50',
-          )
+          tw.style('flex-row items-center gap-2 py-1', pressed && 'opacity-50')
         }
       >
         <TrendingTokenLogo
