@@ -90,7 +90,7 @@ function OpenOrderRow({
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
               ellipsizeMode="tail"
-              style={{ flexShrink: 1 }}
+              twClassName="shrink"
               testID={OpenOrderRowSelectorsIDs.TITLE}
             >
               {title}
@@ -106,7 +106,7 @@ function OpenOrderRow({
             color={primaryColor}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            style={{ flexGrow: 0, flexShrink: 0 }}
+            twClassName="grow-0 shrink-0"
             testID={OpenOrderRowSelectorsIDs.PRIMARY}
           >
             {primaryValue}
@@ -123,7 +123,7 @@ function OpenOrderRow({
             variant={TextVariant.BodySm}
             color={subtitleColor}
             fontWeight={FontWeight.Medium}
-            style={{ flexShrink: 0 }}
+            twClassName="shrink-0"
             testID={OpenOrderRowSelectorsIDs.SUBTITLE}
           >
             {subtitle}
@@ -133,7 +133,7 @@ function OpenOrderRow({
             color={TextColor.TextAlternative}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
-            style={{ flexGrow: 0, flexShrink: 0 }}
+            twClassName="grow-0 shrink-0"
             testID={OpenOrderRowSelectorsIDs.SECONDARY}
           >
             {secondaryValue}
