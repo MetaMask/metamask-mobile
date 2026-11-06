@@ -1277,6 +1277,7 @@
     "close": "Close",
     "copy_link": "Copy link",
     "copied": "Copied",
+    "link_copied": "Link copied",
     "share": "Share",
     "copy_link_failed": "Couldn't copy the link. Try again.",
     "share_failed": "Couldn't share the image. Try again.",

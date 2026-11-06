@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -64,6 +65,9 @@ describe('ShareCardComposer', () => {
     jest.clearAllMocks();
     mockSetString.mockResolvedValue(undefined);
     mockShare.mockResolvedValue('shared');
+    jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
   });
 
   it('renders the card with its formatted figures', () => {
@@ -106,6 +110,9 @@ describe('ShareCardComposer', () => {
 
     expect(mockSetString).toHaveBeenCalledWith(LINK);
     expect(onLinkCopied).toHaveBeenCalledTimes(1);
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'Link copied',
+    );
     expect(
       screen.getByTestId(ShareCardComposerSelectorsIDs.COPY_LINK_BUTTON),
     ).toHaveTextContent('Copied');
@@ -137,6 +144,7 @@ describe('ShareCardComposer', () => {
       expect(onError).toHaveBeenCalledWith('copy_link', expect.any(Error)),
     );
     expect(onLinkCopied).not.toHaveBeenCalled();
+    expect(AccessibilityInfo.announceForAccessibility).not.toHaveBeenCalled();
     expect(
       screen.getByTestId(ShareCardComposerSelectorsIDs.COPY_LINK_BUTTON),
     ).toHaveTextContent('Copy link');

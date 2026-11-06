@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useWindowDimensions, type View } from 'react-native';
+import {
+  AccessibilityInfo,
+  useWindowDimensions,
+  type View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -99,6 +103,10 @@ const ShareCardComposer = ({
     try {
       await ClipboardManager.setString(link);
       setIsCopied(true);
+      // The label swap is silent for screen readers not focused on the button.
+      AccessibilityInfo.announceForAccessibility(
+        strings('share_card.link_copied'),
+      );
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);
       }
