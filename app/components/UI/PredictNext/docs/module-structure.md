@@ -47,6 +47,12 @@ PredictNext/
     usePredictSportsMarketsFeed.ts
     usePredictTrendingSupported.ts # False while resolving and for next Venues until PRED-1408
     internal/                  # Opaque-market casts for the legacy branch
+  searchResults/
+    index.ts                   # Browser URL autocomplete search source and result row
+    usePredictSearchResults.ts # Debounced search; venue-neutral results with an open intent
+    PredictSearchResultRow.tsx # The autocomplete row, moved from UrlAutocomplete/Result.tsx
+    internal/
+      legacy/                  # Polymarket search pass-through and its result mapping
   events/
     cards/
       index.ts                 # Supported Event-card API

@@ -60,3 +60,10 @@ export {
   type PredictTrendingMarket,
   type PredictTrendingVariant,
 } from './trending';
+export {
+  PredictSearchResultRow,
+  usePredictSearchResults,
+  type PredictSearchResult,
+  type PredictSearchResultRowProps,
+  type PredictSearchResults,
+} from './searchResults';
