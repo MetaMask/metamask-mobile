@@ -253,7 +253,7 @@ describe('useSendNavbar', () => {
       fireEvent.press(getByTestId('send-navbar-back-button'));
 
       expect(mockHandleCancelPress).toHaveBeenCalled();
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('calls handleCancelPress when close button is pressed', () => {
