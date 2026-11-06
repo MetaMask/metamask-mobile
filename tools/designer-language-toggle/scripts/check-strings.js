@@ -7,6 +7,8 @@
 const fs = require('fs');
 const path = require('path');
 const lib = require('./locale-lib');
+const repoAdapter = require('../lib/repo-adapter');
+const { loadLearned } = require('../lib/learned');
 
 const HELP = `
 Flag translation strings for a designer preview.
@@ -75,7 +77,9 @@ function main() {
   const targetPath = path.join(lib.translationDir(root), meta.file);
   const targetFlat = lib.flattenFile(targetPath);
   const sharedFlats = lib.loadShippedFlats(root);
-  const report = lib.analyzePair(enFlat, targetFlat, {
+  const learned = loadLearned();
+  const report = repoAdapter.checkLanguage(enFlat, targetFlat, {
+    lang: code,
     namespaces,
     sharedFlats,
     strict: Boolean(args.strict),
@@ -83,6 +87,7 @@ function main() {
     minDelta: limits.minDelta,
     minEnWidth: limits.minEnglishWidth,
     limits,
+    learned,
   });
   const dateValues = lib.scanDateValues(targetFlat, namespaces);
   const dateSource = lib.scanDateSource(root, namespaces);
@@ -231,17 +236,27 @@ function main() {
   }
 
   printRegional(root, meta, namespaces, enFlat, sharedFlats, {
+    lang: code,
     strict: Boolean(args.strict),
     ratio,
     minDelta: limits.minDelta,
     minEnWidth: limits.minEnglishWidth,
     limits,
+    learned,
   });
 
   if (!args.strict && report.skippedShared.length > 0) {
     console.log('');
     console.log(
       'Strings shorter than 3 characters, strings with no real word once placeholders are removed, and strings that match English in most languages are left out of Still English. Re-run with --strict to include the shared ones.',
+    );
+  }
+
+  if (report.learned && report.learned.length > 0) {
+    printList(
+      'Linguist notes',
+      report.learned.map((row) => `${row.key}  ${row.message}`),
+      limit,
     );
   }
 
@@ -344,7 +359,8 @@ function printRegional(root, meta, namespaces, enFlat, sharedFlats, options) {
     console.log(
       `  locales/languages/${fileName}: ${leafCount} strings. The preview does not load this file.`,
     );
-    const scoped = lib.analyzePair(enFlat, flat, {
+    const scoped = repoAdapter.checkLanguage(enFlat, flat, {
+      lang: options.lang,
       namespaces,
       sharedFlats,
       strict: options.strict,
@@ -352,6 +368,7 @@ function printRegional(root, meta, namespaces, enFlat, sharedFlats, options) {
       minDelta: options.minDelta,
       minEnWidth: options.minEnWidth,
       limits: options.limits,
+      learned: options.learned,
     });
     const scopeLabel = namespaces ? namespaces.join(', ') : 'all strings';
     console.log(

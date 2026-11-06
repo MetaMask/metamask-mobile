@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2 slice A
+
+- The length check lives in `lib/checker.js` and takes a plain string set. Repo locales and design-stage files are adapters.
+- `check-strings.js` reads the repo through the repo adapter. Perps counts for de, ja, and hi stay the same as v0.1.
+- `check-file.js` reads a strings CSV or JSON for copy that is not in the app yet. Placeholder and number rows are skipped. It does not machine-translate. `--pseudo` is labeled pseudo.
+- `references/learned/` holds accepted corrections, never-translate terms, and preferred phrasing. The checker can say that linguists prefer one wording over another. The files are hand-edited until a later slice syncs the Notion page Laurel Klafehn reviews.
+
 ## v0.1
 
 - Length hints use grapheme clusters. A Hindi letter with a vowel sign counts once. CJK, kana, and hangul count as width 2, and that width is only a hint.

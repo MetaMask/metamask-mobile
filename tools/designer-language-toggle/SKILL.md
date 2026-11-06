@@ -11,7 +11,7 @@ description: >
 compatibility: Node.js 18+ in a MetaMask Mobile checkout. Replit Agent or any agent that reads Agent Skills.
 metadata:
   author: MetaMask Mobile design
-  version: "0.1"
+  version: "0.2"
 ---
 
 # Designer language toggle
@@ -46,6 +46,8 @@ Start a new Agent chat after linking.
 | Only enable English and Japanese | `apply-locale.js --languages en,ja` |
 | Both: show Japanese, and only list English and Japanese | `apply-locale.js --locale ja --languages en,ja` |
 | Flag strings in German for Perps | `check-strings.js --lang de --feature perps` |
+| Check Perps in German | Repo copy, then the preview. Run `check-strings.js --lang de --feature perps`. Offer `apply-locale.js --locale de` if they want to see it. |
+| Check this Figma copy in Japanese | A strings file, not the preview. Run `check-file.js --file <strings.csv> --lang ja`. Optional `--pseudo` pads accented English and labels it pseudo. It does not translate. |
 | Same for Social, or a namespace | `--feature social` or `--namespace social_leaderboard` |
 | Show the longest real translation of every string | `apply-locale.js --pseudo longest` |
 | Find text that can't be translated (hard-coded English) | `apply-locale.js --pseudo accented` |
@@ -95,7 +97,13 @@ Over the limit is a hard failure. The Pro buttons are 10 characters. Post to fee
 
 `--strict` includes strings that are English in most languages (product names and tokens). Default skips those.
 
-The check never writes locale JSON. `--format json` prints the same findings as JSON when a tool needs them.
+The check never writes locale JSON. `--format json` prints the same findings as JSON when a tool needs them. Fields stay source, feature, component, description, and max_length.
+
+## Design-stage copy
+
+Screens that are still in Figma are not in `locales/languages`. Ask for a strings CSV or JSON (`id`, `layer_name`, `frame_path`, `text`, `chars`, `kind`) and run `check-file.js`. Rows marked `placeholder_or_annotation` or `number_or_data` are skipped. There is no machine translation. `--pseudo` is a length stand-in, labeled pseudo, and it is not Japanese or any other language.
+
+Accepted linguist corrections live in `references/learned/` for now. You can edit those JSON files by hand. The v0.2 source of truth for accepted corrections will be a Notion page Laurel Klafehn reviews. A later slice syncs that page into `references/learned/`. This slice does not call Notion. When a string matches a stored correction, say that linguists prefer the stored wording.
 
 ## Pseudo and screenshots
 

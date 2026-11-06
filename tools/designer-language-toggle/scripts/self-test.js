@@ -379,6 +379,153 @@ function testApplyRevert(root, realI18n) {
   assert(/SUMMARY de perps/.test(checked.stdout), 'summary line');
 }
 
+function testPerpsRegression() {
+  const root = lib.findRepoRoot();
+  const repoAdapter = require('../lib/repo-adapter');
+  const limits = lib.loadLimits(lib.defaultLimitsPath());
+  const shared = lib.loadShippedFlats(root);
+  const expected = {
+    de: { missing: 9, stillEnglish: 73, tooLong: 263, checkWrapping: 111 },
+    ja: { missing: 9, stillEnglish: 6, tooLong: 204, checkWrapping: 30 },
+    hi: { missing: 9, stillEnglish: 7, tooLong: 21, checkWrapping: 0 },
+  };
+  Object.keys(expected).forEach((code) => {
+    const report = repoAdapter.checkLanguage(shared.en, shared[code], {
+      lang: code,
+      namespaces: ['perps'],
+      sharedFlats: shared,
+      strict: false,
+      ratio: limits.ratio,
+      minDelta: limits.minDelta,
+      minEnWidth: limits.minEnglishWidth,
+      limits,
+      learned: { corrections: [], neverTranslate: [], preferredPhrasing: [] },
+    });
+    const want = expected[code];
+    assert(report.missing.length === want.missing, `${code} missing ${report.missing.length}`);
+    assert(
+      report.stillEnglish.length === want.stillEnglish,
+      `${code} still English ${report.stillEnglish.length}`,
+    );
+    assert(report.tooLong.length === want.tooLong, `${code} too long ${report.tooLong.length}`);
+    assert(
+      report.checkWrapping.length === want.checkWrapping,
+      `${code} check wrapping ${report.checkWrapping.length}`,
+    );
+    assert(report.overLimit.length === 0, `${code} over limit ${report.overLimit.length}`);
+  });
+  const over = [
+    ['ru', 'perps.pro_positions_panel.card.reverse', 13],
+    ['tr', 'perps.pro_positions_panel.card.reverse', 13],
+    ['pt', 'perps.pro_positions_panel.card.share', 12],
+    ['el', 'perps.pro_positions_panel.card.share', 11],
+  ];
+  over.forEach(([code, key, characters]) => {
+    const report = repoAdapter.checkLanguage(shared.en, shared[code], {
+      lang: code,
+      namespaces: ['perps'],
+      sharedFlats: shared,
+      strict: false,
+      ratio: limits.ratio,
+      minDelta: limits.minDelta,
+      minEnWidth: limits.minEnglishWidth,
+      limits,
+    });
+    const row = report.overLimit.find((item) => item.key === key);
+    assert(row && row.characters === characters, `${code} ${key} over ${characters}`);
+  });
+}
+
+function testFileAdapterAndLearned() {
+  const { checkDesignFile, pseudoText } = require('../lib/file-adapter');
+  const checker = require('../lib/checker');
+  const sample = path.join(
+    lib.findRepoRoot(),
+    'tools/designer-language-toggle/samples/kalshi-predict.csv',
+  );
+  const limits = lib.loadLimits(lib.defaultLimitsPath());
+  const result = checkDesignFile(sample, {
+    lang: 'ja',
+    limits,
+    pseudo: true,
+    learned: {
+      corrections: [
+        {
+          lang: 'ja',
+          key: 'predict.trade.yes',
+          rejected_text: 'Yes',
+          preferred_text: 'はい',
+          reason: 'example',
+          reviewer: 'test',
+          date: '2026-11-06',
+        },
+      ],
+      neverTranslate: [],
+      preferredPhrasing: [],
+    },
+  });
+  assert(result.kept.length === 3, `kept ${result.kept.length}`);
+  assert(result.skipped.length === 2, `skipped ${result.skipped.length}`);
+  assert(result.report.missing.length === 3, 'file adapter does not invent Japanese');
+  const pseudo = pseudoText('Yes');
+  assert(pseudo.startsWith('⟦') && pseudo.endsWith('⟧'), 'pseudo is bracketed');
+  assert(pseudo.includes('·'), 'pseudo is padded');
+  assert(
+    result.pseudo.note.includes('Not a translation'),
+    'pseudo is labeled as not a translation',
+  );
+  const learnedReport = checker.check(
+    [
+      {
+        key: 'predict.trade.yes',
+        source_text: 'Yes',
+        translations: { ja: 'Yes' },
+      },
+    ],
+    {
+      lang: 'ja',
+      limits,
+      strict: true,
+      learned: {
+        corrections: [
+          {
+            lang: 'ja',
+            key: 'predict.trade.yes',
+            rejected_text: 'Yes',
+            preferred_text: 'はい',
+            reason: 'example',
+            reviewer: 'test',
+            date: '2026-11-06',
+          },
+        ],
+        neverTranslate: [],
+        preferredPhrasing: [],
+      },
+    },
+  );
+  assert(
+    learnedReport.learned.some((row) =>
+      row.message.includes('linguists prefer はい over Yes'),
+    ),
+    'learned correction is flagged',
+  );
+  const direct = checker.check(
+    [
+      {
+        key: 'sample.one',
+        source_text: 'Close',
+        translations: { de: 'Schließen' },
+      },
+    ],
+    {
+      lang: 'de',
+      limits: { shortStringMaxGraphemes: 25, ratio: 1.4, minDelta: 4, minEnglishWidth: 4, keys: {} },
+      strict: true,
+    },
+  );
+  assert(direct.tooLong.length === 1, 'checker string set flags a short expansion');
+}
+
 function main() {
   testWidthAndAccent();
   const { root, realI18n } = makeFixture();
@@ -390,6 +537,8 @@ function main() {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+  testPerpsRegression();
+  testFileAdapterAndLearned();
   if (failures > 0) {
     console.error(`${failures} failed`);
     process.exit(1);

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "designer-language-toggle-learned-correction",
+  "title": "Accepted linguist correction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["lang", "preferred_text", "reason", "reviewer", "date"],
+  "anyOf": [{ "required": ["key"] }, { "required": ["source_text"] }],
+  "properties": {
+    "lang": {
+      "type": "string",
+      "description": "Shipped language code, such as de or pt."
+    },
+    "key": {
+      "type": "string",
+      "description": "String id or locale key."
+    },
+    "source_text": {
+      "type": "string",
+      "description": "English source, when the key is not stable yet."
+    },
+    "rejected_text": {
+      "type": "string",
+      "description": "Wording linguists do not want."
+    },
+    "preferred_text": {
+      "type": "string",
+      "description": "Wording linguists accepted."
+    },
+    "reason": { "type": "string" },
+    "reviewer": { "type": "string" },
+    "date": { "type": "string", "description": "YYYY-MM-DD" },
+    "source_url": {
+      "type": "string",
+      "description": "Where the correction was accepted. Later this is the Notion page."
+    }
+  }
+}

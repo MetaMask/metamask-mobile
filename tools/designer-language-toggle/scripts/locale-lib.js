@@ -4,6 +4,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const checker = require('../lib/checker');
 
 const MARKER_START = 'DESIGNER-LOCALE-OVERRIDE:START';
 const MARKER_END = 'DESIGNER-LOCALE-OVERRIDE:END';
@@ -468,127 +469,7 @@ function lengthRow(key, enValue, targetValue) {
 }
 
 function analyzePair(enFlat, targetFlat, options) {
-  const namespaces = options.namespaces;
-  const limits = options.limits || {
-    shortStringMaxGraphemes: 25,
-    ratio: options.ratio,
-    minDelta: options.minDelta,
-    minEnglishWidth: options.minEnWidth,
-    keys: {},
-  };
-  const ratioLimit = options.ratio ?? limits.ratio;
-  const minDelta = options.minDelta ?? limits.minDelta;
-  const minEnWidth = options.minEnWidth ?? limits.minEnglishWidth;
-  const cutoff = limits.shortStringMaxGraphemes;
-  const missing = [];
-  const stillEnglish = [];
-  const tooLong = [];
-  const checkWrapping = [];
-  const placeholderMismatches = [];
-  const skippedShared = [];
-  let inScopeCount = 0;
-
-  Object.keys(enFlat).forEach((key) => {
-    if (!inScope(key, namespaces)) return;
-    const enValue = enFlat[key];
-    if (typeof enValue !== 'string') return;
-    inScopeCount += 1;
-    const targetValue = targetFlat[key];
-    if (typeof targetValue !== 'string' || targetValue.trim() === '') {
-      missing.push({ key, en: enValue });
-      return;
-    }
-    const diff = placeholderDiff(enValue, targetValue);
-    if (diff.missing.length > 0 || diff.extra.length > 0) {
-      placeholderMismatches.push({
-        key,
-        en: enValue,
-        target: targetValue,
-        missing: diff.missing,
-        extra: diff.extra,
-      });
-    }
-    if (targetValue === enValue) {
-      const reason = skipStillEnglish(
-        key,
-        enValue,
-        options.sharedFlats,
-        options.strict,
-      );
-      if (reason) {
-        skippedShared.push({ key, en: enValue, reason });
-        return;
-      }
-      stillEnglish.push({ key, value: enValue });
-      return;
-    }
-    const row = lengthRow(key, enValue, targetValue);
-    const delta = row.targetWidth - row.enWidth;
-    const grew =
-      row.enWidth >= minEnWidth &&
-      delta >= minDelta &&
-      row.targetWidth >= row.enWidth * ratioLimit;
-    if (!grew) return;
-    if (row.enChars > cutoff) checkWrapping.push(row);
-    else tooLong.push(row);
-  });
-
-  const byRatio = (a, b) => b.ratio - a.ratio || b.targetWidth - a.targetWidth;
-  tooLong.sort(byRatio);
-  checkWrapping.sort(byRatio);
-  stillEnglish.sort(
-    (a, b) => b.value.length - a.value.length || a.key.localeCompare(b.key),
-  );
-
-  const limitChecks = [];
-  const overLimit = [];
-  Object.keys(limits.keys).forEach((key) => {
-    if (!inScope(key, namespaces)) return;
-    const rule = limits.keys[key];
-    const enValue = enFlat[key];
-    const targetValue = targetFlat[key];
-    const present = typeof targetValue === 'string' && targetValue.trim() !== '';
-    const characters = present ? characterCount(targetValue) : null;
-    const status = !present
-      ? 'missing'
-      : characters > rule.maxCharacters
-        ? 'over'
-        : 'ok';
-    const row = {
-      key,
-      where: rule.where || '',
-      maxCharacters: rule.maxCharacters,
-      en: typeof enValue === 'string' ? enValue : '',
-      target: present ? targetValue : '',
-      characters,
-      widthHint: present ? displayWidth(targetValue) : null,
-      status,
-    };
-    limitChecks.push(row);
-    if (status === 'over') overLimit.push(row);
-  });
-  overLimit.sort((a, b) => (b.characters || 0) - (a.characters || 0));
-
-  let extra = 0;
-  Object.keys(targetFlat).forEach((key) => {
-    if (!inScope(key, namespaces)) return;
-    if (!Object.prototype.hasOwnProperty.call(enFlat, key)) extra += 1;
-  });
-
-  return {
-    inScopeCount,
-    missing,
-    stillEnglish,
-    tooLong,
-    checkWrapping,
-    overLimit,
-    limitChecks,
-    placeholderMismatches,
-    pluralGaps: pluralGaps(enFlat, targetFlat, namespaces),
-    skippedShared,
-    extra,
-    cutoff,
-  };
+  return checker.checkFlats(enFlat, targetFlat, options);
 }
 
 function pluralGaps(enFlat, targetFlat, namespaces) {

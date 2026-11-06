@@ -1,0 +1,6 @@
+id,layer_name,frame_path,text,chars,kind
+predict.trade.yes,Yes button,Kalshi / Predict / Trade,Yes,3,button
+predict.trade.no,No button,Kalshi / Predict / Trade,No,2,button
+predict.header.title,Header,Kalshi / Predict / Trade,Will this market resolve before the closing bell?,52,text
+predict.note.draft,Draft note,Kalshi / Predict / Trade,Placeholder for legal copy,26,placeholder_or_annotation
+predict.price.sample,Price,Kalshi / Predict / Trade,0.62,4,number_or_data
