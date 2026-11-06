@@ -3438,6 +3438,18 @@
       "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
       "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
     },
+    "cross_margin_confirm": {
+      "title": "Confirm cross margin",
+      "description": "You selected cross margin for this order.\nCheck this list to confirm you understand:",
+      "collateral_title": "Collateral:",
+      "collateral_description": "All positions will share your full perps balance.",
+      "liquidation_title": "Liquidation:",
+      "liquidation_description": "If liquidation occurs, this will draw from your entire perps balance.",
+      "margin_title": "Margin:",
+      "margin_description": "Margin cannot be added or removed from a cross position.",
+      "go_back": "Go back",
+      "confirm": "Confirm"
+    },
     "cross_position": {
       "badge": "Cross",
       "margin_used": "Position margin used",
