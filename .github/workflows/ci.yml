@@ -384,7 +384,7 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:app-profiling
             profile: namespace-profile-metamask-ci-linux-small
-          - scripts: test:swaps-perf-budgets
+          - scripts: node --test .github/scripts/swaps/*.test.mjs
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
             profile: namespace-profile-metamask-ci-linux-small
