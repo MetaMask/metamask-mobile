@@ -511,7 +511,12 @@ const MoneyOnboardingView = () => {
       navigateToPostOnboardingDestination(
         stepIndex,
         MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
-      );
+      ).catch((error) => {
+        Logger.error(
+          error as Error,
+          '[Money Account] Failed to navigate after onboarding completion',
+        );
+      });
     },
     [dispatch, navigateToPostOnboardingDestination],
   );

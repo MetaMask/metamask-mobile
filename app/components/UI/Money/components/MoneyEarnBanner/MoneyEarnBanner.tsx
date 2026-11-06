@@ -194,20 +194,18 @@ const MoneyEarnBannerContent = ({
   );
 
   const beginAddFunds = useCallback(
-    async (
+    (
       track: NonNullable<Parameters<typeof navigateToMoneyDeposit>[0]>['track'],
-    ): Promise<void> => {
-      try {
-        await navigateToMoneyDeposit({
-          preferredPaymentToken,
-          track,
-        });
-      } catch (error) {
+    ): void => {
+      navigateToMoneyDeposit({
+        preferredPaymentToken,
+        track,
+      }).catch((error) => {
         Logger.error(
           error as Error,
           '[MoneyEarnBanner] Failed to initiate Money account deposit',
         );
-      }
+      });
     },
     [navigateToMoneyDeposit, preferredPaymentToken],
   );

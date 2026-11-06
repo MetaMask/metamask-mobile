@@ -67,7 +67,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnScreensStackParamList } from '../../types/navigation';
 import {
   COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
@@ -369,9 +368,6 @@ const EarnSectionListView = () => {
         ),
         redirect_target: getEarnAssetSelectionRedirectTarget(
           item.asset,
-          // TODO: Double-check.
-          // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
-          // false,
           moneyEntryContext,
         ),
       });

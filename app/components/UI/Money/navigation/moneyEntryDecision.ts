@@ -44,7 +44,6 @@ export const getMoneyEntryDecision = (
   if (accessBlockReason === 'feature_disabled') {
     return {
       destination: 'featureDisabled',
-      // TODO: MONEY_DEEPLINK_MODAL is generic. It would be better to have a dedicated sheet for feature disabled.
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL,
       button_intent: MONEY_ENTRIES[entry].button_intent,
     };
