@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  AccessibilityInfo,
-  Linking,
-  View as NativeView,
-} from 'react-native';
+import { AccessibilityInfo, Linking, View as NativeView } from 'react-native';
 import Share from 'react-native-share';
 import { IconName } from '@metamask/design-system-react-native';
 import { brandColor, lightTheme } from '@metamask/design-tokens';
