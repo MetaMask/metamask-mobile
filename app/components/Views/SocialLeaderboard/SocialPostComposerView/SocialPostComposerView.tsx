@@ -74,6 +74,7 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
@@ -82,7 +83,10 @@ import {
   addPendingPost,
   requestPostsTabFocus,
 } from '../pendingPosts/pendingPostsStore';
-import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import type {
+  SocialV1FeedAuthor,
+  SocialV1FeedItem,
+} from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
@@ -94,7 +98,10 @@ import {
 } from './mapPositionToFeedItem';
 import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedItem';
 import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
-import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
+import type {
+  SocialPostComposerPreview,
+  SocialPostComposerViewParams,
+} from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import AddPositionBottomSheet from './AddPositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
@@ -208,8 +215,10 @@ const ComposerChip = ({
   );
 };
 
-// The caption lives outside React state so typing re-renders only the count
-// and the Post button, not the screen.
+// The caption lives outside React state so typing only re-renders the
+// subscribers, not the whole screen (the header and the ticking preview both
+// read it). Selectors must return primitives — a fresh object or array fails
+// the snapshot check and re-renders on every keystroke.
 const createComposerTextStore = () => {
   let text = '';
   const listeners = new Set<() => void>();
@@ -333,6 +342,90 @@ const ComposerPostButton = ({
   );
 };
 
+interface ComposerPreviewProps {
+  store: ComposerTextStore;
+  selectedPosition: { position: Position; isClosed: boolean } | null;
+  tradeInFlightPreview: SocialPostComposerPreview | undefined;
+  composerAuthor: SocialV1FeedAuthor;
+  gifUri: string | null;
+  isLivePreview: boolean;
+  isTradeInFlightLocked: boolean;
+  onRemovePosition: () => void;
+}
+
+/**
+ * Preview card. Subscribes to the caption store so its comment follows typing
+ * without re-rendering the rest of the screen.
+ */
+const ComposerPreview = ({
+  store,
+  selectedPosition,
+  tradeInFlightPreview,
+  composerAuthor,
+  gifUri,
+  isLivePreview,
+  isTradeInFlightLocked,
+  onRemovePosition,
+}: ComposerPreviewProps) => {
+  const caption = useComposerText(store, (value) => value.trim());
+
+  const previewItem: SocialV1FeedItem | null = useMemo(() => {
+    if (tradeInFlightPreview) {
+      if ('product' in tradeInFlightPreview) {
+        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, caption, {
+          author: composerAuthor,
+          commentGifUrl: gifUri ?? undefined,
+        });
+      }
+      return mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
+        author: composerAuthor,
+        commentGifUrl: gifUri ?? undefined,
+      });
+    }
+    if (!selectedPosition) {
+      return null;
+    }
+    return mapPositionToFeedItem(selectedPosition.position, caption, {
+      isClosed: selectedPosition.isClosed,
+      author: composerAuthor,
+      commentGifUrl: gifUri ?? undefined,
+      liveTicks: isLivePreview,
+    });
+  }, [
+    caption,
+    composerAuthor,
+    gifUri,
+    isLivePreview,
+    selectedPosition,
+    tradeInFlightPreview,
+  ]);
+
+  if (!previewItem) {
+    return null;
+  }
+
+  return (
+    <Box twClassName="relative mt-12">
+      {isLivePreview ? (
+        <SocialLivePricesProvider>
+          <PositionCardBody item={previewItem} expanded showCopyTrade={false} />
+        </SocialLivePricesProvider>
+      ) : (
+        <PositionCardBody item={previewItem} expanded showCopyTrade={false} />
+      )}
+      {isTradeInFlightLocked ? null : (
+        <ComposerAttachmentCloseButton
+          onPress={onRemovePosition}
+          accessibilityLabel={strings(
+            'social_leaderboard.composer.remove_position',
+          )}
+          testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
+        />
+      )}
+    </Box>
+  );
+};
+
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -399,40 +492,17 @@ const SocialPostComposerView: React.FC = () => {
     [authorName, profile?.imageUrl, profile?.profileId],
   );
 
-  const previewItem: SocialV1FeedItem | null = useMemo(() => {
-    if (tradeInFlightPreview) {
-      if ('product' in tradeInFlightPreview) {
-        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, '', {
-          author: composerAuthor,
-          commentGifUrl: gifUri ?? undefined,
-        });
-      }
-      return mapTradeInFlightToFeedItem(tradeInFlightPreview, '', {
-        author: composerAuthor,
-        commentGifUrl: gifUri ?? undefined,
-      });
-    }
-    if (!selectedPosition) {
-      return null;
-    }
-    return mapPositionToFeedItem(selectedPosition.position, '', {
-      isClosed: selectedPosition.isClosed,
-      author: composerAuthor,
-      commentGifUrl: gifUri ?? undefined,
-      liveTicks: isLivePreview,
-    });
-  }, [
-    composerAuthor,
-    gifUri,
-    isLivePreview,
-    selectedPosition,
-    tradeInFlightPreview,
-  ]);
-  const analyticsTradeType = previewItem
-    ? previewItem.variant.startsWith('perps')
+  // The preview card maps itself from the store inside ComposerPreview, so
+  // the analytics trade type is derived from the raw inputs here.
+  const analyticsTradeType = tradeInFlightPreview
+    ? 'product' in tradeInFlightPreview
       ? Trade.PERPS
       : Trade.SPOT
-    : undefined;
+    : selectedPosition
+      ? isPerpPosition(selectedPosition.position)
+        ? Trade.PERPS
+        : Trade.SPOT
+      : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const hasTarget = selectedPosition != null || isTradeInFlightLocked;
@@ -456,6 +526,8 @@ const SocialPostComposerView: React.FC = () => {
       setGifUri(uri);
     }
   }, []);
+
+  const handleRemovePosition = useCallback(() => setSelectedPosition(null), []);
 
   const focusComposer = useCallback(() => {
     inputRef.current?.focus();
@@ -751,34 +823,16 @@ const SocialPostComposerView: React.FC = () => {
               />
             </Box>
 
-            {previewItem ? (
-              <Box twClassName="relative mt-12">
-                {isLivePreview ? (
-                  <SocialLivePricesProvider>
-                    <PositionCardBody
-                      item={previewItem}
-                      expanded
-                      showCopyTrade={false}
-                    />
-                  </SocialLivePricesProvider>
-                ) : (
-                  <PositionCardBody
-                    item={previewItem}
-                    expanded
-                    showCopyTrade={false}
-                  />
-                )}
-                {isTradeInFlightLocked ? null : (
-                  <ComposerAttachmentCloseButton
-                    onPress={() => setSelectedPosition(null)}
-                    accessibilityLabel={strings(
-                      'social_leaderboard.composer.remove_position',
-                    )}
-                    testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
-                  />
-                )}
-              </Box>
-            ) : null}
+            <ComposerPreview
+              store={textStore}
+              selectedPosition={selectedPosition}
+              tradeInFlightPreview={tradeInFlightPreview}
+              composerAuthor={composerAuthor}
+              gifUri={gifUri}
+              isLivePreview={isLivePreview}
+              isTradeInFlightLocked={isTradeInFlightLocked}
+              onRemovePosition={handleRemovePosition}
+            />
 
             {gifUri ? (
               <Box twClassName="relative mt-4">

@@ -887,6 +887,39 @@ describe('SocialPostComposerView', () => {
     expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
   });
 
+  it('keeps the preview caption in step with typing', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+
+    fireEvent.changeText(input, 'this is alpha');
+
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({ comment: 'this is alpha' }),
+      }),
+    );
+  });
+
+  it('keeps the preview caption in step while the header stays idle', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const headerRendersBeforeTyping = mockHeaderRender.mock.calls.length;
+
+    fireEvent.changeText(input, 'this is alpha');
+
+    // Typing re-renders the subscribed preview but not the header.
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({ comment: 'this is alpha' }),
+      }),
+    );
+    expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
+  });
+
   it('keeps the character count a constant width with equal-width digits', () => {
     renderWithProvider(<SocialPostComposerView />);
 
