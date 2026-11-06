@@ -196,7 +196,7 @@ const HomepageBalanceBreakdownRow = ({
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName="shrink"
+          twClassName="shrink-0"
           variant={TextVariant.BodyMd}
         >
           {getSliceLabel(slice.key)}
@@ -212,8 +212,11 @@ const HomepageBalanceBreakdownRow = ({
             <SensitiveText
               color={TextColor.TextAlternative}
               isHidden={privacyMode}
+              ellipsizeMode="clip"
               length={SensitiveTextLength.Short}
+              numberOfLines={1}
               testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(slice.key)}
+              twClassName="shrink"
               variant={TextVariant.BodyMd}
             >
               {percentageLabel}

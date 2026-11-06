@@ -16,6 +16,7 @@ import {
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   FundingAssetStatus,
   type CardHomeData,
   type CardProviderId,
@@ -49,9 +50,13 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import { selectRemoteFeatureFlags } from './featureFlagController';
 import {
+  isMoneyAccountFundingChannel,
+  resolveImmersveFundingChannel,
   selectCardFeatureFlag,
   selectCardLinkApiEnabled,
+  type CardRemoteFeatureFlags,
 } from './featureFlagController/card';
 import {
   pickRoutableCardLink,
@@ -118,6 +123,29 @@ export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.activeProviderId ?? null,
+);
+
+/**
+ * Funding channel for the selected country. Null when that country is not
+ * claimed by Immersve, or its channel does not resolve.
+ */
+export const selectImmersveFundingChannelForSelectedCountry = createSelector(
+  selectRemoteFeatureFlags,
+  selectCardSelectedCountry,
+  (flags, country) =>
+    resolveImmersveFundingChannel(flags as CardRemoteFeatureFlags, country),
+);
+
+/**
+ * True when the active card provider is Immersve and the selected country's
+ * funding channel spends from the Money account.
+ */
+export const selectImmersveMoneyAccountMode = createSelector(
+  selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  (providerId, channel): boolean =>
+    providerId === CardProviderIds.Immersve &&
+    isMoneyAccountFundingChannel(channel),
 );
 
 export const selectIsCardAuthenticated = createSelector(
