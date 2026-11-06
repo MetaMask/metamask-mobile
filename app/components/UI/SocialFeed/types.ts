@@ -30,7 +30,10 @@ export interface SocialV1FeedAuthor {
   /** Social API trader id, used to open their profile. */
   id: string;
   username: string;
-  /** Wallet address, used for the Maskicon fallback when there is no avatar. */
+  /**
+   * Wallet address. Seeds the Maskicon fallback when there is no avatar, so
+   * the icon matches the trader profile. A missing address falls back to `id`.
+   */
   address?: string;
   avatarUri?: string | null;
   /**

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
+import { AvatarAccount } from '@metamask/design-system-react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ProfileHeader from './ProfileHeader';
@@ -53,6 +54,19 @@ describe('ProfileHeader', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(<ProfileHeader profile={profileNoImage} />);
     expect(screen.getByText('trader1')).toBeOnTheScreen();
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe('0xabc');
+  });
+
+  it('seeds the fallback icon with the profile id when the wallet address is blank', () => {
+    renderWithProvider(
+      <ProfileHeader
+        profile={{ ...baseProfile, imageUrl: '', address: '  ' }}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('does not render a follower count', () => {

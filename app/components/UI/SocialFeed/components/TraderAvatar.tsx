@@ -12,6 +12,7 @@ import {
 } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import ProfileAvatar from '../../../Views/SocialLeaderboard/MyProfileView/components/ProfileAvatar';
 import { hasRealAvatar } from '../utils/avatarFallback';
+import { resolveTraderAvatarSeed } from '../utils/resolveTraderAvatarSeed';
 
 /** Maps a pixel diameter to the nearest AvatarAccount size token. */
 const toAvatarAccountSize = (size: number): AvatarAccountSize => {
@@ -30,10 +31,15 @@ export interface TraderAvatarProps {
    */
   imageUrl?: string | null;
   /**
-   * Seed for the Maskicon fallback. Social rows pass the profile id so a
-   * trader with no wallet address still gets a distinct icon.
+   * Wallet address. When present, this seeds the Maskicon so it matches the
+   * trader profile. A blank address falls back to `profileId`.
    */
-  address?: string;
+  address?: string | null;
+  /**
+   * Profile id used when `address` is missing, so traders without a wallet
+   * still get distinct icons.
+   */
+  profileId?: string | null;
   /** Avatar diameter in pixels. */
   size: number;
   /**
@@ -47,7 +53,8 @@ export interface TraderAvatarProps {
 
 /**
  * TraderAvatar -- renders a trader's profile image when a real one is
- * available, otherwise falls back to the address-derived Maskicon identicon.
+ * available, otherwise falls back to a Maskicon seeded by the wallet address,
+ * or by the profile id when that address is missing.
  * `foxicon://{preset}/{background}` URLs render the local profile preset.
  *
  * Centralizes the `hasRealAvatar` + Maskicon-fallback pattern shared across the
@@ -57,12 +64,14 @@ export interface TraderAvatarProps {
 const TraderAvatar: React.FC<TraderAvatarProps> = ({
   imageUrl,
   address,
+  profileId,
   size,
   recyclingKey,
   testID,
 }) => {
   const tw = useTailwind();
   const foxicon = parseFoxiconAvatarUrl(imageUrl);
+  const avatarSeed = resolveTraderAvatarSeed(address, profileId);
 
   if (foxicon) {
     return (
@@ -94,7 +103,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
   return (
     <AvatarAccount
       variant={AvatarAccountVariant.Maskicon}
-      address={address ?? ''}
+      address={avatarSeed}
       size={toAvatarAccountSize(size)}
       twClassName={`w-[${size}px] h-[${size}px] rounded-full`}
       maskiconProps={{ size }}

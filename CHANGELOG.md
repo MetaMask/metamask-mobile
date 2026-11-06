@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed trader identicons so a holder on a Perps market matches that trader's profile, and the same seed is used on the other social surfaces
+
 ### Changed
 
 - Load composer GIFs through the social API when the `aiSocialGifApi` flag is on

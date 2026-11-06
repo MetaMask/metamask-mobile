@@ -710,6 +710,7 @@ const MyProfileView: React.FC = () => {
                 traderName={displayProfile.displayName}
                 traderImageUrl={displayProfile.imageUrl}
                 traderAddress={displayProfile.linkedAccountAddress ?? undefined}
+                traderProfileId={displayProfile.profileId}
                 avatar={
                   isOwner ? (
                     <ProfileAvatar

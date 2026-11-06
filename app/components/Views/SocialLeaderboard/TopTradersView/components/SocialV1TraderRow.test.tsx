@@ -32,6 +32,19 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
+  it('seeds the avatar with the wallet address so it matches the trader profile', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      baseTrader.address,
+    );
+  });
+
   it('seeds the avatar with the profile id when the trader has no wallet address', () => {
     renderWithProvider(
       <SocialV1TraderRow

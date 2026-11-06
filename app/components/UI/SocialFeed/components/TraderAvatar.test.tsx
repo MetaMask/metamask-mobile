@@ -103,4 +103,22 @@ describe('TraderAvatar', () => {
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
   });
+
+  it('seeds the Maskicon with the wallet address when a profile id is also set', () => {
+    renderWithProvider(
+      <TraderAvatar address={ADDRESS} profileId="profile-1" size={40} />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(ADDRESS);
+  });
+
+  it('seeds the Maskicon with the profile id when the wallet address is blank', () => {
+    renderWithProvider(
+      <TraderAvatar address="  " profileId="profile-1" size={40} />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'profile-1',
+    );
+  });
 });
