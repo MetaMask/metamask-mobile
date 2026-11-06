@@ -298,7 +298,6 @@ describe('useEventsWithLiveData', () => {
   });
 
   it('applies a snapshot replayed synchronously from watchEvents', () => {
-    const market = eventA.markets[0];
     const replayedGame: PredictGameLive = {
       venueId,
       eventId: eventA.id,
@@ -306,19 +305,21 @@ describe('useEventsWithLiveData', () => {
       status: 'in_progress',
       observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
     };
-    const replayedQuote: PredictQuote = {
-      venueId,
-      marketId: market.id,
-      outcomes: [
-        {
-          id: market.outcomes[0].id,
-          side: 'yes',
-          askPrice: '0.61' as PredictDecimal,
-        },
-        { id: market.outcomes[1].id, side: 'no' },
-      ],
-      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
-    };
+    const replayedQuotes: PredictQuote[] = eventA.markets.map(
+      (market, index) => ({
+        venueId,
+        marketId: market.id,
+        outcomes: [
+          {
+            id: market.outcomes[0].id,
+            side: 'yes',
+            askPrice: `0.6${index + 1}` as PredictDecimal,
+          },
+          { id: market.outcomes[1].id, side: 'no' },
+        ],
+        updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      }),
+    );
     // The service publishes the last known values inside watchEvents when
     // another surface already holds the Event. Only listeners registered
     // before that call can receive them.
@@ -332,11 +333,10 @@ describe('useEventsWithLiveData', () => {
           | ((live: PredictGameLive) => void)
           | undefined
       )?.(replayedGame);
-      (
-        subscribed.get(`${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`) as
-          | ((quote: PredictQuote) => void)
-          | undefined
-      )?.(replayedQuote);
+      const onQuote = subscribed.get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as ((quote: PredictQuote) => void) | undefined;
+      replayedQuotes.forEach((quote) => onQuote?.(quote));
     });
 
     try {
@@ -346,6 +346,7 @@ describe('useEventsWithLiveData', () => {
 
       expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
       expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.62');
     } finally {
       mockCall.mockReset();
     }
@@ -792,7 +793,7 @@ describe('useEventsWithLiveData', () => {
         event.markets.map((market) => market.outcomes[0].askPrice),
       );
 
-    it('applies the first frame at once and frames inside the window in one render', () => {
+    it('applies the first frame at once and later frames inside the window in one render', async () => {
       let renders = 0;
       const { result } = renderHook(() => {
         renders += 1;
@@ -802,7 +803,7 @@ describe('useEventsWithLiveData', () => {
         `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
       ) as (quote: PredictQuote) => void;
 
-      act(() => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
       expect(askPrices(result.current)).toEqual([
         '0.61',
         '0.50',
@@ -832,7 +833,7 @@ describe('useEventsWithLiveData', () => {
       ]);
     });
 
-    it('applies a held frame when the Event list changes before the window ends', () => {
+    it('applies a held frame when the Event list changes before the window ends', async () => {
       const { result, rerender } = renderHook(
         ({ events }: { events: readonly PredictEvent[] }) =>
           useEventsWithLiveData(venueId, events),
@@ -842,7 +843,7 @@ describe('useEventsWithLiveData', () => {
         `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
       ) as (quote: PredictQuote) => void;
 
-      act(() => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
       act(() => onQuote(quoteFor(eventA.markets[1], '0.62')));
       rerender({ events: [eventA, eventB] });
 

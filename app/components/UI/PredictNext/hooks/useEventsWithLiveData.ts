@@ -192,10 +192,11 @@ export const LIVE_UPDATE_THROTTLE_MS = 250;
  * snapshots.
  *
  * Each frame arrives as its own socket message, so applying them one by one
- * re-renders the whole list per frame. The first frame after a quiet period
- * applies at once (a replay from `watchEvents` shows without delay); later
- * frames are held and applied in one update at most every
- * `LIVE_UPDATE_THROTTLE_MS`.
+ * re-renders the whole list per frame. After a quiet period, every frame in the
+ * current JS turn applies at once, so a replay from `watchEvents` (one frame
+ * per cached id, published synchronously) shows without delay. The cooldown
+ * starts when that turn ends; later frames are held and applied in one update
+ * at most every `LIVE_UPDATE_THROTTLE_MS`.
  */
 const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
   topic: LiveTopic<TLive>,
@@ -211,6 +212,8 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
     const present = new Set(JSON.parse(presentKey) as PredictEntityId[]);
     let pending: TLive[] = [];
     let cooldown: ReturnType<typeof setTimeout> | undefined;
+    let turnOpen = false;
+    let disposed = false;
 
     const flush = () => {
       if (pending.length === 0) {
@@ -251,14 +254,25 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
         return;
       }
       pending.push(live);
-      if (cooldown === undefined) {
-        flush();
-        cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
+      if (cooldown !== undefined) {
+        return;
+      }
+      flush();
+      if (!turnOpen) {
+        turnOpen = true;
+        // A Promise, not a timer: Jest fake timers must not hold it back.
+        Promise.resolve().then(() => {
+          turnOpen = false;
+          if (!disposed) {
+            cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
+          }
+        });
       }
     };
 
     topic.subscribe(onUpdate);
     return () => {
+      disposed = true;
       topic.unsubscribe(onUpdate);
       clearTimeout(cooldown);
       // The Venue does not resend a held frame, so apply it rather than drop it.

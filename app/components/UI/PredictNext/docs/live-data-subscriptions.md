@@ -18,7 +18,7 @@ Screen  ──watchEvents(eventIds)──▶  PredictLiveDataService  ──subs
 - watches exactly the Events in `visibleEventIds` (defaulting to every Event in `events`) while `isVisible` is true, sending only the diff to the service as the visible set changes, and releasing whatever it still holds on unmount;
 - passes `marketScope` (`all` by default; Home and Feed pass `card`) with every watch, so the service knows whether the surface prices every Market or only the ones a list card shows;
 - listens for `gameLiveUpdated` and `quoteUpdated` for every Event in `events` (narrowed to card Markets under `card` scope), so a frame for a card that is rendered but just outside the viewport still lands when it scrolls back;
-- applies the first frame after a quiet period at once and batches later frames into at most one state update per `LIVE_UPDATE_THROTTLE_MS` (250 ms), so a busy stream does not re-render the surface once per socket message;
+- after a quiet period, applies every frame of the current JS turn at once (so a synchronous `watchEvents` replay shows in full) and batches later frames into at most one state update per `LIVE_UPDATE_THROTTLE_MS` (250 ms), so a busy stream does not re-render the surface once per socket message;
 - returns the same Events with Game fields and Outcome prices patched, reusing the previous Event object when a tick did not touch it.
 
 Surfaces never see Market ids. Which Markets an Event needs for a given scope is the service's business.
