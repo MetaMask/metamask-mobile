@@ -44,6 +44,7 @@ describe('AcceptInviteSheet', () => {
 
     await findByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER);
 
+    // Referral-code validation is debounced 1000ms; Accept stays disabled until it resolves.
     await waitFor(
       () => {
         expect(
@@ -55,6 +56,7 @@ describe('AcceptInviteSheet', () => {
 
     fireEvent.press(getByTestId(ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT));
 
+    // registerReferee must complete before the accepted splash route probe renders.
     expect(
       await findByTestId(
         getRouteProbeTestId(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW),
