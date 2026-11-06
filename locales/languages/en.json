@@ -1246,8 +1246,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar",
-        "eur": "Euro"
+        "usd": "US dollar"
       }
     },
     "vba_details": {
