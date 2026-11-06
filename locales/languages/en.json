@@ -1823,6 +1823,7 @@
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
