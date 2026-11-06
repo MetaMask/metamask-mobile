@@ -328,6 +328,8 @@ https://link.metamask.io/swap?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b
 ```
 https://link.metamask.io/money-account-deposit
 metamask://money-account-deposit
+https://link.metamask.io/money-account-deposit?tokenType=atoken
+metamask://money-account-deposit?tokenType=atoken
 ```
 
 Both forms enter the same React bridge route. The bridge checks the Money
@@ -337,6 +339,13 @@ user is geo-blocked, the existing Money deeplink messaging is shown. Eligible
 users who have not seen Money onboarding are sent through onboarding first,
 then continue to the deposit confirmation. Users who have already seen
 onboarding open the editable deposit confirmation directly.
+
+`tokenType` is optional. `tokenType=atoken` prefers pre-selecting positive-balance Aave
+output token with the highest fiat balance as the deposit payment token. If the
+user has no positive-balance aToken, the link opens the normal deposit flow
+without a preferred token. Missing and unsupported `tokenType` values also keep
+the normal deposit behavior, allowing new token types to be added without
+changing the route.
 
 #### Money referral code (`ref`)
 

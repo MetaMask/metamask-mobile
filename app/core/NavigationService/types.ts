@@ -912,7 +912,7 @@ export type RootStackParamList = {
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
-  MoneyDepositDeeplink: undefined;
+  MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
