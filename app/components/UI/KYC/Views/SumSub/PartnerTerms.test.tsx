@@ -268,6 +268,83 @@ describe('VbaPartnerTerms', () => {
     expect(getByText('Sumsub Terms of Service')).toBeOnTheScreen();
   });
 
+  it('lists Sumsub privacy and biometrics as rows for non-US residents', () => {
+    const sumsubPrivacy: KycCatalogDisclaimerLink = {
+      id: 'kycProvider:sumsub-privacy',
+      key: 'sumsub-privacy-notice',
+      version: '1',
+      title: 'Sumsub Privacy Notice',
+      url: 'https://sumsub.example/privacy',
+    };
+    const sumsubBiometrics: KycCatalogDisclaimerLink = {
+      id: 'kycProvider:sumsub-biometrics',
+      key: 'sumsub-biometrics-consent',
+      version: '1',
+      title: 'Sumsub Biometrics Processing Consent',
+      url: 'https://sumsub.example/biometrics',
+    };
+    const { getByTestId, queryByTestId } = renderScreen([
+      ...DISCLAIMERS,
+      sumsubPrivacy,
+      sumsubBiometrics,
+    ]);
+
+    expect(
+      getByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps Sumsub privacy and biometrics in the US sentence, not as rows', () => {
+    const sumsubPrivacy: KycCatalogDisclaimerLink = {
+      id: 'kycProvider:sumsub-privacy',
+      key: 'sumsub-privacy-notice',
+      version: '1',
+      title: 'Sumsub Privacy Notice',
+      url: 'https://sumsub.example/privacy',
+    };
+    const sumsubBiometrics: KycCatalogDisclaimerLink = {
+      id: 'kycProvider:sumsub-biometrics',
+      key: 'sumsub-biometrics-consent',
+      version: '1',
+      title: 'Sumsub Biometrics Processing Consent',
+      url: 'https://sumsub.example/biometrics',
+    };
+    const { getByTestId, queryByTestId } = renderScreen(
+      [...DISCLAIMERS, sumsubPrivacy, sumsubBiometrics],
+      'US-CA',
+    );
+
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('links the biometric consent to the idOS privacy notice, not the policy', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')

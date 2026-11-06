@@ -177,8 +177,11 @@ const VbaPartnerTerms = ({
         disclaimer !== sumsubPrivacy &&
         disclaimer.key.toLowerCase().includes('notice'),
     ) ?? kycProvider.find((disclaimer) => disclaimer !== sumsubBiometrics);
+  // Privacy and biometrics are only linked in the US-residents sentence. For
+  // everyone else they must stay in the extra rows — otherwise they vanish
+  // from the page while `recordSessionDisclaimers` still records them.
   const linkedProviderIds = new Set(
-    [sumsubNotice, sumsubPrivacy, sumsubBiometrics]
+    [sumsubNotice, ...(isUsResident ? [sumsubPrivacy, sumsubBiometrics] : [])]
       .filter((disclaimer) => disclaimer !== undefined)
       .map((disclaimer) => disclaimer.id),
   );
