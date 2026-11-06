@@ -88,6 +88,7 @@ import type { CardOnboardingStackParamList } from '../../types/navigation';
 import Logger from '../../../../../util/Logger';
 import { isValidLocalPhoneNumber } from '../../util/contactDetails';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
@@ -125,6 +126,53 @@ const matchPhoneRegionByCallingCode = (
   }
 
   return allRegions.find((region) => region.areaCode === callingCode) ?? null;
+};
+
+const ImmersveAccountField = ({
+  isMoneyAccountMode,
+  immersveAddress,
+  accountName,
+  avatarAccountType,
+  onSelect,
+}: {
+  isMoneyAccountMode: boolean;
+  immersveAddress: string | undefined;
+  accountName: string | null;
+  avatarAccountType: AvatarAccountType;
+  onSelect: () => void;
+}) => {
+  if (isMoneyAccountMode && immersveAddress) {
+    return (
+      <Box
+        twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+        testID="signup-immersve-money-account-row"
+      >
+        <MoneyAccountIdentity testID="signup-immersve-money-account" />
+      </Box>
+    );
+  }
+
+  if (isMoneyAccountMode) {
+    return <MoneyAccountRequired testID="signup-money-account-required" />;
+  }
+
+  return (
+    <SelectField
+      value={accountName ?? undefined}
+      onPress={onSelect}
+      testID="signup-immersve-account-select"
+      startAccessory={
+        immersveAddress ? (
+          <AvatarAccount
+            address={immersveAddress}
+            variant={getAvatarAccountVariant(avatarAccountType)}
+            size={AvatarBaseSize.Sm}
+            testID="signup-immersve-account-avatar"
+          />
+        ) : undefined
+      }
+    />
+  );
 };
 
 const SignUp = () => {
@@ -738,34 +786,13 @@ const SignUp = () => {
             <Label>
               {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
-            {isMoneyAccountMode ? (
-              immersveAddress ? (
-                <Box
-                  twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
-                  testID="signup-immersve-money-account-row"
-                >
-                  <MoneyAccountIdentity testID="signup-immersve-money-account" />
-                </Box>
-              ) : (
-                <MoneyAccountRequired testID="signup-money-account-required" />
-              )
-            ) : (
-              <SelectField
-                value={accountName ?? undefined}
-                onPress={openAccountSelector}
-                testID="signup-immersve-account-select"
-                startAccessory={
-                  immersveAddress ? (
-                    <AvatarAccount
-                      address={immersveAddress}
-                      variant={getAvatarAccountVariant(avatarAccountType)}
-                      size={AvatarBaseSize.Sm}
-                      testID="signup-immersve-account-avatar"
-                    />
-                  ) : undefined
-                }
-              />
-            )}
+            <ImmersveAccountField
+              isMoneyAccountMode={isMoneyAccountMode}
+              immersveAddress={immersveAddress}
+              accountName={accountName}
+              avatarAccountType={avatarAccountType}
+              onSelect={openAccountSelector}
+            />
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"

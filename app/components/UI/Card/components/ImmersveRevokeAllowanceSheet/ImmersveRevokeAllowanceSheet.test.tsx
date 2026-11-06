@@ -43,6 +43,11 @@ jest.mock('../../hooks/useImmersveFunding', () => ({
   useImmersveFunding: jest.fn(),
 }));
 
+let mockMoneyAccountMode = false;
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectImmersveMoneyAccountMode: () => mockMoneyAccountMode,
+}));
+
 const mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
 jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: () => ({
@@ -116,6 +121,7 @@ describe('ImmersveRevokeAllowanceSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMoneyAccountMode = false;
     mockRouteParams = undefined;
     mockRevokeFunding = jest.fn().mockResolvedValue('0xtx');
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -134,6 +140,27 @@ describe('ImmersveRevokeAllowanceSheet', () => {
     (
       Engine.context.CardController.fetchCardHomeData as jest.Mock
     ).mockResolvedValue(undefined);
+  });
+
+  it('unlinks the Money account with a zero delegation instead of an allowance revoke', () => {
+    mockMoneyAccountMode = true;
+    mockRouteParams = {
+      entrypoint: CardEntryPoint.CARD_HOME_REVOKE_ALLOWANCE,
+    };
+    const { getByText, getByTestId, getAllByText } = renderSheet();
+
+    expect(getAllByText('Unlink Money account')).toHaveLength(2);
+    expect(getByText('Change your Card funding source')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(ImmersveRevokeAllowanceSheetTestIds.REVOKE_BUTTON),
+    );
+
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+      delegationAmountHuman: '0',
+      entrypoint: CardEntryPoint.CARD_HOME_REVOKE_ALLOWANCE,
+    });
+    expect(mockRevokeFunding).not.toHaveBeenCalled();
   });
 
   it('renders title, description, and both buttons', () => {

@@ -112,7 +112,9 @@ export function useImmersveCardProvisioning(
           existingId: isMoneyAccountChannel ? undefined : existingId,
         });
         if (cancelled) return;
-        if (!existingId) {
+        // A Money account reconcile ignores the stored wallet source, so the
+        // resolved id can differ from the one already in Redux.
+        if (id !== existingId) {
           dispatch(setImmersveFundingSourceId(id));
         }
         const { prerequisites } = await controller.getSpendingPrerequisites(

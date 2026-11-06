@@ -246,6 +246,10 @@ const CardAuthentication = () => {
     ukMode,
     resumeEmail,
   });
+  const showMoneyAccountRequired =
+    isMoneyAccountMode &&
+    !moneyAccountAddress &&
+    (view.mode === 'fork' || view.mode === 'wallet');
 
   const activeBanner = resolveActiveBanner({ banner, view });
 
@@ -871,7 +875,7 @@ const CardAuthentication = () => {
           />
         )}
 
-        {view.mode === 'fork' && (
+        {view.mode === 'fork' && !showMoneyAccountRequired && (
           <SignInFork
             reason={view.reason}
             onSelectEmail={() => setUkMode('email')}
@@ -884,6 +888,26 @@ const CardAuthentication = () => {
               )
             }
           />
+        )}
+
+        {showMoneyAccountRequired && (
+          <>
+            <MoneyAccountRequired />
+            {emailOption ? (
+              <TouchableOpacity
+                onPress={() => setUkMode('email')}
+                testID={CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default text-center p-4"
+                >
+                  {strings('card.card_authentication.fork_email_title')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </>
         )}
 
         {activeBanner && (
@@ -926,28 +950,25 @@ const CardAuthentication = () => {
           />
         )}
 
-        {view.mode === 'wallet' &&
-          (isMoneyAccountMode && !moneyAccountAddress ? (
-            <MoneyAccountRequired />
-          ) : (
-            <SignInWalletFields
-              origin={view.origin}
-              displayAccountLabel={displayAccountLabel}
-              displayAccountAddress={displayAccountAddress}
-              avatarAccountType={avatarAccountType}
-              walletError={walletError}
-              showSoftLink={
-                view.origin === 'resume' && ukMigrationState.phase === 'soft'
-              }
-              onBack={() => setUkMode(null)}
-              onSelectAccount={openAccountSelector}
-              onUseCurrentCard={() => {
-                setResumeEmail(true);
-                setBanner('resume_soft');
-              }}
-              lockToMoneyAccount={isMoneyAccountMode}
-            />
-          ))}
+        {view.mode === 'wallet' && !showMoneyAccountRequired && (
+          <SignInWalletFields
+            origin={view.origin}
+            displayAccountLabel={displayAccountLabel}
+            displayAccountAddress={displayAccountAddress}
+            avatarAccountType={avatarAccountType}
+            walletError={walletError}
+            showSoftLink={
+              view.origin === 'resume' && ukMigrationState.phase === 'soft'
+            }
+            onBack={() => setUkMode(null)}
+            onSelectAccount={openAccountSelector}
+            onUseCurrentCard={() => {
+              setResumeEmail(true);
+              setBanner('resume_soft');
+            }}
+            lockToMoneyAccount={isMoneyAccountMode}
+          />
+        )}
       </>
     );
   })();

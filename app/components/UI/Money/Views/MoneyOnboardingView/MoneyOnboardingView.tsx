@@ -66,7 +66,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import Logger from '../../../../../util/Logger';
 import moneyOnboardingRoundedButtons from '../../../../../animations/money_onboarding_rounded_buttons.riv';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
@@ -124,6 +127,60 @@ type MoneyOnboardingRouteProp = RouteProp<
   RootStackParamList,
   'MoneyOnboarding'
 >;
+
+const useNavigateToPostOnboardingDestination = ({
+  navigation,
+  postOnboardingRedirect,
+  initiateDeposit,
+  navigateToMoneyHome,
+}: {
+  navigation: AppNavigationProp;
+  postOnboardingRedirect: MoneyOnboardingParams['postOnboardingRedirect'];
+  initiateDeposit: ReturnType<typeof useMoneyAccountDeposit>['initiateDeposit'];
+  navigateToMoneyHome: () => void;
+}) =>
+  useCallback(async () => {
+    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+      navigation.navigate(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      return;
+    }
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
+          ? {
+              autoSelectFiatPayment:
+                postOnboardingRedirect.autoSelectFiatPayment,
+            }
+          : {}),
+        ...(postOnboardingRedirect.intent
+          ? { intent: postOnboardingRedirect.intent }
+          : {}),
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [
+    initiateDeposit,
+    navigateToMoneyHome,
+    navigation,
+    postOnboardingRedirect,
+  ]);
 interface OnboardingTextContent {
   title: string;
   content: string;
@@ -413,48 +470,13 @@ const MoneyOnboardingView = () => {
     );
   }, [analyticsContext, navigation]);
 
-  const navigateToPostOnboardingDestination = useCallback(async () => {
-    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.ONBOARDING.ROOT },
-      });
-      return;
-    }
-    if (
-      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
-    ) {
-      navigateToMoneyHome();
-      return;
-    }
-
-    try {
-      await initiateDeposit({
-        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-          ? {
-              autoSelectFiatPayment:
-                postOnboardingRedirect.autoSelectFiatPayment,
-            }
-          : {}),
-        ...(postOnboardingRedirect.intent
-          ? { intent: postOnboardingRedirect.intent }
-          : {}),
-        replaceConfirmation: true,
-        onDepositSetupFailure: navigateToMoneyHome,
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[Money Account] Failed to initiate deposit after onboarding',
-      );
-    }
-  }, [
-    initiateDeposit,
-    navigateToMoneyHome,
-    navigation,
-    postOnboardingRedirect,
-  ]);
+  const navigateToPostOnboardingDestination =
+    useNavigateToPostOnboardingDestination({
+      navigation,
+      postOnboardingRedirect,
+      initiateDeposit,
+      navigateToMoneyHome,
+    });
 
   const postOnboardingRedirectTarget =
     postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
@@ -706,48 +728,13 @@ const MoneyOnboardingViewE2E = () => {
     );
   }, [navigation]);
 
-  const navigateToPostOnboardingDestination = useCallback(async () => {
-    if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.ONBOARDING.ROOT },
-      });
-      return;
-    }
-    if (
-      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
-    ) {
-      navigateToMoneyHome();
-      return;
-    }
-
-    try {
-      await initiateDeposit({
-        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-          ? {
-              autoSelectFiatPayment:
-                postOnboardingRedirect.autoSelectFiatPayment,
-            }
-          : {}),
-        ...(postOnboardingRedirect.intent
-          ? { intent: postOnboardingRedirect.intent }
-          : {}),
-        replaceConfirmation: true,
-        onDepositSetupFailure: navigateToMoneyHome,
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[Money Account] Failed to initiate deposit after onboarding',
-      );
-    }
-  }, [
-    initiateDeposit,
-    navigateToMoneyHome,
-    navigation,
-    postOnboardingRedirect,
-  ]);
+  const navigateToPostOnboardingDestination =
+    useNavigateToPostOnboardingDestination({
+      navigation,
+      postOnboardingRedirect,
+      initiateDeposit,
+      navigateToMoneyHome,
+    });
 
   const completeOnboardingAndRedirect = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(true));

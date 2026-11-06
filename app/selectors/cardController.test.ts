@@ -4,6 +4,7 @@ import {
   selectCardActiveProviderId,
   selectImmersveFundingChannelForSelectedCountry,
   selectImmersveMoneyAccountMode,
+  selectMoneyAccountVedaTokenConfig,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
@@ -317,6 +318,35 @@ describe('CardController selectors', () => {
       );
 
       expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('builds the Veda config from the Money account channel, not cardFeature', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'immersve' },
+        CARD_FEATURE_WITHOUT_VEDA,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        delegationContract: '0x2222222222222222222222222222222222222222',
+      });
+    });
+
+    it('keeps the cardFeature Veda token when the provider is not in Money account mode', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        MONAD_VEDA_FEATURE_FLAG,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: VEDA_ADDRESS,
+        decimals: 6,
+      });
     });
   });
 

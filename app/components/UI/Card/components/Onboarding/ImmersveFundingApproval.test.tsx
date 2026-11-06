@@ -157,6 +157,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
+  CardEntryPoint: {
+    SIGN_UP: 'SIGN_UP',
+    CARD_HOME_MONEY_ACCOUNT_CARD: 'CARD_HOME_MONEY_ACCOUNT_CARD',
+  },
   CardActions: {
     FUNDING_APPROVAL_CONFIRM: 'FUNDING_APPROVAL_CONFIRM',
     FUNDING_APPROVAL_RETRY: 'FUNDING_APPROVAL_RETRY',
@@ -339,6 +343,97 @@ describe('ImmersveFundingApproval', () => {
     ).toBeTruthy();
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
     expect(queryByTestId('immersve-funding-approval-token-row')).toBeNull();
+  });
+
+  describe('Money account approve', () => {
+    const useMoneyAccountCountry = (mode?: 'reapprove') => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectCardImmersveCountryFunding) {
+          return { NZ: NZ_FUNDING_CHANNEL };
+        }
+        return mockUseSelectorImplementation(selector);
+      });
+      (useParams as jest.Mock).mockReturnValue({
+        countryKey: 'NZ',
+        ...(mode ? { mode } : {}),
+      });
+    };
+
+    it('refreshes prerequisites after a Money account link during onboarding', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+      mockRefresh.mockClear();
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+          delegationAmountHuman: '2199023255551',
+          entrypoint: 'SIGN_UP',
+        });
+        expect(mockRefresh).toHaveBeenCalled();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockExecuteFunding).not.toHaveBeenCalled();
+    });
+
+    it('fetches home data and returns to Card Home after a Money account reapprove', async () => {
+      useMoneyAccountCountry('reapprove');
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+          delegationAmountHuman: '2199023255551',
+          entrypoint: 'CARD_HOME_MONEY_ACCOUNT_CARD',
+        });
+        expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+    });
+
+    it('stops settling when the Money account link is not completed', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      mockConfirmLinkInBackground.mockResolvedValueOnce(false);
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('immersve-funding-approval-confirm-button').props
+            .accessibilityState.disabled,
+        ).toBeFalsy();
+      });
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('stops settling when the Money account link rejects', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      mockConfirmLinkInBackground.mockRejectedValueOnce(
+        new Error('link failed'),
+      );
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('immersve-funding-approval-confirm-button').props
+            .accessibilityState.disabled,
+        ).toBeFalsy();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
   });
 
   it('renders the settings card and an enabled confirm button once funding is known', () => {
