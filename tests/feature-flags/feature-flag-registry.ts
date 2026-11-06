@@ -136,6 +136,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialPositionShareCardEnabled: {
+    name: 'aiSocialPositionShareCardEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardOnboardingEnabled: {
     name: 'aiSocialLeaderboardOnboardingEnabled',
     type: FeatureFlagType.Remote,
