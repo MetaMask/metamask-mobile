@@ -116,6 +116,16 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
   });
+
+  it('uses the non-negative tone when a live P&L loss rounds to zero', () => {
+    const result = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -0.4 } }),
+    );
+
+    expect(result.pnlLabel).toBe('$0');
+    expect(result.isPnlPositive).toBe(true);
+  });
 });
 
 describe('buildPerformanceCells', () => {

@@ -138,7 +138,7 @@ export const overlayMyProfileLiveStats = (
     isWinRatePositive: winRateValue > 0,
     pnlLabel: hasLivePnl ? pnlRaw : markFakeStat(pnlRaw),
     hasPnl: pnlValue != null,
-    isPnlPositive: pnlValue != null && pnlValue >= 0,
+    isPnlPositive: pnlValue != null && Math.round(pnlValue) >= 0,
     performanceCells: buildPerformanceCells(live, openPositions),
   };
 };
