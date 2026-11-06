@@ -115,6 +115,47 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
+  it('renders the name tag after the username, colored by its side', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        nameTag={{ label: '20x Short', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toHaveTextContent('20x Short');
+  });
+
+  it('renders no name tag by default', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toBeNull();
+  });
+
+  it('drops the rank column, medal included, when showRankColumn is off', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        showRankColumn={false}
+      />,
+    );
+
+    expect(screen.queryByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toBeNull();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+  });
+
   it('wraps a highlighted row in the muted viewer card', () => {
     renderWithProvider(
       <SocialV1TraderRow
@@ -296,5 +337,38 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
     ).toBeNull();
+  });
+
+  it('renders a neutral metric in the default text color', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.METRIC),
+    ).toHaveStyle({ color: lightTheme.colors.text.default });
+  });
+
+  it('shows the secondary metric in place of the window percent', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76 }}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        secondaryMetric={{ label: '-$300 (-2.0%)', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    const subline = screen.getByTestId(
+      SocialV1TraderRowSelectorsIDs.PERCENTAGE,
+    );
+    expect(subline).toHaveTextContent('-$300 (-2.0%)');
+    expect(subline).toHaveStyle({ color: lightTheme.colors.error.default });
+    expect(screen.queryByText('+7.8%')).toBeNull();
   });
 });

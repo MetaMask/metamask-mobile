@@ -13,6 +13,8 @@ export const MarketGroupCardTestIds = {
     `predict-next-market-group-${groupKey}-${marketId}-${side}-quote-bar`,
   outcomeButton: (groupKey: string, marketId: string, side: 'yes' | 'no') =>
     `predict-next-market-group-${groupKey}-${marketId}-${side}`,
+  percentage: (groupKey: string) =>
+    `predict-next-market-group-${groupKey}-percentage`,
   rulesButton: (groupKey: string) =>
     `predict-next-market-group-${groupKey}-rules-button`,
 } as const;
