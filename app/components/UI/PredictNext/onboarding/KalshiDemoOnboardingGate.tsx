@@ -1,0 +1,142 @@
+import React, { useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useSelector } from 'react-redux';
+
+import Engine from '../../../../core/Engine';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { ensureError } from '../../../../util/errorUtils';
+import Logger from '../../../../util/Logger';
+import { resolveVenueAuthProfile } from '../config/predictConfig';
+import { portfolioQueryFamilies } from '../queries/portfolioQueries';
+import { selectPredictConfig } from '../selectors/predictConfig';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
+import {
+  kalshiDemoPayoutNetwork,
+  kalshiDemoPayoutWallet,
+} from './internal/demoOnboardingConfig';
+import { KalshiDemoOnboardingModal } from './internal/KalshiDemoOnboardingModal';
+import {
+  getKalshiRelinkNonce,
+  subscribeKalshiRelink,
+} from './internal/kalshiRelinkRequest';
+import {
+  useKalshiDemoOnboarding,
+  type KalshiOnboardingApi,
+} from './internal/useKalshiDemoOnboarding';
+import { setKalshiOnboardingState } from './internal/kalshiOnboardingStateStore';
+
+const POLL_INTERVAL_MS = 2_000;
+/** Slow or absent links poll less. Unknown (`null`) keeps the default. */
+const CONSTRAINED_POLL_INTERVAL_MS = 5_000;
+
+const invalidatePortfolioReads = () => {
+  for (const queryKey of portfolioQueryFamilies(KALSHI_VENUE_ID)) {
+    Engine.context.PredictPortfolioService.invalidateQueries({
+      queryKey,
+    }).catch((error: unknown) => {
+      Logger.error(
+        ensureError(error, 'KalshiDemoOnboardingGate.invalidatePortfolioReads'),
+        'PredictNext: failed to refresh portfolio reads after onboarding',
+      );
+    });
+  }
+};
+
+interface KalshiDemoOnboardingFlowProps {
+  client: KalshiOnboardingApi;
+  walletAddress?: string;
+  /** TEMPORARY debug: run the link flow again for an active profile. */
+  relink?: boolean;
+}
+
+const KalshiDemoOnboardingFlow = ({
+  client,
+  walletAddress,
+  relink,
+}: KalshiDemoOnboardingFlowProps) => {
+  const networkTier = useNetworkTier();
+  const hardwareTier = getHardwareTier();
+  const network = kalshiDemoPayoutNetwork();
+  const pollIntervalMs =
+    hardwareTier === 'LOW' ||
+    networkTier === 'SLOW_CELLULAR' ||
+    networkTier === 'NONE'
+      ? CONSTRAINED_POLL_INTERVAL_MS
+      : POLL_INTERVAL_MS;
+  const onboarding = useKalshiDemoOnboarding({
+    client,
+    walletAddress,
+    network,
+    pollIntervalMs,
+    relink,
+    canPoll: () => networkTier !== 'NONE',
+    onActivated: invalidatePortfolioReads,
+  });
+  // TEMPORARY debug: the panel cannot reach this hook state, so publish it.
+  useEffect(() => {
+    setKalshiOnboardingState(onboarding.state.step);
+  }, [onboarding.state.step]);
+
+  if (
+    onboarding.state.step === 'loading' ||
+    onboarding.state.step === 'hidden'
+  ) {
+    return null;
+  }
+  return (
+    <KalshiDemoOnboardingModal
+      onboarding={onboarding}
+      walletAddress={walletAddress}
+      network={network}
+    />
+  );
+};
+
+interface KalshiDemoOnboardingGateProps {
+  children: React.ReactNode;
+}
+
+/**
+ * Temporary Kalshi demo onboarding (mobile plan §7). Reads onboarding status
+ * once per mount of the Predict stack and opens the sheet when this profile
+ * is not activated on Kalshi. *Not now* hides it until the next mount.
+ * Renders nothing extra unless Kalshi is enabled and the wallet is signed in
+ * and unlocked.
+ */
+export const KalshiDemoOnboardingGate = ({
+  children,
+}: KalshiDemoOnboardingGateProps) => {
+  const config = useSelector(selectPredictConfig);
+  const signedIn = useSelector(selectIsSignedIn);
+  const walletUnlocked = useSelector(selectIsUnlocked);
+  const evmAddress = useSelector(selectEvmAddress);
+  const enabled =
+    resolveVenueAuthProfile(config) !== undefined && signedIn && walletUnlocked;
+  const client = useMemo(
+    () => (enabled ? createKalshiOnboardingClient() : undefined),
+    [enabled],
+  );
+  const walletAddress = kalshiDemoPayoutWallet(evmAddress);
+  // TEMPORARY debug: a new key remounts the flow, which starts it again.
+  const relinkNonce = useSyncExternalStore(
+    subscribeKalshiRelink,
+    getKalshiRelinkNonce,
+  );
+  return (
+    <>
+      {children}
+      {client ? (
+        <KalshiDemoOnboardingFlow
+          key={`${relinkNonce}`}
+          client={client}
+          walletAddress={walletAddress}
+          relink={relinkNonce > 0}
+        />
+      ) : null}
+    </>
+  );
+};

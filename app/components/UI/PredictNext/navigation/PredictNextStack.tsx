@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PredictDeviceAuthBootstrap } from '../auth/PredictDeviceAuthBootstrap';
+import { KalshiDemoOnboardingGate } from '../onboarding/KalshiDemoOnboardingGate';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
@@ -14,7 +15,8 @@ const Stack = createNativeStackNavigator<PredictNextStackParamList>();
 
 const PredictNextStack = () => (
   <PredictDeviceAuthBootstrap>
-    <PredictOrderFlowProvider>
+    <KalshiDemoOnboardingGate>
+      <PredictOrderFlowProvider>
       <Stack.Navigator
         initialRouteName={PredictNextRoutes.HOME}
         screenOptions={{ headerShown: false }}
@@ -38,6 +40,7 @@ const PredictNextStack = () => (
         />
       </Stack.Navigator>
     </PredictOrderFlowProvider>
+    </KalshiDemoOnboardingGate>
   </PredictDeviceAuthBootstrap>
 );
 
