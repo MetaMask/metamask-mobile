@@ -1,6 +1,9 @@
 import type { P256DevicePublicMaterial } from './p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
 import {
+  A2T_READINESS_POLL_MS,
+  A2T_READINESS_TIMEOUT_MS,
+  A2T_REFRESH_MARGIN_SECONDS,
   A2tSession,
   isA2tSessionCleared,
   type A2tSessionDependencies,
@@ -142,7 +145,7 @@ describe('A2tSession', () => {
     mockIssue(harness.fetchMock);
 
     await harness.session.ensureA2T();
-    harness.nowSec.value = NOW_SEC + 900 - 61;
+    harness.nowSec.value = NOW_SEC + 900 - (A2T_REFRESH_MARGIN_SECONDS + 1);
     const cached = await harness.session.ensureA2T();
 
     expect(cached).toBe(issuedToken);
@@ -155,7 +158,7 @@ describe('A2tSession', () => {
     mockIssue(harness.fetchMock);
 
     await harness.session.ensureA2T();
-    harness.nowSec.value = NOW_SEC + 900 - 60;
+    harness.nowSec.value = NOW_SEC + 900 - A2T_REFRESH_MARGIN_SECONDS;
     await harness.session.ensureA2T();
 
     expect(harness.fetchMock).toHaveBeenCalledTimes(2);
@@ -225,7 +228,9 @@ describe('A2tSession', () => {
     );
 
     expect(attempts).toBeGreaterThan(3);
-    expect(harness.nowMs.value).toBeGreaterThanOrEqual(15_000);
+    expect(harness.nowMs.value).toBeGreaterThanOrEqual(
+      A2T_READINESS_TIMEOUT_MS,
+    );
     expect(harness.fetchMock).not.toHaveBeenCalled();
   });
 
@@ -246,7 +251,7 @@ describe('A2tSession', () => {
 
     expect(a2t).toBe(issuedToken);
     expect(attempts).toBe(5);
-    expect(harness.nowMs.value).toBe(800);
+    expect(harness.nowMs.value).toBe(4 * A2T_READINESS_POLL_MS);
   });
 
   it('drops the cached A2T when the session is cleared', async () => {
@@ -268,7 +273,8 @@ describe('A2tSession', () => {
 
     await harness.session.ensureA2T();
     harness.fetchMock.mockClear();
-    harness.nowSec.value = NOW_SEC + 2_000 + 900 - 61;
+    harness.nowSec.value =
+      NOW_SEC + 2_000 + 900 - (A2T_REFRESH_MARGIN_SECONDS + 1);
 
     const cached = await harness.session.ensureA2T();
 
@@ -283,7 +289,7 @@ describe('A2tSession', () => {
     mockIssue(harness.fetchMock);
 
     await harness.session.ensureA2T();
-    harness.nowSec.value = NOW_SEC - 500 + 900 - 60;
+    harness.nowSec.value = NOW_SEC - 500 + 900 - A2T_REFRESH_MARGIN_SECONDS;
 
     await harness.session.ensureA2T();
 
