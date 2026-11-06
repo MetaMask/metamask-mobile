@@ -42,6 +42,7 @@ import {
 } from '../constants/perpsCufTags';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -170,6 +171,7 @@ export const usePerpsClosePosition = (
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
 
   const handleClosePosition = useCallback(
     async (params: ClosePositionParams) => {
@@ -182,6 +184,11 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
+      // Refuse before any progress toast: a later close-failed toast would
+      // replace the watch-only explanation.
+      if (guardWatchOnly()) {
+        return undefined;
+      }
       const closeKey = getCloseKey(
         accountAddress,
         provider,
@@ -553,6 +560,7 @@ export const usePerpsClosePosition = (
       PerpsToastOptions.positionManagement,
       accountAddress,
       closePosition,
+      guardWatchOnly,
       network,
       options,
       provider,
