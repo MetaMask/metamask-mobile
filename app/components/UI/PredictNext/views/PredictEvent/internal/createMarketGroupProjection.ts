@@ -6,8 +6,11 @@ import {
   type MarketSelectorMarket,
 } from './marketSelectorGroup';
 
+// Only the line pickers this flat path renders. Kept narrow on purpose:
+// `EventMarketList` renders anything that isn't a total as a spread card.
 type SupportedMarketType =
-  (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES];
+  | typeof PREDICT_MARKET_TYPES.TOTAL
+  | typeof PREDICT_MARKET_TYPES.SPREAD;
 
 type GroupedMarket = MarketSelectorMarket & {
   group: MarketSelectorMarket['group'] & { marketType: SupportedMarketType };
