@@ -1,4 +1,7 @@
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import {
   FAKE_STATS_PREFIX,
@@ -50,6 +53,25 @@ const liveProfile = (
   ...overrides,
 });
 
+const openPosition = (
+  positionId: string,
+  overrides: Partial<Position> = {},
+): Position => ({
+  positionId,
+  tokenSymbol: positionId,
+  tokenName: positionId,
+  tokenAddress: `0x${positionId}`,
+  chain: 'ethereum',
+  positionAmount: 1,
+  boughtUsd: 100,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 100,
+  trades: [],
+  lastTradeAt: 1,
+  ...overrides,
+});
+
 describe('overlayMyProfileLiveStats', () => {
   it('prefixes local mock stats when the live profile is missing', () => {
     const result = overlayMyProfileLiveStats(localProfile, null);
@@ -70,6 +92,7 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.followerCount).toBe(88);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual([
       'pnl',
+      'unrealizedPnl',
       'winRate',
       'holdTime',
       'volume',
@@ -92,7 +115,10 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
+      'pnl',
+      'unrealizedPnl',
+    ]);
   });
 });
 
@@ -101,13 +127,43 @@ describe('buildPerformanceCells', () => {
     expect(buildPerformanceCells(null)).toEqual([]);
   });
 
-  it('returns all four cells in grid order when live stats are present', () => {
+  it('returns realized, empty unrealized, and the other live cells in grid order', () => {
     expect(buildPerformanceCells(liveProfile())).toEqual([
       { id: 'pnl', value: '+$1,200', tone: 'success' },
+      { id: 'unrealizedPnl', value: '', tone: 'default' },
       { id: 'winRate', value: '42%', tone: 'default' },
       { id: 'holdTime', value: '3h', tone: 'default' },
       { id: 'volume', value: '$50,000', tone: 'default' },
     ]);
+  });
+
+  it('fills unrealized from priced counted open positions', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('eth', { pnlValueUsd: 150, realizedPnl: 50 }),
+      openPosition('insider', {
+        flags: ['insider'],
+        pnlValueUsd: 999,
+        realizedPnl: 1,
+      }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '+$100',
+      tone: 'success',
+    });
+  });
+
+  it('shows $0 unrealized when priced positions net to zero', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('flat', { pnlValueUsd: 10, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '$0',
+      tone: 'success',
+    });
   });
 
   it('marks negative P&L with the error tone', () => {
@@ -130,6 +186,10 @@ describe('buildPerformanceCells', () => {
       }),
     );
 
-    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
+    expect(cells.map((cell) => cell.id)).toEqual([
+      'unrealizedPnl',
+      'winRate',
+      'volume',
+    ]);
   });
 });

@@ -1709,6 +1709,8 @@
       "mutuals_tab": "{{count}} mutuals",
       "win_rate": "Win rate",
       "pnl": "P&L",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
       "avg_hold_time": "Avg. hold time",
       "volume": "Volume",
