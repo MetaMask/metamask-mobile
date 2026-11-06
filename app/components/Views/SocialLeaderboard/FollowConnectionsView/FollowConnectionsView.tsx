@@ -34,7 +34,6 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
-import { formatAddress } from '../../../../util/address';
 import {
   useFollowedTraders,
   type FollowedTrader,
@@ -291,7 +290,6 @@ const FollowConnectionsView: React.FC = () => {
         <ConnectionRow
           id={item.id}
           username={item.username}
-          subtitle={formatAddress(item.address, 'short')}
           address={item.address}
           avatarUri={item.avatarUri}
           isFollowing={isFollowing(item.id, !isTraderList)}
@@ -319,7 +317,6 @@ const FollowConnectionsView: React.FC = () => {
         <ConnectionRow
           id={item.id}
           username={item.username}
-          subtitle={formatAddress(item.address, 'short')}
           address={item.address}
           avatarUri={item.avatarUri}
           isFollowing={isFollowing(item.id)}

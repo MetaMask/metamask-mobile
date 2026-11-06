@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Kami akan menukar token Anda dengan pUSD di Polygon, jaringan yang digunakan oleh Predictions. Penyedia swap mungkin akan mengenakan biaya, tetapi MetaMask tidak."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask akan menukar token Anda ke token yang diinginkan. MetaMask tidak mengenakan biaya saat Anda menukar ke mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask akan menukar token Anda ke token yang diinginkan. MetaMask tidak mengenakan biaya saat Anda menukar ke mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Biaya konversi mUSD mencakup biaya jaringan dan mungkin termasuk biaya penyedia. MetaMask tidak mengenakan biaya saat Anda mengonversi ke mUSD."
       },

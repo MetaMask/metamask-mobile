@@ -2,6 +2,7 @@ import NavigationService from '../../../NavigationService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { navigateToSocialLeaderboard } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import type { SocialShellTab } from '../../../../components/Views/SocialLeaderboard/shell/types';
+import { SocialEvent } from '../../../../components/Views/SocialLeaderboard/analytics/socialEvents';
 
 interface HandleSocialLeaderboardUrlParams {
   actionPath?: string;
@@ -55,15 +56,17 @@ export const handleSocialLeaderboardUrl = ({
       initialTab,
     });
 
-    navigateToSocialLeaderboard(
-      NavigationService.navigation.navigate,
-      initialTab ? { initialTab } : undefined,
-    );
+    navigateToSocialLeaderboard(NavigationService.navigation.navigate, {
+      source: SocialEvent.Source.DEEP_LINK,
+      ...(initialTab ? { initialTab } : null),
+    });
   } catch (error) {
     DevLogger.log(
       '[handleSocialLeaderboardUrl] Failed to handle deeplink:',
       error,
     );
-    navigateToSocialLeaderboard(NavigationService.navigation.navigate);
+    navigateToSocialLeaderboard(NavigationService.navigation.navigate, {
+      source: SocialEvent.Source.DEEP_LINK,
+    });
   }
 };

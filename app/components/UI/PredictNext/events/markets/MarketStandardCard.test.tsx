@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
@@ -7,6 +12,7 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 import { MarketStandardCard } from './MarketStandardCard';
 import { MarketStandardCardTestIds } from './MarketStandardCard.testIds';
 
@@ -171,25 +177,37 @@ describe('MarketStandardCard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('emits the market rules intent when the rules button is pressed', () => {
+  it('emits the market rules intent when the title is pressed', () => {
     const market = createMarket({ rules: 'Primary rule.' });
     const onRulesPress = jest.fn();
 
     renderMarketCard(market, onRulesPress);
-    fireEvent.press(
-      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    const title = screen.getByTestId(
+      MarketStandardCardTestIds.title(market.id),
     );
+
+    expect(title).toHaveProp('accessibilityRole', 'button');
+    expect(title).toHaveProp(
+      'accessibilityHint',
+      strings('predict.rules.market_accessibility_label'),
+    );
+    fireEvent.press(title);
 
     expect(onRulesPress).toHaveBeenCalledWith(market);
   });
 
-  it('hides the rules control when rules are absent', () => {
+  it('leaves the title inert when rules are absent', () => {
     const market = createMarket({ rules: undefined });
+    const onRulesPress = jest.fn();
 
-    renderMarketCard(market);
+    renderMarketCard(market, onRulesPress);
+    const title = screen.getByTestId(
+      MarketStandardCardTestIds.title(market.id),
+    );
 
-    expect(
-      screen.queryByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
-    ).not.toBeOnTheScreen();
+    expect(title).not.toHaveProp('accessibilityRole', 'button');
+    fireEvent.press(title);
+
+    expect(onRulesPress).not.toHaveBeenCalled();
   });
 });
