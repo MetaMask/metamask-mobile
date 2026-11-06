@@ -6,7 +6,8 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
+  withDelay,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import {
@@ -63,13 +64,22 @@ const MoneyHeader = ({
     }
 
     pulseProgress.value = 0;
-    pulseProgress.value = withRepeat(
-      withTiming(1, {
-        duration: 1000,
-        easing: Easing.out(Easing.cubic),
-      }),
-      2,
-      false,
+    pulseProgress.value = withDelay(
+      1100,
+      withSequence(
+        withTiming(1, {
+          duration: 1300,
+          easing: Easing.inOut(Easing.cubic),
+        }),
+        withTiming(0, { duration: 0 }),
+        withDelay(
+          80,
+          withTiming(1, {
+            duration: 1300,
+            easing: Easing.inOut(Easing.cubic),
+          }),
+        ),
+      ),
     );
 
     return () => cancelAnimation(pulseProgress);

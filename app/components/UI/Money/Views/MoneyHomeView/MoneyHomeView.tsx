@@ -20,6 +20,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -144,7 +145,7 @@ import moneyTwoFactorAnimation from '../../../../../animations/money_2fa_v2.riv'
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
-const PROTECTION_SUCCESS_HOLD_MS = 3000;
+const PROTECTION_SUCCESS_HOLD_MS = 2500;
 const PROTECTION_DISMISS_MS = 700;
 
 const protectionIconStyles = StyleSheet.create({
@@ -152,13 +153,13 @@ const protectionIconStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   celebrationBanner: {
-    height: 168,
+    height: 148,
     overflow: 'hidden',
     borderRadius: 16,
   },
   celebrationHalo: {
     position: 'absolute',
-    top: 27,
+    top: 14,
     right: 5,
     width: 120,
     height: 120,
@@ -169,12 +170,15 @@ const protectionIconStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 32,
-    marginTop: 14,
+    marginTop: 'auto',
     paddingHorizontal: 12,
     borderRadius: 16,
   },
   celebrationStatusLabel: {
     marginLeft: 6,
+  },
+  celebrationArtwork: {
+    top: 18,
   },
 });
 
@@ -182,7 +186,7 @@ const MoneyProtectionRiveArtwork = ({
   style,
   delayMs = 1500,
 }: {
-  style: ViewStyle;
+  style: StyleProp<ViewStyle>;
   delayMs?: number;
 }) => {
   const [runId, setRunId] = useState(0);
@@ -232,27 +236,27 @@ const MoneyProtectionCelebrationBanner = ({
 }) => {
   const { colors } = useTheme();
   const progress = useSharedValue(0);
+  const statusProgress = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withTiming(1, {
       duration: 2200,
       easing: Easing.inOut(Easing.cubic),
     });
+    statusProgress.value = withDelay(
+      100,
+      withTiming(1, {
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+      }),
+    );
 
-    return () => cancelAnimation(progress);
-  }, [progress]);
+    return () => {
+      cancelAnimation(progress);
+      cancelAnimation(statusProgress);
+    };
+  }, [progress, statusProgress]);
 
-  const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: interpolate(
-          progress.value,
-          [0, 0.3, 0.62, 1],
-          [1, 0.985, 1.025, 1],
-        ),
-      },
-    ],
-  }));
   const haloAnimatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       progress.value,
@@ -270,21 +274,20 @@ const MoneyProtectionCelebrationBanner = ({
     ],
   }));
   const statusAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.42, 0.68, 1], [0, 0, 1, 1]),
+    opacity: statusProgress.value,
     transform: [
       {
-        translateY: interpolate(
-          progress.value,
-          [0, 0.42, 0.72, 1],
-          [6, 6, 0, 0],
-        ),
+        translateY: interpolate(statusProgress.value, [0, 1], [6, 0]),
+      },
+      {
+        scale: interpolate(statusProgress.value, [0, 1], [0.96, 1]),
       },
     ],
   }));
 
   return (
     <Animated.View
-      style={[style, protectionIconStyles.celebrationBanner, cardAnimatedStyle]}
+      style={[style, protectionIconStyles.celebrationBanner]}
       testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
     >
       <Box style={copyStyle}>
@@ -333,7 +336,10 @@ const MoneyProtectionCelebrationBanner = ({
           haloAnimatedStyle,
         ]}
       />
-      <MoneyProtectionRiveArtwork delayMs={100} style={artworkStyle} />
+      <MoneyProtectionRiveArtwork
+        delayMs={100}
+        style={[artworkStyle, protectionIconStyles.celebrationArtwork]}
+      />
     </Animated.View>
   );
 };
