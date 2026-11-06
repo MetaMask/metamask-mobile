@@ -485,7 +485,7 @@ function testFileAdapterAndLearned() {
   const body = grouped.lengths.find((row) => row.bucket === 'wrap');
   assert(body && body.status === 'check-wrapping', 'long text is wrap-checked');
   const tight = grouped.lengths.find((row) => row.source === 'Continue');
-  assert(tight && tight.status === 'ok' && tight.characters === 8, 'eight characters still fit in 10');
+  assert(tight && tight.bucket !== 'button' && tight.status === 'ok', 'a narrow label is not a 10-character button');
   const pseudo = pseudoText('Yes');
   assert(pseudo.startsWith('⟦') && pseudo.endsWith('⟧'), 'pseudo is bracketed');
   assert(pseudo.includes('·'), 'pseudo is padded');
@@ -598,6 +598,168 @@ function testFigmaAdapter() {
   });
 }
 
+function testClassificationFixes() {
+  const figma = require('../lib/figma-adapter');
+  const { checkDesignFile, pseudoText, pseudoControlHits } = require('../lib/file-adapter');
+  const { buildBreakReport } = require('../lib/figma-report');
+  const rules = figma.loadRules(
+    path.join(lib.findRepoRoot(), 'tools/designer-language-toggle/references/figma-rules.json'),
+  );
+  const limits = lib.loadLimits(lib.defaultLimitsPath());
+  const classified = [
+    { layer_name: 'Place bet', frame_path: 'Trade / Button', text: 'Place bet now', width: 100 },
+    { layer_name: 'Label', frame_path: 'Markets / Stat', text: 'Player assists', width: 107 },
+    { layer_name: 'Label', frame_path: 'Feed / TabsBar', text: 'Matchups', width: 70 },
+    { layer_name: 'Save [button]', frame_path: 'Feed / Row', text: 'Save', width: 40 },
+    { layer_name: 'Label', frame_path: 'Board', text: '11.5', width: 40 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'O 228.5', width: 60 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'U 228.5', width: 60 },
+    { layer_name: 'Label', frame_path: 'Board', text: '25+ points', width: 70 },
+    { layer_name: 'Label', frame_path: 'Board', text: '3+ goals', width: 60 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'by 6–10', width: 50 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'Team A by 6–10', width: 110 },
+    { layer_name: 'Label', frame_path: 'Board', text: '3-1', width: 30 },
+    { layer_name: 'Label', frame_path: 'Board', text: "15'", width: 24 },
+    { layer_name: 'Label', frame_path: 'Board', text: '7:00 p.m. ET', width: 80 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'May 4', width: 40 },
+    { layer_name: 'Label', frame_path: 'Board', text: 'Nov 6', width: 40 },
+    { layer_name: 'Label', frame_path: 'Board', text: '2026-11-06', width: 70 },
+    { layer_name: 'Label', frame_path: 'Board', text: '+150', width: 36 },
+    { layer_name: 'Label', frame_path: 'Board', text: '-110', width: 36 },
+    { layer_name: 'Label', frame_path: 'Board', text: '45¢', width: 28 },
+    { layer_name: 'Label', frame_path: 'Board', text: '52%', width: 28 },
+    { layer_name: 'Label', frame_path: 'Standings / Table', text: 'Player assists', width: 100 },
+    { layer_name: 'Label', frame_path: 'Markets / Chip', text: 'Live', width: 40 },
+    { layer_name: 'Yes', frame_path: 'Trade / button', text: 'Yes', width: 40 },
+    { layer_name: 'Label', frame_path: 'Trade / Button', text: 'Share this', width: 80 },
+    { layer_name: 'Label', frame_path: 'Feed / TabsBar', text: 'Championship', width: 90 },
+    { layer_name: 'Label', frame_path: 'Trade / Button', text: 'Continue to the next market', width: 90 },
+  ].map((row) => figma.classifyTextNode({
+    id: row.text,
+    layer_name: row.layer_name,
+    frame_path: row.frame_path,
+    text: row.text,
+    width: row.width,
+    visible: true,
+  }, rules));
+  const byText = new Map(classified.map((row) => [row.text, row]));
+  assert(byText.get('Place bet now').kind === 'button', 'text inside a Button frame is a button even if the layer is not named Label');
+  assert(byText.get('Player assists').kind === 'label', 'a stat label is not a button');
+  assert(byText.get('Matchups').kind === 'tab', 'TabsBar labels are tabs');
+  assert(byText.get('Save').kind === 'button', '[button] forces a control');
+  assert(byText.get('Live').kind === 'button', 'Chip text is a control');
+  assert(byText.get('Yes').kind === 'button', 'a lowercase button ancestor still counts');
+  assert(byText.get('Share this').kind === 'button', 'a 10 character control is still a button');
+  assert(byText.get('Championship').kind === 'tab', 'a long tab label stays a tab');
+  assert(byText.get('Continue to the next market').kind === 'button', 'a long control stays a button');
+  const tableStat = classified.filter((row) => row.frame_path === 'Standings / Table');
+  assert(tableStat.length === 1 && tableStat[0].kind === 'label', 'a Table frame is not a tab');
+  ['11.5', 'O 228.5', 'U 228.5', '25+ points', '3+ goals', 'by 6–10', '3-1', "15'", '7:00 p.m. ET', 'May 4', 'Nov 6', '2026-11-06', '+150', '-110', '45¢', '52%'].forEach((text) => {
+    assert(byText.get(text).kind === 'number_or_data', `${text} is data`);
+  });
+  assert(byText.get('Team A by 6–10').kind === 'placeholder_or_annotation', 'Team A inside a longer string is a placeholder');
+  const teamName = figma.classifyTextNode({
+    id: 'team-america',
+    layer_name: 'Label',
+    frame_path: 'Board',
+    text: 'Team America',
+    width: 90,
+    visible: true,
+  }, rules);
+  assert(teamName.kind === 'label', 'Team America is not the Team A placeholder');
+
+  const file = path.join(os.tmpdir(), 'designer-control-fixture.json');
+  fs.writeFileSync(file, JSON.stringify(classified));
+  const checked = checkDesignFile(file, { lang: 'de', limits, pseudo: true });
+  const stat = checked.lengths.find((row) => row.source === 'Player assists');
+  assert(stat && stat.bucket !== 'button' && stat.status !== 'over', 'a narrow stat is not already over in English');
+  const cta = checked.lengths.find((row) => row.source === 'Place bet now');
+  assert(cta && cta.bucket === 'button' && cta.status === 'over', 'a long control fails the 10 character limit');
+  const tab = checked.lengths.find((row) => row.source === 'Matchups');
+  assert(tab && tab.bucket === 'tab', 'tabs use the control bucket');
+  const longControl = checked.lengths.find((row) => row.source === 'Continue to the next market');
+  assert(longControl && longControl.bucket === 'button' && longControl.status === 'over', 'a long control still uses the 10 character limit');
+  const exactTen = checked.lengths.find((row) => row.source === 'Share this');
+  assert(exactTen && exactTen.status === 'ok', '10 characters still fit');
+  const pseudoHits = checked.pseudo.controls.map((row) => row.source);
+  assert(pseudoHits.includes('Matchups'), 'pseudo measures tab labels against the button limit');
+  assert(pseudoHits.includes('Championship'), 'pseudo flags a tab that pads past 10');
+  assert(!pseudoHits.includes('Yes'), 'a 3 character control still fits after padding');
+  assert(!pseudoHits.includes('Player assists'), 'pseudo does not treat a stat label as a control');
+  assert(checkerCount(pseudoText('Matchups')) > 10, 'padded Matchups exceeds 10');
+  assert(checkerCount(pseudoText('Yes')) <= 10, 'padded Yes still fits in 10');
+  fs.rmSync(file, { force: true });
+
+  const { shipMatchKey } = require('../lib/figma-report');
+  assert(shipMatchKey('.') === null, 'punctuation is not a ship match');
+  assert(shipMatchKey('No') === null, 'two characters are not a ship match');
+  assert(shipMatchKey(' Yes ') === 'Yes', 'Yes still matches exactly after trimming');
+  const report = buildBreakReport(
+    [{
+      key: 'disclaimer',
+      source: 'Please read this disclaimer.',
+      characters: 28,
+      width_px: 90,
+      maxCharacters: 10,
+      status: 'over',
+      bucket: 'button',
+      screens: ['Sheet'],
+    }],
+    {
+      langs: ['de'],
+      sharedFlats: {
+        en: { 'a.dot': '.', 'a.note': 'Please read this disclaimer.' },
+        de: { 'a.dot': '............', 'a.note': 'Bitte diesen Hinweis lesen.' },
+      },
+    },
+  );
+  assert(report.alreadyOver[0].real.perLang.de.text === 'Bitte diesen Hinweis lesen.', 'exact English matches, not a lone period');
+  const partial = buildBreakReport(
+    [{
+      key: 'longer',
+      source: 'Please read this disclaimer. Thanks.',
+      characters: 36,
+      width_px: 200,
+      maxCharacters: 10,
+      status: 'over',
+      bucket: 'button',
+      screens: ['Sheet'],
+    }],
+    {
+      langs: ['de'],
+      sharedFlats: {
+        en: { 'a.dot': '.', 'a.note': 'Please read this disclaimer.' },
+        de: { 'a.dot': '............', 'a.note': 'Bitte diesen Hinweis lesen.' },
+      },
+    },
+  );
+  assert(partial.alreadyOver[0].real === null, 'a longer string does not match a shorter English value');
+  const fitted = buildBreakReport(
+    [{
+      key: 'share',
+      source: 'Share this',
+      characters: 10,
+      width_px: 80,
+      maxCharacters: 10,
+      status: 'ok',
+      bucket: 'button',
+      screens: ['Card'],
+    }],
+    {
+      langs: ['de'],
+      sharedFlats: {
+        en: { 'sample.share': 'Share this' },
+        de: { 'sample.share': 'Teilen' },
+      },
+    },
+  );
+  assert(fitted.alreadyOver.length === 0 && fitted.fits.length === 1, 'exactly 10 characters is not already over');
+}
+
+function checkerCount(value) {
+  return require('../lib/checker').characterCount(value);
+}
+
 function main() {
   testWidthAndAccent();
   const { root, realI18n } = makeFixture();
@@ -611,6 +773,7 @@ function main() {
   }
   testPerpsRegression();
   testFileAdapterAndLearned();
+  testClassificationFixes();
   return testFigmaAdapter().then(() => {
   if (failures > 0) {
     console.error(`${failures} failed`);

@@ -23,9 +23,47 @@ const DEFAULT_RULES = {
     pathExcludes: ['SectionHeader'],
   },
   skipLayerNames: ['fallbackText'],
-  skipExactText: ['Heading Sm', 'Title', 'Team A', 'Team B'],
-  skipTextIncludes: ['lorem', 'Lorem'],
-  dataPatterns: ['\\$', '¢', '%', '^\\d+$', '^\\d+\\s*-\\s*\\d+$', "\\d+'", '\\d{1,2}:\\d{2}'],
+  skipExactText: ['Heading Sm', 'Title'],
+  placeholderPatterns: [
+    '\\bTeam A\\b',
+    '\\bTeam B\\b',
+    '\\bPlayer\\s*\\d+\\b',
+    '\\bPlayer N\\b',
+    '\\bHeading Sm\\b',
+    '^Title$',
+    '\\blorem\\b',
+    '\\bJohn Doe\\b',
+    '\\bJane Doe\\b',
+  ],
+  controlAncestors: [
+    'Button',
+    'ButtonBase',
+    'Button Label',
+    'FilterButton',
+    'Segmented Control',
+    'Tab',
+    'TabsBar',
+    'Chip',
+    'Pill',
+  ],
+  tabAncestors: ['Tab', 'TabsBar'],
+  buttonMarker: '[button]',
+  dataPatterns: [
+    '\\$',
+    '¢',
+    '%',
+    '\\d+\\.\\d+',
+    '^[OU] \\d',
+    '\\d+\\+\\s*(?:points|goals)\\b',
+    '\\d+\\s*[\\-\\u2013]\\s*\\d+',
+    '^\\d+$',
+    "\\d+'",
+    '\\d{1,2}:\\d{2}',
+    '\\d{1,2}/\\d{1,2}',
+    '\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}\\b',
+    '\\d{4}-\\d{2}-\\d{2}',
+    '(?:^|\\s)[+-]\\d{2,4}\\b',
+  ],
   buttonMaxPx: 120,
   buttonMaxCharacters: 10,
   chunkAfterChildren: 8,
@@ -129,7 +167,7 @@ function compilePatterns(rules) {
   return (rules.dataPatterns || [])
     .map((source) => {
       try {
-        return new RegExp(source);
+        return new RegExp(source, 'i');
       } catch (error) {
         throw new Error(`A data pattern in figma-rules.json is not valid: ${source}`);
       }
@@ -142,11 +180,33 @@ function isDataText(text, patterns) {
   return patterns.some((pattern) => pattern.test(value));
 }
 
+function ancestorMatches(framePath, names) {
+  const parts = pathParts(framePath);
+  return (names || []).some((name) => {
+    const needle = String(name || '').trim();
+    if (!needle) return false;
+    const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}([^\\p{L}\\p{N}]|$)`, 'iu');
+    return parts.some((part) => pattern.test(part));
+  });
+}
+
+function compileList(patterns) {
+  return (patterns || [])
+    .map((source) => {
+      try {
+        return new RegExp(source, 'i');
+      } catch (error) {
+        throw new Error(`A pattern in figma-rules.json is not valid: ${source}`);
+      }
+    });
+}
+
 function isPlaceholderText(text, rules) {
   const value = String(text || '').trim();
   if ((rules.skipExactText || []).includes(value)) return true;
-  const lower = value.toLowerCase();
-  return (rules.skipTextIncludes || []).some((needle) => lower.includes(String(needle).toLowerCase()));
+  const patterns = rules._placeholderPatterns || compileList(rules.placeholderPatterns || rules.skipTextIncludes);
+  return patterns.some((pattern) => pattern.test(value));
 }
 
 function classifyTextNode(node, rules) {
@@ -171,8 +231,16 @@ function classifyTextNode(node, rules) {
   if (!forced && isDataText(text, patterns)) {
     return { ...node, kind: 'number_or_data', chars: checker.characterCount(text) };
   }
+  const marker = String(rules.buttonMarker || '[button]').toLowerCase();
+  const marked = `${layer} ${frame}`.toLowerCase().includes(marker);
+  const underControl = ancestorMatches(frame, rules.controlAncestors);
+  const underTab = ancestorMatches(frame, rules.tabAncestors);
   let kind = 'label';
-  if (layerIs(layer, rules.button.layerNames) && pathIncludes(frame, rules.button.pathIncludes)) {
+  if (marked) {
+    kind = 'button';
+  } else if (underTab) {
+    kind = 'tab';
+  } else if (underControl) {
     kind = 'button';
   } else if (layerIs(layer, rules.title.layerNames) && pathIncludes(frame, rules.title.pathIncludes)) {
     kind = 'title';

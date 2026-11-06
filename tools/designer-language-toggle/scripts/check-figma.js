@@ -122,7 +122,12 @@ async function main() {
       breaks: report.breaks,
       atRisk: report.atRisk,
       fits: report.fits.length,
-      pseudo: checked.pseudo ? checked.pseudo.note : null,
+      pseudo: checked.pseudo
+        ? {
+            note: checked.pseudo.note,
+            controls: (checked.pseudo.controls || []).length,
+          }
+        : null,
     }, null, 2));
     return;
   }
@@ -137,6 +142,10 @@ async function main() {
   if (checked.pseudo) {
     console.log('');
     console.log(`Pseudo: ${checked.pseudo.note}`);
+    const padded = (checked.pseudo.controls || []).length;
+    console.log(
+      `Pseudo length: ${padded} button or tab labels exceed their limit when padded. That is not a translation.`,
+    );
   }
 }
 

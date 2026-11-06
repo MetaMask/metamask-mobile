@@ -192,17 +192,14 @@ function classifyRecord(row, limits) {
   const width = row.context.width_px;
   const named = limits && limits.keys && limits.keys[row.key];
   const longText = characters > WRAP_MIN_CHARACTERS;
-  const buttonLike =
-    !longText &&
-    ((typeof width === 'number' && width <= BUTTON_MAX_PX) ||
-      (width === null && row.context.kind === 'button'));
+  const control = row.context.kind === 'button' || row.context.kind === 'tab';
   let maxCharacters = named ? named.maxCharacters : null;
   let status = 'no-limit';
-  let bucket = 'none';
-  if (buttonLike) {
+  let bucket = 'label';
+  if (control) {
     maxCharacters = named ? named.maxCharacters : BUTTON_MAX_CHARACTERS;
     status = characters > maxCharacters ? 'over' : 'ok';
-    bucket = 'button';
+    bucket = row.context.kind === 'tab' ? 'tab' : 'button';
   } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
     status = 'check-wrapping';
     bucket = 'wrap';
@@ -211,6 +208,8 @@ function classifyRecord(row, limits) {
     maxCharacters = named.maxCharacters;
     status = characters > maxCharacters ? 'over' : 'ok';
     bucket = 'named';
+  } else {
+    status = 'ok';
   }
   return {
     key: row.key,
@@ -230,6 +229,13 @@ function classifyRecord(row, limits) {
   };
 }
 
+function pseudoControlHits(lengths) {
+  return lengths.filter((row) => {
+    if (row.bucket !== 'button' && row.bucket !== 'tab') return false;
+    const limit = row.maxCharacters || BUTTON_MAX_CHARACTERS;
+    return checker.characterCount(pseudoText(row.source)) > limit;
+  });
+}
 function pseudoText(value) {
   const pieces = String(value).split(/(\{\{[^}]*\}\})/g);
   const accented = pieces
@@ -274,6 +280,7 @@ function checkDesignFile(filePath, options) {
     pseudo = {
       label: 'pseudo',
       note: 'Not a translation. Accented English, padded so length is easier to see.',
+      controls: pseudoControlHits(lengths),
       report: checker.check(pseudoStrings, {
         lang: 'pseudo',
         limits,
@@ -304,6 +311,7 @@ module.exports = {
   parseCsv,
   readDesignFile,
   pseudoText,
+  pseudoControlHits,
   dedupeRecords,
   classifyRecord,
   checkDesignFile,

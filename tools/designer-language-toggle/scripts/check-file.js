@@ -157,6 +157,10 @@ function main() {
   if (result.pseudo) {
     console.log('');
     console.log(`Pseudo: ${result.pseudo.note}`);
+    const padded = (result.pseudo.controls || []).length;
+    console.log(
+      `Pseudo length: ${padded} button or tab labels exceed their limit when padded. That is not a translation.`,
+    );
     result.kept.forEach((row) => {
       console.log(`  ${row.id}  ${pseudoText(row.source_text)}`);
     });

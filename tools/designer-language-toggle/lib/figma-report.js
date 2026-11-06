@@ -7,16 +7,26 @@ const checker = require('./checker');
 function indexEnglish(enFlat) {
   const index = new Map();
   Object.keys(enFlat || {}).forEach((key) => {
-    const value = enFlat[key];
-    if (typeof value !== 'string') return;
-    if (!index.has(value)) index.set(value, []);
-    index.get(value).push(key);
+    const usable = shipMatchKey(enFlat[key]);
+    if (!usable) return;
+    if (!index.has(usable)) index.set(usable, []);
+    index.get(usable).push(key);
   });
   return index;
 }
 
+function shipMatchKey(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return null;
+  if (checker.characterCount(trimmed) < 3) return null;
+  if (!/[\p{L}\p{N}]/u.test(trimmed)) return null;
+  return trimmed;
+}
+
 function realTranslations(source, index, sharedFlats, langs) {
-  const keys = index.get(source) || [];
+  const usable = shipMatchKey(source);
+  if (!usable) return null;
+  const keys = index.get(usable) || [];
   if (keys.length === 0) return null;
   const perLang = {};
   langs.forEach((lang) => {
@@ -38,7 +48,9 @@ function buildBreakReport(lengths, options) {
   const langs = options.langs || [];
   const shared = options.sharedFlats || {};
   const index = indexEnglish(shared.en || {});
-  const buttons = (lengths || []).filter((row) => row.bucket === 'button');
+  const buttons = (lengths || []).filter(
+    (row) => row.bucket === 'button' || row.bucket === 'tab',
+  );
   const alreadyOver = [];
   const breaks = [];
   const atRisk = [];
@@ -56,7 +68,7 @@ function buildBreakReport(lengths, options) {
       basis: real ? 'real' : 'estimate',
       real,
     };
-    if (row.characters >= limit) {
+    if (row.characters > limit) {
       alreadyOver.push(item);
       return;
     }
@@ -81,4 +93,5 @@ function buildBreakReport(lengths, options) {
 module.exports = {
   buildBreakReport,
   realTranslations,
+  shipMatchKey,
 };

@@ -1,5 +1,7 @@
 # Changelog
 
+- The 10-character limit applies only to real controls: text under Button, ButtonBase, Button Label, FilterButton, Segmented Control, Tab, TabsBar, Chip, or Pill, plus any layer marked `[button]`. Ancestor names match as whole words, so a Table frame is not a tab. Other narrow text is a label or a wrap check, and it is not "already over in English". Exactly 10 characters still fits. Placeholder names, including Team A inside a longer string, are editable in `placeholderPatterns`. Odds, scores, clocks, dates, decimals, and similar figures are skipped. Ship matching ignores English shorter than 3 characters or made only of punctuation, and it requires the same text after trimming. `--pseudo` measures the button and tab bucket against that 10-character limit.
+
 ## v0.2 slice B
 
 - `check-figma.js` reads a Figma link through the REST API when `FIGMA_TOKEN` is set. The extract is cached under `tools/designer-language-toggle/.cache/figma/` and is not committed.
