@@ -41,8 +41,10 @@ import {
   queueClaimRewardsInPlaceOfSettledBanner,
   suppressSettledClaimBatchBanner,
 } from '../utils/claimBatchNotifications';
+import { useFollowTradeClaimOpen } from './useFollowTradeClaimOpen';
 import {
   canClaimEarnings,
+  claimRouteOptions,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimRoutesForSummary,
@@ -266,15 +268,17 @@ export function useClaimEarnings(
     return () => clearTimeout(timer);
   }, [waitUntil, dispatch, profileId]);
 
+  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
   const claim = useCallback(
     async (summary: EarningsSummaryDto) => {
+      const routeOptions = claimRouteOptions(followTradeClaimOpen);
       const waitingUntil = claimWaitingUntilRef.current;
       if (
         !localizedText ||
         isClaimingRef.current ||
         claimLockRef.current != null ||
         (waitingUntil !== null && waitingUntil > Date.now()) ||
-        !canClaimEarnings(summary, persona)
+        !canClaimEarnings(summary, persona, routeOptions)
       ) {
         return;
       }
@@ -288,7 +292,7 @@ export function useClaimEarnings(
       let lockArmed = false;
       let holdForFreshSummary = false;
       const startedAt = Date.now();
-      const routes = claimRoutesForSummary(summary);
+      const routes = claimRoutesForSummary(summary, persona, routeOptions);
       let tracked = false;
       const durationMs = () => Math.max(0, Date.now() - startedAt);
       const trackFailed = (route: ClaimRouteSlug, failureReason: string) => {
@@ -541,6 +545,7 @@ export function useClaimEarnings(
     [
       localizedText,
       persona,
+      followTradeClaimOpen,
       moneyAccount?.address,
       vaultConfig,
       isSponsorshipEnabled,

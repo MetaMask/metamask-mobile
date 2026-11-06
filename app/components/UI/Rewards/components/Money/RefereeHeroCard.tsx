@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxFlexDirection,
@@ -7,6 +9,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   ReferralLocalizedText,
   ReferredByView,
@@ -15,7 +19,7 @@ import { useMoneyHeroEntries } from '../../hooks/useMoneyHeroEntries';
 import MoneyHeroErrorBanner from './MoneyHeroErrorBanner';
 import MoneyHeroIdentityHeader from './MoneyHeroIdentityHeader';
 import MoneyMetricCard from './MoneyMetricCard';
-import { SHOW_TRADING_COMMISSIONS } from './constants';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { fillOfferEndsIn } from './fillOfferEndsIn';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
@@ -53,6 +57,22 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
   referredBy,
   localizedText,
 }) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const commissionsInfoDescription = localizedText.copyTradingInfoDescription;
+  const openCommissionsInfo = useCallback(() => {
+    if (!commissionsInfoDescription) {
+      return;
+    }
+    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+      title: localizedText.tradingCommissionsSection,
+      description: commissionsInfoDescription,
+    });
+  }, [
+    commissionsInfoDescription,
+    localizedText.tradingCommissionsSection,
+    navigation,
+  ]);
   const {
     referralMeEntry,
     earningsSummary,
@@ -120,7 +140,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
         ) : null}
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        {SHOW_TRADING_COMMISSIONS ? (
+        {showTradingCommissions ? (
           <MoneyMetricCard
             iconName={IconName.Copy}
             label={localizedText.tradingCommissionsSection}
@@ -132,6 +152,9 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
             }
             caption={localizedText.recordedEarnings}
             isLoading={isEarningsLoading}
+            onInfoPress={
+              commissionsInfoDescription ? openCommissionsInfo : undefined
+            }
             testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}
           />
         ) : null}

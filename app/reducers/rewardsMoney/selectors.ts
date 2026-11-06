@@ -2,6 +2,7 @@ import type { RootState } from '..';
 import type {
   ClaimDto,
   CommissionEntryView,
+  MechanismsView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
@@ -160,6 +161,16 @@ export function selectReferralFunnelEntry(
     return undefined;
   }
   return state.rewardsMoney.referralFunnel?.[profileId];
+}
+
+export function selectCommissionMechanisms(
+  state: RootState,
+  profileId: string | undefined,
+): MechanismsView | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.commissionMechanisms?.[profileId];
 }
 
 export function selectCommissions(
