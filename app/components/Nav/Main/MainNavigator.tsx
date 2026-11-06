@@ -82,6 +82,7 @@ import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuar
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { useRewardsPendingDeeplink } from '../../UI/Rewards/hooks/useRewardsPendingDeeplink';
 import { usePrefetchRewardsIdentity } from '../../UI/Rewards/hooks/usePrefetchRewardsIdentity';
 import {
   getRewardsTabContentState,
@@ -132,6 +133,7 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
+import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -178,7 +180,7 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import {
   MoneyConfirmationScreenStack,
-  MoneyModalStack,
+  MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
@@ -197,12 +199,12 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictPreviewSheetProvider,
-  selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
+import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
@@ -219,6 +221,7 @@ import {
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
   ManageProfileLinkedAccountView,
+  EditProfileAvatarView,
   TraderProfileView,
   TraderPositionView,
   PositionDetailsSheet,
@@ -243,6 +246,7 @@ import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
+import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -264,6 +268,7 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
@@ -471,6 +476,14 @@ const RewardsHome = () => {
     moneyEnabled,
     moneyReferralResolved,
     moneyPersona,
+  });
+  // Both homes share this. A money persona never mounts RewardsDashboard, so a
+  // deeplink read only there would stay on the money home.
+  useRewardsPendingDeeplink({
+    enabled:
+      tabContent.status === 'ready' &&
+      (tabContent.variant === 'dashboard' ||
+        tabContent.variant === 'money_dashboard'),
   });
 
   if (
@@ -732,6 +745,14 @@ const HOME_TAB_COMPONENTS = {
   rewards: RewardsHome,
 } satisfies Record<Exclude<HomeTabKey, 'social'>, unknown>;
 
+const HomeTabSheetHosts = ({ children }: { children: React.ReactNode }) => (
+  <PredictPreviewSheetProvider>
+    <TrendingQuickBuySheetProvider>
+      <QuickBuySheetHostProvider>{children}</QuickBuySheetHostProvider>
+    </TrendingQuickBuySheetProvider>
+  </PredictPreviewSheetProvider>
+);
+
 const HomeTabs = () => {
   const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -765,6 +786,8 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
+  const canOpenSocialTabDirectly =
+    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -789,6 +812,7 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
+      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -898,92 +922,76 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab, undefined, colors.success.default)
       }
       listeners={getNativeTabListeners(tab)}
+      initialParams={tab.initialParams}
       component={tabComponentFor(tab)}
     />
   );
 
-  /*
-   * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
-   * mounted here (above Tab.Navigator) so their BottomSheets render inside
-   * the full-viewport Home screen card.
-   * BottomSheet uses `absolute inset-0` (see
-   * @metamask/design-system-react-native) and would be clipped by an
-   * individual tab's content area if mounted lower in the tree.
-   *
-   * A nested provider in PredictScreenStack still shadows this one for
-   * usage; the registration stack in PredictPreviewSheetContext keeps only
-   * the innermost (most recently mounted) provider active for state-based
-   * Retry toasts so we don't double-fire when both are mounted.
-   */
   if (isNativeTabBar) {
     return (
-      <PredictPreviewSheetProvider>
-        <TrendingQuickBuySheetProvider>
-          {isMoneyAccountEnabled ? (
-            <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-          ) : null}
-          <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-            <NativeTab.Navigator
-              initialRouteName={Routes.WALLET.HOME}
-              screenOptions={{
-                headerShown: false,
-                // Mount on first visit like the JS navigator; the native
-                // default renders every tab at launch and never freezes them.
-                lazy: true,
-                // UIKit picks the inactive colour.
-                tabBarActiveTintColor: colors.icon.default,
-                tabBarMinimizeBehavior: 'onScrollDown',
-                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-                overrideScrollViewContentInsetAdjustmentBehavior: false,
-              }}
-            >
-              {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-              <NativeTab.Screen
-                name={systemSlotTab.name}
-                options={systemSlotTab.options}
-                listeners={systemSlotTab.listeners}
-                component={systemSlotTab.component}
-              />
-            </NativeTab.Navigator>
-          </FloatingTabBarInsetContext.Provider>
-        </TrendingQuickBuySheetProvider>
-      </PredictPreviewSheetProvider>
+      <HomeTabSheetHosts>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
+          <NativeTab.Navigator
+            initialRouteName={Routes.WALLET.HOME}
+            screenOptions={{
+              headerShown: false,
+              // Mount on first visit like the JS navigator; the native
+              // default renders every tab at launch and never freezes them.
+              lazy: true,
+              // UIKit picks the inactive colour.
+              tabBarActiveTintColor: colors.icon.default,
+              tabBarMinimizeBehavior: 'onScrollDown',
+              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+              overrideScrollViewContentInsetAdjustmentBehavior: false,
+            }}
+          >
+            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+            <NativeTab.Screen
+              name={systemSlotTab.name}
+              options={systemSlotTab.options}
+              listeners={systemSlotTab.listeners}
+              component={systemSlotTab.component}
+            />
+          </NativeTab.Navigator>
+        </FloatingTabBarInsetContext.Provider>
+      </HomeTabSheetHosts>
     );
   }
 
   return (
-    <PredictPreviewSheetProvider>
-      <TrendingQuickBuySheetProvider>
-        {isMoneyAccountEnabled ? (
-          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-        ) : null}
-        <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-          <JsTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            tabBar={renderTabBar}
-            screenOptions={{
-              headerShown: false,
-              // Never suspend blurred tabs: react-native-screens' delayed freeze
-              // can drop the activityState commit when a tab is left mid-mount,
-              // leaving the old screen (usually Money) stuck on top.
-              freezeOnBlur: false,
-            }}
-          >
-            {tabs.slice(0, 3).map(renderJsTabScreen)}
+    <HomeTabSheetHosts>
+      {isMoneyAccountEnabled ? (
+        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+      ) : null}
+      <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
+        <JsTab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={renderTabBar}
+          screenOptions={{
+            headerShown: false,
+            // Never suspend blurred tabs: react-native-screens' delayed freeze
+            // can drop the activityState commit when a tab is left mid-mount,
+            // leaving the old screen (usually Money) stuck on top.
+            freezeOnBlur: false,
+          }}
+        >
+          {tabs.slice(0, 3).map(renderJsTabScreen)}
 
-            {isFloatingTabBar ? null : (
-              <JsTab.Screen
-                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                options={tradeOptions}
-                component={WalletTabStackFlow}
-              />
-            )}
+          {isFloatingTabBar ? null : (
+            <JsTab.Screen
+              name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+              options={tradeOptions}
+              component={WalletTabStackFlow}
+            />
+          )}
 
-            {tabs.slice(3).map(renderJsTabScreen)}
-          </JsTab.Navigator>
-        </FloatingTabBarInsetContext.Provider>
-      </TrendingQuickBuySheetProvider>
-    </PredictPreviewSheetProvider>
+          {tabs.slice(3).map(renderJsTabScreen)}
+        </JsTab.Navigator>
+      </FloatingTabBarInsetContext.Provider>
+    </HomeTabSheetHosts>
   );
 };
 
@@ -1061,12 +1069,9 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
-  // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => predictEnabledFlag,
-    [predictEnabledFlag],
-  );
+  // Predict routes are registered while Predict is available for the
+  // Active Venue, the same gate its entry points use.
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1128,6 +1133,10 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
+          component={RewardsMoneyClaimsPausedModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
@@ -1254,7 +1263,6 @@ const MainNavigator = () => {
           component={RWATokensFullView}
         />
       </NativeStack.Group>
-
       <NativeStack.Screen name="Webview" component={Webview} />
       <NativeStack.Screen
         name="Send"
@@ -1407,17 +1415,20 @@ const MainNavigator = () => {
             }}
           />
           <NativeStack.Screen
-            name={Routes.MONEY.MODALS.ROOT}
-            component={MoneyModalStack}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={slideFromRightNativeOptions}
           />
         </>
       )}
+      {/* Always register this gateway so Money sheets opened from other app
+          screens, such as Card Home, show the unavailable notice when the
+          feature is disabled. */}
+      <NativeStack.Screen
+        name={Routes.MONEY.MODALS.ROOT}
+        component={MoneyModalGateway}
+        options={transparentModalStackOptions}
+      />
       {/*
        * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
        * - Maintenance modal when the feature is disabled.
@@ -1426,6 +1437,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
         component={MoneyDeeplinkModal}
+        options={transparentModalStackOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MONEY.DEPOSIT_DEEPLINK}
+        component={MoneyDepositDeeplinkBridge}
         options={transparentModalStackOptions}
       />
       <NativeStack.Screen
@@ -1475,7 +1491,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={PredictScreenStack}
+            component={PredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen
@@ -1541,6 +1557,10 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
             component={ManageProfileLinkedAccountView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.EDIT_AVATAR}
+            component={EditProfileAvatarView}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.PROFILE_ONBOARDING}

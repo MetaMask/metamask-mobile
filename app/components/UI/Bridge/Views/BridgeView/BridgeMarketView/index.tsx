@@ -104,6 +104,9 @@ import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFla
 import type { RootState } from '../../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
+import RebateBanner from '../../../../shared/RebateBanner';
+import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
+import { useSwapsRebate } from '../../../hooks/useSwapsRebate';
 import {
   InsufficientNativeReserveBanner,
   MarketClosedBanner,
@@ -280,6 +283,8 @@ const BridgeMarketViewContent = ({
     isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
 
+  const rebatePercent = useSwapsRebate(activeQuote?.quote);
+
   useInitialSlippage(
     activeQuote?.quote.slippage,
     isActiveQuoteForCurrentTokenPair && !needsNewQuote,
@@ -334,6 +339,10 @@ const BridgeMarketViewContent = ({
     isValidSourceAmount,
     quotesLastFetched,
   ]);
+
+  const hasCurrentQuote = Boolean(
+    !needsNewQuote && isValidSourceAmount && activeQuote && quotesLastFetched,
+  );
 
   const scrollContentContainerStyle = useMemo(
     () => [
@@ -715,32 +724,43 @@ const BridgeMarketViewContent = ({
         <BridgeMarketViewFooter
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
+          rebatePercent={rebatePercent}
         />
+      </Box>
 
-        <SwapsKeypad
-          ref={keypadRef}
-          value={sourceAmountInput.keypadValue}
-          onChange={sourceAmountInput.handleKeypadChange}
-          currency={sourceAmountInput.keypadCurrency}
-          decimals={sourceAmountInput.keypadDecimals}
-        >
-          {sourceAmount && sourceAmount !== '0' ? (
+      <SwapsKeypad
+        ref={keypadRef}
+        value={sourceAmountInput.keypadValue}
+        onChange={sourceAmountInput.handleKeypadChange}
+        currency={sourceAmountInput.keypadCurrency}
+        decimals={sourceAmountInput.keypadDecimals}
+      >
+        {sourceAmount && sourceAmount !== '0' ? (
+          <>
+            {hasCurrentQuote && rebatePercent ? (
+              // -mt-3 offsets the sheet's hidden drag-handle area so the top inset matches the sides.
+              <RebateBanner
+                rebatePercent={rebatePercent}
+                testID={SWAPS_REBATE_BANNER_TEST_ID}
+                twClassName="-mt-3"
+              />
+            ) : null}
             <SwapsMarketOrderConfirmButton
               location={location}
               transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
-          ) : (
-            <GaslessQuickPickOptions
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              onMaxPress={handleSourceMaxPress}
-              isQuoteSponsored={isQuoteSponsored}
-              onAmountSelect={handleSourcePresetAmountSelect}
-            />
-          )}
-        </SwapsKeypad>
-      </Box>
+          </>
+        ) : (
+          <GaslessQuickPickOptions
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            onMaxPress={handleSourceMaxPress}
+            isQuoteSponsored={isQuoteSponsored}
+            onAmountSelect={handleSourcePresetAmountSelect}
+          />
+        )}
+      </SwapsKeypad>
     </ScreenView>
   );
 };

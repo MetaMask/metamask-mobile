@@ -5,9 +5,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -19,8 +16,9 @@ import { strings } from '../../../../../../locales/i18n';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import { partitionUncountedPositions } from '../utils/partitionUncountedPositions';
 import {
-  getFilteredPositionSections,
+  filterPositionsByAsset,
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
 } from '../utils/splitPositionsByType';
@@ -36,9 +34,14 @@ export interface ProfilePositionsTabProps {
   error: string | null;
   isClosed: boolean;
   filter: ProfileAssetFilter;
-  onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  /**
+   * When true, flagged rows use the V1 subline treatment and stay pressable
+   * so position history can open. Own profiles omit this so flagged data
+   * stays a normal row.
+   */
+  showFlaggedState?: boolean;
 }
 
 const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
@@ -47,16 +50,23 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   error,
   isClosed,
   filter,
-  onFilterChange,
   onPositionPress,
   onRetry,
+  showFlaggedState,
 }) => {
-  const { tokens, perps } = useMemo(
-    () => getFilteredPositionSections(positions, filter),
-    [filter, positions],
-  );
-  const showSectionHeaders = filter === 'all';
-  const isEmpty = tokens.length === 0 && perps.length === 0;
+  const { counted, uncounted } = useMemo(() => {
+    // Every viewer, including the owner, pins flagged rows after the counted
+    // list. `showFlaggedState` draws the subline treatment and still passes
+    // presses through, so history can open. The owner omits it. The filter
+    // applies inside the pin.
+    const split = partitionUncountedPositions(positions);
+
+    return {
+      counted: filterPositionsByAsset(split.counted, filter),
+      uncounted: filterPositionsByAsset(split.uncounted, filter),
+    };
+  }, [filter, positions]);
+  const isEmpty = counted.length === 0 && uncounted.length === 0;
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
@@ -68,39 +78,13 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
+        flaggedPresentation={showFlaggedState ? 'subline' : undefined}
         onPress={onPositionPress}
       />
     ));
 
   return (
-    <Box paddingTop={6} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
-      <FilterButtonGroup
-        value={filter}
-        onChange={(value) => onFilterChange(value as ProfileAssetFilter)}
-        variant={FilterButtonVariant.Primary}
-        twClassName="px-4 pb-3"
-        testID={MyProfileViewSelectorsIDs.ASSET_FILTER}
-      >
-        <FilterButton
-          value="all"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_ALL}
-        >
-          {strings('social_leaderboard.shell.filters.type.all')}
-        </FilterButton>
-        <FilterButton
-          value="tokens"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS}
-        >
-          {strings('social_leaderboard.shell.filters.type.tokens')}
-        </FilterButton>
-        <FilterButton
-          value="perps"
-          testID={MyProfileViewSelectorsIDs.ASSET_FILTER_PERPS}
-        >
-          {strings('social_leaderboard.shell.filters.type.perps')}
-        </FilterButton>
-      </FilterButtonGroup>
-
+    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
       {error && isEmpty ? (
         <Box
           alignItems={BoxAlignItems.Center}
@@ -109,12 +93,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           testID={MyProfileViewSelectorsIDs.POSITIONS_ERROR}
         >
           <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
             twClassName="text-center"
           >
             {strings('social_leaderboard.feed.error.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.feed.error.description')}
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
@@ -140,32 +131,18 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         </Box>
       ) : (
         <>
-          {tokens.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.TOKENS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_tokens')}
-                </Text>
-              ) : null}
-              {renderRows(tokens)}
-            </Box>
-          ) : null}
-          {perps.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.PERPS_SECTION}>
-              {showSectionHeaders ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  twClassName="px-4 pt-2 pb-1"
-                >
-                  {strings('social_leaderboard.my_profile.section_perpetuals')}
-                </Text>
-              ) : null}
-              {renderRows(perps)}
+          {renderRows(counted)}
+          {uncounted.length > 0 ? (
+            <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                accessibilityRole="header"
+                twClassName="px-4 pt-2 pb-1"
+              >
+                {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
+              </Text>
+              {renderRows(uncounted)}
             </Box>
           ) : null}
         </>

@@ -68,6 +68,22 @@ function mapCardTransactionStatus(
   }
 }
 
+/**
+ * True when the card provider's outcome for a transaction is not a successful
+ * spend. A declined or reversed transaction can still have settled on-chain,
+ * in which case its Accounts-API activity row looks like any other successful
+ * purchase — only the provider knows otherwise. See
+ * `accountsApiActivityDisplayInfo`.
+ */
+export function isUnsuccessfulCardTransactionStatus(
+  status: CardTransactionStatus,
+): boolean {
+  return (
+    status === CardTransactionStatus.Failed ||
+    status === CardTransactionStatus.Reversed
+  );
+}
+
 function getTransactionLabel(tx: CardTransaction): string {
   return strings(TYPE_LABEL_KEY[tx.type]);
 }
@@ -108,6 +124,8 @@ export function cardTransactionDisplayInfo(
     isIncoming: !tx.isDebit,
     icon: IconName.Card,
     status: mapCardTransactionStatus(tx.status),
+    // Activity rows only render this line when asked. Card charges live here.
+    showPrimaryAmount: true,
   };
 }
 

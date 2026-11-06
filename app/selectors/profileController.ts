@@ -14,8 +14,12 @@ import type { RootState } from '../reducers';
  * @returns The EVM address, or null when none is linked.
  */
 export const getLinkedEvmAddress = (
-  linkedAddresses: CaipAccountId[],
+  linkedAddresses?: CaipAccountId[] | null,
 ): string | null => {
+  if (!Array.isArray(linkedAddresses)) {
+    return null;
+  }
+
   for (const linkedAddress of linkedAddresses) {
     try {
       const { address, chainId } = parseCaipAccountId(linkedAddress);
@@ -51,6 +55,17 @@ export const selectProfileControllerLinkedEvmAddress = createSelector(
   selectProfileControllerProfile,
   (profile): string | null =>
     profile ? getLinkedEvmAddress(profile.linkedAddresses) : null,
+);
+
+/**
+ * Whether an existing social profile has disabled trading activity sharing.
+ *
+ * A missing profile is not private: callers use that state to preserve the
+ * one-time Create profile prompt.
+ */
+export const selectIsProfileTradingActivityPrivate = createSelector(
+  selectProfileControllerProfile,
+  (profile): boolean => Boolean(profile?.tradingPrivacy === 'private'),
 );
 
 /**

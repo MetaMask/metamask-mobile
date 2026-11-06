@@ -108,6 +108,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));

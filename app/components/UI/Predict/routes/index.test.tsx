@@ -34,6 +34,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
+  ...jest.requireActual('../selectors/featureFlags'),
   selectPredictWithAnyTokenEnabledFlag: () =>
     mockSelectPredictWithAnyTokenEnabledFlag(),
   selectPredictPortfolioEnabledFlag: () =>
@@ -108,6 +109,11 @@ jest.mock('../views/PredictSellPreview/PredictSellPreview', () => {
 jest.mock('../views/PredictUnavailableModal', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-unavailable-modal" />;
+});
+
+jest.mock('../views/PredictMarketUnavailableModal', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-market-unavailable-modal" />;
 });
 
 jest.mock('../views/PredictAddFundsModal/PredictAddFundsModal', () => {
@@ -298,6 +304,18 @@ describe('PredictModalStack', () => {
     renderWithNavigation(<PredictModalStack />);
 
     expect(screen.getByTestId('predict-unavailable-modal')).toBeOnTheScreen();
+  });
+
+  it('navigates to MARKET_UNAVAILABLE', async () => {
+    renderWithNavigation(<PredictModalStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.MODALS.MARKET_UNAVAILABLE);
+    });
+
+    expect(
+      screen.getByTestId('predict-market-unavailable-modal'),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to ADD_FUNDS_SHEET', async () => {

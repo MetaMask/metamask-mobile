@@ -1,4 +1,6 @@
 import React, { useContext, useMemo } from 'react';
+import { Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
   IconColor,
@@ -10,11 +12,14 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  usePushProvisioning,
   getWalletName,
+  usePushProvisioning,
   type ProvisioningError,
 } from '../../../pushProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
 import {
   CardStatus,
@@ -45,8 +50,12 @@ export function resolveWalletEntry({
 
 export function useCardWalletProvisioning(
   data: CardHomeData | null | undefined,
-  platformWalletSupported: boolean,
+  options?: {
+    onSuccess?: () => void;
+    platformWalletSupported?: boolean;
+  },
 ) {
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
 
@@ -78,31 +87,43 @@ export function useCardWalletProvisioning(
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
+    hideProvisioningUi,
   } = usePushProvisioning({
     cardId: data?.card?.id,
     walletProvisioning,
     userAddress: userAddressForProvisioning,
-    onSuccess: () => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings('card.push_provisioning.success_message', {
-              walletName: getWalletName(),
-            }),
-          },
-        ],
-        startAccessory: (
-          <Icon
-            name={IconName.Confirmation}
-            color={IconColor.SuccessDefault}
-            size={IconSize.Lg}
-          />
-        ),
-        hasNoTimeout: false,
-      });
+    onSuccess: (result) => {
+      if (result?.activationState === 'requires_activation') {
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      } else {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('card.push_provisioning.success_message', {
+                walletName: getWalletName(),
+              }),
+            },
+          ],
+          startAccessory: (
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          ),
+          hasNoTimeout: false,
+        });
+      }
+      options?.onSuccess?.();
     },
     onError: (provisioningError: ProvisioningError) => {
+      if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
+        return;
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [
@@ -124,13 +145,15 @@ export function useCardWalletProvisioning(
     },
   });
 
-  const walletEntry = resolveWalletEntry({
-    cardStatus: data?.card?.status,
-    isEligibilityLoading: isLoading,
-    canAddToWallet,
-    isCardInWallet,
-    platformWalletSupported,
-  });
+  const walletEntry = hideProvisioningUi
+    ? 'none'
+    : resolveWalletEntry({
+        cardStatus: data?.card?.status,
+        isEligibilityLoading: isLoading,
+        canAddToWallet,
+        isCardInWallet,
+        platformWalletSupported: options?.platformWalletSupported ?? false,
+      });
 
   return {
     initiateProvisioning,

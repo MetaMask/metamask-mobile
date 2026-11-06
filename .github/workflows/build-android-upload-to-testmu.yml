@@ -142,6 +142,9 @@ permissions:
   actions: read
   statuses: read
 
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
+
 jobs:
   check-builds-needed:
     name: Check if Android builds are needed
@@ -1044,6 +1047,49 @@ jobs:
             echo "❌ Both APK uploads failed. Failing step."
             exit 1
           fi
+
+      # Daily housekeeping so TestMu app storage does not fill up. A per-day
+      # cache key marks "cleanup already ran today"; it runs before the upload so
+      # a reused APK older than the retention window is deleted and re-uploaded
+      # instead of the upload step returning a URL that cleanup is about to delete.
+      - name: Resolve TestMu cleanup day
+        id: testmu-cleanup-day
+        if: inputs.upload_to_testmu
+        run: echo "day=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if TestMu cleanup already ran today
+        id: testmu-cleanup-cache
+        if: inputs.upload_to_testmu
+        # A cache-service error must not block the APK upload.
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: .testmu-cleanup-marker
+          key: testmu-apps-cleanup-${{ steps.testmu-cleanup-day.outputs.day }}
+          lookup-only: true
+
+      - name: Clean up old TestMu AI apps
+        id: testmu-cleanup
+        if: inputs.upload_to_testmu && steps.testmu-cleanup-cache.outputs.cache-hit != 'true'
+        # Housekeeping must never block the APK upload.
+        continue-on-error: true
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          chmod +x .github/scripts/qa-automation/performance-tests/cleanup-testmu-apps.sh
+          ./.github/scripts/qa-automation/performance-tests/cleanup-testmu-apps.sh
+          date -u +%FT%TZ > .testmu-cleanup-marker
+
+      - name: Mark TestMu cleanup as done for today
+        if: steps.testmu-cleanup.outcome == 'success'
+        # A cache-service error or a same-day key race must not block the upload.
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .testmu-cleanup-marker
+          key: testmu-apps-cleanup-${{ steps.testmu-cleanup-day.outputs.day }}
 
       - name: Upload APKs to TestMu AI
         id: testmu-upload

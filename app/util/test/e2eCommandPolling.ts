@@ -2,7 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { hasTestOverrides, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { E2ECommandTypes } from '../../../tests/framework/types';
-import { handleExportStateCommand } from './e2eStateExport';
+import {
+  handleExportAppStateCommand,
+  handleExportStateCommand,
+} from './e2eStateExport';
 import { dispatchPerpsCommand } from './e2ePerpsCommandHandler';
 import { dispatchQrSyncCommand } from './e2eQrSyncCommandHandler';
 
@@ -74,19 +77,30 @@ async function pollOnce(): Promise<void> {
     }
 
     consecutiveFailures = 0;
-    DevLogger.log('[E2E Command Server Polling] Received commands', data);
+    DevLogger.log(
+      '[E2E Command Server Polling] Received commands',
+      data.map((item) =>
+        item && typeof item === 'object' && typeof item.type === 'string'
+          ? item.type
+          : 'invalid',
+      ),
+    );
 
     for (const item of data) {
       if (!item || typeof item !== 'object') continue;
 
       switch (item.type) {
-        case E2ECommandTypes.exportState: {
+        case E2ECommandTypes.exportState:
+        case E2ECommandTypes.exportAppState: {
           try {
-            await handleExportStateCommand();
+            await (item.type === E2ECommandTypes.exportState
+              ? handleExportStateCommand()
+              : handleExportAppStateCommand());
           } catch (e) {
+            // Log only the message: request errors carry the posted state.
             DevLogger.log(
-              '[E2E Command Server Polling] Error handling export-state',
-              e,
+              `[E2E Command Server Polling] Error handling ${item.type}`,
+              e instanceof Error ? e.message : 'export failed',
             );
           }
           break;

@@ -5,6 +5,10 @@ import type {
   ImmersveProgramConfig,
 } from './types';
 
+/** vmUSD (Veda vault share) on Monad. The Money account funding asset. */
+export const IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS =
+  '0x1C8a336051D2024E318A229d01F9F6CF96efD316';
+
 /**
  * Fallback for the `cardFeature` flag: provider-agnostic constants plus the
  * Baanx chain/token config.
@@ -160,6 +164,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   constants: {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+    applePayLearnMoreUrl: 'https://metamask.io/card',
   },
 };
 
@@ -223,6 +228,16 @@ export const DEFAULT_IMMERSVE_CHAINS: CardProviderChains = {
       'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d': {
         decimals: 6,
         symbol: 'USDC',
+      },
+    },
+  },
+  'eip155:143': {
+    network: 'monad-mainnet',
+    fallbackRpcUrl: 'https://rpc.monad.xyz',
+    tokens: {
+      [`eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`]: {
+        decimals: 6,
+        symbol: 'vmUSD',
       },
     },
   },

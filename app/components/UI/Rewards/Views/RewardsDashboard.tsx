@@ -4,20 +4,35 @@ import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
+  ButtonSize,
+  ButtonVariant,
+  IconColor,
   IconName,
+  SectionHeader,
+  TabEmptyState,
   Text,
+  TextColor,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import HeaderRootGlass from '../../../../component-library/components-temp/HeaderRootGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
@@ -27,10 +42,7 @@ import {
   selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectPendingDeeplink,
-  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
@@ -47,19 +59,19 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../reducers/rewardsMoney/selectors';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
-import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
-import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
-import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
@@ -71,19 +83,24 @@ import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitc
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
-import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
-const MUSD_MONEY_URL = 'metamask://money';
+
+function selectRewardsDashboardReferralMe(state: RootState) {
+  const profileId = selectSessionProfileId(state);
+  return selectReferralMeEntry(state, profileId)?.data;
+}
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
-  const dispatch = useDispatch();
-  const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
@@ -93,32 +110,10 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const profileId = useSelector(selectSessionProfileId);
-  const referralMe = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
-  );
+  const referralMe = useSelector(selectRewardsDashboardReferralMe);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
-
-  const {
-    campaigns,
-    hasLoaded: campaignsHasLoaded,
-    hasError: campaignsHasError,
-    isLoading: isCampaignsLoading,
-  } = useRewardCampaigns();
-  const isCampaignsFetching = useSelector(selectCampaignsFetching);
-  // `campaignsFetching` is dispatched by the focus effect, so it only becomes
-  // readable one render later — on the first commit after a (re)mount the
-  // deeplink effect below always sees `false`, even though a fetch is already
-  // under way. Waiting until a fetch has actually been *observed* closes that
-  // window without depending on the order the two effects happen to run in.
-  const hasObservedCampaignsFetchRef = useRef(false);
-  useEffect(() => {
-    if (isCampaignsFetching) {
-      hasObservedCampaignsFetchRef.current = true;
-    }
-  }, [isCampaignsFetching]);
-  const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
 
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
@@ -131,127 +126,6 @@ const RewardsDashboard: React.FC = () => {
   // non-enrolled users; only dashboard-specific hooks remain here.
   useGeoRewardsMetadata({});
   useReferralDetails();
-
-  // Handle deeplink-driven navigation into a rewards sub-page. The dashboard is
-  // what mounts on a rewards deeplink (the Rewards tab); the sub-pages are
-  // registered as a group at the root MainNavigator level, so a direct
-  // navigate(<screen>) resolves them. We read the pending deeplink from Redux —
-  // rather than navigation params — because the Rewards tab is UnmountOnBlur, so
-  // params would be lost while on another tab. Once handled, the pending deeplink
-  // is cleared so it doesn't re-fire on subsequent mounts.
-  useEffect(() => {
-    if (!pendingDeeplink) {
-      return;
-    }
-
-    let handled = true;
-    if (pendingDeeplink.page === 'campaigns') {
-      navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
-    } else if (pendingDeeplink.campaign === 'ondo') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'season1') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'perps-comp') {
-      // The deeplink carries no campaign id, so it has to be resolved against
-      // the campaign list — and resolving against a list that is not yet
-      // authoritative would drop the deeplink for good, because a null result
-      // still counts as handled. The list is only authoritative once every one
-      // of these is false:
-      //  - no subscription yet: fetchCampaigns short-circuits to an empty list
-      //    and still marks it loaded, so "no campaigns" means "not signed in",
-      //    not "no campaigns exist".
-      //  - no fetch observed yet this mount: the list in Redux survives the
-      //    tab unmounting, so it can be a previous fetch's result that the
-      //    in-flight refresh has not replaced yet.
-      //  - a fetch is in flight: campaignsLoading is suppressed once campaigns
-      //    exist, so only campaignsFetching catches a refresh over a stale list.
-      //  - never loaded, or failed/in-flight with nothing cached.
-      const waitingForCampaigns =
-        !subscriptionId ||
-        !hasObservedCampaignsFetchRef.current ||
-        isCampaignsFetching ||
-        !campaignsHasLoaded ||
-        (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
-
-      if (waitingForCampaigns) {
-        handled = false;
-      } else {
-        const perpsCampaign = getLatestActiveCampaignOfType(
-          campaigns,
-          CampaignType.PERPS_TRADING,
-        );
-        if (perpsCampaign) {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-            { campaignId: perpsCampaign.id },
-          );
-        }
-        // No running perps campaign: stay on the dashboard, which is rewards
-        // home. Navigating would surface a past campaign, or an upcoming one
-        // whose details page has nothing to show yet.
-      }
-    } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'money') {
-      // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
-      // series is only trustworthy once a successful fetch has settled.
-      const waitingForCampaigns =
-        !campaignsHasLoaded ||
-        (moneyAccountSeries.campaigns.length === 0 &&
-          (campaignsHasError || isCampaignsLoading));
-
-      if (waitingForCampaigns) {
-        handled = false;
-      } else {
-        const entry = resolveMoneyAccountSweepstakesEntryRoute({
-          series: moneyAccountSeries,
-        });
-
-        if (entry.kind === 'details') {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-            { campaignId: entry.campaignId },
-          );
-        }
-        // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
-      }
-    } else if (pendingDeeplink.page === 'musd') {
-      handleDeeplink({ uri: MUSD_MONEY_URL });
-    } else if (pendingDeeplink.page === 'benefits') {
-      // Benefits full view is registered at the root MainNavigator level.
-      navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
-    } else {
-      // Unrecognized page/campaign: do not clear the pending deeplink so the
-      // intent is preserved and can be retried, rather than silently dropped.
-      handled = false;
-    }
-
-    if (handled) {
-      dispatch(setPendingDeeplink(null));
-    }
-  }, [
-    navigation,
-    dispatch,
-    pendingDeeplink,
-    subscriptionId,
-    campaigns,
-    campaignsHasLoaded,
-    campaignsHasError,
-    isCampaignsLoading,
-    isCampaignsFetching,
-    moneyAccountSeries,
-  ]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -436,6 +310,10 @@ const RewardsDashboard: React.FC = () => {
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -502,57 +380,79 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
+  }, [navigation]);
+
+  const copyTradingText = referralMe?.localized_text;
+  const showCopyTrading = Boolean(
+    isSocialV1Enabled &&
+      copyTradingText?.tradingCommissionsSection &&
+      copyTradingText.copyTradingEmptyDescription &&
+      copyTradingText.copyTradingEmptyAction,
+  );
+
+  const vipButtonStyle = isGlassHeader
+    ? undefined
+    : tw.style('h-8 w-8 items-center justify-center');
+  const vipIcon = isGlassHeader ? (
+    <CapsuleGlass twClassName="w-10 justify-center">
+      <VipIcon width={24} height={24} name="VipIcon" />
+    </CapsuleGlass>
+  ) : (
+    <VipIcon width={24} height={24} name="VipIcon" />
+  );
+
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">
       {isVipProgramEnabled && isVipReferee && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipRefereePress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
       {isVipProgramEnabled && isVipEnabled && (
         <Pressable
           accessibilityRole="button"
           onPress={handleVipPress}
-          style={tw.style('h-8 w-8 items-center justify-center')}
+          style={vipButtonStyle}
           testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
         >
-          <VipIcon width={24} height={24} name="VipIcon" />
+          {vipIcon}
         </Pressable>
       )}
-      <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-      />
-      <ButtonIcon
-        disabled={!subscriptionId}
-        iconName={IconName.Setting}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-      />
+      {settingsDisabled ? null : (
+        <ButtonIconGlass
+          isCapsule={isGlassHeader}
+          iconName={IconName.Setting}
+          onPress={() =>
+            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+          }
+          size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
+          testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+        />
+      )}
     </Box>
   );
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        // A floating header pads the status bar itself, so content scrolls under both.
+        edges={isGlassHeader ? {} : { top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         {isPushedScreen ? (
-          <HeaderStandardAnimated
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
             title={strings('rewards.main_title')}
             titleProps={{
               onPress: handleTitlePress,
@@ -566,7 +466,13 @@ const RewardsDashboard: React.FC = () => {
             endAccessory={headerEndAccessory}
           />
         ) : (
-          <HeaderRoot endAccessory={headerEndAccessory}>
+          <HeaderRootGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            includesTopInset={isGlassHeader}
+            scrollY={scrollY}
+            endAccessory={headerEndAccessory}
+          >
             <Pressable
               accessibilityRole="header"
               onPress={handleTitlePress}
@@ -576,14 +482,17 @@ const RewardsDashboard: React.FC = () => {
                 {strings('rewards.main_title')}
               </Text>
             </Pressable>
-          </HeaderRoot>
+          </HeaderRootGlass>
         )}
         <Animated.ScrollView
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+          contentContainerStyle={[
+            tw.style(`pb-[${floatingTabBarInset}px]`),
+            { paddingTop: headerInset },
+          ]}
         >
           {/* Pushed only: the large title lives in the content and collapses
               into the header on scroll, as on Activity and the home redesign.
@@ -608,7 +517,41 @@ const RewardsDashboard: React.FC = () => {
           ) : null}
           <Box twClassName="gap-3">
             <CampaignsPreview />
-            <EarnRewardsPreview />
+            {showCopyTrading && copyTradingText ? (
+              <Box testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_SECTION}>
+                <SectionHeader
+                  title={copyTradingText.tradingCommissionsSection}
+                />
+                <Box twClassName="items-center px-4 py-4">
+                  <TabEmptyState
+                    icon={
+                      <AvatarIcon
+                        iconName={IconName.Activity}
+                        size={AvatarIconSize.Xl}
+                        severity={AvatarIconSeverity.Neutral}
+                        iconProps={{ color: IconColor.IconDefault }}
+                      />
+                    }
+                    description={copyTradingText.copyTradingEmptyDescription}
+                    descriptionProps={{
+                      variant: TextVariant.BodyMd,
+                      color: TextColor.TextAlternative,
+                    }}
+                    actionButtonText={copyTradingText.copyTradingEmptyAction}
+                    actionButtonProps={{
+                      variant: ButtonVariant.Primary,
+                      size: ButtonSize.Lg,
+                      twClassName: 'mt-3 self-stretch',
+                      testID: REWARDS_VIEW_SELECTORS.COPY_TRADING_ACTION,
+                    }}
+                    onAction={openSocialTab}
+                    testID={REWARDS_VIEW_SELECTORS.COPY_TRADING_EMPTY}
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <EarnRewardsPreview />
+            )}
             <BenefitsPreview />
           </Box>
         </Animated.ScrollView>

@@ -1,6 +1,9 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
-import type { AccountsApiActivity } from './moneyActivity';
+import type {
+  AccountsApiActivity,
+  NeobankBankTransferActivity,
+} from './moneyActivity';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type {
   ConfirmationLaunchSource,
@@ -16,6 +19,14 @@ export enum MoneyPostOnboardingRedirectType {
 export interface MoneyPreferredPaymentToken {
   address: Hex;
   chainId: Hex;
+}
+
+export const MoneyDepositTokenType = {
+  ATOKEN: 'atoken',
+} as const;
+
+export interface MoneyDepositDeeplinkParams {
+  tokenType?: string;
 }
 
 export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
@@ -114,6 +125,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
     MoneyOnboarding: MoneyOnboardingParams | undefined;
+    MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
@@ -124,6 +136,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
           activity?: AccountsApiActivity;
           enrichment?: CardTransaction;
           cardTransaction?: CardTransaction;
+          neobankActivity?: NeobankBankTransferActivity;
         }
       | undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;

@@ -3,6 +3,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   formatTradeUnitPrice,
   formatUsd,
@@ -12,8 +13,10 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
   patchPostTradeShareSession,
+  type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -28,6 +31,22 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
+/** Returns whether the entered Perps amount reaches the sharing threshold. */
+export const isPerpsPostTradeShareEligible = ({
+  amountUsd,
+  leverage,
+}: {
+  amountUsd?: string;
+  leverage?: number;
+}): boolean => {
+  const amount = Number(amountUsd);
+  const leveragedAmount = amount * (leverage ?? 0);
+  return (
+    Number.isFinite(leveragedAmount) &&
+    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
+  );
+};
+
 export const canBeginPerpsPostTradeShare = ({
   copyTradeOrigin,
   orderType,
@@ -40,6 +59,19 @@ export const canBeginPerpsPostTradeShare = ({
   Boolean(copyTradeOrigin) &&
   orderTypeHasExchangeOrderId(orderType) &&
   resolveProviderId(activeProvider) === 'hyperliquid';
+
+/**
+ * Orders outside copy-trade that go through the post-trade prompt: a
+ * Hyperliquid market order, which fills with one order id.
+ */
+export const canPromptPerpsPostTrade = ({
+  orderType,
+  activeProvider,
+}: {
+  orderType: OrderType;
+  activeProvider: string | undefined;
+}): boolean =>
+  orderType === 'market' && resolveProviderId(activeProvider) === 'hyperliquid';
 
 const usdLabel = (amountUsd: string | undefined): string | undefined => {
   const amount = Number(amountUsd);
@@ -57,7 +89,7 @@ const priceLabel = (price: string | undefined): string | undefined => {
   return formatTradeUnitPrice(value);
 };
 
-const buildPreview = ({
+export const buildPerpsPostTradePreview = ({
   asset,
   direction,
   leverage,
@@ -80,6 +112,42 @@ const buildPreview = ({
   entryPriceLabel: priceLabel(entryPrice),
 });
 
+/** Opens the pending perps share sheet without the copy-trade checks. */
+export const openPerpsPostTradeShareSession = ({
+  asset,
+  direction,
+  leverage,
+  amountUsd,
+  variant = 'share',
+  analyticsSource,
+}: {
+  asset: string;
+  direction: 'long' | 'short';
+  leverage?: number;
+  amountUsd?: string;
+  variant?: PostTradeShareVariant;
+  analyticsSource?: SocialEventSource;
+}): string => {
+  const preview = buildPerpsPostTradePreview({
+    asset,
+    direction,
+    leverage,
+    amountUsd,
+  });
+  const directionLabel = direction === 'long' ? 'Long' : 'Short';
+  return beginPostTradeShareSession({
+    product: 'perps',
+    status: 'pending',
+    variant,
+    pairLabel: preview.leverageLabel
+      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
+      : `${directionLabel} ${preview.tokenSymbol}`,
+    tradeInFlightChain: 'hyperliquid',
+    preview,
+    ...(analyticsSource ? { analyticsSource } : {}),
+  });
+};
+
 /**
  * Opens the share sheet as pending for a Social V1 perps copy-trade that can
  * return an order id. Returns the session id, or undefined when this order
@@ -93,6 +161,7 @@ export const beginPerpsPostTradeShare = ({
   direction,
   leverage,
   amountUsd,
+  analyticsSource,
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
@@ -101,26 +170,24 @@ export const beginPerpsPostTradeShare = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
     !canBeginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType,
       activeProvider,
-    })
+    }) ||
+    !isPerpsPostTradeShareEligible({ amountUsd, leverage })
   ) {
     return undefined;
   }
-  const preview = buildPreview({ asset, direction, leverage, amountUsd });
-  const directionLabel = direction === 'long' ? 'Long' : 'Short';
-  return beginPostTradeShareSession({
-    product: 'perps',
-    status: 'pending',
-    pairLabel: preview.leverageLabel
-      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
-      : `${directionLabel} ${preview.tokenSymbol}`,
-    tradeInFlightChain: 'hyperliquid',
-    preview,
+  return openPerpsPostTradeShareSession({
+    asset,
+    analyticsSource,
+    direction,
+    leverage,
+    amountUsd,
   });
 };
 

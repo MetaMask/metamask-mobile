@@ -76,6 +76,12 @@ export enum TraceName {
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RampScreenLoad = 'Ramp Screen Load',
+  VbaScreenLoad = 'VBA Screen Load',
+  KycScreenLoad = 'KYC Screen Load',
+  VbaToPixInstructions = 'VBA To Pix Instructions',
+  VbaHydrate = 'VBA Hydrate',
+  VbaAutorampSetup = 'VBA Autoramp Setup',
+  VbaPixFetch = 'VBA Pix Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -290,6 +296,7 @@ export enum TraceName {
   PredictNextGetBalance = 'PredictNext Get Balance',
   PredictNextGetPositions = 'PredictNext Get Positions',
   PredictNextGetActivity = 'PredictNext Get Activity',
+  PredictNextGetPortfolioSummary = 'PredictNext Get Portfolio Summary',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
@@ -329,6 +336,9 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  // Social V1 Performance
+  SocialTabTimeToContent = 'Social Tab Time To Content',
+  SocialTabDataFetch = 'Social Tab Data Fetch',
 }
 
 export enum TraceOperation {
@@ -409,7 +419,11 @@ export enum TraceOperation {
   // Notifications & Braze Performance
   NotificationPerformance = 'notification.performance',
   BrazeBannerPerformance = 'braze_banner.performance',
+  SocialPerformance = 'social.performance',
+  SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
+  VbaOperation = 'vba.operation',
+  KycOperation = 'kyc.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -423,6 +437,35 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
+
+/**
+ * Track and group under which traces appear in a React Native DevTools
+ * Performance recording (or any Chrome trace of the app), next to React's own
+ * Scheduler and Components tracks.
+ */
+const TIMELINE_TRACK = 'Traces';
+const TIMELINE_TRACK_GROUP = 'MetaMask';
+
+/** Manual traces never ended are dropped from the timeline oldest first past this many. */
+const TIMELINE_MAX_OPEN_TRACES = 100;
+
+/** Start of each open manual trace on the runtime's clock, by trace key. */
+const timelineStartByKey: Map<string, number> = new Map();
+
+/**
+ * `console.timeStamp` with the extended arguments of the Chrome DevTools
+ * extensibility API, which React Native's runtime console implements.
+ */
+interface TimelineConsole {
+  timeStamp(
+    label: string,
+    start: number,
+    end: number,
+    trackName: string,
+    trackGroup: string,
+    color: string,
+  ): void;
+}
 
 /**
  * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
@@ -669,10 +712,24 @@ export function trace<T>(
   fn?: TraceCallback<T>,
 ): T | TraceContext {
   if (!fn) {
+    startTimelineEntry(request);
     return startTrace(request);
   }
 
-  return traceCallback(request, fn);
+  const timelineStart = getTimelineNow();
+  if (timelineStart === undefined) {
+    return traceCallback(request, fn);
+  }
+
+  let failed = false;
+  return tryCatchMaybePromise(
+    () => traceCallback(request, fn),
+    (error) => {
+      failed = true;
+      throw error;
+    },
+    () => addTimelineEntry(request.name, timelineStart, failed),
+  ) as T;
 }
 
 /**
@@ -930,6 +987,11 @@ function finalizeOnboardingMachineTime(span?: Span): void {
 }
 
 export function endTrace(request: EndTraceRequest): void {
+  endTimelineEntry(request);
+  endSentryTrace(request);
+}
+
+function endSentryTrace(request: EndTraceRequest): void {
   const { name, timestamp } = request;
   const id = getTraceId(request);
   const key = getTraceKey(request);
@@ -1061,7 +1123,8 @@ export async function flushBufferedTraces() {
         }
       }
 
-      const span = trace({
+      // Replays skip the timeline: it already has these traces at their real times.
+      const span = startTrace({
         ...bufferedItem.request,
         parentContext: parentSpan,
       }) as Span;
@@ -1078,7 +1141,7 @@ export async function flushBufferedTraces() {
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {
-      endTrace(bufferedItem.request);
+      endSentryTrace(bufferedItem.request);
       const traceKey = getTraceKey(bufferedItem.request);
       activeSpans.delete(traceKey);
     }
@@ -1427,6 +1490,100 @@ export function getPerformanceTimestamp(): number {
     return Date.now();
   }
   return performanceMs;
+}
+
+/**
+ * Current time on the runtime's own performance clock, or `undefined` when the
+ * runtime cannot add entries to its performance timeline.
+ *
+ * Uses the global `performance` and `console` rather than
+ * `react-native-performance`, whose marks stay in JS and never reach React
+ * Native's tracer.
+ */
+function getTimelineNow(): number | undefined {
+  try {
+    if (typeof globalThis.console?.timeStamp !== 'function') {
+      return undefined;
+    }
+    const now = globalThis.performance?.now();
+    return Number.isFinite(now) ? now : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Add a finished trace to the performance timeline, named by its trace name,
+ * on the "MetaMask › Traces" track. `console.timeStamp` returns at once unless
+ * a performance recording is running and keeps nothing in memory. Never
+ * throws, so the timeline can never break a trace.
+ *
+ * The entry spans the calls themselves; a `startTime` or `timestamp` override
+ * applies to Sentry only.
+ *
+ * @param name - The trace name, used as the entry's label.
+ * @param start - When the trace started, from {@link getTimelineNow}.
+ * @param failed - Whether the trace ended in an error.
+ */
+function addTimelineEntry(name: TraceName, start: number, failed: boolean) {
+  try {
+    const end = globalThis.performance.now();
+    (globalThis.console as unknown as TimelineConsole).timeStamp(
+      name,
+      start,
+      end,
+      TIMELINE_TRACK,
+      TIMELINE_TRACK_GROUP,
+      failed ? 'error' : 'tertiary',
+    );
+  } catch {
+    // The timeline is a development aid; a failure here must not reach the caller.
+  }
+}
+
+/**
+ * Remember when a manual trace started, for its timeline entry. A trace
+ * started again under the same key ends the previous entry, as it does the
+ * previous span.
+ *
+ * @param request - The trace request being started.
+ */
+function startTimelineEntry(request: TraceRequest) {
+  const start = getTimelineNow();
+  if (start === undefined) {
+    return;
+  }
+
+  const key = getTraceKey(request);
+  const previousStart = timelineStartByKey.get(key);
+  if (previousStart !== undefined) {
+    timelineStartByKey.delete(key);
+    addTimelineEntry(request.name, previousStart, false);
+  }
+
+  timelineStartByKey.set(key, start);
+  if (timelineStartByKey.size > TIMELINE_MAX_OPEN_TRACES) {
+    const oldestKey = timelineStartByKey.keys().next().value;
+    if (oldestKey !== undefined) {
+      timelineStartByKey.delete(oldestKey);
+    }
+  }
+}
+
+/**
+ * Add a manual trace to the timeline as it ends.
+ *
+ * @param request - The request ending the trace.
+ */
+function endTimelineEntry(request: EndTraceRequest) {
+  const key = getTraceKey(request);
+  const start = timelineStartByKey.get(key);
+  if (start === undefined) {
+    return;
+  }
+
+  timelineStartByKey.delete(key);
+  addTimelineEntry(request.name, start, request.status === 'error');
 }
 
 function tryCatchMaybePromise<T>(

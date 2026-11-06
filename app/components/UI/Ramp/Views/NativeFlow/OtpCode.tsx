@@ -6,7 +6,14 @@ import React, {
   useRef,
   FC,
 } from 'react';
-import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
@@ -17,7 +24,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './OtpCode.styles';
@@ -53,6 +59,9 @@ import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { getChainIdFromAssetId, getSession } from '../../headless';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -96,6 +105,7 @@ const ResendButton: FC<{
 };
 
 const V2OtpCode = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId, headlessSessionId } =
@@ -408,7 +418,9 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.otp_code.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -434,32 +446,43 @@ const V2OtpCode = () => {
             </Text>
           </Box>
 
-          <CodeField
-            testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
-            ref={inputRef as React.RefObject<TextInput>}
-            {...props}
-            value={value}
-            onChangeText={handleValueChange}
-            cellCount={CELL_COUNT}
-            rootStyle={styles.codeFieldRoot}
-            keyboardType="number-pad"
-            textContentType="oneTimeCode"
-            editable={!isLoading}
-            renderCell={({ index, symbol, isFocused }) => (
-              <View
-                onLayout={getCellOnLayoutHandler(index)}
-                key={index}
-                style={[styles.cellRoot, isFocused && styles.focusCell]}
-              >
-                <Text style={styles.cellText}>
-                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+          <View style={styles.codeFieldRoot}>
+            <CodeField
+              testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
+              ref={inputRef as React.RefObject<TextInput>}
+              {...props}
+              // The hidden input covers the boxes and keeps the tap without
+              // reopening the keyboard. The press layer below takes the tap.
+              pointerEvents="none"
+              value={value}
+              onChangeText={handleValueChange}
+              cellCount={CELL_COUNT}
+              rootStyle={styles.codeFieldCells}
+              keyboardType="number-pad"
+              textContentType="oneTimeCode"
+              editable={!isLoading}
+              renderCell={({ index, symbol, isFocused }) => (
+                <View
+                  onLayout={getCellOnLayoutHandler(index)}
+                  key={index}
+                  style={[styles.cellRoot, isFocused && styles.focusCell]}
+                >
+                  <Text style={styles.cellText}>
+                    {/* Cursor uses setInterval which keeps the JS thread non-idle,
                       stalling Detox synchronization. Omit it in E2E builds. */}
-                  {symbol ||
-                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
-                </Text>
-              </View>
-            )}
-          />
+                    {symbol ||
+                      (isFocused && !hasTestOverrides ? <Cursor /> : null)}
+                  </Text>
+                </View>
+              )}
+            />
+            <Pressable
+              accessible={false}
+              style={StyleSheet.absoluteFill}
+              onPress={() => inputRef.current?.focus()}
+              onPressOut={props.onPressOut}
+            />
+          </View>
 
           {error && (
             <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>

@@ -14,6 +14,10 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
+import {
+  ensureSocialTermsAccepted,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -72,6 +76,51 @@ export const getFollowTradingHomeRoute = ():
   | typeof Routes.SOCIAL.V0 =>
   isSocialV1Treatment() ? Routes.SOCIAL.V1 : Routes.SOCIAL.V0;
 
+/**
+ * Whether ProfileController already has a created Social profile.
+ *
+ * Reads persisted state synchronously, the same way the terms gate does. An
+ * empty `profileId` is the saved "not created" state, not a profile that is
+ * still loading.
+ */
+const hasCreatedSocialProfile = (): boolean => {
+  try {
+    const profileId =
+      ReduxService.store.getState().engine.backgroundState.ProfileController
+        ?.profile?.profileId;
+    return Boolean(profileId?.trim());
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Social V1 entry gate. Accepted terms do not open Social when no profile has
+ * been created. Opens the normal profile onboarding route, without
+ * `termsOnly`, so a user who already accepted the terms is not asked again.
+ *
+ * @param navigate - The caller's navigate function.
+ * @returns `true` when the caller may continue into Social.
+ */
+const ensureSocialProfileCreated = (
+  navigate: SocialLeaderboardNavigate,
+): boolean => {
+  if (!isSocialV1Treatment() || hasCreatedSocialProfile()) {
+    return true;
+  }
+  navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  return false;
+};
+
+/**
+ * Whether `navigateToSocialTab` would open the tab itself rather than
+ * redirecting to terms, profile setup, or onboarding.
+ */
+export const canOpenSocialTabDirectly = (): boolean =>
+  (!isSocialV1Treatment() ||
+    (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+  !shouldShowSocialLeaderboardOnboarding();
+
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
 ): SocialLeaderboardViewParams | undefined => {
@@ -89,18 +138,23 @@ const toHomeRouteParams = (
 };
 
 /**
- * Entry point into the Social Leaderboard feature. Routes a first-time user
- * straight to the onboarding (so no leaderboard/loading frame is shown first),
- * otherwise opens Follow Trading home (legacy or Social V1) with the
- * caller's `source`.
+ * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
+ * the current flow, after the first-time onboarding gate. Perps uses this so
+ * Social stays inside the Perps flow.
  *
- * @param navigate - The caller's navigate function (React or deeplink).
+ * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.
  */
-export const navigateToSocialLeaderboard = (
+export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
+  if (!ensureSocialProfileCreated(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING);
     return;
@@ -109,15 +163,56 @@ export const navigateToSocialLeaderboard = (
 };
 
 /**
+ * Entry point into the Social Leaderboard feature. Routes a first-time user
+ * straight to the onboarding (so no leaderboard/loading frame is shown first),
+ * otherwise opens Follow Trading home with the caller's `source`. Social V1
+ * treatment selects the Social tab so the bottom tab bar stays visible; control
+ * pushes the legacy home.
+ *
+ * @param navigate - The caller's navigate function (React or deeplink).
+ * @param params - Params forwarded to the home route when onboarding is skipped.
+ */
+export const navigateToSocialLeaderboard = (
+  navigate: SocialLeaderboardNavigate,
+  params?: SocialLeaderboardViewParams,
+): void => {
+  if (!isSocialV1Treatment()) {
+    pushSocialLeaderboard(navigate, params);
+    return;
+  }
+  if (!ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
+  if (!ensureSocialProfileCreated(navigate)) {
+    return;
+  }
+  if (shouldShowSocialLeaderboardOnboarding()) {
+    navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
+    return;
+  }
+  navigate(
+    Routes.HOME_TABS,
+    { screen: Routes.SOCIAL.TAB, params: toHomeRouteParams(params) },
+    { pop: true },
+  );
+};
+
+/**
  * Navbar Social tab entry. Same onboarding gate as
- * `navigateToSocialLeaderboard`, but lands on `SOCIAL.TAB` so the floating
- * bar selects the tab. TSA-1122 chooses V1 vs V0 as that tab's mounted
- * component, not as a root-stack push.
+ * `navigateToSocialLeaderboard`, but always lands on `SOCIAL.TAB` (control
+ * too) so the floating bar selects the tab. TSA-1122 chooses V1 vs V0 as that
+ * tab's mounted component, not as a root-stack push.
  */
 export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
+  if (!ensureSocialProfileCreated(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(
       Routes.SOCIAL.ONBOARDING,

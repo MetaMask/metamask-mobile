@@ -19,6 +19,7 @@ import {
   RewardsMoneyDataServiceGetCommissionsAction,
   RewardsMoneyDataServiceGetClaimByIdAction,
   RewardsMoneyDataServiceGetRebateQuoteAction,
+  RewardsMoneyDataServiceInitiateClaimAction,
   RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction,
@@ -45,6 +46,7 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRebateQuoteAction
+  | RewardsMoneyDataServiceInitiateClaimAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -91,6 +93,7 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getCommissions',
       'RewardsMoneyDataService:getClaimById',
       'RewardsMoneyDataService:getRebateQuote',
+      'RewardsMoneyDataService:initiateClaim',
       'RewardsMoneyDataService:getRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:setRewardsMoneyEnvUrl',

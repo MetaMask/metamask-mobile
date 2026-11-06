@@ -2,17 +2,28 @@ import { useEffect, useState } from 'react';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   fetchHyperliquidHistoricalPrices,
-  resolveHyperliquidCandleLimit,
+  type HyperliquidCandleInterval,
 } from '../../utils/hyperliquidPrices';
+import type { ChartPeriod } from '../utils/chartWindow';
 
-/** Hourly candles: a week is 168 points, enough for a smooth line. */
-const PERPS_SHEET_INTERVAL = '1h';
-const PERPS_SHEET_BASE_LIMIT = 168;
+/**
+ * One candle request for the selected period. The sheet fetches only the
+ * period on screen, so the other ranges are not requested until chosen.
+ */
+const PERIOD_CANDLES: Record<
+  ChartPeriod,
+  { interval: HyperliquidCandleInterval; limit: number }
+> = {
+  '1D': { interval: '15m', limit: 96 },
+  '1W': { interval: '1h', limit: 168 },
+  '1M': { interval: '4h', limit: 180 },
+  All: { interval: '1d', limit: 1095 },
+};
 
 export interface UsePerpsSheetPricesParams {
   /** Perp coin as Hyperliquid names it (the position's `tokenSymbol`). */
   symbol: string | undefined;
-  earliestTradeMs: number | undefined;
+  period: ChartPeriod;
   nowMs: number;
   enabled: boolean;
 }
@@ -22,19 +33,26 @@ export interface UsePerpsSheetPricesResult {
   isLoading: boolean;
 }
 
-/**
- * One hourly `candleSnapshot` request covering the sheet's window. Unlike
- * `usePerpsTraderPositionPrices` it does not prefetch every chart period: the
- * sheet has no period selector, so the other four requests would be wasted.
- */
 export function usePerpsSheetPrices({
   symbol,
-  earliestTradeMs,
+  period,
   nowMs,
   enabled,
 }: UsePerpsSheetPricesParams): UsePerpsSheetPricesResult {
   const [prices, setPrices] = useState<TokenPrice[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
+  // Drop the previous series during render. The fetch effect runs after
+  // paint, and the old candles would otherwise draw on the new axis.
+  const [request, setRequest] = useState({ symbol, period, enabled });
+  if (
+    request.symbol !== symbol ||
+    request.period !== period ||
+    request.enabled !== enabled
+  ) {
+    setRequest({ symbol, period, enabled });
+    setPrices([]);
+    setIsLoading(Boolean(enabled && symbol));
+  }
 
   useEffect(() => {
     if (!enabled || !symbol) {
@@ -45,17 +63,12 @@ export function usePerpsSheetPrices({
 
     let cancelled = false;
     setIsLoading(true);
-    const limit = resolveHyperliquidCandleLimit({
-      interval: PERPS_SHEET_INTERVAL,
-      baseLimit: PERPS_SHEET_BASE_LIMIT,
-      earliestTradeMs,
-      nowMs,
-    });
+    const candles = PERIOD_CANDLES[period];
 
     fetchHyperliquidHistoricalPrices({
       symbol,
-      interval: PERPS_SHEET_INTERVAL,
-      limit,
+      interval: candles.interval,
+      limit: candles.limit,
       nowMs,
     })
       .then((result) => {
@@ -72,7 +85,7 @@ export function usePerpsSheetPrices({
     return () => {
       cancelled = true;
     };
-  }, [enabled, symbol, earliestTradeMs, nowMs]);
+  }, [enabled, symbol, period, nowMs]);
 
   return { prices, isLoading };
 }

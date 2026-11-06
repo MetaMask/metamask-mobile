@@ -1,8 +1,16 @@
-import { useStablecoinsDefaultSlippage, handleEvmStablecoinSlippage } from './';
+import {
+  useStablecoinsDefaultSlippage,
+  handleEvmStablecoinSlippage,
+  getIsStablecoin,
+  getIsStablecoinPair,
+} from './';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import AppConstants from '../../../../../core/AppConstants';
+import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+
+const USDG_ADDRESS = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168';
 
 describe('useStablecoinsDefaultSlippage', () => {
   const mockSetSlippage = jest.fn();
@@ -197,6 +205,36 @@ describe('handleStablecoinSlippage', () => {
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: '0x9999' as Hex, // Unsupported chain ID
+      setSlippage: mockSetSlippage,
+    });
+
+    expect(mockSetSlippage).not.toHaveBeenCalled();
+  });
+
+  it('treats USDG on Robinhood Chain as a stablecoin', () => {
+    expect(getIsStablecoin(USDG_ADDRESS, NETWORKS_CHAIN_ID.ROBINHOOD)).toBe(
+      true,
+    );
+    expect(
+      getIsStablecoin(USDG_ADDRESS.toLowerCase(), NETWORKS_CHAIN_ID.ROBINHOOD),
+    ).toBe(true);
+  });
+
+  it('treats a USDG pair on Robinhood Chain as a stablecoin pair', () => {
+    expect(
+      getIsStablecoinPair(
+        USDG_ADDRESS,
+        USDG_ADDRESS,
+        NETWORKS_CHAIN_ID.ROBINHOOD,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not set stablecoin slippage when USDG is paired with a non-stablecoin on Robinhood Chain', () => {
+    handleEvmStablecoinSlippage({
+      sourceTokenAddress: USDG_ADDRESS,
+      destTokenAddress: '0x123', // Non-stablecoin
+      chainId: NETWORKS_CHAIN_ID.ROBINHOOD,
       setSlippage: mockSetSlippage,
     });
 
