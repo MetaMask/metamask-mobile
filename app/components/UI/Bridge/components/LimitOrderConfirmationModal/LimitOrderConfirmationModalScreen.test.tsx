@@ -23,6 +23,8 @@ import {
 } from '../../constants/limitOrders';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
+import { LimitOrderGeoRestrictedError } from '../../api/limitOrders/create/errors';
+import Logger from '../../../../../util/Logger';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { ToastSeverity } from '@metamask/design-system-react-native';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
@@ -992,6 +994,68 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  describe('when the order is not available in the user region', () => {
+    beforeEach(() => {
+      mockCreateLimitOrder.mockRejectedValue(
+        new LimitOrderGeoRestrictedError(),
+      );
+    });
+
+    it('displays the region banner instead of offering a retry', async () => {
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        createBridgeTestState({}),
+      );
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.quote_stream_complete_rwa_geo_restricted')),
+        ).toBeOnTheScreen();
+      });
+      expect(queryByText('Try again')).not.toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockToast).not.toHaveBeenCalled();
+    });
+
+    it('disables the confirm button once the rejection is shown', async () => {
+      const { getByTestId, getByText } = renderScreen(
+        createBridgeTestState({}),
+      );
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.quote_stream_complete_rwa_geo_restricted')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('does not report the rejection as an error', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expect(loggerErrorSpy).not.toHaveBeenCalled();
+      loggerErrorSpy.mockRestore();
+    });
+  });
+
   it.each([
     [
       'the limit price is unusable',
@@ -1246,6 +1310,27 @@ describe('LimitOrderConfirmationModalScreen', () => {
         feature_id: FeatureId.LIMIT_ORDER,
         order_type: OrderType.BUY_ABOVE,
         error: 'boom',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with a geo-restriction error when the order is not available in the user region', async () => {
+      mockCreateLimitOrder.mockRejectedValue(
+        new LimitOrderGeoRestrictedError(),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'rwa_geo_restricted',
       });
     });
   });
