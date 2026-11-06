@@ -1,21 +1,5 @@
-import type {
-  MetamaskPaySolanaExecution,
-  MetamaskPaySource,
-} from '@metamask/transaction-controller';
+import type { MetamaskPaySolanaExecution } from '@metamask/transaction-controller';
 import type { SolanaPayOutcome } from '@metamask/transaction-pay-controller';
-import { parseCaipAccountId } from '@metamask/utils';
-
-export function isSolanaPaySource(
-  source: MetamaskPaySource | undefined,
-): source is MetamaskPaySource {
-  return source?.sourceAccountId.startsWith('solana:') === true;
-}
-
-export function getSolanaPaySourceAccountAddress(
-  source: MetamaskPaySource,
-): string {
-  return parseCaipAccountId(source.sourceAccountId).address;
-}
 
 export function getSolanaPayOutcome(
   execution: MetamaskPaySolanaExecution,

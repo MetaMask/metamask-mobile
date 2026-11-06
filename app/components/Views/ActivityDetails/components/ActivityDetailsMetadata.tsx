@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import {
   getActivityFromTo,
@@ -18,10 +19,7 @@ import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
 import { getSolanaPayStatusLabel } from '../solana-pay-status';
-import {
-  getSolanaPaySourceAccountAddress,
-  isSolanaPaySource,
-} from '../../../../util/transactions/solana-pay';
+import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 
 /**
  * The type-agnostic metadata block: status, date, account, network, and a
@@ -43,10 +41,11 @@ export function ActivityDetailsMetadata({
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
   const payMetadata = useActivityPayMetadata(item);
-  const solanaSource = isSolanaPaySource(payMetadata?.source)
-    ? payMetadata.source
-    : undefined;
   const solanaExecution = payMetadata?.solanaExecution;
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const solanaSourceAddress =
+    solanaExecution &&
+    internalAccountsById[solanaExecution.sourceWalletAccountId]?.address;
   const payStatusLabel = getSolanaPayStatusLabel(solanaExecution);
   const showAddressOnly = item.type === 'smartAccountUpgrade';
   const showFromTo =
@@ -65,12 +64,10 @@ export function ActivityDetailsMetadata({
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
 
-      {solanaSource ? (
+      {solanaSourceAddress ? (
         <ActivityDetailRow
           label={strings('confirm.solana_pay.source_account')}
-          value={renderShortAddress(
-            getSolanaPaySourceAccountAddress(solanaSource),
-          )}
+          value={renderShortAddress(solanaSourceAddress)}
         />
       ) : null}
 

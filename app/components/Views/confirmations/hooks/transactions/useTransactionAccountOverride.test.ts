@@ -3,12 +3,12 @@ import { useSelector } from 'react-redux';
 
 import { useTransactionAccountOverride } from './useTransactionAccountOverride';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectAccountOverrideAddressByTransactionId } from '../../../../../selectors/transactionPayController';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('./useTransactionMetadataRequest');
 jest.mock('../../../../../selectors/transactionPayController', () => ({
-  selectAccountOverrideByTransactionId: jest.fn(),
+  selectAccountOverrideAddressByTransactionId: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -51,6 +51,6 @@ describe('useTransactionAccountOverride', () => {
 
     const selectorFn = mockUseSelector.mock.calls[0]?.[0];
     expect(selectorFn).toBeDefined();
-    expect(selectAccountOverrideByTransactionId).toBeDefined();
+    expect(selectAccountOverrideAddressByTransactionId).toBeDefined();
   });
 });

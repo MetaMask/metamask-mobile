@@ -70,6 +70,7 @@ jest.mock('../../../../Assets/accountGroupAssetLoader', () => ({
 
 const TRANSACTION_ID_MOCK = 'tx-1';
 const EVM_ADDRESS_MOCK = '0xabc0000000000000000000000000000000000001';
+const EVM_ACCOUNT_ID_MOCK = 'evm-account-id';
 
 const buildTransactionMeta = (
   overrides: Partial<TransactionMeta> = {},
@@ -82,6 +83,7 @@ const buildTransactionMeta = (
   }) as TransactionMeta;
 
 const evmAccountMock = {
+  id: EVM_ACCOUNT_ID_MOCK,
   address: EVM_ADDRESS_MOCK,
   type: EthAccountType.Eoa,
 } as unknown as InternalAccount;
@@ -140,8 +142,7 @@ describe('money-account-override', () => {
           {};
         callback(config as never);
 
-        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
-        expect(config.accountOverride).not.toBe(transactionMeta.txParams.from);
+        expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
         expect(config.isQuoteRequired).toBe(true);
         expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
         expect(loadAssetsForAddressesMock).toHaveBeenCalledWith([
@@ -162,7 +163,7 @@ describe('money-account-override', () => {
         {};
       callback(config as never);
 
-      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
       expect(config.isQuoteRequired).toBeUndefined();
     });
 
@@ -209,7 +210,7 @@ describe('money-account-override', () => {
       Engine.context.TransactionPayController.state = {
         transactionData: {
           [TRANSACTION_ID_MOCK]: {
-            accountOverride: '0xexisting',
+            accountOverride: 'existing-account-id',
           },
         },
       } as never;
@@ -328,7 +329,7 @@ describe('money-account-override', () => {
       it('does not load assets when an override is already set', () => {
         Engine.context.TransactionPayController.state = {
           transactionData: {
-            [TRANSACTION_ID_MOCK]: { accountOverride: '0xExistingOverride' },
+            [TRANSACTION_ID_MOCK]: { accountOverride: 'existing-account-id' },
           },
         } as never;
 
@@ -371,7 +372,7 @@ describe('money-account-override', () => {
         const config: { accountOverride?: string; isQuoteRequired?: boolean } =
           {};
         callback(config as never);
-        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+        expect(config.accountOverride).toBe(EVM_ACCOUNT_ID_MOCK);
         expect(config.isQuoteRequired).toBe(true);
       });
 

@@ -110,8 +110,6 @@ describe('BridgeFeeRow', () => {
     useTransactionPayQuotesMock.mockReturnValue([
       createQuoteMock({
         sourceAssetId: SOURCE_ASSET_ID_MOCK,
-        sourceChainId: SOURCE_CHAIN_ID_MOCK,
-        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
       }),
     ]);
 
@@ -505,8 +503,6 @@ describe('BridgeFeeRow', () => {
         createQuoteMock({
           isPostQuote: true,
           sourceAssetId: SOURCE_ASSET_ID_MOCK,
-          sourceChainId: SOURCE_CHAIN_ID_MOCK,
-          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
           targetChainId: '0x1',
           targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         }),
@@ -589,8 +585,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
           sourceAssetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        } as unknown as Partial<TransactionPayQuote<Json>['request']>),
+        }),
       ]);
 
       const { getByTestId, getByText } = render();

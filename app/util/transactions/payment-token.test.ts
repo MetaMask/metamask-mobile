@@ -3,7 +3,7 @@ import type {
   TransactionPayQuote,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import type { CaipChainId, Hex, Json } from '@metamask/utils';
+import type { Hex, Json } from '@metamask/utils';
 import {
   getEvmAsset,
   getEvmPaymentToken,
@@ -11,7 +11,6 @@ import {
   getNonEvmPaymentToken,
   isEvmTransactionPayQuote,
   isNonEvmPaymentToken,
-  isNonEvmQuoteRequest,
 } from './payment-token';
 
 const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -161,28 +160,21 @@ describe('payment-token', () => {
   describe('quote source protocol', () => {
     const EVM_QUOTE_MOCK = {
       request: {
+        sourceAccountId: 'eip155:1:0x123',
         sourceAssetId: USDC_ASSET_ID,
-        sourceChainId: '0x1',
-        sourceTokenAddress: USDC_ADDRESS,
       },
-    } as unknown as TransactionPayQuote<Json, Hex | CaipChainId>;
+    } as unknown as TransactionPayQuote<Json>;
 
     const NON_EVM_QUOTE_MOCK = {
       request: {
         sourceAccountId: `${SOLANA_CHAIN_ID}:SoLAddress`,
         sourceAssetId: SOL_ASSET_ID,
-        sourceChainId: SOLANA_CHAIN_ID,
       },
-    } as unknown as TransactionPayQuote<Json, Hex | CaipChainId>;
+    } as unknown as TransactionPayQuote<Json>;
 
     it('identifies EVM quotes from the source asset ID', () => {
       expect(isEvmTransactionPayQuote(EVM_QUOTE_MOCK)).toBe(true);
       expect(isEvmTransactionPayQuote(NON_EVM_QUOTE_MOCK)).toBe(false);
-    });
-
-    it('identifies non-EVM quote requests from the source asset ID', () => {
-      expect(isNonEvmQuoteRequest(NON_EVM_QUOTE_MOCK.request)).toBe(true);
-      expect(isNonEvmQuoteRequest(EVM_QUOTE_MOCK.request)).toBe(false);
     });
   });
 });

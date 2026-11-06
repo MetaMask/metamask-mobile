@@ -3,9 +3,11 @@ import {
   TransactionPayQuote,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { getEvmPaymentToken } from '../util/transactions/payment-token';
+import { selectInternalAccountsById } from './accountsController';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -173,9 +175,23 @@ export const selectTransactionPayTransactionData = createSelector(
   (state) => state.transactionData,
 );
 
+/** ID of the `InternalAccount` overriding the pay account of a transaction. */
 export const selectAccountOverrideByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.accountOverride,
+);
+
+/**
+ * Address of the account override of a transaction, resolved from its
+ * `InternalAccount` ID. Mobile only sets EVM account overrides.
+ */
+export const selectAccountOverrideAddressByTransactionId = createSelector(
+  selectAccountOverrideByTransactionId,
+  selectInternalAccountsById,
+  (accountOverride, internalAccountsById) =>
+    accountOverride
+      ? (internalAccountsById[accountOverride]?.address as Hex | undefined)
+      : undefined,
 );
 
 export const selectPaymentOverrideByTransactionId = createSelector(

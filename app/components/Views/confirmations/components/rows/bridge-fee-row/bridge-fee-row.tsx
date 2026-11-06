@@ -30,7 +30,13 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { CaipAssetType, CaipChainId, Hex, Json } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  Json,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
@@ -46,7 +52,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
-import { isNonEvmQuoteRequest } from '../../../../../../util/transactions/payment-token';
+import { getEvmAsset } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -92,7 +98,7 @@ function TransactionFeeRow({
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
   hasSourceAmounts: boolean;
-  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
+  quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
   isFiatPayment: boolean;
@@ -231,7 +237,7 @@ function Tooltip({
   transactionMeta,
   totals,
 }: {
-  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
+  quotes?: TransactionPayQuote<Json>[];
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -271,22 +277,24 @@ function getNetworkFeeToken({
   totals,
   transactionMeta,
 }: {
-  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
+  quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }): NetworkFeeToken {
   const request = quotes?.[0]?.request;
+  const sourceAsset = request && getEvmAsset(request.sourceAssetId);
 
-  if (request && isNonEvmQuoteRequest(request)) {
-    const { assetId, symbol } = getNativeAssetForChainId(request.sourceChainId);
-    return { assetId, chainId: request.sourceChainId, symbol };
+  if (request && !sourceAsset) {
+    const { chainId } = parseCaipAssetType(request.sourceAssetId);
+    const { assetId, symbol } = getNativeAssetForChainId(chainId);
+    return { assetId, chainId, symbol };
   }
 
-  const chainId = request?.sourceChainId ?? transactionMeta.chainId;
+  const chainId = sourceAsset?.chainId ?? transactionMeta.chainId;
 
   const address =
-    totals.fees.isSourceGasFeeToken && request?.sourceTokenAddress
-      ? request.sourceTokenAddress
+    totals.fees.isSourceGasFeeToken && sourceAsset
+      ? sourceAsset.address
       : getNativeTokenAddress(chainId);
 
   return { address, chainId };
@@ -303,7 +311,7 @@ function FeesTooltip({
   transactionMeta,
 }: {
   message: string;
-  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
+  quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }) {

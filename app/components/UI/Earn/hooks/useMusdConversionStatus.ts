@@ -26,8 +26,8 @@ import { isEvmTransactionPayQuote } from '../../../../util/transactions/payment-
 
 function getTransactionPayQuotes(transactionId: string) {
   const state = store.getState();
-  // mUSD conversion analytics read Hex quote fields, so only EVM-source quotes
-  // apply. Non-EVM quotes, such as Solana sources, carry a CAIP-2 source chain.
+  // mUSD conversion analytics read Hex source fields, so only EVM-source
+  // quotes apply. Non-EVM quotes, such as Solana sources, have no Hex chain ID.
   return (
     selectTransactionPayQuotesByTransactionId(state, transactionId) ?? []
   ).filter(isEvmTransactionPayQuote);

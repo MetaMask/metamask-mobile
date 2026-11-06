@@ -226,10 +226,6 @@ describe('local activity call-site mapping', () => {
     const item = mapLocalActivity(
       buildGroup({
         metamaskPay: {
-          source: {
-            sourceAccountId: 'solana:mainnet:account',
-            sourceAssetId: 'solana:mainnet/slip44:501',
-          },
           solanaExecution: {
             atomicProductActionIncluded: true,
             atomicProductActionRequired: true,
@@ -256,10 +252,6 @@ describe('local activity call-site mapping', () => {
     const item = mapLocalActivity(
       buildGroup({
         metamaskPay: {
-          source: {
-            sourceAccountId: 'solana:mainnet:account',
-            sourceAssetId: 'solana:mainnet/slip44:501',
-          },
           solanaExecution: {
             atomicProductActionIncluded: true,
             atomicProductActionRequired: true,

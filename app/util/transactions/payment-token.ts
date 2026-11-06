@@ -12,7 +12,6 @@ import {
   type CaipAssetType,
   type CaipChainId,
   type Hex,
-  type Json,
 } from '@metamask/utils';
 
 /** Payment token on an EVM chain, with the chain and address derived from its asset ID. */
@@ -151,34 +150,13 @@ export function getEvmPaymentTokenAssetId(
 
 /**
  * Whether a quote pays with an EVM source token, from the protocol of its
- * source asset. Only these quotes carry a Hex source chain ID and a source
- * token address.
+ * source asset.
  *
  * @param quote - Transaction pay quote.
  * @returns True for a quote with an EVM source.
  */
-export function isEvmTransactionPayQuote<OriginalQuote = Json>(
-  quote: TransactionPayQuote<OriginalQuote, Hex | CaipChainId>,
-): quote is TransactionPayQuote<OriginalQuote> {
+export function isEvmTransactionPayQuote<OriginalQuote>(
+  quote: TransactionPayQuote<OriginalQuote>,
+): boolean {
   return Boolean(getEvmAsset(quote.request.sourceAssetId));
-}
-
-/** Quote request for a payment token on any chain. */
-export type TransactionPayQuoteRequest = TransactionPayQuote<
-  Json,
-  Hex | CaipChainId
->['request'];
-
-/**
- * Whether a quote request pays with a non-EVM source token, such as Solana,
- * from the protocol of its source asset. These requests carry a CAIP-2 source
- * chain ID and no source token address.
- *
- * @param request - Quote request.
- * @returns True for a request with a non-EVM source.
- */
-export function isNonEvmQuoteRequest(
-  request: TransactionPayQuoteRequest,
-): request is TransactionPayQuote<Json, CaipChainId>['request'] {
-  return !getEvmAsset(request.sourceAssetId);
 }
