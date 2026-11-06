@@ -90,6 +90,60 @@ export function useMoneyAccountPlusAccessState(): MoneyAccountPlusAccessState {
 }
 
 /**
+ * Where a MetaMask Orange entry point should send the user.
+ */
+export enum MoneyAccountPlusEntry {
+  /** Pro flag is off. No Orange surface. */
+  Disabled = 'disabled',
+  /** A stored Plus status Pro Hub can show. Opens Pro Hub. */
+  Hub = 'hub',
+  /** A settled non-member, including a leftover entitlement. Opens Benefits. */
+  Join = 'join',
+  /** Membership is not known yet. Neither label nor destination is safe. */
+  Pending = 'pending',
+}
+
+/**
+ * Single routing rule for the Orange row, Pro Hub, and the subscription
+ * screen.
+ *
+ * Pro Hub renders only a stored membership, so an entitlement on its own is
+ * Join, not Hub. Join waits for the subscriptions query to settle, because a
+ * refetch keeps the previous empty result while a membership may still
+ * arrive.
+ *
+ * @param params - Inputs to resolve.
+ * @param params.access - Resolved Plus access.
+ * @param params.hasMembership - Whether a Plus status Pro Hub can show is stored.
+ * @param params.isSubscriptionsSettled - Whether the subscriptions query has settled.
+ * @returns The entry point destination.
+ */
+export function resolveMoneyAccountPlusEntry({
+  access,
+  hasMembership,
+  isSubscriptionsSettled,
+}: {
+  access: MoneyAccountPlusAccess;
+  hasMembership: boolean;
+  isSubscriptionsSettled: boolean;
+}): MoneyAccountPlusEntry {
+  if (access === MoneyAccountPlusAccess.Disabled) {
+    return MoneyAccountPlusEntry.Disabled;
+  }
+  if (hasMembership) {
+    return MoneyAccountPlusEntry.Hub;
+  }
+  if (
+    isSubscriptionsSettled &&
+    (access === MoneyAccountPlusAccess.Eligible ||
+      access === MoneyAccountPlusAccess.Subscriber)
+  ) {
+    return MoneyAccountPlusEntry.Join;
+  }
+  return MoneyAccountPlusEntry.Pending;
+}
+
+/**
  * Resolves which Money Account Plus experience the current user may access.
  *
  * @returns The access state for the current user.

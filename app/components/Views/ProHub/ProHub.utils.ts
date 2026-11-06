@@ -1,20 +1,10 @@
 import {
   INVOICE_PAYMENT_STATUSES,
-  SUBSCRIPTION_STATUSES,
   type Subscription,
-  type SubscriptionStatus,
 } from '@metamask/subscription-controller';
 import I18n from '../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../util/intl';
-
-/**
- * Statuses that can still be uncancelled. A payment problem keeps its own
- * status and add-funds action, so resume does not replace it.
- */
-const RESUMABLE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-]);
+import { isConfirmedSubscriptionStatus } from '../../../util/subscription/moneyAccountPlusStatus';
 
 /**
  * Whether a period-end cancellation is still inside its end date.
@@ -65,7 +55,7 @@ export const canResumeMembership = (
   }
 
   if (
-    !RESUMABLE_SUBSCRIPTION_STATUSES.has(subscription.status) ||
+    !isConfirmedSubscriptionStatus(subscription.status) ||
     subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED
   ) {
     return false;

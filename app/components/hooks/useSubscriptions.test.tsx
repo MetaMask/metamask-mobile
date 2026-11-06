@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../core/Engine';
 import type { RootState } from '../../reducers';
 import configureStore from '../../util/test/configureStore';
-import useSubscriptions from './useSubscriptions';
+import useSubscriptions, { SUBSCRIPTIONS_QUERY_KEY } from './useSubscriptions';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -107,6 +107,62 @@ describe('useSubscriptions', () => {
     expect(result.current.isLoading).toBe(true);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
+  it('reuses the Home prefetch when a menu mounts the query', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const store = configureStore({
+      engine: { backgroundState: createBackgroundState() },
+    } as unknown as RootState);
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    const home = renderHook(() => useSubscriptions({ enabled: true }), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(home.result.current.isSuccess).toBe(true));
+
+    const menu = renderHook(() => useSubscriptions({ enabled: true }), {
+      wrapper: Wrapper,
+    });
+
+    expect(menu.result.current.isFetched).toBe(true);
+    expect(menu.result.current.isFetching).toBe(false);
+    expect(mockedSubscriptionController.getSubscriptions).toHaveBeenCalledTimes(
+      1,
+    );
+  });
+
+  it('drops the stored result once the keyring locks', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
+    const store = configureStore({
+      engine: {
+        backgroundState: createBackgroundState({ isUnlocked: false }),
+      },
+    } as unknown as RootState);
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </Provider>
+    );
+
+    renderHook(() => useSubscriptions({ enabled: true }), { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(SUBSCRIPTIONS_QUERY_KEY)).toBeUndefined(),
+    );
   });
 
   it('surfaces a failed fetch as an error instead of empty state', async () => {

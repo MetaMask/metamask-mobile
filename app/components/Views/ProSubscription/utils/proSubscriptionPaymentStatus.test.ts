@@ -6,7 +6,6 @@ import {
   ProvisionalPaymentTransition,
   StartProSubscriptionOutcome,
   getProvisionalSubscriptionPollIntervalMs,
-  isStillFundingSubscriptionStatus,
   membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
   resolveProvisionalPaymentTransition,
@@ -99,25 +98,6 @@ describe('resolveProSubscriptionStartOutcome', () => {
     );
 
     expect(outcome).toBe(StartProSubscriptionOutcome.Ready);
-  });
-});
-
-describe('isStillFundingSubscriptionStatus', () => {
-  it.each([
-    SUBSCRIPTION_STATUSES.provisional,
-    SUBSCRIPTION_STATUSES.awaitingFunds,
-  ])('returns true for a %s plan', (status) => {
-    expect(isStillFundingSubscriptionStatus(status)).toBe(true);
-  });
-
-  it('returns false once the plan has activated', () => {
-    expect(isStillFundingSubscriptionStatus(SUBSCRIPTION_STATUSES.active)).toBe(
-      false,
-    );
-  });
-
-  it('returns false when the plan is missing', () => {
-    expect(isStillFundingSubscriptionStatus(undefined)).toBe(false);
   });
 });
 

@@ -7,10 +7,11 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import { isMoneyAccountPlusFreeTrial } from '../../../../../selectors/subscriptionController';
 import {
-  ACTIVE_SUBSCRIPTION_STATUSES,
-  isMoneyAccountPlusFreeTrial,
-} from '../../../../../selectors/subscriptionController';
+  isActiveSubscriptionStatus,
+  isDeactivatedSubscriptionStatus,
+} from '../../../../../util/subscription/moneyAccountPlusStatus';
 import {
   canResumeMembership,
   formatSubscriptionPeriodEnd,
@@ -141,7 +142,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
   }
 
   if (
-    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+    isActiveSubscriptionStatus(subscription.status) &&
     subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED
   ) {
     return {
@@ -228,10 +229,7 @@ export const getMembershipBannerModel = (
     };
   }
 
-  if (
-    subscription.status === SUBSCRIPTION_STATUSES.paused ||
-    subscription.status === SUBSCRIPTION_STATUSES.unpaid
-  ) {
+  if (isDeactivatedSubscriptionStatus(subscription.status)) {
     return {
       statusKind: MembershipStatusKind.Deactivated,
       statusKey: 'pro_hub.membership_status.deactivated',
@@ -256,7 +254,7 @@ export const getMembershipBannerModel = (
     return FREE_TRIAL_MODEL;
   }
 
-  if (ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+  if (isActiveSubscriptionStatus(subscription.status)) {
     return activeModel(subscription);
   }
 
