@@ -709,6 +709,8 @@ describeForPlatforms('PerpsProOrderFormPanel account support', () => {
     await waitFor(
       () =>
         expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      // Blurring the size field starts the async protocol order validation
+      // (and its fee quote); the CTA stays disabled until that resolves.
       { timeout: 5000 },
     );
 

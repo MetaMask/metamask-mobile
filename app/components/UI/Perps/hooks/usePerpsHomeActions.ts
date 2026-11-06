@@ -143,6 +143,7 @@ export const usePerpsHomeActions = (
   // StackActions.push always adds a route, and dismissing the deposit only
   // goes back once.
   const inPlaceConfirmationOpenRef = useRef(false);
+  const isWithdrawInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!openConfirmationInPlace) {
@@ -298,6 +299,13 @@ export const usePerpsHomeActions = (
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    // The support check is async, so a second tap would otherwise start a
+    // second withdrawal while the first is still waiting on it.
+    if (isWithdrawInFlightRef.current) {
+      return;
+    }
+    isWithdrawInFlightRef.current = true;
+
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -363,6 +371,7 @@ export const usePerpsHomeActions = (
         onError(errorObj, 'withdraw');
       }
     } finally {
+      isWithdrawInFlightRef.current = false;
       setIsProcessing(false);
     }
   }, [
