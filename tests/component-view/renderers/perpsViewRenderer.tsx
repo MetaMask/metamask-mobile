@@ -1,6 +1,7 @@
 import '../mocks';
 import React from 'react';
-import { Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
@@ -647,6 +648,16 @@ interface RenderPerpsViewOptions {
   /** Optional extra routes so navigation can be asserted (e.g. [{ name: Routes.PERPS.MARKET_LIST }]). */
   extraRoutes?: PerpsExtraRoute[];
   /**
+   * Mounts a probe route underneath the view and pushes the view on top, so
+   * `goBack` removes the view and the probe (`route-<name>`) becomes visible.
+   */
+  presentingRoute?: string;
+  /**
+   * Mounts the view as a tab beside a probe tab. Pressing `tab-<name>` switches
+   * away while the view stays mounted, like a real tab switch.
+   */
+  siblingTab?: string;
+  /**
    * Nest the main Component one level deeper than 'perps-root' extraRoutes —
    * inside its own nested "modal" navigator within Routes.PERPS.ROOT — instead
    * of mounting it at the outer stack. Use for modal screens whose production
@@ -689,6 +700,8 @@ export function renderPerpsView(
     initialParams,
     streamOverrides,
     extraRoutes,
+    presentingRoute,
+    siblingTab,
     mainMount,
     mode,
     connectionValue,
@@ -714,7 +727,9 @@ export function renderPerpsView(
       queryClient={queryClient}
       streamManager={testStreamManager}
       connectionValue={connectionValue}
-      includeToasts={includeToasts && !extraRoutes?.length}
+      includeToasts={
+        includeToasts && !extraRoutes?.length && !presentingRoute && !siblingTab
+      }
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -734,13 +749,44 @@ export function renderPerpsView(
     return WrappedRoute as unknown as React.ComponentType;
   };
 
-  if (extraRoutes?.length) {
+  if (siblingTab) {
+    const Tab = createBottomTabNavigator();
+    const tabTree = (
+      <Tab.Navigator
+        screenOptions={{ headerShown: false }}
+        tabBar={({ state: tabState, navigation }) => (
+          <View>
+            {tabState.routes.map(({ key, name }) => (
+              <Pressable
+                key={key}
+                testID={`tab-${name}`}
+                onPress={() => navigation.navigate(name)}
+              />
+            ))}
+          </View>
+        )}
+      >
+        <Tab.Screen
+          name={routeName}
+          component={WrappedComponent as unknown as React.ComponentType}
+          initialParams={initialParams}
+        />
+        <Tab.Screen
+          name={siblingTab}
+          component={DefaultRouteProbe(siblingTab)}
+        />
+      </Tab.Navigator>
+    );
+    return withStreamControls(renderWithProvider(tabTree, { state }), stream);
+  }
+
+  if (extraRoutes?.length || presentingRoute) {
     const Stack = createNativeStackNavigator();
     const InnerStack = createNativeStackNavigator();
-    const nestedPerpsRoutes = extraRoutes.filter(
+    const nestedPerpsRoutes = (extraRoutes ?? []).filter(
       ({ mount }) => mount === 'perps-root',
     );
-    const rootRoutes = extraRoutes.filter(
+    const rootRoutes = (extraRoutes ?? []).filter(
       ({ mount }) => mount !== 'perps-root',
     );
     // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
@@ -788,10 +834,28 @@ export function renderPerpsView(
         {nestedScreens}
       </InnerStack.Navigator>
     );
+    const PresentingRouteProbe = ({
+      navigation,
+    }: {
+      navigation: { navigate: (name: string, params?: object) => void };
+    }) => {
+      React.useEffect(() => {
+        navigation.navigate(routeName, initialParams);
+      }, [navigation]);
+      return <Text testID={`route-${presentingRoute}`}>{presentingRoute}</Text>;
+    };
     const stackTree = (
       <Stack.Navigator
-        initialRouteName={nestMain ? Routes.PERPS.ROOT : undefined}
+        initialRouteName={
+          nestMain ? Routes.PERPS.ROOT : (presentingRoute ?? routeName)
+        }
       >
+        {presentingRoute && !nestMain ? (
+          <Stack.Screen
+            name={presentingRoute}
+            component={PresentingRouteProbe as unknown as React.ComponentType}
+          />
+        ) : null}
         {!nestMain && (
           <Stack.Screen
             name={routeName}

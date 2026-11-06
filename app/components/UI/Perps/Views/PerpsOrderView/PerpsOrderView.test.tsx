@@ -210,6 +210,15 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
 }));
 
+const mockCheckAccountSupport = jest.fn();
+jest.mock('../../hooks/usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
+}));
+
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
   usePerpsNetworkManagement: () => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
@@ -1398,6 +1407,7 @@ describe('PerpsOrderView', () => {
     mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
+    mockCheckAccountSupport.mockResolvedValue('supported');
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
@@ -1644,6 +1654,7 @@ describe('PerpsOrderView', () => {
       'payWith',
       'marginInfo',
       'liquidationInfo',
+      'accountUnsupported',
     ]);
   });
 
@@ -2379,6 +2390,114 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('checks and places the order on the route venue', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        providerId: 'lighter',
+      },
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter');
+    expect(placeOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'ETH',
+        providerId: 'lighter',
+      }),
+    );
+  });
+
+  describe('when the Trade sheet closes while account support is pending', () => {
+    const arrangePendingAccountSupport = async () => {
+      let resolveAccountSupport: (
+        result: 'supported' | 'unsupported' | 'stale' | 'unmounted',
+      ) => void = () => undefined;
+      mockCheckAccountSupport.mockImplementationOnce(
+        () =>
+          new Promise<'supported' | 'unsupported' | 'stale' | 'unmounted'>(
+            (resolve) => {
+              resolveAccountSupport = resolve;
+            },
+          ),
+      );
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+      useTradeSheetRoute();
+      const rendered = render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      let submission: void | Promise<void>;
+      await act(async () => {
+        submission = getMockTradeScreenProps().onSubmit();
+        await Promise.resolve();
+      });
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+
+      const settleAccountSupport = (
+        result:
+          | 'supported'
+          | 'unsupported'
+          | 'stale'
+          | 'unmounted' = 'supported',
+      ) =>
+        act(async () => {
+          resolveAccountSupport(result);
+          await submission;
+        });
+
+      return { ...rendered, placeOrder, settleAccountSupport };
+    };
+
+    // Unit fallback. The Trade sheet closes through its overlay or a swipe,
+    // and neither is addressable in the component-view renderer. Unmount,
+    // header back and tab-away exits are covered in
+    // PerpsOrderView.view.test.tsx.
+    it('does not place an order once the sheet reported it closed', async () => {
+      const { placeOrder, settleAccountSupport } =
+        await arrangePendingAccountSupport();
+
+      act(() => {
+        mockTradeSheetOnClose?.();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await settleAccountSupport();
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+
+    // Unit fallback. Unmounting in a view test sets isDismissedRef, and
+    // handlePlaceOrder returns on that flag before it reads an unmounted
+    // support result. This keeps the sheet mounted so only that result is
+    // under test. The hook itself is covered in usePerpsAccountSupport.test.ts.
+    it('does not place an order when the support check resolves unmounted', async () => {
+      const { placeOrder, settleAccountSupport } =
+        await arrangePendingAccountSupport();
+
+      await settleAccountSupport('unmounted');
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+  });
+
   describe('when the Trade sheet is dismissed while validation is pending', () => {
     interface ValidationResult {
       isValid: boolean;
@@ -2393,7 +2512,7 @@ describe('PerpsOrderView', () => {
       fieldIssues: [],
     };
 
-    const arrangePendingValidation = () => {
+    const arrangePendingValidation = async () => {
       let resolveValidation: (result: ValidationResult) => void = () =>
         undefined;
       const validateNow = jest.fn(
@@ -2418,8 +2537,10 @@ describe('PerpsOrderView', () => {
       const rendered = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       let submission: void | Promise<void>;
-      act(() => {
+      await act(async () => {
         submission = getMockTradeScreenProps().onSubmit();
+        // Account support resolves before pending validation starts.
+        await Promise.resolve();
       });
       expect(validateNow).toHaveBeenCalledTimes(1);
 
@@ -2444,7 +2565,7 @@ describe('PerpsOrderView', () => {
     // navigation transition unmounts this view, so the dismissal itself must
     // stop the pending submit — not only the eventual unmount.
     it('does not place an order once the sheet reported it closed, even before unmount', async () => {
-      const { placeOrder, settleValidation } = arrangePendingValidation();
+      const { placeOrder, settleValidation } = await arrangePendingValidation();
 
       act(() => {
         mockTradeSheetOnClose?.();
@@ -2457,7 +2578,7 @@ describe('PerpsOrderView', () => {
 
     it('does not place an order once the view unmounted', async () => {
       const { placeOrder, settleValidation, unmount } =
-        arrangePendingValidation();
+        await arrangePendingValidation();
 
       unmount();
       await settleValidation();
@@ -2679,6 +2800,30 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(placeOrder).not.toHaveBeenCalled();
 
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+    });
+
+    // Unit fallback. A view test cannot fire the deposit tracker's credit
+    // callback after this screen unmounts. The hook's unmounted result is
+    // covered in usePerpsAccountSupport.test.ts; this checks the forced
+    // re-entry still places when that result arrives.
+    it('places the order when support resolves unmounted after the deposit view is gone', async () => {
+      mockCheckAccountSupport
+        .mockResolvedValueOnce('supported')
+        .mockResolvedValueOnce('unmounted');
+      const {
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+        unmount,
+      } = arrangeDepositFlow();
+
+      await submit();
+      await settleConfirm();
+      unmount();
       await confirmDepositOnChain();
 
       expect(placeOrder).toHaveBeenCalledTimes(1);

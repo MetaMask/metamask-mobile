@@ -266,21 +266,24 @@ that confirmation trace.
 | `perps.ui.close_order_confirmation_toast_loaded` | ms | Close confirmation |
 | `perps.ui.leverage_bottom_sheet_loaded` | ms | Leverage picker |
 
-### Trading Operations (9 events)
+### Trading Operations (10 events)
 
 **Purpose:** Track order execution, position management, and transaction completion.
 
-| TraceName            | Operation                 | Tags                                                                | Data Attributes                                                   |
-| -------------------- | ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token                |
-| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                               |
-| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch) |
-| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
-| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                           |
-| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                                   | amount, success                                                   |
-| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                     |
-| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                     |
-| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                   |
+| TraceName                  | Operation                 | Tags                                                                | Data Attributes                                                   |
+| -------------------------- | ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `PerpsPlaceOrder`          | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token                |
+| `PerpsEditOrder`           | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                               |
+| `PerpsCancelOrder`         | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch) |
+| `PerpsClosePosition`       | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
+| `PerpsUpdateTPSL`          | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                           |
+| `PerpsUpdateMargin`        | `PerpsPositionManagement` | provider, coin, action, isTestnet                                   | amount, success                                                   |
+| `PerpsFlipPosition`        | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                     |
+| `PerpsWithdraw`            | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                     |
+| `PerpsDeposit`             | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                   |
+| `PerpsAccountSupportCheck` | `PerpsOperation`          | provider                                                            | result (`supported`, `unsupported`, `stale`, `unmounted`)         |
+
+`PerpsAccountSupportCheck` covers the support read awaited after a trade, Trade-sheet or withdrawal tap and before the action continues. The prefetch on account, provider or network change emits no span.
 
 **Batch Operations Pattern:**
 

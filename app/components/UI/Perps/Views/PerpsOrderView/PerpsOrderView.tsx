@@ -82,6 +82,7 @@ import RewardsAnimations, {
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
@@ -97,6 +98,7 @@ import PerpsTradeBottomSheet, {
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
+  PerpsTradeAccountUnsupportedScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
@@ -110,6 +112,7 @@ import {
   type InputMethod,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -125,6 +128,8 @@ import {
   toPerpsSizeUnitAnalyticsValue,
 } from '../../utils/perpsSizeDenomination';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
+import type { ValidationAttempt } from '../../hooks/usePerpsOrderValidation';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -265,6 +270,8 @@ import ToastService from '../../../../../core/ToastService';
 interface OrderRouteParams {
   direction?: 'long' | 'short';
   asset?: string;
+  /** Venue that will sign this order. Omitted follows the active provider. */
+  providerId?: PerpsProviderType;
   amount?: string;
   leverage?: number;
   // Existing position param
@@ -299,6 +306,11 @@ interface OrderRouteParams {
   useBottomSheet?: boolean;
 }
 
+type PlaceOrderHandler = (
+  forceTrade?: boolean,
+  hasCheckedAccountSupport?: boolean,
+) => Promise<'accountUnsupported' | undefined>;
+
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
@@ -322,6 +334,7 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
+  accountUnsupported: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
@@ -329,6 +342,7 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'payWith',
   'marginInfo',
   'liquidationInfo',
+  'accountUnsupported',
 ];
 
 /**
@@ -371,6 +385,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const copyTradeOrigin = route.params?.copyTradeOrigin;
+  const orderProviderId = route.params?.providerId;
   const activePerpsProvider = useSelector(selectPerpsProvider);
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -487,6 +502,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // approval and unmounts this view while the user is still on the sheet, and
   // that path still needs to leave once the confirmation settles.
   const isClosedByUserRef = useRef(false);
+  // Bumped on a real exit (back, gesture, tab switch) that may leave this view
+  // mounted, so a user submit awaiting a check started before it is retired.
+  const submissionGenerationRef = useRef(0);
+  const retireSubmissionAttempts = useCallback(() => {
+    submissionGenerationRef.current += 1;
+  }, []);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -519,6 +540,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1306,6 +1332,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsAbandonOrderTracking({
     getAbandonProperties,
     hasCommittedRef: hasPlacedOrderRef,
+    onExit: retireSubmissionAttempts,
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
@@ -1827,8 +1854,648 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
-  const handlePlaceOrder = useCallback(
-    async (forceTrade = false) => {
+  const submissionInputKey = JSON.stringify({
+    orderForm,
+    payTokenIdentity,
+    hasCustomTokenSelected,
+  });
+  const submissionInputKeyRef = useRef(submissionInputKey);
+  submissionInputKeyRef.current = submissionInputKey;
+  const handlePlaceOrderRef = useRef<PlaceOrderHandler>(() =>
+    Promise.resolve(undefined),
+  );
+
+  // Track the Place Order button press for ALL users on the real tap —
+  // emitted BEFORE the deposit/direct branching so deposit-path taps are
+  // captured too. The active A/B assignment (e.g. button color) is
+  // auto-injected onto this PERPS_UI_INTERACTION event via enrichWithABTests().
+  const trackPlaceOrderTap = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
+        orderForm.direction === 'long'
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
+    });
+  }, [track, orderForm.asset, orderForm.direction, readShownSizeUnit]);
+
+  // A user-initiated submit no longer owns the action once the user has
+  // left: sheet close, unmount, or a real exit that keeps this view
+  // mounted. The committed post-deposit re-entry keeps running so a
+  // confirmed deposit still produces its order.
+  const createAttemptRetiredCheck = useCallback((forceTrade: boolean) => {
+    const attemptGeneration = submissionGenerationRef.current;
+    return () =>
+      !forceTrade &&
+      (isDismissedRef.current ||
+        submissionGenerationRef.current !== attemptGeneration);
+  }, []);
+
+  const checkAccountSupportBeforeSubmit = useCallback(
+    async (
+      forceTrade: boolean,
+      isAttemptRetired: () => boolean,
+    ): Promise<'continue' | 'accountUnsupported' | 'abort'> => {
+      const inputKeyAtTap = submissionInputKeyRef.current;
+      // Cover this await with the submit lock. The validating path sets the
+      // same lock only after this read, so a second tap in the same turn
+      // would otherwise start a parallel placement.
+      isSubmittingRef.current = true;
+      const accountSupport = await checkAccountSupport(orderProviderId).finally(
+        () => {
+          isSubmittingRef.current = false;
+        },
+      );
+      // The post-deposit re-entry runs after this view unmounts, so an
+      // unmounted support read is not a reason to drop it. A changed
+      // account context still is.
+      if (isAttemptRetired()) {
+        return 'abort';
+      }
+      if (accountSupport === 'unsupported') {
+        return 'accountUnsupported';
+      }
+      if (
+        accountSupport === 'stale' ||
+        (accountSupport === 'unmounted' && !forceTrade)
+      ) {
+        return 'abort';
+      }
+      // Inputs edited during the check describe an order the user has not
+      // submitted yet. Otherwise continue on the latest render so blockers,
+      // validation and price reflect the state after the wait.
+      if (submissionInputKeyRef.current !== inputKeyAtTap) {
+        return 'abort';
+      }
+      return 'continue';
+    },
+    [checkAccountSupport, orderProviderId],
+  );
+
+  /** Shows a toast and returns true when liquidity or slippage blocks the order. */
+  const showPreSubmitBlocker = useCallback((): boolean => {
+    if (liquidityError) {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(
+          liquidityError,
+        ),
+      );
+      return true;
+    }
+
+    // Bail out before the pay-with-any-token deposit branch so an
+    // excessive-slippage order never starts a deposit/signature flow.
+    if (!exceedsMaxSlippage || typeof estimatedSlippageBps !== 'number') {
+      return false;
+    }
+    const estPct = bpsToPercent(estimatedSlippageBps);
+    const maxPct = bpsToPercent(maxSlippageBps);
+    // The Trade sheet deliberately has no slippage control, so its copy
+    // must not tell the user to raise a cap they cannot reach; reducing
+    // the order size is the only remedy there.
+    showToast(
+      PerpsToastOptions.formValidation.orderForm.validationError(
+        strings(
+          useBottomSheet
+            ? 'perps.slippage.exceeds_max_reduce_size'
+            : 'perps.slippage.exceeds_max',
+          {
+            est: estPct.toFixed(2),
+            max: maxPct.toFixed(2),
+          },
+        ),
+      ),
+    );
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
+      [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+    });
+    return true;
+  }, [
+    liquidityError,
+    exceedsMaxSlippage,
+    estimatedSlippageBps,
+    maxSlippageBps,
+    maxSlippageSource,
+    useBottomSheet,
+    orderForm.asset,
+    showToast,
+    PerpsToastOptions.formValidation.orderForm,
+    track,
+  ]);
+
+  /** Resolves to undefined when the attempt was retired during validation. */
+  const resolveSubmissionValidation = useCallback(
+    async (
+      isAttemptRetired: () => boolean,
+    ): Promise<Pick<ValidationAttempt, 'isValid' | 'errors'> | undefined> => {
+      if (!orderValidation.isValidating) {
+        return {
+          isValid: orderValidation.isValid,
+          errors: orderValidation.errors,
+        };
+      }
+      isSubmittingRef.current = true;
+      let validationAttempt: ValidationAttempt;
+      try {
+        validationAttempt = await validateOrderNow();
+      } finally {
+        isSubmittingRef.current = false;
+      }
+      // Only a user-initiated submit is abandoned with the sheet. The
+      // post-deposit re-entry (`forceTrade`) runs by design after the user
+      // has left — the deposit branch itself navigates away once the
+      // confirmation resolves — and the confirmed deposit is a commitment
+      // that must still produce the order.
+      if (isAttemptRetired()) {
+        return undefined;
+      }
+      return validationAttempt;
+    },
+    [
+      orderValidation.isValidating,
+      orderValidation.isValid,
+      orderValidation.errors,
+      validateOrderNow,
+    ],
+  );
+
+  const reportValidationFailure = useCallback(
+    (errors: string[]) => {
+      const firstError = errors[0] || strings('perps.order.validation.error');
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(firstError),
+      );
+      track(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+          PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+      });
+    },
+    [showToast, PerpsToastOptions.formValidation.orderForm, track],
+  );
+
+  const navigateAfterDepositConfirmed = useCallback(() => {
+    if (fromTokenDetails) {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: navigationMarketData ?? {
+                  symbol: orderForm.asset,
+                  name: orderForm.asset,
+                },
+                monitoringIntent: {
+                  asset: orderForm.asset,
+                  monitorOrders: true,
+                  monitorPositions: true,
+                },
+              },
+            },
+          ],
+        }),
+      );
+      return;
+    }
+    if (stayOnCurrentScreen) {
+      hasDismissedAfterSubmitRef.current = true;
+    }
+    navigation.goBack();
+  }, [
+    fromTokenDetails,
+    navigation,
+    navigationMarketData,
+    orderForm.asset,
+    stayOnCurrentScreen,
+  ]);
+
+  // Deposit first; `placeOrderAfterDeposit` places the order once funds arrive.
+  const confirmDepositBeforeOrder = useCallback(
+    async (placeOrderAfterDeposit: () => void) => {
+      if (marginRequired === undefined || marginRequired === null) {
+        return;
+      }
+
+      if (!activeTransactionMeta) {
+        DevLogger.log('No active transaction to confirm');
+        return;
+      }
+
+      // Show deposit toast and set up tracking before confirming
+      handleDepositConfirm(
+        activeTransactionMeta,
+        placeOrderAfterDeposit,
+        marginRequired,
+      );
+      // useTransactionConfirm swallows confirm errors and reports them via
+      // onError, so capture failure explicitly instead of assuming success.
+      // Hold the deposit lock across the await so a second tap cannot start
+      // a parallel deposit confirmation.
+      isConfirmingDepositRef.current = true;
+      let depositConfirmError: unknown;
+      try {
+        await onDepositConfirm({
+          onError: (error) => {
+            depositConfirmError = error;
+          },
+        });
+      } finally {
+        isConfirmingDepositRef.current = false;
+      }
+      if (depositConfirmError) {
+        // A cancelled/failed deposit confirmation is not a commitment: keep
+        // abandon tracking armed and stay on the screen so the user can retry
+        // (leaving later then correctly counts as an abandon).
+        return;
+      }
+      if (hasPlacedOrderAfterDepositRef.current) {
+        // The deposit confirmed while this await was still pending and the
+        // tracker already re-entered `handlePlaceOrder(true)`, which placed
+        // the order and navigated away; a second navigation here would pop
+        // the market screen it just landed on.
+        return;
+      }
+      // Deposit confirmed: the order is placed once funds arrive, so leaving
+      // now is a real commitment, not an abandoned order.
+      hasPlacedOrderRef.current = true;
+      if (isClosedByUserRef.current) {
+        // The user closed the sheet (before or during the confirmation), so
+        // `handleTradeSheetClose` has navigated; a second `goBack` here
+        // would pop whatever screen is now on top. `isDismissedRef` is not
+        // used here because the unmount caused by this confirm deleting the
+        // approval also sets it, and that user still needs to leave.
+        return;
+      }
+      navigateAfterDepositConfirmed();
+    },
+    [
+      marginRequired,
+      activeTransactionMeta,
+      handleDepositConfirm,
+      onDepositConfirm,
+      navigateAfterDepositConfirmed,
+    ],
+  );
+
+  /** Returns true when an existing cross-margin position blocks the order. */
+  const blockCrossMarginOrder = useCallback((): boolean => {
+    // MetaMask only supports isolated margin
+    if (currentMarketPosition?.leverage?.type !== 'cross') {
+      return false;
+    }
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+    });
+
+    track(MetaMetricsEvents.PERPS_ERROR, {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Cross margin position detected',
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    });
+    return true;
+  }, [currentMarketPosition, navigation, track]);
+
+  // A Social V1 copy-trade that can return an order id shows the share sheet
+  // instead of the submitted toast.
+  const preparePostTradePrompt = useCallback(() => {
+    perpsShareSessionIdRef.current = isProfileTradingActivityPrivate
+      ? undefined
+      : beginPerpsPostTradeShare({
+          copyTradeOrigin,
+          orderType: orderForm.type,
+          activeProvider: activePerpsProvider,
+          asset: orderForm.asset,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          amountUsd: orderForm.amount,
+          analyticsSource: shareAnalyticsSource,
+        });
+    const resolvedPerpsPostTradePrompt =
+      !perpsShareSessionIdRef.current &&
+      !isPerpsProModeActive &&
+      canPromptPerpsPostTrade({
+        orderType: orderForm.type,
+        activeProvider: activePerpsProvider,
+      })
+        ? resolvePostTradePrompt('perps')
+        : undefined;
+    perpsPostTradePromptRef.current =
+      resolvedPerpsPostTradePrompt?.kind === 'claim_sheet' ||
+      isPerpsPostTradeShareEligible({
+        amountUsd: orderForm.amount,
+        leverage: orderForm.leverage,
+      })
+        ? resolvedPerpsPostTradePrompt
+        : undefined;
+    const promptKind = perpsPostTradePromptRef.current?.kind;
+    if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
+      perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
+        asset: orderForm.asset,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        amountUsd: orderForm.amount,
+        variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
+        analyticsSource: shareAnalyticsSource,
+      });
+    }
+  }, [
+    isProfileTradingActivityPrivate,
+    copyTradeOrigin,
+    orderForm.type,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.leverage,
+    orderForm.amount,
+    activePerpsProvider,
+    shareAnalyticsSource,
+    isPerpsProModeActive,
+    resolvePostTradePrompt,
+  ]);
+
+  // Only include TP/SL if they have valid, non-empty values.
+  //
+  // HYBRID APPROACH: Pass both USD amount (source of truth) and size (for backward compatibility)
+  // The provider will:
+  // 1. Validate price hasn't moved beyond maxSlippageBps
+  // 2. Recalculate size with fresh price from usdAmount
+  // 3. Use the recalculated size for order execution
+  const buildOrderParams = useCallback(
+    (): OrderParams =>
+      buildPerpsOrderParams({
+        asset: orderForm.asset,
+        isBuy: orderForm.direction === 'long',
+        size: positionSize,
+        orderType: orderForm.type,
+        effectivePrice,
+        leverage: orderForm.leverage,
+        usdAmount: orderForm.amount,
+        maxSlippageBps,
+        limitPrice: orderForm.limitPrice,
+        takeProfitPrice: orderForm.takeProfitPrice,
+        stopLossPrice: orderForm.stopLossPrice,
+        providerId: orderProviderId,
+        trackingData: buildPerpsOrderTrackingData({
+          marginRequired,
+          feeResults,
+          marketPrice: assetData.price,
+          inputMethod: inputMethodRef.current,
+          orderType: orderForm.type,
+          source,
+          sourceSection,
+          currentMarketPosition,
+          direction: orderForm.direction,
+          chartLibrary,
+          vipTier,
+          hasCustomTokenSelected,
+          payToken,
+          maxSlippageBps,
+          maxSlippageSource,
+          estimatedSlippageBps:
+            typeof estimatedSlippageBps === 'number'
+              ? estimatedSlippageBps
+              : undefined,
+        }),
+      }),
+    [
+      orderForm.asset,
+      orderForm.direction,
+      orderForm.type,
+      orderForm.leverage,
+      orderForm.amount,
+      orderForm.limitPrice,
+      orderForm.takeProfitPrice,
+      orderForm.stopLossPrice,
+      orderProviderId,
+      positionSize,
+      effectivePrice,
+      maxSlippageBps,
+      marginRequired,
+      feeResults,
+      assetData.price,
+      source,
+      sourceSection,
+      currentMarketPosition,
+      chartLibrary,
+      vipTier,
+      hasCustomTokenSelected,
+      payToken,
+      maxSlippageSource,
+      estimatedSlippageBps,
+    ],
+  );
+
+  /** Resolves to whether the order itself succeeded; a TP/SL failure only toasts. */
+  const executeOrderWithTPSL = useCallback(
+    async (orderParams: OrderParams): Promise<boolean> => {
+      // New positions and position flips set TP/SL separately after the order.
+      const shouldHandleTPSLSeparately =
+        (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
+        ((!currentMarketPosition && orderForm.type === 'market') ||
+          (currentMarketPosition &&
+            willFlipPosition(currentMarketPosition, orderParams)));
+
+      if (!shouldHandleTPSLSeparately) {
+        const orderResult = await executeOrder(orderParams);
+        return Boolean(orderResult?.success);
+      }
+
+      const orderWithoutTPSL = { ...orderParams };
+      delete orderWithoutTPSL.takeProfitPrice;
+      delete orderWithoutTPSL.stopLossPrice;
+
+      const orderResult = await executeOrder(orderWithoutTPSL);
+      if (!orderResult?.success) {
+        return false;
+      }
+
+      const tpslResult = await updatePositionTPSL({
+        symbol: orderForm.asset,
+        takeProfitPrice: orderForm.takeProfitPrice,
+        stopLossPrice: orderForm.stopLossPrice,
+      });
+
+      if (!tpslResult.success) {
+        const errorMessage = translatePerpsError(tpslResult.error);
+        showToast(
+          PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            errorMessage,
+          ),
+        );
+      }
+      return true;
+    },
+    [
+      orderForm.takeProfitPrice,
+      orderForm.stopLossPrice,
+      orderForm.type,
+      orderForm.asset,
+      currentMarketPosition,
+      executeOrder,
+      updatePositionTPSL,
+      showToast,
+      PerpsToastOptions.positionManagement.tpsl,
+    ],
+  );
+
+  // Clear pending trade config after successful submission to prevent
+  // stale TP/SL values from being restored on the next order form visit.
+  // Size, TP/SL, and limit price reset; leverage and order type persist.
+  const resetOrderFormAfterSubmit = useCallback(() => {
+    Engine.context.PerpsController?.clearPendingTradeConfiguration(
+      orderForm.asset,
+    );
+    updateOrderForm({
+      amount: '',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      limitPrice: undefined,
+    });
+    setLimitPrice(undefined);
+  }, [orderForm.asset, updateOrderForm, setLimitPrice]);
+
+  // Note: order_execution_latency_ms is intentionally not emitted
+  // here — the terminal Perp transaction event is owned by the perps
+  // controller, and the latency field lands with the @metamask/perps-controller
+  // 9.2.2 bump (TrackingData.orderExecutionLatencyMs) in a follow-up PR.
+  const placeOrderDirectly = useCallback(
+    async (forceTrade: boolean) => {
+      isSubmittingRef.current = true;
+      try {
+        if (blockCrossMarginOrder()) {
+          return;
+        }
+
+        // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
+        // Always monitor both orders and positions because:
+        // - Market orders: Usually create positions immediately
+        // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
+        // Monitoring both ensures we route to the correct tab regardless of execution speed
+        // Real placement is underway; leaving now is not an abandon.
+        hasPlacedOrderRef.current = true;
+        if (forceTrade) {
+          hasPlacedOrderAfterDepositRef.current = true;
+        }
+
+        // Both the full-screen form and the Trade sheet leave as soon as the
+        // order is submitted. Default is market details; `stayOnCurrentScreen`
+        // dismisses back to the presenting screen.
+        preparePostTradePrompt();
+        navigateToMarketAfterOrder();
+
+        const orderParams = buildOrderParams();
+
+        if (!perpsShareSessionIdRef.current) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].submitted(orderForm.direction, positionSize, orderForm.asset),
+          );
+        }
+
+        const orderSucceeded = await executeOrderWithTPSL(orderParams);
+        if (!orderSucceeded) {
+          failPerpsPostTradeShare(perpsShareSessionIdRef.current);
+          return;
+        }
+
+        resetOrderFormAfterSubmit();
+      } finally {
+        isSubmittingRef.current = false;
+      }
+    },
+    [
+      blockCrossMarginOrder,
+      preparePostTradePrompt,
+      navigateToMarketAfterOrder,
+      buildOrderParams,
+      showToast,
+      PerpsToastOptions.orderManagement,
+      orderForm.type,
+      orderForm.direction,
+      orderForm.asset,
+      positionSize,
+      executeOrderWithTPSL,
+      resetOrderFormAfterSubmit,
+    ],
+  );
+
+  // Runs once the account support check has passed. An already-valid form
+  // skips the validating-branch guard, so dismissal is read again on this
+  // continuation, which is what can still submit after the support request
+  // resolves. A committed post-deposit re-entry is not retired.
+  const submitCheckedOrder = useCallback(
+    async (
+      forceTrade: boolean,
+      isAttemptRetired: () => boolean,
+      placeOrderAfterDeposit: () => void,
+    ) => {
+      if (isAttemptRetired() || showPreSubmitBlocker()) {
+        return;
+      }
+
+      if (useBottomSheet && !forceTrade) {
+        fireImpact(ImpactMoment.PrimaryCTA);
+      }
+
+      const validation = await resolveSubmissionValidation(isAttemptRetired);
+      if (!validation) {
+        return;
+      }
+      if (!validation.isValid) {
+        reportValidationFailure(validation.errors);
+        return;
+      }
+
+      const needsDeposit =
+        isTradeWithAnyTokenEnabled &&
+        depositAmount &&
+        depositAmount.trim() !== '' &&
+        activeTransactionMeta &&
+        hasCustomTokenSelected;
+
+      if (needsDeposit && !forceTrade) {
+        await confirmDepositBeforeOrder(placeOrderAfterDeposit);
+        return;
+      }
+
+      await placeOrderDirectly(forceTrade);
+    },
+    [
+      showPreSubmitBlocker,
+      useBottomSheet,
+      fireImpact,
+      resolveSubmissionValidation,
+      reportValidationFailure,
+      isTradeWithAnyTokenEnabled,
+      depositAmount,
+      activeTransactionMeta,
+      hasCustomTokenSelected,
+      confirmDepositBeforeOrder,
+      placeOrderDirectly,
+    ],
+  );
+
+  const handlePlaceOrder = useCallback<PlaceOrderHandler>(
+    async (forceTrade = false, hasCheckedAccountSupport = false) => {
       if (
         isSubmittingRef.current ||
         (!forceTrade && isConfirmingDepositRef.current)
@@ -1847,476 +2514,41 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
-      // Track the Place Order button press for ALL users on the real
-      // tap — emitted BEFORE the deposit/direct branching so deposit-path taps
-      // are captured too (the deposit branch returns early). `forceTrade` marks
-      // the post-deposit re-invocation, not a user tap, so it is excluded. The
-      // active A/B assignment (e.g. button color) is auto-injected onto this
-      // PERPS_UI_INTERACTION event via enrichWithABTests().
-      if (!forceTrade) {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
-          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-          [PERPS_EVENT_PROPERTY.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PERPS_EVENT_VALUE.DIRECTION.LONG
-              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
-        });
-      }
+      const isAttemptRetired = createAttemptRetiredCheck(forceTrade);
 
-      if (liquidityError) {
-        showToast(
-          PerpsToastOptions.formValidation.orderForm.validationError(
-            liquidityError,
-          ),
+      if (!hasCheckedAccountSupport) {
+        // `forceTrade` marks the post-deposit re-invocation, not a user tap.
+        if (!forceTrade) {
+          trackPlaceOrderTap();
+        }
+        const accountSupport = await checkAccountSupportBeforeSubmit(
+          forceTrade,
+          isAttemptRetired,
         );
-        return;
-      }
-
-      // Bail out before the pay-with-any-token deposit branch so an
-      // excessive-slippage order never starts a deposit/signature flow.
-      if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
-        const estPct = bpsToPercent(estimatedSlippageBps);
-        const maxPct = bpsToPercent(maxSlippageBps);
-        // The Trade sheet deliberately has no slippage control, so its copy
-        // must not tell the user to raise a cap they cannot reach; reducing
-        // the order size is the only remedy there.
-        showToast(
-          PerpsToastOptions.formValidation.orderForm.validationError(
-            strings(
-              useBottomSheet
-                ? 'perps.slippage.exceeds_max_reduce_size'
-                : 'perps.slippage.exceeds_max',
-              {
-                est: estPct.toFixed(2),
-                max: maxPct.toFixed(2),
-              },
-            ),
-          ),
-        );
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
-          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
-          [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
-          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-        });
-        return;
-      }
-
-      if (useBottomSheet && !forceTrade) {
-        fireImpact(ImpactMoment.PrimaryCTA);
-      }
-
-      let submissionIsValid = orderValidation.isValid;
-      let submissionErrors = orderValidation.errors;
-      if (orderValidation.isValidating) {
-        isSubmittingRef.current = true;
-        try {
-          const validationAttempt = await validateOrderNow();
-          submissionIsValid = validationAttempt.isValid;
-          submissionErrors = validationAttempt.errors;
-        } finally {
-          isSubmittingRef.current = false;
-        }
-        // Only a user-initiated submit is abandoned with the sheet. The
-        // post-deposit re-entry (`forceTrade`) runs by design after the user
-        // has left — the deposit branch itself navigates away once the
-        // confirmation resolves — and the confirmed deposit is a commitment
-        // that must still produce the order.
-        if (!forceTrade && isDismissedRef.current) {
-          return;
-        }
-      }
-
-      if (!submissionIsValid) {
-        const firstError =
-          submissionErrors[0] || strings('perps.order.validation.error');
-        showToast(
-          PerpsToastOptions.formValidation.orderForm.validationError(
-            firstError,
-          ),
-        );
-        track(MetaMetricsEvents.PERPS_ERROR, {
-          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: firstError,
-          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-        });
-        return;
-      }
-
-      // Check if deposit is needed first (when custom token is selected)
-      const needsDeposit =
-        isTradeWithAnyTokenEnabled &&
-        depositAmount &&
-        depositAmount.trim() !== '' &&
-        activeTransactionMeta &&
-        hasCustomTokenSelected;
-
-      if (needsDeposit && !forceTrade) {
-        // Deposit first, then order will be placed automatically when funds arrive
-        if (marginRequired === undefined || marginRequired === null) {
-          return;
-        }
-
-        if (!activeTransactionMeta) {
-          DevLogger.log('No active transaction to confirm');
-          return;
-        }
-
-        // Show deposit toast and set up tracking before confirming
-        handleDepositConfirm(
-          activeTransactionMeta,
-          () => {
-            handlePlaceOrder(true).catch(
-              logRejection('placeOrderAfterDeposit'),
-            );
-          },
-          marginRequired,
-        );
-        // useTransactionConfirm swallows confirm errors and reports them via
-        // onError, so capture failure explicitly instead of assuming success.
-        // Hold the deposit lock across the await so a second tap cannot start
-        // a parallel deposit confirmation.
-        isConfirmingDepositRef.current = true;
-        let depositConfirmError: unknown;
-        try {
-          await onDepositConfirm({
-            onError: (error) => {
-              depositConfirmError = error;
-            },
-          });
-        } finally {
-          isConfirmingDepositRef.current = false;
-        }
-        if (depositConfirmError) {
-          // A cancelled/failed deposit confirmation is not a commitment: keep
-          // abandon tracking armed and stay on the screen so the user can retry
-          // (leaving later then correctly counts as an abandon).
-          return;
-        }
-        if (hasPlacedOrderAfterDepositRef.current) {
-          // The deposit confirmed while this await was still pending and the
-          // tracker already re-entered `handlePlaceOrder(true)`, which placed
-          // the order and navigated away; a second navigation here would pop
-          // the market screen it just landed on.
-          return;
-        }
-        // Deposit confirmed: the order is placed once funds arrive, so leaving
-        // now is a real commitment, not an abandoned order.
-        hasPlacedOrderRef.current = true;
-        if (isClosedByUserRef.current) {
-          // The user closed the sheet (before or during the confirmation), so
-          // `handleTradeSheetClose` has navigated; a second `goBack` here
-          // would pop whatever screen is now on top. `isDismissedRef` is not
-          // used here because the unmount caused by this confirm deleting the
-          // approval also sets it, and that user still needs to leave.
-          return;
-        }
-        if (fromTokenDetails) {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [
-                {
-                  name: Routes.PERPS.MARKET_DETAILS,
-                  params: {
-                    market: navigationMarketData ?? {
-                      symbol: orderForm.asset,
-                      name: orderForm.asset,
-                    },
-                    monitoringIntent: {
-                      asset: orderForm.asset,
-                      monitorOrders: true,
-                      monitorPositions: true,
-                    },
-                  },
-                },
-              ],
-            }),
-          );
-        } else {
-          if (stayOnCurrentScreen) {
-            hasDismissedAfterSubmitRef.current = true;
-          }
-          navigation.goBack();
-        }
-        return;
-      }
-
-      // No deposit needed, place order directly
-      isSubmittingRef.current = true;
-
-      // Note: order_execution_latency_ms is intentionally not emitted
-      // here — the terminal Perp transaction event is owned by the perps
-      // controller, and the latency field lands with the @metamask/perps-controller
-      // 9.2.2 bump (TrackingData.orderExecutionLatencyMs) in a follow-up PR.
-      // The Place Order button press (incl. A/B context) is already tracked at
-      // the top of this callback for all paths; the button-color assignment is
-      // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
-
-      try {
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (currentMarketPosition?.leverage?.type === 'cross') {
-          navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-            screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
-          });
-
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-              'Cross margin position detected',
-            [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-              PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-          });
-
-          isSubmittingRef.current = false;
-          return;
-        }
-
-        // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
-        // Always monitor both orders and positions because:
-        // - Market orders: Usually create positions immediately
-        // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
-        // Monitoring both ensures we route to the correct tab regardless of execution speed
-        // Real placement is underway; leaving now is not an abandon.
-        hasPlacedOrderRef.current = true;
-        if (forceTrade) {
-          hasPlacedOrderAfterDepositRef.current = true;
-        }
-
-        // Both the full-screen form and the Trade sheet leave as soon as the
-        // order is submitted. Default is market details; `stayOnCurrentScreen`
-        // dismisses back to the presenting screen. A Social V1 copy-trade that
-        // can return an order id shows the share sheet instead of these toasts.
-        perpsShareSessionIdRef.current = isProfileTradingActivityPrivate
-          ? undefined
-          : beginPerpsPostTradeShare({
-              copyTradeOrigin,
-              orderType: orderForm.type,
-              activeProvider: activePerpsProvider,
-              asset: orderForm.asset,
-              direction: orderForm.direction,
-              leverage: orderForm.leverage,
-              amountUsd: orderForm.amount,
-              analyticsSource: shareAnalyticsSource,
-            });
-        const resolvedPerpsPostTradePrompt =
-          !perpsShareSessionIdRef.current &&
-          !isPerpsProModeActive &&
-          canPromptPerpsPostTrade({
-            orderType: orderForm.type,
-            activeProvider: activePerpsProvider,
-          })
-            ? resolvePostTradePrompt('perps')
+        if (accountSupport !== 'continue') {
+          return accountSupport === 'accountUnsupported'
+            ? accountSupport
             : undefined;
-        perpsPostTradePromptRef.current =
-          resolvedPerpsPostTradePrompt?.kind === 'claim_sheet' ||
-          isPerpsPostTradeShareEligible({
-            amountUsd: orderForm.amount,
-            leverage: orderForm.leverage,
-          })
-            ? resolvedPerpsPostTradePrompt
-            : undefined;
-        const promptKind = perpsPostTradePromptRef.current?.kind;
-        if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
-          perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
-            asset: orderForm.asset,
-            direction: orderForm.direction,
-            leverage: orderForm.leverage,
-            amountUsd: orderForm.amount,
-            variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
-            analyticsSource: shareAnalyticsSource,
-          });
         }
-        navigateToMarketAfterOrder();
-
-        // Execute order using the new hook
-        // Only include TP/SL if they have valid, non-empty values
-        //
-        // HYBRID APPROACH: Pass both USD amount (source of truth) and size (for backward compatibility)
-        // The provider will:
-        // 1. Validate price hasn't moved beyond maxSlippageBps
-        // 2. Recalculate size with fresh price from usdAmount
-        // 3. Use the recalculated size for order execution
-        const orderParams: OrderParams = buildPerpsOrderParams({
-          asset: orderForm.asset,
-          isBuy: orderForm.direction === 'long',
-          size: positionSize,
-          orderType: orderForm.type,
-          effectivePrice,
-          leverage: orderForm.leverage,
-          usdAmount: orderForm.amount,
-          maxSlippageBps,
-          limitPrice: orderForm.limitPrice,
-          takeProfitPrice: orderForm.takeProfitPrice,
-          stopLossPrice: orderForm.stopLossPrice,
-          trackingData: buildPerpsOrderTrackingData({
-            marginRequired,
-            feeResults,
-            marketPrice: assetData.price,
-            inputMethod: inputMethodRef.current,
-            orderType: orderForm.type,
-            source,
-            sourceSection,
-            currentMarketPosition,
-            direction: orderForm.direction,
-            chartLibrary,
-            vipTier,
-            hasCustomTokenSelected,
-            payToken,
-            maxSlippageBps,
-            maxSlippageSource,
-            estimatedSlippageBps:
-              typeof estimatedSlippageBps === 'number'
-                ? estimatedSlippageBps
-                : undefined,
-          }),
-        });
-
-        if (!perpsShareSessionIdRef.current) {
-          showToast(
-            PerpsToastOptions.orderManagement[
-              getOrderManagementToastKey(orderForm.type)
-            ].submitted(orderForm.direction, positionSize, orderForm.asset),
-          );
-        }
-
-        // Check if TP/SL should be handled separately (for new positions or position flips)
-        const shouldHandleTPSLSeparately =
-          (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
-          ((!currentMarketPosition && orderForm.type === 'market') ||
-            (currentMarketPosition &&
-              willFlipPosition(currentMarketPosition, orderParams)));
-
-        if (shouldHandleTPSLSeparately) {
-          // Execute order without TP/SL first, then update position TP/SL
-          const orderWithoutTPSL = { ...orderParams };
-          delete orderWithoutTPSL.takeProfitPrice;
-          delete orderWithoutTPSL.stopLossPrice;
-
-          const orderResult = await executeOrder(orderWithoutTPSL);
-          if (!orderResult?.success) {
-            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
-            return;
-          }
-
-          const tpslResult = await updatePositionTPSL({
-            symbol: orderForm.asset,
-            takeProfitPrice: orderForm.takeProfitPrice,
-            stopLossPrice: orderForm.stopLossPrice,
-          });
-
-          // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
-          if (!tpslResult.success) {
-            const errorMessage = translatePerpsError(tpslResult.error);
-            showToast(
-              PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-                errorMessage,
-              ),
-            );
-          }
-        } else {
-          const orderResult = await executeOrder(orderParams);
-          if (!orderResult?.success) {
-            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
-            return;
-          }
-        }
-
-        // Clear pending trade config after successful submission to prevent
-        // stale TP/SL values from being restored on the next order form visit.
-        // Size, TP/SL, and limit price reset; leverage and order type persist.
-        Engine.context.PerpsController?.clearPendingTradeConfiguration(
-          orderForm.asset,
-        );
-        updateOrderForm({
-          amount: '',
-          takeProfitPrice: undefined,
-          stopLossPrice: undefined,
-          limitPrice: undefined,
-        });
-        setLimitPrice(undefined);
-      } finally {
-        // Always reset submission flag
-        isSubmittingRef.current = false;
+        return handlePlaceOrderRef.current(forceTrade, true);
       }
+
+      await submitCheckedOrder(forceTrade, isAttemptRetired, () => {
+        handlePlaceOrder(true).catch(logRejection('placeOrderAfterDeposit'));
+      });
+      return undefined;
     },
     [
       isDraggingSlider,
       commitAmount,
       liveDragAmount,
-      orderValidation.isValid,
-      orderValidation.isValidating,
-      orderValidation.errors,
-      validateOrderNow,
-      track,
-      orderForm.asset,
-      orderForm.direction,
-      orderForm.type,
-      orderForm.leverage,
-      orderForm.limitPrice,
-      orderForm.takeProfitPrice,
-      orderForm.stopLossPrice,
-      orderForm.amount,
-      copyTradeOrigin,
-      activePerpsProvider,
-      isProfileTradingActivityPrivate,
-      isPerpsProModeActive,
-      resolvePostTradePrompt,
-      positionSize,
-      effectivePrice,
-      assetData.price,
-      navigation,
-      navigationMarketData,
-      navigateToMarketAfterOrder,
-      currentMarketPosition,
-      executeOrder,
-      showToast,
-      updateOrderForm,
-      setLimitPrice,
-      PerpsToastOptions.formValidation.orderForm,
-      PerpsToastOptions.orderManagement,
-      PerpsToastOptions.positionManagement.tpsl,
-      updatePositionTPSL,
-      marginRequired,
-      feeResults,
-      source,
-      shareAnalyticsSource,
-      sourceSection,
-      chartLibrary,
-      isTradeWithAnyTokenEnabled,
-      depositAmount,
-      activeTransactionMeta,
-      hasCustomTokenSelected,
-      payToken,
-      onDepositConfirm,
-      handleDepositConfirm,
-      fromTokenDetails,
-      stayOnCurrentScreen,
-      maxSlippageBps,
-      maxSlippageSource,
-      estimatedSlippageBps,
-      exceedsMaxSlippage,
-      liquidityError,
-      vipTier,
-      useBottomSheet,
-      readShownSizeUnit,
-      fireImpact,
+      createAttemptRetiredCheck,
+      trackPlaceOrderTap,
+      checkAccountSupportBeforeSubmit,
+      submitCheckedOrder,
     ],
   );
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
@@ -2895,6 +3127,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
             liquidationInfo: (
               <PerpsTradeInfoScreen contentKey="liquidation_price" />
+            ),
+            accountUnsupported: (
+              <PerpsTradeAccountUnsupportedScreen
+                onDismiss={closeAccountUnsupportedModal}
+              />
             ),
           }}
         />
@@ -3521,6 +3758,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }
         />
       )}
+      <PerpsAccountUnsupportedModal
+        isVisible={!useBottomSheet && isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
     </SafeAreaView>
   );
 };

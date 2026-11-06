@@ -134,6 +134,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -314,6 +315,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     navigateToClosePosition,
   } = usePerpsNavigation();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -1210,6 +1216,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     totalBalance: account?.totalBalance,
   });
 
+  const isSupportCheckInFlightRef = useRef(false);
+
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') => {
       playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
@@ -1224,6 +1232,24 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           });
           setIsEligibilityModalVisible(true);
           return;
+        }
+
+        if (useBottomSheet) {
+          // A press during a pending support read would pass the same check
+          // and open a second Trade sheet.
+          if (isSupportCheckInFlightRef.current) {
+            return;
+          }
+          isSupportCheckInFlightRef.current = true;
+          let support: Awaited<ReturnType<typeof checkAccountSupport>>;
+          try {
+            support = await checkAccountSupport(market.providerId);
+          } finally {
+            isSupportCheckInFlightRef.current = false;
+          }
+          if (support !== 'supported' || !navigation.isFocused()) {
+            return;
+          }
         }
 
         // Check for cross-margin position (MetaMask only supports isolated margin)
@@ -1294,6 +1320,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       isButtonColorTestEnabled,
       chartLibrary,
       useBottomSheet,
+      checkAccountSupport,
     ],
   );
 
@@ -2444,6 +2471,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           testID={
             PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
           }
+        />
+      )}
+      {isAccountUnsupportedModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={closeAccountUnsupportedModal}
+          contentKey="account_not_supported"
         />
       )}
 

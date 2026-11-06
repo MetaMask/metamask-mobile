@@ -621,6 +621,8 @@ export interface UsePerpsProOrderFormResult {
   // Eligibility (geo-block) modal
   isEligibilityModalVisible: boolean;
   closeEligibilityModal: () => void;
+  isAccountUnsupportedModalVisible: boolean;
+  closeAccountUnsupportedModal: () => void;
   // Fees tooltip
   selectedTooltip: PerpsTooltipContentKey | null;
   closeTooltip: () => void;
@@ -858,6 +860,7 @@ export const usePerpsProOrderForm = ({
   >(undefined);
   const lastTrackedFarFromMarketRef = useRef<string | undefined>(undefined);
   const submissionStateRef = useRef('');
+  const executionStateRef = useRef('');
   const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
   useLayoutEffect(
@@ -902,6 +905,9 @@ export const usePerpsProOrderForm = ({
     isEligibilityModalVisible,
     closeEligibilityModal,
     showEligibilityModal,
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
   });
@@ -1997,6 +2003,55 @@ export const usePerpsProOrderForm = ({
               marginModeContextKey,
               isCrossMarginUnsupported,
             });
+  const currentExecutionState = JSON.stringify({
+    orderForm,
+    reduceOnly,
+    triggerPrice: normalizedTriggerPrice,
+    selectedAddress: normalizedSelectedAddress,
+    orderProviderId,
+    marketProviderId: market.providerId,
+    network,
+    marginMode,
+    marginModeContextKey,
+    maxSlippageBps: resolvedMaxSlippageBps,
+    ...(isTriggerOrderType(orderForm.type)
+      ? {
+          isTriggeredOrdersEnabled,
+          isTriggerAvailabilityPending,
+          supportedTriggerOrderTypes,
+          resolvedTriggerProviderId,
+        }
+      : {}),
+    ...(isTwapOrder
+      ? {
+          isTwapEnabled,
+          isTwapAvailabilityPending,
+          resolvedTwapProviderId,
+          twapDuration,
+          twapRandomize,
+        }
+      : {}),
+    ...(isScaleOrder
+      ? {
+          scaleStartPrice,
+          scaleEndPrice,
+          scaleTotalOrders,
+          scaleSizeSkew,
+          scaleProviderId,
+          isScaleOrdersEnabled,
+          isScaleOrderSupportPending,
+        }
+      : {}),
+    ...(isChaseOrder
+      ? {
+          chaseMaxDistance,
+          chaseMaxDistanceUnit,
+          isChaseEnabled,
+          isChaseAvailabilityPending,
+          chaseProviderId,
+        }
+      : {}),
+  });
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -2010,8 +2065,9 @@ export const usePerpsProOrderForm = ({
       : currentSubmissionState;
   useLayoutEffect(() => {
     submissionStateRef.current = currentSubmissionState;
+    executionStateRef.current = currentExecutionState;
     complianceStateRef.current = currentComplianceState;
-  }, [currentComplianceState, currentSubmissionState]);
+  }, [currentComplianceState, currentExecutionState, currentSubmissionState]);
   const effectiveMarginRequired =
     isScaleOrder && scaleLadderResult.success
       ? calculateMarginRequired({
@@ -3177,6 +3233,18 @@ export const usePerpsProOrderForm = ({
           expectedScaleLadder,
         });
 
+        const expectedExecutionState = executionStateRef.current;
+        const accountSupport = await checkAccountSupport(expectedProviderId);
+        if (
+          accountSupport !== 'supported' ||
+          executionStateRef.current !== expectedExecutionState ||
+          !isCurrentSubmission() ||
+          selectedAddressRef.current !== expectedSelectedAddress ||
+          networkRef.current !== expectedNetwork
+        ) {
+          return;
+        }
+
         // Haptics are non-critical feedback; a device haptics failure must not
         // prevent the already-validated controller request from being placed.
         playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
@@ -3479,6 +3547,18 @@ export const usePerpsProOrderForm = ({
           }
           return;
         }
+      }
+
+      const expectedExecutionState = executionStateRef.current;
+      const accountSupport = await checkAccountSupport(orderParams.providerId);
+      if (
+        accountSupport !== 'supported' ||
+        executionStateRef.current !== expectedExecutionState ||
+        !isCurrentSubmission() ||
+        selectedAddressRef.current !== expectedSelectedAddress ||
+        networkRef.current !== expectedNetwork
+      ) {
+        return;
       }
 
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
@@ -4621,6 +4701,7 @@ export const usePerpsProOrderForm = ({
     const expectedChaseProviderId = chaseProviderIdRef.current;
     const expectedNetwork = networkRef.current;
     const expectedLifecycleGeneration = lifecycleGenerationRef.current;
+    const submitOrder = handlePlaceOrderRef.current;
     if (isChaseSubmission && !isChaseLimitBannerVisible) {
       trackedChaseLimitEpisodeKeyRef.current = null;
     }
@@ -4679,7 +4760,7 @@ export const usePerpsProOrderForm = ({
           showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
           return;
         }
-        await handlePlaceOrderRef.current(
+        await submitOrder(
           expectedSubmissionState,
           expectedSelectedAddress,
           isChaseSubmission,
@@ -4923,6 +5004,8 @@ export const usePerpsProOrderForm = ({
     // Eligibility (geo-block) modal
     isEligibilityModalVisible,
     closeEligibilityModal,
+    isAccountUnsupportedModalVisible,
+    closeAccountUnsupportedModal,
     // Fees tooltip
     selectedTooltip,
     closeTooltip: () => setSelectedTooltip(null),
