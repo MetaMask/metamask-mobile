@@ -110,6 +110,14 @@ const twapOrder: TwapOrder = {
 
 const mockCancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({
+    isWatchOnly: false,
+    guard: mockGuardWatchOnly,
+  }),
+}));
+
 describe('usePerpsTerminateTwap', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,6 +127,22 @@ describe('usePerpsTerminateTwap', () => {
     mockConnectionGeneration = 1;
     mockCufEndListeners.clear();
     mockCancelOrder.mockResolvedValue({ success: true });
+    mockGuardWatchOnly.mockReturnValue(false);
+  });
+
+  it('refuses a watch-only account without cancelling the schedule', async () => {
+    mockGuardWatchOnly.mockReturnValue(true);
+    const onSuccess = jest.fn();
+    const { result } = renderHook(() => usePerpsTerminateTwap({ onSuccess }));
+
+    await act(async () => {
+      await result.current.terminateTwap(twapOrder);
+    });
+
+    expect(mockCancelOrder).not.toHaveBeenCalled();
+    expect(startPerpsCufTrace).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(result.current.isTerminationInFlight).toBe(false);
   });
 
   it('cancels through the venue TWAP path', async () => {
