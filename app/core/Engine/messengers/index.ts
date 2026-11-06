@@ -4,7 +4,6 @@ import {
   getAccountTreeControllerMessenger,
 } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
-import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
@@ -108,9 +107,7 @@ import {
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
-import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
-import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
@@ -137,10 +134,6 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
-import {
-  getAnalyticsControllerInitMessenger,
-  getAnalyticsControllerMessenger,
-} from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialRealtimeServiceMessenger } from './social-realtime-service-messenger';
@@ -186,16 +179,8 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getEarnControllerMessenger,
     getInitMessenger: noop,
   },
-  GeolocationApiService: {
-    getMessenger: getGeolocationApiServiceMessenger,
-    getInitMessenger: noop,
-  },
   SentinelApiService: {
     getMessenger: getSentinelApiServiceMessenger,
-    getInitMessenger: noop,
-  },
-  GeolocationController: {
-    getMessenger: getGeolocationControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionPayController: {
@@ -307,10 +292,6 @@ export const MESSENGER_FACTORIES = {
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
-  },
-  NetworkEnablementController: {
-    getMessenger: getNetworkEnablementControllerMessenger,
-    getInitMessenger: noop,
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
@@ -439,10 +420,6 @@ export const MESSENGER_FACTORIES = {
   ProofOfOwnershipService: {
     getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
-  },
-  AnalyticsController: {
-    getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
