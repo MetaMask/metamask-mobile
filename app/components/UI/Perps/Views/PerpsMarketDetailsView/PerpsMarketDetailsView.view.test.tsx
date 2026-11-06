@@ -6,6 +6,8 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
   act,
   fireEvent,
@@ -57,8 +59,13 @@ import {
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
 import { LiveViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveView/LiveView.testIds';
-import { TokenDetailsHoldersTabSelectorsIDs } from '../../../TokenDetails/components/tabs/HoldersTab';
-import { TokenDetailsIds } from '../../../TokenDetails/testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
+import { SocialV1TraderRowSelectorsIDs } from '../../../../Views/SocialLeaderboard/TopTradersView/components/SocialV1TraderRow.testIds';
+import {
+  formatAbbreviatedUsd,
+  formatPercent,
+  formatSignedAbbreviatedUsd,
+} from '../../../SocialFeed/utils/formatters';
 import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
@@ -1888,6 +1895,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     describe('Holders', () => {
+      const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
       const holdersOverrides = {
         engine: {
           backgroundState: {
@@ -1900,6 +1908,11 @@ describe('PerpsMarketDetailsView', () => {
         positionId: 'eth-perp-holder-1',
         isOpen: true,
         currentValueUSD: 2_400_000,
+        positionValueUSD: 9_600_000,
+        perpPositionType: 'long',
+        perpLeverage: 20,
+        pnlValueUsd: 1_200,
+        pnlPercent: 5,
         actor: {
           profileId: 'holder-1',
           address: '0x1111111111111111111111111111111111111111',
@@ -1911,6 +1924,11 @@ describe('PerpsMarketDetailsView', () => {
         positionId: 'eth-perp-holder-2',
         isOpen: true,
         currentValueUSD: 85_000,
+        positionValueUSD: 340_000,
+        perpPositionType: 'short',
+        perpLeverage: 5,
+        pnlValueUsd: -300,
+        pnlPercent: -2,
         actor: {
           profileId: 'holder-2',
           address: '0x3333333333333333333333333333333333333333',
@@ -1929,8 +1947,17 @@ describe('PerpsMarketDetailsView', () => {
         },
       });
 
+      // The leaderboard only fetches online, and the NetInfo mock starts offline.
+      beforeEach(() => {
+        netInfoMock.__setMockNetInfo({
+          type: 'wifi',
+          isInternetReachable: true,
+        });
+      });
+
       afterEach(() => {
         clearPerpsMarketHoldersApiMock();
+        netInfoMock.__resetMockNetInfo();
       });
 
       it('lists the open holders of this market in the order the API ranks them', async () => {
@@ -1952,16 +1979,38 @@ describe('PerpsMarketDetailsView', () => {
           ),
         );
 
-        await waitFor(() =>
-          expect(
-            screen.getAllByTestId(TokenDetailsIds.holderRow.NAME),
-          ).toHaveLength(2),
-        );
+        expect(await screen.findByText('whale.eth')).toBeOnTheScreen();
         expect(
           screen
-            .getAllByTestId(TokenDetailsIds.holderRow.NAME)
+            .getAllByTestId(SocialV1TraderRowSelectorsIDs.METRIC)
             .map((node) => node.props.children),
-        ).toEqual(['whale.eth', 'minnow.eth']);
+        ).toEqual([
+          formatAbbreviatedUsd(9_600_000),
+          formatAbbreviatedUsd(340_000),
+        ]);
+        expect(
+          screen
+            .getAllByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE)
+            .map((node) => node.props.children),
+        ).toEqual([
+          `${formatSignedAbbreviatedUsd(1_200)} (${formatPercent(5, { decimals: 1 })})`,
+          `${formatSignedAbbreviatedUsd(-300)} (${formatPercent(-2, { decimals: 1 })})`,
+        ]);
+        expect(screen.getByText('minnow.eth')).toBeOnTheScreen();
+        const nameTags = screen.getAllByTestId(
+          SocialV1TraderRowSelectorsIDs.NAME_TAG,
+        );
+        expect(nameTags).toHaveLength(2);
+        expect(nameTags[0]).toHaveTextContent(
+          `20x ${strings('social_leaderboard.trader_position.long')}`,
+        );
+        expect(nameTags[1]).toHaveTextContent(
+          `5x ${strings('social_leaderboard.trader_position.short')}`,
+        );
+        expect(
+          screen.queryAllByTestId(SocialV1TraderRowSelectorsIDs.RANK),
+        ).toHaveLength(0);
+        expect(screen.queryByTestId('rank-medal-1')).not.toBeOnTheScreen();
         expect(screen.queryByText('tookprofit.eth')).not.toBeOnTheScreen();
         expect(requestedAssetIds).toEqual(['eip155:999/perp:ETH']);
       });
@@ -1982,10 +2031,10 @@ describe('PerpsMarketDetailsView', () => {
         );
 
         expect(
-          await screen.findByTestId(TokenDetailsHoldersTabSelectorsIDs.EMPTY),
+          await screen.findByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
         ).toBeOnTheScreen();
         expect(
-          screen.queryByTestId(TokenDetailsIds.holderRow.CONTAINER),
+          screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS),
         ).not.toBeOnTheScreen();
       });
 
@@ -2028,7 +2077,7 @@ describe('PerpsMarketDetailsView', () => {
           ),
         ).toBeOnTheScreen();
         expect(
-          screen.queryByTestId(TokenDetailsHoldersTabSelectorsIDs.CONTAINER),
+          screen.queryByTestId(SocialLeaderboardSelectorsIDs.CONTAINER),
         ).not.toBeOnTheScreen();
         expect(requestedAssetIds).toEqual([]);
       });

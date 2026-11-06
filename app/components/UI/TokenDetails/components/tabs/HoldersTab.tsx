@@ -20,6 +20,7 @@ import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleto
 import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
 import TokenHolderRow from './holders/TokenHolderRow';
 import { useTokenHolders } from './holders/useTokenHolders';
+import { useSocialOnboardingPress } from './useSocialOnboardingPress';
 
 export const TokenDetailsHoldersTabSelectorsIDs = {
   CONTAINER: 'token-details-v1-holders-list',
@@ -58,6 +59,8 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
     error,
     refresh,
   } = useTokenHolders({ assetId, enabled: socialEnabled });
+  // Set only before Social terms are accepted: a row tap opens onboarding.
+  const onRowPress = useSocialOnboardingPress();
 
   useLoadMoreOnScroll({
     enabled: isActive && hasNextPage && !isFetchingNextPage,
@@ -74,7 +77,7 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
     >
       {showSkeleton ? <SocialFeedSkeleton /> : null}
       {rows.map((row) => (
-        <TokenHolderRow key={row.item.id} row={row} />
+        <TokenHolderRow key={row.item.id} row={row} onPress={onRowPress} />
       ))}
       {showEmpty ? (
         <Box

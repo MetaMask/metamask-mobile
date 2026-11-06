@@ -40,7 +40,9 @@ PredictNext/
       legacy/                  # usePredictPortfolio pass-through, unchanged
   homeSection/
     index.ts                   # Wallet Homepage Predictions section
-    PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders nothing yet
+    PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders Positions or discovery
+    PredictDiscoveryListSlotWidget.tsx # UI Slots `predict-discovery-list` widget, imported directly by UiSlots/registry.ts
+    internal/next/             # Positions rows, PnL row and slot-driven discovery for next Venues
   trending/
     index.ts                   # Explore (TrendingView) prediction feeds, carousel, cards and search rows
     usePredictTrendingFeed.ts  # Feed and search projection; legacy code moved as-is to Predict/trending
