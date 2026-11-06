@@ -312,7 +312,7 @@
     "@metamask/snap-account-service": "^4.0.0",
     "@metamask/permission-controller": "^14.1.0",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/transaction-controller": "72.3.0",
+    "@metamask/transaction-controller": "npm:@metamask-previews/transaction-controller@73.1.1-preview-b6e8e7385",
     "@metamask/keyring-controller": "^28.2.0",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
@@ -487,7 +487,7 @@
     "@metamask/transaction-pay-controller": "^30.4.3",
     "@metamask/tron-wallet-snap": "^4.3.0",
     "@metamask/utils": "^12.0.0",
-    "@metamask/wallet": "^18.0.0",
+    "@metamask/wallet": "patch:@metamask/wallet@npm%3A18.0.0#~/.yarn/patches/@metamask-wallet-npm-18.0.0-f8f57a3dc0.patch",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.3",
     "@noble/curves": "1.9.7",
@@ -958,6 +958,16 @@
       "eas-cli>@expo/logger>bunyan>dtrace-provider": false,
       "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/base-driver>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
+    }
+  },
+  "previewBuilds": {
+    "@metamask/transaction-controller": {
+      "type": "breaking",
+      "previewVersion": "73.1.1-preview-b6e8e7385"
+    },
+    "@metamask/transaction-pay-controller": {
+      "type": "breaking",
+      "previewVersion": "31.0.0-preview-b6e8e7385"
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
