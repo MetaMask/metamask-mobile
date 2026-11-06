@@ -96,6 +96,9 @@ describe('KalshiRemoteAdapter', () => {
         'nfl-props': 'sports-football-nfl-win-totals',
         'college-football-games': 'sports-football-ncaa-games',
         'college-football-props': 'sports-football-ncaa-win-totals',
+        'politics-trump': 'politics-trump',
+        'politics-congress': 'politics-congress',
+        'politics-iran': 'politics-iran',
       },
       searchSupported: true,
     });

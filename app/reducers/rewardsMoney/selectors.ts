@@ -2,6 +2,7 @@ import type { RootState } from '..';
 import type {
   ClaimDto,
   CommissionEntryView,
+  MechanismsView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
@@ -68,6 +69,46 @@ export function isPlainUser(
   referralMe: Pick<ReferralMeDto, 'roles' | 'ui_variant'> | null | undefined,
 ): boolean {
   return moneyDashboardPersona(referralMe) === 'plain';
+}
+
+/** Which referee Money sections a role set turns on. A combo is the union. */
+export interface RefereeMoneySections {
+  /** `REFEREE` or `COPY_TRADING`. Still behind Social V1 at the call site. */
+  socialRewards: boolean;
+  /** `REFEREE` or `CASHBACK_EXPERIMENT`. */
+  tradingRebates: boolean;
+}
+
+/**
+ * Social rewards for a referee or a copy-trading sharer. Trading rebates for
+ * a referee or a cashback-experiment member. `REFEREE` turns both on.
+ *
+ * Missing roles keep both on. A settled `referral/me` always sends `roles`,
+ * including `[]`. Callers that have not loaded that payload yet, and tests
+ * that omit it, stay on the screen that shows both sections.
+ */
+export function refereeMoneySections(
+  roles: readonly ReferralRole[] | null | undefined,
+): RefereeMoneySections {
+  if (!roles) {
+    return { socialRewards: true, tradingRebates: true };
+  }
+  return {
+    socialRewards: roles.includes('REFEREE') || roles.includes('COPY_TRADING'),
+    tradingRebates:
+      roles.includes('REFEREE') || roles.includes('CASHBACK_EXPERIMENT'),
+  };
+}
+
+/**
+ * A copy-trading sharer with no trading rebates. Missing roles are not
+ * copy-trading-only, so a payload that has not loaded keeps the trading copy.
+ */
+export function isCopyTradingOnly(
+  roles: readonly ReferralRole[] | null | undefined,
+): boolean {
+  const sections = refereeMoneySections(roles);
+  return sections.socialRewards && !sections.tradingRebates;
 }
 
 /**
@@ -160,6 +201,16 @@ export function selectReferralFunnelEntry(
     return undefined;
   }
   return state.rewardsMoney.referralFunnel?.[profileId];
+}
+
+export function selectCommissionMechanisms(
+  state: RootState,
+  profileId: string | undefined,
+): MechanismsView | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.commissionMechanisms?.[profileId];
 }
 
 export function selectCommissions(
