@@ -153,7 +153,12 @@ const ImmersveAccountField = ({
   }
 
   if (isMoneyAccountMode) {
-    return <MoneyAccountRequired testID="signup-money-account-required" />;
+    return (
+      <MoneyAccountRequired
+        returnTo="onboarding"
+        testID="signup-money-account-required"
+      />
+    );
   }
 
   return (

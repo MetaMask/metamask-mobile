@@ -59,7 +59,11 @@ import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  CardProviderIds,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { resolveCardFundingAddress } from '../../util/resolveCardFundingAddress';
 import {
   KYC_REDIRECT_URL,
@@ -370,34 +374,44 @@ const ImmersveFundingApproval = () => {
     return () => clearInterval(id);
   }, [isSettling, refresh, isReapprove]);
 
+  const goToCardHome = useCallback(async () => {
+    await Engine.context.CardController.markMigrationCompleted().catch(
+      () => undefined,
+    );
+    navigation.reset({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+  }, [navigation]);
+
   const handleCreateCard = useCallback(async () => {
     if (!fundingSourceId) {
       return;
     }
     if (cardHomeData?.card) {
-      await Engine.context.CardController.markMigrationCompleted().catch(
-        () => undefined,
-      );
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
-      });
+      await goToCardHome();
       return;
     }
     hasCreatedCard.current = true;
     try {
       await createCard(fundingSourceId);
-      await Engine.context.CardController.markMigrationCompleted().catch(
-        () => undefined,
-      );
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
-      });
-    } catch {
-      hasCreatedCard.current = false;
+      await goToCardHome();
+    } catch (createError) {
+      const cardAlreadyExists =
+        createError instanceof CardProviderError &&
+        createError.code === CardProviderErrorCode.Conflict;
+      if (!cardAlreadyExists) {
+        hasCreatedCard.current = false;
+        return;
+      }
+      // The link already created the card. A Conflict is success: refresh and
+      // leave this screen instead of retrying the POST.
+      await Engine.context.CardController.fetchCardHomeData({
+        force: true,
+      }).catch(() => undefined);
+      await goToCardHome();
     }
-  }, [cardHomeData?.card, createCard, fundingSourceId, navigation]);
+  }, [cardHomeData?.card, createCard, fundingSourceId, goToCardHome]);
 
   const approveMoneyAccount = useMoneyAccountFundingApprove({
     isReapprove,

@@ -85,6 +85,7 @@ import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
+  selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
@@ -265,6 +266,7 @@ const MoneyHomeView = () => {
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
+  const isCardHomeDataResolved = useSelector(selectIsCardHomeDataResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
@@ -294,6 +296,7 @@ const MoneyHomeView = () => {
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
     isCardStateResolved,
+    isCardHomeDataResolved,
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
   });

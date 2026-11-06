@@ -10,6 +10,7 @@ const baseInput = {
   hasMoneyAccountBaseRequirements: true,
   hasMoneyAccountRequirements: true,
   isCardStateResolved: true,
+  isCardHomeDataResolved: true,
   isMoneyCardSectionAvailable: true,
 };
 
@@ -193,6 +194,19 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isMoneyAccountVisible: false,
       }),
     ).toBeNull();
+  });
+
+  it('returns loading for a provider without verification status while card data is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardHomeDataResolved: false,
+        isCardAuthenticated: true,
+        isCardLinkedToMoneyAccount: true,
+        reportsVerificationStatus: false,
+      }),
+    ).toBe('loading');
   });
 
   it('shows the card upsell for an authenticated Money account user who is not verified', () => {

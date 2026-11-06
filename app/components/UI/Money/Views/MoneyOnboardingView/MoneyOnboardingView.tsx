@@ -141,9 +141,13 @@ const useNavigateToPostOnboardingDestination = ({
 }) =>
   useCallback(async () => {
     if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+      const cardScreen =
+        postOnboardingRedirect.cardScreen === 'authentication'
+          ? Routes.CARD.AUTHENTICATION
+          : Routes.CARD.ONBOARDING.ROOT;
       navigation.navigate(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+        params: { screen: cardScreen },
       });
       return;
     }

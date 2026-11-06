@@ -22,6 +22,8 @@ import {
   type AwaitTransactionConfirmedMessenger,
 } from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import {
+  CardProviderError,
+  CardProviderErrorCode,
   CardProviderIds,
   type CardCreateResult,
   type CardFundingSourceResult,
@@ -329,6 +331,15 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
         setState({ isLoading: false, error: null });
         return result;
       } catch (e) {
+        // Conflict means the card already exists. The caller treats it as
+        // success, so it is not a failed funding attempt.
+        if (
+          e instanceof CardProviderError &&
+          e.code === CardProviderErrorCode.Conflict
+        ) {
+          setState({ isLoading: false, error: null });
+          throw e;
+        }
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_FUNDING_PROCESS_FAILED)
             .addProperties(metricsProps)

@@ -5,7 +5,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveFunding } from './useImmersveFunding';
-import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  type CardSmartContractWriteParams,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -53,6 +57,17 @@ jest.mock('../../../../selectors/cardController', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, unknown> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return (
+      (countryFunding as Record<string, unknown>)[country.toUpperCase()] ?? null
+    );
+  },
   selectCardImmersveConfig: jest.fn(() => ({
     network: 'base-sepolia',
     spenderAddress: '0x2222222222222222222222222222222222222222',
@@ -191,6 +206,29 @@ describe('useImmersveFunding', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
       MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED,
     );
+  });
+
+  it('createCard does not emit a failed funding event when the card already exists', async () => {
+    (mockCard.createCard as jest.Mock).mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        'Conflict on createCard',
+        409,
+      ),
+    );
+
+    const { result } = renderHook(() => useImmersveFunding());
+
+    await act(async () => {
+      await expect(result.current.createCard('fs-1')).rejects.toBeInstanceOf(
+        CardProviderError,
+      );
+    });
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_FUNDING_PROCESS_FAILED,
+    );
+    expect(result.current.error).toBeNull();
   });
 
   it('executeFunding submits the encoded write on Base and returns the tx hash', async () => {

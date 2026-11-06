@@ -1,8 +1,12 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { setImmersveFundingSourceId } from '../../../../core/redux/slices/card';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { safeToChecksumAddress } from '../../../../util/address';
 import {
+  immersveFundingChannelForCountry,
   isMoneyAccountFundingChannel,
   selectCardImmersveConfig,
   selectCardImmersveCountryFunding,
@@ -37,6 +41,10 @@ export const useImmersveResumeOnboarding = () => {
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
   const countryFunding = useSelector(selectCardImmersveCountryFunding);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
@@ -102,9 +110,27 @@ export const useImmersveResumeOnboarding = () => {
             .catch(() => undefined);
         }
 
-        const fundingChannel = countryFunding?.[country.toUpperCase()];
+        const fundingChannel = immersveFundingChannelForCountry(
+          countryFunding,
+          country,
+        );
         const isMoneyAccountChannel =
           isMoneyAccountFundingChannel(fundingChannel);
+        if (isMoneyAccountChannel && !moneyAccountAddress) {
+          Logger.error(
+            new Error(
+              'useImmersveResumeOnboarding: Money account address is missing',
+            ),
+            {
+              tags: { feature: 'card', provider: 'immersve' },
+              context: {
+                name: 'useImmersveResumeOnboarding',
+                data: { method: 'resume' },
+              },
+            },
+          );
+          return;
+        }
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId:
             fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId,
@@ -113,6 +139,9 @@ export const useImmersveResumeOnboarding = () => {
           existingId: isMoneyAccountChannel
             ? undefined
             : resume?.fundingSourceIds?.[0],
+          moneyAccountAddress: isMoneyAccountChannel
+            ? moneyAccountAddress
+            : undefined,
         });
         dispatch(setImmersveFundingSourceId(id));
 
@@ -170,6 +199,7 @@ export const useImmersveResumeOnboarding = () => {
       route,
       immersveConfig,
       countryFunding,
+      moneyAccountAddress,
       trackEvent,
       createEventBuilder,
     ],

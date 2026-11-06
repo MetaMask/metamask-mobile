@@ -313,7 +313,6 @@ const CardAuthentication = () => {
     if (matched) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matched);
-      Engine.context.CardController.setSelectedCountry(matched.key);
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(matched.key),
       );
@@ -692,7 +691,6 @@ const CardAuthentication = () => {
     setOnValueChange((region) => {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(region);
-      Engine.context.CardController.setSelectedCountry(region.key);
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(region.key),
       );
@@ -892,9 +890,10 @@ const CardAuthentication = () => {
 
         {showMoneyAccountRequired && (
           <>
-            <MoneyAccountRequired />
+            <MoneyAccountRequired returnTo="authentication" />
             {emailOption ? (
               <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => setUkMode('email')}
                 testID={CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK}
               >

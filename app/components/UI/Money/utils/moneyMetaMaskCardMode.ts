@@ -15,10 +15,12 @@ export interface MoneyMetaMaskCardModeInput {
   hasMoneyAccountBaseRequirements: boolean;
   hasMoneyAccountRequirements: boolean;
   isCardStateResolved: boolean;
+  /** Card home data has settled. Used when the provider has no verification status. */
+  isCardHomeDataResolved: boolean;
   isMoneyCardSectionAvailable?: boolean;
   /**
-   * When false, the provider has no Baanx-style verification status. Skip the
-   * unresolved loading gate and show the card upsell until the user has a card.
+   * When false, the provider has no Baanx-style verification status. Wait for
+   * card home data, then continue without a verification-status wait.
    */
   reportsVerificationStatus?: boolean;
 }
@@ -33,6 +35,7 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountBaseRequirements,
   hasMoneyAccountRequirements,
   isCardStateResolved,
+  isCardHomeDataResolved,
   isMoneyCardSectionAvailable = true,
   reportsVerificationStatus = true,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
@@ -40,9 +43,10 @@ export const deriveMoneyMetaMaskCardMode = ({
     return null;
   }
 
-  // A provider with no verification status never resolves the shared gate.
-  // Continue to manage, link, or upsell.
-  if (!isCardStateResolved && reportsVerificationStatus) {
+  const isResolved = reportsVerificationStatus
+    ? isCardStateResolved
+    : isCardHomeDataResolved;
+  if (!isResolved) {
     return isMoneyAccountVisible ? 'loading' : null;
   }
 

@@ -7,6 +7,8 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
 } from '../../../../../../selectors/cardController';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+import { safeToChecksumAddress } from '../../../../../../util/address';
 import {
   isMoneyAccountFundingChannel,
   selectCardImmersveConfig,
@@ -52,6 +54,10 @@ export function useImmersveCardProvisioning(
   const isMoneyAccountChannel = isMoneyAccountFundingChannel(fundingChannel);
   const fundingChannelId =
     fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId;
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = isMoneyAccountChannel
+    ? safeToChecksumAddress(primaryMoneyAccount?.address)
+    : undefined;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -107,9 +113,25 @@ export function useImmersveCardProvisioning(
     (async () => {
       try {
         const controller = Engine.context.CardController;
+        if (isMoneyAccountChannel && !moneyAccountAddress) {
+          Logger.error(
+            new Error(
+              'useImmersveCardProvisioning: Money account address is missing',
+            ),
+            {
+              tags: { feature: 'card', provider: 'immersve' },
+              context: {
+                name: 'useImmersveCardProvisioning',
+                data: { method: 'reconcile' },
+              },
+            },
+          );
+          return;
+        }
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
           existingId: isMoneyAccountChannel ? undefined : existingId,
+          moneyAccountAddress,
         });
         if (cancelled) return;
         // A Money account reconcile ignores the stored wallet source, so the
@@ -261,6 +283,7 @@ export function useImmersveCardProvisioning(
     kycRegion,
     fundingChannelId,
     isMoneyAccountChannel,
+    moneyAccountAddress,
     dispatch,
   ]);
 

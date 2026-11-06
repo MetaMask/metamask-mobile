@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -29,9 +28,6 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
-import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
-import { selectImmersveMoneyAccountMode } from '../../../../../selectors/cardController';
-import { MoneyAccountIdentity } from '../MoneyAccountRow/MoneyAccountRow';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import { UserCancelledError } from '../../hooks/useCardDelegation';
 import {
@@ -54,8 +50,6 @@ const ImmersveRevokeAllowanceSheet = () => {
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { revokeFunding } = useImmersveFunding();
-  const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
-  const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const fundingAccountName = useFundingAccountName();
   const routeParams = route.params as
     | ImmersveRevokeAllowanceSheetRouteParams
@@ -148,16 +142,6 @@ const ImmersveRevokeAllowanceSheet = () => {
         .build(),
     );
 
-    if (isMoneyAccountMode) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        confirmLinkInBackground({
-          delegationAmountHuman: '0',
-          entrypoint,
-        }).catch(() => undefined);
-      });
-      return;
-    }
-
     // Close first so the approve confirmation is not stacked behind the sheet.
     sheetRef.current?.onCloseBottomSheet(() => {
       showPendingToast();
@@ -182,8 +166,6 @@ const ImmersveRevokeAllowanceSheet = () => {
     trackEvent,
     createEventBuilder,
     entrypoint,
-    isMoneyAccountMode,
-    confirmLinkInBackground,
     revokeFunding,
     showPendingToast,
     showSuccessToast,
@@ -209,30 +191,17 @@ const ImmersveRevokeAllowanceSheet = () => {
           numberOfLines={1}
           testID={ImmersveRevokeAllowanceSheetTestIds.TITLE}
         >
-          {strings(
-            isMoneyAccountMode
-              ? 'card.card_home.manage_card_options.unlink_money_account'
-              : 'card.revoke_allowance_sheet.title',
-          )}
+          {strings('card.revoke_allowance_sheet.title')}
         </Text>
       </BottomSheetHeader>
       <Box twClassName="px-4">
-        {isMoneyAccountMode ? (
-          <Box twClassName="pb-4">
-            <MoneyAccountIdentity />
-          </Box>
-        ) : null}
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
           twClassName="text-alternative pb-4"
           testID={ImmersveRevokeAllowanceSheetTestIds.DESCRIPTION}
         >
-          {strings(
-            isMoneyAccountMode
-              ? 'card.card_home.manage_card_options.unlink_money_account_description'
-              : 'card.revoke_allowance_sheet.description',
-          )}
+          {strings('card.revoke_allowance_sheet.description')}
         </Text>
         <Box twClassName="gap-4 pt-4">
           <Button
@@ -251,11 +220,7 @@ const ImmersveRevokeAllowanceSheet = () => {
             isFullWidth
             testID={ImmersveRevokeAllowanceSheetTestIds.REVOKE_BUTTON}
           >
-            {strings(
-              isMoneyAccountMode
-                ? 'card.card_home.manage_card_options.unlink_money_account'
-                : 'card.revoke_allowance_sheet.unlink_button',
-            )}
+            {strings('card.revoke_allowance_sheet.unlink_button')}
           </Button>
         </Box>
       </Box>

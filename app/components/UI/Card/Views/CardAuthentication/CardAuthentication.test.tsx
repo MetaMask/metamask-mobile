@@ -996,9 +996,7 @@ describe('CardAuthentication', () => {
         screen.queryByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
       ).toBeNull();
       expect(
-        screen.getByTestId(
-          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
-        ),
+        screen.getByRole('button', { name: 'Continue with email' }),
       ).toBeOnTheScreen();
     });
 
@@ -1372,6 +1370,28 @@ describe('CardAuthentication', () => {
       expect(screen.getByText(/United States/)).toBeOnTheScreen();
       expect(mockUseCardSignIn).toHaveBeenCalledWith('US');
       expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
+    });
+
+    it('does not commit a picked country to the controller before sign-in', () => {
+      mockGeoLocation = 'UNKNOWN';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({
+          key: 'GB',
+          name: 'United Kingdom',
+          code: 'GB',
+        });
+      });
+
+      expect(screen.getByText(/United Kingdom/)).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
     });
 
     it('does not pre-select a country that is not live', () => {
