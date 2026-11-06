@@ -77,11 +77,20 @@ jest.mock('./TraderAvatar', () => {
       testID,
       imageUrl,
       address,
+      profileId,
     }: {
       testID?: string;
       imageUrl?: string | null;
       address?: string;
-    }) => <MockView testID={testID} imageUrl={imageUrl} address={address} />,
+      profileId?: string;
+    }) => (
+      <MockView
+        testID={testID}
+        imageUrl={imageUrl}
+        address={address}
+        profileId={profileId}
+      />
+    ),
   };
 });
 
@@ -588,14 +597,14 @@ describe('SocialFeedPostShell', () => {
     });
   });
 
-  it('passes the profile id to the avatar when the author has no image', () => {
+  it('passes the wallet address and profile id to the avatar when the author has no image', () => {
     const seeded = mockOpenPerpsFeedItem({
       id: 'item-1',
       comment: 'Amazing position',
     });
     const item = {
       ...seeded,
-      author: { ...seeded.author, id: 'profile-alice' },
+      author: { ...seeded.author, id: 'profile-alice', address: undefined },
     };
 
     renderShell(basePost({ authorImageUrl: null, item }));
@@ -603,7 +612,8 @@ describe('SocialFeedPostShell', () => {
     const avatar = screen.getByTestId(
       `${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`,
     );
-    expect(avatar.props.address).toBe('profile-alice');
+    expect(avatar.props.profileId).toBe('profile-alice');
+    expect(avatar.props.address).toBeUndefined();
     expect(avatar.props.imageUrl).toBeNull();
   });
 

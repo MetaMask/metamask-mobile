@@ -4,7 +4,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import type { CommissionsPageDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import { setCommissions } from '../../../../reducers/rewardsMoney';
+import {
+  setCommissionMechanisms,
+  setCommissions,
+} from '../../../../reducers/rewardsMoney';
 import {
   FOLLOW_TRADE_COMMISSIONS_ORIGIN,
   useCommissions,
@@ -94,6 +97,12 @@ describe('useCommissions', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setCommissions({ profileId: PROFILE_A, items: page.results }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCommissionMechanisms({
+        profileId: PROFILE_A,
+        mechanisms: page.mechanisms,
+      }),
     );
   });
 

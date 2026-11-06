@@ -70,10 +70,8 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   const avatar = (
     <TraderAvatar
       imageUrl={imageUrl}
-      // Profile id seeds the Maskicon. Ids that do not start with `0x`
-      // are hashed in full, so each trader stays distinct once wallet
-      // addresses leave the feed payload.
-      address={author.id}
+      address={author.address}
+      profileId={author.id}
       size={AVATAR_SIZE}
       recyclingKey={recyclingKey}
       testID={testIDs?.avatar ?? SocialTraderIdentityRowSelectorsIDs.AVATAR}
