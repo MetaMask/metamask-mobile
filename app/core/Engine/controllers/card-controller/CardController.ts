@@ -117,7 +117,6 @@ import {
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
 import { capRedeemAmount } from './utils/redeemAmount';
-import { MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID } from '../../../../components/UI/Card/util/vedaToken';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -145,9 +144,6 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
-const MONEY_ACCOUNT_CHAIN_ID = Number(
-  parseCaipChainId(MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID).reference,
-);
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
@@ -3104,28 +3100,19 @@ export class CardController extends BaseController<
     // Fail fast before any transaction work when there is no usable session.
     await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (
-      !provider.prepareMoneyAccountLink ||
-      !provider.completeMoneyAccountLink
-    ) {
+    const prepare = provider.prepareMoneyAccountLink?.bind(provider);
+    const complete = provider.completeMoneyAccountLink?.bind(provider);
+    if (!prepare || !complete) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Money account card delegation is not supported for this provider',
       );
     }
 
-    // Money account approve is always on Monad. Refuse before provider calls
-    // when the relay will not sponsor this chain.
-    this.#assertMonadGasSponsorship();
-
     const delegationSettings =
       await this.#resolveMoneyAccountDelegationSettingsOrRefetch();
     const preparation = await this.#withAuthRetry((tokens) =>
-      (
-        provider.prepareMoneyAccountLink as NonNullable<
-          ICardProvider['prepareMoneyAccountLink']
-        >
-      )(
+      prepare(
         {
           moneyAccountAddress: fromAddress,
           amountHuman: delegationAmountHuman,
@@ -3138,9 +3125,7 @@ export class CardController extends BaseController<
     const chainNumber = Number(
       parseCaipChainId(preparation.caipChainId).reference,
     );
-    if (chainNumber !== MONEY_ACCOUNT_CHAIN_ID) {
-      this.#assertMonadGasSponsorship(chainNumber);
-    }
+    this.#assertGasSponsorship(chainNumber);
 
     const signatureMessage = preparation.context.signatureMessage;
     const sigHash = signatureMessage
@@ -3203,11 +3188,7 @@ export class CardController extends BaseController<
     const txHash = confirmedMeta.hash ?? '';
 
     await this.#withAuthRetry((tokens) =>
-      (
-        provider.completeMoneyAccountLink as NonNullable<
-          ICardProvider['completeMoneyAccountLink']
-        >
-      )(
+      complete(
         {
           moneyAccountAddress: fromAddress,
           amountHuman: delegationAmountHuman,
@@ -3229,7 +3210,7 @@ export class CardController extends BaseController<
     }
   }
 
-  #assertMonadGasSponsorship(chainNumber = MONEY_ACCOUNT_CHAIN_ID): void {
+  #assertGasSponsorship(chainNumber: number): void {
     const hexChainId = numberToHex(chainNumber) as Hex;
     const isEnabled = getGasFeesSponsoredNetworkEnabled(
       ReduxService.store.getState() as RootState,
@@ -3237,7 +3218,7 @@ export class CardController extends BaseController<
     if (!isEnabled) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        'Monad gas sponsorship unavailable',
+        `Gas sponsorship unavailable for chain ${chainNumber}`,
       );
     }
   }
@@ -3247,16 +3228,20 @@ export class CardController extends BaseController<
       const data = this.state.cardHomeData as unknown as CardHomeData | null;
       return data?.delegationSettings ?? null;
     };
+    const settings = fromState();
 
-    // Baanx spends the Veda token in these settings, so a persisted object
-    // without Monad/Veda is stale and has to be refreshed. Other providers
-    // ignore the settings, and a home-data fetch must not block their link.
-    if (this.getActiveProvider().id !== CardProviderIds.Baanx) {
-      return fromState();
+    // Only providers that spend the Veda token need these settings. A
+    // persisted object without Monad/Veda is stale and has to be refreshed.
+    // Other providers ignore the settings, and a home-data fetch must not
+    // block their link.
+    if (
+      !this.getActiveProvider().capabilities.usesMoneyAccountDelegationSettings
+    ) {
+      return settings;
     }
 
-    if (resolveMoneyAccountCardToken(fromState())) {
-      return fromState();
+    if (resolveMoneyAccountCardToken(settings)) {
+      return settings;
     }
 
     await this.fetchCardHomeData({ force: true });

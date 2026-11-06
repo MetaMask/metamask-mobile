@@ -1,5 +1,6 @@
 import { parseCaipChainId, type CaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
+import { areAddressesEqual } from '../../../../../util/address';
 import Logger from '../../../../../util/Logger';
 import {
   isMoneyAccountFundingChannel,
@@ -510,6 +511,8 @@ interface ImmersveFundingSourceListItem {
   network?: string;
   fundingChannelId?: string;
   fundingAddress?: string;
+  /** On-chain funding address. Immersve's list response uses this, not fundingAddress. */
+  externalId?: string;
 }
 
 interface ImmersveFundingSourcesResponse {
@@ -566,12 +569,6 @@ interface ImmersveFundingSourceDetail {
   purpose?: string;
   network?: string;
 }
-
-const sameEvmAddress = (
-  left: string | undefined,
-  right: string | undefined,
-): boolean =>
-  Boolean(left && right && left.toLowerCase() === right.toLowerCase());
 
 interface ImmersvePanTokenResponse {
   tokenId: string;
@@ -685,6 +682,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
+    usesMoneyAccountDelegationSettings: false,
     reportsVerificationStatus: false,
   };
 
@@ -1061,7 +1059,13 @@ export class ImmersveProvider implements ICardProvider {
       existing.find(
         (source) =>
           source.fundingChannelId === moneyAccount.fundingChannelId &&
-          sameEvmAddress(source.fundingAddress, params.moneyAccountAddress),
+          Boolean(
+            source.fundingAddress &&
+              areAddressesEqual(
+                source.fundingAddress,
+                params.moneyAccountAddress,
+              ),
+          ),
       ) ?? (await this.createFundingSource(tokens, params.moneyAccountAddress));
 
     const { prerequisites } = await this.getSpendingPrerequisites(
@@ -1072,24 +1076,42 @@ export class ImmersveProvider implements ICardProvider {
       },
       tokens,
     );
-    const spender =
-      spenderFromPrerequisites(prerequisites) ?? moneyAccount.spenderAddress;
+    const reportedSpender = spenderFromPrerequisites(prerequisites);
+    if (
+      reportedSpender &&
+      !areAddressesEqual(reportedSpender, moneyAccount.spenderAddress)
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account approve spender does not match the funding channel',
+      );
+    }
 
     return {
       tokenAddress: moneyAccount.tokenAddress,
-      spender,
+      spender: moneyAccount.spenderAddress,
       decimals: moneyAccount.decimals,
       caipChainId: moneyAccount.caipChainId,
       context: { fundingSourceId: match.id },
     };
   }
 
+  /**
+   * Card creation here is best effort. Immersve may not have indexed the
+   * allowance yet, and KYC or contact details can still be pending. The
+   * onboarding approval screen and Card Home's useImmersveCardProvisioning
+   * create the card once spending prerequisites are active.
+   */
   async completeMoneyAccountLink(
     params: CompleteMoneyAccountLinkParams,
     tokens: CardAuthTokens,
   ): Promise<void> {
     const fundingSourceId = params.context.fundingSourceId;
     if (!fundingSourceId) {
+      Logger.error(
+        new Error('completeMoneyAccountLink: missing funding source id'),
+        getErrorContext('completeMoneyAccountLink'),
+      );
       return;
     }
 
@@ -1134,14 +1156,17 @@ export class ImmersveProvider implements ICardProvider {
         `/api/accounts/${accountId}/funding-sources`,
         tokens,
       );
-      return (items ?? []).map((item) => ({
-        id: item.id,
-        network: item.network,
-        balance: item.balance,
-        balanceCurrency: item.balanceCurrency,
-        fundingChannelId: item.fundingChannelId,
-        ...(item.fundingAddress ? { fundingAddress: item.fundingAddress } : {}),
-      }));
+      return (items ?? []).map((item) => {
+        const fundingAddress = item.fundingAddress ?? item.externalId;
+        return {
+          id: item.id,
+          network: item.network,
+          balance: item.balance,
+          balanceCurrency: item.balanceCurrency,
+          fundingChannelId: item.fundingChannelId,
+          ...(fundingAddress ? { fundingAddress } : {}),
+        };
+      });
     } catch (error) {
       reportAndMap(error, 'getFundingSources');
     }
@@ -1747,9 +1772,24 @@ export class ImmersveProvider implements ICardProvider {
 
     const symbol = channel?.symbol ?? fundingSource.balanceCurrency ?? 'USDC';
     // Money account allowance lives on the funding address, not the SIWE wallet.
-    const walletAddress = isMoneyAccountFundingChannel(channel)
-      ? (fundingSource.fundingAddress ?? '')
-      : (tokens.accountAddress ?? fundingSource.externalId ?? '');
+    // Immersve returns that address as externalId.
+    let walletAddress: string;
+    if (isMoneyAccountFundingChannel(channel)) {
+      walletAddress =
+        fundingSource.fundingAddress ?? fundingSource.externalId ?? '';
+      if (!walletAddress) {
+        Logger.error(
+          new Error(
+            'mapFundingSource: Money account funding source has no funding address',
+          ),
+          getErrorContext('mapFundingSource', {
+            fundingSourceId: fundingSource.id,
+          }),
+        );
+      }
+    } else {
+      walletAddress = tokens.accountAddress ?? fundingSource.externalId ?? '';
+    }
 
     const { spendableBalance, spendingCap } =
       await this.resolveOnChainSpendableBalance(
