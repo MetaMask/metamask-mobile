@@ -97,6 +97,35 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     expect(defaultProps.onConfirm).not.toHaveBeenCalled();
   });
 
+  it('requires every item again after the sheet is hidden and shown', () => {
+    const { rerender } = render(
+      <PerpsCrossMarginConfirmBottomSheet {...defaultProps} />,
+    );
+    ITEM_IDS.forEach((id) => fireEvent.press(screen.getByTestId(id)));
+    expect(screen.getByTestId(ids.CONFIRM_BUTTON)).toBeEnabled();
+
+    rerender(
+      <PerpsCrossMarginConfirmBottomSheet
+        {...defaultProps}
+        isVisible={false}
+      />,
+    );
+    rerender(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
+
+    expect(screen.getByTestId(ids.CONFIRM_BUTTON)).toBeDisabled();
+    ITEM_IDS.forEach((id) => expect(screen.getByTestId(id)).not.toBeChecked());
+  });
+
+  it('clears acknowledgements when Go back is pressed', () => {
+    render(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
+    ITEM_IDS.forEach((id) => fireEvent.press(screen.getByTestId(id)));
+
+    fireEvent.press(screen.getByTestId(ids.GO_BACK_BUTTON));
+
+    expect(screen.getByTestId(ids.CONFIRM_BUTTON)).toBeDisabled();
+    ITEM_IDS.forEach((id) => expect(screen.getByTestId(id)).not.toBeChecked());
+  });
+
   it('does not call onConfirm when Go back is pressed', () => {
     render(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
 

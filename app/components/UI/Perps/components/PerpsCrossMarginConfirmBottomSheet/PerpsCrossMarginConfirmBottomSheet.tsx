@@ -57,15 +57,31 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
   const sheetRef = externalSheetRef ?? internalSheetRef;
   const [acknowledged, setAcknowledged] = useState(INITIAL_ACKNOWLEDGEMENTS);
 
+  const resetAcknowledgements = useCallback(() => {
+    setAcknowledged(INITIAL_ACKNOWLEDGEMENTS);
+  }, []);
+
   useEffect(() => {
-    if (isVisible && !externalSheetRef) {
+    if (!isVisible) {
+      // The sheet can stay mounted and return null. Clear here so the next
+      // open cannot skip the risk gate when the close animation never runs.
+      resetAcknowledgements();
+      return;
+    }
+    if (!externalSheetRef) {
       sheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible, externalSheetRef, sheetRef]);
+  }, [isVisible, externalSheetRef, sheetRef, resetAcknowledgements]);
+
+  const handleDismissed = useCallback(() => {
+    resetAcknowledgements();
+    onClose();
+  }, [onClose, resetAcknowledgements]);
 
   const handleClose = useCallback(() => {
+    resetAcknowledgements();
     sheetRef.current?.onCloseBottomSheet();
-  }, [sheetRef]);
+  }, [sheetRef, resetAcknowledgements]);
 
   const handleConfirm = useCallback(() => {
     onConfirm();
@@ -88,8 +104,8 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
     <BottomSheet
       ref={sheetRef}
       testID={PerpsCrossMarginConfirmBottomSheetSelectorsIDs.CONTAINER}
-      goBack={!externalSheetRef ? onClose : undefined}
-      onClose={externalSheetRef ? onClose : undefined}
+      goBack={!externalSheetRef ? handleDismissed : undefined}
+      onClose={externalSheetRef ? handleDismissed : undefined}
     >
       <BottomSheetHeader
         onClose={handleClose}
