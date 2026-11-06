@@ -1,6 +1,3 @@
-#!/usr/bin/env node
-/* eslint-disable no-console */
-
 /**
  * Swaps performance budgets: daily check.
  *
@@ -9,15 +6,7 @@
  * least MIN_SAMPLES samples and a full (not downsampled) scan. One Slack
  * message lists every breaching and every not-evaluable rule; nothing posts
  * when all rules are within their guardrail. Every rule's result is printed
- * to the console.
- *
- * Environment:
- *   SWAPS_SENTRY_TOKEN           required; read-only (org:read) Sentry token
- *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
- *   DRY_RUN                      `true` logs the Slack message instead
- *   SENTRY_API_BASE, GITHUB_RUN_URL  optional
- *
- * Exits 1 when any Sentry query failed, after posting the other results.
+ * to the console by `run-swaps-perf-budgets.mjs`.
  */
 
 import {
@@ -36,7 +25,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const STATUS = { BREACH: 'breach', OK: 'ok', NOT_EVALUABLE: 'not-evaluable' };
 
 /** 00:00 UTC today. */
-function startOfTodayUtc(now = new Date()) {
+export function startOfTodayUtc(now = new Date()) {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
@@ -159,54 +148,4 @@ export async function runBudgetCheck({ todayEnd, sentry, rules = BUDGET_RULES })
     }
   }
   return { window, results, errors };
-}
-
-async function main() {
-  const env = process.env;
-  const dryRun = env.DRY_RUN === 'true';
-  const { SWAPS_SENTRY_TOKEN: token, SWAPS_PERF_SLACK_WEBHOOK: webhook } = env;
-  if (!token) {
-    throw new Error('SWAPS_SENTRY_TOKEN is not set');
-  }
-  if (!dryRun && !webhook) {
-    throw new Error('SWAPS_PERF_SLACK_WEBHOOK is not set (or run with DRY_RUN=true)');
-  }
-
-  const { window, results, errors } = await runBudgetCheck({
-    todayEnd: startOfTodayUtc(),
-    sentry: { token, apiBase: env.SENTRY_API_BASE || undefined },
-  });
-  console.log(`Swaps performance budgets, ${window.label}, minimum n ${formatCount(MIN_SAMPLES)}`);
-  for (const result of results) {
-    console.log(`- [${result.status}] ${resultLine(result)}`);
-  }
-  errors.forEach((error) => console.error(`- [error] ${error}`));
-
-  const message = buildSlackMessage(results, { runUrl: env.GITHUB_RUN_URL || '' });
-  if (!message) {
-    console.log('\nEvery rule is within its guardrail; no Slack post.');
-  } else if (dryRun) {
-    console.log(`\nDry run; would post to Slack:\n\n${message}`);
-  } else {
-    const response = await fetch(webhook, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ text: message }),
-    });
-    if (!response.ok) {
-      throw new Error(`Slack webhook HTTP ${response.status}`);
-    }
-    console.log('\nPosted to Slack.');
-  }
-
-  if (errors.length > 0) {
-    throw new Error(`${errors.length} Sentry queries failed`);
-  }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
-    process.exit(1);
-  });
 }

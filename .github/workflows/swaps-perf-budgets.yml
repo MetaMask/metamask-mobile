@@ -60,7 +60,7 @@ jobs:
       - name: Check budgets
         env:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
-        run: node .github/scripts/swaps/swaps-perf-budgets.mjs
+        run: node .github/scripts/swaps/run-swaps-perf-budgets.mjs
 
       - name: Post failure notice
         if: ${{ failure() && env.DRY_RUN != 'true' && env.SWAPS_PERF_SLACK_WEBHOOK != '' }}
