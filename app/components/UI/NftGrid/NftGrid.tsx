@@ -8,13 +8,13 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import { RefreshControl } from 'react-native';
-import {
+import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { useNftRefresh } from './useNftRefresh';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type FlashListProps } from '@shopify/flash-list';
 import { useScrollingChrome } from '../../Nav/Main/FixedTabNav/ScrollingChrome';
 import {
   useFixedHubChromeInset,
@@ -69,6 +69,13 @@ interface SkeletonSentinel {
   key: string;
 }
 type GridItem = Nft | SkeletonSentinel;
+
+// The hub scroll handler is a Reanimated worklet, so it must attach to an
+// animated list. A plain FlashList hands the worklet to RecyclerListView's JS
+// scroll chain, which calls it as a plain function and crashes on scroll.
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<FlashListProps<GridItem>>,
+) as unknown as React.ComponentType<FlashListProps<GridItem>>;
 
 const NftGridContent = ({
   allFilteredCollectibles,
@@ -304,7 +311,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const nftRowList = useMemo(
       () => (
-        <FlashList
+        <AnimatedFlashList
           data={gridData}
           renderItem={({ item, index }: { item: GridItem; index: number }) => {
             const padding = ['pr-2', 'px-1', 'pl-2'][index % 3];

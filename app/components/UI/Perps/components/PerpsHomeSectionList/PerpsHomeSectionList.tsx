@@ -6,6 +6,11 @@ const styles = StyleSheet.create({
   flushDivider: {
     marginTop: 0,
   },
+  // SectionDivider's default marginVertical is 20px top and bottom. Bump the
+  // top to 32px (20 + 12) so the divider clears the block above it.
+  divider: {
+    marginTop: 32,
+  },
 });
 
 export interface PerpsHomeSectionItem {
@@ -52,7 +57,7 @@ const PerpsHomeSectionList: React.FC<PerpsHomeSectionListProps> = ({
                 style={
                   flushLeadingDivider && section.key === firstVisibleKey
                     ? styles.flushDivider
-                    : undefined
+                    : styles.divider
                 }
               />
             ) : null}

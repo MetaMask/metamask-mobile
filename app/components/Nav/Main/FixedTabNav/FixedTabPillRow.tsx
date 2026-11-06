@@ -19,6 +19,15 @@ import type { FixedTabPill } from './fixedTabNav.types';
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- New brand accent from the nav exploration; no design token exists yet.
 const SELECTED_PILL_BACKGROUND = '#BAF24A';
 
+/**
+ * Label on the selected pill. The spec's `--icon/inverse` (#131416): a fixed
+ * dark so it stays readable on the green accent in both themes (every text /
+ * icon token flips to white in one theme or the other). Equals `text.default`
+ * in light mode.
+ */
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Pairs with the fixed green accent; no token is dark in both themes.
+const SELECTED_PILL_TEXT = '#131416';
+
 interface FixedTabPillRowContextValue {
   testID: string;
   pills: readonly FixedTabPill[];
@@ -81,10 +90,11 @@ const GlassPill = ({ label, pillKey, testID, isSelected }: GlassPillProps) => {
       textProps={
         isMaterial
           ? {
-              // Selected: dark on the green accent. Unselected: default text,
-              // overriding the group's grey alternative to match the spec.
+              // Selected: fixed dark on the green accent (readable in both
+              // themes). Unselected: default text, overriding the group's
+              // grey alternative to match the spec.
               twClassName: isSelected
-                ? `text-[${colors.icon.inverse}]`
+                ? `text-[${SELECTED_PILL_TEXT}]`
                 : `text-[${colors.text.default}]`,
             }
           : undefined
