@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import PredictMarket from '../../Predict/components/PredictMarket';
 import { PredictEventValues } from '../analytics';
+import { useEventsWithLiveData } from '../hooks/useEventsWithLiveData';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { toLegacyMarket, toTrendingMarket } from './internal/legacyMarkets';
 import { NextTrendingEventCard } from './internal/next/NextTrendingEventCard';
@@ -24,6 +25,11 @@ const NextMarketCard = ({
   onBuyButtonPress,
 }: PredictTrendingMarketCardProps & { event: PredictEvent }) => {
   const isLive = useTrendingLiveDataAllowed();
+  const events = useMemo(() => [event], [event]);
+  const [liveEvent] = useEventsWithLiveData(event.venueId, events, {
+    isVisible: isLive,
+    marketScope: 'card',
+  });
   const handleBuyButtonPress = useCallback(
     () => onBuyButtonPress?.({ market }),
     [market, onBuyButtonPress],
@@ -32,8 +38,7 @@ const NextMarketCard = ({
   return (
     <PredictOrderFlowProvider>
       <NextTrendingEventCard
-        event={event}
-        isLive={isLive}
+        event={liveEvent}
         onCardPress={onCardPress}
         onBuyButtonPress={handleBuyButtonPress}
       />

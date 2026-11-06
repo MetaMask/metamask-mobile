@@ -17,6 +17,8 @@ import {
   within,
   type RenderAPI,
 } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import { EXPLORE_TAB_INDEX } from '../../../../constants/navigation/exploreTabIndices';
 import Engine from '../../../../core/Engine';
 import { updateBgState } from '../../../../core/redux/slices/engine';
@@ -27,9 +29,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getRouteParamsProbeTestId } from '../../../../../tests/component-view/render';
 import {
   expectPredictNextGameCard,
+  makePredictNextGameEvent,
   messengerCall,
   mockPredictNextMessenger,
   nflEvents,
+  publishPredictNextGameLiveUpdate,
   PREDICT_NEXT_FEED_IDS,
   configurePredictNextCatalog,
   resetPredictNextCatalog,
@@ -38,7 +42,7 @@ import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
 import type { PredictConfig } from '../config/predictConfig';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { PredictNextRoutes } from '../navigation/routes';
-import type { PredictEvent } from '../types';
+import type { PredictEvent, PredictTimestamp, PredictVenueId } from '../types';
 import { PredictHomeTestIds } from '../views/PredictHome/PredictHome.testIds';
 import { PredictOrderFlowTestIds } from '../views/PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictTrendingTestIds } from './PredictTrending.testIds';
@@ -73,6 +77,9 @@ const EXPLORE_SEARCH_INTERACTED =
 const GET_FEED = 'PredictMarketDataService:getFeed';
 const SEARCH_EVENTS = 'PredictMarketDataService:searchEvents';
 const INVALIDATE = 'PredictMarketDataService:invalidateQueries';
+const WATCH_EVENTS = 'PredictLiveDataService:watchEvents';
+const GAME_LIVE_UPDATED = 'PredictLiveDataService:gameLiveUpdated';
+const QUOTE_UPDATED = 'PredictLiveDataService:quoteUpdated';
 /** Kalshi's `sports` Feed key maps to its NFL Games Feed. */
 const KALSHI_SPORTS_FEED = PREDICT_NEXT_FEED_IDS.nflGames;
 const [NFL_1] = nflEvents;
@@ -172,6 +179,17 @@ const serveKalshi = () =>
 const callsTo = (action: string) =>
   messengerCall.mock.calls.filter(([name]) => name === action);
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const messengerSubscribe = Engine.controllerMessenger
+  .subscribe as unknown as jest.Mock;
+const messengerUnsubscribe = Engine.controllerMessenger
+  .unsubscribe as unknown as jest.Mock;
+
+/** Listeners registered on a live-data topic and not yet released. */
+const heldListeners = (topic: string) =>
+  messengerSubscribe.mock.calls.filter(([name]) => name === topic).length -
+  messengerUnsubscribe.mock.calls.filter(([name]) => name === topic).length;
+
 const trackedProperties = (spy: jest.SpyInstance, eventName: string) =>
   spy.mock.calls
     .map(([event]) => event as { name: string; properties: object })
@@ -260,6 +278,7 @@ describeForPlatforms('Explore prediction sections', () => {
   afterEach(() => {
     engine.state = originalEngineState;
     clearTrendingApiMocks();
+    netInfoMock.__resetMockNetInfo();
     messengerCall.mockImplementation(baseMessengerCall);
     resetPredictNextCatalog();
     trackEvent.mockRestore();
@@ -398,6 +417,58 @@ describeForPlatforms('Explore prediction sections', () => {
           item_clicked: NFL_1.id,
         },
       ]);
+    });
+
+    it('watches the six carousel games with one listener per topic and one watch, and patches each card', async () => {
+      const games = Array.from({ length: 6 }, (_, index) =>
+        makePredictNextGameEvent(
+          `nfl-live-${index + 1}`,
+          `Away ${index + 1}`,
+          `Home ${index + 1}`,
+          'NFL',
+        ),
+      );
+      kalshiFeed = games;
+      // The shared NetInfo mock reports offline, which turns live data off.
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+      messengerSubscribe.mockClear();
+      messengerUnsubscribe.mockClear();
+      const view = renderKalshiExplore();
+
+      await openSportsTab(view.getByTestId);
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', games[0].id));
+
+      await waitFor(() =>
+        expect(callsTo(WATCH_EVENTS)).toEqual([
+          [
+            WATCH_EVENTS,
+            'kalshi',
+            games.map((game) => game.id),
+            { marketScope: 'card' },
+          ],
+        ]),
+      );
+      expect(heldListeners(GAME_LIVE_UPDATED)).toBe(1);
+      expect(heldListeners(QUOTE_UPDATED)).toBe(1);
+
+      act(() => {
+        publishPredictNextGameLiveUpdate({
+          venueId: 'kalshi' as PredictVenueId,
+          eventId: games[0].id,
+          type: 'football_game',
+          status: 'in_progress',
+          score: { away: '28', home: '24' },
+          period: 'Q4',
+          clock: '01:12',
+          observedAt: '2026-09-11T03:00:00.000Z' as PredictTimestamp,
+        });
+      });
+
+      const card = within(
+        view.getByTestId(PredictHomeTestIds.event('kalshi', games[0].id)),
+      );
+      expect(card.getByText('28')).toBeOnTheScreen();
+      expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
     });
 
     it('omits the Sports Predictions section when the Feed is empty', async () => {
