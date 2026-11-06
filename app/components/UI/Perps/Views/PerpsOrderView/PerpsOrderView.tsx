@@ -1940,6 +1940,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return handlePlaceOrderRef.current(forceTrade, true);
       }
 
+      // An already-valid form skips the validating-branch guard. Read dismissal
+      // again on this continuation, which is what can still submit after the
+      // support request resolves. A committed post-deposit re-entry is not
+      // retired.
+      if (isAttemptRetired()) {
+        return;
+      }
+
       if (liquidityError) {
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
