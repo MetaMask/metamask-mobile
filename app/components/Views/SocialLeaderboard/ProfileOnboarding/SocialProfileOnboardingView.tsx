@@ -92,6 +92,7 @@ import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -654,7 +655,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     acceptSocialTerms().catch(() => undefined);
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
+      const openPendingEntry = takePendingSocialEntry();
       navigation.goBack();
+      openPendingEntry?.();
       return;
     }
     const path = pendingTermsPath;

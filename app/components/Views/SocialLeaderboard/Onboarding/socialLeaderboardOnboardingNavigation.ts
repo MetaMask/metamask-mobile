@@ -137,7 +137,12 @@ export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(navigate, () =>
+      pushSocialLeaderboard(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {
@@ -168,7 +173,11 @@ export const navigateToSocialLeaderboard = (
     pushSocialLeaderboard(navigate, params);
     return;
   }
-  if (!ensureSocialTermsAccepted(navigate)) {
+  if (
+    !ensureSocialTermsAccepted(navigate, () =>
+      navigateToSocialLeaderboard(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {
@@ -195,7 +204,12 @@ export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(navigate, () =>
+      navigateToSocialTab(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {

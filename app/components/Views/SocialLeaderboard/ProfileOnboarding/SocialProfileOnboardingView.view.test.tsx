@@ -38,6 +38,7 @@ import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingVi
 import { strings } from '../../../../../locales/i18n';
 import {
   acceptSocialTerms,
+  ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   resetSocialTermsAcceptance,
 } from '../terms/socialTermsAcceptance';
@@ -462,6 +463,30 @@ describe('SocialProfileOnboardingView', () => {
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
       ).toBeOnTheScreen();
       expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('continues to the blocked Social entry once the terms-only sheet is accepted', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      agreeToTerms();
+
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the blocked Social entry when the terms-only sheet is closed', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+      expect(openBlockedEntry).not.toHaveBeenCalled();
     });
 
     it('skips the sheet when the current terms were already accepted', async () => {

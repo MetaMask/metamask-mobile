@@ -22,7 +22,10 @@ const parseTraderId = (actionPath: string): string | undefined => {
 const navigateToFallback = () => {
   if (
     isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    !ensureSocialTermsAccepted(
+      NavigationService.navigation.navigate,
+      navigateToFallback,
+    )
   ) {
     return;
   }
@@ -66,7 +69,9 @@ export const handleSocialTraderUrl = ({
     const isV1Treatment = isSocialV1Treatment();
     if (
       isV1Treatment &&
-      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate, () =>
+        handleSocialTraderUrl({ actionPath }),
+      )
     ) {
       return;
     }

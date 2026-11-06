@@ -19,7 +19,10 @@ interface HandleSocialTraderPositionUrlParams {
 const navigateToFallback = () => {
   if (
     isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    !ensureSocialTermsAccepted(
+      NavigationService.navigation.navigate,
+      navigateToFallback,
+    )
   ) {
     return;
   }
@@ -103,21 +106,28 @@ export const handleSocialTraderPositionUrl = ({
     const openedFromNotification = notificationSubtype !== undefined;
 
     const isV1Treatment = isSocialV1Treatment();
+    const openPosition = () =>
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
+        positionId,
+        traderId,
+        source: openedFromNotification ? 'notification' : 'deep_link',
+        originalEntryPoint: openedFromNotification
+          ? 'notification'
+          : 'deep_link',
+        notificationSubtype,
+        notificationTemplateVariant,
+        isSocialV1: isV1Treatment,
+      });
     if (
       isV1Treatment &&
-      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        openPosition,
+      )
     ) {
       return;
     }
-    NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
-      positionId,
-      traderId,
-      source: openedFromNotification ? 'notification' : 'deep_link',
-      originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
-      notificationSubtype,
-      notificationTemplateVariant,
-      isSocialV1: isV1Treatment,
-    });
+    openPosition();
   } catch (error) {
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Failed to handle deeplink:',

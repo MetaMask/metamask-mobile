@@ -5,6 +5,7 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { resolveABTestAssignment } from '../../../../util/abTest';
+import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 import {
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
@@ -16,7 +17,10 @@ import {
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
 
-jest.mock('../terms/socialTermsAcceptance');
+jest.mock('../terms/socialTermsAcceptance', () => ({
+  ...jest.requireActual('../terms/__mocks__/socialTermsAcceptance'),
+  ensureSocialTermsAccepted: jest.fn(() => true),
+}));
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn() } },
@@ -390,6 +394,60 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       expect(navigate).not.toHaveBeenCalledWith(
         Routes.SOCIAL.PROFILE_ONBOARDING,
       );
+    });
+  });
+
+  describe('after the Social terms are accepted', () => {
+    const acceptTermsAndContinue = () => {
+      const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+        .calls[0]?.[1];
+      expect(onAccepted).toEqual(expect.any(Function));
+      onAccepted?.();
+    };
+
+    beforeEach(() => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue('true');
+      jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+    });
+
+    it('opens the Social tab from the tab bar', () => {
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+      expect(navigate).not.toHaveBeenCalled();
+      acceptTermsAndContinue();
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+    });
+
+    it('opens the Social tab from Top traders', () => {
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
+      expect(navigate).not.toHaveBeenCalled();
+      acceptTermsAndContinue();
+
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { source: 'home_carousel' } },
+        { pop: true },
+      );
+    });
+
+    it('pushes Social from Perps', () => {
+      const navigate = jest.fn();
+
+      pushSocialLeaderboard(navigate, { source: 'perps_home' });
+      expect(navigate).not.toHaveBeenCalled();
+      acceptTermsAndContinue();
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'perps_home',
+      });
     });
   });
 

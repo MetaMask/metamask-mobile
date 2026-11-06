@@ -124,22 +124,31 @@ export const handleSocialPostUrl = ({
       deduplicationId,
     });
 
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+    const openPost = () => {
+      if (!positionId || !traderId) {
+        DevLogger.log(
+          '[handleSocialPostUrl] Missing positionId or traderId, falling back to the profile',
+        );
+        navigateToOwnProfile();
+        return;
+      }
+
+      openCopiedPost(positionId, traderId).catch((error) => {
+        DevLogger.log('[handleSocialPostUrl] Failed to open the post:', error);
+        navigateToOwnProfile();
+      });
+    };
+
+    if (
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        openPost,
+      )
+    ) {
       return;
     }
 
-    if (!positionId || !traderId) {
-      DevLogger.log(
-        '[handleSocialPostUrl] Missing positionId or traderId, falling back to the profile',
-      );
-      navigateToOwnProfile();
-      return;
-    }
-
-    openCopiedPost(positionId, traderId).catch((error) => {
-      DevLogger.log('[handleSocialPostUrl] Failed to open the post:', error);
-      navigateToOwnProfile();
-    });
+    openPost();
   } catch (error) {
     DevLogger.log('[handleSocialPostUrl] Failed to handle deeplink:', error);
     navigateToOwnProfile();

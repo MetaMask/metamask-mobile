@@ -79,9 +79,38 @@ describe('handleSocialTraderPositionUrl', () => {
         '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
     });
 
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
+      mockNavigate,
+      expect.any(Function),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockBuild).toHaveBeenCalled();
+  });
+
+  it('opens the position once the Social terms are accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+      .calls[0]?.[1];
+    expect(onAccepted).toEqual(expect.any(Function));
+    onAccepted?.();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION,
+      expect.objectContaining({
+        positionId: 'position-1',
+        traderId: 'trader-1',
+        source: 'notification',
+        isSocialV1: true,
+      }),
+    );
+    expect(mockBuild).toHaveBeenCalledTimes(1);
   });
 
   it('does not open the fallback when the Social terms are not accepted', () => {
