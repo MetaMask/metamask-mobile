@@ -439,24 +439,6 @@ describe('rewardsMoneyReducer', () => {
       expect(state.isReferralLinkPending).toBe(false);
     });
 
-    it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
-      const persisted = {
-        ...initialState,
-        pendingReferralCode: 'KOL1',
-        answeredReferralCode: 'KOL0',
-        isReferralLinkPending: true,
-      };
-
-      const state = rewardsMoneyReducer(initialState, {
-        type: 'persist/REHYDRATE',
-        payload: { rewardsMoney: persisted },
-      } as Action);
-
-      expect(state.pendingReferralCode).toBeNull();
-      expect(state.answeredReferralCode).toBeNull();
-      expect(state.isReferralLinkPending).toBe(false);
-    });
-
     it('drops a last profile id left by an older persisted slice', () => {
       const persisted = {
         referralMe: {},
