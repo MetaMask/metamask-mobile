@@ -58,5 +58,6 @@ export {
   usePredictTrendingSupported,
   type PredictSportsMarketsFeed,
   type PredictTrendingMarket,
+  type PredictTrendingTab,
   type PredictTrendingVariant,
 } from './trending';

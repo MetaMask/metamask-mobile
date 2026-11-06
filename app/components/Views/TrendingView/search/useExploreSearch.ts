@@ -52,7 +52,7 @@ export const useExploreSearch = (
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isExploreEarnEnabled = useSelector(selectIsExploreEarnSectionVisible);
-  const isPredictionsSupported = usePredictTrendingSupported();
+  const isPredictionsSupported = usePredictTrendingSupported('search');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
@@ -64,10 +64,7 @@ export const useExploreSearch = (
   const tokens = useTokensFeed({ query: debouncedQuery });
   const perps = usePerpsFeed({ query: debouncedQuery });
   const stocks = useStocksFeed({ query: debouncedQuery });
-  const predictions = usePredictTrendingFeed({
-    variant: 'trending',
-    query: debouncedQuery,
-  });
+  const predictions = usePredictTrendingFeed({ query: debouncedQuery });
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
     query: debouncedQuery,

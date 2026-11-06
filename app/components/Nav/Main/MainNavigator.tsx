@@ -133,6 +133,7 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
+import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -492,13 +493,9 @@ const RewardsHome = () => {
     return <RewardsUpdateRequired />;
   }
 
-  // Only the Money persona gate holds the whole stack back. Candidate
-  // subscription pending still mounts onboarding as the discovery surface;
-  // OnboardingMainStep owns that skeleton and replace-to-dashboard.
-  if (
-    tabContent.status === 'pending' &&
-    tabContent.reason === 'money_referral'
-  ) {
+  // The screen itself is not behind Rewards opt-in. Wait only until the
+  // money persona or the candidate subscription is known, then open a home.
+  if (tabContent.status === 'pending') {
     return <RewardsTabSkeleton />;
   }
 
@@ -506,7 +503,7 @@ const RewardsHome = () => {
     tabContent.status === 'ready' &&
     isRewardsHomeInitialVariant(tabContent.variant)
       ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
-      : Routes.REWARDS_ONBOARDING_FLOW;
+      : Routes.REWARDS_DASHBOARD;
 
   return (
     <NativeStack.Navigator
@@ -785,6 +782,8 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
+  const canOpenSocialTabDirectly =
+    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -809,6 +808,7 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
+      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -918,6 +918,7 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab, undefined, colors.success.default)
       }
       listeners={getNativeTabListeners(tab)}
+      initialParams={tab.initialParams}
       component={tabComponentFor(tab)}
     />
   );

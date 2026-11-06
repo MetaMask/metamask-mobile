@@ -75,6 +75,7 @@ import {
 import LiveView from '../LiveView';
 import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { SocialFeedPageActiveContext } from '../../../UI/SocialFeed/components/SocialFeedPageActiveContext';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -173,6 +174,18 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
   live: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
+
+const SocialFeedPageProviders: React.FC<{
+  isActive: boolean;
+  rotatesTraderStats: boolean;
+  children: React.ReactNode;
+}> = ({ isActive, rotatesTraderStats, children }) => (
+  <SocialFeedPageActiveContext.Provider value={isActive}>
+    <TraderStatRotationContext.Provider value={rotatesTraderStats}>
+      {children}
+    </TraderStatRotationContext.Provider>
+  </SocialFeedPageActiveContext.Provider>
+);
 
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
@@ -815,8 +828,9 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    <TraderStatRotationContext.Provider
-                      value={activeIndex === pageIndex}
+                    <SocialFeedPageProviders
+                      isActive={isFocused && activeIndex === pageIndex}
+                      rotatesTraderStats={activeIndex === pageIndex}
                     >
                       {tab === 'leaderboard' ? (
                         <LeaderboardShellTabPage
@@ -879,7 +893,7 @@ const SocialV1ViewContent: React.FC = () => {
                           onQuickBuy={openFollowingQuickBuy}
                         />
                       )}
-                    </TraderStatRotationContext.Provider>
+                    </SocialFeedPageProviders>
                   </View>
                 );
               })}
