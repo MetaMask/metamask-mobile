@@ -15,6 +15,12 @@ import { CLAIMED_EARNINGS_SUMMARY } from '../../component-view/presets/rewardsMo
  * Appium, not component-view: claimed earnings have to survive a process
  * kill. Component-view cannot terminate the built app, and redux-persist
  * rehydrates `rewardsMoney` only on the next OS launch.
+ *
+ * `relaunchApp` repeats the iOS fixture launch arguments. `activateApp`
+ * only foregrounds a process that is still running, which is what the
+ * account-activity resume test needs. A killed iOS process loses those
+ * arguments, cannot reach the fixture server, and the unlock falls through
+ * to Restore needed.
  */
 const MONEY_CAMPAIGN_DEEPLINK =
   'https://link.metamask.io/rewards?campaign=money';
@@ -54,7 +60,7 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money relaunch'), () => {
         async () => {
           await openClaimedEarnings();
           await Gestures.terminateApp(currentDeviceDetails);
-          await Gestures.activateApp(currentDeviceDetails);
+          await Gestures.relaunchApp(currentDeviceDetails);
           await openClaimedEarnings();
         },
       );
