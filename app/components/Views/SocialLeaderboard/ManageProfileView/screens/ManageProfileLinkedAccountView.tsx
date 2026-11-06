@@ -15,8 +15,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
-import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo, Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
@@ -50,6 +50,13 @@ const ManageProfileLinkedAccountView: React.FC = () => {
   const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(errorMessage);
+  }, [errorMessage]);
 
   // The stored order is not guaranteed, so take the first EVM entry wherever
   // it sits; that is the address each row is matched on.
@@ -157,6 +164,8 @@ const ManageProfileLinkedAccountView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             twClassName="mx-4 mt-3"
           >
             {errorMessage}
