@@ -973,6 +973,46 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('waits out a timer that fires before the clock reaches expiry plus grace', async () => {
+      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
+      trading.commitOrder.mockRejectedValueOnce(lostResponse());
+      trading.commitOrder.mockRejectedValue(
+        preOperationFailure(
+          PredictErrorCode.PREVIEW_EXPIRED,
+          'preview_expired',
+        ),
+      );
+      const orderService = await quote(
+        serviceWith(0, {
+          backgroundObservationDelaysMs: [1_000],
+          ambiguousCommitGraceMs: 5_000,
+        }),
+      );
+
+      await settleWithFakeTimers(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).catch(() => undefined);
+      // The wall clock lags the timer by 1ms, as Node timers sometimes do.
+      const timerClock = Date.now.bind(Date);
+      jest.spyOn(Date, 'now').mockImplementation(() => timerClock() - 1);
+      const expiryPlusGrace = Date.parse(preview.expiresAt) + 5_000;
+      await jest.advanceTimersByTimeAsync(expiryPlusGrace - timerClock());
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+
+      await jest.advanceTimersByTimeAsync(1);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+      expect(orderResolved).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: {
+            status: 'not_placed',
+            code: PredictErrorCode.PREVIEW_EXPIRED,
+          },
+        }),
+      );
+      await jest.advanceTimersByTimeAsync(60_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+    });
+
     it('does not conclude "not placed" from a post-expiry 401 after an ambiguous Commit', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
       trading.commitOrder.mockRejectedValueOnce(lostResponse());
