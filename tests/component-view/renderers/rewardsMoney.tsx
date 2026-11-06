@@ -6,6 +6,10 @@ import { ToastContext } from '../../../app/component-library/components/Toast/To
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
+import TaxFormQuestionSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
@@ -13,6 +17,7 @@ import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
+import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -22,6 +27,7 @@ import type {
   LedgerEntryDto,
   ReferralFunnelDto,
   ReferralMeDto,
+  TaxFormSubmittedSnapshot,
 } from '../../../app/core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../app/constants/navigation/Routes';
 import {
@@ -43,6 +49,16 @@ import {
 } from '../presets/rewardsMoney';
 
 const engineCall = Engine.controllerMessenger.call as jest.Mock;
+
+/** A payee who can claim. Prefetch and Claim both read this unless a test overrides it. */
+const CLEARED_TAX_ME = {
+  state: 'COMPLETE_OR_VERIFIED',
+  next_action: 'NONE',
+  reason: null,
+  clears_until: null,
+  cleared: true,
+  can_change_answer: false,
+};
 const baseEngineCall = engineCall.getMockImplementation();
 
 type EngineHandler = (...args: unknown[]) => unknown;
@@ -109,6 +125,7 @@ export function installRewardsMoneyEngine({
   handlers = {},
 }: RewardsMoneyEngineOptions = {}): jest.Mock {
   let refused = false;
+  let taxFormSubmitted: TaxFormSubmittedSnapshot | null = null;
 
   const defaults: Record<string, EngineHandler> = {
     'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
@@ -157,6 +174,17 @@ export function installRewardsMoneyEngine({
         has_more: false,
         cursor: null,
       }),
+    'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED_TAX_ME),
+    'RewardsMoneyController:getTaxFormSubmitted': () =>
+      Promise.resolve(taxFormSubmitted),
+    'RewardsMoneyController:noteTaxFormSubmitted': (snapshot: unknown) => {
+      taxFormSubmitted = (snapshot as TaxFormSubmittedSnapshot | null) ?? null;
+      return Promise.resolve(undefined);
+    },
+    'RewardsMoneyController:clearTaxFormSubmitted': () => {
+      taxFormSubmitted = null;
+      return Promise.resolve(undefined);
+    },
     'RewardsMoneyController:initiateClaim': () => {
       if (initiateClaim === 'under_review') {
         refused = true;
@@ -266,9 +294,40 @@ function rewardsFlowRoutes() {
     },
     {
       name: Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-      Component: createRouteParamsProbe(Routes.MODAL.REWARDS_INFO_SHEET_MODAL),
+      Component: RewardsInfoSheetModal,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+      Component: TaxFormQuestionSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+      Component: TaxFormOpenFormSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
+      Component: TaxFormContactUsSheet,
+    },
+    {
+      name: Routes.REWARDS_TAX_FORM_VIEW,
+      Component: RewardsTaxFormView,
+    },
+    {
+      name: Routes.WEBVIEW.MAIN,
+      Component: SupportWebviewStack,
     },
   ];
+}
+
+function SupportWebviewStack() {
+  return (
+    <FlowStack.Navigator>
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={createRouteParamsProbe(Routes.WEBVIEW.SIMPLE)}
+      />
+    </FlowStack.Navigator>
+  );
 }
 
 export type RenderRewardsMoneyOptions = RewardsMoneyEngineOptions &
@@ -285,18 +344,19 @@ function renderMoneyScreen(
   });
   const state = rewardsMoneyViewState(options);
 
-  function ScreenWithToast() {
-    return (
-      <RewardsMoneyToastHost>
-        <Component />
-      </RewardsMoneyToastHost>
-    );
-  }
-
   return {
-    ...renderScreenWithRoutes(ScreenWithToast, { name }, rewardsFlowRoutes(), {
-      state,
-    }),
+    ...renderScreenWithRoutes(
+      Component,
+      { name },
+      rewardsFlowRoutes() as unknown as {
+        name: string;
+        Component?: React.ComponentType<object>;
+      }[],
+      { state },
+      undefined,
+      undefined,
+      (children) => <RewardsMoneyToastHost>{children}</RewardsMoneyToastHost>,
+    ),
     engine,
   };
 }
