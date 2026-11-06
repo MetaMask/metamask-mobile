@@ -16,8 +16,13 @@ import {
   PredictOrderFlowSheet,
   type PredictOrderFlowIntent,
 } from './internal/PredictOrderFlowSheet';
-
-export type { PredictOrderFlowIntent };
+import { toBuyIntent, toCashOutIntent } from './internal/orderIntent';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+  PredictPosition,
+} from '../../types';
 
 interface OpenOrderFlow {
   /** Distinguishes each opening, so support is checked per intent. */
@@ -26,7 +31,15 @@ interface OpenOrderFlow {
 }
 
 interface PredictOrderFlowContextValue {
-  openOrderFlow: (intent: PredictOrderFlowIntent) => void;
+  /** Buys `outcome` of `market`, as presented within `event`. */
+  openBuy: (
+    event: PredictEvent,
+    market: PredictMarket,
+    outcome: PredictOutcome,
+  ) => void;
+  /** Cashes Out `position`. Pass the presented Event when there is one: it
+   * names and prices the held Outcome ahead of the Position's context. */
+  openCashOut: (position: PredictPosition, event?: PredictEvent) => void;
 }
 
 /**
@@ -87,8 +100,13 @@ export const PredictOrderFlowProvider = ({
   }, []);
   const closeOrderFlow = useCallback(() => setOpen(null), []);
 
-  const contextValue = React.useMemo(
-    () => ({ openOrderFlow }),
+  const contextValue = React.useMemo<PredictOrderFlowContextValue>(
+    () => ({
+      openBuy: (event, market, outcome) =>
+        openOrderFlow(toBuyIntent(event, market, outcome)),
+      openCashOut: (position, event) =>
+        openOrderFlow(toCashOutIntent(position, event)),
+    }),
     [openOrderFlow],
   );
 

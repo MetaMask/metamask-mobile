@@ -15,6 +15,8 @@ import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
   composePredictNextOrderService,
   configurePredictNextCatalog,
+  makePredictNextPlayerPropsEvent,
+  makePredictNextPosition,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   messengerCall,
@@ -37,11 +39,14 @@ import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import type { PredictOrderService } from '../../services/PredictOrderService';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
-import {
-  usePredictOrderFlow,
-  type PredictOrderFlowIntent,
-} from './PredictOrderFlowProvider';
-import { type PredictDecimal, type PredictEntityId } from '../../types';
+import { usePredictOrderFlow } from './PredictOrderFlowProvider';
+import type {
+  PredictAmount,
+  PredictDecimal,
+  PredictEntityId,
+  PredictEvent,
+  PredictPosition,
+} from '../../types';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 
 // The provider resolves the Order workflow service from Engine.context, the
@@ -157,47 +162,80 @@ const stubBalance = (venueStatus?: { termsUrl?: string }) =>
     return Promise.resolve(undefined);
   });
 
-const buyIntent: PredictOrderFlowIntent = {
-  action: 'buy',
-  eventId: 'event-1' as PredictEntityId,
+const billsEvent: PredictEvent = {
   venueId: KALSHI_VENUE_ID,
-  marketId: 'KXTEST-26-A' as PredictEntityId,
-  side: 'yes',
-  outcomeLabel: 'Buffalo Bills',
-  eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
-  eventImageUrl: 'https://predict.example/bills.png',
-  askPrice: '0.53' as PredictDecimal,
+  id: 'event-1' as PredictEntityId,
+  title: 'Buffalo Bills vs. Kansas City Chiefs',
+  imageUrl: 'https://predict.example/bills.png',
+  markets: [
+    {
+      id: 'KXTEST-26-A' as PredictEntityId,
+      question: 'Will the Buffalo Bills win?',
+      status: 'active',
+      outcomes: [
+        {
+          id: 'KXTEST-26-A-yes' as PredictEntityId,
+          side: 'yes',
+          label: 'Buffalo Bills',
+          askPrice: '0.53' as PredictDecimal,
+          bidPrice: '0.53' as PredictDecimal,
+        },
+        {
+          id: 'KXTEST-26-A-no' as PredictEntityId,
+          side: 'no',
+          label: 'Kansas City Chiefs',
+          askPrice: '0.48' as PredictDecimal,
+          bidPrice: '0.47' as PredictDecimal,
+        },
+      ],
+    },
+  ],
 };
+const [billsMarket] = billsEvent.markets;
 
-const sellIntent: PredictOrderFlowIntent = {
-  action: 'sell',
-  eventId: 'event-1' as PredictEntityId,
-  venueId: KALSHI_VENUE_ID,
-  marketId: 'KXTEST-26-A' as PredictEntityId,
-  side: 'yes',
-  outcomeLabel: 'Buffalo Bills',
-  eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
-  eventImageUrl: 'https://predict.example/bills.png',
-  bidPrice: '0.53' as PredictDecimal,
-  maxContracts: 75,
-};
+/** A held Bills Position of `shares` contracts. */
+const billsPosition = (shares = '75.00'): PredictPosition =>
+  makePredictNextPosition({
+    venueId: KALSHI_VENUE_ID,
+    marketId: billsMarket.id,
+    side: 'yes',
+    shares: shares as PredictAmount,
+  });
 
-const Probe = ({ intent }: { intent: PredictOrderFlowIntent }) => {
-  const { openOrderFlow } = usePredictOrderFlow();
+const Probe = ({
+  open,
+}: {
+  open: (flow: ReturnType<typeof usePredictOrderFlow>) => void;
+}) => {
+  const flow = usePredictOrderFlow();
   return (
-    <Button testID={PROBE_BUTTON} onPress={() => openOrderFlow(intent)}>
+    <Button testID={PROBE_BUTTON} onPress={() => open(flow)}>
       <Text>Open order flow</Text>
     </Button>
   );
 };
 
-const BuyProbe = () => <Probe intent={buyIntent} />;
-const SellProbe = () => <Probe intent={sellIntent} />;
+const BuyProbe = () => (
+  <Probe
+    open={({ openBuy }) =>
+      openBuy(billsEvent, billsMarket, billsMarket.outcomes[0])
+    }
+  />
+);
+
+/** A Cash Out of a held Position of `shares` contracts, from the Event. */
+const sellProbeWithShares =
+  (shares: string): React.ComponentType =>
+  () => (
+    <Probe
+      open={({ openCashOut }) => openCashOut(billsPosition(shares), billsEvent)}
+    />
+  );
+const SellProbe = sellProbeWithShares('75.00');
 
 /** A sell probe bounded by a specific whole-contract position size. */
-const sellProbeWithMax =
-  (maxContracts: number): React.ComponentType =>
-  () => <Probe intent={{ ...sellIntent, maxContracts }} />;
+const sellProbeWithMax = (maxContracts: number) =>
+  sellProbeWithShares(String(maxContracts));
 
 const renderProbe = (Component: React.ComponentType = BuyProbe) =>
   renderPredictOrderFlow(Component);
@@ -356,6 +394,25 @@ describe('PredictOrderFlow', () => {
     await reviewOrder();
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
   };
+
+  it('names the threshold line of a line Outcome', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+    const event = makePredictNextPlayerPropsEvent();
+    const line = event.markets.find(
+      (market) => market.question === 'Rhamondre Stevenson: 60+',
+    );
+    if (!line) {
+      throw new Error('Missing the 60+ line');
+    }
+
+    await openSheet(() => (
+      <Probe open={({ openBuy }) => openBuy(event, line, line.outcomes[0])} />
+    ));
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent(/^Yes · Rhamondre Stevenson · 60\+/);
+  });
 
   it('renders the event snapshot with the outcome priced in cents', async () => {
     stubFetch(() => ({ body: makePreview() }));
@@ -1227,6 +1284,24 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_LINE),
       ).toHaveTextContent('Net proceeds $0.00');
       expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
+    });
+
+    it('names a Cash Out without an Event from the Position context, bounded to whole contracts', async () => {
+      stubEchoingSellPreview();
+
+      await openSheet(() => (
+        <Probe
+          open={({ openCashOut }) => openCashOut(billsPosition('12.70'))}
+        />
+      ));
+
+      expect(screen.getByText('Lakers vs Celtics')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent(/^Lakers$/);
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
+      ).toHaveTextContent('You hold 12 contracts');
     });
 
     it('enters whole contracts only: no decimal key and no leading zeros', async () => {

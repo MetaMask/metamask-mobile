@@ -40,12 +40,7 @@ import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import type {
-  PredictEvent,
-  PredictMarket,
-  PredictOutcome,
-  PredictVenueId,
-} from '../../types';
+import type { PredictEvent, PredictVenueId } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
@@ -174,7 +169,7 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  const { openOrderFlow } = usePredictOrderFlow();
+  const { openBuy } = usePredictOrderFlow();
   const openEvent = useCallback(
     (event: PredictEvent) =>
       navigation.navigate(PredictNextRoutes.EVENT, {
@@ -183,22 +178,6 @@ const PredictHomeView = ({
         titleSnapshot: event.title,
       }),
     [navigation],
-  );
-  const openOrder = useCallback(
-    (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
-      openOrderFlow({
-        action: 'buy',
-        eventId: event.id,
-        venueId: event.venueId,
-        marketId: market.id,
-        side: outcome.side,
-        outcomeLabel: outcome.label,
-        eventTitle: event.title,
-        eventImageUrl: event.imageUrl,
-        askPrice: outcome.askPrice,
-      });
-    },
-    [openOrderFlow],
   );
 
   return (
@@ -285,7 +264,7 @@ const PredictHomeView = ({
                 isError={section.isError}
                 onOpen={() => openFeedScreen(section.sectionId)}
                 onOpenEvent={openEvent}
-                onOrder={canBuy ? openOrder : undefined}
+                onOrder={canBuy ? openBuy : undefined}
                 onRetry={section.refetch}
               />
             ) : null,

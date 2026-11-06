@@ -13,6 +13,7 @@ import { renderComponentViewScreen } from '../../../../../tests/component-view/r
 import { initialStatePredict } from '../../../../../tests/component-view/presets/predict';
 import {
   composePredictNextOrderService,
+  makePredictNextEvent,
   mockPredictNextMessenger,
   resetPredictNextCatalog,
 } from '../../../../../tests/component-view/fixtures/predictNext';
@@ -22,13 +23,12 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { ControllerEventToastBridge } from '../../../Nav/App/ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../Predict/hooks/usePredictToastRegistrations';
-import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import type { PredictConfig } from '../config/predictConfig';
 import { PredictImplementationSwitch } from '../implementation';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import type { PredictConfiguredVenue } from '../implementation/types';
 import type { PredictOrderService } from '../services/PredictOrderService';
-import type { PredictDecimal, PredictEntityId } from '../types';
+import type { PredictEntityId } from '../types';
 import {
   PredictOrderFlowProvider,
   usePredictOrderFlow,
@@ -124,23 +124,21 @@ const stubOrderRoutes = () => {
   };
 };
 
+const billsEvent = makePredictNextEvent(
+  'event-1',
+  'Buffalo Bills vs. Kansas City Chiefs',
+);
+const billsMarket = {
+  ...billsEvent.markets[0],
+  id: 'KXTEST-26-A' as PredictEntityId,
+};
+
 const OrderProbe = () => {
-  const { openOrderFlow } = usePredictOrderFlow();
+  const { openBuy } = usePredictOrderFlow();
   return (
     <Button
       testID={PROBE_BUTTON}
-      onPress={() =>
-        openOrderFlow({
-          action: 'buy',
-          eventId: 'event-1' as PredictEntityId,
-          venueId: KALSHI_VENUE_ID,
-          marketId: 'KXTEST-26-A' as PredictEntityId,
-          side: 'yes',
-          outcomeLabel: 'Buffalo Bills',
-          eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
-          askPrice: '0.53' as PredictDecimal,
-        })
-      }
+      onPress={() => openBuy(billsEvent, billsMarket, billsMarket.outcomes[0])}
     >
       <Text>Open order flow</Text>
     </Button>

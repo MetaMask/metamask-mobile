@@ -93,26 +93,14 @@ interface FeedEventRowProps {
 const EventSeparator = () => <Box twClassName="h-3" />;
 
 const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
-  const { openOrderFlow } = usePredictOrderFlow();
+  const { openBuy } = usePredictOrderFlow();
 
   return (
     <PredictEventCard
       event={event}
       variant="featured"
       onPress={() => onOpenEvent(event)}
-      onOrder={(cardEvent, market, outcome) =>
-        openOrderFlow({
-          action: 'buy',
-          eventId: cardEvent.id,
-          venueId: cardEvent.venueId,
-          marketId: market.id,
-          side: outcome.side,
-          outcomeLabel: outcome.label,
-          eventTitle: cardEvent.title,
-          eventImageUrl: cardEvent.imageUrl,
-          askPrice: outcome.askPrice,
-        })
-      }
+      onOrder={openBuy}
     />
   );
 });

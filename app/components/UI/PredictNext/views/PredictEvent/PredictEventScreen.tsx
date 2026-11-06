@@ -23,8 +23,6 @@ import {
 } from '../../events/game';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
-import { getOutcomeName } from '../../utils/entryCopy';
-import { formatThresholdLine } from '../../events/shared/formatting';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -208,23 +206,6 @@ const EventLoadedHeader = ({
   );
 };
 
-/**
- * The Outcome as the Order sheet names it. A threshold line's Outcome is just
- * "Yes" or "No", so it also names the line: "Yes · Josh Jacobs · 60+".
- */
-const orderOutcomeLabel = (
-  market: PredictMarket,
-  outcome: PredictOutcome,
-): string => {
-  const line = formatThresholdLine(market);
-  return line
-    ? strings('predict.market_groups.threshold_order_outcome', {
-        outcome: outcome.label,
-        line,
-      })
-    : outcome.label;
-};
-
 export const PredictEventScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
@@ -232,7 +213,7 @@ export const PredictEventScreen = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
   const liveEvent = useEventWithLiveData(venueId, query.data);
-  const { openOrderFlow } = usePredictOrderFlow();
+  const { openBuy, openCashOut } = usePredictOrderFlow();
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
   // The top chart Markets are picked once per Event, so live quotes update
@@ -303,52 +284,17 @@ export const PredictEventScreen = () => {
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
-  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
-   * Position's whole-contract size. Canonical identity comes from the
-   * presented Event; display context falls back to the Position's catalog
-   * context only when the live Event cannot supply it. */
   const handlePositionCashOut = useCallback(
-    (position: PredictPosition) => {
-      if (!liveEvent) {
-        return;
-      }
-      const market = liveEvent.markets.find(
-        (candidate) => candidate.id === position.marketId,
-      );
-      const outcome = market?.outcomes.find(
-        (candidate) => candidate.side === position.side,
-      );
-      openOrderFlow({
-        action: 'sell',
-        eventId,
-        venueId,
-        marketId: position.marketId,
-        side: position.side,
-        outcomeLabel:
-          (market && outcome && orderOutcomeLabel(market, outcome)) ??
-          getOutcomeName(position.side, position.context),
-        eventTitle: liveEvent.title,
-        eventImageUrl: liveEvent.imageUrl,
-        maxContracts: Math.floor(Number(position.shares)),
-      });
-    },
-    [eventId, liveEvent, openOrderFlow, venueId],
+    (position: PredictPosition) => openCashOut(position, liveEvent),
+    [liveEvent, openCashOut],
   );
   const handleMarketOrder = useCallback(
-    (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
-      openOrderFlow({
-        action: 'buy',
-        eventId,
-        venueId,
-        marketId: market.id,
-        side: outcome.side,
-        outcomeLabel: orderOutcomeLabel(market, outcome),
-        eventTitle: liveEvent?.title ?? '',
-        eventImageUrl: liveEvent?.imageUrl,
-        askPrice: outcome.askPrice,
-      });
+    (market: PredictMarket, outcome: PredictOutcome) => {
+      if (liveEvent) {
+        openBuy(liveEvent, market, outcome);
+      }
     },
-    [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+    [liveEvent, openBuy],
   );
   if (liveEvent) {
     const event = liveEvent;
