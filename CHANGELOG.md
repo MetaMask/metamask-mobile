@@ -7,14 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Fixed trader identicons so a holder on a Perps market matches that trader's profile by seeding every fallback icon from the profile id
-
 ### Changed
 
 - Load composer GIFs through the social API when the `aiSocialGifApi` flag is on
 - Kept Money Account identity verification pending until the provider gives final approval
+
+### Fixed
+
+- Fixed trader identicons so a holder on a Perps market matches that trader's profile by seeding every fallback icon from the profile id
 
 ## [8.18.0]
 
