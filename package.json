@@ -487,7 +487,7 @@
     "@metamask/transaction-pay-controller": "^30.4.3",
     "@metamask/tron-wallet-snap": "^4.3.0",
     "@metamask/utils": "^12.0.0",
-    "@metamask/wallet": "^19.1.0",
+    "@metamask/wallet": "^20.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.3",
     "@noble/curves": "1.9.7",
