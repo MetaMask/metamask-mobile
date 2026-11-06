@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
@@ -50,6 +50,10 @@ import {
  * with Hyperliquid when that provider is the aggregated router. Name that
  * venue on the support check. Anything else stays on the Hyperliquid default
  * instead of sending a route a direct provider would reject.
+ *
+ * The same mapping is the support check's live-provider watch. An explicit
+ * id alone ignores a provider switch, so a Lighter result could otherwise
+ * let a withdrawal sign on Hyperliquid.
  */
 const resolveWithdrawalProviderId = (
   activeProvider: PerpsActiveProviderMode | undefined,
@@ -133,6 +137,7 @@ export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
   const navigation = useNavigation<AppNavigationProp>();
+  const store = useStore<RootState>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
@@ -140,8 +145,6 @@ export const usePerpsHomeActions = (
   const perpsWithdrawConfig = useSelector((state: RootState) =>
     selectPayQuoteConfig(state, 'perpsWithdraw'),
   );
-  const activePerpsProvider = useSelector(selectPerpsProvider);
-  const withdrawalProviderId = resolveWithdrawalProviderId(activePerpsProvider);
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
   const {
@@ -355,7 +358,10 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      const support = await checkAccountSupport(withdrawalProviderId);
+      const support = await checkAccountSupport(
+        resolveWithdrawalProviderId(selectPerpsProvider(store.getState())),
+        { watchActiveProvider: resolveWithdrawalProviderId },
+      );
       if (support !== 'supported' || !navigation.isFocused()) {
         return;
       }
@@ -410,7 +416,7 @@ export const usePerpsHomeActions = (
     track,
     buttonLocation,
     checkAccountSupport,
-    withdrawalProviderId,
+    store,
   ]);
 
   const closeEligibilityModal = useCallback(() => {
