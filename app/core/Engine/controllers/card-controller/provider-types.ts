@@ -258,6 +258,13 @@ export interface CardProviderCapabilities {
   supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
   /**
+   * True when linking a Money account spends the Veda token described by
+   * persisted delegation settings. Baanx refetches those settings when the
+   * token is missing. Providers that ignore them leave this false so a
+   * home-data fetch cannot block the link.
+   */
+  usesMoneyAccountDelegationSettings: boolean;
+  /**
    * True when card home data includes a Baanx-style `verificationStatus`.
    * Providers that verify through their own flow (Immersve spending
    * prerequisites) leave this false.

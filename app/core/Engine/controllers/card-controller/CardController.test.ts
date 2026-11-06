@@ -3143,6 +3143,7 @@ describe('CardController — getCapabilities', () => {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
     reportsVerificationStatus: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
@@ -3615,6 +3616,12 @@ describe('CardController — data pass-throughs', () => {
     }) {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
+      Object.assign(provider, {
+        capabilities: {
+          ...provider.capabilities,
+          usesMoneyAccountDelegationSettings: true,
+        },
+      });
       if (installLinkHooks && !provider.prepareMoneyAccountLink) {
         provider.prepareMoneyAccountLink = jest
           .fn()
@@ -4059,14 +4066,52 @@ describe('CardController — data pass-throughs', () => {
               moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
               delegationAmountHuman: '2199023255551',
             }),
-          ).rejects.toThrow('Monad gas sponsorship unavailable');
+          ).rejects.toThrow('Gas sponsorship unavailable for chain 143');
         } finally {
           mockGasFeesSponsoredMap['0x8f'] = original;
         }
 
+        expect(provider.prepareMoneyAccountLink).toHaveBeenCalled();
         expect(handle.addTransactionBatchCalls).toHaveLength(0);
         expect(mockChallenge).not.toHaveBeenCalled();
         expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
+      });
+
+      it('submits the approve on the prepared chain when that chain is sponsored', async () => {
+        const provider = buildMockProvider({
+          prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+            ...defaultLinkPreparation,
+            caipChainId: 'eip155:8453',
+          }),
+          completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        });
+        const handle = buildLinkMessenger();
+        const controller = buildLinkController({
+          provider,
+          messenger: handle.messenger,
+        });
+
+        const originalMonad = mockGasFeesSponsoredMap['0x8f'];
+        mockGasFeesSponsoredMap['0x8f'] = false;
+        mockGasFeesSponsoredMap['0x2105'] = true;
+        try {
+          const linkPromise = controller.linkMoneyAccountCard({
+            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+            delegationAmountHuman: '2199023255551',
+          });
+          await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+          handle.emitConfirmed();
+          await linkPromise;
+        } finally {
+          mockGasFeesSponsoredMap['0x8f'] = originalMonad;
+          delete mockGasFeesSponsoredMap['0x2105'];
+        }
+
+        expect(handle.addTransactionBatchCalls).toHaveLength(1);
+        expect(handle.messenger.call).toHaveBeenCalledWith(
+          'NetworkController:findNetworkClientIdByChainId',
+          '0x2105',
+        );
       });
 
       it('submits the approve via addTransactionBatch and lets Delegation7702PublishHook attach the upgrade authorization', async () => {
