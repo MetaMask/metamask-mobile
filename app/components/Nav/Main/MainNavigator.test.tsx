@@ -85,6 +85,10 @@ jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
   useIsNativeTabBar: () => mockIsNativeTabBar,
 }));
 
+jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
+  useCanOpenSocialTabDirectly: () => false,
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({

@@ -445,12 +445,7 @@ describe('useExploreSearch', () => {
       expect(useTokensFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePerpsFeed).toHaveBeenCalledWith({ query: '' });
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
-      expect(usePredictTrendingFeed).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: 'trending',
-          query: '',
-        }),
-      );
+      expect(usePredictTrendingFeed).toHaveBeenCalledWith({ query: '' });
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
     });
 
