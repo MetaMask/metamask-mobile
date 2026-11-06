@@ -417,6 +417,7 @@ export class BaanxProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
     reportsVerificationStatus: true,
   };
   private readonly service: BaanxService;
