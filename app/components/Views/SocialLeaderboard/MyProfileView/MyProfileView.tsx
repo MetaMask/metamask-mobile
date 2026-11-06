@@ -125,6 +125,8 @@ const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
+/** Offsets within a pixel are already there, so the animated scroll never settles. */
+const SCROLL_OFFSET_EPSILON_PX = 1;
 const REFRESH_MIN_DURATION_MS = 1000;
 
 const linkedAddressesMatch = (
@@ -362,6 +364,7 @@ const MyProfileView: React.FC = () => {
     [],
   );
   const pendingUncountedScrollRef = useRef(false);
+  const pendingUncountedHeaderFocusRef = useRef(false);
   const handleProfileTabPress = useCallback(
     (index: number) => {
       const nextTab = PROFILE_CONTENT_TABS[index];
@@ -370,6 +373,7 @@ const MyProfileView: React.FC = () => {
       }
       // A later layout must not scroll for a note press the user has left.
       pendingUncountedScrollRef.current = false;
+      pendingUncountedHeaderFocusRef.current = false;
       playSelection().catch(() => undefined);
       setActiveTab(nextTab);
     },
@@ -424,6 +428,21 @@ const MyProfileView: React.FC = () => {
       }),
     [activeTab, assetFilter, closedPositions, openPositions],
   );
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+  const focusUncountedHeader = useCallback(() => {
+    pendingUncountedHeaderFocusRef.current = false;
+    // The P&L label and value are separate text nodes, so focus the
+    // section header instead of repeating that value.
+    const headerTag = findNodeHandle(uncountedHeaderRef.current);
+    if (headerTag != null) {
+      AccessibilityInfo.setAccessibilityFocus(headerTag);
+    }
+  }, []);
   const scrollToUncountedSection = useCallback(() => {
     const scrollView = scrollRef.current;
     const section = uncountedSectionRef.current;
@@ -435,16 +454,17 @@ const MyProfileView: React.FC = () => {
       scrollContent,
       (_x, y) => {
         scrollView.scrollTo({ y, animated: true });
-        // The P&L label and value are separate text nodes, so focus the
-        // section header instead of repeating that value.
-        const headerTag = findNodeHandle(uncountedHeaderRef.current);
-        if (headerTag != null) {
-          AccessibilityInfo.setAccessibilityFocus(headerTag);
+        // A scroll that does not move never emits a settle event.
+        if (Math.abs(scrollYShared.value - y) < SCROLL_OFFSET_EPSILON_PX) {
+          focusUncountedHeader();
+          return;
         }
+        // VoiceOver and TalkBack miss a header that is still moving.
+        pendingUncountedHeaderFocusRef.current = true;
       },
       () => undefined,
     );
-  }, []);
+  }, [focusUncountedHeader, scrollYShared]);
   const handleUncountedSectionLayout = useCallback(() => {
     if (!pendingUncountedScrollRef.current) {
       return;
@@ -476,12 +496,6 @@ const MyProfileView: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
   const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
-  const {
-    scrollY: scrollYShared,
-    onScroll,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -676,6 +690,7 @@ const MyProfileView: React.FC = () => {
       }
       // A later layout must not scroll for a note press the user has left.
       pendingUncountedScrollRef.current = false;
+      pendingUncountedHeaderFocusRef.current = false;
       trackInteraction(Interaction.FILTER_APPLIED, {
         filter_name: Filter.PROFILE_ASSET_TYPE,
         previous_filter_value: assetFilter,
@@ -700,6 +715,23 @@ const MyProfileView: React.FC = () => {
     [assetFilter, posts],
   );
 
+  const finishUncountedHeaderFocus = useCallback(
+    (
+      event: NativeSyntheticEvent<NativeScrollEvent>,
+      momentumFinished: boolean,
+    ) => {
+      if (!pendingUncountedHeaderFocusRef.current) {
+        return;
+      }
+      const velocityY = event.nativeEvent.velocity?.y ?? 0;
+      // A drag release that still has speed glides. Wait for that to stop.
+      if (!momentumFinished && velocityY !== 0) {
+        return;
+      }
+      focusUncountedHeader();
+    },
+    [focusUncountedHeader],
+  );
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (activeTab !== 'posts' || !hasNextPage) {
@@ -714,6 +746,20 @@ const MyProfileView: React.FC = () => {
       }
     },
     [activeTab, hasNextPage, loadMore],
+  );
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      finishUncountedHeaderFocus(event, false);
+      handleScrollSettled(event);
+    },
+    [finishUncountedHeaderFocus, handleScrollSettled],
+  );
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      finishUncountedHeaderFocus(event, true);
+      handleScrollSettled(event);
+    },
+    [finishUncountedHeaderFocus, handleScrollSettled],
   );
 
   // A Tokens or Perps filter only sees posts already loaded. Keep paging
@@ -903,8 +949,8 @@ const MyProfileView: React.FC = () => {
             contentContainerStyle={tw.style('flex-grow pb-6')}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScrollSettled}
-            onScrollEndDrag={handleScrollSettled}
+            onMomentumScrollEnd={handleMomentumScrollEnd}
+            onScrollEndDrag={handleScrollEndDrag}
             refreshControl={
               <RefreshControl
                 colors={[colors.primary.default]}

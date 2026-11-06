@@ -120,6 +120,7 @@ const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockSetTitleSectionHeight = jest.fn();
+const mockScrollY = { value: 0 };
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -185,7 +186,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: MockBottomSheet,
     HeaderStandardAnimated: MockHeaderStandardAnimated,
     useHeaderStandardAnimated: () => ({
-      scrollY: { value: 0 },
+      scrollY: mockScrollY,
       onScroll: jest.fn(),
       setTitleSectionHeight: mockSetTitleSectionHeight,
       titleSectionHeightSv: { value: 0 },
@@ -428,6 +429,7 @@ const foreignTraderProfileResult = (
 describe('MyProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockScrollY.value = 0;
     mockHasNotificationPreferences = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockProfileRouteParams = undefined;
@@ -2082,6 +2084,22 @@ describe('MyProfileView', () => {
         expect.any(Function),
       );
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+
+      fireEvent(
+        screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
+        'momentumScrollEnd',
+        {
+          nativeEvent: {
+            contentOffset: { x: 0, y: 640 },
+            contentSize: { height: 2000, width: 400 },
+            layoutMeasurement: { height: 800, width: 400 },
+            velocity: { x: 0, y: 0 },
+          },
+        },
+      );
+
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
       expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
       expect(
         screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
@@ -2091,6 +2109,134 @@ describe('MyProfileView', () => {
       setAccessibilityFocus.mockRestore();
       findHeader.mockRestore();
     }
+  });
+
+  describe('uncounted header focus timing', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    let measureLayout: jest.SpyInstance;
+    let setAccessibilityFocus: jest.SpyInstance;
+    let findHeader: jest.SpyInstance;
+
+    const settle = (
+      name: 'scrollEndDrag' | 'momentumScrollEnd',
+      velocityY: number,
+    ) => {
+      fireEvent(screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL), name, {
+        nativeEvent: {
+          contentOffset: { x: 0, y: 640 },
+          contentSize: { height: 2000, width: 400 },
+          layoutMeasurement: { height: 800, width: 400 },
+          velocity: { x: 0, y: velocityY },
+        },
+      });
+    };
+    const pressNote = (measuredY: number) => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+      };
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: {
+          ...foreignTraderProfile,
+          stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+        },
+      });
+      mockUseTraderPositions.mockReturnValue({
+        openPositions: [flagged],
+        closedPositions: [],
+        isLoadingOpen: false,
+        isLoadingClosed: false,
+        error: null,
+        openError: null,
+        closedError: null,
+        refetch: jest.fn().mockResolvedValue(undefined),
+      });
+      measureLayout = jest
+        .spyOn(NativeView.prototype, 'measureLayout')
+        .mockImplementation((_node, onSuccess) => {
+          onSuccess(0, measuredY, 320, 80);
+        });
+      setAccessibilityFocus = jest
+        .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+        .mockImplementation(() => undefined);
+      findHeader = jest
+        .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+        .mockReturnValue(44);
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+      );
+    };
+
+    afterEach(() => {
+      measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
+    });
+
+    it('waits out a drag that still has momentum', () => {
+      pressNote(640);
+      settle('scrollEndDrag', 1.4);
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+      settle('momentumScrollEnd', 0);
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
+    });
+
+    it('focuses when the drag stops with no momentum', () => {
+      pressNote(640);
+      settle('scrollEndDrag', 0);
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      settle('momentumScrollEnd', 0);
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('focuses immediately when the section is already at that offset', () => {
+      mockScrollY.value = 640;
+      pressNote(640);
+      expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      expect(measureLayout).toHaveBeenCalledWith(
+        mockScrollContent,
+        expect.any(Function),
+        expect.any(Function),
+      );
+    });
+
+    it('drops a pending focus when the profile tab changes', () => {
+      pressNote(640);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      settle('momentumScrollEnd', 0);
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+    });
+
+    it('drops a pending focus when the asset filter changes', () => {
+      pressNote(640);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+      );
+      settle('momentumScrollEnd', 0);
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+    });
   });
 
   it('opens the tab that holds uncounted rows before scrolling from Posts', () => {
