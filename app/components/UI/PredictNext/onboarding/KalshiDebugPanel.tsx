@@ -46,8 +46,8 @@ interface DebugSnapshot {
 }
 
 export const KalshiDebugTestIds = {
-  OPEN: 'kalshi-debug-open',
-  COPY_PROFILE_ID: 'kalshi-debug-copy-profile-id',
+  OPEN: 'user-debug-open',
+  COPY_PROFILE_ID: 'user-debug-copy-profile-id',
 } as const;
 
 const Row = ({
@@ -187,7 +187,7 @@ export const KalshiDebugPanel = ({
         onPress={open}
         testID={KalshiDebugTestIds.OPEN}
       >
-        Kalshi debug
+        User debug
       </Button>
       <Modal
         visible={visible}
@@ -196,7 +196,7 @@ export const KalshiDebugPanel = ({
         onRequestClose={() => setVisible(false)}
       >
         <ScrollView contentContainerStyle={tw.style('p-4 gap-3')}>
-          <Text variant={TextVariant.HeadingMd}>Kalshi demo debug</Text>
+          <Text variant={TextVariant.HeadingMd}>User demo debug</Text>
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             Temporary. Shows what predict-api and Kalshi report for this
             profile.

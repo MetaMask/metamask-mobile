@@ -1,5 +1,5 @@
 /**
- * TEMPORARY debug. Lets the Kalshi debug panel ask the onboarding gate to run
+ * TEMPORARY debug. Lets the user debug panel ask the onboarding gate to run
  * the link flow again for an already active profile. Delete with the demo
  * onboarding.
  */

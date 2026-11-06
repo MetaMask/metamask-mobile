@@ -22,6 +22,7 @@ import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featu
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
+import { KalshiDebugPanel } from '../../onboarding/KalshiDebugPanel';
 import {
   FEED_SCREENS,
   type FeedScreenDefinition,
@@ -265,6 +266,12 @@ const PredictHomeView = ({
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
+          />
+          {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on the demo
+              build flag. Remove with the demo onboarding. */}
+          <KalshiDebugPanel
+            balance={balanceQuery.data}
+            balanceError={balanceQuery.error}
           />
           {/* Funding actions appear when PRED-1162 ships them and the
               Venue descriptor lists deposit or withdraw. */}

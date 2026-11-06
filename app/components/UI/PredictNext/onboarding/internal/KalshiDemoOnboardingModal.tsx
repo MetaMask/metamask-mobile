@@ -14,32 +14,45 @@ import {
 } from '@metamask/design-system-react-native';
 
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
-import { strings } from '../../../../../../locales/i18n';
 import type { KalshiMfaChallenge } from '../../contracts/v1/onboarding';
+import type { OnboardingMessage } from './kalshiDemoOnboardingMachine';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
 
 /** Kalshi demo accepts this email code (ISV spec A.4). Editable. */
 export const DEMO_EMAIL_CODE = '888888';
 
-const t = (key: string, params?: Record<string, string>) =>
-  strings(`predict_next.kalshi_demo_onboarding.${key}`, params);
+/** Literal error copy. Temporary slice: no locale entries. */
+const MESSAGES: Record<OnboardingMessage, string> = {
+  generic: 'Something went wrong.',
+  code_incorrect: "That code didn't work.",
+  expired: 'Your link request expired. Start again.',
+  signup_incomplete: 'Finish signing up on Kalshi demo first.',
+  account_blocked: "This Kalshi account can't be linked.",
+  new_account_failed:
+    "We couldn't create a demo account for this email. Try an existing Kalshi demo account.",
+  wallet_invalid: 'Kalshi demo rejected this wallet address.',
+  rate_limited: 'Try again in a moment.',
+  unsupported: "This account can't be linked in the demo flow.",
+  review_timeout: 'Kalshi is still checking this account. Try again later.',
+  demo_unavailable: "Demo sign-up isn't available right now.",
+};
 
 /** Title for the second-factor step, from what Kalshi said it will use. */
 const mfaTitle = (mfa: KalshiMfaChallenge | undefined): string => {
   switch (mfa?.method) {
     case 'sms':
       return mfa.phoneLast4
-        ? t('mfa_sms_title', { last4: mfa.phoneLast4 })
-        : t('mfa_sms_title_unknown');
+        ? `Enter the code Kalshi texted to the number ending ${mfa.phoneLast4}`
+        : 'Enter the code Kalshi texted to your phone';
     case 'authenticator-app':
-      return t('mfa_authenticator_title');
+      return 'Enter the code from your authenticator app';
     case 'email':
       return mfa.obfuscatedEmail
-        ? t('mfa_email_title', { email: mfa.obfuscatedEmail })
-        : t('mfa_email_title_unknown');
+        ? `Enter the code Kalshi emailed to ${mfa.obfuscatedEmail}`
+        : 'Enter the code Kalshi emailed to you';
     default:
-      return t('mfa_title');
+      return 'Enter your Kalshi verification code';
   }
 };
 
@@ -89,7 +102,7 @@ export const KalshiDemoOnboardingModal = ({
       }
       testID={TestIds.MESSAGE}
     >
-      {t(`errors.${state.message}`)}
+      {MESSAGES[state.message]}
     </Text>
   ) : null;
 
@@ -98,17 +111,19 @@ export const KalshiDemoOnboardingModal = ({
       case 'email':
         return (
           <>
-            <Text variant={TextVariant.HeadingSm}>{t('email_title')}</Text>
+            <Text variant={TextVariant.HeadingSm}>
+              Link a Kalshi demo account
+            </Text>
             <TextField
               value={email}
               onChangeText={setEmail}
-              placeholder={t('email_label')}
+              placeholder="Email"
               isDisabled={state.busy}
               inputProps={{
                 autoCapitalize: 'none',
                 autoComplete: 'email',
                 keyboardType: 'email-address',
-                accessibilityLabel: t('email_label'),
+                accessibilityLabel: 'Email',
               }}
               testID={TestIds.EMAIL_INPUT}
             />
@@ -116,7 +131,8 @@ export const KalshiDemoOnboardingModal = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {t('email_note')}
+              Use your own Kalshi demo account. Linking moves it from any other
+              MetaMask profile.
             </Text>
             {message}
             <Button
@@ -128,7 +144,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={() => onboarding.submitEmail(email)}
               testID={TestIds.CONTINUE}
             >
-              {t('continue')}
+              Continue
             </Button>
             <Button
               variant={ButtonVariant.Tertiary}
@@ -137,23 +153,25 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.dismiss}
               testID={TestIds.NOT_NOW}
             >
-              {t('not_now')}
+              Not now
             </Button>
           </>
         );
       case 'code':
         return (
           <>
-            <Text variant={TextVariant.HeadingSm}>{t('code_title')}</Text>
+            <Text variant={TextVariant.HeadingSm}>
+              Enter the code Kalshi sent
+            </Text>
             <TextField
               value={code}
               onChangeText={setCode}
-              placeholder={t('code_label')}
+              placeholder="Code"
               isDisabled={state.busy}
               inputProps={{
                 keyboardType: 'number-pad',
                 autoComplete: 'one-time-code',
-                accessibilityLabel: t('code_label'),
+                accessibilityLabel: 'Code',
               }}
               testID={TestIds.CODE_INPUT}
             />
@@ -167,7 +185,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={() => onboarding.verifyCode(code)}
               testID={TestIds.VERIFY}
             >
-              {t('verify')}
+              Verify
             </Button>
             <Button
               variant={ButtonVariant.Secondary}
@@ -177,7 +195,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.resendCode}
               testID={TestIds.RESEND}
             >
-              {t('resend')}
+              Resend
             </Button>
           </>
         );
@@ -190,12 +208,12 @@ export const KalshiDemoOnboardingModal = ({
             <TextField
               value={mfaCode}
               onChangeText={setMfaCode}
-              placeholder={t('code_label')}
+              placeholder="Code"
               isDisabled={state.busy}
               inputProps={{
                 keyboardType: 'number-pad',
                 autoComplete: 'one-time-code',
-                accessibilityLabel: t('code_label'),
+                accessibilityLabel: 'Code',
               }}
               testID={TestIds.MFA_CODE_INPUT}
             />
@@ -209,7 +227,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={() => onboarding.verifyCode(mfaCode)}
               testID={TestIds.MFA_VERIFY}
             >
-              {t('verify')}
+              Verify
             </Button>
             <Button
               variant={ButtonVariant.Tertiary}
@@ -218,7 +236,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.dismiss}
               testID={TestIds.NOT_NOW}
             >
-              {t('not_now')}
+              Not now
             </Button>
           </>
         );
@@ -226,24 +244,26 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <Box twClassName="items-center gap-3 py-6" testID={TestIds.WORKING}>
             <ActivityIndicator />
-            <Text variant={TextVariant.BodyMd}>{t('working')}</Text>
+            <Text variant={TextVariant.BodyMd}>
+              Setting up your Kalshi demo account…
+            </Text>
           </Box>
         );
       case 'wallet':
         return (
           <>
-            <Text variant={TextVariant.HeadingSm}>{t('wallet_title')}</Text>
+            <Text variant={TextVariant.HeadingSm}>Withdrawal wallet</Text>
             {walletAddress ? (
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 testID={TestIds.WALLET_ADDRESS}
               >
-                {t('wallet_description', { address: walletAddress, network })}
+                Withdrawals go to {walletAddress} on {network}.
               </Text>
             ) : (
               <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
-                {t('wallet_missing')}
+                Select an Ethereum account to continue.
               </Text>
             )}
             {message}
@@ -256,7 +276,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.activate}
               testID={TestIds.ACTIVATE}
             >
-              {t('activate')}
+              Activate
             </Button>
           </>
         );
@@ -264,7 +284,7 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <>
             <Text variant={TextVariant.BodyMd} testID={TestIds.DONE}>
-              {t('done')}
+              Your Kalshi demo account is linked.
             </Text>
             <Button
               variant={ButtonVariant.Primary}
@@ -273,7 +293,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.dismiss}
               testID={TestIds.CLOSE}
             >
-              {t('close')}
+              Close
             </Button>
           </>
         );
@@ -290,7 +310,7 @@ export const KalshiDemoOnboardingModal = ({
                 onPress={onboarding.retry}
                 testID={TestIds.TRY_AGAIN}
               >
-                {t('try_again')}
+                Try again
               </Button>
             ) : null}
             <Button
@@ -300,7 +320,7 @@ export const KalshiDemoOnboardingModal = ({
               onPress={onboarding.dismiss}
               testID={TestIds.CLOSE}
             >
-              {t('close')}
+              Close
             </Button>
           </>
         );
