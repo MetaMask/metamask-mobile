@@ -54,6 +54,14 @@ const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
   ...overrides,
 });
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({
+    isWatchOnly: false,
+    guard: mockGuardWatchOnly,
+  }),
+}));
+
 describe('usePerpsCloseAllPositions', () => {
   const mockNavigation = {
     goBack: jest.fn(),
@@ -63,8 +71,26 @@ describe('usePerpsCloseAllPositions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGuardWatchOnly.mockReturnValue(false);
     mockNavigation.canGoBack.mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+  });
+
+  it('refuses a watch-only account without closing anything', async () => {
+    mockGuardWatchOnly.mockReturnValue(true);
+    const { result } = renderHook(() =>
+      usePerpsCloseAllPositions([createMockPosition()]),
+    );
+
+    await act(async () => {
+      await result.current.handleCloseAll();
+    });
+
+    expect(
+      Engine.context.PerpsController.closePositions,
+    ).not.toHaveBeenCalled();
+    expect(result.current.isClosing).toBe(false);
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
   it('initializes with correct default state', () => {

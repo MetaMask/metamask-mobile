@@ -1,4 +1,3 @@
-import { WatchOnlyAccountService } from '@metamask/watch-only-account-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
@@ -6,7 +5,14 @@ import { getWatchOnlyAccountServiceMessenger } from '../../messengers/watch-only
 import { isWatchOnlyAccountsBuildEnabled } from '../../../../constants/featureFlags';
 import { watchOnlyAccountServiceInit } from './watch-only-account-service-init';
 
-jest.mock('@metamask/watch-only-account-service');
+const mockWatchOnlyAccountService = jest.fn();
+jest.mock('@metamask/watch-only-account-service', () => ({
+  WatchOnlyAccountService: mockWatchOnlyAccountService,
+}));
+
+jest.mock('../../../../constants/featureFlags', () => ({
+  isWatchOnlyAccountsBuildEnabled: jest.fn(),
+}));
 
 function getInitRequestMock() {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
@@ -21,27 +27,33 @@ function getInitRequestMock() {
 }
 
 describe('watchOnlyAccountServiceInit', () => {
+  const isEnabledMock = jest.mocked(isWatchOnlyAccountsBuildEnabled);
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('constructs the service gated by the development build flag', () => {
-    const requestMock = getInitRequestMock();
+  it('constructs no service when the development build gate is off', () => {
+    isEnabledMock.mockReturnValue(false);
 
-    watchOnlyAccountServiceInit(requestMock);
+    const result = watchOnlyAccountServiceInit(getInitRequestMock());
 
-    expect(WatchOnlyAccountService).toHaveBeenCalledWith({
-      messenger: requestMock.controllerMessenger,
-      isEnabled: isWatchOnlyAccountsBuildEnabled,
-    });
+    expect(result.controller).toBeUndefined();
+    expect(mockWatchOnlyAccountService).not.toHaveBeenCalled();
   });
 
-  it('returns the constructed service as the controller', () => {
+  it('constructs the service gated by the build flag when the gate is on', () => {
+    isEnabledMock.mockReturnValue(true);
     const requestMock = getInitRequestMock();
 
     const result = watchOnlyAccountServiceInit(requestMock);
 
-    const constructed = jest.mocked(WatchOnlyAccountService).mock.instances[0];
-    expect(result.controller).toBe(constructed);
+    expect(mockWatchOnlyAccountService).toHaveBeenCalledWith({
+      messenger: requestMock.controllerMessenger,
+      isEnabled: isWatchOnlyAccountsBuildEnabled,
+    });
+    expect(result.controller).toBe(
+      mockWatchOnlyAccountService.mock.instances[0],
+    );
   });
 });

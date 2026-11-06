@@ -9,11 +9,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { useStyles } from '../../../../component-library/hooks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import styleSheet from './DeveloperOptions.styles';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 
 /**
@@ -22,8 +19,6 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
  * when the watch-only build gate is on.
  */
 const WatchOnlyDeveloperOptionsSection = () => {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
   const [address, setAddress] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [result, setResult] = useState<string>();
@@ -33,6 +28,10 @@ const WatchOnlyDeveloperOptionsSection = () => {
     setResult(undefined);
     try {
       const { WatchOnlyAccountService, AccountTreeController } = Engine.context;
+      // The section only renders when the build gate constructs the service.
+      if (!WatchOnlyAccountService) {
+        throw new Error('Watch-only accounts are disabled in this build.');
+      }
       const account = await WatchOnlyAccountService.createAccount(
         address.trim(),
       );
@@ -70,14 +69,14 @@ const WatchOnlyDeveloperOptionsSection = () => {
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingLg}
-        style={styles.heading}
+        twClassName="mt-4"
       >
         {strings('app_settings.developer_options.watch_only.title')}
       </Text>
       <Text
         color={TextColor.TextAlternative}
         variant={TextVariant.BodyMd}
-        style={styles.desc}
+        twClassName="mt-2"
       >
         {strings('app_settings.developer_options.watch_only.description')}
       </Text>
@@ -92,7 +91,7 @@ const WatchOnlyDeveloperOptionsSection = () => {
           autoCorrect: false,
           testID: DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT,
         }}
-        style={styles.accessory}
+        twClassName="mt-4"
       />
       <Button
         variant={ButtonVariant.Secondary}
@@ -101,7 +100,7 @@ const WatchOnlyDeveloperOptionsSection = () => {
         isDisabled={!address.trim() || isAdding}
         isLoading={isAdding}
         isFullWidth
-        style={styles.accessory}
+        twClassName="mt-4"
         testID={DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON}
       >
         {strings('app_settings.developer_options.watch_only.add_button')}
@@ -110,7 +109,7 @@ const WatchOnlyDeveloperOptionsSection = () => {
         <Text
           color={TextColor.TextAlternative}
           variant={TextVariant.BodyMd}
-          style={styles.desc}
+          twClassName="mt-2"
           testID={DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT}
         >
           {result}

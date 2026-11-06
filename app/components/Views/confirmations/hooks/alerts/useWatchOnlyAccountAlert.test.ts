@@ -11,6 +11,7 @@ jest.mock('../../../../../util/address');
 jest.mock('../useApprovalRequest');
 jest.mock('../transactions/useTransactionPayingAccount');
 
+const MISSING_TRANSLATION = /\[missing ".*" translation\]/;
 const WATCH_ONLY_ADDRESS = '0x5972698398d8c5bbe67c0db74906236691020417';
 const OWN_ADDRESS = '0x8dc623e964475d4d669da601fd15ea9125469003';
 
@@ -52,6 +53,8 @@ describe('useWatchOnlyAccountAlert', () => {
     const { result } = renderHook(() => useWatchOnlyAccountAlert());
 
     expect(result.current).toEqual([EXPECTED_ALERT]);
+    expect(result.current[0].title).not.toMatch(MISSING_TRANSLATION);
+    expect(result.current[0].message).not.toMatch(MISSING_TRANSLATION);
   });
 
   it('blocks a signature requested from a watch-only account', () => {

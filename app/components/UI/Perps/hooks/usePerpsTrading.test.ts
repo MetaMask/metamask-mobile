@@ -100,12 +100,67 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({
+    isWatchOnly: false,
+    guard: mockGuardWatchOnly,
+  }),
+}));
+
 describe('usePerpsTrading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGuardWatchOnly.mockReturnValue(false);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectPerpsTerminalBackendEnabledFlag) return true;
       return undefined;
+    });
+  });
+
+  describe('watch-only account', () => {
+    const refusal = { success: false, error: 'watch_only.blocked_message' };
+    const controller = Engine.context.PerpsController;
+
+    it.each([
+      ['placeOrder', 'placeOrder', { symbol: 'BTC' }],
+      ['cancelOrder', 'cancelOrder', { orderId: '1', symbol: 'BTC' }],
+      [
+        'editOrder',
+        'editOrder',
+        { orderId: '1', newOrder: { symbol: 'BTC', price: '1' } },
+      ],
+      ['closePosition', 'closePosition', { symbol: 'BTC' }],
+      ['withdraw', 'withdraw', { amount: '1' }],
+      ['updatePositionTPSL', 'updatePositionTPSL', { symbol: 'BTC' }],
+      ['updateMargin', 'updateMargin', { symbol: 'BTC', amount: '1' }],
+      ['flipPosition', 'flipPosition', { symbol: 'BTC' }],
+    ] as const)(
+      '%s returns the watch-only refusal without calling the controller',
+      async (method, controllerMethod, params) => {
+        mockGuardWatchOnly.mockReturnValue(true);
+        const { result } = renderHook(() => usePerpsTrading());
+
+        const response = await (
+          result.current[method] as (p: unknown) => Promise<unknown>
+        )(params);
+
+        expect(response).toEqual(refusal);
+        expect(controller[controllerMethod]).not.toHaveBeenCalled();
+      },
+    );
+
+    it('refuses an order submitted after the account becomes watch-only while mounted', async () => {
+      const { result, rerender } = renderHook(() => usePerpsTrading());
+      mockGuardWatchOnly.mockReturnValue(true);
+      rerender({});
+
+      const response = await result.current.placeOrder({
+        symbol: 'BTC',
+      } as OrderParams);
+
+      expect(response).toEqual(refusal);
+      expect(controller.placeOrder).not.toHaveBeenCalled();
     });
   });
 

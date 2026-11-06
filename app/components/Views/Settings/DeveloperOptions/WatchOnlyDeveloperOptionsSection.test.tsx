@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -25,8 +26,9 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 const ADDRESS = '0x5972698398d8c5bbe67c0db74906236691020417';
+const MISSING_TRANSLATION = /\[missing ".*" translation\]/;
 const { WatchOnlyAccountService, AccountTreeController } = Engine.context;
-const mockCreateAccount = WatchOnlyAccountService.createAccount as jest.Mock;
+const mockCreateAccount = WatchOnlyAccountService?.createAccount as jest.Mock;
 const mockSetSelectedAccountGroupByAccountId =
   AccountTreeController.setSelectedAccountGroupByAccountId as jest.Mock;
 const mockGetAccountContext =
@@ -80,7 +82,14 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
     expect(mockGetAccountGroupObject).toHaveBeenCalledWith(
       'keyring:watch-only/watch-id',
     );
-    expect(result).toHaveTextContent('Added Watch-only Account 1');
+    const expected = strings(
+      'app_settings.developer_options.watch_only.added',
+      {
+        name: 'Watch-only Account 1',
+      },
+    );
+    expect(expected).not.toMatch(MISSING_TRANSLATION);
+    expect(result).toHaveTextContent(expected);
   });
 
   it('shows the error and selects nothing when the address is refused', async () => {
@@ -98,11 +107,12 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
     const result = await findByTestId(
       DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT,
     );
-    await waitFor(() =>
-      expect(result).toHaveTextContent(
-        'Could not add this address: Duplicated account',
-      ),
+    const expected = strings(
+      'app_settings.developer_options.watch_only.add_error',
+      { message: 'Duplicated account' },
     );
+    expect(expected).not.toMatch(MISSING_TRANSLATION);
+    await waitFor(() => expect(result).toHaveTextContent(expected));
     expect(mockSetSelectedAccountGroupByAccountId).not.toHaveBeenCalled();
   });
 });
