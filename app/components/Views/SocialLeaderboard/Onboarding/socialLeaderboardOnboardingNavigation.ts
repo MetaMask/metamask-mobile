@@ -224,6 +224,23 @@ export const navigateToSocialTab = (
 };
 
 /**
+ * Leaves profile onboarding after **Let's go** on the manual path. Pops the
+ * onboarding screen off the stack and selects the Social tab under Home, so the
+ * bottom tab bar stays visible and Back returns to the previous screen.
+ *
+ * @param navigation - The onboarding screen's navigation object.
+ */
+export const finishProfileOnboardingToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+): void => {
+  navigation.navigate(
+    Routes.HOME_TABS,
+    { screen: Routes.SOCIAL.TAB },
+    { pop: true },
+  );
+};
+
+/**
  * Whether the onboarding has been persisted as "seen". Reads MMKV synchronously.
  * Exposed for the dev-options status readout (the navigation gate above owns the
  * real decision, which also factors in the flag and the skip-seen env var).

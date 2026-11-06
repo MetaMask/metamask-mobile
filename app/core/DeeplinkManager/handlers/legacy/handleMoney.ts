@@ -9,6 +9,7 @@ import {
   isVbaGeoBypassEnabled,
   selectMoneyMovementNeobank,
   selectMoneyOnboardingStepperAnimationEnabled,
+  selectNeobankMarkets,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectGeolocationLocation,
@@ -116,15 +117,15 @@ export const MONEY_ACCOUNT_SCREEN = 'account';
 
 // Same gate as the Add money sheet's bank account row (`useVbaEligibility`).
 const isVbaEligible = (state: RootState): boolean => {
-  const { isEnabled, regions, regionOverride } =
-    selectMoneyMovementNeobank(state);
+  const { regionOverride } = selectMoneyMovementNeobank(state);
+  const markets = selectNeobankMarkets(state);
 
   return getVbaEligibility({
-    isFlagEnabled: isEnabled,
+    isFlagEnabled: markets.length > 0,
     location: regionOverride ?? selectGeolocationLocation(state),
     geolocationStatus: selectGeolocationStatus(state),
     isDevBypassEnabled: isVbaGeoBypassEnabled(),
-    regions,
+    markets,
   }).isEligible;
 };
 

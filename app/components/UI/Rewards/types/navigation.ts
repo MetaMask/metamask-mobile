@@ -8,6 +8,10 @@ import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
+import type { TaxFormQuestionSheetParams } from '../components/Money/TaxFormQuestionSheet';
+import type { TaxFormOpenFormSheetParams } from '../components/Money/TaxFormOpenFormSheet';
+import type { TaxFormContactUsSheetParams } from '../components/Money/TaxFormContactUsSheet';
+import type { RewardsTaxFormViewParams } from '../Views/RewardsTaxFormView';
 import type { RewardsMoneyClaimsPausedModalParams } from '../components/Money/RewardsMoneyClaimsPausedModal';
 
 export interface RewardsOndoCampaignDetailsParams {
@@ -255,4 +259,8 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
   RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
   RewardsMoneyTermsSheet: undefined;
+  RewardsTaxQuestionSheet: TaxFormQuestionSheetParams;
+  RewardsTaxOpenFormSheet: TaxFormOpenFormSheetParams;
+  RewardsTaxContactSheet: TaxFormContactUsSheetParams;
+  RewardsTaxFormView: RewardsTaxFormViewParams;
 };
