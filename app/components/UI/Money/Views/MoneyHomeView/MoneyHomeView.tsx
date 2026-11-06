@@ -148,6 +148,9 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
+// Long enough for the shine to show after the success toast leaves the header.
+const MFA_BADGE_HIGHLIGHT_MS = 10000;
+
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
@@ -296,6 +299,16 @@ const MoneyHomeView = () => {
       }
     }, [hasUnseenEnabledConfirmation, showEnabledConfirmation]),
   );
+  useEffect(() => {
+    if (!isMfaBadgeHighlighted) {
+      return;
+    }
+    const timeout = setTimeout(
+      () => setIsMfaBadgeHighlighted(false),
+      MFA_BADGE_HIGHLIGHT_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isMfaBadgeHighlighted]);
 
   const handleMfaSetUpPress = useCallback(() => {
     trackButtonClicked({
