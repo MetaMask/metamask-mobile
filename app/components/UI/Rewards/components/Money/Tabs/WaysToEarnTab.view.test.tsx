@@ -12,6 +12,7 @@ import {
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 import type { ReferralMeDto } from '../../../../../../../app/core/Engine/controllers/rewards-money-controller/types';
 
+// getReferralMe resolves before the hero title renders.
 const LOAD_TIMEOUT = 3000;
 
 function referralMeCalls(engine: jest.Mock): unknown[][] {

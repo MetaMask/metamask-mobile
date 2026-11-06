@@ -125,6 +125,7 @@ describe('RewardsMoneyDashboard', () => {
         },
       });
 
+    // The rejected earnings summary renders the error banner.
     const banner = await findByTestId(
       REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR,
       {},
@@ -146,6 +147,7 @@ describe('RewardsMoneyDashboard', () => {
       ),
     );
 
+    // The retried earnings summary replaces the error banner.
     expect(
       await findByText(refereeRebateTotal, {}, { timeout: 3000 }),
     ).toBeOnTheScreen();

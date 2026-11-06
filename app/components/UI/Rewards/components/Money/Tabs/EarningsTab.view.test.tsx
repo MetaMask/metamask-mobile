@@ -312,7 +312,7 @@ describe('EarningsTab', () => {
       message: () => 'Claim again in 2 minutes',
     },
   ])(
-    'shows the $label toast and stays on earnings when a claim is refused ($caseId)',
+    'shows the $label toast when a claim is refused ($caseId)',
     async ({ status, reason, retryAfterSeconds, message }) => {
       const view = renderEarningsTab({
         persona: 'referee',

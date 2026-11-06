@@ -36,6 +36,7 @@ async function typeCode(
 async function waitUntilApplyEnabled(
   view: ReturnType<typeof renderRewardsSettingsView>,
 ): Promise<void> {
+  // Referral code validation resolves before Apply enables.
   await waitFor(
     () => {
       expect(
@@ -139,7 +140,7 @@ describe('RewardsSettingsView', () => {
     );
   });
 
-  it('shows the invalid code error and keeps Apply disabled when the code is rejected (B3)', async () => {
+  it('shows the invalid code error when validation rejects the code (B3)', async () => {
     const view = renderRewardsSettingsView({
       persona: 'plain',
       handlers: {
@@ -150,6 +151,7 @@ describe('RewardsSettingsView', () => {
 
     await typeCode(view, 'BADBAD');
 
+    // validateReferralCode resolves before the invalid-code error renders.
     expect(
       await view.findByText(
         strings('rewards.error_messages.invalid_referral_code'),
@@ -183,7 +185,7 @@ describe('RewardsSettingsView', () => {
       message: () => strings('rewards.error_messages.already_referred'),
     },
   ])(
-    'shows the $refusal error and stays on settings when apply is refused ($caseId)',
+    'shows the $refusal error when apply is refused ($caseId)',
     async ({ status, bodyText, message }) => {
       const view = renderRewardsSettingsView({
         persona: 'plain',
@@ -205,6 +207,7 @@ describe('RewardsSettingsView', () => {
         view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
       );
 
+      // registerReferee rejects before the refusal error renders.
       expect(
         await view.findByText(message(), {}, { timeout: 3000 }),
       ).toBeOnTheScreen();
@@ -243,6 +246,7 @@ describe('RewardsSettingsView', () => {
     await waitUntilApplyEnabled(view);
     fireEvent.press(view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY));
 
+    // registerReferee rejects before the generic error renders.
     expect(
       await view.findByText(
         strings('rewards.error_messages.something_went_wrong'),
