@@ -2,7 +2,6 @@ import React from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { useMfa } from '../../../../util/identity/mfa';
@@ -45,16 +44,6 @@ jest.mock('../../../../constants/featureFlags', () => ({
 jest.mock('../../../../util/identity/mfa/bindings', () => ({
   mobileMfaControllerAdapter: {
     refreshEnrolledCredentials: jest.fn(),
-  },
-}));
-
-const mockNavigate = jest.fn();
-jest.mock('../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: (...args: unknown[]) => mockNavigate(...args),
-    },
   },
 }));
 
@@ -170,10 +159,8 @@ const arrange = ({
   return renderHook(() => useMoneyMfa(), { wrapper });
 };
 
-const expectEnabledSheetShown = () =>
-  expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-    screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
-  });
+const expectConfirmationPending = () =>
+  expect(moneyMfaStore.getState().hasUnseenEnabledConfirmation).toBe(true);
 
 const expectToast = (labelKey: string) =>
   expect(mockShowToast).toHaveBeenCalledWith(
@@ -264,7 +251,7 @@ describe('useMoneyMfa', () => {
         finish(true);
       });
       expect(result.current.status).toBe('enabled');
-      expectEnabledSheetShown();
+      expectConfirmationPending();
     });
 
     it('does not resume while the flag is off', () => {
@@ -293,7 +280,7 @@ describe('useMoneyMfa', () => {
       });
     });
 
-    it('migrates, turns 2FA on and shows the enabled sheet on first setup', async () => {
+    it('migrates, turns 2FA on and leaves the confirmation for Money home on first setup', async () => {
       const { result } = arrange();
 
       await act(async () => {
@@ -303,7 +290,7 @@ describe('useMoneyMfa', () => {
       expect(mockStart).toHaveBeenCalledTimes(1);
       expect(result.current.status).toBe('enabled');
       expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
-      expectEnabledSheetShown();
+      expectConfirmationPending();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
@@ -365,7 +352,7 @@ describe('useMoneyMfa', () => {
 
       expect(result.current.status).toBe('failed');
       expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(false);
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(moneyMfaStore.getState().hasUnseenEnabledConfirmation).toBe(false);
     });
 
     it('turns 2FA back on with a toast and no migration when it was done before', async () => {
@@ -378,7 +365,7 @@ describe('useMoneyMfa', () => {
 
       expect(result.current.status).toBe('enabled');
       expect(mockStart).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(moneyMfaStore.getState().hasUnseenEnabledConfirmation).toBe(false);
       expectToast('money.mfa.toast_on');
     });
 
@@ -448,6 +435,59 @@ describe('useMoneyMfa', () => {
     });
   });
 
+  describe('showEnabledConfirmation', () => {
+    it('drops a pending confirmation when 2FA is turned off', async () => {
+      moneyMfaStore.setState({
+        isMoneyAccountMfaEnabled: true,
+        hasUnseenEnabledConfirmation: true,
+      });
+      setMigration('done');
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+      mockShowToast.mockClear();
+      let shown = true;
+      act(() => {
+        shown = result.current.showEnabledConfirmation();
+      });
+
+      expect(shown).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the success toast once after setup', async () => {
+      moneyMfaStore.setState({ hasUnseenEnabledConfirmation: true });
+      const { result } = arrange();
+
+      let shown: boolean[] = [];
+      act(() => {
+        shown = [
+          result.current.showEnabledConfirmation(),
+          result.current.showEnabledConfirmation(),
+        ];
+      });
+
+      expect(shown).toEqual([true, false]);
+      expectToast('money.mfa.toast_on');
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(moneyMfaStore.getState().hasUnseenEnabledConfirmation).toBe(false);
+    });
+
+    it('shows nothing when there is no new setup', () => {
+      const { result } = arrange();
+
+      let shown = true;
+      act(() => {
+        shown = result.current.showEnabledConfirmation();
+      });
+
+      expect(shown).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
   describe('retry', () => {
     it('runs the migration again without the kit', async () => {
       setMigration('failed');
@@ -460,7 +500,7 @@ describe('useMoneyMfa', () => {
       expect(mockStart).toHaveBeenCalledTimes(1);
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
       expect(result.current.status).toBe('enabled');
-      expectEnabledSheetShown();
+      expectConfirmationPending();
     });
 
     it('shows the setting-up banner again after it was dismissed', async () => {

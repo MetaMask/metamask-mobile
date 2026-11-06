@@ -97,6 +97,7 @@ export const handleSocialTraderPositionUrl = ({
     trackSocialNotificationClick({
       notificationSubtype,
       notificationTemplateVariant,
+      deduplicationId,
     });
 
     const openedFromNotification = notificationSubtype !== undefined;

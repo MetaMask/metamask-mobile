@@ -6,11 +6,12 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { useSelector } from 'react-redux';
-import NavigationService from '../../../../core/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useMfa } from '../../../../util/identity/mfa';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
@@ -39,11 +40,11 @@ export type MoneyMfaStatus =
   | 'enabled'
   | 'off';
 
-const getReason = () => ({
+const getReason = (): MfaReason => ({
   operation: 'money.mfa.setup',
 });
 
-const getTurnOffReason = () => ({
+const getTurnOffReason = (): MfaReason => ({
   operation: 'money.mfa.turnOff',
   verifyDescription: strings('money.mfa.turn_off_verify_description'),
 });
@@ -67,9 +68,9 @@ const migrate = (): Promise<void> => {
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
-    NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: true,
+      hasUnseenEnabledConfirmation: true,
     });
   })().finally(() => {
     if (activeMigration === run) {
@@ -94,8 +95,11 @@ export const useMoneyMfa = () => {
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
-  const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
-    useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
+  const {
+    isMoneyAccountMfaEnabled,
+    isMigrationBannerDismissed,
+    hasUnseenEnabledConfirmation,
+  } = useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
   const migrationStatus = useSyncExternalStore(
     moneyAccountMigration.subscribe,
     moneyAccountMigration.getStatus,
@@ -198,7 +202,10 @@ export const useMoneyMfa = () => {
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: false,
+      hasUnseenEnabledConfirmation: false,
+    });
     showToast('money.mfa.toast_off');
   }, [verifyOrEnroll, showToast]);
 
@@ -210,6 +217,16 @@ export const useMoneyMfa = () => {
   const dismissSettingUpBanner = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
+
+  // Money home calls this when it's on screen, so the confirmation never shows on another tab.
+  const showEnabledConfirmation = useCallback(() => {
+    if (!moneyMfaStore.getState().hasUnseenEnabledConfirmation) {
+      return false;
+    }
+    moneyMfaStore.setState({ hasUnseenEnabledConfirmation: false });
+    showToast('money.mfa.toast_on');
+    return true;
+  }, [showToast]);
 
   const refreshCredentials = useCallback(() => {
     if (status === 'unavailable') {
@@ -229,5 +246,7 @@ export const useMoneyMfa = () => {
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,
     refreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
   };
 };

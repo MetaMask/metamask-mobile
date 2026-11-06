@@ -94,6 +94,8 @@ describe('Money 2-step verification sheets', () => {
       isSettingUpBannerDismissed: false,
       dismissSettingUpBanner: jest.fn(),
       refreshCredentials: jest.fn(),
+      hasUnseenEnabledConfirmation: false,
+      showEnabledConfirmation: jest.fn(() => false),
     });
   });
 

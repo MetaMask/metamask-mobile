@@ -8,8 +8,7 @@ import useThunkDispatch from '../../../hooks/useThunkDispatch';
  * and stops retrying when it loses focus. An attempt already in flight is
  * not interrupted — it runs to completion and its result is recorded; only
  * the backoff wait and any further attempts are cancelled. Accounts already
- * recorded as upgraded make this a no-op in the controller. Pass
- * `enabled: false` while the focused screen is not a user request for Money.
+ * recorded as upgraded make this a no-op in the controller.
  */
 export const useUpgradeMoneyAccountOnFocus = ({ enabled = true } = {}) => {
   const dispatch = useThunkDispatch();

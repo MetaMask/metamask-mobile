@@ -113,8 +113,8 @@ const MoneyConfirmationScreenStack = () => {
 
 // Money modals are reachable without the Money tab (e.g. Card Home's "Add
 // money" action), so this stack must also kick off the account upgrade —
-// opening a Money sheet is the user's signal of intent to use the feature.
-// The 2-step verification sheets can open on their own from the wallet home.
+// opening a Money sheet is the user's signal of intent to use the feature,
+// except the 2-step verification sheets, which open on their own.
 const MFA_SHEETS: ReadonlySet<string> = new Set([
   Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
   Routes.MONEY.MODALS.MFA_ENABLED_SHEET,

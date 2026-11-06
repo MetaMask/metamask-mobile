@@ -9,11 +9,19 @@ import type {
 
 export type GameSelection = 'away' | 'home';
 
+export type GameTeamOrder = readonly [GameSelection, GameSelection];
+
+const AWAY_FIRST: GameTeamOrder = ['away', 'home'];
+const HOME_FIRST: GameTeamOrder = ['home', 'away'];
+
 /**
- * The order Teams appear in across a Game's UI: header, cards and line
- * pickers. Kalshi football lists the away Team first.
+ * The order Teams appear in across a Game's UI: header, cards, footer and
+ * line pickers. The API sends it per Game; when absent the away Team comes
+ * first.
  */
-export const GAME_TEAM_ORDER: readonly GameSelection[] = ['away', 'home'];
+export const getGameTeamOrder = (game?: PredictGame): GameTeamOrder =>
+  game?.teamOrder === 'home_first' ? HOME_FIRST : AWAY_FIRST;
+
 export type GamePresentationVariant = 'compact' | 'featured' | 'detail';
 
 export interface GameStatusLine {

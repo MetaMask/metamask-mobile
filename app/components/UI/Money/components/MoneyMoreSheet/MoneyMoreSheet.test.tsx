@@ -62,6 +62,8 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
     isSettingUpBannerDismissed: false,
     dismissSettingUpBanner: jest.fn(),
     refreshCredentials: jest.fn(),
+    hasUnseenEnabledConfirmation: false,
+    showEnabledConfirmation: jest.fn(() => false),
   });
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());

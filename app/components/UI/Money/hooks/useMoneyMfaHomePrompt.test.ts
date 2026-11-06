@@ -84,6 +84,8 @@ const arrange = ({
     isSettingUpBannerDismissed: false,
     dismissSettingUpBanner: jest.fn(),
     refreshCredentials: jest.fn(),
+    hasUnseenEnabledConfirmation: false,
+    showEnabledConfirmation: jest.fn(() => false),
   });
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectAccountGroupBalanceForEmptyState) {

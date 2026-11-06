@@ -148,6 +148,9 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
+// Long enough for the shine to show after the success toast leaves the header.
+const MFA_BADGE_HIGHLIGHT_MS = 10000;
+
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
@@ -282,9 +285,30 @@ const MoneyHomeView = () => {
     isSettingUpBannerDismissed: isMfaBannerDismissed,
     dismissSettingUpBanner: dismissMfaBanner,
     refreshCredentials: refreshMfaCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
   } = useMoneyMfa();
 
   useFocusEffect(refreshMfaCredentials);
+
+  const [isMfaBadgeHighlighted, setIsMfaBadgeHighlighted] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (hasUnseenEnabledConfirmation && showEnabledConfirmation()) {
+        setIsMfaBadgeHighlighted(true);
+      }
+    }, [hasUnseenEnabledConfirmation, showEnabledConfirmation]),
+  );
+  useEffect(() => {
+    if (!isMfaBadgeHighlighted) {
+      return;
+    }
+    const timeout = setTimeout(
+      () => setIsMfaBadgeHighlighted(false),
+      MFA_BADGE_HIGHLIGHT_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isMfaBadgeHighlighted]);
 
   const handleMfaSetUpPress = useCallback(() => {
     trackButtonClicked({
@@ -509,6 +533,7 @@ const MoneyHomeView = () => {
     isEnabled: isBrandRefresh,
     isMfaEnabled: mfaStatus === 'enabled',
     onMfaBadgePress: handleMfaBadgePress,
+    isMfaBadgeHighlighted,
   });
 
   const { scrollY, scrollDistance, onScroll } =
@@ -540,6 +565,7 @@ const MoneyHomeView = () => {
         onMenuPress: handleMenuPress,
         isMfaEnabled: mfaStatus === 'enabled',
         onMfaBadgePress: handleMfaBadgePress,
+        isMfaBadgeHighlighted,
         scrollY,
       };
 
@@ -1208,12 +1234,12 @@ const MoneyHomeView = () => {
               : undefined
           }
         />
-        {vbaHomeCard.type !== 'none' && (
-          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
-        )}
         {mfaStatus === 'not_set_up' ? (
           <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
         ) : null}
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        )}
         <MoneyOnboardingCard isGlass={isGlass} />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

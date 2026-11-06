@@ -51,10 +51,13 @@ describe('accountSupports7702', () => {
     );
   });
 
-  it('returns true for Money keyring', async () => {
-    const controller = createMockKeyringController({
-      type: ExtendedKeyringTypes.money,
-    });
+  // Money keyrings have no `signTransaction`, so the 7702 relay is their only
+  // publish path; excluding either variant breaks money deposits/withdrawals.
+  it.each([
+    ['Money', ExtendedKeyringTypes.money],
+    ['MPC Money', ExtendedKeyringTypes.mpcMoney],
+  ])('returns true for %s keyring', async (_, type) => {
+    const controller = createMockKeyringController({ type });
     await expect(accountSupports7702(SAMPLE_ADDRESS, controller)).resolves.toBe(
       true,
     );

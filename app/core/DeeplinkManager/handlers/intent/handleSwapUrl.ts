@@ -40,6 +40,16 @@ import {
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
+import {
+  DEFAULT_RECURRING_EVERY_UNIT,
+  DEFAULT_RECURRING_EVERY_VALUE,
+  DEFAULT_RECURRING_REPEAT_COUNT,
+  RECURRING_EVERY_MAX_BY_UNIT,
+  RECURRING_INTERVAL_UNITS,
+  type RecurringIntervalUnit,
+  parsePositiveInteger,
+  validateRecurringSchedule,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 /**
  * Validates and looks up a token from the bridge token list
@@ -177,9 +187,13 @@ function getSwapUrlParams(swapPath: string) {
 }
 
 function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
-  return urlParams.get('tab') === BridgeTabKey.Limit
-    ? BridgeTabKey.Limit
-    : undefined;
+  const tab = urlParams.get('tab');
+
+  if (tab === BridgeTabKey.Limit || tab === BridgeTabKey.Recurring) {
+    return tab;
+  }
+
+  return undefined;
 }
 
 function parseLimitOrderExpirationMinutes(
@@ -195,6 +209,70 @@ function parseLimitOrderExpirationMinutes(
     : undefined;
 }
 
+function isRecurringIntervalUnit(
+  value: string,
+): value is RecurringIntervalUnit {
+  return RECURRING_INTERVAL_UNITS.some((unit) => unit === value);
+}
+
+function parseRecurringInterval(
+  everyValue: string | null,
+  everyUnit: string | null,
+) {
+  if (!everyValue || !everyUnit || !isRecurringIntervalUnit(everyUnit)) {
+    return {
+      everyValue: DEFAULT_RECURRING_EVERY_VALUE,
+      everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
+    };
+  }
+
+  const parsedEveryValue = parsePositiveInteger(everyValue);
+  if (
+    parsedEveryValue === undefined ||
+    parsedEveryValue > RECURRING_EVERY_MAX_BY_UNIT[everyUnit]
+  ) {
+    return {
+      everyValue: DEFAULT_RECURRING_EVERY_VALUE,
+      everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
+    };
+  }
+
+  return { everyValue, everyUnit };
+}
+
+function parseRecurringSchedule(
+  urlParams: URLSearchParams,
+): BridgeRouteParams['initialRecurringSchedule'] {
+  const everyValue = urlParams.get('every');
+  const everyUnit = urlParams.get('unit');
+  const repeatCountParam = urlParams.get('repeatCount');
+
+  if (
+    !urlParams.has('every') &&
+    !urlParams.has('unit') &&
+    !urlParams.has('repeatCount')
+  ) {
+    return undefined;
+  }
+
+  const recurringInterval = parseRecurringInterval(everyValue, everyUnit);
+  const repeatCount =
+    repeatCountParam && parsePositiveInteger(repeatCountParam) !== undefined
+      ? repeatCountParam
+      : DEFAULT_RECURRING_REPEAT_COUNT;
+  const recurringSchedule = {
+    ...recurringInterval,
+    repeatCount,
+  };
+
+  return validateRecurringSchedule({
+    ...recurringSchedule,
+    priceRange: undefined,
+  }).isValid
+    ? recurringSchedule
+    : undefined;
+}
+
 function getInitialRouteParams(
   urlParams: URLSearchParams,
 ): Partial<
@@ -203,29 +281,40 @@ function getInitialRouteParams(
     | 'initialTab'
     | 'initialLimitOrderExpirationMinutes'
     | 'initialLimitOrderPriceTolerance'
+    | 'initialRecurringSchedule'
   >
 > {
   const initialTab = getInitialTab(urlParams);
-  if (initialTab !== BridgeTabKey.Limit) {
-    return {};
+
+  if (initialTab === BridgeTabKey.Recurring) {
+    const initialRecurringSchedule = parseRecurringSchedule(urlParams);
+
+    return {
+      initialTab,
+      ...(initialRecurringSchedule && { initialRecurringSchedule }),
+    };
   }
 
-  const initialLimitOrderExpirationMinutes = parseLimitOrderExpirationMinutes(
-    urlParams.get('expiresInMinutes'),
-  );
-  const initialLimitOrderPriceTolerance = parseLimitOrderCostTolerance(
-    urlParams.get('priceTolerance'),
-  );
+  if (initialTab === BridgeTabKey.Limit) {
+    const initialLimitOrderExpirationMinutes = parseLimitOrderExpirationMinutes(
+      urlParams.get('expiresInMinutes'),
+    );
+    const initialLimitOrderPriceTolerance = parseLimitOrderCostTolerance(
+      urlParams.get('priceTolerance'),
+    );
 
-  return {
-    initialTab,
-    ...(initialLimitOrderExpirationMinutes && {
-      initialLimitOrderExpirationMinutes,
-    }),
-    ...(initialLimitOrderPriceTolerance && {
-      initialLimitOrderPriceTolerance,
-    }),
-  };
+    return {
+      initialTab,
+      ...(initialLimitOrderExpirationMinutes && {
+        initialLimitOrderExpirationMinutes,
+      }),
+      ...(initialLimitOrderPriceTolerance && {
+        initialLimitOrderPriceTolerance,
+      }),
+    };
+  }
+
+  return {};
 }
 
 /**
@@ -235,15 +324,18 @@ function getInitialRouteParams(
  * @param params.swapPath - The swap URL path containing the parameters
  *
  * @example
- * URL format: ?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000
+ * URL format: ?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&every=2&unit=week&repeatCount=8
  *
  * Parameters:
- * - tab: Optional order type. "limit" opens the Limit Order form.
+ * - tab: Optional order type. "limit" or "recurring".
  * - from: CAIP-19 asset identifier for source token
  * - to: CAIP-19 asset identifier for destination token
  * - amount: Amount in minimal divisible units (e.g., 1000000 for 1.00 USDC)
  * - expiresInMinutes: Optional Limit Order expiration preset, in minutes
  * - priceTolerance: Optional Limit Order price tolerance percentage
+ * - every: Optional Recurring Buy interval value
+ * - unit: Optional Recurring Buy interval unit
+ * - repeatCount: Optional Recurring Buy repeat count
  *
  * All parameters are optional, allows partial deep linking
  */

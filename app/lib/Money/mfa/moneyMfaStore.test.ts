@@ -24,6 +24,7 @@ describe('moneyMfaStore', () => {
       isMoneyAccountMfaEnabled: false,
       isMigrationBannerDismissed: false,
       isHomePromptDismissed: false,
+      hasUnseenEnabledConfirmation: false,
     });
   });
 
@@ -36,6 +37,7 @@ describe('moneyMfaStore', () => {
       isMoneyAccountMfaEnabled: true,
       isMigrationBannerDismissed: true,
       isHomePromptDismissed: false,
+      hasUnseenEnabledConfirmation: false,
     });
   });
 
@@ -48,6 +50,7 @@ describe('moneyMfaStore', () => {
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: false,
         isHomePromptDismissed: false,
+        hasUnseenEnabledConfirmation: false,
       }),
     );
   });
@@ -69,6 +72,7 @@ describe('moneyMfaStore', () => {
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: true,
         isHomePromptDismissed: true,
+        hasUnseenEnabledConfirmation: true,
       }),
     );
 
@@ -80,6 +84,7 @@ describe('moneyMfaStore', () => {
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: true,
         isHomePromptDismissed: true,
+        hasUnseenEnabledConfirmation: true,
       });
     });
   });

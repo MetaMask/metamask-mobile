@@ -40,6 +40,7 @@ describe('clearMoneyMfaDeviceState', () => {
       isMoneyAccountMfaEnabled: true,
       isMigrationBannerDismissed: true,
       isHomePromptDismissed: true,
+      hasUnseenEnabledConfirmation: false,
     });
     moneyMfaHomePromptSession.markPrompted();
     await moneyAccountMigration.start();
@@ -50,6 +51,7 @@ describe('clearMoneyMfaDeviceState', () => {
       isMoneyAccountMfaEnabled: false,
       isMigrationBannerDismissed: false,
       isHomePromptDismissed: false,
+      hasUnseenEnabledConfirmation: false,
     });
     expect(moneyMfaHomePromptSession.hasPrompted()).toBe(false);
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
