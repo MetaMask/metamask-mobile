@@ -60,6 +60,7 @@ describe('useCampaignGeoRestriction', () => {
 
   describe('geo loading states', () => {
     it('returns isGeoLoading=true and isGeoRestricted=true when geolocationStatus is undefined', () => {
+      mockGeolocation = null;
       mockGeoStatus = undefined as unknown as string;
       setupSelectors();
       const { result } = renderHook(() =>
@@ -70,6 +71,7 @@ describe('useCampaignGeoRestriction', () => {
     });
 
     it('returns isGeoLoading=true and isGeoRestricted=true when geolocationStatus is "idle"', () => {
+      mockGeolocation = null;
       mockGeoStatus = 'idle';
       setupSelectors();
       const { result } = renderHook(() =>
@@ -80,6 +82,7 @@ describe('useCampaignGeoRestriction', () => {
     });
 
     it('returns isGeoLoading=true and isGeoRestricted=true when geolocationStatus is "loading"', () => {
+      mockGeolocation = null;
       mockGeoStatus = 'loading';
       setupSelectors();
       const { result } = renderHook(() =>
@@ -87,6 +90,16 @@ describe('useCampaignGeoRestriction', () => {
       );
       expect(result.current.isGeoLoading).toBe(true);
       expect(result.current.isGeoRestricted).toBe(true);
+    });
+
+    it('keeps using the known location while geolocation refreshes', () => {
+      mockGeoStatus = 'loading';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(buildCampaign()),
+      );
+      expect(result.current.isGeoLoading).toBe(false);
+      expect(result.current.isGeoRestricted).toBe(false);
     });
 
     it('returns isGeoLoading=false when geolocationStatus is "complete"', () => {

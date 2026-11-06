@@ -164,6 +164,7 @@ import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
+import { registerGeolocationRefresh } from './controllers/geolocation-controller/geolocation-refresh';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
@@ -273,6 +274,8 @@ export class Engine {
   private tokenListService: TokenListService;
 
   #wallet: Wallet;
+
+  #stopGeolocationRefresh?: () => void;
 
   /**
    * Creates a CoreController instance
@@ -973,6 +976,13 @@ export class Engine {
       }
     });
 
+    this.#stopGeolocationRefresh = registerGeolocationRefresh(
+      this.controllerMessenger,
+      {
+        isEnabled: () => selectBasicFunctionalityEnabled(store.getState()),
+      },
+    );
+
     Engine.instance = this;
   }
 
@@ -1436,6 +1446,8 @@ export class Engine {
     this.controllerMessenger.clearSubscriptions();
 
     this.appStateListener?.remove();
+
+    this.#stopGeolocationRefresh?.();
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();

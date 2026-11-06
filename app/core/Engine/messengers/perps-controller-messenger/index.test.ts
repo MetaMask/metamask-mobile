@@ -1,5 +1,8 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { getPerpsControllerMessenger } from '.';
+import {
+  getPerpsControllerInitMessenger,
+  getPerpsControllerMessenger,
+} from '.';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -130,6 +133,21 @@ describe('PerpsController Messenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining(['SubscriptionController:getBenefits']),
+      }),
+    );
+  });
+
+  it('delegates the geolocation state change event to the perps init messenger', () => {
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(baseControllerMessenger, 'delegate');
+
+    getPerpsControllerInitMessenger(baseControllerMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: ['GeolocationController:stateChange'],
       }),
     );
   });

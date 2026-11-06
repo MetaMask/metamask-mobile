@@ -10,6 +10,8 @@ import {
   createMobileClientConfig,
 } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../../../components/UI/Perps/constants/perpsConfig';
+import type { PerpsControllerInitMessenger } from '../../messengers/perps-controller-messenger';
+import Logger from '../../../../util/Logger';
 
 /**
  * Initialize the PerpsController.
@@ -19,9 +21,10 @@ import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../../../components/UI/Perps/cons
  */
 export const perpsControllerInit: MessengerClientInitFunction<
   PerpsController,
-  PerpsControllerMessenger
+  PerpsControllerMessenger,
+  PerpsControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, initMessenger, persistedState } = request;
 
   const defaultState = getDefaultPerpsControllerState();
   const perpsControllerState = persistedState.PerpsController ?? {
@@ -38,6 +41,21 @@ export const perpsControllerInit: MessengerClientInitFunction<
     infrastructure: createMobileInfrastructure(),
     clientConfig: createMobileClientConfig(),
   });
+
+  // PerpsController stores eligibility and only re-checks it on construction
+  // and on feature flag changes, so a new location (e.g. a VPN toggled while
+  // the app is open) would otherwise keep the old geo-block result.
+  initMessenger.subscribe(
+    'GeolocationController:stateChange',
+    () => {
+      controller
+        .refreshEligibility()
+        .catch((error: unknown) =>
+          Logger.log('Perps eligibility refresh failed: ', error),
+        );
+    },
+    (geolocationState) => geolocationState.location,
+  );
 
   // Apply E2E mocks if configured via bridge
   applyE2EControllerMocks(controller);

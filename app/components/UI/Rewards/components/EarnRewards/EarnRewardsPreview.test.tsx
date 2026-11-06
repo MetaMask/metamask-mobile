@@ -183,6 +183,14 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
+    it('hides the header spinner while geo refreshes with a known location', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'loading' });
+
+      const { UNSAFE_queryByType } = render(<EarnRewardsPreview />);
+
+      expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
     it('shows mUSD card (not skeleton) and MetaMask Card when geo is still loading but location is already known (e.g. US)', () => {
       setupSelectors({
         geoLocation: 'US',

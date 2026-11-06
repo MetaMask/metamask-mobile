@@ -149,7 +149,8 @@ const EarnRewardsPreview: React.FC = () => {
     isMoneyAccountEnabled &&
     geoLocation !== undefined &&
     geoLocation !== UK_COUNTRY_CODE;
-  const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
+  const showMusdSkeleton =
+    isMoneyAccountEnabled && isMusdGeoLoading && !showMusdCard;
   const { apyPercent } = useMoneyVaultApy();
 
   // Card check — subtitle varies by cardholder status; card is always rendered
@@ -191,7 +192,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Build the ordered list of carousel slots, preserving existing visibility logic.
   const items: CarouselSlotKey[] = [];
-  if (showMusdSkeleton && !showMusdCard) {
+  if (showMusdSkeleton) {
     items.push('musd-skeleton');
   } else if (showMusdCard) {
     items.push('musd');

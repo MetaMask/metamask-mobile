@@ -1,4 +1,5 @@
 import { PerpsControllerMessenger } from '@metamask/perps-controller';
+import type { GeolocationControllerStateChangeEvent } from '@metamask/geolocation-controller';
 import {
   Messenger,
   MessengerActions,
@@ -68,5 +69,36 @@ export function getPerpsControllerMessenger(
       'AccountTreeController:selectedAccountGroupChange',
     ],
   });
+  return messenger;
+}
+
+type AllowedInitializationEvents = GeolocationControllerStateChangeEvent;
+
+export type PerpsControllerInitMessenger = Messenger<
+  'PerpsControllerInit',
+  never,
+  AllowedInitializationEvents
+>;
+
+/**
+ * Get the messenger for the PerpsController initialization. This is scoped to
+ * the events the client wires up around the controller.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The PerpsControllerInitMessenger.
+ */
+export function getPerpsControllerInitMessenger(
+  rootMessenger: RootMessenger<never, AllowedInitializationEvents>,
+): PerpsControllerInitMessenger {
+  const messenger: PerpsControllerInitMessenger = new Messenger({
+    namespace: 'PerpsControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    events: ['GeolocationController:stateChange'],
+    messenger,
+  });
+
   return messenger;
 }

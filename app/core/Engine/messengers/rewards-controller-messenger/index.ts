@@ -10,7 +10,10 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
-import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
+import type {
+  GeolocationControllerGetGeolocationAction,
+  GeolocationControllerStateChangeEvent,
+} from '@metamask/geolocation-controller';
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
@@ -169,6 +172,7 @@ type AllowedActions =
 type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
   | KeyringControllerUnlockEvent
+  | GeolocationControllerStateChangeEvent
   | Extract<
       AuthenticationController.Events,
       { type: 'AuthenticationController:stateChange' }
@@ -281,6 +285,7 @@ export function getRewardsControllerMessenger(
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
       'AuthenticationController:stateChange',
+      'GeolocationController:stateChange',
     ],
   } as Parameters<RootMessenger['delegate']>[0]);
 
