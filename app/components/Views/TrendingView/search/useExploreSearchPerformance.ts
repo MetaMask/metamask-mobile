@@ -102,6 +102,7 @@ export const useExploreSearchPerformance = ({
   const configuredDebounceMsRef = useRef(configuredDebounceMs);
   const queryRef = useRef(query);
   const isFocusedRef = useRef(isFocused);
+  const pendingInactiveRef = useRef(false);
 
   enabledFeedsRef.current = enabledFeeds;
   isDebouncingRef.current = isDebouncing;
@@ -579,14 +580,24 @@ export const useExploreSearchPerformance = ({
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'inactive') {
+        pendingInactiveRef.current = true;
+        return;
+      }
+
       if (nextState === 'background') {
+        pendingInactiveRef.current = false;
         finishMeasurement(false, 'backgrounded');
-      } else if (nextState === 'inactive') {
+      } else if (nextState === 'active' && pendingInactiveRef.current) {
+        pendingInactiveRef.current = false;
         finishMeasurement(false, 'inactive');
       }
     });
 
-    return () => subscription.remove();
+    return () => {
+      pendingInactiveRef.current = false;
+      subscription.remove();
+    };
   }, [finishMeasurement]);
 
   useEffect(

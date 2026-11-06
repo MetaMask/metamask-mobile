@@ -460,8 +460,8 @@ describe('useExploreSearchPerformance', () => {
     expect(mockTrace).toHaveBeenCalledTimes(2);
   });
 
-  it('distinguishes inactive interruptions from backgrounding', () => {
-    const { result } = renderHook(() =>
+  it('reports backgrounded after an inactive-to-background transition', () => {
+    renderHook(() =>
       useExploreSearchPerformance({
         query: 'eth',
         isDebouncing: false,
@@ -475,25 +475,41 @@ describe('useExploreSearchPerformance', () => {
       appStateChangeHandler('inactive');
     });
 
-    expect(mockEndTrace).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          reason: 'inactive',
-        }),
-      }),
-    );
+    expect(mockEndTrace).not.toHaveBeenCalled();
 
     act(() => {
-      result.current.onFocus();
       appStateChangeHandler('background');
     });
 
-    expect(mockEndTrace).toHaveBeenNthCalledWith(
-      2,
+    expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           reason: 'backgrounded',
+        }),
+      }),
+    );
+  });
+
+  it('reports inactive when an interruption returns to active', () => {
+    renderHook(() =>
+      useExploreSearchPerformance({
+        query: 'eth',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+      }),
+    );
+    const appStateChangeHandler = (AppState.addEventListener as jest.Mock).mock
+      .calls[0][1] as (nextState: 'active' | 'inactive' | 'background') => void;
+
+    act(() => {
+      appStateChangeHandler('inactive');
+      appStateChangeHandler('active');
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          reason: 'inactive',
         }),
       }),
     );
