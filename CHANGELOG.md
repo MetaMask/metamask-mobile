@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the Money label being cut off on the home screen when privacy mode is on (#38919)
 - Fixed Perps home Watchlist rows sometimes appearing over the Explore category pills (#38923)
 - Fixed Add to Wallet appearing for MetaMask Card users outside the US (#38882)
 - Fixed limit and recurring buy order lists not loading when a non-EVM account was selected in the wallet (#38742)
