@@ -44380,7 +44380,7 @@ __metadata:
 
 "react-native-crypto@patch:react-native-crypto@npm%3A2.2.1#~/.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch":
   version: 2.2.1
-  resolution: "react-native-crypto@patch:react-native-crypto@npm%3A2.2.1#~/.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch::version=2.2.1&hash=b82614"
+  resolution: "react-native-crypto@patch:react-native-crypto@npm%3A2.2.1#~/.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch::version=2.2.1&hash=64ec34"
   dependencies:
     browserify-cipher: "npm:^1.0.0"
     browserify-sign: "npm:^4.0.4"
@@ -44394,7 +44394,7 @@ __metadata:
     randomfill: "npm:^1.0.3"
   peerDependencies:
     react-native-randombytes: ">=2.0.0 <4.0.0"
-  checksum: 10/d7aee4fa0329e1d8aa32000fc1da8aa331995d6349fbe928cbe970f7adaace972574a3078ee77703f9e40f88186f53ce5cff857a545f47e2ef81e89febc01537
+  checksum: 10/de8c1a4846b67ad43e5e17cfa50a26e76ce2f977729e2e7d99a625ef0d12cafb571c10bdafcb48c23b454d7ea0030a785a0332ba1300f23293542833bb2b5f76
   languageName: node
   linkType: hard
 
