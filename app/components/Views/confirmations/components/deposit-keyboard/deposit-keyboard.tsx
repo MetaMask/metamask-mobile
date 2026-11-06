@@ -7,16 +7,13 @@ import React, {
   useState,
 } from 'react';
 import {
-  Animated,
   Dimensions,
-  Easing,
   InteractionManager,
   Keyboard,
   type KeyboardEvent,
   LayoutAnimation,
   Platform,
   Pressable,
-  StyleSheet,
   TextInput,
   UIManager,
   View,
@@ -55,9 +52,6 @@ const NATIVE_INPUT_MAX_DECIMALS = 2;
 const PERCENTAGE_PRESS_BLEED = 6;
 export const DEPOSIT_NATIVE_INPUT_TEST_ID = 'deposit-keyboard-native-input';
 export const DEPOSIT_KEYBOARD_FRAME_TEST_ID = 'deposit-keyboard-frame';
-
-/** Same-slot crossfade between the percentage bar and Continue. */
-export const CONTROL_SWAP_DURATION = 250;
 
 /** iOS keyboard show and hide. Used when no system keyboard event is available. */
 export const KEYBOARD_LAYOUT_ANIMATION = {
@@ -490,7 +484,7 @@ function DepositPercentageBar({
   const [pressedValue, setPressedValue] = useState<number | null>(null);
 
   return (
-    <DesignSystemBox twClassName="h-full w-full overflow-hidden rounded-full">
+    <DesignSystemBox twClassName="mb-3 h-12 flex-1 overflow-hidden rounded-full">
       {/* The glass surface takes the tap on iOS, so it only draws and the
           segments above it receive the press. */}
       <View pointerEvents="none" style={tw.style('absolute inset-0')}>

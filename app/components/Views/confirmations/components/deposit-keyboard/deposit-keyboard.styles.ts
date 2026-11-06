@@ -19,15 +19,6 @@ const styleSheet = (params: { theme: Theme }) =>
     continueButton: {
       flex: 1,
     },
-    // Both controls share this slot so the swap does not resize the row.
-    controlSwap: {
-      flex: 1,
-      height: 48,
-      marginBottom: 12,
-    },
-    controlLayer: {
-      ...StyleSheet.absoluteFillObject,
-    },
     // Draw over the neighboring dividers without resizing them.
     percentageButtonPressed: {
       zIndex: 1,
