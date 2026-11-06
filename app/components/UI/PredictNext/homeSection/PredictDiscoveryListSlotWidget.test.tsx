@@ -75,19 +75,21 @@ describe('PredictDiscoveryListSlotWidget', () => {
     expect(mockLegacyWidget).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ['names only pinned Events', slotWith([PINNED_EVENT])],
-    ['is the bundled fallback', undefined],
-  ])(
-    'shows a next Venue its default slots when the assignment %s',
-    (_, slot) => {
-      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
+  it('names no slot for an assignment of only pinned Events', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
-      render(<PredictDiscoveryListSlotWidget slot={slot} />);
+    render(<PredictDiscoveryListSlotWidget slot={slotWith([PINNED_EVENT])} />);
 
-      expect(mockNextDiscovery).toHaveBeenCalledWith({ slotIds: undefined });
-    },
-  );
+    expect(mockNextDiscovery).toHaveBeenCalledWith({ slotIds: [] });
+  });
+
+  it('shows a next Venue its default slots as the bundled fallback', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
+
+    render(<PredictDiscoveryListSlotWidget slot={undefined} />);
+
+    expect(mockNextDiscovery).toHaveBeenCalledWith({ slotIds: undefined });
+  });
 
   it('renders nothing while the Active Venue resolves', () => {
     givenActiveVenue({ status: 'resolving' });

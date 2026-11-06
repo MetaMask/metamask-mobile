@@ -641,6 +641,19 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       expect(getLegacyMarkets).not.toHaveBeenCalled();
     });
 
+    it('shows the Venue’s own slots when the assignment names only slots the Venue lacks', async () => {
+      // Kalshi has no BTC up/down Feed.
+      const view = renderSection({ uiSlot: discoveryUiSlot('btc') });
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+      ).toBeOnTheScreen();
+      expect(getLegacyMarkets).not.toHaveBeenCalled();
+    });
+
     it('shows only the slots the assignment names that the Venue supports', async () => {
       configurePredictNextCatalog({
         ...KALSHI_STATIC_VENUE_CATALOG,

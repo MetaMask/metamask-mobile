@@ -266,7 +266,8 @@ const Discovery = ({ host, slotIds }: DiscoveryProps) => {
 export interface NextHomeDiscoveryProps {
   /**
    * The slots to show, when a UI Slots assignment names them. Defaults to
-   * every slot; either way only the ones the Venue supports render.
+   * every slot; either way only the ones the Venue supports render, and an
+   * assignment the Venue supports none of falls back to the default.
    */
   slotIds?: readonly HomeDiscoverySlotId[];
 }

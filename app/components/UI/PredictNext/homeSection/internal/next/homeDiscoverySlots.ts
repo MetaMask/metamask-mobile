@@ -23,16 +23,24 @@ export const HOME_DISCOVERY_SLOT_IDS = Object.keys(
 /**
  * The slots the Venue's descriptor supports, in display order, limited to
  * `slotIds`. A slot whose Feed key the Venue lacks is absent: it is never
- * filled from another Feed or Venue.
+ * filled from another Feed or Venue. When the Venue supports none of
+ * `slotIds` (a Polymarket assignment shown under Kalshi), every slot it
+ * supports applies, as the renderer's bundled fallback does for an empty
+ * slot.
  */
 export const resolveHomeDiscoverySlots = (
   capabilities: PredictVenueCapabilities,
   slotIds: readonly HomeDiscoverySlotId[] = HOME_DISCOVERY_SLOT_IDS,
-): PredictSurfaceFeed<HomeDiscoverySlotId>[] =>
-  resolveSurfaceFeeds(
+): PredictSurfaceFeed<HomeDiscoverySlotId>[] => {
+  const supported = resolveSurfaceFeeds(
     capabilities,
     PREDICT_SURFACE_FEED_KEYS.homepageSlots,
-  ).filter(({ sectionId }) => slotIds.includes(sectionId));
+  );
+  const assigned = supported.filter(({ sectionId }) =>
+    slotIds.includes(sectionId),
+  );
+  return assigned.length > 0 ? assigned : supported;
+};
 
 /**
  * The slot a UI Slots `predict-homepage-market-slots` item names, if a Feed

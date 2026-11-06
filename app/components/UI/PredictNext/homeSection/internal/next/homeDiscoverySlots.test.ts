@@ -6,6 +6,7 @@ import {
   getHomeDiscoveryEventsPerSlot,
   homeDiscoverySlotForUiSlotItem,
   resolveHomeDiscoverySlots,
+  type HomeDiscoverySlotId,
 } from './homeDiscoverySlots';
 
 const ready = (feeds: Record<string, string>): PredictVenueCapabilities => ({
@@ -52,6 +53,26 @@ describe('resolveHomeDiscoverySlots', () => {
       'college-football-games',
     ]);
   });
+
+  it.each<[string, readonly HomeDiscoverySlotId[]]>([
+    ['only slots the Venue lacks', ['btc-up-down', 'world-cup']],
+    ['no slot', []],
+  ])(
+    'falls back to every supported slot when the request names %s',
+    (_, slotIds) => {
+      const capabilities = ready({
+        'nfl-games': 'nfl-games',
+        'college-football-games': 'ncaa-games',
+      });
+
+      const result = resolveHomeDiscoverySlots(capabilities, slotIds);
+
+      expect(result.map(({ sectionId }) => sectionId)).toEqual([
+        'nfl-games',
+        'college-football-games',
+      ]);
+    },
+  );
 
   it.each<[string, PredictVenueCapabilities]>([
     ['loading', { status: 'loading' }],
