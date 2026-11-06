@@ -3349,6 +3349,44 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
 
+    it('opens one Lite order sheet when Long is pressed again during the support check', async () => {
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockRouteParams.market = {
+        ...mockRouteParams.market,
+        providerId: 'lighter',
+      } as PerpsMarketData;
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      act(() => {
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        );
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        );
+      });
+      await act(async () => {
+        resolveSupport?.('supported');
+        await Promise.resolve();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+    });
+
     it('passes marketData defaults to order screen when available', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const { usePerpsMarketData } = jest.requireMock('../../hooks');
