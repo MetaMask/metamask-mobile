@@ -248,6 +248,11 @@ describe('PerpsMarketDetailsView', () => {
           strings('perps.tooltips.account_not_supported.title'),
         ),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('perps.tooltips.account_not_supported.content'),
+        ),
+      ).toBeOnTheScreen();
       expect(getAccountSupport).toHaveBeenCalledWith({
         providerId: 'lighter',
       });
