@@ -127,7 +127,6 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
-import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
@@ -328,7 +327,6 @@ export class Engine {
         PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -559,9 +557,14 @@ export class Engine {
     const snapAccountService = messengerClientsByName.SnapAccountService;
     ///: END:ONLY_INCLUDE_IF
 
-    const networkEnablementController =
-      messengerClientsByName.NetworkEnablementController;
-    networkEnablementController.init();
+    const networkEnablementController = this.#wallet.getInstance(
+      'NetworkEnablementController',
+    );
+    // Re-run now that MultichainNetworkController is registered; the call
+    // made by `wallet.init()` cannot read it yet.
+    networkEnablementController.init().catch((error) => {
+      captureException(error);
+    });
 
     const moneyAccountUpgradeController =
       messengerClientsByName.MoneyAccountUpgradeController;
