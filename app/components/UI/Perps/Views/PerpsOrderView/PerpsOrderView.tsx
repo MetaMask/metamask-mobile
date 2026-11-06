@@ -2105,14 +2105,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           })
             ? resolvePostTradePrompt('perps')
             : undefined;
-        perpsPostTradePromptRef.current =
-          resolvedPerpsPostTradePrompt?.kind === 'claim_sheet' ||
-          isPerpsPostTradeShareEligible({
-            amountUsd: orderForm.amount,
-            leverage: orderForm.leverage,
-          })
-            ? resolvedPerpsPostTradePrompt
-            : undefined;
+        perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
+          amountUsd: orderForm.amount,
+          leverage: orderForm.leverage,
+        })
+          ? resolvedPerpsPostTradePrompt
+          : undefined;
         const promptKind = perpsPostTradePromptRef.current?.kind;
         if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
           perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
