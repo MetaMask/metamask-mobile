@@ -1,8 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { colorWithOpacity } from '../../../../util/colors/colorWithOpacity';
-import { mockTheme } from '../../../../util/theme';
 import FixedTabPillRow, { FixedTabPillRowProvider } from './FixedTabPillRow';
 
 let mockIsGlassEnabled = false;
@@ -62,15 +60,14 @@ describe('FixedTabPillRow', () => {
     expect(onChange).toHaveBeenCalledWith('card');
   });
 
-  it('draws every pill on liquid glass and frosts the selected one', () => {
+  it('draws every pill on liquid glass and accents the selected one', () => {
     mockIsGlassEnabled = true;
     const { getByTestId, onChange } = renderRow();
     const selected = getByTestId('hub-pill-account-glass');
     const unselected = getByTestId('hub-pill-card-glass');
 
-    expect(selected.props.tintColor).toBe(
-      colorWithOpacity(mockTheme.colors.icon.default, 0.32),
-    );
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Asserts the new brand accent; no design token exists yet.
+    expect(selected.props.tintColor).toBe('#BAF24A');
     expect(unselected.props.tintColor).toBeUndefined();
     expect(selected.props.isInteractive).toBe(true);
 

@@ -9,12 +9,15 @@ import {
 import BoxGlass from '../../../../component-library/components-temp/BoxGlass';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import { useLiquidGlass } from '../../../../component-library/hooks/useLiquidGlass';
-import { colorWithOpacity } from '../../../../util/colors/colorWithOpacity';
 import { useTheme } from '../../../../util/theme';
 import type { FixedTabPill } from './fixedTabNav.types';
 
-/** Frost on the selected pill. Strong enough to read as chosen, still glass. */
-const SELECTED_PILL_TINT_OPACITY = 0.32;
+/**
+ * Selected-pill accent. Matches the nav-exploration spec's `--accent/03/normal`
+ * (#BAF24A). Not yet in `@metamask/design-tokens`, so it is a literal here.
+ */
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex -- New brand accent from the nav exploration; no design token exists yet.
+const SELECTED_PILL_BACKGROUND = '#BAF24A';
 
 interface FixedTabPillRowContextValue {
   testID: string;
@@ -75,6 +78,17 @@ const GlassPill = ({ label, pillKey, testID, isSelected }: GlassPillProps) => {
       testID={testID}
       variant={isMaterial ? FilterButtonVariant.Secondary : undefined}
       twClassName={isMaterial ? 'bg-transparent border-transparent' : undefined}
+      textProps={
+        isMaterial
+          ? {
+              // Selected: dark on the green accent. Unselected: default text,
+              // overriding the group's grey alternative to match the spec.
+              twClassName: isSelected
+                ? `text-[${colors.icon.inverse}]`
+                : `text-[${colors.text.default}]`,
+            }
+          : undefined
+      }
     >
       {label}
     </FilterButton>
@@ -85,11 +99,7 @@ const GlassPill = ({ label, pillKey, testID, isSelected }: GlassPillProps) => {
       <BoxGlass
         radiusClassName="rounded-full"
         isInteractive
-        tintColor={
-          isSelected
-            ? colorWithOpacity(colors.icon.default, SELECTED_PILL_TINT_OPACITY)
-            : undefined
-        }
+        tintColor={isSelected ? SELECTED_PILL_BACKGROUND : undefined}
         testID={`${testID}-glass`}
       >
         {button}
@@ -99,7 +109,10 @@ const GlassPill = ({ label, pillKey, testID, isSelected }: GlassPillProps) => {
 
   if (isBlurEnabled) {
     return (
-      <CapsuleGlass twClassName="h-8" testID={`${testID}-glass`}>
+      <CapsuleGlass
+        twClassName={`h-8${isSelected ? ` bg-[${SELECTED_PILL_BACKGROUND}]` : ''}`}
+        testID={`${testID}-glass`}
+      >
         {button}
       </CapsuleGlass>
     );
