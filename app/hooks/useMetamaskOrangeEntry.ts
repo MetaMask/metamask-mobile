@@ -11,13 +11,19 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import type { AppNavigationProp } from '../core/NavigationService/types';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
+} from './useMoneyAccountPlusAccess';
 import { useHasProMembership } from './useHasProMembership';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 export interface UseMetamaskOrangeEntryResult {
   /**
-   * True when the Pro flow is on. The row stays in the menu while Plus
-   * access is still loading so it does not appear after the list is visible.
+   * True when the Pro flow is on and the label is already known. Home starts
+   * the subscriptions fetch, so the row is present with the right copy when
+   * the menu opens. It stays hidden until a membership is stored or the
+   * fetch settles on a non-member.
    */
   showOrangeEntry: boolean;
   /** Subscriber or join label, already localized. */
@@ -31,35 +37,55 @@ export interface UseMetamaskOrangeEntryResult {
  *
  * Visibility, copy, analytics, and destination stay identical across both
  * surfaces, including the `accounts_menu` navigation source.
+ *
+ * A stored membership shows "MetaMask Orange" and opens Pro Hub. A settled
+ * non-member shows "Join MetaMask Orange" and opens Benefits. That includes
+ * a leftover entitlement once subscriptions have settled, because Pro Hub
+ * leaves immediately unless a membership is stored. Home prefetches
+ * subscriptions, so this hook only reads the stored result.
  */
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  // Present as soon as the Pro flow is on. The label updates in place once
-  // membership status is known.
-  const showOrangeEntry = isProSubscriptionEnabled;
-  const labelKey = hasMembership
-    ? 'accounts_menu.metamask_orange'
-    : 'accounts_menu.join_metamask_orange';
+  // Home starts the subscriptions query. A stored plan can label the row
+  // before that refetch finishes. Subscriber access also covers a leftover
+  // entitlement, including before the list loads, so it is not enough to open
+  // the hub. Eligible is a finished non-member only once the query settles.
+  // A refetch keeps the previous empty result, and showing Join during it
+  // would open the join flow for a membership that may still arrive.
+  const isMember = hasMembership;
+  const isKnownNonMember =
+    !isMember &&
+    isSubscriptionsSettled &&
+    (access === MoneyAccountPlusAccess.Eligible ||
+      access === MoneyAccountPlusAccess.Subscriber);
+  const showOrangeEntry =
+    isProSubscriptionEnabled && (isMember || isKnownNonMember);
+  const labelKey = isKnownNonMember
+    ? 'accounts_menu.join_metamask_orange'
+    : 'accounts_menu.metamask_orange';
 
   const onPress = useCallback(() => {
-    // Statuses Pro Hub can show open the hub. Canceled, incomplete,
-    // incomplete-expired, no subscription, and a still-loading membership
-    // open Benefits.
-    const destination = hasMembership
+    if (!isMember && !isKnownNonMember) {
+      return;
+    }
+
+    // Members open the hub. Only a settled non-member opens Benefits.
+    const destination = isKnownNonMember
       ? {
-          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-          redirect_target: SCREEN_NAMES.PRO_HUB,
-          route: Routes.PRO_HUB.ROOT,
-        }
-      : {
           button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
           redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
           route: Routes.PRO_SUBSCRIPTION.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
         };
 
     trackButtonClicked({
@@ -73,7 +99,7 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     navigation.navigate(destination.route, {
       source: 'accounts_menu',
     });
-  }, [hasMembership, labelKey, navigation, trackButtonClicked]);
+  }, [isKnownNonMember, isMember, labelKey, navigation, trackButtonClicked]);
 
   return {
     showOrangeEntry,

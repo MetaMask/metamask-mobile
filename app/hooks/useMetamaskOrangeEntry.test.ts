@@ -9,6 +9,10 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
+} from './useMoneyAccountPlusAccess';
 import { useHasProMembership } from './useHasProMembership';
 import { useMetamaskOrangeEntry } from './useMetamaskOrangeEntry';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
@@ -33,6 +37,14 @@ jest.mock('./useHasProMembership', () => ({
   useHasProMembership: jest.fn(() => false),
 }));
 
+jest.mock('./useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('./useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccessState: jest.fn(() => ({
+    access: 'eligible',
+    isSubscriptionsSettled: true,
+  })),
+}));
+
 jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
@@ -41,6 +53,9 @@ jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseHasProMembership = jest.mocked(useHasProMembership);
+const mockUseMoneyAccountPlusAccessState = jest.mocked(
+  useMoneyAccountPlusAccessState,
+);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 
 describe('useMetamaskOrangeEntry', () => {
@@ -50,6 +65,10 @@ describe('useMetamaskOrangeEntry', () => {
       isProSubscriptionEnabled: false,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Eligible,
+      isSubscriptionsSettled: true,
+    });
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
@@ -61,11 +80,93 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
-  it('shows the join label while membership access is unresolved', () => {
+  it('hides the row while an eligible refetch is still running', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Eligible,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(false);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides the row while membership is still loading', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Unknown,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(false);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides the row while an entitlement is still loading', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(false);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows a stored member before subscriptions settle', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(true);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Unknown,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(true);
+    expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+      source: 'accounts_menu',
+    });
+  });
+
+  it('invites a settled entitlement-only user to join and opens Benefits', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: true,
+    });
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 
@@ -120,6 +221,10 @@ describe('useMetamaskOrangeEntry', () => {
       isProSubscriptionEnabled: true,
     });
     mockUseHasProMembership.mockReturnValue(true);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: true,
+    });
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 

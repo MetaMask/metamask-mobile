@@ -20,8 +20,9 @@ export const SUBSCRIPTIONS_REFETCH_INTERVAL = 5 * 60 * 1000;
  * Redux stays the source of truth for Plus gating, and so the controller's
  * change side effects (access-token refresh, benefits refresh) still run.
  *
- * Mounted by useMoneyAccountPlusAccess so Plus entitlements stay current
- * while the user is on a surface that resolves access.
+ * Mounted by Home so the Orange menu already has a stored membership, and
+ * by useMoneyAccountPlusAccess so Plus entitlements stay current while the
+ * user is on a surface that resolves access.
  *
  * @param options - Query options.
  * @param options.enabled - Caller gate for fetching subscriptions.

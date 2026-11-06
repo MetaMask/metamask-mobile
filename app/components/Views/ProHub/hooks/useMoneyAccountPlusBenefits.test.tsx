@@ -35,6 +35,9 @@ jest.mock('../../../../core/Engine', () => ({
     SubscriptionController: {
       getBenefits: jest.fn(),
     },
+    SubscriptionService: {
+      getBenefits: jest.fn(),
+    },
   },
 }));
 
@@ -71,6 +74,11 @@ const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
   Engine.context.SubscriptionController.getBenefits,
 );
+const subscriptionService = Engine.context.SubscriptionService;
+if (!subscriptionService) {
+  throw new Error('SubscriptionService mock is missing');
+}
+const mockGetPausedBenefits = jest.mocked(subscriptionService.getBenefits);
 
 const BENEFITS: SubscriptionBenefitsState = {
   billingPeriodId: 'bp_2026_08_15',
@@ -94,6 +102,16 @@ const BENEFITS: SubscriptionBenefitsState = {
     consumedTxCount: 0,
     remainingTxCount: 1,
     exhausted: false,
+  },
+};
+
+const PAUSED_BENEFITS_RESPONSE = {
+  eligible: false,
+  billingPeriodId: BENEFITS.billingPeriodId,
+  products: {
+    swaps: { ...BENEFITS.swaps, feeBips: null },
+    perps: { ...BENEFITS.perps, builderFeeBips: null },
+    predict: { ...BENEFITS.predict, builderCode: null },
   },
 };
 
@@ -251,6 +269,87 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
     expect(result.current.items).toEqual([]);
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.paused, SUBSCRIPTION_STATUSES.unpaid])(
+    'shows paused usage for a %s membership without treating it as a waiver',
+    async (subscriptionStatus) => {
+      mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+      const { result } = renderBenefits(
+        createState({
+          benefits: BENEFITS,
+          subscriptionStatus,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.status).toBe(
+          MoneyAccountPlusBenefitsStatus.Ready,
+        ),
+      );
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(mockGetPausedBenefits).toHaveBeenCalledTimes(1);
+      expect(result.current.benefitsPaused).toBe(true);
+      expect(result.current.items).toHaveLength(3);
+      expect(result.current.items[0]).toEqual(
+        expect.objectContaining({ id: 'swaps', used: 310, allowance: 500 }),
+      );
+    },
+  );
+
+  it('hides member pricing when a paused membership has no benefit window', async () => {
+    mockGetPausedBenefits.mockResolvedValue({
+      eligible: false,
+      billingPeriodId: null,
+      products: {
+        swaps: {
+          feeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        perps: {
+          builderFeeBips: null,
+          remainingMicroUsd: null,
+          exhausted: false,
+        },
+        predict: {
+          builderCode: null,
+          remainingTxCount: null,
+          exhausted: false,
+        },
+      },
+    });
+
+    const { result } = renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.items).toEqual([]);
+    expect(result.current.benefitsPaused).toBe(false);
+  });
+
+  it('shows paused usage for an unpaid membership that is not a hub subscriber', async () => {
+    mockAccess(MoneyAccountPlusAccess.Eligible);
+    mockGetPausedBenefits.mockResolvedValue(PAUSED_BENEFITS_RESPONSE);
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.unpaid,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.benefitsPaused).toBe(true));
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.items).toHaveLength(3);
   });
 
   it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {

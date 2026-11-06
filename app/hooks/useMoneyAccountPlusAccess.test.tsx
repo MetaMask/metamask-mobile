@@ -52,6 +52,8 @@ describe('useMoneyAccountPlusAccess', () => {
     mockUseSubscriptions.mockReturnValue({
       isLoading: false,
       isError: false,
+      isFetched: true,
+      isFetching: false,
     } as ReturnType<typeof useSubscriptions>);
     mockSubscriptionState();
   });
@@ -106,6 +108,19 @@ describe('useMoneyAccountPlusAccess', () => {
     mockUseSubscriptions.mockReturnValue({
       isLoading: true,
       isError: false,
+    } as ReturnType<typeof useSubscriptions>);
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Unknown);
+  });
+
+  it('stays unknown while a refetch is in flight and no membership is stored', () => {
+    mockUseSubscriptions.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      isFetched: true,
+      isFetching: true,
     } as ReturnType<typeof useSubscriptions>);
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());

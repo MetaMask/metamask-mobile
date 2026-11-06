@@ -33,6 +33,7 @@ import {
 import { useResumeMembership } from '../../hooks/useResumeMembership';
 import {
   getMembershipManageAction,
+  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
@@ -188,10 +189,6 @@ const Membership = () => {
 
   const handleInvoices = useCallback(() => {
     // TODO: navigate to invoices
-  }, []);
-
-  const handleContactSupport = useCallback(() => {
-    // TODO: navigate to support
   }, []);
 
   const handleCancelMembership = useCallback(() => {
@@ -361,9 +358,12 @@ const Membership = () => {
               </Box>
             </Box>
 
-            {/* Renews on */}
             <InfoRow
-              label={strings('pro_hub.membership.renews_on')}
+              label={
+                isPeriodEndCancellationPending(subscription)
+                  ? strings('pro_hub.membership.ends_on')
+                  : strings('pro_hub.membership.renews_on')
+              }
               value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
@@ -389,11 +389,6 @@ const Membership = () => {
             label={strings('pro_hub.membership.invoices')}
             onPress={handleInvoices}
             testID={MembershipTestIds.INVOICES_ROW}
-          />
-          <ManageRow
-            label={strings('pro_hub.membership.contact_support')}
-            onPress={handleContactSupport}
-            testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
           />
           <MembershipActionRow
             action={manageAction}

@@ -76,6 +76,81 @@ describe('MembershipBanner', () => {
     ).toBeNull();
   });
 
+  it('renders Active with the cancelled alert while a period-end cancel can be resumed', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = renderBanner(
+      createSubscription({
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+      }),
+      onAction,
+    );
+
+    expect(
+      getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+    ).toHaveTextContent(strings('pro_hub.membership_status.active'));
+    expect(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
+      ),
+    ).toHaveTextContent(
+      strings('pro_hub.membership_alert.cancelled.description', {
+        date: 'Jan 15, 2099',
+      }),
+      { exact: false },
+    );
+
+    expect(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+      ),
+    ).toHaveTextContent(strings('pro_hub.membership.resume_membership'));
+
+    fireEvent.press(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+      ),
+    );
+
+    expect(onAction).toHaveBeenCalledWith(MembershipAlertAction.Resume);
+  });
+
+  it('disables resume and shows the failure while uncancel is in flight', () => {
+    const onAction = jest.fn();
+    const model = getMembershipBannerModel(
+      createSubscription({
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+      }),
+    );
+
+    const { getByTestId } = render(
+      <MembershipBanner
+        model={model}
+        onAction={onAction}
+        isActionBusy
+        actionErrorMessage={strings('pro_hub.membership.resume_failed')}
+      />,
+    );
+
+    const action = getByTestId(
+      ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+    );
+
+    expect(action.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true, busy: true }),
+    );
+    expect(
+      getByTestId(ProHubTestIds.MEMBERSHIP_RESUME_ERROR),
+    ).toHaveTextContent(strings('pro_hub.membership.resume_failed'));
+    expect(getByTestId(ProHubTestIds.MEMBERSHIP_RESUME_ERROR).props).toEqual(
+      expect.objectContaining({
+        accessibilityRole: 'alert',
+        accessibilityLiveRegion: 'polite',
+      }),
+    );
+  });
+
   it('renders Overdue with the payment-failed alert', () => {
     const onAction = jest.fn();
     const { getByTestId } = renderBanner(
