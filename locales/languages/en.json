@@ -3799,6 +3799,9 @@
         "holding_shares": "{{shares}} shares"
       }
     },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
+    },
     "search": {
       "placeholder": "Search markets",
       "idle": "Search by team, topic, or market question.",
