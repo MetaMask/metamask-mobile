@@ -1446,6 +1446,7 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
       }
@@ -1637,7 +1638,7 @@
     "position_flags": {
       "insider": "Insider allocation - excluded",
       "developer": "Contract creator - excluded",
-      "excluded": "Excluded from PnL",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1840,6 +1841,8 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -3670,7 +3673,7 @@
     "tp_on_chart": "TP on Chart",
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
+      "title": "P&L Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
@@ -3783,6 +3786,14 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
     },
     "search": {
@@ -3964,7 +3975,13 @@
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
       "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -6180,7 +6197,7 @@
     "balance": "balance. See the support article",
     "position_pnl": {
       "your_position": "Your position",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8757,7 +8774,8 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
-      "get_new_code": "Get new code"
+      "get_new_code": "Get new code",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
@@ -8786,7 +8804,7 @@
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
-      "too_many_attempts": "Too many attempts. Request a new code.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
@@ -9559,6 +9577,11 @@
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Verifying your identity",
         "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
@@ -10284,10 +10307,10 @@
         "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
@@ -12548,7 +12571,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
-      "top_pnl": "Top PnL",
+      "top_pnl": "Top P&L",
       "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
@@ -12658,7 +12681,7 @@
       "performance_title": "Performance",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
@@ -12674,7 +12697,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
-      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
@@ -12688,7 +12711,7 @@
       "label_your_rank": "Your rank",
       "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL (after fees)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
