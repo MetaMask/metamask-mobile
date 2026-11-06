@@ -1,5 +1,6 @@
 import type { Position, TradeInFlight } from '@metamask/social-controllers';
 import type { SocialV1PerpDirection } from '../../../UI/SocialFeed/types';
+import type { SocialEventSource } from '../analytics/socialEvents';
 
 /**
  * Card shown while a just-submitted swap is still being indexed.
@@ -39,6 +40,8 @@ export type SocialPostComposerEntryPoint = 'token_details' | 'perps';
 interface SocialPostComposerTradeParams {
   tradeInFlight: TradeInFlight;
   preview: SocialPostComposerPreview;
+  /** Surface that started the trade. Omitted when it is unknown. */
+  analyticsSource?: SocialEventSource;
   position?: never;
   entryPoint?: never;
   openFeedAfterPost?: never;

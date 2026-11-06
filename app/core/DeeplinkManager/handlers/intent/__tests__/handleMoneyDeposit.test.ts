@@ -44,6 +44,33 @@ describe('Money deposit deeplink', () => {
         },
       });
     });
+
+    it('passes tokenType to the bridge route while ignoring unrelated query params', () => {
+      const intent = createMoneyDepositDeeplinkIntent({
+        moneyDepositPath:
+          '?utm_source=braze&tokenType=atoken&utm_campaign=earn',
+      });
+
+      expect(intent).toEqual({
+        target: {
+          type: 'main-stack',
+          routeName: Routes.MONEY.DEPOSIT_DEEPLINK,
+          params: {
+            tokenType: 'atoken',
+          },
+        },
+      });
+    });
+
+    it('preserves an unknown tokenType for future bridge resolvers', () => {
+      const intent = createMoneyDepositDeeplinkIntent({
+        moneyDepositPath: '?tokenType=future-token',
+      });
+
+      expect(intent.target.params).toEqual({
+        tokenType: 'future-token',
+      });
+    });
   });
 
   describe('handleMoneyDeposit', () => {
@@ -54,6 +81,16 @@ describe('Money deposit deeplink', () => {
         createMoneyDepositDeeplinkIntent(),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('executes the bridge route intent with the Money deposit path', async () => {
+      const moneyDepositPath = '?tokenType=atoken&utm_source=braze';
+
+      await handleMoneyDeposit({ moneyDepositPath });
+
+      expect(mockExecuteDeeplinkIntent).toHaveBeenCalledWith(
+        createMoneyDepositDeeplinkIntent({ moneyDepositPath }),
+      );
     });
 
     it('logs the error and navigates home when intent execution fails', async () => {

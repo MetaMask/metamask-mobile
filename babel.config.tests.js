@@ -101,6 +101,8 @@ const newOverrides = [
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
+      // iOS Hermes liveness probe reads HERMES_CDP_ORIGIN at runtime
+      'tests/llm-workflow/ios/hermes-health.ts',
       'app/core/apiEnv.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',
