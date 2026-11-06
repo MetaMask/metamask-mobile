@@ -534,33 +534,50 @@ describe('SocialPostComposerView', () => {
   });
 
   it('keeps the position and gif chips above the keyboard on Android', () => {
-    const originalOS = Platform.OS;
-    Object.defineProperty(Platform, 'OS', { get: () => 'android' });
-    const listeners = new Map<string, (event?: unknown) => void>();
-    const addListenerSpy = jest
-      .spyOn(Keyboard, 'addListener')
-      .mockImplementation((eventName, callback) => {
-        listeners.set(eventName, callback as (event?: unknown) => void);
-        return { remove: jest.fn() } as ReturnType<typeof Keyboard.addListener>;
-      });
-
-    renderWithProvider(<SocialPostComposerView />);
-
-    act(() => {
-      listeners.get('keyboardDidShow')?.({
-        endCoordinates: { height: 320 },
-      });
+    const platformDescriptor = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => 'android',
+    });
+    const listeners = new Map<string, ((event?: unknown) => void)[]>();
+    const addListenerMock = Keyboard.addListener as jest.Mock;
+    const originalAddListener = addListenerMock.getMockImplementation();
+    addListenerMock.mockImplementation((eventName, callback) => {
+      const callbacks = listeners.get(eventName) ?? [];
+      callbacks.push(callback as (event?: unknown) => void);
+      listeners.set(eventName, callbacks);
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof Keyboard.addListener
+      >;
     });
 
-    expect(
-      StyleSheet.flatten(
-        screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR).props
-          .style,
-      ).paddingBottom,
-    ).toBe(332);
+    try {
+      renderWithProvider(<SocialPostComposerView />);
 
-    addListenerSpy.mockRestore();
-    Object.defineProperty(Platform, 'OS', { get: () => originalOS });
+      act(() => {
+        listeners.get('keyboardDidShow')?.forEach((callback) => {
+          callback({
+            endCoordinates: { height: 320 },
+          });
+        });
+      });
+
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR)
+            .props.style,
+        ).paddingBottom,
+      ).toBe(332);
+    } finally {
+      if (originalAddListener) {
+        addListenerMock.mockImplementation(originalAddListener);
+      } else {
+        addListenerMock.mockRestore();
+      }
+      if (platformDescriptor) {
+        Object.defineProperty(Platform, 'OS', platformDescriptor);
+      }
+    }
   });
 
   it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
