@@ -106,26 +106,32 @@ function main() {
   );
   console.log(lib.RTL_NOTE);
   console.log('');
-  console.log(`Rows checked: ${result.kept.length}`);
+  console.log(`Rows read: ${result.rowsRead}`);
   console.log(`Rows skipped: ${result.skipped.length}`);
+  console.log(`Rows checked: ${result.rowsChecked}`);
+  console.log(`Unique strings: ${result.unique}`);
   if (result.skipped.length > 0) {
     result.skipped.forEach((row) => {
-      console.log(`  skip ${row.id}  kind ${row.context.kind}`);
+      console.log(
+        `  skip ${row.id}  ${row.context.visible === false ? 'hidden' : `kind ${row.context.kind}`}`,
+      );
     });
   }
   console.log('');
   console.log('English length');
   result.lengths.forEach((row) => {
     const limit =
-      row.maxCharacters === null
-        ? 'no hard limit for this id'
-        : `limit ${row.maxCharacters} ${row.status}`;
+      row.bucket === 'wrap'
+        ? 'check wrapping'
+        : row.maxCharacters === null
+          ? 'no hard limit for this id'
+          : `limit ${row.maxCharacters} ${row.status}`;
     console.log(
       `  ${row.key}  ${lib.quote(row.source)}  ${row.characters} characters, width hint ${row.widthHint}, ${limit}`,
     );
-    if (row.component || row.context.screen) {
+    if (row.component || (row.screens && row.screens.length)) {
       console.log(
-        `    ${row.component || 'layer'}  ${row.context.screen || ''}`.trimEnd(),
+        `    ${row.component || 'layer'}  ${(row.screens || []).join('; ')}`.trimEnd(),
       );
     }
   });

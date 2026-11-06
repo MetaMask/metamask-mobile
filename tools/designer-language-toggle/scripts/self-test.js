@@ -467,6 +467,25 @@ function testFileAdapterAndLearned() {
   assert(result.kept.length === 3, `kept ${result.kept.length}`);
   assert(result.skipped.length === 2, `skipped ${result.skipped.length}`);
   assert(result.report.missing.length === 3, 'file adapter does not invent Japanese');
+  const fixture = path.join(
+    lib.findRepoRoot(),
+    'tools/designer-language-toggle/samples/design-stage-fixture.json',
+  );
+  const grouped = checkDesignFile(fixture, { lang: 'de', limits, pseudo: false });
+  assert(grouped.rowsRead === 7, `fixture rows ${grouped.rowsRead}`);
+  assert(grouped.skipped.length === 3, `fixture skipped ${grouped.skipped.length}`);
+  assert(grouped.unique === 3, `fixture unique ${grouped.unique}`);
+  const go = grouped.lengths.find((row) => row.source === 'Go');
+  assert(go && go.occurrences === 2, 'duplicate text is counted once');
+  assert(
+    go.screens.includes('Light - Day') && go.screens.includes('Dark - Night'),
+    'duplicate text keeps both screens',
+  );
+  assert(go.bucket === 'button' && go.maxCharacters === 10, 'narrow control uses the 10 character limit');
+  const body = grouped.lengths.find((row) => row.bucket === 'wrap');
+  assert(body && body.status === 'check-wrapping', 'long text is wrap-checked');
+  const tight = grouped.lengths.find((row) => row.source === 'Continue');
+  assert(tight && tight.status === 'ok' && tight.characters === 8, 'eight characters still fit in 10');
   const pseudo = pseudoText('Yes');
   assert(pseudo.startsWith('⟦') && pseudo.endsWith('⟧'), 'pseudo is bracketed');
   assert(pseudo.includes('·'), 'pseudo is padded');

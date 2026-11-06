@@ -1,0 +1,72 @@
+[
+  {
+    "id": "fixture.go.light",
+    "layer_name": "Label",
+    "frame_path": "Sample / Light - Day / Button",
+    "text": "Go",
+    "chars": 2,
+    "kind": "button",
+    "width": 40,
+    "visible": true
+  },
+  {
+    "id": "fixture.go.dark",
+    "layer_name": "Label",
+    "frame_path": "Sample / Dark - Night / Button",
+    "text": "Go",
+    "chars": 2,
+    "kind": "button",
+    "width": 48,
+    "visible": true
+  },
+  {
+    "id": "fixture.price",
+    "layer_name": "Price",
+    "frame_path": "Sample / Light - Day",
+    "text": "1.25",
+    "chars": 4,
+    "kind": "number_or_data",
+    "width": 30,
+    "visible": true
+  },
+  {
+    "id": "fixture.note",
+    "layer_name": "Note",
+    "frame_path": "Sample / Light - Day",
+    "text": "Designer note",
+    "chars": 13,
+    "kind": "placeholder_or_annotation",
+    "width": 90,
+    "visible": true
+  },
+  {
+    "id": "fixture.hidden",
+    "layer_name": "Label",
+    "frame_path": "Sample / Light - Day",
+    "text": "Hidden label",
+    "chars": 12,
+    "kind": "label",
+    "width": 70,
+    "visible": false
+  },
+  {
+    "id": "fixture.body",
+    "layer_name": "Body",
+    "frame_path": "Sample / Light - Day / Sheet",
+    "text": "This explanatory sentence is long enough that it should wrap.",
+    "chars": 59,
+    "kind": "body",
+    "width": 280,
+    "visible": true
+  },
+  {
+    "id": "fixture.continue",
+    "layer_name": "Label",
+    "frame_path": "Sample / Light - Day / Pill",
+    "text": "Continue",
+    "chars": 8,
+    "kind": "label",
+    "width": 90,
+    "visible": true
+  }
+]

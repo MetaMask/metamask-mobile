@@ -9,6 +9,9 @@ const path = require('path');
 const checker = require('./checker');
 
 const SKIP_KINDS = new Set(['placeholder_or_annotation', 'number_or_data']);
+const BUTTON_MAX_PX = 120;
+const BUTTON_MAX_CHARACTERS = 10;
+const WRAP_MIN_CHARACTERS = 25;
 
 const VOWELS = {
   a: 'ȧ',
@@ -93,11 +96,32 @@ function readDesignFile(filePath) {
   throw new Error('Design files must be .csv or .json.');
 }
 
+function numericWidth(row) {
+  const raw = row.width_px !== undefined && row.width_px !== null && row.width_px !== ''
+    ? row.width_px
+    : row.width;
+  if (raw === undefined || raw === null || raw === '') return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function screenLabel(framePath) {
+  const parts = String(framePath || '')
+    .split('/')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => !/^frame \d+/i.test(part) && !/^group \d+/i.test(part) && part !== 'children');
+  if (parts.length === 0) return '';
+  const named = parts.find((part) => part.includes(' - ') || /screen|feed|sheet|card/i.test(part));
+  return named || parts[0];
+}
+
 function toStringRecord(row) {
   const id = row.id || row.key;
   if (!id) {
     throw new Error('Each design row needs an id.');
   }
+  const width = numericWidth(row);
   return {
     id,
     key: id,
@@ -108,7 +132,8 @@ function toStringRecord(row) {
       feature: row.feature || '',
       component: row.layer_name || row.component || '',
       kind: row.kind || '',
-      width_px: row.width_px || null,
+      width_px: width,
+      visible: row.visible !== false,
     },
   };
 }
@@ -119,10 +144,86 @@ function splitSkipped(records, includeSkipped) {
   const skipped = [];
   records.forEach((row) => {
     const kind = (row.context && row.context.kind) || '';
-    if (SKIP_KINDS.has(kind)) skipped.push(row);
+    const hidden = row.context && row.context.visible === false;
+    if (hidden || SKIP_KINDS.has(kind)) skipped.push(row);
     else kept.push(row);
   });
   return { kept, skipped };
+}
+
+function dedupeRecords(records) {
+  const groups = new Map();
+  records.forEach((row) => {
+    const text = row.source_text;
+    if (!groups.has(text)) {
+      groups.set(text, {
+        ...row,
+        occurrences: 0,
+        screens: [],
+        widths: [],
+      });
+    }
+    const group = groups.get(text);
+    group.occurrences += 1;
+    const screen = screenLabel(row.context.screen);
+    if (screen && !group.screens.includes(screen)) group.screens.push(screen);
+    if (row.context.width_px !== null) group.widths.push(row.context.width_px);
+  });
+  return [...groups.values()].map((group) => {
+    const width_px = group.widths.length > 0 ? Math.min(...group.widths) : null;
+    return {
+      ...group,
+      context: {
+        ...group.context,
+        width_px,
+        screens: group.screens,
+      },
+    };
+  });
+}
+
+function classifyRecord(row, limits) {
+  const source = row.source_text || '';
+  const characters = checker.characterCount(source);
+  const width = row.context.width_px;
+  const named = limits && limits.keys && limits.keys[row.key];
+  const longText = characters > WRAP_MIN_CHARACTERS;
+  const buttonLike =
+    !longText &&
+    ((typeof width === 'number' && width <= BUTTON_MAX_PX) ||
+      (width === null && row.context.kind === 'button'));
+  let maxCharacters = named ? named.maxCharacters : null;
+  let status = 'no-limit';
+  let bucket = 'none';
+  if (buttonLike) {
+    maxCharacters = named ? named.maxCharacters : BUTTON_MAX_CHARACTERS;
+    status = characters > maxCharacters ? 'over' : 'ok';
+    bucket = 'button';
+  } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
+    status = 'check-wrapping';
+    bucket = 'wrap';
+    maxCharacters = named ? named.maxCharacters : null;
+  } else if (named) {
+    maxCharacters = named.maxCharacters;
+    status = characters > maxCharacters ? 'over' : 'ok';
+    bucket = 'named';
+  }
+  return {
+    key: row.key,
+    source,
+    characters,
+    widthHint: checker.displayWidth(source),
+    width_px: width,
+    maxCharacters,
+    status,
+    bucket,
+    occurrences: row.occurrences || 1,
+    screens: row.context.screens || [screenLabel(row.context.screen)].filter(Boolean),
+    component: row.context.component,
+    kind: row.context.kind,
+    description: named ? named.where || '' : '',
+    feature: row.context.feature || '',
+  };
 }
 
 function pseudoText(value) {
@@ -143,11 +244,12 @@ function pseudoText(value) {
 function checkDesignFile(filePath, options) {
   const records = readDesignFile(filePath).map(toStringRecord);
   const { kept, skipped } = splitSkipped(records, Boolean(options.includeSkipped));
+  const unique = dedupeRecords(kept);
   const limits = options.limits;
-  const lengths = checker.lengthAgainstLimits(kept, limits);
+  const lengths = unique.map((row) => classifyRecord(row, limits));
   let report = null;
   if (options.lang) {
-    report = checker.check(kept, {
+    report = checker.check(unique, {
       lang: options.lang,
       limits,
       namespaces: null,
@@ -158,7 +260,7 @@ function checkDesignFile(filePath, options) {
   }
   let pseudo = null;
   if (options.pseudo) {
-    const pseudoStrings = kept.map((row) => ({
+    const pseudoStrings = unique.map((row) => ({
       ...row,
       translations: {
         ...(row.translations || {}),
@@ -180,7 +282,10 @@ function checkDesignFile(filePath, options) {
   }
   return {
     file: filePath,
-    kept,
+    rowsRead: records.length,
+    rowsChecked: kept.length,
+    unique: unique.length,
+    kept: unique,
     skipped,
     lengths,
     report,
@@ -190,8 +295,12 @@ function checkDesignFile(filePath, options) {
 
 module.exports = {
   SKIP_KINDS,
+  BUTTON_MAX_PX,
+  BUTTON_MAX_CHARACTERS,
   parseCsv,
   readDesignFile,
   pseudoText,
+  dedupeRecords,
+  classifyRecord,
   checkDesignFile,
 };
