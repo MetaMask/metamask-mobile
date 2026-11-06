@@ -1,7 +1,7 @@
-diff --git a/node_modules/react-native-crypto/index.js b/node_modules/react-native-crypto/index.js
-index f644543..ec194d7 100644
---- a/node_modules/react-native-crypto/index.js
-+++ b/node_modules/react-native-crypto/index.js
+diff --git a/index.js b/index.js
+index f644543d689793341fff087b9e30ce84d11cf6e6..ec194d70f78c30dd932f0c272e388d7a615b8c19 100644
+--- a/index.js
++++ b/index.js
 @@ -1,6 +1,7 @@
  'use strict'
  

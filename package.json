@@ -615,7 +615,7 @@
     "react-native-branch": "^5.6.2",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-confirmation-code-field": "^7.6.1",
-    "react-native-crypto": "2.2.1",
+    "react-native-crypto": "patch:react-native-crypto@npm%3A2.2.1#~/.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch",
     "react-native-default-preference": "^1.4.3",
     "react-native-device-info": "^9.0.2",
     "react-native-elevated-view": "0.0.6",
