@@ -53,7 +53,10 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { canClaimEarnings, claimRouteOptions } from '../utils/claimEarnings';
+import {
+  claimRouteOptions,
+  showEarningsIndicator,
+} from '../utils/claimEarnings';
 import { useClaimMechanisms } from '../hooks/useFollowTradeClaimOpen';
 import {
   RewardsDashboardKind,
@@ -154,7 +157,7 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { followTradeClaimOpen, revShareClaimOpen } =
     useClaimMechanisms(profileId);
   const localizedText = referralMe?.localized_text;
-  const showEarningsDot = canClaimEarnings(
+  const showEarningsDot = showEarningsIndicator(
     earningsSummaryEntry?.data,
     claimRouteOptions(
       localizedText?.taxFormUrl,

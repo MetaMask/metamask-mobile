@@ -45,9 +45,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
 import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
 import {
-  followTradeHeldForTax,
-  revShareHeldForTax,
-} from '../../../utils/taxDocumentation';
+  canClaimEarnings,
+  claimRouteOptions,
+  incomeHeldOnOpenRoute,
+  isPendingClaimRow,
+  mergeInFlightClaims,
+  type EarningsHistoryListItem,
+} from '../../../utils/claimEarnings';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
@@ -57,13 +61,6 @@ import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
 import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
-import {
-  canClaimEarnings,
-  claimRouteOptions,
-  isPendingClaimRow,
-  mergeInFlightClaims,
-  type EarningsHistoryListItem,
-} from '../../../utils/claimEarnings';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
@@ -650,10 +647,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     revShareClaimOpen,
   );
   const claimEnabled = canClaimEarnings(summary.data, routeOptions);
-  const taxHeld =
-    (routeOptions.includeFollowTrade === true &&
-      followTradeHeldForTax(summary.data)) ||
-    (routeOptions.includeRevShare === true && revShareHeldForTax(summary.data));
+  const taxHeld = incomeHeldOnOpenRoute(summary.data, routeOptions);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>

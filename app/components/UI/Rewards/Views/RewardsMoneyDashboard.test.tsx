@@ -4,6 +4,7 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
+  MechanismsView,
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
@@ -229,6 +230,7 @@ const renderDashboard = ({
   candidateSubscriptionId = subscriptionId,
   referralMeEntry,
   earningsSummaryEntry,
+  commissionMechanisms,
 }: {
   profileId?: string;
   hasProfileId?: boolean;
@@ -246,6 +248,7 @@ const renderDashboard = ({
     error: boolean;
     data: EarningsSummaryDto | null;
   };
+  commissionMechanisms?: MechanismsView;
 } = {}) => {
   const sessionProfileId =
     identityReady && hasProfileId ? profileId : undefined;
@@ -287,6 +290,10 @@ const renderDashboard = ({
         },
       },
       rewardsMoney: {
+        commissionMechanisms:
+          hasProfileId && commissionMechanisms
+            ? { [profileId]: commissionMechanisms }
+            : {},
         referralMe: hasProfileId
           ? {
               [profileId]: referralMeEntry ?? {
@@ -743,6 +750,99 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the earnings indicator when revenue share is held for tax and its claim route is open', () => {
+    const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders no earnings indicator when tax-held revenue share has a closed claim route', () => {
+    const { queryByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
   });
 
   it('renders no earnings indicator when only a closed revenue-share balance is claimable', () => {

@@ -27,6 +27,7 @@ import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
   claimRouteOptions,
+  showEarningsIndicator,
   claimRoutesForSummary,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
@@ -218,6 +219,25 @@ describe('claimRoutesForSummary', () => {
     expect(claimRoutesForSummary(atMinimum, { includeRevShare: true })).toEqual(
       ['referral-trade-fee-cashback', 'referral-rev-share'],
     );
+  });
+
+  it('lights the indicator when an open income route is held only for tax', () => {
+    const held = summary({ claimable: '0', cashback: '0', revShare: '0' });
+    held.held = ONE_DOLLAR;
+    const revShare = held.earned_by_others.by_claim_family.REFERRAL_REV_SHARE;
+    if (revShare) {
+      revShare.held = ONE_DOLLAR;
+      revShare.blocking_reason = 'TAX_DETERMINATION_REQUIRED';
+    }
+
+    expect(showEarningsIndicator(held, { includeRevShare: true })).toBe(true);
+    expect(showEarningsIndicator(held)).toBe(false);
+    expect(
+      showEarningsIndicator(
+        { ...held, blocked: ONE_DOLLAR },
+        { includeRevShare: true },
+      ),
+    ).toBe(false);
   });
 
   it('leaves revenue share off while that claim route is closed', () => {

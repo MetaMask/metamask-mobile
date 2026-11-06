@@ -30,7 +30,12 @@ import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../../Money/utils/moneyAccountTransactions';
-import { isTaxFlowEnabled } from './taxDocumentation';
+import { isPositiveBaseUnits } from './formatUtils';
+import {
+  followTradeHeldForTax,
+  isTaxFlowEnabled,
+  revShareHeldForTax,
+} from './taxDocumentation';
 
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
@@ -242,6 +247,39 @@ export function canClaimEarnings(
   options?: ClaimRouteOptions,
 ): boolean {
   return claimRoutesForSummary(summary, options).length > 0;
+}
+
+/**
+ * True when follow-trade or revenue share is held for tax and that claim
+ * route is open. A closed route stays false even when its balance is held.
+ */
+export function incomeHeldOnOpenRoute(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  return (
+    (options?.includeFollowTrade === true && followTradeHeldForTax(summary)) ||
+    (options?.includeRevShare === true && revShareHeldForTax(summary))
+  );
+}
+
+/**
+ * True when the Earnings tab shows Claim: an open route meets the minimum,
+ * or an open income route is held only for tax documentation. A blocked
+ * balance stays off, because that card shows Paused.
+ */
+export function showEarningsIndicator(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  if (canClaimEarnings(summary, options)) {
+    return true;
+  }
+  return (
+    incomeHeldOnOpenRoute(summary, options) &&
+    isPositiveBaseUnits(summary?.held) &&
+    !isPositiveBaseUnits(summary?.blocked)
+  );
 }
 
 /**
