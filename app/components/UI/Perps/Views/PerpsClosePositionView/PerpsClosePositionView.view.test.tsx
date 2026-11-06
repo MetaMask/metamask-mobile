@@ -25,6 +25,7 @@ import {
 } from '../../Perps.testIds';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 
 const TIMEOUT_MS = 5000;
 
@@ -598,4 +599,96 @@ describe('PerpsClosePositionView', () => {
       expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
     },
   );
+
+  describe('watch-only account', () => {
+    const engine = Engine as unknown as { state: Record<string, unknown> };
+    const originalEngineState = engine.state;
+
+    afterEach(() => {
+      engine.state = originalEngineState;
+    });
+
+    it('keeps the watch-only refusal when the account turns watch-only while the form is open', async () => {
+      const closePosition = Engine.context.PerpsController
+        .closePosition as jest.Mock;
+      const position = createLongPositionForViews();
+      const view = renderPerpsClosePositionView({
+        includeToasts: true,
+        initialParams: { position },
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [position],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+      act(() => {
+        view.stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(() => {
+        expect(confirmButton).not.toBeDisabled();
+      });
+
+      // The Engine publishes the selected account's keyring change to Redux.
+      act(() => {
+        const accounts =
+          view.store.getState().engine.backgroundState.AccountsController;
+        const selectedId = accounts.internalAccounts.selectedAccount;
+        const selected = accounts.internalAccounts.accounts[selectedId];
+        engine.state = {
+          ...engine.state,
+          AccountsController: {
+            ...accounts,
+            internalAccounts: {
+              ...accounts.internalAccounts,
+              accounts: {
+                ...accounts.internalAccounts.accounts,
+                [selectedId]: {
+                  ...selected,
+                  metadata: {
+                    ...selected.metadata,
+                    keyring: { type: 'watch-only' },
+                  },
+                },
+              },
+            },
+          },
+        };
+        view.store.dispatch(updateBgState({ key: 'AccountsController' }));
+      });
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      expect(
+        await screen.findByText(
+          strings('watch_only.blocked_message'),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('watch_only.blocked_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.close_position.failed_to_close_position'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(closePosition).not.toHaveBeenCalled();
+      expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+    });
+  });
 });

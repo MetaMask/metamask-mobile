@@ -6,6 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsOrderDetailsView from './PerpsOrderDetailsView';
+import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
 import { type Order } from '@metamask/perps-controller';
 
 let mockRouteParams: { order?: Order } = {};
@@ -514,7 +515,9 @@ describe('PerpsOrderDetailsView', () => {
     mockGuardWatchOnly.mockReturnValue(true);
     render(<PerpsOrderDetailsView />);
 
-    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+    fireEvent.press(
+      screen.getByTestId(PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON),
+    );
 
     await waitFor(() => {
       expect(mockGuardWatchOnly).toHaveBeenCalled();
