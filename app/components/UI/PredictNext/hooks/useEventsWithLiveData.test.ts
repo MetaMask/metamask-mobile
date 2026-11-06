@@ -163,7 +163,8 @@ describe('useEventsWithLiveData', () => {
     mockCall.mockClear();
     mockSubscribe.mockReset();
     mockUnsubscribe.mockClear();
-    jest.useFakeTimers();
+    // The throttle starts its cooldown from a microtask at the end of the turn.
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   });
 
   afterEach(() => {

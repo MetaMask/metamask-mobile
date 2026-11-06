@@ -260,8 +260,7 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
       flush();
       if (!turnOpen) {
         turnOpen = true;
-        // A Promise, not a timer: Jest fake timers must not hold it back.
-        Promise.resolve().then(() => {
+        queueMicrotask(() => {
           turnOpen = false;
           if (!disposed) {
             cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
