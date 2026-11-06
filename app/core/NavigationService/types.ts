@@ -720,6 +720,10 @@ export type RootStackParamList = {
   RewardsMoneyTermsSheet:
     | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
+  RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
+  RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
+  RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
+  RewardsTaxFormView: RewardsNavigationParamList['RewardsTaxFormView'];
   /**
    * Post-accept confirmation. Registered on the root stack so it can fade
    * over the Money dashboard after the invite sheet dismisses.
