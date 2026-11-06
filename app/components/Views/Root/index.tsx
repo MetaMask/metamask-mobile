@@ -35,8 +35,8 @@ import {
 } from '../../../messengers/ui-messenger';
 
 // Only enabled via `MM_PERPS_LIGHTER_PROVIDER_ENABLED=true`; otherwise the
-// embedded signer is dead-code-eliminated out of release bundles (and resolved
-// to an empty module in dev bundles, see metro.config.js).
+// embedded signer is dead-code-eliminated out of release bundles. Keep this a
+// literal `process.env` comparison so Metro can constant-fold it.
 const LighterSignerWebView: React.ComponentType | null =
   process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
     ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the ~10 MB embedded signer out of bundles that don't opt in
