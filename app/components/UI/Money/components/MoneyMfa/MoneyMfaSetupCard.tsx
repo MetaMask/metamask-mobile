@@ -33,13 +33,13 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
 
   return (
     <Box
-      twClassName="mx-4 mt-4 flex-row gap-3 rounded-xl bg-muted p-4"
+      twClassName="mx-4 mt-4 mb-2 flex-row gap-4 rounded-2xl bg-muted p-4"
       testID={MoneyMfaTestIds.SETUP_CARD}
     >
-      <Box twClassName="h-8 w-8 items-center justify-center rounded-full bg-default">
+      <Box twClassName="h-9 w-9 items-center justify-center rounded-full bg-muted">
         <Icon
           name={IconName.SecurityTick}
-          size={IconSize.Sm}
+          size={IconSize.Md}
           color={IconColor.SuccessDefault}
         />
       </Box>
@@ -52,7 +52,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
         </Text>
         <Button
           variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
+          size={ButtonSize.Md}
           onPress={onSetUp}
           isLoading={isStarting}
           isDisabled={isStarting}

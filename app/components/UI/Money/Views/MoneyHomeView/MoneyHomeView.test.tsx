@@ -2088,6 +2088,21 @@ describe('MoneyHomeView', () => {
       expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
     });
 
+    it('renders the setup card above the VBA card', () => {
+      mockMfaStatus('not_set_up');
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expectTestIdBefore(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
+        MoneyMfaTestIds.SETUP_CARD,
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
+      );
+    });
+
     it('turns on 2-step verification when the setup card is pressed', () => {
       mockMfaStatus('not_set_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);

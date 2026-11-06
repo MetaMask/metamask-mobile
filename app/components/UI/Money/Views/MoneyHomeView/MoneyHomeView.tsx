@@ -1208,12 +1208,12 @@ const MoneyHomeView = () => {
               : undefined
           }
         />
-        {vbaHomeCard.type !== 'none' && (
-          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
-        )}
         {mfaStatus === 'not_set_up' ? (
           <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
         ) : null}
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        )}
         <MoneyOnboardingCard isGlass={isGlass} />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
