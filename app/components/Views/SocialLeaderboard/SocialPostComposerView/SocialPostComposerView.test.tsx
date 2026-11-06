@@ -31,10 +31,11 @@ jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   default: () => true,
 }));
 
+const mockTrackComposerInteraction = jest.fn();
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialInteraction: () => jest.fn(),
-  useSocialScreenAnalytics: () => jest.fn(),
+  useSocialScreenAnalytics: () => mockTrackComposerInteraction,
 }));
 
 const mockHeaderRender = jest.fn();
@@ -604,6 +605,14 @@ describe('SocialPostComposerView', () => {
         source: 'metamask-mobile',
       });
     });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith('post_shared', {
+      share_destination: 'metamask_post',
+      trade_type: 'spot',
+    });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_submitted',
+      expect.not.objectContaining({ share_destination: expect.anything() }),
+    );
 
     await waitFor(() => {
       expect(getPendingPostsSnapshot()[0]?.post.gifUri).toBe(

@@ -109,10 +109,10 @@ import {
   SocialEvent,
   useSocialInteraction,
   useSocialScreenAnalytics,
-  type SocialEventSource,
 } from '../analytics';
+import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
 
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, ShareDestination, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
 
 const getPreviousRoute = (
@@ -456,14 +456,7 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
-  const analyticsSource: SocialEventSource | undefined =
-    routeParams?.entryPoint === 'perps'
-      ? Source.PERP_ASSET_SCREEN
-      : routeParams?.entryPoint === 'token_details'
-        ? Source.ASSET_DETAILS
-        : tradeInFlightParams
-          ? Source.TRADER_FEED
-          : undefined;
+  const analyticsSource = resolvePostComposerAnalyticsSource(routeParams);
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: analyticsSource,
   });
@@ -691,6 +684,10 @@ const SocialPostComposerView: React.FC = () => {
       ]);
       trackInteraction(Interaction.POST_SUBMITTED, {
         outcome: Outcome.SUCCESS,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
+      trackInteraction(Interaction.POST_SHARED, {
+        share_destination: ShareDestination.METAMASK_POST,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       if (openFeedAfterPost) {
