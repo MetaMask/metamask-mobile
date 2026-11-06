@@ -1,0 +1,72 @@
+{
+  "scenario": "swap-eth-to-usdc",
+  "generatedFrom": "Hand-written for the PoC from tests/page-objects (WalletView, QuoteView) and their selector constants. A generator would produce the same shape from the Page Object AST plus a runtime selector trace.",
+  "steps": {
+    "open-swap": {
+      "text": "Tap the Swap button on the wallet home",
+      "action": "tap",
+      "binding": "WalletView.tapWalletSwapButton",
+      "source": "tests/page-objects/wallet/WalletView.ts#tapWalletSwapButton",
+      "locators": [
+        {
+          "strategy": "testID",
+          "value": "wallet-swap-button",
+          "source": "WalletViewSelectorsIDs.WALLET_SWAP_BUTTON (app/components/Views/Wallet/WalletView.testIds.ts)"
+        }
+      ]
+    },
+    "swap-screen-visible": {
+      "text": "The swap screen with the source amount input is visible",
+      "action": "assertVisible",
+      "binding": "QuoteView.isVisible",
+      "source": "tests/page-objects/swaps/QuoteView.ts#isVisible",
+      "locators": [
+        {
+          "strategy": "testID",
+          "value": "source-token-area-input",
+          "source": "QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT (tests/selectors/Bridge/QuoteView.selectors.ts)"
+        }
+      ]
+    },
+    "pick-destination": {
+      "text": "Select USDC on Ethereum as the destination token",
+      "action": "macro",
+      "binding": "QuoteView.selectNetworkAndTokenTo",
+      "source": "tests/page-objects/swaps/QuoteView.ts#selectNetworkAndTokenTo (tapDestinationToken, selectNetwork, typeSearchToken, tapToken)",
+      "locators": []
+    },
+    "enter-amount": {
+      "text": "Enter 0.01 as the source amount",
+      "action": "macro",
+      "binding": "QuoteView.enterSourceTokenAmount",
+      "source": "tests/page-objects/swaps/QuoteView.ts#enterSourceTokenAmount (tapSourceAmountInput, keypad delete, enterAmount)",
+      "locators": []
+    },
+    "close-keypad": {
+      "text": "Dismiss the amount keypad",
+      "action": "tap",
+      "binding": "QuoteView.dismissKeypad",
+      "source": "tests/page-objects/swaps/QuoteView.ts#dismissKeypad",
+      "locators": [
+        {
+          "strategy": "testID",
+          "value": "quote-keypad-dismiss-target",
+          "source": "QuoteViewSelectorIDs.QUOTE_KEYPAD_DISMISS_TARGET (tests/selectors/Bridge/QuoteView.selectors.ts)"
+        }
+      ]
+    },
+    "quote-visible": {
+      "text": "A quote with a positive destination amount is displayed",
+      "action": "assertVisible",
+      "binding": "QuoteView.isQuoteDisplayed",
+      "source": "tests/page-objects/swaps/QuoteView.ts#isQuoteDisplayed (waitForQuoteReady: numeric destination amount)",
+      "locators": [
+        {
+          "strategy": "testID",
+          "value": "dest-token-area-input",
+          "source": "QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT (tests/selectors/Bridge/QuoteView.selectors.ts); diagnosis only, does not check the amount"
+        }
+      ]
+    }
+  }
+}
