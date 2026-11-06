@@ -172,12 +172,21 @@ export interface RewardOptInAccountGroupModalParams {
 }
 
 /**
+ * How a referral link's code reached the invite, reported as `entry_type`.
+ * `restored_context` is a Branch deferred deeplink (the first session after
+ * installing from the link); `deeplink` is any other link.
+ */
+export type MoneyReferralEntryType = 'deeplink' | 'restored_context';
+
+/**
  * Params for `RewardsMoneyInviteSheet`.
  * `referralCode` prefills the sheet when the caller already has a code
  * (deeplink or onboarding); it is absent when the user opens it to type one.
+ * `entryType` is set when the code came from a referral link.
  */
 export interface RewardsMoneyInviteSheetParams {
   referralCode?: string;
+  entryType?: MoneyReferralEntryType;
 }
 
 /**

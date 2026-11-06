@@ -107,8 +107,9 @@ const isAtEnd = ({
     contentSize.height - SCROLL_END_THRESHOLD;
 
 /**
- * Social Supplemental Terms consent sheet. The user must scroll to the end
- * before the checkbox enables, and check it before Agree enables. A circular
+ * Social Supplemental Terms consent sheet. The first tap on the agreement
+ * checkbox scrolls the terms to the end. Once that end has been reached, the
+ * next tap checks it, and Agree stays disabled until it is checked. A circular
  * button jumps to that end and hides while the end is already on screen.
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
@@ -177,6 +178,17 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       }
     },
     [markReachedEnd, viewportHeight],
+  );
+
+  const handleCheckboxChange = useCallback(
+    (next: boolean) => {
+      if (!hasReachedEnd) {
+        scrollToBottom();
+        return;
+      }
+      setIsChecked(next);
+    },
+    [hasReachedEnd, scrollToBottom],
   );
 
   const handleWebViewMessage = useCallback(
@@ -267,8 +279,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       <Box twClassName="px-4 pt-4 pb-6 gap-4">
         <Checkbox
           isSelected={isChecked}
-          isDisabled={!hasReachedEnd}
-          onChange={setIsChecked}
+          onChange={handleCheckboxChange}
           label={strings('social_leaderboard.terms.checkbox')}
           labelProps={{ style: { flex: 1 } }}
           testID={SocialTermsSheetSelectorsIDs.CHECKBOX}

@@ -80,7 +80,17 @@ A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaig
 
 Campaign data, statistics, leaderboards and the Rewards controller stay Rewards-owned. Only navigation and eligibility come from Predict.
 
-A surface hides an action its intent cannot open: Money hides the Predictions-account transfer while `canOpenPredict({ type: 'addFunds' })` is false. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+A surface hides an action its intent cannot open. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+
+### Funding entry points (PRED-1388)
+
+Money's Predictions-account transfer, pay-with's Predict source (the Predict balance row and its Add button) and the Predict deposit Money starts are legacy Polymarket funding. They stay legacy execution until PRED-1356; PredictNext only decides whether they may appear.
+
+- `usePredictLegacyDeposit()` returns `isAvailable` and `isAvailableNow()`. It is true only when Predict is available for the Active Venue (`selectPredictAvailability`), the Active Venue's implementation is `legacy`, and that Venue's descriptor lists `deposit`. While Kalshi is active, or while the Active Venue is resolving, it is false and the surface renders no entry point at all.
+- `isAvailableNow()` re-reads the store. A deposit that runs after a delay checks it when it runs: Money's transfer deferred behind a rejected confirmation, the deposit Money starts once its sheet has closed, and pay-with's Add before it rejects the confirmation. An Active Venue change in between drops the action instead of starting the legacy deposit on the wrong implementation.
+- `usePredictLegacyDepositEligibility()` is Polymarket's region eligibility, which Money also requires before it offers the transfer.
+
+Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry is empty until PRED-1161 (deposit) and PRED-1163 (withdraw) ship real flows, so a descriptor that lists `deposit` early still shows nothing. Those tickets add the `next` flow and its own entry points. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
 
 ## Rules for the Venue switch
 
@@ -113,13 +123,18 @@ The Homepage Predictions section becomes a Predict-owned component, `PredictHome
 
 The BalanceBreakdown Predict slice stays Homepage code and calls `usePredictPortfolioValue()`.
 
+For a next Venue (PRED-1406, PRED-1407) the section has the Polymarket layout over canonical reads. With open Positions it lists the top ones by value under the Summary PnL. Without them, or when they fail to load, it shows discovery: the trending-carousel layout, filled with the Events of each `homepageSlots` row in `capabilities/surfaceFeedKeys.ts` whose Feed key the Venue's descriptor has. A slot without a key is absent, and pinned championship Events are Polymarket Events, so no next Venue shows them. Card presses open an `event` intent, and outcome presses open the PredictNext Order flow, which the section mounts over the Homepage. Discovery renders through the same `wallet-home.predict-empty-state` UI Slot. Under a next Venue, the registered widget keeps only the assignment items a Feed can fill, and an assignment that names none falls back to the Venue's default slots. It does not join the Polymarket empty-state A/B test.
+
 ## Explore (TrendingView) prediction sections
 
-PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. Explore renders it through `trending/`:
+PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. PRED-1408 filled the next branch. Explore renders both through `trending/`:
 
-- `usePredictTrendingFeed` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. The legacy branch passes the moved hooks through. While the Active Venue resolves, and for next Venues until PRED-1408, they return nothing and keep the legacy hooks disabled.
-- `usePredictTrendingSupported` tells a caller to leave a section out rather than render it empty: the Sports tab's All Sports list and the search Predictions pill. Predict availability stays the caller's own gate, as before.
-- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets.
+- `usePredictTrendingFeed({ tab, query })` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. Both implementations' hooks always run, and only the active one is enabled, so a Venue change swaps the markets on the same render. While the Active Venue resolves they return nothing.
+- A tab (`now`, `macro`, `rwas`, `crypto`, `sports`) names a Feed key through `PREDICT_SURFACE_FEED_KEYS.exploreTabs`. On the legacy lane that key is the legacy feed category, passed through unchanged. A next Venue reads the Feed its descriptor maps the key to, and nothing when the descriptor lacks it: the section is left out, never filled from another Feed or Venue. Kalshi V1 maps only `sports`, so only the Sports tab has a Predictions section.
+- A query searches. A next Venue searches with `useSearchEvents` when its descriptor supports search. That search is unpaginated (no `fetchMore`, `total` is the result count); Polymarket's paginated search is unchanged.
+- An Explore refresh refetches only the active read. The next branch invalidates through the data service, so it reads the backend, and records triggers while inactive, so a Venue change never replays one.
+- `usePredictTrendingSupported(surface)` tells a caller to leave a surface out rather than render it empty. `search` (the search Predictions pill) follows the descriptor's search support. `allSports` (the Sports tab's All Sports list) is legacy-only: its sports are Polymarket tags, not Feed keys. Predict availability stays the caller's own gate, as before.
+- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets. A next Venue's market renders the PredictNext Event card in the Polymarket layout: a card press opens the `event` intent, and a buy press opens the PredictNext Order Flow, which the carousel or card hosts. Both are refused for a market whose Venue is no longer the Active Venue. Explore's analytics are unchanged; a next Event reports its id and title, as it has no slug or tags.
 
 ## Canonical decisions that remain
 

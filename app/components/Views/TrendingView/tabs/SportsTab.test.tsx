@@ -10,6 +10,7 @@ import {
   selectPredictAvailability,
 } from '../../../UI/PredictNext';
 import SportsTab from './SportsTab';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 
 const mockNavigate = jest.fn();
@@ -60,6 +61,11 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
     fetchMore: jest.fn(),
   },
 }));
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictTrendingSupported',
+  () => ({ usePredictTrendingSupported: () => true }),
+);
+
 jest.mock(
   '../../../UI/PredictNext/trending/usePredictSportsMarketsFeed',
   () => ({
@@ -117,7 +123,9 @@ describe('SportsTab', () => {
     renderSportsTab();
 
     fireEvent.press(
-      screen.getByTestId('section-header-view-all-sports_predictions'),
+      screen.getByTestId(
+        TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_SPORTS_PREDICTIONS,
+      ),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {

@@ -9,6 +9,7 @@ import {
   MarketStandardCard,
   MoneylineMarketGroupCard,
   SpreadMarketGroupCard,
+  ThresholdMarketGroupCard,
   TotalMarketGroupCard,
 } from '../../../events/markets';
 import type {
@@ -89,8 +90,8 @@ const getTeamTotalTitle = (
 };
 
 /**
- * A moneyline backs a different Team (or the tie) on every row. A Player's
- * thresholds all back one Team, and a single row can't tell, so neither is one.
+ * A moneyline backs a different Team (or the tie) on every row. Rows that all
+ * back one Team, or a single row, can't tell, so neither is one.
  */
 const isMoneyline = (markets: readonly PredictMarket[]): boolean => {
   const selections = markets.map(
@@ -104,8 +105,7 @@ const isMoneyline = (markets: readonly PredictMarket[]): boolean => {
 };
 
 /**
- * A choice card read from its outcome labels, such as a Player's thresholds:
- * each row in the color of the Team its yes side backs, without an avatar;
+ * A choice card read from its outcome labels: each row in the color of the Team its yes side backs, without an avatar;
  * neutral without a Game or a Team. Untitled when the backend sent no label.
  */
 const LabelledChoiceCard = ({
@@ -139,7 +139,8 @@ const LabelledChoiceCard = ({
 
 /**
  * Renders one projected card with the component for its group's shape. Line
- * pickers have no title or rules button: the section header names them.
+ * pickers have no title or rules button: the section header names them. A
+ * threshold picker is the exception: it's titled with its label and line.
  */
 export const EventMarketLayoutCard = ({
   card,
@@ -209,6 +210,10 @@ export const EventMarketLayoutCard = ({
       return <SpreadMarketGroupCard {...groupProps} game={game} />;
     case PREDICT_MARKET_TYPES.TOTAL:
       return <TotalMarketGroupCard {...groupProps} />;
+    case PREDICT_MARKET_TYPES.THRESHOLD:
+      return (
+        <ThresholdMarketGroupCard {...groupProps} onRulesPress={onRulesPress} />
+      );
     case PREDICT_MARKET_TYPES.TEAM_TOTAL:
       return (
         <TotalMarketGroupCard
