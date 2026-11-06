@@ -1,4 +1,4 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { getSwapAgainLabel } from './swapAgainLabel';
 
 describe('getSwapAgainLabel', () => {
