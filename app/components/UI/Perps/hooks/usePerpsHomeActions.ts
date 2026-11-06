@@ -7,7 +7,11 @@ import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPerpsEligibility } from '../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import type {
   ConfirmationLaunchSource,
@@ -18,6 +22,8 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -38,6 +44,24 @@ import {
   usePerpsAccountSupport,
   type UsePerpsAccountSupportReturn,
 } from './usePerpsAccountSupport';
+
+/**
+ * Withdrawals omit providerId, so Core signs with the active provider, or
+ * with Hyperliquid when that provider is the aggregated router. Name that
+ * venue on the support check. Anything else stays on the Hyperliquid default
+ * instead of sending a route a direct provider would reject.
+ */
+const resolveWithdrawalProviderId = (
+  activeProvider: PerpsActiveProviderMode | undefined,
+): PerpsProviderType => {
+  if (
+    activeProvider === PROVIDER_CONFIG.DefaultProvider ||
+    activeProvider === PROVIDER_CONFIG.LighterProvider
+  ) {
+    return activeProvider;
+  }
+  return PROVIDER_CONFIG.DefaultProvider;
+};
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -116,6 +140,8 @@ export const usePerpsHomeActions = (
   const perpsWithdrawConfig = useSelector((state: RootState) =>
     selectPayQuoteConfig(state, 'perpsWithdraw'),
   );
+  const activePerpsProvider = useSelector(selectPerpsProvider);
+  const withdrawalProviderId = resolveWithdrawalProviderId(activePerpsProvider);
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
   const {
@@ -329,7 +355,7 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      const support = await checkAccountSupport();
+      const support = await checkAccountSupport(withdrawalProviderId);
       if (support !== 'supported' || !navigation.isFocused()) {
         return;
       }
@@ -384,6 +410,7 @@ export const usePerpsHomeActions = (
     track,
     buttonLocation,
     checkAccountSupport,
+    withdrawalProviderId,
   ]);
 
   const closeEligibilityModal = useCallback(() => {

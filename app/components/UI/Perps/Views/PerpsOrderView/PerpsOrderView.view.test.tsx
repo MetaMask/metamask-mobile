@@ -302,6 +302,49 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
+  it('checks and places a full-screen order on the route venue', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        providerId: 'lighter',
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    getAccountSupport.mockClear();
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(getAccountSupport).toHaveBeenCalledWith({
+        providerId: 'lighter',
+      });
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          providerId: 'lighter',
+        }),
+      );
+    });
+  });
+
   it('blocks an unsupported full-screen order and dismisses the explanation', async () => {
     const getAccountSupport = jest.mocked(
       Engine.context.PerpsController.getAccountSupport,
