@@ -6,6 +6,7 @@ import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
+import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
@@ -62,7 +63,7 @@ const renderWithVariant = (
     limitOrderFlag = false,
   } = options;
 
-  const remoteFeatureFlags: Record<string, unknown> = {};
+  const remoteFeatureFlags: FeatureFlags = {};
   if (variant) {
     remoteFeatureFlags[PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY] = variant;
   }
@@ -84,7 +85,7 @@ const renderWithVariant = (
               },
             },
           },
-        } as unknown as DeepPartial<RootState>)
+        } satisfies DeepPartial<RootState>)
       : undefined,
     streamOverrides: {
       account: createFundedAccountForViews('10000'),
