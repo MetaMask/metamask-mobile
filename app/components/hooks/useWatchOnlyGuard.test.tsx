@@ -6,6 +6,8 @@ import { ToastVariants } from '../../component-library/components/Toast/Toast.ty
 import { strings } from '../../../locales/i18n';
 import { useWatchOnlyGuard } from './useWatchOnlyGuard';
 
+const MISSING_TRANSLATION = /\[missing ".*" translation\]/;
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -64,6 +66,10 @@ describe('useWatchOnlyGuard', () => {
 
     expect(result.current.isWatchOnly).toBe(true);
     expect(refused).toBe(true);
+    const { labelOptions } = mockShowToast.mock.calls[0][0];
+    for (const { label } of labelOptions) {
+      expect(label).not.toMatch(MISSING_TRANSLATION);
+    }
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.Plain,

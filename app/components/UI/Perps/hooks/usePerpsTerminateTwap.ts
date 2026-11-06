@@ -24,6 +24,7 @@ import {
 } from '../utils/perpsCufTrace';
 import { getTwapOrderProviderId } from '../utils/twapOrderUtils';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 export interface UsePerpsTerminateTwapOptions {
   /** Invoked after the venue accepts the termination. */
@@ -51,6 +52,7 @@ export const usePerpsTerminateTwap = (
 ): UsePerpsTerminateTwapReturn => {
   const { onSuccess, onError } = options;
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const network = useSelector(selectPerpsNetwork);
   const { key: marketContextKey } = usePerpsMarketContext();
@@ -86,7 +88,7 @@ export const usePerpsTerminateTwap = (
 
   const terminateTwap = useCallback(
     async (twapOrder: TwapOrder): Promise<void> => {
-      if (inFlightOperationRef.current) {
+      if (inFlightOperationRef.current || guardWatchOnly()) {
         return;
       }
 
@@ -218,7 +220,15 @@ export const usePerpsTerminateTwap = (
         }
       }
     },
-    [PerpsToastOptions, identityKey, network, onError, onSuccess, showToast],
+    [
+      PerpsToastOptions,
+      guardWatchOnly,
+      identityKey,
+      network,
+      onError,
+      onSuccess,
+      showToast,
+    ],
   );
 
   return { isTerminationInFlight, terminateTwap };

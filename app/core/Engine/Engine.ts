@@ -723,7 +723,13 @@ export class Engine {
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
-      WatchOnlyAccountService: messengerClientsByName.WatchOnlyAccountService,
+      // Only constructed in dev builds with the watch-only gate on.
+      ...(messengerClientsByName.WatchOnlyAccountService
+        ? {
+            WatchOnlyAccountService:
+              messengerClientsByName.WatchOnlyAccountService,
+          }
+        : {}),
     };
 
     const childControllers = Object.assign({}, this.context);

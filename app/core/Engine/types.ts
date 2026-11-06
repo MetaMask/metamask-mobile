@@ -624,6 +624,7 @@ type RequiredControllers = Omit<
   | 'ComplianceService'
   | 'KycService'
   | 'ChompApiService'
+  | 'WatchOnlyAccountService'
 >;
 
 /**
@@ -642,6 +643,7 @@ type OptionalControllers = Pick<
   | 'ComplianceService'
   | 'KycService'
   | 'ChompApiService'
+  | 'WatchOnlyAccountService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
