@@ -29,16 +29,25 @@
   ],
   "controlAncestors": [
     "Button",
+    "Buttons",
     "ButtonBase",
     "Button Label",
+    "Button Group",
     "FilterButton",
+    "Segmented",
     "Segmented Control",
     "Tab",
+    "Tabs",
     "TabsBar",
     "Chip",
-    "Pill"
+    "Chips",
+    "Pill",
+    "Pills",
+    "CTA",
+    "Action",
+    "Actions"
   ],
-  "tabAncestors": ["Tab", "TabsBar"],
+  "tabAncestors": ["Tab", "Tabs", "TabsBar"],
   "buttonMarker": "[button]",
   "dataPatterns": [
     "\\$",

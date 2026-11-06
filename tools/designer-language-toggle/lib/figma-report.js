@@ -44,6 +44,12 @@ function realTranslations(source, index, sharedFlats, langs) {
   return { keyCount: keys.length, perLang };
 }
 
+function textOverLimit(text, row) {
+  if (typeof row.maxUnits === 'number') return checker.displayWidth(text) > row.maxUnits;
+  const limit = row.maxCharacters || 10;
+  return checker.characterCount(text) > limit;
+}
+
 function buildBreakReport(lengths, options) {
   const langs = options.langs || [];
   const shared = options.sharedFlats || {};
@@ -68,11 +74,11 @@ function buildBreakReport(lengths, options) {
       basis: real ? 'real' : 'estimate',
       real,
     };
-    if (row.characters > limit) {
+    if (textOverLimit(row.source, row)) {
       alreadyOver.push(item);
       return;
     }
-    if (real && langs.some((lang) => real.perLang[lang] && real.perLang[lang].characters > limit)) {
+    if (real && langs.some((lang) => real.perLang[lang] && textOverLimit(real.perLang[lang].text, row))) {
       breaks.push(item);
       return;
     }

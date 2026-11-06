@@ -186,19 +186,66 @@ function dedupeRecords(records) {
   });
 }
 
-function classifyRecord(row, limits) {
+function taggedMax(layerName) {
+  const match = String(layerName || '').match(/\[max:\s*(\d+)\]/i);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function learnedMax(row, learned) {
+  const items = (learned && learned.limits) || [];
+  const hit = items.find((item) => {
+    if (!item || typeof item.maxCharacters !== 'number' || item.maxCharacters < 1) return false;
+    if (item.key && item.key === row.key) return true;
+    return Boolean(item.source_text) && item.source_text === row.source_text;
+  });
+  return hit ? hit.maxCharacters : null;
+}
+
+function wideBudget(source, width, limits) {
+  const characters = checker.characterCount(source);
+  const units = Math.max(checker.displayWidth(source), 1);
+  const ratio = limits && typeof limits.ratio === 'number' ? limits.ratio : 1.4;
+  const minDelta = limits && typeof limits.minDelta === 'number' ? limits.minDelta : 4;
+  // px per unit is this string's own width divided by its display width.
+  // The measured box already fits that many units, so the English is not over.
+  const rawBudget = width > 0 ? Math.max(units * ratio, units + minDelta) : units;
+  const budgetUnits = Math.round(rawBudget * 10) / 10;
+  return {
+    maxCharacters: Math.max(characters, Math.floor(budgetUnits)),
+    maxUnits: budgetUnits,
+  };
+}
+
+function exceedsBudget(text, maxCharacters, maxUnits) {
+  if (typeof maxUnits === 'number') return checker.displayWidth(text) > maxUnits;
+  return checker.characterCount(text) > maxCharacters;
+}
+
+function classifyRecord(row, limits, learned) {
   const source = row.source_text || '';
   const characters = checker.characterCount(source);
   const width = row.context.width_px;
   const named = limits && limits.keys && limits.keys[row.key];
   const longText = characters > WRAP_MIN_CHARACTERS;
   const control = row.context.kind === 'button' || row.context.kind === 'tab';
-  let maxCharacters = named ? named.maxCharacters : null;
+  const override = taggedMax(row.context.component) ?? learnedMax(row, learned) ?? (named ? named.maxCharacters : null);
+  let maxCharacters = override;
+  let maxUnits = null;
   let status = 'no-limit';
   let bucket = 'label';
   if (control) {
-    maxCharacters = named ? named.maxCharacters : BUTTON_MAX_CHARACTERS;
-    status = characters > maxCharacters ? 'over' : 'ok';
+    if (override === null) {
+      const narrow = typeof width !== 'number' || width <= BUTTON_MAX_PX;
+      if (narrow) maxCharacters = BUTTON_MAX_CHARACTERS;
+      else {
+        const budget = wideBudget(source, width, limits);
+        maxCharacters = budget.maxCharacters;
+        maxUnits = budget.maxUnits;
+      }
+    }
+    status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
     bucket = row.context.kind === 'tab' ? 'tab' : 'button';
   } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
     status = 'check-wrapping';
@@ -218,6 +265,7 @@ function classifyRecord(row, limits) {
     widthHint: checker.displayWidth(source),
     width_px: width,
     maxCharacters,
+    maxUnits,
     status,
     bucket,
     occurrences: row.occurrences || 1,
@@ -233,7 +281,7 @@ function pseudoControlHits(lengths) {
   return lengths.filter((row) => {
     if (row.bucket !== 'button' && row.bucket !== 'tab') return false;
     const limit = row.maxCharacters || BUTTON_MAX_CHARACTERS;
-    return checker.characterCount(pseudoText(row.source)) > limit;
+    return exceedsBudget(pseudoText(row.source), limit, row.maxUnits);
   });
 }
 function pseudoText(value) {
@@ -256,7 +304,7 @@ function checkDesignFile(filePath, options) {
   const { kept, skipped } = splitSkipped(records, Boolean(options.includeSkipped));
   const unique = dedupeRecords(kept);
   const limits = options.limits;
-  const lengths = unique.map((row) => classifyRecord(row, limits));
+  const lengths = unique.map((row) => classifyRecord(row, limits, options.learned));
   let report = null;
   if (options.lang) {
     report = checker.check(unique, {
@@ -314,5 +362,6 @@ module.exports = {
   pseudoControlHits,
   dedupeRecords,
   classifyRecord,
+  exceedsBudget,
   checkDesignFile,
 };

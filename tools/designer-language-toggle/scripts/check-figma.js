@@ -73,7 +73,7 @@ function printReport(report, langs) {
   });
   console.log('');
   console.log(
-    `Fits: ${report.fits.length} short controls stay within 10 characters in the languages you asked about, or in the 1.4× estimate when the English is new.`,
+    `Fits: ${report.fits.length} controls stay within their limit in the languages you asked about, or in the 1.4× estimate when the English is new.`,
   );
 }
 

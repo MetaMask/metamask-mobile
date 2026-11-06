@@ -1,6 +1,9 @@
 # Changelog
 
-- The 10-character limit applies only to real controls: text under Button, ButtonBase, Button Label, FilterButton, Segmented Control, Tab, TabsBar, Chip, or Pill, plus any layer marked `[button]`. Ancestor names match as whole words, so a Table frame is not a tab. Other narrow text is a label or a wrap check, and it is not "already over in English". Exactly 10 characters still fits. Placeholder names, including Team A inside a longer string, are editable in `placeholderPatterns`. Odds, scores, clocks, dates, decimals, and similar figures are skipped. Ship matching ignores English shorter than 3 characters or made only of punctuation, and it requires the same text after trimming. `--pseudo` measures the button and tab bucket against that 10-character limit.
+- Control names match as tokens, including plurals and camelCase. Buttons, Button Group, PrimaryButton, CTA, CTAs, Actions, Tabs, Chips, Pills, and Segmented count. Buttonhole and Table do not. The list is `controlAncestors` and `tabAncestors` in `references/figma-rules.json`.
+- Controls wider than 120px no longer use a flat 10-character limit. The budget comes from the measured width and the English string's display width, plus the checker's 1.4× and 4-unit headroom. English that fits the box is not already over. A longer translation is flagged when it exceeds that width. `[max:N]` on the layer name, or `maxCharacters` in `references/learned/limits.json`, overrides the budget.
+
+- The 10-character limit applies only to real controls, plus any layer marked `[button]`. Other narrow text is a label or a wrap check, and it is not "already over in English". Placeholder names, including Team A inside a longer string, are editable in `placeholderPatterns`. Odds, scores, clocks, dates, decimals, and similar figures are skipped. Ship matching ignores English shorter than 3 characters or made only of punctuation, and it requires the same text after trimming. `--pseudo` measures the button and tab bucket against that control's limit.
 
 ## v0.2 slice B
 

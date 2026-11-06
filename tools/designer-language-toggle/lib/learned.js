@@ -22,10 +22,12 @@ function loadLearned(dir) {
     path.join(root, 'preferred-phrasing.json'),
     [],
   );
+  const limits = readJson(path.join(root, 'limits.json'), []);
   return {
     corrections: Array.isArray(corrections) ? corrections : [],
     neverTranslate: Array.isArray(neverTranslate) ? neverTranslate : [],
     preferredPhrasing: Array.isArray(preferredPhrasing) ? preferredPhrasing : [],
+    limits: Array.isArray(limits) ? limits : [],
   };
 }
 

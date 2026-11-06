@@ -37,16 +37,25 @@ const DEFAULT_RULES = {
   ],
   controlAncestors: [
     'Button',
+    'Buttons',
     'ButtonBase',
     'Button Label',
+    'Button Group',
     'FilterButton',
+    'Segmented',
     'Segmented Control',
     'Tab',
+    'Tabs',
     'TabsBar',
     'Chip',
+    'Chips',
     'Pill',
+    'Pills',
+    'CTA',
+    'Action',
+    'Actions',
   ],
-  tabAncestors: ['Tab', 'TabsBar'],
+  tabAncestors: ['Tab', 'Tabs', 'TabsBar'],
   buttonMarker: '[button]',
   dataPatterns: [
     '\\$',
@@ -180,14 +189,38 @@ function isDataText(text, patterns) {
   return patterns.some((pattern) => pattern.test(value));
 }
 
+function tokenize(value) {
+  return String(value || '')
+    .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+}
+
+function sameToken(left, right) {
+  if (left === right) return true;
+  if (left === `${right}s`) return true;
+  if (right === `${left}s`) return true;
+  return false;
+}
+
 function ancestorMatches(framePath, names) {
   const parts = pathParts(framePath);
   return (names || []).some((name) => {
-    const needle = String(name || '').trim();
-    if (!needle) return false;
-    const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}([^\\p{L}\\p{N}]|$)`, 'iu');
-    return parts.some((part) => pattern.test(part));
+    const stems = tokenize(name);
+    if (stems.length === 0) return false;
+    return parts.some((part) => {
+      const tokens = tokenize(part);
+      let from = 0;
+      return stems.every((stem) => {
+        const found = tokens.findIndex(
+          (token, index) => index >= from && sameToken(token, stem),
+        );
+        if (found < 0) return false;
+        from = found + 1;
+        return true;
+      });
+    });
   });
 }
 

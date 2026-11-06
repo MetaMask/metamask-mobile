@@ -754,6 +754,91 @@ function testClassificationFixes() {
     },
   );
   assert(fitted.alreadyOver.length === 0 && fitted.fits.length === 1, 'exactly 10 characters is not already over');
+
+  const variants = [
+    { layer_name: 'Confirm', frame_path: 'Sheet / Buttons / Frame 1', text: 'Confirm', width: 80 },
+    { layer_name: 'Go', frame_path: 'Trade / PrimaryButton', text: 'Go', width: 40 },
+    { layer_name: 'Save pick', frame_path: 'Trade / Buttonhole', text: 'Save pick', width: 80 },
+    { layer_name: 'Join', frame_path: 'Card / CTAs', text: 'Join', width: 40 },
+    { layer_name: 'Hide', frame_path: 'Card / Actions', text: 'Hide', width: 40 },
+    { layer_name: 'Follow', frame_path: 'Card / Button Group', text: 'Follow', width: 70 },
+    { layer_name: 'Share', frame_path: 'Card / ButtonGroup', text: 'Share', width: 50 },
+    { layer_name: 'Hot', frame_path: 'Card / Chips', text: 'Hot', width: 36 },
+    { layer_name: 'New', frame_path: 'Card / Pills', text: 'New', width: 36 },
+    { layer_name: 'Open', frame_path: 'Feed / Tabs', text: 'Open', width: 40 },
+    { layer_name: 'All', frame_path: 'Row / Segmented', text: 'All', width: 36 },
+  ].map((row) => figma.classifyTextNode({
+    id: row.text,
+    layer_name: row.layer_name,
+    frame_path: row.frame_path,
+    text: row.text,
+    width: row.width,
+    visible: true,
+  }, rules));
+  const variantKind = new Map(variants.map((row) => [row.frame_path, row.kind]));
+  assert(variantKind.get('Sheet / Buttons / Frame 1') === 'button', 'Buttons is a button ancestor');
+  assert(variantKind.get('Trade / PrimaryButton') === 'button', 'PrimaryButton matches Button');
+  assert(variantKind.get('Trade / Buttonhole') === 'label', 'Buttonhole is not a button');
+  assert(variantKind.get('Card / CTAs') === 'button', 'CTAs is a control');
+  assert(variantKind.get('Card / Actions') === 'button', 'Actions is a control');
+  assert(variantKind.get('Card / Button Group') === 'button', 'Button Group is a control');
+  assert(variantKind.get('Card / ButtonGroup') === 'button', 'ButtonGroup is a control');
+  assert(variantKind.get('Card / Chips') === 'button', 'Chips is a control');
+  assert(variantKind.get('Card / Pills') === 'button', 'Pills is a control');
+  assert(variantKind.get('Feed / Tabs') === 'tab', 'Tabs is a tab');
+  assert(variantKind.get('Row / Segmented') === 'button', 'Segmented is a control');
+
+  const wideEnglish = 'View all 12 markets';
+  assert(checkerCount(wideEnglish) === 19, 'wide fixture english is 19 characters');
+  const wideTranslation = 'Alle zwoelf Maerkte jetzt sehn';
+  assert(checkerCount(wideTranslation) === 30, 'wide fixture translation is 30 characters');
+  const { classifyRecord } = require('../lib/file-adapter');
+  const wideRow = classifyRecord({
+    id: 'wide.markets',
+    key: 'wide.markets',
+    source_text: wideEnglish,
+    context: {
+      kind: 'button',
+      width_px: 140,
+      component: 'View all 12 markets',
+      screen: 'Markets / Buttons / Frame 22',
+    },
+  }, limits);
+  assert(wideRow.bucket === 'button' && wideRow.status === 'ok', '19 character English in a 140px control fits');
+  assert(wideRow.maxCharacters > 10, 'a wide control is not limited to 10');
+  const wideReport = buildBreakReport([wideRow], {
+    langs: ['de'],
+    sharedFlats: {
+      en: { 'sample.markets': wideEnglish },
+      de: { 'sample.markets': wideTranslation },
+    },
+  });
+  assert(wideReport.alreadyOver.length === 0, 'english that fits its box is not already over');
+  assert(wideReport.breaks.length === 1, 'a 30 character translation is flagged');
+  const capped = classifyRecord({
+    id: 'capped.markets',
+    key: 'capped.markets',
+    source_text: wideEnglish,
+    context: {
+      kind: 'button',
+      width_px: 140,
+      component: 'View all 12 markets [max:12]',
+      screen: 'Markets / Buttons / Frame 22',
+    },
+  }, limits, { limits: [{ source_text: wideEnglish, maxCharacters: 8 }] });
+  assert(capped.maxCharacters === 12 && capped.status === 'over', '[max:12] overrides the measured width');
+  const learnedCap = classifyRecord({
+    id: 'learned.markets',
+    key: 'learned.markets',
+    source_text: wideEnglish,
+    context: {
+      kind: 'button',
+      width_px: 140,
+      component: 'Label',
+      screen: 'Markets / Buttons / Frame 22',
+    },
+  }, limits, { limits: [{ source_text: wideEnglish, maxCharacters: 12 }] });
+  assert(learnedCap.maxCharacters === 12 && learnedCap.status === 'over', 'a learned limit overrides the measured width');
 }
 
 function checkerCount(value) {
