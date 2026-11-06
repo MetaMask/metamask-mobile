@@ -3449,19 +3449,6 @@
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
     },
-    "crossMarginConfirm": {
-      "title": "Confirm cross margin",
-      "selected_description": "You selected cross margin for this order.",
-      "checklist_prompt": "Check this list to confirm you understand:",
-      "collateral_title": "Collateral",
-      "collateral_message": "All positions will share your full perps balance.",
-      "liquidation_title": "Liquidation",
-      "liquidation_message": "If liquidation occurs, this will draw from your entire perps balance.",
-      "margin_title": "Margin",
-      "margin_message": "Margin cannot be added or removed from a cross position.",
-      "go_back": "Go back",
-      "confirm": "Confirm"
-    },
     "crossMarginRatio": {
       "description": "Cross margin ratio is {{ratio}}."
     },
