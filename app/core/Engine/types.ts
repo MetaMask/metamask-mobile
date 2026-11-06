@@ -590,6 +590,10 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import type {
+  WatchOnlyAccountService,
+  WatchOnlyAccountServiceActions,
+} from '@metamask/watch-only-account-service';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -769,7 +773,8 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
-  | SentinelApiServiceActions;
+  | SentinelApiServiceActions
+  | WatchOnlyAccountServiceActions;
 
 export type GlobalEvents =
   | SamplePetnamesControllerEvents
@@ -1020,6 +1025,7 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  WatchOnlyAccountService: WatchOnlyAccountService;
 };
 
 /**
@@ -1214,7 +1220,8 @@ export type MessengerClientsToInitialize =
   | 'KycService'
   | 'KycController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'WatchOnlyAccountService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

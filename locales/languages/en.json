@@ -5904,6 +5904,14 @@
         "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
         "reset_terms": "Reset Social Terms of Use"
       },
+      "watch_only": {
+        "title": "Watch-only account",
+        "description": "Add any EVM address as a watch-only account to see the app as that account. It cannot sign or send.",
+        "address_placeholder": "0x... address to watch",
+        "add_button": "Add watch-only account",
+        "added": "Added {{name}}",
+        "add_error": "Could not add this address: {{message}}"
+      },
       "new_wallet": {
         "title": "New wallet",
         "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
@@ -7477,6 +7485,10 @@
     "message_from": "Message from",
     "learn_more": "Learn more",
     "read_more": "Read more"
+  },
+  "watch_only": {
+    "blocked_title": "Watch-only account",
+    "blocked_message": "This account can't sign. Switch to an account you own to continue."
   },
   "watch_asset_request": {
     "title": "Add suggested token",
