@@ -20,7 +20,6 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
@@ -53,7 +52,18 @@ const MoneyGeoBlockSheet = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME);
+      const parentNavigation = navigation.getParent();
+      if (!parentNavigation) {
+        throw new Error(
+          '[MoneyGeoBlockSheet] Cannot close without a parent navigator',
+        );
+      }
+      /**
+       * When an open Money sheet (such as Add money or Transfer) sends the user
+       * here, its route remains underneath this sheet. Close the whole Money
+       * modal flow so the user returns to where they started.
+       */
+      parentNavigation.goBack();
     });
   }, [navigation]);
 

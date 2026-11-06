@@ -443,23 +443,28 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
     displayOrder: number,
   ): PredictMarket => {
     const id = `${event.id}-${stat.key}-${player}-${threshold}`;
-    const label = `${threshold}+ yards`;
     return {
       ...template,
       id: id as PredictEntityId,
-      question: `${player}: ${label}`,
+      question: `${player}: ${threshold}+`,
       outcomes: [
         {
           ...template.outcomes[0],
           id: `${id}-yes` as PredictEntityId,
-          label,
+          label: 'Yes',
           gameSelection,
         },
-        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
       ],
       group: {
         key: `${event.id}:${stat.key}:${player}`,
-        groupType: 'choice',
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
         displayOrder,
         label: player,
       },
@@ -665,6 +670,74 @@ export const composePredictNextPortfolioTrading = () => {
       orderService.destroy();
       portfolioService.destroy();
     },
+  };
+};
+
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+export const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
   };
 };
 

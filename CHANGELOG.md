@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Load composer GIFs through the social API when the `aiSocialGifApi` flag is on
 - Kept Money Account identity verification pending until the provider gives final approval
 
 ## [8.18.0]

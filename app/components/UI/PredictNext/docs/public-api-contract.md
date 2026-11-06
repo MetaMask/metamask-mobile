@@ -58,19 +58,39 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 
 Code outside Predict opens Predict with an intent, never with a route, route params or `usePredictNavigation`. Components use `usePredictEntryActions()`, which returns `openPredict(intent)` and `canOpenPredict(intent)` bound to their own navigation. Code without a component (deep-link handlers, sagas) calls `openPredict(intent)` from the entry point, which resolves the Active Venue from the store at call time. Both return whether they navigated.
 
-| Intent                     | Legacy branch (today's call, unchanged)                                                                       | Next branch                                                               |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `home`                     | `Predict` → `PredictMarketList` with `entryPoint` and non-empty `transactionActiveAbTests`                    | `Predict` → `PredictNextHome`                                             |
-| `feed` (`category`)        | `Predict` → `PredictMarketList` with `entryPoint` and `tab: category`                                         | `Predict` → `PredictNextHome`                                             |
-| `event` (`eventRef`)       | `usePredictNavigation().navigateToMarketDetails({ marketId, providerId, entryPoint }, { throughRoot: true })` | `Predict` → `PredictNextEvent` with `venueId`, `eventId`, `titleSnapshot` |
-| `portfolio` (`tab`)        | `Predict` → `PredictPositions` with `entryPoint` and `initialTab` (`activity` → `history`)                    | `Predict` → `PredictNextPortfolio` with `venueId`, `initialTab`           |
-| `addFunds` (`autoDeposit`) | `PredictModals` → `PredictAddFundsSheet` with `autoDeposit`                                                   | Unavailable: PredictNext has no funding yet                               |
+| Intent                     | Legacy branch (today's call, unchanged)                                                                                                                                                   | Next branch                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `home`                     | `Predict` → `PredictMarketList` with `entryPoint` and non-empty `transactionActiveAbTests`                                                                                                | `Predict` → `PredictNextHome`                                             |
+| `feed` (`category`)        | `Predict` → `PredictMarketList` with `entryPoint` and `tab: category`                                                                                                                     | `Predict` → `PredictNextHome`                                             |
+| `event` (`eventRef`)       | `usePredictNavigation().navigateToMarketDetails({ marketId, providerId, entryPoint, title, image }, { throughRoot: true })`, `title` and `image` from `titleSnapshot` and `imageSnapshot` | `Predict` → `PredictNextEvent` with `venueId`, `eventId`, `titleSnapshot` |
+| `portfolio` (`tab`)        | `Predict` → `PredictPositions` with `entryPoint` and `initialTab` (`activity` → `history`)                                                                                                | `Predict` → `PredictNextPortfolio` with `venueId`, `initialTab`           |
+| `addFunds` (`autoDeposit`) | `PredictModals` → `PredictAddFundsSheet` with `autoDeposit`                                                                                                                               | Unavailable: PredictNext has no funding yet                               |
 
 Empty params are omitted, as callers did before. While the Active Venue is resolving, `home` and `feed` take the legacy navigation, which the root router hands to the Active Venue's stack; every other intent is unavailable until the Venue is known.
 
 Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` exists for callers that still receive legacy Polymarket data (Browser autocomplete) and goes with PRED-1356.
 
-A surface hides an action its intent cannot open: Money hides the Predictions-account transfer while `canOpenPredict({ type: 'addFunds' })` is false. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+### Campaign entry points (PRED-1391)
+
+A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaignVenues.ts`; Predict The Pitch runs on Polymarket). Rewards names the campaign, never the Venue:
+
+- A `home` intent with `campaign` opens only while the campaign's Venue is the Active Venue. On another Venue, or while the Active Venue is resolving, it is unavailable (`venueMismatch`, `resolving`), so the campaign's "Predict now" is hidden.
+- `createPredictCampaignEventRef(campaign, eventId)` mints the reference for an Event the campaign's backend names. Its type is the campaign's Venue (`PredictEventRef<'polymarket'>`), and no public minter produces a Kalshi reference, so a campaign identifier cannot become a Kalshi Event in the types. At runtime the Kalshi branch refuses it as `venueMismatch`.
+- `usePredictCampaignEligibility(campaign)` is the campaign Venue's region eligibility, which gates the campaign's opt-in. For Polymarket it is the legacy eligibility, whichever Venue is active.
+
+Campaign data, statistics, leaderboards and the Rewards controller stay Rewards-owned. Only navigation and eligibility come from Predict.
+
+A surface hides an action its intent cannot open. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+
+### Funding entry points (PRED-1388)
+
+Money's Predictions-account transfer, pay-with's Predict source (the Predict balance row and its Add button) and the Predict deposit Money starts are legacy Polymarket funding. They stay legacy execution until PRED-1356; PredictNext only decides whether they may appear.
+
+- `usePredictLegacyDeposit()` returns `isAvailable` and `isAvailableNow()`. It is true only when Predict is available for the Active Venue (`selectPredictAvailability`), the Active Venue's implementation is `legacy`, and that Venue's descriptor lists `deposit`. While Kalshi is active, or while the Active Venue is resolving, it is false and the surface renders no entry point at all.
+- `isAvailableNow()` re-reads the store. A deposit that runs after a delay checks it when it runs: Money's transfer deferred behind a rejected confirmation, the deposit Money starts once its sheet has closed, and pay-with's Add before it rejects the confirmation. An Active Venue change in between drops the action instead of starting the legacy deposit on the wrong implementation.
+- `usePredictLegacyDepositEligibility()` is Polymarket's region eligibility, which Money also requires before it offers the transfer.
+
+Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry is empty until PRED-1161 (deposit) and PRED-1163 (withdraw) ship real flows, so a descriptor that lists `deposit` early still shows nothing. Those tickets add the `next` flow and its own entry points. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
 
 ## Rules for the Venue switch
 
@@ -102,6 +122,14 @@ The Homepage Predictions section becomes a Predict-owned component, `PredictHome
 - **The Homepage team gains.** Prediction-market changes, PRED-1356, and Predict regressions stop touching Homepage files, and Homepage keeps full control of placement, ordering, visibility, and refresh.
 
 The BalanceBreakdown Predict slice stays Homepage code and calls `usePredictPortfolioValue()`.
+
+## Explore (TrendingView) prediction sections
+
+PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. Explore renders it through `trending/`:
+
+- `usePredictTrendingFeed` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. The legacy branch passes the moved hooks through. While the Active Venue resolves, and for next Venues until PRED-1408, they return nothing and keep the legacy hooks disabled.
+- `usePredictTrendingSupported` tells a caller to leave a section out rather than render it empty: the Sports tab's All Sports list and the search Predictions pill. Predict availability stays the caller's own gate, as before.
+- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets.
 
 ## Canonical decisions that remain
 

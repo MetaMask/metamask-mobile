@@ -299,6 +299,29 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
+  it('passes the translated post-only network-upgrade message to onError', async () => {
+    // Arrange
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onError });
+    mockUpdatePositionTPSL.mockResolvedValue({
+      success: false,
+      error:
+        'order 0: Only post-only orders allowed immediately after network upgrade',
+    });
+
+    // Act
+    await act(async () => {
+      await result.current.handleUpdateTPSL(
+        createMockPosition(),
+        '3300',
+        '2700',
+      );
+    });
+
+    // Assert
+    expect(onError).toHaveBeenCalledWith('perps.errors.postOnlyWindow');
+  });
+
   it('should show error toast on API failure response', async () => {
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onError });

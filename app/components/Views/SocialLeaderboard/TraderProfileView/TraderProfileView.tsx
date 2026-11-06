@@ -57,7 +57,9 @@ import {
 } from '../../../../util/haptics';
 import {
   buildFollowTradingTokenContext,
+  SocialEvent,
   SocialLeaderboardEventProperties,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type TraderProfileScreenViewedSource,
 } from '../analytics';
@@ -150,6 +152,7 @@ const TraderProfileView = () => {
   const source = (sourceParam ??
     'deep_link') as TraderProfileScreenViewedSource;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
@@ -256,8 +259,16 @@ const TraderProfileView = () => {
   }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
-    shareSocialProfile(traderId);
-  }, [traderId]);
+    playSelection().catch(() => undefined);
+    shareSocialProfile(traderId, () => {
+      trackSocialPost({
+        interaction_type: SocialEvent.Interaction.POST_SHARED,
+        screen_name: SocialEvent.Screen.MY_PROFILE,
+        source: SocialEvent.Source.TRADER_PROFILE,
+        share_destination: SocialEvent.ShareDestination.EXTERNAL,
+      });
+    });
+  }, [trackSocialPost, traderId]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -290,6 +301,7 @@ const TraderProfileView = () => {
   const handleTabChange = useCallback(
     (tab: TraderProfileTab) => {
       if (activeTab === tab) return;
+      playSelection().catch(() => undefined);
       setActiveTab(tab);
       if (traderAddress && tab !== 'posts') {
         queueMicrotask(() => {

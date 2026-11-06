@@ -96,7 +96,12 @@ export const addPendingPost = ({
   ]);
 };
 
-/** Records the server's copy of each entry a feed has now returned. */
+/**
+ * Records the server's copy of each entry a feed has now returned. The first
+ * copy wins: every mounted surface runs this, and each serves its own object
+ * for the same comment, so replacing on identity makes surfaces overwrite each
+ * other's copy forever (a store write per pass, never settling).
+ */
 export const confirmPendingPosts = (serverPosts: SocialV1FeedPost[]): void => {
   const byCommentId = new Map(
     serverPosts.flatMap((post) =>
@@ -106,7 +111,7 @@ export const confirmPendingPosts = (serverPosts: SocialV1FeedPost[]): void => {
   let changed = false;
   const entries = state.entries.map((entry) => {
     const serverPost = byCommentId.get(entry.commentId);
-    if (!serverPost || entry.confirmedPost === serverPost) {
+    if (!serverPost || entry.confirmedPost !== null) {
       return entry;
     }
     changed = true;
