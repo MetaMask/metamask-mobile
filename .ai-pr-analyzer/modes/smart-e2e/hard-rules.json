@@ -92,11 +92,12 @@
   },
   {
     "name": "state-log-export-change",
-    "description": "In-app state log generation or export changed. Run SmokeWalletPlatform, which contains state-export-sanitization. That spec drives the app through the command queue and does not import generateStateLogs, so the import graph cannot see it.",
+    "description": "In-app state log generation or export changed. Run SmokeWalletPlatform, which contains state-export-sanitization. That spec drives the app through the command queue and does not import generateStateLogs or the export-app-state dispatcher, so the import graph cannot see them.",
     "trigger": {
       "type": "pathMatch",
       "files": [
         "app/util/test/e2eStateExport.ts",
+        "app/util/test/e2eCommandPolling.ts",
         "tests/smoke-appium/wallet/state-export-sanitization.helpers.ts"
       ],
       "prefixes": ["app/util/logs/"],

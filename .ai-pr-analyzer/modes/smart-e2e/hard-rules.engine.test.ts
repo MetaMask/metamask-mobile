@@ -188,6 +188,12 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
     assert.match(String(result.reasoning), /state-log-export-change/);
   });
 
+  it('selects SmokeWalletPlatform when export-app-state dispatch changes', () => {
+    const result = resultOf(evaluate(['app/util/test/e2eCommandPolling.ts']));
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+    assert.match(String(result.reasoning), /state-log-export-change/);
+  });
+
   it('selects SmokeWalletPlatform when the state export smoke helper changes', () => {
     const result = resultOf(
       evaluate([
