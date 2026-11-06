@@ -36,6 +36,7 @@ export const PredictSearchResultRow = memo(
       <TouchableOpacity
         style={styles.item}
         onPress={onPress}
+        accessibilityRole="button"
         testID={getPredictSearchResultRowTestId(result.id)}
       >
         <View style={styles.itemWrapper}>
@@ -44,6 +45,9 @@ export const PredictSearchResultRow = memo(
               source={{ uri: result.imageUrl }}
               style={styles.icon}
               resizeMode="cover"
+              // Decorative: the title and subtitle name the row
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
               testID={PredictSearchResultRowTestIds.IMAGE}
             />
           ) : (
@@ -52,6 +56,8 @@ export const PredictSearchResultRow = memo(
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               twClassName="bg-background-alternative"
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
               testID={PredictSearchResultRowTestIds.PLACEHOLDER_ICON}
             >
               <Icon name={IconName.Speedometer} size={IconSize.Md} />
