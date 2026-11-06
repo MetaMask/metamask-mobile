@@ -109,21 +109,14 @@ import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
-import {
-  getMfaErrorCode,
-  type EnrolledCredential,
-} from '@metamask/profile-sync-controller/sdk';
+import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import { performSignIn } from '../../../actions/identity';
 import Engine from '../../../core/Engine';
 import { useMfa } from '../../../util/identity/mfa';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 import {
-  WalletRecoveryLoading,
   WalletRecoveryPassword,
-  WalletRecoveryVerify,
-  listSocialEnrolledCredentials,
-  socialRecoveryMethodFlags,
-  type WalletRecoveryMethod,
+  activeSocialMfaMethods,
 } from './WalletRecovery';
 
 interface OAuthRehydrationProps {
@@ -138,7 +131,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const dispatch = useDispatch();
   const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
   const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
-  // Figma Social login users (1:36): existing social recovery / verify only.
+  // Social recovery: password unlock, then accounts MFA kit when factors exist.
   const canOfferSocialMfaVerify = isMoneyMfaEnabledFlag && isMfaUiKitEnabled;
   const { verifyOrEnroll } = useMfa();
   const authConnection =
@@ -169,30 +162,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       : null,
   );
   const [disabledInput, setDisabledInput] = useState(false);
-  // Social recovery: loading → Verify it's you (password always; other MFA
-  // methods when enrolled) → password entry → home. First login shows Verify
-  // with password only; after settings enroll, Verify includes those factors.
-  // Start on loading so neither Verify nor password flashes during the list.
-  const [recoveryStep, setRecoveryStep] = useState<
-    'loading' | 'password' | 'verify'
-  >(() =>
-    canOfferSocialMfaVerify && !isSeedlessPasswordOutdated
-      ? 'loading'
-      : 'password',
-  );
-  const [mfaBusy, setMfaBusy] = useState(false);
-  const [socialCredentialsLoading, setSocialCredentialsLoading] = useState(
-    () => canOfferSocialMfaVerify && !isSeedlessPasswordOutdated,
-  );
-  const [socialCredentials, setSocialCredentials] = useState<
-    EnrolledCredential[]
-  >([]);
-  /** True when pre-unlock listing surfaced MFA methods (verify-first path). */
-  const [preUnlockVerifyAvailable, setPreUnlockVerifyAvailable] =
-    useState(false);
-  /** Post-unlock fallback verify (blocks home until resolve). */
-  const [isPostUnlockVerify, setIsPostUnlockVerify] = useState(false);
-  const postUnlockVerifyResolveRef = useRef<(() => void) | null>(null);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -615,89 +584,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
-  const recoveryMethodFlags = useMemo(
-    () => socialRecoveryMethodFlags(socialCredentials),
-    [socialCredentials],
-  );
-
-  const finishPostUnlockVerify = useCallback(() => {
-    const resolve = postUnlockVerifyResolveRef.current;
-    postUnlockVerifyResolveRef.current = null;
-    // Do not setIsPostUnlockVerify(false) here: Verify uses
-    // showPassword={!isPostUnlockVerify}, so clearing the flag re-renders the
-    // password row for a frame before unlock navigates home.
-    resolve?.();
-  }, []);
-
   /**
-   * Pre-unlock: list MFA via exchangeSocialAccessToken + /mfa/credentials, then
-   * always show Verify it's you. Password is always available there; Passkey /
-   * Email / TOTP rows appear only when enrolled. Listing failure → Verify with
-   * password only (same first-login UX).
-   */
-  useEffect(() => {
-    if (!canOfferSocialMfaVerify || isSeedlessPasswordOutdated) {
-      // Outdated-password path skips listing — go straight to password.
-      setRecoveryStep('password');
-      setSocialCredentialsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    const showPreUnlockVerify = (credentials: EnrolledCredential[]) => {
-      if (cancelled || !isMountedRef.current) {
-        return;
-      }
-      setSocialCredentials(credentials);
-      setPreUnlockVerifyAvailable(true);
-      setIsPostUnlockVerify(false);
-      setRecoveryStep('verify');
-    };
-
-    const loadPreUnlockFactors = async () => {
-      setSocialCredentialsLoading(true);
-      setRecoveryStep((step) => (step === 'verify' ? step : 'loading'));
-      try {
-        const credentials = await listSocialEnrolledCredentials();
-        showPreUnlockVerify(credentials);
-      } catch (listError) {
-        Logger.error(
-          listError instanceof Error ? listError : new Error(String(listError)),
-          {
-            tags: {
-              feature: 'mfa',
-              operation: 'onboarding.social_mfa_verify',
-              phase: 'listSocialEnrolledCredentials_pre_unlock',
-            },
-          },
-        );
-        // Unpaired / list error: still Verify-first with password only.
-        showPreUnlockVerify([]);
-      } finally {
-        if (!cancelled && isMountedRef.current) {
-          setSocialCredentialsLoading(false);
-        }
-      }
-    };
-
-    loadPreUnlockFactors().catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [canOfferSocialMfaVerify, isSeedlessPasswordOutdated]);
-
-  /**
-   * Fallback after password unlock when pre-unlock listing did not surface
-   * factors: refresh via unlocked Auth path, then Verify it's you before home.
+   * After password unlock (Figma social recovery):
+   * 1. List enrolled MFA (unlocked Auth).
+   * 2. No MFA → home.
+   * 3. Highest-priority factor (passkey → totp → email) → accounts kit goes
+   * straight to that ceremony (kit skips picker when `verifyWith` is one).
+   * 4. Primary cancel/fail + other factors → kit picker bottomsheet fallback
+   * (“Verify it's you” / Get a verification code).
+   * Kit cancel/error after that still continues home (vault already unlocked).
    */
   const offerSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
       return;
     }
-    // Already offered verify-first pre-unlock — do not prompt again.
-    if (preUnlockVerifyAvailable) {
-      return;
-    }
+
     setLoading(false);
     setError(null);
 
@@ -712,14 +613,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     }
 
-    setSocialCredentialsLoading(true);
-    let credentials: EnrolledCredential[] = [];
+    let methods: ('passkey' | 'totp' | 'email_otp')[] = [];
     try {
-      credentials =
+      const credentials =
         await Engine.context.AuthenticationController.refreshEnrolledCredentials();
-      if (isMountedRef.current) {
-        setSocialCredentials(credentials);
-      }
+      methods = activeSocialMfaMethods(credentials);
+      Logger.log('OAuthRehydration: post-password MFA methods', {
+        methodCount: methods.length,
+        methods,
+      });
     } catch (listError) {
       Logger.error(
         listError instanceof Error ? listError : new Error(String(listError)),
@@ -731,101 +633,92 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           },
         },
       );
-      if (isMountedRef.current) {
-        setSocialCredentials([]);
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setSocialCredentialsLoading(false);
-      }
-    }
-
-    const flags = socialRecoveryMethodFlags(credentials);
-    const hasUsableFactors =
-      flags.showPasskey || flags.showEmail || flags.showTotp;
-    if (!hasUsableFactors) {
       return;
     }
 
-    await new Promise<void>((resolve) => {
-      postUnlockVerifyResolveRef.current = resolve;
-      setIsPostUnlockVerify(true);
-      setRecoveryStep('verify');
-    });
-  }, [canOfferSocialMfaVerify, preUnlockVerifyAvailable]);
+    if (methods.length === 0) {
+      return;
+    }
 
-  /**
-   * Verify it's you method pick.
-   * Pre-unlock: MFA or password → password unlock step.
-   * Post-unlock fallback: MFA or password skip → continue home.
-   */
-  const handleRecoveryVerifyMethod = useCallback(
-    async (method: WalletRecoveryMethod) => {
-      if (method === 'password') {
-        if (isPostUnlockVerify) {
-          finishPostUnlockVerify();
-        } else {
-          setRecoveryStep('password');
-        }
-        return;
-      }
+    const mfaReason = {
+      operation: 'onboarding.social_mfa_verify',
+      presentation: 'modal' as const,
+      verifyDescription: strings('wallet_recovery_mfa.verify_description'),
+    };
 
-      const kitMethod =
-        method === 'passkey'
-          ? 'passkey'
-          : method === 'totp'
-            ? 'totp'
-            : 'email_otp';
-
-      setMfaBusy(true);
-      try {
-        // Pre-unlock: refresh social profile bearer so Auth can MFA-verify
-        // while locked (caches token from exchangeSocialAccessToken).
-        if (!isPostUnlockVerify) {
-          await Engine.context.AuthenticationController.exchangeSocialAccessToken();
-        }
-        await verifyOrEnroll({
-          methods: [kitMethod],
-          verifyWith: kitMethod,
-          reason: {
-            operation: 'onboarding.social_mfa_verify',
-            presentation: 'modal',
-            verifyDescription: strings(
-              'wallet_recovery_mfa.verify_description',
-            ),
-          },
-        });
-        if (isPostUnlockVerify) {
-          finishPostUnlockVerify();
-        } else {
-          setRecoveryStep('password');
-        }
-      } catch (mfaError) {
-        const code = getMfaErrorCode(mfaError);
-        if (code === 'flow_cancelled') {
-          return;
-        }
+    // Figma: highest-priority MFA opens directly (no bottomsheet first).
+    // Kit: single `verifyWith` → skip picker and start that factor.
+    const primary = methods[0];
+    try {
+      Logger.log(
+        'OAuthRehydration: starting post-password primary MFA factor',
+        { primary, methods },
+      );
+      await verifyOrEnroll({
+        methods: [primary],
+        verifyWith: primary,
+        reason: mfaReason,
+      });
+      Logger.log('OAuthRehydration: post-password primary MFA finished');
+      return;
+    } catch (primaryError) {
+      const primaryCode = getMfaErrorCode(primaryError);
+      if (primaryCode !== 'flow_cancelled') {
         Logger.error(
-          mfaError instanceof Error
-            ? mfaError
-            : new Error(String(code ?? 'mfa_error')),
+          primaryError instanceof Error
+            ? primaryError
+            : new Error(String(primaryCode ?? 'mfa_error')),
           {
             tags: {
               feature: 'mfa',
-              mfaCode: code ?? 'unknown',
+              mfaCode: primaryCode ?? 'unknown',
               operation: 'onboarding.social_mfa_verify',
-              phase: isPostUnlockVerify
-                ? 'post_unlock_verify'
-                : 'pre_unlock_verify',
+              phase: 'accounts_kit_primary_post_password',
             },
           },
         );
-      } finally {
-        setMfaBusy(false);
+      } else {
+        Logger.log('OAuthRehydration: post-password primary MFA cancelled');
       }
-    },
-    [finishPostUnlockVerify, isPostUnlockVerify, verifyOrEnroll],
-  );
+    }
+
+    // Figma fallback: “Verify it's you” picker when other factors exist.
+    if (methods.length < 2) {
+      return;
+    }
+
+    try {
+      Logger.log(
+        'OAuthRehydration: starting post-password MFA picker fallback',
+        { methods },
+      );
+      await verifyOrEnroll({
+        methods,
+        verifyWith: methods,
+        reason: mfaReason,
+      });
+      Logger.log('OAuthRehydration: post-password MFA picker finished');
+    } catch (mfaError) {
+      const code = getMfaErrorCode(mfaError);
+      if (code === 'flow_cancelled') {
+        Logger.log('OAuthRehydration: post-password MFA picker cancelled');
+        return;
+      }
+      Logger.error(
+        mfaError instanceof Error
+          ? mfaError
+          : new Error(String(code ?? 'mfa_error')),
+        {
+          tags: {
+            feature: 'mfa',
+            mfaCode: code ?? 'unknown',
+            operation: 'onboarding.social_mfa_verify',
+            phase: 'accounts_kit_picker_fallback_post_password',
+          },
+        },
+      );
+    }
+  }, [canOfferSocialMfaVerify, verifyOrEnroll]);
 
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
@@ -889,7 +782,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
               await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // Fallback verify only when pre-unlock listing did not offer MFA.
+              // Password unlocked — open accounts MFA kit when factors exist.
               await offerSocialMfaVerify();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
@@ -1172,50 +1065,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     </OnboardingLoginCanvas>
   );
 
-  // Preferred: loading → Verify (password ± MFA) → password entry → home.
-  // Post-unlock verify is only for paths that skipped pre-unlock Verify.
-  const renderWalletRecovery = () => {
-    if (recoveryStep === 'loading') {
-      return <WalletRecoveryLoading onBack={handleUseOtherMethod} />;
-    }
-
-    if (recoveryStep === 'verify') {
-      return (
-        <WalletRecoveryVerify
-          showPasskey={recoveryMethodFlags.showPasskey}
-          showPassword={!isPostUnlockVerify}
-          showEmail={recoveryMethodFlags.showEmail}
-          showTotp={recoveryMethodFlags.showTotp}
-          isBusy={mfaBusy || socialCredentialsLoading}
-          onBack={
-            // Post-unlock: back = skip verify and continue to home.
-            // Pre-unlock: back = leave social recovery (other methods).
-            isPostUnlockVerify ? finishPostUnlockVerify : handleUseOtherMethod
-          }
-          onSelectMethod={(method) => {
-            handleRecoveryVerifyMethod(method).catch(() => undefined);
-          }}
-        />
-      );
-    }
-
-    return (
-      <WalletRecoveryPassword
-        password={password}
-        error={error}
-        isBusy={finalLoading || socialCredentialsLoading}
-        isDisabled={disabledInput}
-        themeAppearance={themeAppearance}
-        onBack={
-          preUnlockVerifyAvailable
-            ? () => setRecoveryStep('verify')
-            : handleUseOtherMethod
-        }
-        onChangePassword={handlePasswordChange}
-        onContinue={handleLogin}
-      />
-    );
-  };
+  // Password unlock first, then accounts MFA kit (in onBeforeNavigate).
+  const renderWalletRecovery = () => (
+    <WalletRecoveryPassword
+      password={password}
+      error={error}
+      isBusy={finalLoading}
+      isDisabled={disabledInput}
+      themeAppearance={themeAppearance}
+      onBack={handleUseOtherMethod}
+      onChangePassword={handlePasswordChange}
+      onContinue={handleLogin}
+    />
+  );
 
   return (
     <ErrorBoundary

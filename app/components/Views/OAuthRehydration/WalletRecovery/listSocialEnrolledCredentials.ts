@@ -7,14 +7,10 @@ import Engine from '../../../../core/Engine';
 import { authEnv } from '../../../../core/apiEnv';
 
 /**
- * Pre-unlock MFA listing for social wallet recovery (local Auth POC):
- * 1. `AuthenticationController.exchangeSocialAccessToken()` → profile access
- * token (resolves social type from Seedless `authConnection` even when vault
- * is missing)
- * 2. `GET /api/v2/mfa/credentials` with that bearer
- *
- * Prefer this before password unlock when factors exist. Do not call
- * `/social/login` from mobile — that stays inside Auth.
+ * Social MFA listing helper (exchange + /mfa/credentials).
+ * Post-password recovery uses unlocked `refreshEnrolledCredentials` instead;
+ * keep this for pre-unlock listing / diagnostics. Do not call `/social/login`
+ * from mobile — that stays inside Auth.
  */
 
 interface MfaCredentialsApiRow {
@@ -87,11 +83,32 @@ export const mapApiCredentialToEnrolled = (
 };
 
 /**
- * Profile methods that can recover before password, derived from enrolled
- * MFA credentials.
+ * Active MFA method types in kit cost order (passkey → totp → email).
+ * Empty means MFA is not enabled for recovery — skip the accounts kit.
+ * Index 0 is the Figma “highest priority” factor (open directly after
+ * password); the full list is the picker fallback when primary fails.
+ *
+ * @param credentials - Enrolled factors from Auth.
+ * @returns Active methods the accounts MFA kit can verify with.
+ */
+export const activeSocialMfaMethods = (
+  credentials: EnrolledCredential[],
+): ('passkey' | 'totp' | 'email_otp')[] => {
+  const active = new Set(
+    credentials
+      .filter((credential) => credential.status === 'active')
+      .map((credential) => credential.type),
+  );
+  return (['passkey', 'totp', 'email_otp'] as const).filter((method) =>
+    active.has(method),
+  );
+};
+
+/**
+ * Profile methods derived from enrolled MFA credentials.
  *
  * @param credentials - Enrolled factors.
- * @returns Visibility flags for WalletRecoveryVerify.
+ * @returns Visibility flags for legacy WalletRecoveryVerify UI.
  */
 export const socialRecoveryMethodFlags = (
   credentials: EnrolledCredential[],
@@ -100,13 +117,11 @@ export const socialRecoveryMethodFlags = (
   showEmail: boolean;
   showTotp: boolean;
 } => {
-  const active = credentials.filter(
-    (credential) => credential.status === 'active',
-  );
+  const methods = activeSocialMfaMethods(credentials);
   return {
-    showPasskey: active.some((credential) => credential.type === 'passkey'),
-    showEmail: active.some((credential) => credential.type === 'email_otp'),
-    showTotp: active.some((credential) => credential.type === 'totp'),
+    showPasskey: methods.includes('passkey'),
+    showEmail: methods.includes('email_otp'),
+    showTotp: methods.includes('totp'),
   };
 };
 

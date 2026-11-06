@@ -1,7 +1,8 @@
 import Engine from '../../../../core/Engine';
-import { profileSyncEnv } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
+import { authEnv } from '../../../../core/apiEnv';
 import { getEnvUrls } from '@metamask/profile-sync-controller/sdk';
 import {
+  activeSocialMfaMethods,
   listSocialEnrolledCredentials,
   mapApiCredentialToEnrolled,
   socialRecoveryMethodFlags,
@@ -18,8 +19,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
-  profileSyncEnv: 'dev',
+jest.mock('../../../../core/apiEnv', () => ({
+  authEnv: jest.fn(() => 'dev'),
 }));
 
 jest.mock('@metamask/profile-sync-controller/sdk', () => {
@@ -92,6 +93,18 @@ describe('mapApiCredentialToEnrolled', () => {
   });
 });
 
+describe('activeSocialMfaMethods', () => {
+  it('returns active methods in kit cost order', () => {
+    expect(
+      activeSocialMfaMethods([
+        { id: 'email', type: 'email_otp', status: 'active' },
+        { id: 'pk', type: 'passkey', status: 'active' },
+        { id: 'totp', type: 'totp', status: 'pending' },
+      ]),
+    ).toStrictEqual(['passkey', 'email_otp']);
+  });
+});
+
 describe('socialRecoveryMethodFlags', () => {
   it('enables only active enrolled methods', () => {
     expect(
@@ -147,7 +160,7 @@ describe('listSocialEnrolledCredentials', () => {
       { id: 'pk-1', type: 'passkey', status: 'active' },
     ]);
     expect(authController.exchangeSocialAccessToken).toHaveBeenCalled();
-    expect(getEnvUrls).toHaveBeenCalledWith(profileSyncEnv);
+    expect(getEnvUrls).toHaveBeenCalledWith(authEnv());
     expect(fetchMock).toHaveBeenCalledWith(
       'https://auth.example.com/api/v2/mfa/credentials',
       expect.objectContaining({
