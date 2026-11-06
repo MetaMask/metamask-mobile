@@ -26,7 +26,6 @@ export const BridgeViewSelectorsIDs = {
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
-  LIMIT_TAB_NEW_BADGE: 'bridge-limit-tab-new-badge',
   RECURRING_TAB: 'bridge-recurring-tab',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',

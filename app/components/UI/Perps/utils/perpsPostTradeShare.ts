@@ -16,6 +16,7 @@ import {
   type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -118,12 +119,14 @@ export const openPerpsPostTradeShareSession = ({
   leverage,
   amountUsd,
   variant = 'share',
+  analyticsSource,
 }: {
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
   variant?: PostTradeShareVariant;
+  analyticsSource?: SocialEventSource;
 }): string => {
   const preview = buildPerpsPostTradePreview({
     asset,
@@ -141,6 +144,7 @@ export const openPerpsPostTradeShareSession = ({
       : `${directionLabel} ${preview.tokenSymbol}`,
     tradeInFlightChain: 'hyperliquid',
     preview,
+    ...(analyticsSource ? { analyticsSource } : {}),
   });
 };
 
@@ -157,6 +161,7 @@ export const beginPerpsPostTradeShare = ({
   direction,
   leverage,
   amountUsd,
+  analyticsSource,
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
@@ -165,6 +170,7 @@ export const beginPerpsPostTradeShare = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
     !canBeginPerpsPostTradeShare({
@@ -178,6 +184,7 @@ export const beginPerpsPostTradeShare = ({
   }
   return openPerpsPostTradeShareSession({
     asset,
+    analyticsSource,
     direction,
     leverage,
     amountUsd,

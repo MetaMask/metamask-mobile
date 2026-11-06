@@ -15,7 +15,6 @@ import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
-import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import { partitionUncountedPositions } from '../utils/partitionUncountedPositions';
 import {
@@ -38,8 +37,9 @@ export interface ProfilePositionsTabProps {
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
   /**
-   * When true, flagged rows use the V1 subline treatment and ignore presses.
-   * Own profiles omit this so flagged data stays a normal row.
+   * When true, flagged rows use the V1 subline treatment and stay pressable
+   * so position history can open. Own profiles omit this so flagged data
+   * stays a normal row.
    */
   showFlaggedState?: boolean;
 }
@@ -56,9 +56,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
 }) => {
   const { counted, uncounted } = useMemo(() => {
     // Every viewer, including the owner, pins flagged rows after the counted
-    // list. `showFlaggedState` blocks presses on other traders' rows and draws
-    // them with the subline treatment. The owner omits it, so those rows stay
-    // tappable. The filter is applied by the parent, including inside the pin.
+    // list. `showFlaggedState` draws the subline treatment and still passes
+    // presses through, so history can open. The owner omits it. The filter
+    // applies inside the pin.
     const split = partitionUncountedPositions(positions);
 
     return {
@@ -79,11 +79,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         isClosed={isClosed}
         showTradeDate={isClosed}
         flaggedPresentation={showFlaggedState ? 'subline' : undefined}
-        onPress={
-          showFlaggedState && getPositionFlagLabelKey(position)
-            ? undefined
-            : onPositionPress
-        }
+        onPress={onPositionPress}
       />
     ));
 

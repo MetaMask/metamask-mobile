@@ -973,6 +973,49 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('holds a post-expiry observation whose timer fires before the grace ends by the wall clock', async () => {
+      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
+      const graceEndsAt = Date.parse(preview.expiresAt) + 5_000;
+      const observedAt: number[] = [];
+      trading.commitOrder.mockRejectedValueOnce(lostResponse());
+      trading.commitOrder.mockImplementationOnce(async () => {
+        observedAt.push(Date.now());
+        throw preOperationFailure(
+          PredictErrorCode.PREVIEW_EXPIRED,
+          'preview_expired',
+        );
+      });
+      const orderService = await quote(
+        serviceWith(0, {
+          backgroundObservationDelaysMs: [1_000],
+          ambiguousCommitGraceMs: 5_000,
+        }),
+      );
+      await settleWithFakeTimers(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).catch(() => undefined);
+
+      // The event loop's clock runs ahead of the wall clock, so the timer
+      // fires while `Date.now()` is still inside the grace.
+      jest.setSystemTime(Date.now() - 5);
+      await jest.advanceTimersByTimeAsync(graceEndsAt - Date.now() - 5);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+
+      await jest.advanceTimersByTimeAsync(5);
+      expect(observedAt).toStrictEqual([graceEndsAt]);
+      expect(orderResolved).toHaveBeenCalledTimes(1);
+      expect(orderResolved).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: {
+            status: 'not_placed',
+            code: PredictErrorCode.PREVIEW_EXPIRED,
+          },
+        }),
+      );
+      await jest.advanceTimersByTimeAsync(60_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+    });
+
     it('does not conclude "not placed" from a post-expiry 401 after an ambiguous Commit', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
       trading.commitOrder.mockRejectedValueOnce(lostResponse());

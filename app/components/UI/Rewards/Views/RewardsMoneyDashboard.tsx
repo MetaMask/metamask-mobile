@@ -53,7 +53,8 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { canClaimEarnings } from '../utils/claimEarnings';
+import { canClaimEarnings, claimRouteOptions } from '../utils/claimEarnings';
+import { useFollowTradeClaimOpen } from '../hooks/useFollowTradeClaimOpen';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -150,9 +151,11 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
   const referralMe = referralMeEntry?.data;
+  const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,
     moneyDashboardPersona(referralMe),
+    claimRouteOptions(followTradeClaimOpen),
   );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
