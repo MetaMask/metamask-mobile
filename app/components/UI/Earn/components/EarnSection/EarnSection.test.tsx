@@ -42,6 +42,17 @@ const mockMoneyTrackSurfaceClicked = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 
 jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
+    Navigator: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    Screen: ({
+      children,
+    }: {
+      children?: React.ReactNode | (() => React.ReactNode);
+    }) => (typeof children === 'function' ? children() : (children ?? null)),
+  }),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
