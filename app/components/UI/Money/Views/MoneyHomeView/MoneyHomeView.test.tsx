@@ -308,8 +308,12 @@ const mockMfaTurnOn = jest.fn();
 const mockMfaRetry = jest.fn();
 const mockMfaDismissBanner = jest.fn();
 const mockMfaRefreshCredentials = jest.fn();
+const mockShowEnabledConfirmation = jest.fn(() => false);
 
-const mockMfaStatus = (status: MoneyMfaStatus) =>
+const mockMfaStatus = (
+  status: MoneyMfaStatus,
+  { hasUnseenEnabledConfirmation = false } = {},
+) =>
   jest.mocked(useMoneyMfa).mockReturnValue({
     status,
     turnOn: mockMfaTurnOn,
@@ -319,6 +323,8 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
     isSettingUpBannerDismissed: false,
     dismissSettingUpBanner: mockMfaDismissBanner,
     refreshCredentials: mockMfaRefreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation: mockShowEnabledConfirmation,
   });
 
 jest.mock('../../../../../core/NavigationService', () => ({
@@ -2101,6 +2107,22 @@ describe('MoneyHomeView', () => {
         MoneyMfaTestIds.SETUP_CARD,
         MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
       );
+    });
+
+    it('shows the confirmation when it opens after 2-step verification turned on', () => {
+      mockMfaStatus('enabled', { hasUnseenEnabledConfirmation: true });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no confirmation without a new setup', () => {
+      mockMfaStatus('enabled');
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).not.toHaveBeenCalled();
     });
 
     it('turns on 2-step verification when the setup card is pressed', () => {

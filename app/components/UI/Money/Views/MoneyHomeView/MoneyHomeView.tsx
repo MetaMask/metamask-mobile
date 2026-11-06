@@ -282,9 +282,20 @@ const MoneyHomeView = () => {
     isSettingUpBannerDismissed: isMfaBannerDismissed,
     dismissSettingUpBanner: dismissMfaBanner,
     refreshCredentials: refreshMfaCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
   } = useMoneyMfa();
 
   useFocusEffect(refreshMfaCredentials);
+
+  const [isMfaBadgeHighlighted, setIsMfaBadgeHighlighted] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (hasUnseenEnabledConfirmation && showEnabledConfirmation()) {
+        setIsMfaBadgeHighlighted(true);
+      }
+    }, [hasUnseenEnabledConfirmation, showEnabledConfirmation]),
+  );
 
   const handleMfaSetUpPress = useCallback(() => {
     trackButtonClicked({
@@ -509,6 +520,7 @@ const MoneyHomeView = () => {
     isEnabled: isBrandRefresh,
     isMfaEnabled: mfaStatus === 'enabled',
     onMfaBadgePress: handleMfaBadgePress,
+    isMfaBadgeHighlighted,
   });
 
   const { scrollY, scrollDistance, onScroll } =
@@ -540,6 +552,7 @@ const MoneyHomeView = () => {
         onMenuPress: handleMenuPress,
         isMfaEnabled: mfaStatus === 'enabled',
         onMfaBadgePress: handleMfaBadgePress,
+        isMfaBadgeHighlighted,
         scrollY,
       };
 

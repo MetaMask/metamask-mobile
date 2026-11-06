@@ -1,4 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -28,20 +35,52 @@ export const getMoneyMfaHeaderBadgeProps = (onPress?: () => void) => ({
 
 interface MoneyMfaHeaderBadgeProps {
   onPress?: () => void;
+  isHighlighted?: boolean;
 }
+
+const PULSE_SCALE = 1.35;
+const PULSE_MS = 220;
+const PULSE_COUNT = 3;
 
 /**
  * The green shield next to the Money title when 2-step verification is on.
  *
  * @param props - The badge's props.
  * @param props.onPress - Opens the 2-step verification sheet.
+ * @param props.isHighlighted - Pulses the shield to draw attention to it.
  */
-const MoneyMfaHeaderBadge = ({ onPress }: MoneyMfaHeaderBadgeProps) => (
-  <ButtonIcon
-    {...getMoneyMfaHeaderBadgeProps(onPress)}
-    size={ButtonIconSize.Sm}
-    hitSlop={HIT_SLOP}
-  />
-);
+const MoneyMfaHeaderBadge = ({
+  onPress,
+  isHighlighted = false,
+}: MoneyMfaHeaderBadgeProps) => {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (!isHighlighted) {
+      return;
+    }
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(PULSE_SCALE, { duration: PULSE_MS }),
+        withTiming(1, { duration: PULSE_MS }),
+      ),
+      PULSE_COUNT,
+    );
+  }, [isHighlighted, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <ButtonIcon
+        {...getMoneyMfaHeaderBadgeProps(onPress)}
+        size={ButtonIconSize.Sm}
+        hitSlop={HIT_SLOP}
+      />
+    </Animated.View>
+  );
+};
 
 export default MoneyMfaHeaderBadge;

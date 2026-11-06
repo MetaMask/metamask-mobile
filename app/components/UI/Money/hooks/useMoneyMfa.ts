@@ -6,8 +6,6 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { useSelector } from 'react-redux';
-import NavigationService from '../../../../core/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useMfa } from '../../../../util/identity/mfa';
 import type {
@@ -69,9 +67,9 @@ const migrate = (): Promise<void> => {
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
-    NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: true,
+      hasUnseenEnabledConfirmation: true,
     });
   })().finally(() => {
     if (activeMigration === run) {
@@ -96,8 +94,11 @@ export const useMoneyMfa = () => {
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
-  const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
-    useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
+  const {
+    isMoneyAccountMfaEnabled,
+    isMigrationBannerDismissed,
+    hasUnseenEnabledConfirmation,
+  } = useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
   const migrationStatus = useSyncExternalStore(
     moneyAccountMigration.subscribe,
     moneyAccountMigration.getStatus,
@@ -207,6 +208,16 @@ export const useMoneyMfa = () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
 
+  // Money home calls this when it's on screen, so the confirmation never shows on another tab.
+  const showEnabledConfirmation = useCallback(() => {
+    if (!moneyMfaStore.getState().hasUnseenEnabledConfirmation) {
+      return false;
+    }
+    moneyMfaStore.setState({ hasUnseenEnabledConfirmation: false });
+    showToast('money.mfa.toast_on');
+    return true;
+  }, [showToast]);
+
   const refreshCredentials = useCallback(() => {
     if (status === 'unavailable') {
       return;
@@ -225,5 +236,7 @@ export const useMoneyMfa = () => {
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,
     refreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
   };
 };

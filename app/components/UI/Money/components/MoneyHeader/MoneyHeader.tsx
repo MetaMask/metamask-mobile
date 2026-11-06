@@ -26,6 +26,8 @@ interface MoneyHeaderCommonProps {
   isMfaEnabled?: boolean;
   /** Opens the 2-step verification sheet from the shield. */
   onMfaBadgePress?: () => void;
+  /** Pulses the shield right after 2-step verification turns on. */
+  isMfaBadgeHighlighted?: boolean;
 }
 
 /**
@@ -58,6 +60,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     onLayout,
     isMfaEnabled,
     onMfaBadgePress,
+    isMfaBadgeHighlighted,
   } = props;
 
   const menuButtonProps = {
@@ -112,7 +115,10 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       }}
       titleAccessory={
         isMfaEnabled ? (
-          <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
+          <MoneyMfaHeaderBadge
+            onPress={onMfaBadgePress}
+            isHighlighted={isMfaBadgeHighlighted}
+          />
         ) : undefined
       }
       endButtonIconProps={[menuButtonProps]}

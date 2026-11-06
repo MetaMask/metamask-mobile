@@ -21,6 +21,8 @@ export interface MoneyNativeHeaderParams {
   isMfaEnabled?: boolean;
   /** Opens the 2-step verification sheet from the shield. */
   onMfaBadgePress?: () => void;
+  /** Pulses the shield right after 2-step verification turns on. */
+  isMfaBadgeHighlighted?: boolean;
 }
 
 const MONEY_TITLE_SCREEN_INSET = 16;
@@ -80,6 +82,7 @@ export const useMoneyNativeHeader = ({
   isEnabled,
   isMfaEnabled,
   onMfaBadgePress,
+  isMfaBadgeHighlighted,
 }: MoneyNativeHeaderParams): boolean => {
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
     const titleItem: NativeStackHeaderItem = {
@@ -91,7 +94,10 @@ export const useMoneyNativeHeader = ({
         // screen keeps the system inset so the title clears the back button.
         <MoneyNativeTitle alignToScreenEdge={!onBack}>
           {isMfaEnabled ? (
-            <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
+            <MoneyMfaHeaderBadge
+              onPress={onMfaBadgePress}
+              isHighlighted={isMfaBadgeHighlighted}
+            />
           ) : null}
         </MoneyNativeTitle>
       ),
@@ -109,7 +115,7 @@ export const useMoneyNativeHeader = ({
       },
       titleItem,
     ];
-  }, [onBack, isMfaEnabled, onMfaBadgePress]);
+  }, [onBack, isMfaEnabled, onMfaBadgePress, isMfaBadgeHighlighted]);
 
   const rightItems = useCallback(
     (): NativeStackHeaderItem[] => [
