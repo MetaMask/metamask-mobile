@@ -942,20 +942,14 @@ jest.mock(
         isVisible,
         onClose,
         testID,
-        contentKey,
       }: {
         isVisible: boolean;
         onClose?: () => void;
         testID?: string;
-        contentKey?: string;
       }) {
         return isVisible ? (
           <TouchableOpacity testID={testID} onPress={onClose}>
-            <Text>
-              {contentKey === 'account_not_supported'
-                ? 'Account not supported'
-                : 'Geo Block Tooltip'}
-            </Text>
+            <Text>Geo Block Tooltip</Text>
           </TouchableOpacity>
         ) : null;
       },
