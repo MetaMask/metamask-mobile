@@ -187,6 +187,17 @@ describe('DepositKeyboard', () => {
     expect(onPercentagePressMock).toHaveBeenCalledWith(50);
   });
 
+  it('claims a percentage press so the bar does not drag with the keyboard', () => {
+    const { getByTestId } = render();
+    let node = getByTestId('deposit-keyboard-percentage-50').parent;
+
+    while (node && node.props.disallowInterruption !== true) {
+      node = node.parent;
+    }
+
+    expect(node?.props.disallowInterruption).toBe(true);
+  });
+
   it('widens the pressed percentage and hides the dividers beside it', () => {
     const { getByTestId } = render();
     const highlight = getByTestId('deposit-keyboard-percentage-highlight-50');

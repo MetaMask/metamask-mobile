@@ -13,12 +13,12 @@ import {
   type KeyboardEvent,
   LayoutAnimation,
   Platform,
-  Pressable,
   TextInput,
   UIManager,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BaseButton } from 'react-native-gesture-handler';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import useCurrency from '../../../../Base/Keypad/useCurrency';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -526,20 +526,37 @@ function DepositPercentageBar({
                   ]}
                 />
               )}
-              <Pressable
+              <BaseButton
+                // A drag here is the scroll view's interactive keyboard
+                // dismiss, which slides this bar with the finger. Claiming the
+                // touch on press keeps the percentage in place.
+                disallowInterruption
                 accessibilityRole="button"
+                rippleColor="transparent"
                 onPress={() => onPress(button.value)}
-                onPressIn={() => setPressedValue(button.value)}
-                onPressOut={() =>
+                onActiveStateChange={(active) => {
+                  if (active) {
+                    setPressedValue(button.value);
+                    return;
+                  }
                   setPressedValue((current) =>
                     current === button.value ? null : current,
-                  )
-                }
+                  );
+                }}
                 style={[
                   tw.style('h-full flex-1 p-1'),
                   isPressed && styles.percentageButtonPressed,
                 ]}
                 testID={`deposit-keyboard-percentage-${button.value}`}
+                {...(process.env.NODE_ENV === 'test'
+                  ? {
+                      testOnly_onPressIn: () => setPressedValue(button.value),
+                      testOnly_onPressOut: () =>
+                        setPressedValue((current) =>
+                          current === button.value ? null : current,
+                        ),
+                    }
+                  : null)}
               >
                 <View
                   testID={`deposit-keyboard-percentage-highlight-${button.value}`}
@@ -560,7 +577,7 @@ function DepositPercentageBar({
                     {button.label}
                   </Text>
                 </View>
-              </Pressable>
+              </BaseButton>
             </React.Fragment>
           );
         })}
