@@ -781,7 +781,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-6">
+            <Box twClassName="gap-y-6 pt-3">
               <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
@@ -834,7 +834,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
 
           {currentStep === 1 && (
-            <Box twClassName="gap-y-4 flex-grow">
+            <Box twClassName="gap-y-4 flex-grow pt-3">
               <TitleStandard
                 title={strings('import_from_seed.metamask_password')}
                 titleProps={{

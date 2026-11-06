@@ -12,9 +12,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createGamePresentation,
   getEventGame,
+  getGameTeamOrder,
+  getMatchupSlot,
+  shouldMirrorTeamLogo,
   type GameSelection,
   type GameStatusLine,
 } from '../../../events/game';
+import { TeamLogo } from '../../../events/shared/ui';
 import type { PredictEvent, PredictTeam } from '../../../types';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
@@ -72,83 +76,70 @@ export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
   );
 };
 
-const TeamLogo = ({
-  team,
-  abbreviation,
-  selection,
-}: {
+interface GameTeamProps {
   team: PredictTeam;
   abbreviation: string;
+  score?: string;
   selection: GameSelection;
-}) => {
-  const tw = useTailwind();
-  const [imageFailed, setImageFailed] = useState(false);
+  mirrored: boolean;
+}
 
-  return (
-    <Box twClassName="h-14 w-14 items-center justify-center" accessible={false}>
-      {team.logoUrl && !imageFailed ? (
-        <ExpoImage
-          testID={PredictEventScreenTestIds.teamLogo(selection)}
-          source={team.logoUrl}
-          recyclingKey={team.logoUrl}
-          contentFit="contain"
-          style={tw.style('h-14 w-14')}
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <Box twClassName="h-14 w-14 items-center justify-center rounded-full bg-muted">
-          <Text
-            testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Bold}
-          >
-            {abbreviation}
-          </Text>
-        </Box>
-      )}
-    </Box>
-  );
-};
-
+/** A Team: its helmet over its abbreviation. The score sits beside. */
 const GameTeam = ({
   team,
   abbreviation,
   score,
   selection,
-}: {
-  team: PredictTeam;
-  abbreviation: string;
-  score?: string;
-  selection: GameSelection;
-}) => (
+  mirrored,
+}: GameTeamProps) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
     accessible
     accessibilityLabel={
       score === undefined ? team.name : `${team.name}, ${score}`
     }
-    twClassName="min-w-0 flex-1 items-center gap-2"
+    twClassName="w-14 items-center gap-2"
   >
-    <TeamLogo team={team} abbreviation={abbreviation} selection={selection} />
-    {score !== undefined ? (
-      <Text
-        testID={PredictEventScreenTestIds.teamScore(selection)}
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
-      >
-        {score}
-      </Text>
-    ) : null}
+    <TeamLogo
+      team={team}
+      abbreviation={abbreviation}
+      size="medium"
+      flipped={mirrored}
+      testID={PredictEventScreenTestIds.teamLogo(selection)}
+      fallbackTestID={PredictEventScreenTestIds.teamLogoFallback(selection)}
+    />
     <Text
-      testID={PredictEventScreenTestIds.teamName(selection)}
-      variant={TextVariant.BodySm}
+      testID={PredictEventScreenTestIds.teamAbbreviation(selection)}
+      variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Bold}
-      twClassName="text-center"
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
     >
-      {team.name}
+      {abbreviation}
     </Text>
   </Box>
 );
+
+/** Read as part of its Team's label, so hidden from screen readers. */
+const GameScore = ({
+  score,
+  selection,
+}: {
+  score?: string;
+  selection: GameSelection;
+}) =>
+  score === undefined ? null : (
+    <Text
+      testID={PredictEventScreenTestIds.teamScore(selection)}
+      variant={TextVariant.DisplayMd}
+      fontWeight={FontWeight.Bold}
+      twClassName="shrink-0"
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+    >
+      {score}
+    </Text>
+  );
 
 const GameStatus = ({
   line,
@@ -157,20 +148,31 @@ const GameStatus = ({
   line: GameStatusLine;
   isLive: boolean;
 }) => (
-  <Box twClassName="w-24 shrink-0 items-center gap-1">
-    <Text
-      testID={PredictEventScreenTestIds.GAME_STATUS}
-      variant={TextVariant.BodyXs}
-      fontWeight={FontWeight.Bold}
-      color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
-      twClassName="text-center"
-    >
-      {line.label}
-    </Text>
+  // Takes the width the Teams and scores leave, and wraps inside it, so the
+  // row never pushes the right Team past the screen padding.
+  <Box twClassName="min-w-0 flex-1 items-center">
+    <Box twClassName="max-w-full flex-row items-center gap-2">
+      {isLive ? (
+        <Box
+          testID={PredictEventScreenTestIds.LIVE_DOT}
+          twClassName="h-2.5 w-2.5 rounded-full bg-success-default"
+        />
+      ) : null}
+      <Text
+        testID={PredictEventScreenTestIds.GAME_STATUS}
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Bold}
+        color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
+        twClassName="shrink text-center"
+      >
+        {line.label}
+      </Text>
+    </Box>
     {line.metadata ? (
       <Text
         testID={PredictEventScreenTestIds.GAME_METADATA}
         variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Bold}
         color={TextColor.TextAlternative}
         twClassName="text-center"
       >
@@ -187,27 +189,33 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
   }
 
   const presentation = createGamePresentation(event, game);
+  const order = getGameTeamOrder(game);
+  const teamProps = (selection: GameSelection): GameTeamProps => {
+    const { team, abbreviation } = presentation.teams[selection];
+    return {
+      team,
+      abbreviation,
+      score: game.score?.[selection],
+      selection,
+      mirrored: shouldMirrorTeamLogo(team, getMatchupSlot(order, selection)),
+    };
+  };
 
+  // With the screen's 16px padding, the 56px Team columns put each 40px
+  // helmet 40px from the screen edge.
   return (
-    <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
-      <Box twClassName="flex-row items-start gap-2">
-        <GameTeam
-          team={presentation.teams.away.team}
-          abbreviation={presentation.teams.away.abbreviation}
-          score={game.score?.away}
-          selection="away"
-        />
-        <GameStatus
-          line={presentation.status.detail}
-          isLive={game.status === 'in_progress'}
-        />
-        <GameTeam
-          team={presentation.teams.home.team}
-          abbreviation={presentation.teams.home.abbreviation}
-          score={game.score?.home}
-          selection="home"
-        />
-      </Box>
+    <Box
+      testID={PredictEventScreenTestIds.GAME_HEADER}
+      twClassName="flex-row items-center justify-between gap-6 px-4 py-4"
+    >
+      <GameTeam {...teamProps(order[0])} />
+      <GameScore score={game.score?.[order[0]]} selection={order[0]} />
+      <GameStatus
+        line={presentation.status.detail}
+        isLive={game.status === 'in_progress'}
+      />
+      <GameScore score={game.score?.[order[1]]} selection={order[1]} />
+      <GameTeam {...teamProps(order[1])} />
     </Box>
   );
 };

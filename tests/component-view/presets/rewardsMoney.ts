@@ -14,6 +14,10 @@ import type {
 import { initialState as pointsRewardsInitialState } from '../../../app/reducers/rewards';
 import { initialState as rewardsMoneyInitialState } from '../../../app/reducers/rewardsMoney';
 import type { MoneyDashboardPersona } from '../../../app/reducers/rewardsMoney/selectors';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/constants/socialV1';
 import { createStateFixture } from '../stateFixture';
 
 export const REWARDS_MONEY_PROFILE_ID = 'profile-a';
@@ -94,6 +98,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   funnelFeeGenerating: 'Fee-generating referrals',
   funnelFeeGeneratingDescription: 'Referrals that generated fees',
   tradingCommissionsSection: 'Trading commissions',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
+  copyTradingInfoDescription:
+    'Earn 15% from fees when someone copies your trade.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -183,6 +192,8 @@ export interface EarningsSummaryFixtureOptions {
   cashbackBlocked?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
+  /** Follow-trade claimable base units. Omitted leaves that family out. */
+  followTradeClaimable?: string;
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -192,6 +203,7 @@ export function earningsSummaryFixture(
   const claimable = options.claimable ?? '0';
   const cashbackClaimable = options.cashbackClaimable ?? claimable;
   const revShareLifetime = options.revShareLifetime ?? '0';
+  const followTradeClaimable = options.followTradeClaimable;
 
   return {
     lifetime_total: options.lifetimeTotal ?? '58500000',
@@ -225,6 +237,13 @@ export function earningsSummaryFixture(
       ...totals(revShareLifetime),
       by_claim_family: {
         REFERRAL_REV_SHARE: totals(revShareLifetime),
+        ...(followTradeClaimable === undefined
+          ? {}
+          : {
+              SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
+                claimable: followTradeClaimable,
+              }),
+            }),
       },
     },
   };
@@ -455,6 +474,14 @@ export interface RewardsMoneyViewStateOptions {
   geoLocation?: string | null;
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
+  /** Remote `glassHeaders`: the header floats over the content on glass. */
+  glassHeaders?: boolean;
+  /**
+   * Social V1 on: the leaderboard flag and the A/B treatment that gate trading
+   * commissions on the hero cards, the Earnings breakdown and the Performance
+   * tab. Defaults on, so the Money screens show commissions as they always did.
+   */
+  socialV1?: boolean;
   /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
@@ -480,6 +507,8 @@ export function rewardsMoneyViewState({
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
+  glassHeaders = false,
+  socialV1 = true,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
@@ -501,6 +530,19 @@ export function rewardsMoneyViewState({
       enabled: true,
       minimumVersion: '1.0.0',
     };
+  }
+  if (glassHeaders) {
+    remoteFeatureFlags.glassHeaders = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+  }
+  if (socialV1) {
+    remoteFeatureFlags.aiSocialLeaderboardEnabled = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+    remoteFeatureFlags[SOCIAL_V1_AB_KEY] = SocialV1Variant.Treatment;
   }
 
   return createStateFixture()

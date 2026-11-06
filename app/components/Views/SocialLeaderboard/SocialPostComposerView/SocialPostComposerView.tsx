@@ -8,7 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -25,6 +24,7 @@ import {
   useRoute,
   type NavigationState,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import React, {
   useCallback,
   useContext,
@@ -60,6 +60,8 @@ import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardH
 import { useTheme } from '../../../../util/theme';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import {
   fireImpact,
   ImpactMoment,
@@ -99,10 +101,10 @@ import {
   SocialEvent,
   useSocialInteraction,
   useSocialScreenAnalytics,
-  type SocialEventSource,
 } from '../analytics';
+import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
 
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, ShareDestination, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
 
 const getPreviousRoute = (
@@ -207,6 +209,7 @@ const ComposerChip = ({
 
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -234,14 +237,7 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
-  const analyticsSource: SocialEventSource | undefined =
-    routeParams?.entryPoint === 'perps'
-      ? Source.PERP_ASSET_SCREEN
-      : routeParams?.entryPoint === 'token_details'
-        ? Source.ASSET_DETAILS
-        : tradeInFlightParams
-          ? Source.TRADER_FEED
-          : undefined;
+  const analyticsSource = resolvePostComposerAnalyticsSource(routeParams);
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: analyticsSource,
   });
@@ -514,6 +510,10 @@ const SocialPostComposerView: React.FC = () => {
         outcome: Outcome.SUCCESS,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
+      trackInteraction(Interaction.POST_SHARED, {
+        share_destination: ShareDestination.METAMASK_POST,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
@@ -583,7 +583,9 @@ const SocialPostComposerView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
       >
-        <HeaderBase
+        <HeaderBaseGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="px-4"
           startAccessory={
