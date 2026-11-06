@@ -13,6 +13,7 @@ import {
   type MoneyMovementNeobankRollout,
   selectMoneyMovementNeobank,
   selectMoneyOnboardingStepperAnimationEnabled,
+  selectNeobankMarkets,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectGeolocationLocation,
@@ -59,6 +60,7 @@ jest.mock(
   () => ({
     selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
     selectMoneyMovementNeobank: jest.fn(),
+    selectNeobankMarkets: jest.fn(),
     isVbaGeoBypassEnabled: jest.fn(),
   }),
 );
@@ -119,13 +121,11 @@ const disabledRolloutFlag: GradualRolloutFlag = {
 };
 
 const enabledNeobankRollout: MoneyMovementNeobankRollout = {
-  isEnabled: true,
-  regions: ['BR'],
-  regionCurrencies: {},
-  defaultCurrency: undefined,
   chooseCurrency: false,
   regionOverride: undefined,
 };
+
+const brlMarket = { currency: 'BRL', regions: ['BR'] } as const;
 
 describe('handleMoney', () => {
   let mockNavigate: jest.Mock;
@@ -178,6 +178,7 @@ describe('handleMoney', () => {
     jest
       .mocked(selectMoneyMovementNeobank)
       .mockReturnValue(enabledNeobankRollout);
+    jest.mocked(selectNeobankMarkets).mockReturnValue([brlMarket]);
     jest.mocked(selectGeolocationLocation).mockReturnValue('BR-SP');
     jest.mocked(selectGeolocationStatus).mockReturnValue('complete');
     jest.mocked(isVbaGeoBypassEnabled).mockReturnValue(false);
@@ -359,11 +360,7 @@ describe('handleMoney', () => {
     });
 
     it('stays on MONEY.HOME when the VBA flag is disabled', () => {
-      jest.mocked(selectMoneyMovementNeobank).mockReturnValue({
-        ...enabledNeobankRollout,
-        isEnabled: false,
-        regions: [],
-      });
+      jest.mocked(selectNeobankMarkets).mockReturnValue([]);
 
       handleMoney({ moneyPath: '?screen=account' });
 

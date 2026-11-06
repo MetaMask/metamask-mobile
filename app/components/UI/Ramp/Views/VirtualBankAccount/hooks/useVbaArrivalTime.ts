@@ -2,8 +2,11 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectMoneyMovementNeobank } from '../../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaSourceCurrencyForCountry } from '../../../../../../util/region/getVbaSourceCurrency';
+import {
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaMarketForCountry } from '../../../../../../util/region/getVbaSourceCurrency';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
@@ -75,21 +78,16 @@ export function getVbaArrivalTimeframe(
  */
 export function useVbaArrivalTime(): VbaArrivalTime {
   const { location, isRegionEligible } = useVbaEligibility();
-  const { chooseCurrency, regionCurrencies, regions, defaultCurrency } =
-    useSelector(selectMoneyMovementNeobank);
+  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const markets = useSelector(selectNeobankMarkets);
   const depositAssetId = useMoneyAccountDepositAssetId();
 
   // With chooseCurrency on, the rail is unknown until the user picks a currency.
   const isPixDeposit =
     !chooseCurrency &&
-    getVbaSourceCurrencyForCountry(
-      location,
-      regionCurrencies,
-      regions,
-      defaultCurrency,
-    ) === 'BRL';
+    getVbaMarketForCountry(markets, location)?.currency === 'BRL';
 
-  // Only fetch for countries `moneyMovementNeobank.regions` allows (same gate as
+  // Only fetch for countries an open currency flag lists (same gate as
   // entry). Under the dev geo bypass the IP lookup can be unknown or outside
   // that list, and the ramps API has no catalog for it. Geolocation returns
   // "US" or "US-CA"; the ramps API indexes country-level regions by lowercase

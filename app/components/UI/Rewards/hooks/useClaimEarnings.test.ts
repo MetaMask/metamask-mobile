@@ -61,6 +61,10 @@ import { useClaimEarnings } from './useClaimEarnings';
 
 jest.mock('./useFollowTradeClaimOpen', () => ({
   useFollowTradeClaimOpen: jest.fn(() => false),
+  useClaimMechanisms: jest.fn(() => ({
+    followTradeClaimOpen: false,
+    revShareClaimOpen: false,
+  })),
 }));
 
 const mockDispatch = jest.fn();
@@ -269,6 +273,7 @@ describe('useClaimEarnings', () => {
   const onOpened = jest.fn();
   const onSubmitted = jest.fn();
   const onClaimsPaused = jest.fn();
+  const onTaxRequired = jest.fn();
 
   beforeEach(() => {
     storedClaimWait = undefined;
@@ -290,6 +295,7 @@ describe('useClaimEarnings', () => {
     onOpened.mockReset();
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
+    onTaxRequired.mockReset();
     (selectReferralMeLocalizedText as jest.Mock).mockReturnValue(localizedText);
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT,
@@ -341,22 +347,31 @@ describe('useClaimEarnings', () => {
     expect(tracked.properties.duration_ms).toBeGreaterThanOrEqual(0);
   }
 
-  function renderClaim(persona: 'referee' | 'referrer' = 'referee') {
+  function renderClaim() {
     return renderHook(() =>
       useClaimEarnings(PROFILE_ID, {
-        persona,
         onOpened,
         onSubmitted,
         onClaimsPaused,
+        onTaxRequired,
       }),
     );
   }
 
-  it('leaves the claim unsent for a referrer', async () => {
-    const { result } = renderClaim('referrer');
+  it('leaves the claim unsent when revenue share is closed', async () => {
+    const revShare = summary('0');
+    revShare.claimable = ONE_DOLLAR;
+    revShare.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      lifetime: '0',
+      claimable: ONE_DOLLAR,
+      pending: '0',
+      claimed: '0',
+      voided: '0',
+    };
+    const { result } = renderClaim();
 
     await act(async () => {
-      await result.current.claim(summary(ONE_DOLLAR));
+      await result.current.claim(revShare);
     });
 
     expect(mockEngineCall).not.toHaveBeenCalled();
@@ -550,7 +565,6 @@ describe('useClaimEarnings', () => {
     const { result, rerender } = renderHook(
       ({ current }: { current: EarningsSummaryDto }) =>
         useClaimEarnings(PROFILE_ID, {
-          persona: 'referee',
           onOpened,
           onSubmitted,
           summary: current,
@@ -592,7 +606,6 @@ describe('useClaimEarnings', () => {
       renderHook(
         ({ live }: { live: EarningsSummaryDto }) =>
           useClaimEarnings(PROFILE_ID, {
-            persona: 'referee',
             onOpened,
             onSubmitted,
             summary: live,
@@ -1083,7 +1096,6 @@ describe('useClaimEarnings', () => {
     const { result, rerender } = renderHook(
       ({ live }) =>
         useClaimEarnings(PROFILE_ID, {
-          persona: 'referee',
           summary: live,
           onOpened,
           onSubmitted,
@@ -1343,9 +1355,25 @@ describe('useClaimEarnings', () => {
     expect(onOpened).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the tax flow instead of the paused sheet when tax documentation is required', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(422, 'TAX_DETERMINATION_REQUIRED'),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(onTaxRequired).toHaveBeenCalledTimes(1);
+    expect(onClaimsPaused).not.toHaveBeenCalled();
+    expect(mockErrorToast).not.toHaveBeenCalled();
+    expect(mockSuccessToast).not.toHaveBeenCalled();
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
   it.each([
     'SUSPENDED',
-    'TAX_DETERMINATION_REQUIRED',
     'MECHANISM_NOT_CLAIMABLE',
     'EARNING_ADDRESS_UNSCREENABLE',
     'UNDER_REVIEW',
@@ -1363,6 +1391,7 @@ describe('useClaimEarnings', () => {
       });
 
       expect(onClaimsPaused).toHaveBeenCalledTimes(1);
+      expect(onTaxRequired).not.toHaveBeenCalled();
       expect(mockErrorToast).not.toHaveBeenCalled();
       expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(onSubmitted).not.toHaveBeenCalled();

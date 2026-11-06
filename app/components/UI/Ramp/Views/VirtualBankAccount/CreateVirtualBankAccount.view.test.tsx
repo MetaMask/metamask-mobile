@@ -11,7 +11,10 @@ import {
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { strings } from '../../../../../../locales/i18n';
-import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
@@ -39,9 +42,13 @@ const buildRolloutOverrides = (rollout: Record<string, unknown>) => ({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
             enabled: true,
             minimumVersion: '0.0.0',
-            regions: ['BR', 'US'],
-            regionCurrencies: { BR: 'BRL', US: 'USD' },
             ...rollout,
+          },
+          [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            currency: 'USD',
+            regions: ['US'],
           },
         },
       },

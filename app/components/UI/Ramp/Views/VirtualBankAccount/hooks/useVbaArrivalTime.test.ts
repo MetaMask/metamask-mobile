@@ -2,6 +2,11 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
@@ -134,6 +139,10 @@ describe('useVbaArrivalTime', () => {
   const FALLBACK_TITLE = strings(
     'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
   );
+  const markets: VbaMarket[] = [
+    { currency: 'BRL', regions: ['BR'] },
+    { currency: 'USD', regions: ['US'] },
+  ];
 
   const setup = ({
     eligibility,
@@ -150,11 +159,14 @@ describe('useVbaArrivalTime', () => {
     chooseCurrency?: boolean;
     paymentMethods?: PaymentMethod[];
   } = {}) => {
-    mockUseSelector.mockReturnValue({
-      chooseCurrency,
-      regions: ['BR', 'US'],
-      regionCurrencies: { BR: 'BRL', US: 'USD' },
-      defaultCurrency: undefined,
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMoneyMovementNeobank) {
+        return { chooseCurrency, regionOverride: undefined };
+      }
+      if (selector === selectNeobankMarkets) {
+        return markets;
+      }
+      return undefined;
     });
     mockUseVbaEligibility.mockReturnValue({
       location: 'US',
