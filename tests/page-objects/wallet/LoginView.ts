@@ -2,12 +2,13 @@ import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginVie
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities, { sleep } from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import {
-  isLoginScreenDisplayed,
-  isWalletHomeReadyOnAppium,
-} from '../../flows/wallet-home-readiness';
+import { isWalletHomeReadyOnAppium } from '../../flows/wallet-home-readiness';
+
+const LOGIN_BUTTON_POLL_MS = 300;
+const LOGIN_BUTTON_BUDGET_MS = 15_000;
 
 class LoginView {
   get container(): Promise<AppiumElement> {
@@ -61,22 +62,44 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    // Dismissing the keyboard can also submit the password field.
+    // Dismissing the keyboard can also submit the password field, and iOS
+    // hideKeyboard(tapOutside) can land on Unlock itself. Poll for wallet
+    // home readiness before requiring a displayed login button.
     await Gestures.hideKeyboard();
-    // Check the login screen first: it is one probe on the usual path, while
-    // the wallet-home check runs several lookups that each wait when absent.
-    if (
-      !(await isLoginScreenDisplayed()) &&
-      (await isWalletHomeReadyOnAppium())
-    ) {
+
+    const deadline = Date.now() + LOGIN_BUTTON_BUDGET_MS;
+    while (Date.now() < deadline) {
+      if (await isWalletHomeReadyOnAppium()) {
+        return;
+      }
+
+      if (await Utilities.isElementVisible(this.loginButton, 500)) {
+        await Gestures.waitAndTap(this.loginButton, {
+          elemDescription: 'Login Button',
+          checkForDisplayed: true,
+          checkEnabled: true,
+          // Heads-up / glass footer chrome can fail the interactive probe
+          // even when a plain tap unlocks — same posture as MM Connect unlock.
+          waitForInteractive: false,
+          timeout: Math.min(5_000, Math.max(1_000, deadline - Date.now())),
+        });
+        return;
+      }
+
+      await sleep(LOGIN_BUTTON_POLL_MS);
+    }
+
+    if (await isWalletHomeReadyOnAppium()) {
       return;
     }
+
+    // Final attempt: FooterGlass Unlock may exist while isDisplayed is false.
     await Gestures.waitAndTap(this.loginButton, {
       elemDescription: 'Login Button',
-      checkForDisplayed: true,
-      checkEnabled: true,
-      waitForInteractive: true,
-      timeout: 10_000,
+      checkForDisplayed: false,
+      checkEnabled: false,
+      waitForInteractive: false,
+      timeout: 5_000,
     });
   }
 
