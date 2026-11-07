@@ -5,7 +5,6 @@ import {
   BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
-  FontFamily,
   Icon,
   IconColor,
   IconName,
@@ -19,8 +18,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
-import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
-import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -31,6 +28,7 @@ import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { visibleReactions, type FeedReaction } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
+import AnimatedCount from './AnimatedCount';
 import ReactionChip, {
   REACTION_PILL_TW_CLASS,
   type EmojiWindowFrame,
@@ -211,14 +209,7 @@ const SocialFeedPostFooter = ({
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
-          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero. */}
-          <AnimatedNumericText
-            animated={getHardwareTier() !== 'LOW'}
-            color={TextColor.TextAlternative}
-            fontFamily={FontFamily.Default}
-            value={String(copyCount)}
-            variant={TextVariant.BodySm}
-          />
+          <AnimatedCount value={copyCount} />
         </Box>
       ) : null}
     </Box>
