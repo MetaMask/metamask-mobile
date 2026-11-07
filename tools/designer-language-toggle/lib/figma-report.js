@@ -194,8 +194,9 @@ function realTranslations(source, index, sharedFlats, langs, row, options) {
       keyCount: hits.length,
       basis: 'range',
       missing: false,
-      shortestOver: valueOver(best.characters, best.units, row || {}),
-      someOver: hits.some((item) => valueOver(item.characters, item.units, row || {})),
+      candidates: hits,
+      shortestOver: valueOver(best.characters, best.units, row || {}, best.text),
+      someOver: hits.some((item) => valueOver(item.characters, item.units, row || {}, item.text)),
     };
   });
   const chosenKey = pool.length === 1 ? pool[0] : null;
@@ -267,21 +268,53 @@ function round1(value) {
 
 function assessLanguage(entry, row) {
   const limit = row.maxCharacters || 10;
-  if (entry && entry.basis === 'range' && entry.minCharacters !== entry.maxCharacters && !entry.shortestOver) {
+  const narrow = (row.bucket === 'button' || row.bucket === 'tab')
+    && !row.template
+    && (row.width_px == null || row.width_px <= 120);
+  if (entry && entry.basis === 'range' && Array.isArray(entry.candidates)) {
+    const judged = entry.candidates.map((candidate) => {
+      const guidelineHit = guidelineOver(candidate.characters, row);
+      const pixel = row.availableWidth > 0
+        ? measurePixels(candidate.units, row, candidate.text)
+        : null;
+      return { guidelineHit, pixelOver: Boolean(pixel && pixel.overflow) };
+    });
+    const crosses = judged.filter((item) => item.guidelineHit || item.pixelOver).length;
+    const clear = judged.length - crosses;
+    const span = `${entry.minCharacters}–${entry.maxCharacters} chars across ${entry.keyCount} keys`;
+    if (crosses > 0 && clear > 0) {
+      return {
+        category: 'might',
+        pixelOver: false,
+        guideline: judged.some((item) => item.guidelineHit),
+        chars: entry.minCharacters,
+        line: `might break (${span})`,
+      };
+    }
+    if (crosses > 0 && clear === 0) {
+      const pixel = judged.some((item) => item.pixelOver);
+      const guide = judged.some((item) => item.guidelineHit);
+      const category = pixel && guide ? 'both' : pixel ? 'pixel only' : 'guideline only';
+      const label = category === 'guideline only' ? 'guideline only' : `hard break (${category})`;
+      return {
+        category,
+        pixelOver: pixel,
+        guideline: guide,
+        chars: entry.maxCharacters,
+        line: `${label}: ${span}; all break`,
+      };
+    }
     return {
-      category: 'might',
+      category: 'fits',
       pixelOver: false,
-      guideline: entry.maxCharacters > limit && entry.minCharacters <= limit,
-      chars: entry.minCharacters,
-      line: `might break (${entry.minCharacters}–${entry.maxCharacters} chars across ${entry.keyCount} keys)`,
+      guideline: false,
+      chars: entry.maxCharacters,
+      line: `fits (${span}; all fit)`,
     };
   }
   const chars = entry && typeof entry.characters === 'number'
     ? entry.characters
     : checker.characterCount(row.source || '');
-  const narrow = (row.bucket === 'button' || row.bucket === 'tab')
-    && !row.template
-    && (row.width_px == null || row.width_px <= 120);
   const guideline = narrow && chars > limit;
   const units = entry && typeof entry.units === 'number' ? entry.units : (row.widthHint || chars);
   const text = entry && entry.text && !(row.slots && row.slots.length) ? entry.text : null;
@@ -548,6 +581,14 @@ function mightLanguageCount(report) {
   );
 }
 
+function formatTranslationDisplay(row, item) {
+  if (!row || !item) return '';
+  const translation = item.text || item.minText || null;
+  const rendered = translation ? translatedTemplate(row, translation) : null;
+  if (!rendered) return '';
+  return `${JSON.stringify(rendered.shown)} (example ${JSON.stringify(rendered.example)})`;
+}
+
 function translatedTemplate(row, translation) {
   if (!row || !row.template || !translation) return null;
   const slots = row.template.match(/\{[a-z]+\}/gi) || [];
@@ -573,5 +614,6 @@ module.exports = {
   shipMatchKey,
   mightLanguageCount,
   translatedTemplate,
+  formatTranslationDisplay,
   assessLanguage,
 };

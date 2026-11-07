@@ -549,10 +549,32 @@ function classifyTextNode(node, rules) {
   };
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hintMatchesPath(frame, hint) {
+  const segments = String(frame || '').split('/').map((part) => part.trim()).filter(Boolean);
+  const raw = String(hint || '').trim();
+  if (!raw || segments.length === 0) return false;
+  if (raw.includes('*')) {
+    const body = raw.split('*').map((part) => escapeRegExp(part)).join('.*');
+    const pattern = new RegExp(`^${body}$`, 'i');
+    return pattern.test(segments.join(' / ')) || segments.some((part) => pattern.test(part));
+  }
+  const hintSegments = raw.split('/').map((part) => part.trim().toLowerCase()).filter(Boolean);
+  if (hintSegments.length === 1) {
+    return segments.some((part) => part.toLowerCase() === hintSegments[0]);
+  }
+  for (let index = 0; index <= segments.length - hintSegments.length; index += 1) {
+    if (hintSegments.every((part, offset) => segments[index + offset].toLowerCase() === part)) return true;
+  }
+  return false;
+}
+
 function nameContext(frame, layer, rules) {
-  const blob = `${frame || ''} ${layer || ''}`;
-  if (/\[name\]/i.test(blob)) return true;
-  return (rules.nameHints || []).some((hint) => blob.toLowerCase().includes(String(hint).toLowerCase()));
+  if (/\[name\]/i.test(`${frame || ''} ${layer || ''}`)) return true;
+  return (rules.nameHints || []).some((hint) => hintMatchesPath(frame, hint));
 }
 
 function isNameToken(token) {
@@ -608,6 +630,7 @@ function layoutSnapshot(node, pathChildId) {
     counterAxisSizingMode: node.counterAxisSizingMode || null,
     layoutSizingHorizontal: node.layoutSizingHorizontal || null,
     clipsContent: Boolean(node.clipsContent),
+    overflowDirection: node.overflowDirection || null,
     pathChildId: pathChildId || '',
     children: (node.children || []).map((child) => ({
       id: child.id || '',
@@ -664,6 +687,48 @@ function levelReservation(parent) {
   return pad + siblingWidth + gaps;
 }
 
+function contentSpan(parent) {
+  const visible = visibleChildren(parent);
+  const sum = visible.reduce((total, child) => total + (child.width || 0), 0);
+  const gaps = (parent.itemSpacing || 0) * Math.max(visible.length - 1, 0);
+  const pad = (parent.paddingLeft || 0) + (parent.paddingRight || 0);
+  return sum + gaps + pad;
+}
+
+function rowOverflows(parent) {
+  if (parent.layoutMode !== 'HORIZONTAL' || typeof parent.width !== 'number') return false;
+  return contentSpan(parent) > parent.width + 0.5;
+}
+
+function scrolls(parent) {
+  return String(parent.overflowDirection || '').toUpperCase().includes('SCROLL');
+}
+
+function siblingWidth(parent) {
+  const visible = visibleChildren(parent);
+  return visible
+    .filter((child) => child.id !== parent.pathChildId)
+    .reduce((sum, child) => sum + (child.width || 0), 0);
+}
+
+function scrollingRow(parent) {
+  if (!rowOverflows(parent) || siblingWidth(parent) <= 0) return false;
+  return !parent.clipsContent || scrolls(parent);
+}
+
+function clippedOverflowRow(parent) {
+  if (!rowOverflows(parent) || siblingWidth(parent) <= 0) return false;
+  return Boolean(parent.clipsContent) && !scrolls(parent);
+}
+
+function englishIsOneLine(record) {
+  const mode = String(record.textAutoResize || '').toUpperCase();
+  if (mode === 'TRUNCATE') return false;
+  const lineHeight = record.lineHeightPx || (record.fontSize ? record.fontSize * 1.2 : null);
+  if (typeof record.height !== 'number' || !lineHeight) return mode === 'WIDTH_AND_HEIGHT';
+  return record.height <= lineHeight * 1.25;
+}
+
 function noRoom(clips) {
   return {
     availableWidth: null,
@@ -687,6 +752,24 @@ function resolveAvailableWidth(record) {
   let reserved = 0;
   for (let index = containers.length - 1; index >= 0; index -= 1) {
     const parent = containers[index];
+    if (!hugsWidth(parent) && clippedOverflowRow(parent)) {
+      return {
+        availableWidth: null,
+        unconstrained: true,
+        pixelBasis: 'estimate',
+        clips: true,
+        reason: 'row is wider than its container; may scroll',
+      };
+    }
+    if (!hugsWidth(parent) && scrollingRow(parent) && englishIsOneLine(record)) {
+      return {
+        availableWidth: record.width,
+        unconstrained: false,
+        scrolling: true,
+        pixelBasis: 'measured',
+        clips,
+      };
+    }
     if (hugsWidth(parent)) {
       reserved += levelReservation(parent);
       continue;
@@ -696,6 +779,14 @@ function resolveAvailableWidth(record) {
     if (typeof base !== 'number') return noRoom(clips);
     const available = base - reserved;
     if (!(available > 0)) return noRoom(clips);
+    if (
+      scrollingRow(parent)
+      && englishIsOneLine(record)
+      && typeof record.width === 'number'
+      && record.width > available + 0.5
+    ) {
+      return { availableWidth: record.width, unconstrained: false, scrolling: true, pixelBasis: 'measured', clips };
+    }
     return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips };
   }
   return {
@@ -726,6 +817,8 @@ function collectTextNodes(node, ancestors, ancestorHidden, out, layouts) {
       height: typeof box.height === 'number' ? box.height : null,
       textAutoResize,
       lineHeightPx: typeof style.lineHeightPx === 'number' ? style.lineHeightPx : null,
+      lineHeightUnit: style.lineHeightUnit || null,
+      lineHeightPercent: typeof style.lineHeightPercent === 'number' ? style.lineHeightPercent : null,
       fontSize: typeof style.fontSize === 'number' ? style.fontSize : null,
       maxLines: typeof style.maxLines === 'number'
         ? style.maxLines

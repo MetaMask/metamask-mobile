@@ -8,7 +8,7 @@
 const lib = require('./locale-lib');
 const figma = require('../lib/figma-adapter');
 const { checkDesignFile } = require('../lib/file-adapter');
-const { buildBreakReport, mightLanguageCount, translatedTemplate } = require('../lib/figma-report');
+const { buildBreakReport, mightLanguageCount, formatTranslationDisplay } = require('../lib/figma-report');
 const { loadLearned } = require('../lib/learned');
 
 const HELP = `
@@ -56,10 +56,10 @@ function lineFor(row) {
 function printLang(lang, item, verdict, row) {
   if (!item) return;
   const tag = verdict === 'break' ? ' hard break' : verdict === 'might' ? ' might break' : '';
-  const rendered = item.text ? translatedTemplate(row, item.text) : null;
   const reason = row && row.langReasons ? row.langReasons[lang] : '';
-  if (rendered) {
-    console.log(`    ${lang} ${reason}  ${JSON.stringify(rendered.shown)} (example ${JSON.stringify(rendered.example)})`);
+  const shown = formatTranslationDisplay(row, item);
+  if (shown) {
+    console.log(`    ${lang} ${reason}  ${shown}`);
     return;
   }
   if (reason) {
@@ -120,7 +120,11 @@ function printReport(report, langs) {
   console.log('');
   console.log(`Fits the example, breaks at max slot length (${(report.slotMax || []).length})`);
   if (!report.slotMax || report.slotMax.length === 0) console.log('  None.');
-  (report.slotMax || []).forEach((row) => console.log(`${lineFor(row)}  ${row.note}`));
+  (report.slotMax || []).forEach((row) => {
+    const sample = row.real && langs.map((lang) => row.real.perLang[lang]).find((item) => item && (item.text || item.minText));
+    const shown = formatTranslationDisplay(row, sample);
+    console.log(`${lineFor(row)}  ${row.note}${shown ? `  ${shown}` : ''}`);
+  });
   console.log('');
   console.log(`Text that will overflow or wrap (${report.labels.length})`);
   if (report.labels.length === 0) console.log('  None.');
@@ -128,7 +132,13 @@ function printReport(report, langs) {
     const assumed = row.assumption ? `  ${row.assumption}` : '';
     console.log(`${lineFor(row)}  ${row.issue || 'check'}${assumed}`);
     (row.problems || []).forEach((item) => {
-      const how = item.basis === 'estimate' ? 'estimate' : item.basis === 'range' ? `${item.minCharacters}–${item.maxCharacters}` : JSON.stringify(item.text);
+      const shown = formatTranslationDisplay(row, item);
+      const how = shown
+        || (item.basis === 'estimate'
+          ? 'estimate'
+          : item.basis === 'range'
+            ? `${item.minCharacters}–${item.maxCharacters}`
+            : JSON.stringify(item.text));
       const detail = item.detail ? `  ${item.detail}` : '';
       const basis = item.pixelBasis ? `  ${item.pixelBasis}` : '';
       console.log(`    ${item.lang} ${item.issue}  ${how}${detail}${basis}${item.key ? `  key ${item.key}` : ''}`);

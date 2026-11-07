@@ -1,5 +1,7 @@
 # Changelog
 
+- A row wider than its fixed parent keeps each item's own width when it scrolls or does not clip. A clipped row with no scroll metadata is only "Check visually", with the note "row is wider than its container; may scroll". Path hints match whole layer-name segments, so Feed / Market does not match Feed / Markets, and a shipped locale value stays copy. A range is "might break" only when some candidate crosses the pixel limit or the 10-character guideline and some does not. When every candidate fits, the line is "fits (8–14 chars across 3 keys; all fit)". HEIGHT notes resolve pixel, percent, and auto line height (auto is 1.2× the font size). A translation the same width as borderline English is borderline. Label rows print the slot, for example `Zum Sieg {price}`.
+
 - Crossing a HUG wrapper now reserves that wrapper's padding, gaps, and siblings. No remaining room is "no room in English layout". A ranged translation says might break with the min–max count. HEIGHT body text notes when a translation needs more lines. Names tagged with a path hint or `[name]` are not inflated, and a crowded English layout still reports a worse translation.
 
 - A clipping HUG wrapper no longer freezes the available width; the walk stops at a FIXED ancestor. Each language line uses one verdict (guideline only, pixel only, both, or fits). The 10-character group counts characters. Plain names are not estimated. English that is already wider than its slot is a layout problem. HEIGHT growth is a layout note when nothing caps it.

@@ -1689,9 +1689,9 @@ function testReportGaps() {
       tr: { 'a.funds': '12345678', 'b.funds': '12345678901', 'c.funds': '12345678901234' },
     },
   });
-  const trLine = fundsRange.mightBreak[0].langReasons.tr;
-  assert(/might break \(8–14 chars across 3 keys\)/.test(trLine), 'a ranged translation is not labeled fits');
-  assert(!/^fits:/.test(trLine), 'the range line does not say fits');
+  const trLine = fundsRange.fits[0].langReasons.tr;
+  assert(/fits \(8–14 chars across 3 keys; all fit\)/.test(trLine), 'a range that fits the box is not a might-break');
+  assert(fundsRange.mightBreak.length === 0, 'no candidate crosses, so the row is not might-break');
 
   const rulesBody = classifyRecord({
     id: 'rules-body',
@@ -1713,6 +1713,191 @@ function testReportGaps() {
     bodyReport.layoutNotes.some((row) => /grows from \d+ to \d+ lines; check container height/.test(row.detail || '')),
     'HEIGHT body text with a longer estimate gets a layout note',
   );
+
+  function tabRow(clips, overflowDirection) {
+    const nodes = [];
+    const tab = (id, label) => ({
+      type: 'FRAME',
+      id,
+      name: 'Tab',
+      layoutMode: 'HORIZONTAL',
+      layoutSizingHorizontal: 'HUG',
+      primaryAxisSizingMode: 'AUTO',
+      absoluteBoundingBox: { width: 95, height: 32 },
+      children: [{
+        type: 'TEXT',
+        id: `${id}-label`,
+        name: 'Label',
+        characters: label,
+        textAutoResize: 'WIDTH_AND_HEIGHT',
+        absoluteBoundingBox: { width: 95, height: 16 },
+        style: { fontSize: 12, lineHeightPx: 16 },
+      }],
+    });
+    figma.collectTextNodes({
+      type: 'FRAME',
+      id: 'tab-strip',
+      name: 'Tabs',
+      layoutMode: 'HORIZONTAL',
+      primaryAxisSizingMode: 'FIXED',
+      layoutSizingHorizontal: 'FIXED',
+      clipsContent: clips,
+      overflowDirection,
+      absoluteBoundingBox: { width: 100, height: 32 },
+      children: [tab('tab-a', 'Player props'), tab('tab-b', 'Game lines'), tab('tab-c', 'Game props')],
+    }, [], false, nodes);
+    return nodes[0];
+  }
+  const scrolling = figma.resolveAvailableWidth(tabRow(false));
+  assert(scrolling.availableWidth === 95 && scrolling.scrolling, 'a scrolling tab keeps its own width');
+  const clipped = figma.resolveAvailableWidth(tabRow(true));
+  assert(clipped.reason === 'row is wider than its container; may scroll', 'a clipped overflow row is check visually');
+  const scrollable = figma.resolveAvailableWidth(tabRow(true, 'HORIZONTAL_SCROLLING'));
+  assert(scrollable.availableWidth === 95 && scrollable.scrolling, 'clipping with scroll metadata stays a scrolling row');
+
+  const politics = figma.classifyTextNode({
+    id: 'politics',
+    layer_name: 'Label',
+    frame_path: 'Feed / Markets / Politics',
+    text: 'Politics',
+    width: 80,
+    visible: true,
+  }, { ...rules, shippedWords: new Set(['Politics']) });
+  const phi = figma.classifyTextNode({
+    id: 'phi-market',
+    layer_name: 'Code',
+    frame_path: 'Feed / Market / PHI',
+    text: 'PHI',
+    width: 32,
+    visible: true,
+  }, { ...rules, shippedWords: new Set(['Politics']) });
+  assert(politics.kind !== 'name', 'Feed / Markets is not the Feed / Market hint');
+  assert(phi.kind === 'name', 'Feed / Market marks PHI as a name');
+
+  const crossing = buildBreakReport([
+    classifyRecord({
+      id: 'tight-funds',
+      key: 'tight-funds',
+      source_text: 'Add funds',
+      context: { kind: 'button', width_px: 70, fontSize: 14, textAutoResize: 'NONE', component: 'Add funds', screen: 'Wallet' },
+    }, limits),
+  ], {
+    langs: ['tr'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'a.funds': 'Add funds', 'b.funds': 'Add funds', 'c.funds': 'Add funds' },
+      tr: { 'a.funds': '12345678', 'b.funds': '12345678901', 'c.funds': '12345678901234' },
+    },
+  });
+  assert(/might break \(8–14 chars across 3 keys\)/.test(crossing.mightBreak[0].langReasons.tr), 'a range might-breaks only when a candidate crosses');
+
+  const allBreak = buildBreakReport([
+    classifyRecord({
+      id: 'long-funds',
+      key: 'long-funds',
+      source_text: 'Add funds',
+      context: { kind: 'button', width_px: 160, fontSize: 14, textAutoResize: 'NONE', component: 'Add funds', screen: 'Wallet' },
+    }, limits),
+  ], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'a.long': 'Add funds', 'b.long': 'Add funds', 'c.long': 'Add funds' },
+      de: {
+        'a.long': '123456789012345678901234',
+        'b.long': '1234567890123456789012345678',
+        'c.long': '12345678901234567890123456789012',
+      },
+    },
+  });
+  assert(allBreak.breaks.length === 1 && /all break/.test(allBreak.breaks[0].langReasons.de), 'a range where every candidate crosses is a break');
+  assert(allBreak.mightBreak.length === 0, 'an all-break range is not might-break');
+
+  const autoLines = classifyRecord({
+    id: 'auto-lines',
+    key: 'auto-lines',
+    source_text: 'aaaa aaaa aaaa aaaa aaaa',
+    context: {
+      kind: 'body',
+      width_px: 80,
+      height: 40,
+      fontSize: 16,
+      lineHeightUnit: 'AUTO',
+      textAutoResize: 'HEIGHT',
+      layoutSizingHorizontal: 'FILL',
+      component: 'Body',
+      screen: 'Rules',
+    },
+  }, limits);
+  const percentLines = classifyRecord({
+    id: 'percent-lines',
+    key: 'percent-lines',
+    source_text: 'bbbb bbbb bbbb bbbb bbbb',
+    context: {
+      kind: 'body',
+      width_px: 80,
+      height: 40,
+      fontSize: 16,
+      lineHeightUnit: 'PERCENT',
+      lineHeightPercent: 120,
+      textAutoResize: 'HEIGHT',
+      layoutSizingHorizontal: 'FIXED',
+      component: 'Body',
+      screen: 'Rules',
+    },
+  }, limits);
+  const unitReport = buildBreakReport([autoLines, percentLines], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: { en: {}, de: {} },
+  });
+  assert(unitReport.layoutNotes.length >= 2, 'AUTO and PERCENT line heights still produce growth notes');
+
+  const liveEdge = classifyRecord({
+    id: 'live-edge',
+    key: 'live-edge',
+    source_text: 'LIVE',
+    context: { kind: 'label', width_px: 27, textAutoResize: 'NONE', fontSize: 14, component: 'LIVE', screen: 'Header' },
+  }, limits);
+  const livePixel = require('../lib/file-adapter').measurePixels(liveEdge.widthHint, {
+    ...liveEdge,
+    availableWidth: 26,
+  }, 'LIVE');
+  assert(livePixel.overflow === false && livePixel.borderline === true, 'a translation as wide as borderline English is borderline');
+
+  const predictLabel = classifyRecord({
+    id: 'to-win-label',
+    key: 'to-win-label',
+    source_text: 'To win 54¢',
+    context: {
+      kind: 'label',
+      width_px: 40,
+      fontSize: 14,
+      textAutoResize: 'NONE',
+      component: 'To win',
+      screen: 'Predict',
+      template: 'To win {price}',
+      example: 'To win 54¢',
+      copyText: 'To win',
+      dataCharacters: 3,
+      slots: [{ name: 'price', characters: 3 }],
+    },
+  }, limits);
+  const predictReport = buildBreakReport([predictLabel], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    context: ['predict'],
+    contextHints: { predict: ['predict'] },
+    sharedFlats: {
+      en: { 'predict.win': 'To win', 'perps.win': 'To win' },
+      de: { 'predict.win': 'Zum Sieg', 'perps.win': 'Gewinn' },
+    },
+  });
+  const predictRow = predictReport.labels[0] || predictReport.slotMax[0];
+  const predictItem = (predictRow.problems && predictRow.problems[0])
+    || (predictRow.real && predictRow.real.perLang.de);
+  const predictShown = require('../lib/figma-report').formatTranslationDisplay(predictRow, predictItem);
+  assert(predictShown.includes('Zum Sieg {price}') && predictShown.includes('Zum Sieg 54¢'), 'predict label rows print the price slot and the example');
 
   const collected = [];
   figma.collectTextNodes({

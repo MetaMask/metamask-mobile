@@ -142,6 +142,8 @@ function toStringRecord(row) {
       height: numericField(row, ['height']),
       textAutoResize: row.textAutoResize || row.textAutoResizing || null,
       lineHeightPx: numericField(row, ['lineHeightPx', 'lineHeight', 'line_height_px']),
+      lineHeightUnit: row.lineHeightUnit || null,
+      lineHeightPercent: numericField(row, ['lineHeightPercent', 'line_height_percent']),
       fontSize: numericField(row, ['fontSize', 'font_size']),
       maxLines: numericField(row, ['maxLines', 'max_lines']),
       template: row.template || null,
@@ -300,6 +302,15 @@ function wrapLines(text, available, pxPerUnit) {
   return Math.max(lines, 1);
 }
 
+function resolvedLineHeight(row) {
+  const unit = String(row.lineHeightUnit || '').toUpperCase();
+  const font = row.fontSize;
+  if ((unit === 'PIXELS' || unit === 'PIXEL') && row.lineHeightPx) return row.lineHeightPx;
+  if (unit === 'PERCENT' && font && row.lineHeightPercent) return font * (row.lineHeightPercent / 100);
+  if (unit === 'AUTO' || unit === 'INTRINSIC_%') return font ? font * 1.2 : row.lineHeightPx;
+  return row.lineHeightPx || (font ? font * 1.2 : null);
+}
+
 function glyphLabel(row) {
   return row.fontSize
     ? 'estimated glyph width (font size × 0.5 avg)'
@@ -336,9 +347,10 @@ function measurePixels(units, row, text) {
     ? wrapLines(text, available, pxPerUnit)
     : Math.max(1, Math.ceil(totalPx / available));
   const lines = Math.max(wrapped, Math.ceil(totalPx / available));
-  const currentLines = row.lineCount || (row.lineHeightPx && row.height
-    ? Math.max(1, Math.round(row.height / row.lineHeightPx))
-    : 1);
+  const lineHeight = resolvedLineHeight(row);
+  const currentLines = row.height && lineHeight
+    ? Math.max(1, Math.round(row.height / lineHeight))
+    : (row.lineCount || 1);
   const capped = Boolean(row.maxLines) || mode === 'TRUNCATE' || mode === 'NONE' || row.clips;
   const singleLine = mode === 'HEIGHT'
     ? false
@@ -352,13 +364,30 @@ function measurePixels(units, row, text) {
   } else {
     if (row.maxLines && (lines > row.maxLines || totalPx > available * row.maxLines + 0.01)) overflow = true;
     if (singleLine && (lines > 1 || totalPx > available + 0.01)) overflow = true;
-    if ((mode === 'NONE' || mode === 'TRUNCATE') && row.lineHeightPx && row.height && lines * row.lineHeightPx > row.height + 0.5) {
+    if ((mode === 'NONE' || mode === 'TRUNCATE') && lineHeight && row.height && lines * lineHeight > row.height + 0.5) {
       overflow = true;
     }
     if (row.layout === 'wrap' && row.maxLines && lines > row.maxLines) overflow = true;
   }
-  const basis = `${glyph}; measured: box ${Math.round(available)}px, needs ${lines} line${lines === 1 ? '' : 's'}`;
-  return { pxPerUnit, availableWidth: available, lines, overflow, unconstrained: false, basis, note };
+  const tolerance = Math.max(2, available * 0.05);
+  const englishPx = row.width_px;
+  let borderline = false;
+  if (
+    overflow
+    && typeof englishPx === 'number'
+    && Math.abs(totalPx - englishPx) <= 0.5
+    && englishPx > available
+    && englishPx - available <= tolerance
+  ) {
+    overflow = false;
+    borderline = true;
+  }
+  const basis = `${glyph}; measured: box ${roundPx(available)}px, needs ${lines} line${lines === 1 ? '' : 's'}`;
+  return { pxPerUnit, availableWidth: available, lines, overflow, unconstrained: false, basis, note, borderline };
+}
+
+function roundPx(value) {
+  return Math.round(Number(value) * 10) / 10;
 }
 
 function exceedsBudget(text, maxCharacters, maxUnits) {
@@ -369,7 +398,7 @@ function exceedsBudget(text, maxCharacters, maxUnits) {
 function labelLayout(row) {
   const mode = String(row.context.textAutoResize || '').toUpperCase();
   const height = row.context.height;
-  const lineHeight = row.context.lineHeightPx || (row.context.fontSize ? row.context.fontSize * 1.2 : null);
+  const lineHeight = resolvedLineHeight(row.context);
   const measuredLines = lineHeight && height ? Math.max(1, Math.round(height / lineHeight)) : null;
   const capped = row.context.maxLines;
   const boxLines = capped || measuredLines || 1;
@@ -404,7 +433,13 @@ function classifyRecord(row, limits, learned) {
   const space = resolveAvailableWidth({
     id: row.id,
     width,
+    height: row.context.height,
     textAutoResize: row.context.textAutoResize,
+    lineHeightPx: row.context.lineHeightPx,
+    lineHeightUnit: row.context.lineHeightUnit,
+    lineHeightPercent: row.context.lineHeightPercent,
+    fontSize: row.context.fontSize,
+    maxLines: row.context.maxLines,
     containers: row.context.containers || [],
   });
   const unresolved = space.unconstrained || !(space.availableWidth > 0);
@@ -444,6 +479,8 @@ function classifyRecord(row, limits, learned) {
       layout,
       height: row.context.height,
       lineHeightPx: row.context.lineHeightPx,
+      lineHeightUnit: row.context.lineHeightUnit,
+      lineHeightPercent: row.context.lineHeightPercent,
       clips: space.clips,
       pxSource: model.source,
     });
@@ -504,6 +541,8 @@ function classifyRecord(row, limits, learned) {
     fontSize: row.context.fontSize || null,
     height: row.context.height || null,
     lineHeightPx: row.context.lineHeightPx || null,
+    lineHeightUnit: row.context.lineHeightUnit || null,
+    lineHeightPercent: row.context.lineHeightPercent || null,
     textAutoResize: row.context.textAutoResize || null,
     occurrences: row.occurrences || 1,
     screens: row.context.screens || [screenLabel(row.context.screen)].filter(Boolean),
