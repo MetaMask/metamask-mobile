@@ -6,10 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  Button,
   ButtonIconSize,
-  ButtonVariant,
-  ButtonSize,
   IconName,
   Text,
   TextVariant,
@@ -258,16 +255,6 @@ const WatchlistFullScreenView = () => {
             >
               {strings('token_watchlist.fullscreen_title')}
             </Text>
-          </View>
-
-          <View style={styles.tabContainer}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Sm}
-              testID={WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB}
-            >
-              {strings('token_watchlist.tokens_tab')}
-            </Button>
           </View>
 
           {listContent}
