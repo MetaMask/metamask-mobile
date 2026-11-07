@@ -609,7 +609,7 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('42%');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
-    ).toHaveTextContent('+$1,200');
+    ).toHaveTextContent('+$1,200.00');
     expect(
       screen.queryByTestId(
         MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
@@ -620,7 +620,7 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('3h');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
-    ).toHaveTextContent('$50,000');
+    ).toHaveTextContent('$50,000.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
@@ -698,7 +698,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
-    ).toHaveTextContent('+$100');
+    ).toHaveTextContent('+$100.00');
   });
 
   it('opens followers connections on the followers tab', () => {
