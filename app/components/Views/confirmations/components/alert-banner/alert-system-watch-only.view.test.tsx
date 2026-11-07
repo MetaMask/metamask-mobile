@@ -35,12 +35,23 @@ function WatchOnlyAlertHarness() {
 }
 
 describeForPlatforms('Alert system (watch-only account)', () => {
-  it('blocks a send from a watch-only account', async () => {
-    Engine.context.KeyringController.state.keyrings.push({
+  const { keyrings } = Engine.context.KeyringController.state;
+
+  beforeEach(() => {
+    keyrings.push({
       type: 'watch-only',
       accounts: [TRANSFER_SENDER],
       metadata: { id: 'watch-only', name: '' },
     });
+  });
+
+  afterEach(() => {
+    keyrings.pop();
+  });
+
+  it('blocks a send from a watch-only account', async () => {
+    const blockedMessage = strings('watch_only.blocked_message');
+    expect(blockedMessage).not.toMatch(/\[missing ".*" translation\]/);
 
     const { getByTestId, getByText } = renderComponentViewScreen(
       WatchOnlyAlertHarness,
@@ -49,9 +60,7 @@ describeForPlatforms('Alert system (watch-only account)', () => {
     );
 
     await waitFor(() => {
-      expect(
-        getByText(strings('watch_only.blocked_message')),
-      ).toBeOnTheScreen();
+      expect(getByText(blockedMessage)).toBeOnTheScreen();
     });
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),

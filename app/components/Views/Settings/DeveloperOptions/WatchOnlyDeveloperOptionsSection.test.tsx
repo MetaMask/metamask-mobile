@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
@@ -35,17 +35,22 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
       getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT),
       ` ${ADDRESS} `,
     );
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON),
+      );
+    });
 
+    const expected = strings(
+      'app_settings.developer_options.watch_only.added',
+      {
+        name: 'Watch-only Account 1',
+      },
+    );
+    expect(expected).not.toMatch(/\[missing ".*" translation\]/);
     expect(
       await findByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT),
-    ).toHaveTextContent(
-      strings('app_settings.developer_options.watch_only.added', {
-        name: 'Watch-only Account 1',
-      }),
-    );
+    ).toHaveTextContent(expected);
     expect(mockCreateAccount).toHaveBeenCalledWith(ADDRESS);
     expect(mockSelectAccount).toHaveBeenCalledWith('watch-id');
   });
