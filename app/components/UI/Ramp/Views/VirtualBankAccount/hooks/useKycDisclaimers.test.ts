@@ -1,6 +1,14 @@
+import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from '@tanstack/react-query';
 import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { VBA_KYC_VENDOR } from '../constants';
+import { prefetchVbaVendorDisclaimers } from '../vbaVendorDisclaimersQuery';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockFetchVendorDisclaimers = jest.fn();
@@ -32,6 +40,15 @@ jest.mock('../../../../../../selectors/rampsController', () => ({
   ),
 }));
 
+jest.mock('../../../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: { queryClient: undefined },
+}));
+
+jest.mock('../../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 jest.mock('../vbaVendorTermsStorage', () => ({
   saveVbaVendorTermsAcceptance: (...args: unknown[]) =>
     mockSaveVbaVendorTermsAcceptance(...args),
@@ -39,9 +56,25 @@ jest.mock('../vbaVendorTermsStorage', () => ({
 
 const disclaimers = [{ id: '1', url: 'https://t.c', display_name: 'T&C' }];
 
+let queryClient: QueryClient;
+
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(QueryClientProvider, { client: queryClient }, children);
+
+const renderUseKycDisclaimers = () =>
+  renderHook(() => useKycDisclaimers(), { wrapper });
+
+afterEach(() => {
+  onlineManager.setOnline(true);
+  queryClient.clear();
+});
+
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { gcTime: Infinity } },
+    });
     mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
     mockGetGeoCountry.mockResolvedValue('BRA');
     mockGetState.mockReturnValue({ address: '0xabc' });
@@ -49,7 +82,7 @@ describe('useKycDisclaimers', () => {
   });
 
   it('loads vendor disclaimers through KycController', async () => {
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -62,13 +95,100 @@ describe('useKycDisclaimers', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('returns prefetched disclaimers on the first render without loading again', async () => {
+    await prefetchVbaVendorDisclaimers(queryClient);
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+
+    const { result } = renderUseKycDisclaimers();
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.disclaimers).toStrictEqual(disclaimers);
+    expect(result.current.error).toBeNull();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+  });
+
+  it('joins a prefetch that is still in flight instead of starting another', async () => {
+    let resolveFetch: (value: typeof disclaimers) => void = () => undefined;
+    mockFetchVendorDisclaimers.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const prefetch = prefetchVbaVendorDisclaimers(queryClient);
+
+    const { result } = renderUseKycDisclaimers();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.disclaimers).toBeNull();
+
+    await act(async () => {
+      resolveFetch(disclaimers);
+      await prefetch;
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.disclaimers).toStrictEqual(disclaimers);
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads again on open when the prefetch failed', async () => {
+    mockFetchVendorDisclaimers
+      .mockRejectedValueOnce(new Error('server error'))
+      .mockResolvedValueOnce(disclaimers);
+    await prefetchVbaVendorDisclaimers(queryClient);
+
+    const { result } = renderUseKycDisclaimers();
+
+    await waitFor(() =>
+      expect(result.current.disclaimers).toStrictEqual(disclaimers),
+    );
+    expect(result.current.error).toBeNull();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports a failed prefetch only when the screen loads the terms', async () => {
+    mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
+
+    await prefetchVbaVendorDisclaimers(queryClient);
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    const { result } = renderUseKycDisclaimers();
+
+    await waitFor(() => expect(result.current.error).toBe('server error'));
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(Logger.error).toHaveBeenCalledTimes(1));
+  });
+
+  it('reports an in-flight prefetch failure once the screen shows the error', async () => {
+    let rejectFetch: (error: Error) => void = () => undefined;
+    mockFetchVendorDisclaimers.mockReturnValue(
+      new Promise((_, reject) => {
+        rejectFetch = reject;
+      }),
+    );
+    const prefetch = prefetchVbaVendorDisclaimers(queryClient);
+
+    const { result } = renderUseKycDisclaimers();
+    expect(result.current.isLoading).toBe(true);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    await act(async () => {
+      rejectFetch(new Error('server error'));
+      await prefetch;
+    });
+
+    await waitFor(() => expect(result.current.error).toBe('server error'));
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(Logger.error).toHaveBeenCalledTimes(1));
+  });
+
   it('surfaces an error when KycService is unavailable', async () => {
     const originalKycService = Engine.context.KycService;
     (Engine.context as { KycService?: typeof originalKycService }).KycService =
       undefined;
 
     try {
-      const { result } = renderHook(() => useKycDisclaimers());
+      const { result } = renderUseKycDisclaimers();
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -83,7 +203,7 @@ describe('useKycDisclaimers', () => {
   it('surfaces errors returned by KycController', async () => {
     mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
 
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -91,10 +211,25 @@ describe('useKycDisclaimers', () => {
     expect(result.current.error).toBe('server error');
   });
 
+  it('tries while offline so the failure and retry are reachable', async () => {
+    onlineManager.setOnline(false);
+    mockFetchVendorDisclaimers.mockRejectedValue(
+      new Error('Network request failed'),
+    );
+
+    const { result } = renderUseKycDisclaimers();
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.disclaimers).toBeNull();
+    expect(result.current.error).toBe('Network request failed');
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+  });
+
   it('treats an empty response as an error', async () => {
     mockFetchVendorDisclaimers.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -107,13 +242,13 @@ describe('useKycDisclaimers', () => {
     try {
       mockFetchVendorDisclaimers.mockReturnValue(new Promise(() => undefined));
 
-      const { result } = renderHook(() => useKycDisclaimers());
+      const { result } = renderUseKycDisclaimers();
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
       });
 
-      expect(result.current.isLoading).toBe(false);
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.error).toBe('Request timed out');
     } finally {
       jest.useRealTimers();
@@ -124,7 +259,7 @@ describe('useKycDisclaimers', () => {
     mockFetchVendorDisclaimers
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(disclaimers);
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
     await waitFor(() => expect(result.current.error).toBe('server error'));
 
     act(() => result.current.retry());
@@ -136,7 +271,7 @@ describe('useKycDisclaimers', () => {
   });
 
   it('stores every displayed vendor disclaimer locally for the selected wallet', async () => {
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = false;
@@ -155,7 +290,7 @@ describe('useKycDisclaimers', () => {
     mockSaveVbaVendorTermsAcceptance.mockRejectedValue(
       new Error('Consent storage failed'),
     );
-    const { result } = renderHook(() => useKycDisclaimers());
+    const { result } = renderUseKycDisclaimers();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     let accepted = true;
