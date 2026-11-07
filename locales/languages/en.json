@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Funds land as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save it as a payee in your banking app.",
