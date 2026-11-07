@@ -16,6 +16,32 @@ export interface SocialPositionShareContext {
 const MAX_TRADER_NAME_LENGTH = 24;
 const MAX_ASSET_SYMBOL_LENGTH = 12;
 
+export interface TraderShareNameSource {
+  /** Username stored on `profile.name`. */
+  name?: string | null;
+  /** Public display name, when the profile API sends one. */
+  displayName?: string | null;
+}
+
+/**
+ * Name to put in a share preview. Prefers the public display name, then the
+ * username, then whatever the screen already showed.
+ */
+export const readTraderShareName = (
+  profile: TraderShareNameSource | null | undefined,
+  fallback?: string | null,
+): string => {
+  const displayName = profile?.displayName?.trim();
+  if (displayName) {
+    return displayName;
+  }
+  const name = profile?.name?.trim();
+  if (name) {
+    return name;
+  }
+  return fallback?.trim() ?? '';
+};
+
 /**
  * Collapses whitespace and caps a label so the share URL stays short.
  * Cuts on a word boundary when the name has one.

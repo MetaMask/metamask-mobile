@@ -49,7 +49,10 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
-import { buildSocialPositionOpenGraph } from '../navigation/socialShareOpenGraph';
+import {
+  buildSocialPositionOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
@@ -259,7 +262,7 @@ const TraderPositionView = () => {
         });
       },
       buildSocialPositionOpenGraph({
-        traderName,
+        traderName: readTraderShareName(fetchedProfile?.profile, traderName),
         assetSymbol: symbol,
         side: displayPosition
           ? getPerpPositionDirection(displayPosition)
@@ -270,6 +273,7 @@ const TraderPositionView = () => {
   }, [
     displayPosition,
     effectivePositionId,
+    fetchedProfile?.profile,
     isClosed,
     sourceParam,
     symbol,

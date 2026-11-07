@@ -73,7 +73,10 @@ import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificati
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
-import { buildSocialProfileOpenGraph } from '../navigation/socialShareOpenGraph';
+import {
+  buildSocialProfileOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
 import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
@@ -261,7 +264,7 @@ const TraderProfileView = () => {
 
   const handleShareProfile = useCallback(() => {
     playSelection().catch(() => undefined);
-    const traderLabel = profile?.profile.name || traderName;
+    const traderLabel = readTraderShareName(profile?.profile, traderName);
     shareSocialProfile(
       traderId,
       () => {
@@ -274,7 +277,7 @@ const TraderProfileView = () => {
       },
       buildSocialProfileOpenGraph(traderLabel),
     );
-  }, [profile?.profile.name, trackSocialPost, traderId, traderName]);
+  }, [profile?.profile, trackSocialPost, traderId, traderName]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

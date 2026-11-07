@@ -1,7 +1,26 @@
 import {
   buildSocialPositionOpenGraph,
   buildSocialProfileOpenGraph,
+  readTraderShareName,
 } from './socialShareOpenGraph';
+
+describe('readTraderShareName', () => {
+  it('prefers the public display name over the username', () => {
+    expect(
+      readTraderShareName(
+        { name: 'wen_silent_gecko', displayName: 'The OG Swiss Cheese' },
+        'wen_silent_gecko',
+      ),
+    ).toBe('The OG Swiss Cheese');
+  });
+
+  it('falls back to the username, then the screen label', () => {
+    expect(readTraderShareName({ name: 'dip_spicy_maxi' })).toBe(
+      'dip_spicy_maxi',
+    );
+    expect(readTraderShareName(undefined, 'Ada')).toBe('Ada');
+  });
+});
 
 describe('buildSocialProfileOpenGraph', () => {
   it('names the trader in a short title and description', () => {
