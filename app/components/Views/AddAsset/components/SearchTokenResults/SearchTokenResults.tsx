@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import ListItemMultiSelect from '../../../../../component-library/components/List/ListItemMultiSelect';
-import { Image } from 'react-native';
+import { Image, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -13,6 +12,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Checkbox,
   Text,
   TextVariant,
   TextColor,
@@ -76,18 +76,39 @@ const SearchTokenResultRow = React.memo(
   }: SearchTokenResultRowProps) => {
     const tw = useTailwind();
     const isDisabled = isAlreadyAdded;
+    const isChecked = isSelected || isAlreadyAdded;
 
     return (
-      <ListItemMultiSelect
-        isSelected={isSelected || isAlreadyAdded}
-        isDisabled={isDisabled}
-        gap={20}
-        style={tw.style('flex-1 py-0')}
-        onPress={() => !isDisabled && onSelect(item)}
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isChecked, disabled: isDisabled }}
+        disabled={isDisabled}
+        onPress={() => onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
+        style={({ pressed }) =>
+          tw.style(
+            'w-full flex-row items-center gap-2 px-4',
+            isChecked && 'bg-background-muted',
+            pressed && 'bg-pressed',
+            isDisabled && 'opacity-50',
+          )
+        }
       >
+        <Checkbox
+          isSelected={isChecked}
+          isDisabled={isDisabled}
+          onChange={() => {
+            if (!isDisabled) {
+              onSelect(item);
+            }
+          }}
+          pointerEvents="none"
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <AddAssetTokenRow asset={item} networkName={networkName} />
-      </ListItemMultiSelect>
+      </Pressable>
     );
   },
 );
@@ -96,7 +117,12 @@ const TokenSkeleton = () => {
   const tw = useTailwind();
 
   return (
-    <ListItemMultiSelect isDisabled gap={20} style={tw.style('flex-1 py-0')}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2 px-4"
+    >
+      <Box twClassName="h-[22px] w-[22px]" />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -119,7 +145,7 @@ const TokenSkeleton = () => {
           />
         </Box>
       </Box>
-    </ListItemMultiSelect>
+    </Box>
   );
 };
 
