@@ -115,7 +115,7 @@ const OnboardingMainStep: React.FC = () => {
         },
         onCancel: () => {
           navigation.goBack();
-          navigation.navigate(Routes.WALLET_VIEW);
+          navigation.navigate(Routes.WALLET.HOME);
         },
         cancelLabel: strings(
           'rewards.onboarding.not_supported_confirm_go_back',
