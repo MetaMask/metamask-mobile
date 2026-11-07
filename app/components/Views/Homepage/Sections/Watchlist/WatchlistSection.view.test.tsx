@@ -25,6 +25,7 @@ import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/comp
 // eslint-disable-next-line import-x/no-restricted-paths -- mirrors WatchlistSection.tsx (ADR-0020 backlog)
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
+import { WatchlistSuggestedPillsTestIds } from './components/WatchlistSuggestedPills.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
@@ -132,7 +133,9 @@ describeForPlatforms('WatchlistSection', () => {
     const suggestedRow = await findByTestId(getRowTestId('eip155:1/slip44:60'));
     expect(suggestedRow).toBeOnTheScreen();
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     const addButton = await findByTestId(
       getAddButtonTestId('eip155:1/slip44:60'),
     );
@@ -143,7 +146,7 @@ describeForPlatforms('WatchlistSection', () => {
     ).toBe('Add to watchlist');
   });
 
-  it('shows the Suggested sub-header and 5-2=3 suggestions when 2 tokens are watched', async () => {
+  it('shows the Suggested sub-header and 5-2=3 suggestion pills when 2 tokens are watched', async () => {
     // Watch UNI + USDC; serve the curated default pool (ETH, BTC, SOL, BNB)
     // from the token API so 5 - 2 = 3 suggestions remain.
     setupWatchlistStorageMock({
@@ -210,25 +213,39 @@ describeForPlatforms('WatchlistSection', () => {
         ),
       ),
     ).toBeOnTheScreen();
-    // 3 suggested tokens (with add buttons)
-    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    // 3 suggested tokens render as compact pills, not full rows (ASSETS-4186)
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).toBeOnTheScreen();
     expect(getByText('Suggested')).toBeOnTheScreen();
     for (const assetId of [
       'eip155:1/slip44:60',
       'bip122:000000000019d6689c085ae165831e93/slip44:0',
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
     ]) {
-      expect(getByTestId(getAddButtonTestId(assetId))).toBeOnTheScreen();
+      expect(
+        getByTestId(WatchlistSuggestedPillsTestIds.addButton(assetId)),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(getAddButtonTestId(assetId))).not.toBeOnTheScreen();
+      expect(queryByTestId(getRowTestId(assetId))).not.toBeOnTheScreen();
+    }
+    for (const symbol of ['ETH', 'BTC', 'SOL']) {
+      expect(getByText(symbol)).toBeOnTheScreen();
     }
 
     // More items above cap (5) are not shown.
     expect(
-      queryByTestId(getAddButtonTestId('eip155:56/slip44:714')),
+      queryByTestId(
+        WatchlistSuggestedPillsTestIds.pill('eip155:56/slip44:714'),
+      ),
     ).not.toBeOnTheScreen();
     expect(
       queryByTestId(
-        getAddButtonTestId(
+        WatchlistSuggestedPillsTestIds.addButton(
           'eip155:1/erc20:0x1f9840a85d8aBE325823995344D8762464388D4',
         ),
       ),
@@ -307,6 +324,9 @@ describeForPlatforms('WatchlistSection', () => {
     ).not.toBeOnTheScreen();
     // A full watchlist (5+) offers no suggestions — the section hides.
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('adds a suggested token to the watchlist from the empty state', async () => {
