@@ -89,7 +89,8 @@ describe('BalanceProjection', () => {
     );
 
     expect(getByTestId('balance-projection-apy-pitch')).toBeOnTheScreen();
-    expect(getByText('Earn 4% APY')).toBeOnTheScreen();
+    expect(getByText('Earn')).toBeOnTheScreen();
+    expect(getByText('4% APY')).toBeOnTheScreen();
   });
 
   it('renders the APY pitch when amountFiat is empty', () => {
@@ -100,28 +101,35 @@ describe('BalanceProjection', () => {
     );
 
     expect(getByTestId('balance-projection-apy-pitch')).toBeOnTheScreen();
-    expect(getByText('Earn 4% APY')).toBeOnTheScreen();
+    expect(getByText('Earn')).toBeOnTheScreen();
+    expect(getByText('4% APY')).toBeOnTheScreen();
   });
 
-  it('renders the info button on the APY pitch', () => {
+  it('renders the underlined APY label on the pitch without an info icon', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
     expect(
-      getByTestId('balance-projection-apy-pitch-info-button'),
+      getByTestId('balance-projection-apy-pitch-button'),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId('balance-projection-apy-pitch-underline'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId('balance-projection-apy-pitch-info-button'),
+    ).toBeNull();
   });
 
-  it('tracks the APY tooltip click when the pitch info button is pressed', () => {
+  it('tracks the APY tooltip click when the underlined APY label is pressed', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
     const { getByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
-    fireEvent.press(getByTestId('balance-projection-apy-pitch-info-button'));
+    fireEvent.press(getByTestId('balance-projection-apy-pitch-button'));
 
     expect(mockTrackTooltipClicked).toHaveBeenCalledTimes(1);
     expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
@@ -130,13 +138,13 @@ describe('BalanceProjection', () => {
     });
   });
 
-  it('opens the APY info sheet with the current APY when the pitch info button is pressed', () => {
+  it('opens the APY info sheet with the current APY when the underlined APY label is pressed', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
     const { getByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
-    fireEvent.press(getByTestId('balance-projection-apy-pitch-info-button'));
+    fireEvent.press(getByTestId('balance-projection-apy-pitch-button'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -198,9 +206,7 @@ describe('BalanceProjection', () => {
     );
 
     expect(queryByTestId('balance-projection-info-button')).toBeNull();
-    expect(
-      queryByTestId('balance-projection-apy-pitch-info-button'),
-    ).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch-button')).toBeNull();
   });
 
   it('reserves space with a skeleton while APY is loading', () => {
