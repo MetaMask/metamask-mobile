@@ -23,3 +23,13 @@ export const MOONPAY_PRIVACY_POLICY_URL =
 // Avenia, MoonPay's regulated partner for virtual asset services in Brazil.
 // Linked from the legal line on the Pix account details screen (TRAM-4397).
 export const AVENIA_URL = 'https://avenia.io/';
+
+// SumSub documents linked from the partner terms. The catalog's own links are
+// used when they match; these are the fallback so the sentence never renders
+// a link as plain text.
+export const SUMSUB_PERSONAL_DATA_PROCESSING_URL =
+  'https://sumsub.com/notification-to-processing-of-personal-data/';
+export const SUMSUB_PRIVACY_NOTICE_URL =
+  'https://sumsub.com/privacy-notice-service/';
+export const SUMSUB_BIOMETRICS_CONSENT_URL =
+  'https://sumsub.com/privacy-user-acknowledgement-and-consent/';
