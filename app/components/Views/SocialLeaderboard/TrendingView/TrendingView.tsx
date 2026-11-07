@@ -28,6 +28,7 @@ import {
 } from '../analytics';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { useShellChromeInset } from '../shared/shellChromeInset';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
@@ -108,6 +109,8 @@ const TrendingView: React.FC<TrendingViewProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('social_trending');
+  // Clears the pill row pinned over the page so content scrolls under it.
+  const shellChromeInset = useShellChromeInset();
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
   // The pager mounts every page up front: hold the feed back until Trending
   // is first opened.
@@ -177,21 +180,24 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   const renderHeader = useCallback(
     () => (
       // The filter rail cancels 16px of the space under it, which leaves 8px
-      // above the first post's own 8px.
-      <Box twClassName="pt-4 pb-6">
-        <TrendingFilterRail
-          onOpenFilters={onOpenFilters}
-          isFilterActive={isFilterActive}
-          testID={SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON}
-        >
-          <HotTokensCarousel
-            tokens={tokens}
-            isLoading={isRailLoading}
-            selectedTokenId={selectedTokenId}
-            onTokenPress={handleTokenPress}
-            isActive={isActive}
-          />
-        </TrendingFilterRail>
+      // above the first post's own 8px. The spacer clears the pill row pinned
+      // over the page so the rail starts below it and scrolls under it.
+      <Box style={{ paddingTop: shellChromeInset }}>
+        <Box twClassName="pt-4 pb-6">
+          <TrendingFilterRail
+            onOpenFilters={onOpenFilters}
+            isFilterActive={isFilterActive}
+            testID={SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON}
+          >
+            <HotTokensCarousel
+              tokens={tokens}
+              isLoading={isRailLoading}
+              selectedTokenId={selectedTokenId}
+              onTokenPress={handleTokenPress}
+              isActive={isActive}
+            />
+          </TrendingFilterRail>
+        </Box>
       </Box>
     ),
     [
@@ -201,6 +207,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
       isRailLoading,
       onOpenFilters,
       selectedTokenId,
+      shellChromeInset,
       tokens,
     ],
   );

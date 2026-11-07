@@ -21,6 +21,7 @@ import type {
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { useShellChromeInset } from '../shared/shellChromeInset';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import { matchesLivePost } from '../shell/filters/matchesLivePost';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
@@ -62,6 +63,8 @@ const LiveView: React.FC<LiveViewProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('social_live');
+  // Clears the pill row pinned over the page so content scrolls under it.
+  const shellChromeInset = useShellChromeInset();
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
@@ -116,17 +119,21 @@ const LiveView: React.FC<LiveViewProps> = ({
 
   const renderHeader = useCallback(
     () => (
-      <SocialTabFilterBar
-        onOpenFilters={onOpenFilters}
-        isFilterActive={isFilterActive}
-        filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
-        testID={LiveViewSelectorsIDs.FILTER_BAR}
-        twClassName="px-4 pt-4 pb-2"
-      >
-        <SocialFeedLiveButton onPausedChange={handlePausedChange} />
-      </SocialTabFilterBar>
+      // The spacer clears the pill row pinned over the page so the filter bar
+      // starts below it and scrolls under it.
+      <Box style={{ paddingTop: shellChromeInset }}>
+        <SocialTabFilterBar
+          onOpenFilters={onOpenFilters}
+          isFilterActive={isFilterActive}
+          filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
+          testID={LiveViewSelectorsIDs.FILTER_BAR}
+          twClassName="px-4 pt-4 pb-2"
+        >
+          <SocialFeedLiveButton onPausedChange={handlePausedChange} />
+        </SocialTabFilterBar>
+      </Box>
     ),
-    [handlePausedChange, isFilterActive, onOpenFilters],
+    [handlePausedChange, isFilterActive, onOpenFilters, shellChromeInset],
   );
 
   const liveEmpty = (

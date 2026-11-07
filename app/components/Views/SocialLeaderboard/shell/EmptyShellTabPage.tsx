@@ -41,6 +41,7 @@ import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/Soci
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { useShellChromeInset } from '../shared/shellChromeInset';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
 import type {
   SocialV1FeedItem,
@@ -139,6 +140,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   onQuickBuy,
 }) => {
   const tw = useTailwind();
+  // Clears the pill row pinned over the page so content scrolls under it.
+  const shellChromeInset = useShellChromeInset();
   const {
     onAuthorPress: handleAuthorPress,
     onPositionPress: handlePositionPress,
@@ -430,7 +433,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pt-4')}
+          contentContainerStyle={[
+            tw.style('flex-grow pt-4'),
+            { paddingTop: shellChromeInset + 16 },
+          ]}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}

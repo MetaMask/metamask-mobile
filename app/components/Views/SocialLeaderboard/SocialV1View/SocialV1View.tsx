@@ -55,6 +55,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { ShellChromeInsetProvider } from '../shared/shellChromeInset';
 import PillTabsBar from '../../../Nav/Main/FixedTabNav/PillTabsBar';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -374,10 +375,17 @@ const SocialV1ViewContent: React.FC = () => {
 
   // Height of the pinned pill-tab row, so the header's glass backdrop extends
   // to cover it (same blur the Money/Trade/Collect hubs get over their pills).
+  // The JS mirror feeds `ShellChromeInsetProvider`, which pads each page's
+  // scroll content so it starts below the pinned row and scrolls under it.
   const tabsHeightSv = useSharedValue(0);
+  const [tabsHeight, setTabsHeight] = useState(0);
   const handleTabsLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      tabsHeightSv.value = event.nativeEvent.layout.height;
+      const height = event.nativeEvent.layout.height;
+      tabsHeightSv.value = height;
+      setTabsHeight((current) =>
+        Math.abs(current - height) > 1 ? height : current,
+      );
     },
     [tabsHeightSv],
   );
@@ -460,11 +468,10 @@ const SocialV1ViewContent: React.FC = () => {
     ],
   );
 
-  // The title, tabs, and pager form one normal-flow column that slides up as
-  // the active page scrolls, clamped so the tabs settle flush under the header
-  // instead of scrolling off. Because the pages lay out below the title/tabs in
-  // flow, the very first frame is already correct — nothing depends on a
-  // measured inset, so navigating here never flashes mispositioned content.
+  // The pager fills the block below the header; the pill row is a separate
+  // overlay pinned at the header's bottom edge. With no large title
+  // (`titleHeightSv` stays 0) the block never translates: content scrolls
+  // under the pinned chrome instead of dragging it, matching the Trade hub.
   //
   // `bottom: -titleHeight` overdraws the block below the fold by the collapse
   // distance so the pager still reaches the bottom of the screen once the block
@@ -815,111 +822,129 @@ const SocialV1ViewContent: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <Box onLayout={handleTabsLayout}>
-              <PillTabsBar
-                tabs={tabs}
-                selectedKey={tabOrder[activeIndex]}
-                onChange={handlePillChange}
-                testID={SocialV1ViewSelectorsIDs.TABS}
-              />
-            </Box>
-
-            {/* Flush with the tab underline. A top margin would clip the
-              pages in a band below the bar instead of at the underline. */}
-            <PagerView
-              ref={pagerRef}
-              style={tw.style('flex-1')}
-              initialPage={landingIndex}
-              onPageSelected={handlePageSelected}
-              testID={SocialV1ViewSelectorsIDs.PAGER}
-            >
-              {tabOrder.map((tab, pageIndex) => {
-                const testIds = PAGE_TEST_IDS[tab];
-                const pageRef =
-                  tab === 'trending'
-                    ? trendingPageRef
-                    : tab === 'following'
-                      ? followingPageRef
-                      : tab === 'live'
-                        ? livePageRef
-                        : leaderboardPageRef;
-                return (
-                  <View
-                    key={tab}
-                    style={tw.style('flex-1')}
-                    collapsable={false}
-                    testID={testIds.page}
-                  >
-                    <TraderStatRotationContext.Provider
-                      value={activeIndex === pageIndex}
+            {/* The pager fills the block so each page's scroll view reaches
+              the top; the pill row overlays it (rendered below, outside this
+              block), and the pages pad their scroll content by the row's
+              height (ShellChromeInsetProvider) so the content starts below
+              the pills and scrolls under them — the same chrome behavior the
+              Trade hub gets from FixedHubChrome. */}
+            <ShellChromeInsetProvider value={tabsHeight}>
+              <PagerView
+                ref={pagerRef}
+                style={tw.style('flex-1')}
+                initialPage={landingIndex}
+                onPageSelected={handlePageSelected}
+                testID={SocialV1ViewSelectorsIDs.PAGER}
+              >
+                {tabOrder.map((tab, pageIndex) => {
+                  const testIds = PAGE_TEST_IDS[tab];
+                  const pageRef =
+                    tab === 'trending'
+                      ? trendingPageRef
+                      : tab === 'following'
+                        ? followingPageRef
+                        : tab === 'live'
+                          ? livePageRef
+                          : leaderboardPageRef;
+                  return (
+                    <View
+                      key={tab}
+                      style={tw.style('flex-1')}
+                      collapsable={false}
+                      testID={testIds.page}
                     >
-                      {tab === 'leaderboard' ? (
-                        <LeaderboardShellTabPage
-                          isActive={activeIndex === leaderboardIndex}
-                          performance={socialPerformanceByTab.leaderboard}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          appliedFilters={applied.leaderboard}
-                          onOpenFilters={handleOpenLeaderboardFilters}
-                          isFilterActive={hasActiveFilters('leaderboard')}
-                          onClearFilters={() =>
-                            clearAppliedFilters('leaderboard')
-                          }
-                          onTypeChange={setLeaderboardType}
-                        />
-                      ) : tab === 'live' ? (
-                        <LiveView
-                          isActive={activeIndex === liveIndex}
-                          source={analyticsSource}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          onCopyTrade={handleLiveCopyTrade}
-                          onOpenFilters={handleOpenLiveFilters}
-                          isFilterActive={hasActiveFilters('live')}
-                          onClearFilters={() => clearAppliedFilters('live')}
-                          appliedFilters={applied.live}
-                        />
-                      ) : tab === 'trending' ? (
-                        <TrendingView
-                          isActive={activeIndex === trendingIndex}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab.trending}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          onCopyTrade={handleTrendingCopyTrade}
-                          onOpenFilters={handleOpenTrendingFilters}
-                          isFilterActive={hasActiveFilters('trending')}
-                          onClearFilters={() => clearAppliedFilters('trending')}
-                          appliedFilters={applied.trending}
-                          testID={testIds.container}
-                          scrollTestID={testIds.scroll}
-                        />
-                      ) : (
-                        <EmptyShellTabPage
-                          tab={tab}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab[tab]}
-                          isActive={activeIndex === followingIndex}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          scrollTestID={testIds.scroll}
-                          onOpenFilters={handleOpenFollowingFilters}
-                          isFilterActive={hasActiveFilters('following')}
-                          onClearFilters={() =>
-                            clearAppliedFilters('following')
-                          }
-                          appliedFilters={applied.following}
-                          onQuickBuy={openFollowingQuickBuy}
-                        />
-                      )}
-                    </TraderStatRotationContext.Provider>
-                  </View>
-                );
-              })}
-            </PagerView>
+                      <TraderStatRotationContext.Provider
+                        value={activeIndex === pageIndex}
+                      >
+                        {tab === 'leaderboard' ? (
+                          <LeaderboardShellTabPage
+                            isActive={activeIndex === leaderboardIndex}
+                            performance={socialPerformanceByTab.leaderboard}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            appliedFilters={applied.leaderboard}
+                            onOpenFilters={handleOpenLeaderboardFilters}
+                            isFilterActive={hasActiveFilters('leaderboard')}
+                            onClearFilters={() =>
+                              clearAppliedFilters('leaderboard')
+                            }
+                            onTypeChange={setLeaderboardType}
+                          />
+                        ) : tab === 'live' ? (
+                          <LiveView
+                            isActive={activeIndex === liveIndex}
+                            source={analyticsSource}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            onCopyTrade={handleLiveCopyTrade}
+                            onOpenFilters={handleOpenLiveFilters}
+                            isFilterActive={hasActiveFilters('live')}
+                            onClearFilters={() => clearAppliedFilters('live')}
+                            appliedFilters={applied.live}
+                          />
+                        ) : tab === 'trending' ? (
+                          <TrendingView
+                            isActive={activeIndex === trendingIndex}
+                            source={analyticsSource}
+                            performance={socialPerformanceByTab.trending}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            onCopyTrade={handleTrendingCopyTrade}
+                            onOpenFilters={handleOpenTrendingFilters}
+                            isFilterActive={hasActiveFilters('trending')}
+                            onClearFilters={() =>
+                              clearAppliedFilters('trending')
+                            }
+                            appliedFilters={applied.trending}
+                            testID={testIds.container}
+                            scrollTestID={testIds.scroll}
+                          />
+                        ) : (
+                          <EmptyShellTabPage
+                            tab={tab}
+                            source={analyticsSource}
+                            performance={socialPerformanceByTab[tab]}
+                            isActive={activeIndex === followingIndex}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            scrollTestID={testIds.scroll}
+                            onOpenFilters={handleOpenFollowingFilters}
+                            isFilterActive={hasActiveFilters('following')}
+                            onClearFilters={() =>
+                              clearAppliedFilters('following')
+                            }
+                            appliedFilters={applied.following}
+                            onQuickBuy={openFollowingQuickBuy}
+                          />
+                        )}
+                      </TraderStatRotationContext.Provider>
+                    </View>
+                  );
+                })}
+              </PagerView>
+            </ShellChromeInsetProvider>
           </Animated.View>
+        </Box>
+
+        {/* Pinned pill row over the pager, so page content scrolls under it
+          and the header's `backdropExtension` blurs whatever passes beneath.
+          A sibling of the header (not a child of the pager block) at z-20 so
+          the pills stay crisp above the backdrop — matching the Trade hub's
+          FixedHubChrome, which paints its pills over its own backdrop. */}
+        <Box
+          pointerEvents="box-none"
+          twClassName="absolute left-0 right-0 z-20"
+          style={{ top: headerInset }}
+          onLayout={handleTabsLayout}
+        >
+          <PillTabsBar
+            tabs={tabs}
+            selectedKey={tabOrder[activeIndex]}
+            onChange={handlePillChange}
+            testID={SocialV1ViewSelectorsIDs.TABS}
+          />
         </Box>
 
         {openTab ? (

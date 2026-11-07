@@ -39,6 +39,7 @@ import {
   type SocialTypeFilter,
 } from '../components/Filters';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { useShellChromeInset } from '../shared/shellChromeInset';
 import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
 import {
   DEFAULT_LEADERBOARD_FILTERS,
@@ -102,6 +103,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const floatingTabBarInset = useFloatingTabBarInset();
+  // Clears the pill row pinned over the page so content scrolls under it.
+  const shellChromeInset = useShellChromeInset();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const analyticsSource = getSocialEventSource(route.params?.source);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -211,9 +214,10 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
             ref={scrollRef}
             style={tw.style('flex-1')}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style(
-              `pt-4 pb-[${24 + floatingTabBarInset}px]`,
-            )}
+            contentContainerStyle={[
+              tw.style(`pt-4 pb-[${24 + floatingTabBarInset}px]`),
+              { paddingTop: shellChromeInset + 16 },
+            ]}
             onScroll={onScroll}
             scrollEventThrottle={16}
             testID={TopTradersViewSelectorsIDs.TRADER_LIST}
