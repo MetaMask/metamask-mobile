@@ -9443,9 +9443,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^113.0.0, @metamask/assets-controllers@npm:^113.2.0":
-  version: 113.2.0
-  resolution: "@metamask/assets-controllers@npm:113.2.0"
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@113.2.0-preview-4a5ac306d":
+  version: 113.2.0-preview-4a5ac306d
+  resolution: "@metamask-previews/assets-controllers@npm:113.2.0-preview-4a5ac306d"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -9453,7 +9453,7 @@ __metadata:
     "@ethersproject/bignumber": "npm:^5.8.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.8.0"
-    "@metamask/abi-utils": "npm:^2.0.4"
+    "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-tree-controller": "npm:^11.2.0"
     "@metamask/accounts-controller": "npm:^40.1.0"
     "@metamask/approval-controller": "npm:^10.0.0"
@@ -9496,7 +9496,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/c79851f7ebd75aa1691fa780711cefa41616572ddbb932ce491114e42a6a8f9c4a3badbbd691d8efd2de29898ea1fd241329123e1c4f3ee662afbec8d728cf18
+  checksum: 10/eddd33ebd367590078bfe4d8df405c93a230d93e9622803b20773ee672225b90ed9bfe86c0b215aa9954a4020fff6bc9bdae930b6619f58b7f7318f99742082b
   languageName: node
   linkType: hard
 
