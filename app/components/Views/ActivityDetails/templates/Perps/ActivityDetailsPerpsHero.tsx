@@ -11,7 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { getPerpsAssetIconUrls } from './ActivityDetailsPerps.utils';
 
 const imageStyle = StyleSheet.create({

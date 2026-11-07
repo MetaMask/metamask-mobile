@@ -9,16 +9,16 @@ import {
 } from '@metamask/transaction-controller';
 import type { CaipAccountId } from '@metamask/utils';
 import type { OrderFill } from '@metamask/perps-controller';
-import Engine from '../../../../core/Engine';
-import { MINUTE } from '../../../../constants/time';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
-import { areAddressesEqual } from '../../../../util/address';
+import Engine from '../../../../../core/Engine';
+import { MINUTE } from '../../../../../constants/time';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectNonReplacedTransactions } from '../../../../../selectors/transactionController';
+import { areAddressesEqual } from '../../../../../util/address';
 import {
   MAX_LOOKBACK_MS,
   PAGE_WINDOW_MS,
-} from '../../../UI/Perps/constants/perpsConfig';
-import type { PerpsTransaction } from '../../../UI/Perps/types/transactionHistory';
+} from '../../../../UI/Perps/constants/perpsConfig';
+import type { PerpsTransaction } from '../../../../UI/Perps/types/transactionHistory';
 import {
   transformFillsToTransactions,
   transformFundingToTransactions,
@@ -27,7 +27,7 @@ import {
   transformWalletPerpsDepositsToTransactions,
   transformWithdrawalRequestsToTransactions,
   walletPerpsWithdrawalsToRequests,
-} from '../../../UI/Perps/utils/transactionTransforms';
+} from '../../../../UI/Perps/utils/transactionTransforms';
 
 interface PerpsActivityPage {
   transactions: PerpsTransaction[];
