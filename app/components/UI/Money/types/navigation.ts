@@ -14,7 +14,12 @@ import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositInte
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
+  /** Return to Card after the Money account exists. */
+  CARD = 'card',
 }
+
+/** Card screen to open after Money onboarding when the redirect type is CARD. */
+export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -35,6 +40,8 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
     preferredPaymentToken?: MoneyPreferredPaymentToken;
     autoSelectFiatPayment?: boolean;
     intent?: MoneyAccountDepositIntent;
+    /** Where to land in Card. Defaults to onboarding. */
+    cardScreen?: MoneyCardReturnScreen;
   };
 }
 

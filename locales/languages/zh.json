@@ -11910,7 +11910,6 @@
       "email_label": "电子邮件",
       "password_label": "密码",
       "login_button": "登录",
-      "siwe_button": "使用以太坊登录",
       "continue_button": "继续",
       "uk_login_button": "使用此账户登录",
       "signup_button": "注册",
