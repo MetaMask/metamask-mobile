@@ -333,11 +333,8 @@ describe('MainNavigator', () => {
       ).toHaveLength(1);
     });
 
-    it('sets the wallet tab stack background to the theme background', () => {
-      // Given HomeTabs is rendered
+    it('registers the wallet screen on the wallet tab', () => {
       const HomeTabs = getHomeTabsComponent();
-
-      // When the wallet tab stack is rendered
       const { root: homeRoot } = renderWithProvider(
         <HomeTabs route={{ params: {} }} />,
         { state: initialRootState },
@@ -347,26 +344,35 @@ describe('MainNavigator', () => {
           node.type?.toString?.() === 'TabScreen' &&
           node.props?.name === Routes.WALLET.HOME,
       )[0];
-      const WalletTabStack = homeTabScreen?.props?.component;
 
-      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
+      // The tab component is the wallet screen.
+      expect(homeTabScreen?.props?.component?.name).toBe(
+        'RouteMessengerProviderWrapper',
+      );
+    });
+
+    it('keeps the themed stack background on Settings, where RevealPrivateCredential is registered', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-
-      const stackNavigator = walletRoot.findAll(
+      const settingsScreen = root.findAll(
         (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'Navigator' &&
-          node.props?.initialRouteName === 'WalletView',
+          node.type?.toString?.() === 'Screen' &&
+          node.props?.name === Routes.SETTINGS_VIEW,
       )[0];
-      const revealPrivateCredentialScreen = walletRoot.findAll(
+      const Settings = settingsScreen?.props?.component;
+      const { root: settingsRoot } = renderWithProvider(<Settings />, {
+        state: initialRootState,
+      });
+      const stackNavigator = settingsRoot.findAll(
+        (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
+      )[0];
+      const revealPrivateCredentialScreen = settingsRoot.findAll(
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
           node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
       )[0];
 
-      // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle)
-      // and the hidden header, so pushed screens need no options of their own.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
           headerShown: false,
@@ -1432,6 +1438,7 @@ describe('MainNavigator', () => {
         options?: {
           headerShown?: boolean;
           animation?: string;
+          presentation?: 'card' | 'modal' | 'transparentModal';
           contentStyle?: unknown;
         };
       }
@@ -1697,15 +1704,33 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes Browser home screen in main navigator', () => {
+    it('mounts Browser and the asset screens on the main navigator', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
       const screenProps = getScreenProps(container);
-      const screen = screenProps?.find((s) => s?.name === Routes.BROWSER.HOME);
+      const browser = screenProps?.find((s) => s?.name === Routes.BROWSER.HOME);
+      const assetLoader = screenProps?.find(
+        (s) => s?.name === Routes.BROWSER.ASSET_LOADER,
+      );
+      const assetView = screenProps?.find(
+        (s) => s?.name === Routes.BROWSER.ASSET_VIEW,
+      );
 
-      expect(screen).toBeDefined();
+      expect(browser?.component.name).toBe('MemoConnectedBrowser');
+      expect(browser?.options).toEqual({
+        ...slideFromRightNativeOptions,
+        headerShown: false,
+      });
+      expect(assetLoader?.component.name).toBe('AssetLoader');
+      expect(assetLoader?.options).toEqual({
+        headerShown: false,
+        animation: 'none',
+        presentation: 'modal',
+      });
+      expect(assetView?.component.name).toBe('TokenDetailsRouteWrapper');
+      expect(assetView?.options).toEqual({ presentation: 'modal' });
     });
 
     it('includes Ramp processing info modal route', () => {
@@ -2062,6 +2087,15 @@ describe('MainNavigator', () => {
       expect(tabs).toContain(Routes.REWARDS_VIEW);
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+
+      const trade = renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.MODAL.TRADE_WALLET_ACTIONS,
+      )[0];
+      expect(trade?.props?.component?.name).toBe(
+        'RouteMessengerProviderWrapper',
+      );
     });
 
     it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
@@ -2406,13 +2440,13 @@ describe('MainNavigator', () => {
         homeTabsRoot = root;
       });
 
-      it('renders WalletTabModalFlow', () => {
+      it('registers the wallet screen directly on the wallet tab', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
           Routes.WALLET.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(Component.name).toBe('RouteMessengerProviderWrapper');
       });
 
       it('points the TrendingView tab straight at the Explore feed', () => {
@@ -2421,13 +2455,15 @@ describe('MainNavigator', () => {
         ).toBe(ExploreFeed);
       });
 
-      it('renders BrowserFlow', () => {
+      it('wraps Browser so the browser tab unmounts on blur', () => {
         const Component = getScreenComponent(
           homeTabsRoot,
           Routes.BROWSER.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(Component.displayName).toBe(
+          'WithUnmountOnTabBlur(MemoConnectedBrowser)',
+        );
       });
 
       it('renders TransactionsHome', () => {
@@ -2871,47 +2907,20 @@ describe('MainNavigator', () => {
       });
     });
 
-    describe('Nested navigator components', () => {
-      it('renders WalletView inside WalletTabStackFlow', () => {
+    describe('Settings and asset stacks', () => {
+      it('keeps RevealPrivateCredential on the settings stack', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const HomeTabs = getScreenComponent(mainRoot, 'Home');
-        const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabStackFlow = getScreenComponent(
-          homeRoot,
-          Routes.WALLET.HOME,
-          'TabScreen',
-        );
-        const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
 
-        // WalletTabStackFlow now directly contains WalletView (Wallet component)
-        // instead of a nested modal navigator. Verify the screen exists without
-        // rendering Wallet itself (which has many unmocked dependencies).
-        const WalletView = getScreenComponent(walletStackRoot, 'WalletView');
-        expect(WalletView).toBeTruthy();
-      });
-
-      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
-        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const HomeTabs = getScreenComponent(mainRoot, 'Home');
-        const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabStackFlow = getScreenComponent(
-          homeRoot,
-          Routes.WALLET.HOME,
-          'TabScreen',
-        );
-        const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
-
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
-          walletStackRoot,
-          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-        );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(
+          getScreenComponent(
+            settingsRoot,
+            Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+          ),
+        ).toBeTruthy();
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {

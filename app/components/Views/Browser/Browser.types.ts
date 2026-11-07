@@ -54,7 +54,6 @@ export interface BrowserComponentProps {
 
 const createBrowserNavDetails = createNavigationDetails<BrowserParams>(
   Routes.BROWSER.HOME,
-  Routes.BROWSER.VIEW,
 );
 
 export default createBrowserNavDetails;

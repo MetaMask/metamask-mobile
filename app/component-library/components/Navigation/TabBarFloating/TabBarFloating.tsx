@@ -136,9 +136,7 @@ const TabBarFloating = ({
         options.callback?.();
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
-            navigation.navigate(Routes.WALLET.HOME, {
-              screen: Routes.WALLET_VIEW,
-            });
+            navigation.navigate(Routes.WALLET.HOME);
             break;
           case Routes.TRENDING_VIEW:
             navigation.navigate(Routes.TRENDING_VIEW);
