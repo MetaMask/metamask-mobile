@@ -12,6 +12,7 @@ import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  refereeMoneySections,
   selectCashbackLedger,
   selectClaimLock,
   selectClaimWaitingUntil,
@@ -185,6 +186,26 @@ describe('rewardsMoney selectors', () => {
         'plain',
       );
     });
+  });
+
+  describe('refereeMoneySections', () => {
+    it.each([
+      [undefined, true, true],
+      [['REFEREE'], true, true],
+      [['CASHBACK_EXPERIMENT'], false, true],
+      [['COPY_TRADING'], true, false],
+      [['REFEREE', 'COPY_TRADING'], true, true],
+      [['CASHBACK_EXPERIMENT', 'COPY_TRADING'], true, true],
+      [['REFERRER'], false, false],
+    ] as const)(
+      'maps %j to social %s and rebates %s',
+      (roles, social, rebates) => {
+        expect(refereeMoneySections(roles)).toEqual({
+          socialRewards: social,
+          tradingRebates: rebates,
+        });
+      },
+    );
   });
 
   describe('canAcceptMoneyReferralInvite', () => {

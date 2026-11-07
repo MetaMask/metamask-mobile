@@ -9404,16 +9404,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^20.0.1, @metamask/assets-controller@npm:^20.2.2":
-  version: 20.2.2
-  resolution: "@metamask/assets-controller@npm:20.2.2"
+"@metamask/assets-controller@npm:^20.0.1, @metamask/assets-controller@npm:^20.2.2, @metamask/assets-controller@npm:^20.2.3":
+  version: 20.2.3
+  resolution: "@metamask/assets-controller@npm:20.2.3"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.8.0"
     "@metamask/account-tree-controller": "npm:^11.2.0"
     "@metamask/accounts-controller": "npm:^40.1.0"
-    "@metamask/assets-controllers": "npm:^113.1.1"
+    "@metamask/assets-controllers": "npm:^113.2.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/client-controller": "npm:^2.0.0"
     "@metamask/config-registry-controller": "npm:^5.0.0"
@@ -9439,13 +9439,13 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
     lodash-es: "npm:^4.18.1"
-  checksum: 10/878b94d85a8b3cec8ccbe9fc8decccaaecc66702c07a6a903c8d8492524ca55345c89b28dbbf306b6995ec1fbdeae6dbb798ead33f20311113502f020e2b0746
+  checksum: 10/9c083b848d17b37a2c831fd56466407a90bd3c7c418742de76d8f1b6bafc5e2e9ba5b7e05f326455559b0c1f01da4a8115e072290ffe9fdb706160ed09c781a8
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^113.0.0, @metamask/assets-controllers@npm:^113.1.1":
-  version: 113.1.1
-  resolution: "@metamask/assets-controllers@npm:113.1.1"
+"@metamask/assets-controllers@npm:^113.0.0, @metamask/assets-controllers@npm:^113.2.0":
+  version: 113.2.0
+  resolution: "@metamask/assets-controllers@npm:113.2.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -9492,11 +9492,11 @@ __metadata:
     multiformats: "npm:^9.9.0"
     reselect: "npm:^5.3.0"
     single-call-balance-checker-abi: "npm:^1.0.0"
-    uuid: "npm:^14.0.1"
+    uuid: "npm:^14.0.2"
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/379b859f93f67794fec4781ea4d955d828882f6de34bff53331b3f2ffc2fa7fe1dc451e155aff03afe21da996db7294dc76a786a7c7eb4d5230d49ea3f0abe0a
+  checksum: 10/c79851f7ebd75aa1691fa780711cefa41616572ddbb932ce491114e42a6a8f9c4a3badbbd691d8efd2de29898ea1fd241329123e1c4f3ee662afbec8d728cf18
   languageName: node
   linkType: hard
 
@@ -9965,22 +9965,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/core-backend@npm:13.0.0"
+"@metamask/core-backend@npm:^12.3.0":
+  version: 12.3.0
+  resolution: "@metamask/core-backend@npm:12.3.0"
   dependencies:
-    "@metamask/account-tree-controller": "npm:^11.2.0"
+    "@metamask/account-tree-controller": "npm:^11.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.0"
     "@tanstack/query-core": "npm:^5.103.2"
     async-mutex: "npm:^0.5.0"
     cockatiel: "npm:^3.2.1"
-    uuid: "npm:^14.0.0"
-  checksum: 10/7fdd621f3dd38cff0ab4d1e69de1ab2a6bc201a6556d6952de5f7d03a21451a85700b9e2f13f3b76008ca873fc390a3d86a24b6c0fd50848b5827fd78a346614
+    uuid: "npm:^11.1.1"
+  checksum: 10/2aa8bc998c485c11f32d0a3f4f29c0b4053ebe7cdcd756268d47bccf3aaed9900f35c6cbc871e4331848933aabff00d97ca9a1d0e968d9d56f8fbcbf7fe41a43
   languageName: node
   linkType: hard
 
@@ -11520,21 +11520,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^22.0.0":
-  version: 22.0.0
-  resolution: "@metamask/perps-controller@npm:22.0.0"
+"@metamask/perps-controller@npm:^22.1.2":
+  version: 22.1.2
+  resolution: "@metamask/perps-controller@npm:22.1.2"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@nktkas/hyperliquid": "npm:^0.33.3"
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
-    uuid: "npm:^11.1.1"
-  checksum: 10/429c1afbe531ee9a96517b91db6c572936fa69ea21c40525d7d4f09685c81455293a1633a984d4c0c85b62e302fa6abc0eb989611eb00fac8611951a2304a159
+    uuid: "npm:^14.0.2"
+  checksum: 10/020d1d538e911f2c78473b9dc3eac99120d5b7454090465205e8f3482232951632a087ce82f81cc16d8fc6fa9ec224bf22fffce247cc343e7dc0cc8f6713ee80
   languageName: node
   linkType: hard
 
@@ -11645,9 +11645,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-controller@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@metamask/profile-controller@npm:1.2.1"
+"@metamask/profile-controller@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/profile-controller@npm:2.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
@@ -11656,7 +11656,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/a42e453fa3ed5a68dea68a5721b335ee91f49671a111a19307a4ddd0a9e4d23b66bf263de7b20f8005129d22288595cbadf64516e16ad703622e73d726580e93
+  checksum: 10/98834b87f75f4612cd4016985e0528991cde20479792ad227d067b8442b171f769c572b7e83e13bbbee0b1f3f8ed0d8b21735b2f245ea4401a9dfc83307bf884
   languageName: node
   linkType: hard
 
@@ -12549,9 +12549,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:73.0.0":
-  version: 73.0.0
-  resolution: "@metamask/transaction-controller@npm:73.0.0"
+"@metamask/transaction-controller@npm:72.3.0":
+  version: 72.3.0
+  resolution: "@metamask/transaction-controller@npm:72.3.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/rlp": "npm:^5.0.2"
@@ -12564,7 +12564,7 @@ __metadata:
     "@metamask/approval-controller": "npm:^10.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^13.0.0"
+    "@metamask/core-backend": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
@@ -12572,7 +12572,6 @@ __metadata:
     "@metamask/nonce-tracker": "npm:^6.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/rpc-errors": "npm:^7.0.3"
-    "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/utils": "npm:^12.0.1"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
@@ -12581,11 +12580,11 @@ __metadata:
     ethereum-cryptography: "npm:^3.2.0"
     fast-json-patch: "npm:^3.1.1"
     lodash-es: "npm:^4.18.1"
-    uuid: "npm:^14.0.0"
+    uuid: "npm:^11.1.1"
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/d7d5f1c4fbf24230229fd5d79f7355c1637f1a6400f5312a31e28c37dd1dc55c2f70aa2bf8d0d3c1a6cf136ab1e69a4c62735953da911dae743f6289337fb997
+  checksum: 10/20f50d39cd2d13127a95aac8617c802e6298c0437ed8303f46100338e95f3df1eada1e0144ae0982114dba2c7e3af65546b9c47780f3c651cf6f90410d85222b
   languageName: node
   linkType: hard
 
@@ -38293,8 +38292,8 @@ __metadata:
     "@metamask/analytics-controller": "npm:^3.2.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^10.0.0"
-    "@metamask/assets-controller": "npm:^20.2.2"
-    "@metamask/assets-controllers": "npm:^113.1.1"
+    "@metamask/assets-controller": "npm:^20.2.3"
+    "@metamask/assets-controllers": "npm:^113.2.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/auto-changelog": "npm:^6.2.0"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -38385,13 +38384,13 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.3"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^14.0.0"
-    "@metamask/perps-controller": "npm:^22.0.0"
+    "@metamask/perps-controller": "npm:^22.1.2"
     "@metamask/phishing-controller": "npm:^18.2.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
-    "@metamask/profile-controller": "npm:^1.2.1"
+    "@metamask/profile-controller": "npm:^2.0.0"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"
@@ -51009,7 +51008,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^14.0.0, uuid@npm:^14.0.1":
+"uuid@npm:^14.0.0, uuid@npm:^14.0.1, uuid@npm:^14.0.2":
   version: 14.0.3
   resolution: "uuid@npm:14.0.3"
   bin:
