@@ -130,13 +130,21 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           </Box>
         </Pressable>
 
-        <Box twClassName="bg-muted rounded-xl px-4 py-3">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="bg-muted rounded-xl pl-4 pr-3 h-14 mb-3"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1 mr-2"
+          >
+            {strings('social_leaderboard.manage_profile.show_trading_activity')}
+          </Text>
           <Switch
             isOn={shareTradingActivity}
             onValueChange={onShareTradingActivityChange}
-            label={strings(
-              'social_leaderboard.manage_profile.show_trading_activity',
-            )}
             testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
           />
         </Box>
