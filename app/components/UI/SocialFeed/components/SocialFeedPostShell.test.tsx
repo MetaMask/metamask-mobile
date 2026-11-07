@@ -18,12 +18,39 @@ import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 import { playSelection } from '../../../../util/haptics';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
   REACTION_EMOJI_BURST_TEST_ID,
 } from './ReactionEmojiBurst';
 
 jest.mock('../../../../util/haptics');
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+const mockGetHardwareTier = jest.mocked(getHardwareTier);
+
+const mockAnimatedNumericTextRender = jest.fn();
+
+jest.mock(
+  '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const actual = jest.requireActual(
+      '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: object) => {
+        mockAnimatedNumericTextRender(props);
+        return createElement(actual, props);
+      },
+    };
+  },
+);
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
@@ -185,30 +212,35 @@ const renderShell = (
   });
   const showMockedFields =
     options && 'showMockedFields' in options ? options.showMockedFields : true;
-  const shell = (
-    <SocialFeedPostShell
-      post={post}
-      requireSocialTerms
-      requireSocialProfile={options?.requireSocialProfile}
-      onAuthorPress={options?.onAuthorPress}
-      onPositionPress={options?.onPositionPress}
-      onCopyTrade={options?.onCopyTrade}
-      showCopyTrade={options?.showCopyTrade}
-    />
-  );
-  return renderWithProvider(
-    <QueryClientProvider client={queryClient}>
-      {showMockedFields === null ? (
-        shell
-      ) : (
-        <SocialFeedSurfaceProvider
-          showMockedFields={showMockedFields}
-          location={options?.location}
-        >
-          {shell}
-        </SocialFeedSurfaceProvider>
-      )}
-    </QueryClientProvider>,
+  const renderTree = (currentPost: SocialV1FeedPost) => {
+    const shell = (
+      <SocialFeedPostShell
+        post={currentPost}
+        requireSocialTerms
+        requireSocialProfile={options?.requireSocialProfile}
+        onAuthorPress={options?.onAuthorPress}
+        onPositionPress={options?.onPositionPress}
+        onCopyTrade={options?.onCopyTrade}
+        showCopyTrade={options?.showCopyTrade}
+      />
+    );
+    return (
+      <QueryClientProvider client={queryClient}>
+        {showMockedFields === null ? (
+          shell
+        ) : (
+          <SocialFeedSurfaceProvider
+            showMockedFields={showMockedFields}
+            location={options?.location}
+          >
+            {shell}
+          </SocialFeedSurfaceProvider>
+        )}
+      </QueryClientProvider>
+    );
+  };
+  const rendered = renderWithProvider(
+    renderTree(post),
     options?.translationEnabled
       ? {
           state: {
@@ -228,6 +260,11 @@ const renderShell = (
         }
       : undefined,
   );
+  return {
+    ...rendered,
+    rerenderWithPost: (nextPost: SocialV1FeedPost) =>
+      rendered.rerender(renderTree(nextPost)),
+  };
 };
 
 /** An item whose author reports nothing the stat line could show. */
@@ -247,6 +284,7 @@ const itemWithoutStats = (id: string, comment: string) => {
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetHardwareTier.mockReturnValue('HIGH');
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
@@ -572,6 +610,35 @@ describe('SocialFeedPostShell', () => {
       renderShell(basePost({ copyCount: 0 }));
 
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('0');
+    });
+
+    it('shows the new count when the copy count changes', () => {
+      const { rerenderWithPost } = renderShell(basePost({ copyCount: 3 }));
+
+      rerenderWithPost(basePost({ copyCount: 4 }));
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('4');
+      expect(screen.getByTestId(copiesTestId)).not.toHaveTextContent('3');
+    });
+
+    it('does not animate the count on low-tier hardware', () => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+
+      renderShell(basePost({ copyCount: 3 }));
+
+      expect(mockAnimatedNumericTextRender).toHaveBeenLastCalledWith(
+        expect.objectContaining({ animated: false }),
+      );
+    });
+
+    it('keeps the count animated when the hardware tier is unknown', () => {
+      mockGetHardwareTier.mockReturnValue(null);
+
+      renderShell(basePost({ copyCount: 3 }));
+
+      expect(mockAnimatedNumericTextRender).toHaveBeenLastCalledWith(
+        expect.objectContaining({ animated: true }),
+      );
     });
 
     it('shows the count on a closed position', () => {
