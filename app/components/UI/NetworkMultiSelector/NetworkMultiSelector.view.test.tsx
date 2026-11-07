@@ -13,13 +13,17 @@ describeForPlatforms('NetworkMultiSelector', () => {
 
   // E2E test 1: "adds a popular network directly without confirmation modal"
   // E2E test 4: "should select a network and deselect the previous selected network"
-  // Proves: tapping a popular network calls setActiveNetwork directly — no approval step.
-  // The single-select enforcement (deselecting previous) is handled by the controller;
-  // the UI's job is to call setActiveNetwork on press, which this verifies.
-  it('tapping a network calls MultichainNetworkController.setActiveNetwork', async () => {
-    const spy = jest.spyOn(
+  // Proves: tapping a popular network enables it for filtering (enableNetwork) without
+  // hijacking the wallet's active network (setActiveNetwork is NOT called) — no approval step.
+  // The single-select enforcement (deselecting previous) is handled by the controller.
+  it('tapping a network enables the filter without switching the active network', async () => {
+    const setActiveNetworkSpy = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
+    );
+    const enableNetworkSpy = jest.spyOn(
+      Engine.context.NetworkEnablementController,
+      'enableNetwork',
     );
 
     const { findByTestId } = renderNetworkMultiSelector({
@@ -33,8 +37,9 @@ describeForPlatforms('NetworkMultiSelector', () => {
     fireEvent.press(arbitrumItem);
 
     await waitFor(() => {
-      expect(spy).toHaveBeenCalled();
+      expect(enableNetworkSpy).toHaveBeenCalled();
     });
+    expect(setActiveNetworkSpy).not.toHaveBeenCalled();
   });
 
   // E2E tests 2+3: "should reflect the correct enabled networks state"
@@ -59,9 +64,9 @@ describeForPlatforms('NetworkMultiSelector', () => {
   // Proves: popular networks container renders and is interactive when
   // active network is a popular network.
   it('popular networks container is visible and interactive with popular network active', async () => {
-    const spy = jest.spyOn(
-      Engine.context.MultichainNetworkController,
-      'setActiveNetwork',
+    const enableNetworkSpy = jest.spyOn(
+      Engine.context.NetworkEnablementController,
+      'enableNetwork',
     );
 
     const { findByTestId } = renderNetworkMultiSelector({
@@ -74,7 +79,7 @@ describeForPlatforms('NetworkMultiSelector', () => {
     );
     expect(container).toBeOnTheScreen();
 
-    // Ethereum is the active network, so it shows as "selected"
+    // Ethereum is the enabled network, so it shows as "selected"
     const ethereumItem = await findByTestId(
       NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM('eip155:1', true),
     );
@@ -82,8 +87,8 @@ describeForPlatforms('NetworkMultiSelector', () => {
     fireEvent.press(ethereumItem);
 
     await waitFor(() => {
-      // Pressing the already-selected network still triggers the handler
-      expect(spy).toHaveBeenCalled();
+      // Pressing the already-selected network still enables it for filtering
+      expect(enableNetworkSpy).toHaveBeenCalled();
     });
   });
 });
