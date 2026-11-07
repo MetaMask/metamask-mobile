@@ -84,6 +84,8 @@ const DEFAULT_RULES = {
     range: 5,
     name: 18,
   },
+  timeRangeTokens: ['1H', '1D', '1W', '1M', '3M', '1Y', 'YTD', 'ALL'],
+  fonts: {},
   contextHints: {
     predict: ['predict', 'kalshi'],
     perps: ['perps', 'perpetual'],
@@ -324,9 +326,13 @@ function wordShips(word, rules) {
   return false;
 }
 
+function hasVersus(source) {
+  return /\bvs\.?\b/i.test(source);
+}
+
 function promoteFixedSlots(source, split, rules) {
   const hasData = split.tokens.some((token) => token.name !== 'name');
-  if (!hasData) return split;
+  if (!hasData && !hasVersus(source)) return split;
   const extra = [];
   const wordPattern = /\p{L}[\p{L}\p{N}]*/gu;
   let match = wordPattern.exec(source);
@@ -363,7 +369,7 @@ function mergeAdjacentNames(source, tokens) {
   names.forEach((token) => {
     const previous = merged[merged.length - 1];
     const between = previous ? source.slice(previous.end, token.start) : null;
-    if (previous && /^\s+$/.test(between)) {
+    if (previous && /^(\s*[\/·]\s*|\s+)$/.test(between)) {
       previous.end = token.end;
       previous.value = source.slice(previous.start, previous.end);
       return;
@@ -479,6 +485,9 @@ function classifyTextNode(node, rules) {
   });
   let split = finishSplit(text, kept);
   split = promoteFixedSlots(text, split, rules);
+  if (!forced && isTimeRange(text, rules)) {
+    return { ...node, kind: 'button', chars: checker.characterCount(text) };
+  }
   if (!forced && isOnlyPlaceholder(text, split)) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
@@ -521,7 +530,12 @@ function classifyTextNode(node, rules) {
   };
 }
 
-function layoutSnapshot(node) {
+function isTimeRange(text, rules) {
+  const value = String(text || '').trim().toUpperCase();
+  return (rules.timeRangeTokens || DEFAULT_RULES.timeRangeTokens).some((token) => token.toUpperCase() === value);
+}
+
+function layoutSnapshot(node, pathChildId) {
   const box = node.absoluteBoundingBox || {};
   return {
     id: node.id || '',
@@ -533,65 +547,82 @@ function layoutSnapshot(node) {
     primaryAxisSizingMode: node.primaryAxisSizingMode || null,
     counterAxisSizingMode: node.counterAxisSizingMode || null,
     layoutSizingHorizontal: node.layoutSizingHorizontal || null,
+    clipsContent: Boolean(node.clipsContent),
+    pathChildId: pathChildId || '',
     children: (node.children || []).map((child) => ({
       id: child.id || '',
       width: child.absoluteBoundingBox && typeof child.absoluteBoundingBox.width === 'number'
         ? child.absoluteBoundingBox.width
         : null,
+      visible: child.visible !== false,
+      absolute: child.layoutPositioning === 'ABSOLUTE',
     })),
   };
 }
 
-function parentHugsWidth(parent) {
-  if (parent.layoutSizingHorizontal === 'HUG') return true;
-  if (parent.layoutSizingHorizontal === 'FIXED' || parent.layoutSizingHorizontal === 'FILL') return false;
-  if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'AUTO') return true;
-  if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'AUTO') return true;
+function visibleChildren(parent) {
+  return (parent.children || []).filter((child) => child.visible !== false && !child.absolute);
+}
+
+function stopsWalk(parent) {
+  if (parent.clipsContent) return true;
+  if (parent.layoutSizingHorizontal === 'FIXED' || parent.layoutSizingHorizontal === 'FILL') return true;
+  if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'FIXED') return true;
+  if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'FIXED') return true;
   return false;
 }
 
-function availableFromParent(parent, textId) {
-  const pad = (parent.paddingLeft || 0) + (parent.paddingRight || 0);
+function availableFromParent(parent) {
   if (typeof parent.width !== 'number') return null;
+  const pad = (parent.paddingLeft || 0) + (parent.paddingRight || 0);
+  const inner = parent.width - pad;
+  const visible = visibleChildren(parent);
   if (parent.layoutMode === 'HORIZONTAL') {
-    const siblings = (parent.children || []).filter((child) => child.id !== textId);
-    const siblingWidth = siblings.reduce((sum, child) => sum + (child.width || 0), 0);
-    const gaps = (parent.itemSpacing || 0) * Math.max((parent.children || []).length - 1, 0);
-    return parent.width - pad - siblingWidth - gaps;
+    const others = visible.filter((child) => child.id !== parent.pathChildId);
+    const siblingWidth = others.reduce((sum, child) => sum + (child.width || 0), 0);
+    const gaps = (parent.itemSpacing || 0) * Math.max(visible.length - 1, 0);
+    return inner - siblingWidth - gaps;
   }
-  if (parent.layoutMode === 'VERTICAL' || parent.layoutSizingHorizontal === 'FIXED') {
-    return parent.width - pad;
-  }
-  if (!parent.layoutMode && parent.layoutSizingHorizontal === 'FIXED') return parent.width - pad;
-  return null;
+  return inner;
 }
 
 function resolveAvailableWidth(record) {
   const mode = String(record.textAutoResize || '').toUpperCase();
+  const clips = (record.containers || []).some((parent) => parent.clipsContent);
   if (mode !== 'WIDTH_AND_HEIGHT') {
+    if (typeof record.width === 'number' && record.width > 0) {
+      return { availableWidth: record.width, unconstrained: false, pixelBasis: 'measured', clips };
+    }
     return {
-      availableWidth: record.width,
-      unconstrained: false,
-      pixelBasis: 'measured',
+      availableWidth: null,
+      unconstrained: true,
+      pixelBasis: 'estimate',
+      clips,
+      reason: 'available width is 0 or unresolved',
     };
   }
   const containers = record.containers || [];
   for (let index = containers.length - 1; index >= 0; index -= 1) {
     const parent = containers[index];
-    if (parentHugsWidth(parent)) continue;
-    const available = availableFromParent(parent, record.id);
-    if (typeof available === 'number') {
-      return {
-        availableWidth: Math.max(0, available),
-        unconstrained: false,
-        pixelBasis: 'measured',
-      };
+    if (!stopsWalk(parent)) continue;
+    const available = availableFromParent(parent);
+    if (typeof available === 'number' && available > 0) {
+      return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips };
     }
+    return {
+      availableWidth: null,
+      unconstrained: true,
+      pixelBasis: 'estimate',
+      clips,
+      reason: 'available width is 0 or unresolved',
+    };
   }
   return {
     availableWidth: null,
     unconstrained: true,
     pixelBasis: 'estimate',
+    clips,
+    reason: 'unconstrained auto-width, verify visually',
   };
 }
 
@@ -624,8 +655,10 @@ function collectTextNodes(node, ancestors, ancestorHidden, out, layouts) {
     return;
   }
   const nextAncestors = name ? [...ancestors, name] : ancestors;
-  const nextLayouts = [...chain, layoutSnapshot(node)];
-  (node.children || []).forEach((child) => collectTextNodes(child, nextAncestors, hidden, out, nextLayouts));
+  (node.children || []).forEach((child) => {
+    const nextLayouts = [...chain, layoutSnapshot(node, child.id)];
+    collectTextNodes(child, nextAncestors, hidden || child.visible === false, out, nextLayouts);
+  });
 }
 
 function nodeDocument(payload, nodeId) {

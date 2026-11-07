@@ -8,7 +8,7 @@
 const lib = require('./locale-lib');
 const figma = require('../lib/figma-adapter');
 const { checkDesignFile } = require('../lib/file-adapter');
-const { buildBreakReport } = require('../lib/figma-report');
+const { buildBreakReport, mightLanguageCount, translatedTemplate } = require('../lib/figma-report');
 const { loadLearned } = require('../lib/learned');
 
 const HELP = `
@@ -53,9 +53,14 @@ function lineFor(row) {
   return `  ${shown}  ${row.characters} characters, ${row.width_px === null ? 'no width' : `${row.width_px}px`}${screens ? `, ${screens}` : ''}${key}`;
 }
 
-function printLang(lang, item, verdict) {
+function printLang(lang, item, verdict, row) {
   if (!item) return;
   const tag = verdict === 'break' ? ' hard break' : verdict === 'might' ? ' might break' : '';
+  const rendered = item.text ? translatedTemplate(row, item.text) : null;
+  if (rendered) {
+    console.log(`    ${lang}${tag} ${JSON.stringify(rendered.shown)} (example ${JSON.stringify(rendered.example)})`);
+    return;
+  }
   if (item.basis === 'estimate') {
     console.log(`    ${lang}${tag} estimate ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
     return;
@@ -71,50 +76,67 @@ function printLang(lang, item, verdict) {
 function printReport(report, langs) {
   console.log('What will break');
   console.log('');
-  console.log(`Already over in English (${report.alreadyOver.length})`);
+  console.log(`Already over in English, measured (${report.alreadyOver.length})`);
   if (report.alreadyOver.length === 0) console.log('  None.');
-  report.alreadyOver.slice(0, 20).forEach((row) => console.log(lineFor(row)));
+  report.alreadyOver.forEach((row) => console.log(`${lineFor(row)}  ${row.pixelBasis || ''}`));
+  console.log('');
+  console.log(`Over the 10-character button guideline (${(report.guideline || []).length})`);
+  if (!report.guideline || report.guideline.length === 0) console.log('  None.');
+  (report.guideline || []).forEach((row) => {
+    console.log(`${lineFor(row)}  ${(row.overLangs || []).join(', ')}`);
+  });
   console.log('');
   console.log(`Breaks with real translations (${report.breaks.length})`);
   if (report.breaks.length === 0) console.log('  None.');
-  report.breaks.slice(0, 20).forEach((row) => {
+  report.breaks.forEach((row) => {
     console.log(lineFor(row));
-    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang]));
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang], row));
   });
+  const mightCount = mightLanguageCount(report);
   console.log('');
-  console.log(`Might break (${report.mightBreak.length})`);
-  if (report.mightBreak.length === 0) console.log('  None.');
+  console.log(`Might break (${mightCount})`);
+  if (mightCount === 0) console.log('  None.');
   else console.log('  In that language the shortest shipped candidate still fits, and a longer one does not.');
-  report.mightBreak.slice(0, 20).forEach((row) => {
+  report.mightBreak.forEach((row) => {
     console.log(lineFor(row));
-    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang]));
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang], row));
+  });
+  report.breaks.forEach((row) => {
+    if (!(row.mightLangs || []).length) return;
+    console.log(lineFor(row));
+    row.mightLangs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], 'might', row));
   });
   console.log('');
   console.log(`Check visually (${(report.checkVisually || []).length})`);
   if (!report.checkVisually || report.checkVisually.length === 0) console.log('  None.');
-  (report.checkVisually || []).slice(0, 10).forEach((row) => {
+  (report.checkVisually || []).forEach((row) => {
     console.log(`${lineFor(row)}  ${row.basis}`);
   });
   console.log('');
   console.log(`Fits the example, breaks at max slot length (${(report.slotMax || []).length})`);
   if (!report.slotMax || report.slotMax.length === 0) console.log('  None.');
-  (report.slotMax || []).slice(0, 10).forEach((row) => console.log(`${lineFor(row)}  ${row.note}`));
+  (report.slotMax || []).forEach((row) => console.log(`${lineFor(row)}  ${row.note}`));
   console.log('');
   console.log(`Text that will overflow or wrap (${report.labels.length})`);
   if (report.labels.length === 0) console.log('  None.');
-  report.labels.slice(0, 20).forEach((row) => {
+  report.labels.forEach((row) => {
     const assumed = row.assumption ? `  ${row.assumption}` : '';
     console.log(`${lineFor(row)}  ${row.issue || 'check'}${assumed}`);
     (row.problems || []).forEach((item) => {
       const how = item.basis === 'estimate' ? 'estimate' : item.basis === 'range' ? `${item.minCharacters}–${item.maxCharacters}` : JSON.stringify(item.text);
       const detail = item.detail ? `  ${item.detail}` : '';
-      console.log(`    ${item.lang} ${item.issue}  ${how}${detail}${item.key ? `  key ${item.key}` : ''}`);
+      const basis = item.pixelBasis ? `  ${item.pixelBasis}` : '';
+      console.log(`    ${item.lang} ${item.issue}  ${how}${detail}${basis}${item.key ? `  key ${item.key}` : ''}`);
     });
   });
   console.log('');
+  console.log(`Layout notes (${(report.layoutNotes || []).length})`);
+  if (!report.layoutNotes || report.layoutNotes.length === 0) console.log('  None.');
+  (report.layoutNotes || []).forEach((row) => console.log(`${lineFor(row)}  ${row.detail}  ${row.basis || ''}`));
+  console.log('');
   console.log(`At risk, estimate only (${report.atRisk.length})`);
   if (report.atRisk.length === 0) console.log('  None.');
-  report.atRisk.slice(0, 15).forEach((row) => {
+  report.atRisk.forEach((row) => {
     console.log(`${lineFor(row)}  about ${row.expected} if it grows 1.4×`);
   });
   console.log('');
@@ -181,6 +203,9 @@ async function main() {
       labels: report.labels,
       checkVisually: report.checkVisually,
       slotMax: report.slotMax,
+      guideline: report.guideline,
+      layoutNotes: report.layoutNotes,
+      mightLanguages: mightLanguageCount(report),
       atRisk: report.atRisk,
       fits: report.fits.length,
       pseudo: checked.pseudo

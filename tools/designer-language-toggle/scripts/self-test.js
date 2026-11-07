@@ -714,7 +714,8 @@ function testClassificationFixes() {
       },
     },
   );
-  assert(report.alreadyOver[0].real.perLang.de.text === 'Bitte diesen Hinweis lesen.', 'exact English matches, not a lone period');
+  const placed = [...report.alreadyOver, ...report.breaks, ...report.fits].find((row) => row.source === 'Please read this disclaimer.');
+  assert(placed.real.perLang.de.text === 'Bitte diesen Hinweis lesen.', 'exact English matches, not a lone period');
   const partial = buildBreakReport(
     [{
       key: 'longer',
@@ -734,7 +735,8 @@ function testClassificationFixes() {
       },
     },
   );
-  assert(partial.alreadyOver[0].real === null, 'a longer string does not match a shorter English value');
+  const longer = [...partial.alreadyOver, ...partial.breaks, ...partial.fits].find((row) => row.source === 'Please read this disclaimer. Thanks.');
+  assert(longer.real === null, 'a longer string does not match a shorter English value');
   const fitted = buildBreakReport(
     [{
       key: 'share',
@@ -942,7 +944,7 @@ function testReportGaps() {
     },
   }, limits);
   assert(fixed.layout === 'overflow' && !fixed.assumption, 'WIDTH_AND_HEIGHT can overflow');
-  const longLabel = 'A'.repeat(40);
+  const longLabel = 'aaaa '.repeat(10).trim();
   const labelReport = buildBreakReport([balance, wrapped], {
     langs: ['de'],
     ratio: limits.ratio,
@@ -953,9 +955,8 @@ function testReportGaps() {
     },
   });
   assert(labelReport.breaks.length === 0, 'label overflows stay out of the control breaks');
-  assert(labelReport.labels.length === 2, 'both labels are reported on their own');
   assert(labelReport.labels.some((row) => row.issue === 'overflow' && row.assumption), 'a fixed label overflows');
-  assert(labelReport.labels.some((row) => row.issue === 'wrap' && row.layout === 'wrap'), 'auto-height text is reported as wrap');
+  assert(labelReport.layoutNotes.some((row) => row.layout === 'wrap'), 'uncapped auto-height growth is a note, not a break');
 
   const ambiguous = classifyRecord({
     id: 'ambiguous',
@@ -1126,6 +1127,7 @@ function testReportGaps() {
       height: 40,
       lineHeightPx: 20,
       textAutoResize: 'HEIGHT',
+      maxLines: 2,
       component: 'Label',
       screen: 'Card',
     },
@@ -1136,7 +1138,7 @@ function testReportGaps() {
     ratio: limits.ratio,
     sharedFlats: {
       en: { 'card.lines': 'Line count' },
-      de: { 'card.lines': 'A'.repeat(25) },
+      de: { 'card.lines': 'aaaa aaaa aaaa aaaa aaaa' },
     },
   });
   assert(
@@ -1317,6 +1319,170 @@ function testReportGaps() {
   });
   assert(visual.labels.length === 0 && visual.checkVisually.length === 1, 'unconstrained text is check visually, not an overflow');
   assert(/verify visually/.test(visual.checkVisually[0].basis), 'the basis says to verify visually');
+
+  const nested = [];
+  figma.collectTextNodes({
+    type: 'FRAME',
+    id: 'cash-button',
+    name: 'Button',
+    layoutMode: 'HORIZONTAL',
+    primaryAxisSizingMode: 'FIXED',
+    layoutSizingHorizontal: 'FIXED',
+    paddingLeft: 8,
+    paddingRight: 8,
+    itemSpacing: 8,
+    absoluteBoundingBox: { width: 200, height: 40 },
+    children: [
+      { type: 'FRAME', id: 'cash-icon', name: 'Icon', absoluteBoundingBox: { width: 20, height: 20 } },
+      {
+        type: 'FRAME',
+        id: 'cash-wrap',
+        name: 'LabelWrap',
+        layoutMode: 'HORIZONTAL',
+        layoutSizingHorizontal: 'HUG',
+        primaryAxisSizingMode: 'AUTO',
+        absoluteBoundingBox: { width: 70, height: 20 },
+        children: [
+          { type: 'FRAME', id: 'cash-hidden', name: 'Hidden', visible: false, absoluteBoundingBox: { width: 40, height: 10 } },
+          { type: 'FRAME', id: 'cash-abs', name: 'Badge', layoutPositioning: 'ABSOLUTE', absoluteBoundingBox: { width: 12, height: 12 } },
+          {
+            type: 'TEXT',
+            id: 'cash-label',
+            name: 'Label',
+            characters: 'Cash out',
+            textAutoResize: 'WIDTH_AND_HEIGHT',
+            absoluteBoundingBox: { width: 70, height: 20 },
+          },
+        ],
+      },
+    ],
+  }, [], false, nested);
+  const nestedSpace = figma.resolveAvailableWidth(nested[0]);
+  assert(nestedSpace.availableWidth === 156, 'a nested wrapper is not subtracted from its own row');
+
+  const longButton = classifyRecord({
+    id: 'place',
+    key: 'place',
+    source_text: 'Place bet now',
+    context: { kind: 'button', width_px: 100, component: 'Place bet now', screen: 'Trade' },
+  }, limits);
+  const guide = buildBreakReport([longButton], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(guide.alreadyOver.length === 0, 'the 10 character guideline is not already over in English');
+  assert(guide.guideline.length === 1, 'a 13 character control is in the guideline group');
+
+  const jaWord = 'プロップベット';
+  assert(checkerCount(jaWord) === 7, 'the japanese sample is 7 characters');
+  const props = classifyRecord({
+    id: 'props',
+    key: 'props',
+    source_text: 'Props',
+    context: { kind: 'button', width_px: 200, fontSize: 16, textAutoResize: 'NONE', component: 'Props', screen: 'Tabs' },
+  }, limits);
+  const jaReport = buildBreakReport([props], {
+    langs: ['ja'],
+    ratio: limits.ratio,
+    sharedFlats: { en: { 'tabs.props': 'Props' }, ja: { 'tabs.props': jaWord } },
+  });
+  assert(jaReport.guideline.length === 0, '7 japanese characters are not over the 10 character guideline');
+  assert(jaReport.breaks.length === 0, 'those 7 characters are not a measured hard break in a 200px box');
+
+  const names = figma.classifyTextNode({
+    id: 'mayo',
+    layer_name: 'Label',
+    frame_path: 'Board',
+    text: 'Mayo vs. Kasnikowski',
+    width: 180,
+    visible: true,
+  }, { ...rules, shippedWords: new Set(['Buy']) });
+  assert(names.template === '{name} vs. {name}', 'a matchup becomes two name slots');
+  const nameRow = classifyRecord({
+    id: 'mayo',
+    key: 'mayo',
+    source_text: 'Mayo vs. Kasnikowski',
+    context: {
+      kind: 'label',
+      width_px: 180,
+      component: 'Label',
+      screen: 'Board',
+      template: names.template,
+      example: names.example,
+      copyText: names.copyText,
+      dataCharacters: names.dataCharacters,
+      gapCharacters: names.gapCharacters,
+      slots: names.slots,
+      slotMaxLengths: names.slotMaxLengths,
+    },
+  }, limits);
+  const grown = buildBreakReport([nameRow], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  const fullGrowth = Math.ceil(checkerCount('Mayo vs. Kasnikowski') * 1.4);
+  assert(grown.atRisk.length === 0 || grown.atRisk[0].expected < fullGrowth, 'names stay at their English length in the estimate');
+  assert(nameRow.slots.length === 2, 'both matchup names are slots');
+
+  ['1H', '1D', '1W', '1M', '3M', '1Y', 'YTD', 'ALL'].forEach((token) => {
+    assert(node(token, 'Chart / Segmented').kind === 'button', `${token} is a time-range control`);
+  });
+
+  const shown = require('../lib/figma-report').translatedTemplate(
+    { template: 'Buy {price}', copyText: 'Buy', example: 'Buy 54¢', source: 'Buy 54¢' },
+    'Kaufen',
+  );
+  assert(shown.shown === 'Kaufen {price}' && shown.example === 'Kaufen 54¢', 'a translation keeps the slot and shows the example');
+
+  const openHeight = classifyRecord({
+    id: 'grow',
+    key: 'grow',
+    source_text: 'Line count',
+    context: {
+      kind: 'label',
+      width_px: 80,
+      height: 40,
+      lineHeightPx: 20,
+      textAutoResize: 'HEIGHT',
+      component: 'Label',
+      screen: 'Card',
+    },
+  }, limits);
+  const growReport = buildBreakReport([openHeight], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'card.lines': 'Line count' },
+      de: { 'card.lines': 'aaaa aaaa aaaa aaaa aaaa' },
+    },
+  });
+  assert(growReport.labels.length === 0, 'auto-height text is not a break when it can grow');
+  assert(
+    growReport.layoutNotes.some((row) => /grows to 3 lines \(box currently 2\)/.test(row.detail || '')),
+    'auto-height growth is a layout note',
+  );
+
+  const zero = classifyRecord({
+    id: 'zero',
+    key: 'zero',
+    source_text: 'Cash out',
+    context: {
+      kind: 'button',
+      width_px: 40,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      component: 'Cash out',
+      screen: 'Trade',
+      containers: [{
+        id: 'tight',
+        width: 40,
+        layoutMode: 'HORIZONTAL',
+        primaryAxisSizingMode: 'FIXED',
+        layoutSizingHorizontal: 'FIXED',
+        paddingLeft: 20,
+        paddingRight: 20,
+        itemSpacing: 0,
+        pathChildId: 'zero',
+        children: [{ id: 'zero', width: 40, visible: true, absolute: false }],
+      }],
+    },
+  }, limits);
+  assert(zero.unconstrained, 'a resolved width of 0 is not a measured overflow');
+  const zeroReport = buildBreakReport([zero], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(zeroReport.alreadyOver.length === 0 && zeroReport.checkVisually.length === 1, 'an unresolved width is check visually');
 
   const collected = [];
   figma.collectTextNodes({

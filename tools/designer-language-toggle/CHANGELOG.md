@@ -1,5 +1,7 @@
 # Changelog
 
+- Available width no longer subtracts the text's own wrapper. Hidden and absolute children take no space. The 10-character button guideline is its own group and counts characters, so 7 Japanese characters are not over 10. Measured "already over" requires a resolved width greater than 0. Names and slots keep their English length. Time-range chips are controls. The report prints every row, and auto-height growth is a note unless a cap stops it.
+
 - Width checks use pixels. The per-character width comes from the font size or from auto-width text, and the available width comes from the box or from the nearest auto-layout parent that does not hug its content. A 20px box and a 2000px box no longer share one budget. Unconstrained auto-width text is "Check visually". Slot lengths are also checked at the maximums in `slotMaxLengths`.
 - `30+ points` keeps the words `{num}+ points`. Adjacent names such as `First Last 27%` are one `{name}` slot. `Player A` is a placeholder. Deduping no longer mixes one occurrence's width with another's height.
 

@@ -247,7 +247,53 @@ function pxPerUnitFor(units, width, fontSize, mode) {
   return fallback;
 }
 
-function measurePixels(units, row) {
+function wrapTokens(text) {
+  const tokens = [];
+  String(text || '').split(/(\s+)/).forEach((part) => {
+    if (!part) return;
+    if (/^\s+$/.test(part)) {
+      tokens.push(part);
+      return;
+    }
+    let buffer = '';
+    for (const char of part) {
+      if (checker.displayWidth(char) >= 2) {
+        if (buffer) tokens.push(buffer);
+        buffer = '';
+        tokens.push(char);
+      } else {
+        buffer += char;
+      }
+    }
+    if (buffer) tokens.push(buffer);
+  });
+  return tokens;
+}
+
+function wrapLines(text, available, pxPerUnit) {
+  const tokens = wrapTokens(text);
+  let lines = 1;
+  let used = 0;
+  tokens.forEach((token) => {
+    const width = checker.displayWidth(token) * pxPerUnit;
+    const space = /^\s+$/.test(token);
+    if (!space && used > 0 && used + width > available + 0.01) {
+      lines += 1;
+      used = width;
+      return;
+    }
+    used += width;
+  });
+  return Math.max(lines, 1);
+}
+
+function glyphLabel(row) {
+  return row.fontSize
+    ? 'estimated glyph width (font size × 0.5 avg)'
+    : 'estimated glyph width';
+}
+
+function measurePixels(units, row, text) {
   const displayUnits = Math.max(units || 0, 0);
   const mode = String(row.textAutoResize || '').toUpperCase();
   const pxPerUnit = row.pxPerUnit || pxPerUnitFor(
@@ -256,32 +302,47 @@ function measurePixels(units, row) {
     row.fontSize,
     mode,
   );
-  if (row.pixelUnconstrained || row.unconstrained) {
+  const glyph = glyphLabel(row);
+  if (row.pixelUnconstrained || row.unconstrained || !(row.availableWidth > 0)) {
+    const reason = row.reason || (row.availableWidth === 0
+      ? 'available width is 0 or unresolved'
+      : 'unconstrained auto-width, verify visually');
     return {
       pxPerUnit,
       availableWidth: null,
       lines: null,
       overflow: false,
       unconstrained: true,
-      basis: 'estimate: unconstrained auto-width, verify visually',
+      basis: `estimate: ${reason}`,
     };
   }
   const available = row.availableWidth;
-  if (typeof available !== 'number' || available <= 0 || !pxPerUnit) return null;
-  const lines = Math.max(1, Math.ceil((displayUnits * pxPerUnit) / available));
-  const fixedHeight = mode === 'NONE' || mode === 'TRUNCATE';
+  const textUnits = text ? checker.displayWidth(text) : displayUnits;
+  const totalPx = displayUnits * pxPerUnit;
+  const lines = text && Math.abs(textUnits - displayUnits) < 0.51
+    ? wrapLines(text, available, pxPerUnit)
+    : Math.max(1, Math.ceil(totalPx / available));
+  const currentLines = row.lineCount || (row.lineHeightPx && row.height
+    ? Math.max(1, Math.round(row.height / row.lineHeightPx))
+    : 1);
+  const capped = Boolean(row.maxLines) || mode === 'TRUNCATE' || mode === 'NONE' || row.clips;
   const singleLine = mode === 'HEIGHT'
     ? false
     : mode === 'TRUNCATE' || mode === 'NONE' || mode === 'WIDTH_AND_HEIGHT' || row.layout === 'overflow' || (!mode && row.layout !== 'wrap');
-  const maxLines = row.maxLines || null;
-  const boxLines = maxLines || row.lineCount || (singleLine ? 1 : null);
   let overflow = false;
-  if (maxLines && lines > maxLines) overflow = true;
-  if (singleLine && lines > 1) overflow = true;
-  if (fixedHeight && row.lineHeightPx && row.height && lines * row.lineHeightPx > row.height + 0.5) overflow = true;
-  if (!singleLine && !maxLines && row.layout === 'wrap' && boxLines && lines > boxLines) overflow = true;
-  const basis = `measured: box ${Math.round(available)}px, needs ${lines} line${lines === 1 ? '' : 's'}`;
-  return { pxPerUnit, availableWidth: available, lines, overflow, unconstrained: false, basis };
+  let note = null;
+  if (mode === 'HEIGHT' && !row.maxLines && !row.clips && !capped) {
+    note = lines > currentLines ? `grows to ${lines} lines (box currently ${currentLines})` : null;
+  } else {
+    if (row.maxLines && (lines > row.maxLines || totalPx > available * row.maxLines + 0.01)) overflow = true;
+    if (singleLine && (lines > 1 || totalPx > available + 0.01)) overflow = true;
+    if ((mode === 'NONE' || mode === 'TRUNCATE') && row.lineHeightPx && row.height && lines * row.lineHeightPx > row.height + 0.5) {
+      overflow = true;
+    }
+    if (row.layout === 'wrap' && row.maxLines && lines > row.maxLines) overflow = true;
+  }
+  const basis = `${glyph}; measured: box ${Math.round(available)}px, needs ${lines} line${lines === 1 ? '' : 's'}`;
+  return { pxPerUnit, availableWidth: available, lines, overflow, unconstrained: false, basis, note };
 }
 
 function exceedsBudget(text, maxCharacters, maxUnits) {
@@ -330,6 +391,7 @@ function classifyRecord(row, limits, learned) {
     textAutoResize: row.context.textAutoResize,
     containers: row.context.containers || [],
   });
+  const unresolved = space.unconstrained || !(space.availableWidth > 0);
   const pxPerUnit = pxPerUnitFor(units, width, row.context.fontSize, row.context.textAutoResize);
   const slotted = hasTemplateSlot(row);
   const narrowControl = control && !slotted && (typeof width !== 'number' || width <= BUTTON_MAX_PX);
@@ -357,8 +419,8 @@ function classifyRecord(row, limits, learned) {
       width_px: width,
       fontSize: row.context.fontSize,
       textAutoResize: row.context.textAutoResize,
-      availableWidth: space.availableWidth,
-      unconstrained: space.unconstrained,
+      availableWidth: unresolved ? null : space.availableWidth,
+      unconstrained: unresolved,
       pxPerUnit,
       maxLines: row.context.maxLines,
       lineCount,
@@ -411,8 +473,10 @@ function classifyRecord(row, limits, learned) {
     framePath: row.context.screen || '',
     maxLines: row.context.maxLines || null,
     pxPerUnit: pixel ? pixel.pxPerUnit : pxPerUnit,
-    availableWidth: space.unconstrained ? null : space.availableWidth,
-    unconstrained: Boolean(space.unconstrained),
+    availableWidth: unresolved ? null : space.availableWidth,
+    unconstrained: unresolved,
+    clips: Boolean(space.clips),
+    reason: space.reason || null,
     pixelBasis: pixel ? pixel.basis : null,
     reasons,
     slots: row.context.slots || [],

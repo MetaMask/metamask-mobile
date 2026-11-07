@@ -26,10 +26,14 @@ function shipMatchKey(value) {
 
 function lookupKeys(source, row, index) {
   const candidates = [];
-  if (row && row.copyText) candidates.push(row.copyText);
-  candidates.push(source);
-  if (row && row.example && row.example !== source) candidates.push(row.example);
-  if (row && row.template) candidates.push(row.template);
+  if (row && row.slots && row.slots.length) {
+    if (row.copyText) candidates.push(row.copyText);
+  } else {
+    if (row && row.copyText) candidates.push(row.copyText);
+    candidates.push(source);
+  }
+  if (!(row && row.slots && row.slots.length) && row && row.example && row.example !== source) candidates.push(row.example);
+  if (!(row && row.slots && row.slots.length) && row && row.template) candidates.push(row.template);
   for (let i = 0; i < candidates.length; i += 1) {
     const usable = shipMatchKey(candidates[i]);
     if (!usable) continue;
@@ -67,18 +71,38 @@ function keyMatchesHint(key, hints) {
   });
 }
 
+function fixedSlotCharacters(row) {
+  return (row.slots || []).reduce((sum, slot) => sum + (slot.characters || 0), 0) + (row.gapCharacters || 0);
+}
+
 function composedCharacters(copyValue, row) {
+  if (row && row.slots && row.slots.length) {
+    const copy = row.copyText ? checker.characterCount(copyValue) : 0;
+    return copy + fixedSlotCharacters(row);
+  }
   if (!row || !row.copyText) return checker.characterCount(copyValue);
   return checker.characterCount(copyValue) + (row.dataCharacters || 0) + (row.gapCharacters || 0);
 }
 
 function composedUnits(copyValue, row) {
+  if (row && row.slots && row.slots.length) {
+    const copy = row.copyText ? checker.displayWidth(copyValue) : 0;
+    return copy + fixedSlotCharacters(row);
+  }
   if (!row || !row.copyText) return checker.displayWidth(copyValue);
   return checker.displayWidth(copyValue) + (row.dataCharacters || 0) + (row.gapCharacters || 0);
 }
 
 function estimateSize(row, ratio) {
   const growth = ratio || 1.4;
+  if (row && row.slots && row.slots.length) {
+    const copy = row.copyText ? checker.characterCount(row.copyText) : 0;
+    const fixed = fixedSlotCharacters(row);
+    return {
+      characters: Math.ceil(copy * growth) + fixed,
+      units: Math.round(copy * growth * 10) / 10 + fixed,
+    };
+  }
   if (row && row.copyText) {
     const copy = checker.characterCount(row.copyText);
     const extra = (row.dataCharacters || 0) + (row.gapCharacters || 0);
@@ -89,18 +113,18 @@ function estimateSize(row, ratio) {
   return { characters: Math.ceil(exact), units: Math.round(exact * 10) / 10 };
 }
 
-function valueOver(characters, units, row) {
+function valueOver(characters, units, row, text) {
+  if (row.unconstrained || !(row.availableWidth > 0)) return false;
+  const pixel = measurePixels(units, row, text);
+  if (pixel && pixel.overflow) return true;
+  return false;
+}
+
+function guidelineOver(characters, row) {
   const narrow = (row.bucket === 'button' || row.bucket === 'tab')
     && !row.template
     && (row.width_px == null || row.width_px <= 120);
-  if (narrow && characters > (row.maxCharacters || 10)) return true;
-  const pixel = pixelResult(units, row);
-  if (pixel && pixel.unconstrained) return false;
-  if (pixel && pixel.overflow) return true;
-  if (!pixel && row.maxCharacters && (row.bucket === 'button' || row.bucket === 'tab')) {
-    return characters > row.maxCharacters;
-  }
-  return false;
+  return narrow && characters > (row.maxCharacters || 10);
 }
 
 function realTranslations(source, index, sharedFlats, langs, row, options) {
@@ -189,21 +213,21 @@ function pixelResult(units, row) {
 }
 
 function textOverLimit(text, row) {
+  if (row.unconstrained || !(row.availableWidth > 0)) return false;
   const units = checker.displayWidth(text);
-  const pixel = pixelResult(units, row);
-  if (pixel && pixel.overflow) return true;
-  const narrow = (row.bucket === 'button' || row.bucket === 'tab') && !row.template && (row.width_px == null || row.width_px <= 120);
-  if (narrow) return checker.characterCount(text) > (row.maxCharacters || 10);
-  if (!pixel && row.maxCharacters) return checker.characterCount(text) > row.maxCharacters;
-  return false;
+  const pixel = measurePixels(units, row, text);
+  return Boolean(pixel && pixel.overflow);
 }
 
-function labelIssue(units, row) {
-  const pixel = pixelResult(units, row);
+function labelIssue(units, row, text) {
+  const pixel = measurePixels(units, row, text);
   if (!pixel) return null;
   if (pixel.unconstrained) return { issue: 'check', detail: null, basis: pixel.basis, unconstrained: true };
+  if (pixel.note && !pixel.overflow) {
+    return { issue: 'note', detail: pixel.note, basis: pixel.basis };
+  }
   if (!pixel.overflow) return null;
-  const boxLines = Math.max(row.lineCount || row.maxLines || 1, 1);
+  const boxLines = row.maxLines || row.lineCount || 1;
   if (row.layout === 'wrap' && pixel.lines > boxLines) {
     return {
       issue: 'wrap',
@@ -234,7 +258,7 @@ function unitsWithSlots(units, row, useWorst) {
 function entryOver(entry, row, useWorst) {
   const units = unitsWithSlots(entry.units || entry.characters, row, useWorst);
   const characters = (entry.characters || 0) - (row.dataCharacters || 0) + (useWorst ? worstDataCharacters(row) : (row.dataCharacters || 0));
-  return valueOver(characters, units, row);
+  return valueOver(characters, units, row, useWorst || (row.slots && row.slots.length) ? null : entry.text);
 }
 
 function languageVerdict(entry, row) {
@@ -258,6 +282,8 @@ function buildBreakReport(lengths, options) {
   const labels = [];
   const checkVisually = [];
   const slotMax = [];
+  const guideline = [];
+  const layoutNotes = [];
   const alreadyOver = [];
   const breaks = [];
   const mightBreak = [];
@@ -279,6 +305,16 @@ function buildBreakReport(lengths, options) {
       chosenKey: real ? real.chosenKey : null,
       real,
     };
+    const narrow = (row.bucket === 'button' || row.bucket === 'tab') && !row.template && (row.width_px == null || row.width_px <= 120);
+    if (narrow) {
+      const overLangs = [];
+      if (checker.characterCount(row.source) > (row.maxCharacters || 10)) overLangs.push('en');
+      langs.forEach((lang) => {
+        const entry = real && real.perLang[lang];
+        if (entry && entry.characters > (row.maxCharacters || 10)) overLangs.push(lang);
+      });
+      if (overLangs.length > 0) guideline.push({ ...item, overLangs, verdict: 'guideline' });
+    }
     if (textOverLimit(row.source, row)) {
       alreadyOver.push(item);
       return;
@@ -330,7 +366,7 @@ function buildBreakReport(lengths, options) {
     if (row.unconstrained) {
       checkVisually.push({
         ...row,
-        basis: 'estimate: unconstrained auto-width, verify visually',
+        basis: row.reason ? `estimate: ${row.reason}` : 'estimate: unconstrained auto-width, verify visually',
         verdict: 'check',
       });
       return;
@@ -355,8 +391,18 @@ function buildBreakReport(lengths, options) {
       const entry = real && real.perLang[lang];
       const units = entry ? (entry.units || entry.characters) : estimate.units;
       if (slotBreaks(row, units)) return;
-      const found = labelIssue(units, row);
+      const found = labelIssue(units, row, entry ? entry.text : row.source);
       if (!found || found.unconstrained) return;
+      if (found.issue === 'note') {
+        layoutNotes.push({
+          ...row,
+          lang,
+          detail: found.detail,
+          basis: found.basis,
+          verdict: 'note',
+        });
+        return;
+      }
       problems.push({
         lang,
         issue: found.issue,
@@ -413,11 +459,30 @@ function buildBreakReport(lengths, options) {
     labels: collapse(labels),
     checkVisually: collapse(checkVisually),
     slotMax: collapse(slotMax),
+    guideline: collapse(guideline),
+    layoutNotes: collapse(layoutNotes),
   };
+}
+
+function mightLanguageCount(report) {
+  return [...(report.breaks || []), ...(report.mightBreak || [])].reduce(
+    (sum, row) => sum + ((row.mightLangs || []).length),
+    0,
+  );
+}
+
+function translatedTemplate(row, translation) {
+  if (!row || !row.template || !row.copyText || !translation) return null;
+  const shown = row.template.split(row.copyText).join(translation);
+  const exampleSource = row.example || row.source || '';
+  const example = exampleSource.split(row.copyText).join(translation);
+  return { shown, example };
 }
 
 module.exports = {
   buildBreakReport,
   realTranslations,
   shipMatchKey,
+  mightLanguageCount,
+  translatedTemplate,
 };
