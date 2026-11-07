@@ -175,6 +175,8 @@ app/components/UI/QuickBuy/                              @MetaMask/swaps-enginee
 **/QuickBuy/**                                           @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
+.github/scripts/swaps/                                   @MetaMask/swaps-engineers
+.github/workflows/swaps-perf-budgets.yml                 @MetaMask/swaps-engineers
 
 # Engagement Team
 # Braze
