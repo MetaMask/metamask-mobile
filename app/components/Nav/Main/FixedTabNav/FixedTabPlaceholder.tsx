@@ -8,7 +8,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import FixedTabPillRow from './FixedTabPillRow';
+import FixedTabRow from './FixedTabRow';
 import { FixedHubChrome } from './FixedHubChrome';
 import HubProfileButton from './HubProfileButton';
 
@@ -29,7 +29,7 @@ const FixedTabPlaceholder = ({ title }: FixedTabPlaceholderProps) => (
       <HeaderRoot includesTopInset>
         <HubProfileButton />
       </HeaderRoot>
-      <FixedTabPillRow />
+      <FixedTabRow />
     </FixedHubChrome>
     <Box
       flexDirection={BoxFlexDirection.Column}

@@ -2,7 +2,7 @@ import React from 'react';
 import NftFullView from './NftFullView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { FixedTabPillRowProvider } from '../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import { FixedTabRowProvider } from '../../Nav/Main/FixedTabNav/FixedTabRow';
 
 jest.mock('../../UI/NftGrid/NftGrid', () => 'NftGrid');
 
@@ -35,13 +35,13 @@ describe('NftFullView', () => {
     expect(nftGrid.props.isFullView).toBe(true);
   });
 
-  it('renders the profile avatar, the pill row, and no title', () => {
+  it('renders the profile avatar, the tab row, and no title', () => {
     // Arrange & Act
     const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
-      <FixedTabPillRowProvider
+      <FixedTabRowProvider
         value={{
           testID: 'fixed-tab-collect',
-          pills: [
+          tabs: [
             { key: 'collection', label: 'Collection', Screen: NftFullView },
           ],
           selectedKey: 'collection',
@@ -49,12 +49,12 @@ describe('NftFullView', () => {
         }}
       >
         <NftFullView />
-      </FixedTabPillRowProvider>,
+      </FixedTabRowProvider>,
       { state: initialState },
     );
 
     expect(getByTestId('profile-button')).toBeOnTheScreen();
-    expect(getByTestId('fixed-tab-collect-pills')).toBeOnTheScreen();
+    expect(getByTestId('fixed-tab-collect-tabs-row')).toBeOnTheScreen();
     expect(queryByTestId('back-button')).toBeNull();
     expect(queryByText('NFTs')).toBeNull();
   });

@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import {
-  PillHubSheetHostProvider,
-  usePillHubSheetHost,
-} from './PillHubSheetHost';
+import { TabHubSheetHostProvider, useTabHubSheetHost } from './TabHubSheetHost';
 
 const SHEET_TEXT = 'Hosted order type sheet';
 
@@ -19,7 +16,7 @@ const SheetPublisher = ({
   sheetNode: React.ReactNode;
   children?: React.ReactNode;
 }) => {
-  const host = usePillHubSheetHost();
+  const host = useTabHubSheetHost();
 
   useEffect(() => {
     host?.setHostedSheet(sheetNode);
@@ -29,18 +26,18 @@ const SheetPublisher = ({
 };
 
 const InlineOnly = () => {
-  const host = usePillHubSheetHost();
+  const host = useTabHubSheetHost();
   return <>{host ? <Text>has-host</Text> : <Text>no-host</Text>}</>;
 };
 
-describe('PillHubSheetHost', () => {
+describe('TabHubSheetHost', () => {
   it('renders a published sheet above the host children', () => {
     const { getByText } = renderWithProvider(
-      <PillHubSheetHostProvider>
+      <TabHubSheetHostProvider>
         <SheetPublisher sheetNode={<Text>{SHEET_TEXT}</Text>}>
           <Text>Hub content</Text>
         </SheetPublisher>
-      </PillHubSheetHostProvider>,
+      </TabHubSheetHostProvider>,
     );
 
     expect(getByText('Hub content')).toBeOnTheScreen();
@@ -49,17 +46,17 @@ describe('PillHubSheetHost', () => {
 
   it('removes the sheet when the publisher unmounts', () => {
     const { getByText, queryByText, rerender } = renderWithProvider(
-      <PillHubSheetHostProvider>
+      <TabHubSheetHostProvider>
         <SheetPublisher sheetNode={<Text>{SHEET_TEXT}</Text>} />
-      </PillHubSheetHostProvider>,
+      </TabHubSheetHostProvider>,
     );
 
     expect(getByText(SHEET_TEXT)).toBeOnTheScreen();
 
     rerender(
-      <PillHubSheetHostProvider>
+      <TabHubSheetHostProvider>
         <Text>Hub content</Text>
-      </PillHubSheetHostProvider>,
+      </TabHubSheetHostProvider>,
     );
 
     expect(queryByText(SHEET_TEXT)).toBeNull();
@@ -67,7 +64,7 @@ describe('PillHubSheetHost', () => {
 
   it('clears the sheet when the publisher hides it', () => {
     const HideablePublisher = ({ open }: { open: boolean }) => {
-      const host = usePillHubSheetHost();
+      const host = useTabHubSheetHost();
       useEffect(() => {
         host?.setHostedSheet(open ? <Text>{SHEET_TEXT}</Text> : null);
       }, [host, open]);
@@ -75,17 +72,17 @@ describe('PillHubSheetHost', () => {
     };
 
     const { getByText, queryByText, rerender } = renderWithProvider(
-      <PillHubSheetHostProvider>
+      <TabHubSheetHostProvider>
         <HideablePublisher open />
-      </PillHubSheetHostProvider>,
+      </TabHubSheetHostProvider>,
     );
 
     expect(getByText(SHEET_TEXT)).toBeOnTheScreen();
 
     rerender(
-      <PillHubSheetHostProvider>
+      <TabHubSheetHostProvider>
         <HideablePublisher open={false} />
-      </PillHubSheetHostProvider>,
+      </TabHubSheetHostProvider>,
     );
 
     expect(queryByText(SHEET_TEXT)).toBeNull();

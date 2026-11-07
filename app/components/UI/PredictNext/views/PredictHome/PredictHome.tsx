@@ -14,9 +14,9 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -93,7 +93,7 @@ const PredictHomeView = ({
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
   const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
-  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
+  const { active: isTradeHubTab } = useFixedTabPlacement(0);
   const {
     visibleKeys,
     onViewportLayout,
@@ -283,7 +283,7 @@ const PredictHomeView = ({
               : {})}
           />
         )}
-        <FixedTabPillRow />
+        <FixedTabRow />
       </FixedHubChrome>
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}

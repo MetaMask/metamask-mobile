@@ -4,7 +4,7 @@ import type { ComponentType } from 'react';
 /** Existing product screen or a prototype placeholder. */
 export type FixedTabScreen = ComponentType;
 
-export interface FixedTabPill {
+export interface FixedHubTab {
   key: string;
   label: string;
   Screen: FixedTabScreen;

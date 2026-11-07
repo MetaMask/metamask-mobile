@@ -37,9 +37,9 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -80,7 +80,7 @@ const PredictHome: React.FC = () => {
   // drop the hub chrome so it doesn't overlay the pushed screen.
   const isFocused = useIsFocused();
   const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
-  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
+  const { active: isTradeHubTab } = useFixedTabPlacement(0);
   const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
 
   const handleSectionViewed = useCallback(
@@ -184,7 +184,7 @@ const PredictHome: React.FC = () => {
               isGlass={isBrandRefresh}
               isFloating={false}
             />
-            <FixedTabPillRow />
+            <FixedTabRow />
           </FixedHubChrome>
         ) : null}
         {showHomeError ? (

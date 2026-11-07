@@ -13,7 +13,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import FixedTabPillRow from '../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow from '../../Nav/Main/FixedTabNav/FixedTabRow';
 import HubProfileButton from '../../Nav/Main/FixedTabNav/HubProfileButton';
 import {
   FixedHubChrome,
@@ -383,7 +383,7 @@ export const ExploreFeed: React.FC = () => {
       >
         <HubProfileButton />
       </HeaderRoot>
-      <FixedTabPillRow />
+      <FixedTabRow />
     </>
   );
 

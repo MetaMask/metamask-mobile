@@ -87,7 +87,7 @@ import Engine from '../../../../../core/Engine';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   TabItem,
   TabsBar,
@@ -739,7 +739,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             }
           />
         </Box>
-        <FixedTabPillRow />
+        <FixedTabRow />
 
         <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader

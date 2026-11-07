@@ -135,7 +135,7 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
-import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -1375,7 +1375,7 @@ const PerpsHomeView = () => {
     <View style={styles.container}>
       <FixedHubChrome>
         {header}
-        <FixedTabPillRow />
+        <FixedTabRow />
       </FixedHubChrome>
 
       {content}

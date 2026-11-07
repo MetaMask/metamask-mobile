@@ -27,7 +27,7 @@ const useWalletStackScreenOptions = (): NativeStackNavigationOptions => {
   );
 };
 
-/** Home tab. Wallet home only — no content pills. */
+/** Home tab. Wallet home only — no content tabs. */
 const WalletTabStack = () => {
   const screenOptions = useWalletStackScreenOptions();
 

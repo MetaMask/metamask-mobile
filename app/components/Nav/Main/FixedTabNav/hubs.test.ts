@@ -8,7 +8,7 @@ import { MoneyTabScreenStack } from '../../../UI/Money/routes';
 import NftFullView from '../../../Views/NftFullView';
 import Routes from '../../../../constants/navigation/Routes';
 import { FIXED_TABS } from './fixedTabs';
-import { COLLECT_PILLS, MONEY_PILLS, TRADE_PILLS } from './hubs';
+import { COLLECT_TABS, MONEY_TABS, TRADE_TABS } from './hubs';
 
 describe('fixed tab hubs', () => {
   it('keeps the footer at Home, Money, Trade, Collect, and Social', () => {
@@ -29,13 +29,13 @@ describe('fixed tab hubs', () => {
   });
 
   it('opens Trade on the existing Explore feed', () => {
-    expect(TRADE_PILLS.map((pill) => pill.label)).toEqual([
+    expect(TRADE_TABS.map((tab) => tab.label)).toEqual([
       'Trending',
       'Perps',
       'Predictions',
       'Swaps',
     ]);
-    expect(TRADE_PILLS.map((pill) => pill.Screen)).toEqual([
+    expect(TRADE_TABS.map((tab) => tab.Screen)).toEqual([
       ExploreFeed,
       PerpsScreenStack,
       PredictRoot,
@@ -44,17 +44,17 @@ describe('fixed tab hubs', () => {
   });
 
   it('keeps Money and Collect destinations in order', () => {
-    expect(MONEY_PILLS.map((pill) => [pill.label, pill.Screen])).toEqual([
+    expect(MONEY_TABS.map((tab) => [tab.label, tab.Screen])).toEqual([
       ['Account', MoneyTabScreenStack],
       ['Card', CardRoutes],
       ['Earn', EarnSectionListView],
     ]);
-    expect(COLLECT_PILLS.map((pill) => pill.label)).toEqual([
+    expect(COLLECT_TABS.map((tab) => tab.label)).toEqual([
       'Popular',
       'Packs',
       'Collection',
       'Market',
     ]);
-    expect(COLLECT_PILLS[2]?.Screen).toBe(NftFullView);
+    expect(COLLECT_TABS[2]?.Screen).toBe(NftFullView);
   });
 });

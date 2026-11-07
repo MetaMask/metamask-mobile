@@ -129,9 +129,9 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -637,7 +637,7 @@ const CardHome = () => {
 
   const headerHandlers = useCardHeaderHandlers('back');
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { active: isMoneyHubTab } = useFixedTabPlacement(0);
   const { isGlass: isMoneyGlass, onMenuPress } = useMoneyTabHeader();
   const screenHeader = isMoneyHubTab ? (
     <MoneyHeader onMenuPress={onMenuPress} isGlass={isMoneyGlass} />
@@ -665,7 +665,7 @@ const CardHome = () => {
   const hubChrome = (
     <FixedHubChrome>
       {screenHeader}
-      <FixedTabPillRow />
+      <FixedTabRow />
     </FixedHubChrome>
   );
 

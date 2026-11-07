@@ -11,7 +11,7 @@ import FixedTabBar, { FixedTabBarHeightContext } from './FixedTabBar';
 import FixedTabSocial from './FixedTabSocial';
 import WalletTabStack from './WalletTabStack';
 import { CollectHub, MoneyHub, TradeHub } from './hubs';
-import { PillHubSheetHostProvider } from './PillHubSheetHost';
+import { TabHubSheetHostProvider } from './TabHubSheetHost';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +21,7 @@ const renderTabBar = (props: BottomTabBarProps) => <FixedTabBar {...props} />;
 
 /**
  * Prototype root tabs. The footer is always Home · Money · Trade · Collect · Social.
- * Pills on Trade, Money, and Collect switch the scene and leave the footer put.
+ * Tabs on Trade, Money, and Collect switch the scene and leave the footer put.
  */
 const FixedTabNavigator = () => {
   const [barHeight, setBarHeight] = useState(0);
@@ -40,7 +40,7 @@ const FixedTabNavigator = () => {
              * sheet paints after — and therefore above — the scenes and the
              * absolutely-positioned footer tab bar.
              */}
-            <PillHubSheetHostProvider>
+            <TabHubSheetHostProvider>
               <Tab.Navigator
                 initialRouteName={Routes.WALLET.HOME}
                 tabBar={renderTabBar}
@@ -81,7 +81,7 @@ const FixedTabNavigator = () => {
                   component={FixedTabSocial}
                 />
               </Tab.Navigator>
-            </PillHubSheetHostProvider>
+            </TabHubSheetHostProvider>
           </FloatingTabBarInsetContext.Provider>
         </FixedTabBarHeightContext.Provider>
       </QuickBuySheetHostProvider>

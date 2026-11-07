@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, HeaderRoot } from '@metamask/design-system-react-native';
 import NftGrid from '../../UI/NftGrid/NftGrid';
-import FixedTabPillRow from '../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow from '../../Nav/Main/FixedTabNav/FixedTabRow';
 import { FixedHubChrome } from '../../Nav/Main/FixedTabNav/FixedHubChrome';
 import HubProfileButton from '../../Nav/Main/FixedTabNav/HubProfileButton';
 
@@ -19,7 +19,7 @@ const NftFullView = () => {
         <HeaderRoot includesTopInset>
           <HubProfileButton />
         </HeaderRoot>
-        <FixedTabPillRow />
+        <FixedTabRow />
       </FixedHubChrome>
       <Box twClassName="flex-1">
         <NftGrid isFullView />

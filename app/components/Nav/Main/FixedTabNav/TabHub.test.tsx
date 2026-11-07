@@ -2,41 +2,39 @@ import React from 'react';
 import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import PillHub from './PillHub';
-import FixedTabPillRow from './FixedTabPillRow';
-import type { FixedTabPill } from './fixedTabNav.types';
+import TabHub from './TabHub';
+import FixedTabRow from './FixedTabRow';
+import type { FixedHubTab } from './fixedTabNav.types';
 
 const TrendingScreen = () => (
   <>
-    <FixedTabPillRow />
+    <FixedTabRow />
     <Text>Trending screen</Text>
   </>
 );
 const PerpsScreen = () => (
   <>
-    <FixedTabPillRow />
+    <FixedTabRow />
     <Text>Perps screen</Text>
   </>
 );
 const SwapsScreen = () => (
   <>
-    <FixedTabPillRow />
+    <FixedTabRow />
     <Text>Swaps screen</Text>
   </>
 );
 
-const TRADE_PILLS: readonly FixedTabPill[] = [
+const TRADE_TABS: readonly FixedHubTab[] = [
   { key: 'trending', label: 'Trending', Screen: TrendingScreen },
   { key: 'perps', label: 'Perps', Screen: PerpsScreen },
   { key: 'swaps', label: 'Swaps', Screen: SwapsScreen },
 ];
 
-describe('PillHub', () => {
-  it('opens the first pill and swaps content while the tab row stays', () => {
+describe('TabHub', () => {
+  it('opens the first tab and swaps content while the tab row stays', () => {
     const { getByText, getAllByText, getByTestId, queryByText } =
-      renderWithProvider(
-        <PillHub testID="fixed-tab-trade" pills={TRADE_PILLS} />,
-      );
+      renderWithProvider(<TabHub testID="fixed-tab-trade" tabs={TRADE_TABS} />);
 
     expect(getByText('Trending screen')).toBeOnTheScreen();
     expect(queryByText('Perps screen')).toBeNull();

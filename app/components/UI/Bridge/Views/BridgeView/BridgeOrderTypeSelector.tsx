@@ -94,7 +94,7 @@ interface BridgeOrderTypeSheetProps {
 
 /**
  * Bottom sheet listing the order types. In the Trade hub, BridgeView publishes
- * this to the `PillHubSheetHost` above the fixed footer; on a standalone route
+ * this to the `TabHubSheetHost` above the fixed footer; on a standalone route
  * it renders inline at the screen root. Either way it must stay out of the
  * ScrollView: the design-system `BottomSheet` is absolutely positioned over
  * its nearest ancestor (`absolute inset-0 justify-end`), so mounting outside

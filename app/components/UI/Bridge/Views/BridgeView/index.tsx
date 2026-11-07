@@ -63,17 +63,17 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
 import HubProfileButton from '../../../../Nav/Main/FixedTabNav/HubProfileButton';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import { ScrollingChromeProvider } from '../../../../Nav/Main/FixedTabNav/ScrollingChrome';
 import { FixedHubChrome } from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
-import { usePillHubSheetHost } from '../../../../Nav/Main/FixedTabNav/PillHubSheetHost';
+import { useTabHubSheetHost } from '../../../../Nav/Main/FixedTabNav/TabHubSheetHost';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { active: isTradeHubTab } = useFixedTabPillPlacement(0);
+  const { active: isTradeHubTab } = useFixedTabPlacement(0);
   const {
     selectedTab,
     renderedTab,
@@ -417,7 +417,7 @@ const BridgeView = () => {
           includesTopInset
         />
       )}
-      <FixedTabPillRow />
+      <FixedTabRow />
     </>
   );
 
@@ -429,7 +429,7 @@ const BridgeView = () => {
   //
   // Inside the Trade hub even the screen root sits in the tab scene, which the
   // absolutely-positioned footer paints over — so the sheet is hoisted one
-  // level further, to the navigator-level `PillHubSheetHost` (same pattern as
+  // level further, to the navigator-level `TabHubSheetHost` (same pattern as
   // `QuickBuySheetHost`), where it and its backdrop cover the footer. Outside
   // a hub there is no host and the sheet renders inline as before.
   //
@@ -449,7 +449,7 @@ const BridgeView = () => {
     () => setOrderTypeSheetSession(-1),
     [],
   );
-  const sheetHost = usePillHubSheetHost();
+  const sheetHost = useTabHubSheetHost();
 
   const orderTypeSheet = useMemo(
     () =>

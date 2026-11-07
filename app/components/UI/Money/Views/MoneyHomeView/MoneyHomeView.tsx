@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
-import FixedTabPillRow from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -991,7 +991,7 @@ const MoneyHomeView = () => {
         {!isNativeHeader && (
           <MoneyHeader {...headerProps} isGlass={isGlassHeader} />
         )}
-        <FixedTabPillRow />
+        <FixedTabRow />
       </FixedHubChrome>
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}

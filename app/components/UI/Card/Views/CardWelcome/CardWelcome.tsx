@@ -2,9 +2,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
 import { StatusBar, View } from 'react-native';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import { FixedHubChrome } from '../../../../Nav/Main/FixedTabNav/FixedHubChrome';
 import MoneyHeader, {
   useMoneyTabHeader,
@@ -57,7 +57,7 @@ const CardWelcome = () => {
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const tw = useTailwind();
-  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { active: isMoneyHubTab } = useFixedTabPlacement(0);
   const { isGlass, onMenuPress } = useMoneyTabHeader();
   const animationState = useCardEducationAnimationState();
   const shouldAnimateCards = animationState === 'animate';
@@ -157,7 +157,7 @@ const CardWelcome = () => {
         {isMoneyHubTab ? (
           <MoneyHeader onMenuPress={onMenuPress} isGlass={isGlass} />
         ) : null}
-        <FixedTabPillRow includeTopInset={!isMoneyHubTab} />
+        <FixedTabRow includeTopInset={!isMoneyHubTab} />
       </FixedHubChrome>
       <View style={tw.style('flex-1')}>
         <MarketingMoment

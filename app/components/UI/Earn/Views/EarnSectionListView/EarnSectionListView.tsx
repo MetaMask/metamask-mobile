@@ -85,9 +85,9 @@ import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import DottedUnderline from '../../../DottedUnderline';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import FixedTabPillRow, {
-  useFixedTabPillPlacement,
-} from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import FixedTabRow, {
+  useFixedTabPlacement,
+} from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import {
   FixedHubChrome,
   FixedHubChromeSpacer,
@@ -250,7 +250,7 @@ const MoneyProjection = ({
  */
 const EarnSectionListView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const { active: isMoneyHubTab } = useFixedTabPillPlacement(0);
+  const { active: isMoneyHubTab } = useFixedTabPlacement(0);
   const { isGlass: isMoneyGlass, onMenuPress } = useMoneyTabHeader();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
@@ -583,7 +583,7 @@ const EarnSectionListView = () => {
             }}
           />
         </Box>
-        <FixedTabPillRow />
+        <FixedTabRow />
       </>
     );
 
@@ -704,7 +704,7 @@ const EarnSectionListView = () => {
       {isMoneyHubTab ? (
         <FixedHubChrome>
           <MoneyHeader onMenuPress={onMenuPress} isGlass={isMoneyGlass} />
-          <FixedTabPillRow />
+          <FixedTabRow />
         </FixedHubChrome>
       ) : null}
       <FlashList

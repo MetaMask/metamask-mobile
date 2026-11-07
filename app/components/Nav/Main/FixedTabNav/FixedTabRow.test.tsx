@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import FixedTabPillRow, { FixedTabPillRowProvider } from './FixedTabPillRow';
+import FixedTabRow, { FixedTabRowProvider } from './FixedTabRow';
 
-const pills = [
+const tabs = [
   { key: 'account', label: 'Account', Screen: () => null },
   { key: 'card', label: 'Card', Screen: () => null },
 ] as const;
@@ -11,29 +11,29 @@ const pills = [
 const renderRow = (selectedKey = 'account') => {
   const onChange = jest.fn();
   const view = renderWithProvider(
-    <FixedTabPillRowProvider
+    <FixedTabRowProvider
       value={{
         testID: 'hub',
-        pills,
+        tabs,
         selectedKey,
         onChange,
       }}
     >
-      <FixedTabPillRow />
-    </FixedTabPillRowProvider>,
+      <FixedTabRow />
+    </FixedTabRowProvider>,
   );
 
   return { ...view, onChange };
 };
 
-describe('FixedTabPillRow', () => {
+describe('FixedTabRow', () => {
   it('renders nothing outside a hub', () => {
-    const { queryByTestId } = renderWithProvider(<FixedTabPillRow />);
+    const { queryByTestId } = renderWithProvider(<FixedTabRow />);
 
     expect(queryByTestId('hub-tabs')).toBeNull();
   });
 
-  it('draws the pills as underline tabs and resolves a press back to a key', () => {
+  it('draws the tabs as underline tabs and resolves a press back to a key', () => {
     const { getByTestId, getAllByText, onChange } = renderRow();
 
     expect(getByTestId('hub-tabs')).toBeOnTheScreen();

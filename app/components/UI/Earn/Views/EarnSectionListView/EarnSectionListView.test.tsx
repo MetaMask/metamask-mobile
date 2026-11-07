@@ -44,7 +44,7 @@ import {
 } from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
-import { FixedTabPillRowProvider } from '../../../../Nav/Main/FixedTabNav/FixedTabPillRow';
+import { FixedTabRowProvider } from '../../../../Nav/Main/FixedTabNav/FixedTabRow';
 import { MoneyHeaderTestIds } from '../../../Money/components/MoneyHeader/MoneyHeader.testIds';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
@@ -464,16 +464,16 @@ describe('EarnSectionListView', () => {
 
   it('uses the Money header with the profile avatar on the Money hub tab', () => {
     render(
-      <FixedTabPillRowProvider
+      <FixedTabRowProvider
         value={{
           testID: 'money-hub',
-          pills: [],
+          tabs: [],
           selectedKey: 'earn',
           onChange: jest.fn(),
         }}
       >
         <EarnSectionListView />
-      </FixedTabPillRowProvider>,
+      </FixedTabRowProvider>,
     );
 
     expect(screen.queryByTestId(MoneyHeaderTestIds.TITLE)).toBeNull();

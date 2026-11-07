@@ -14,15 +14,15 @@ interface HostedSheet {
   node: ReactNode;
 }
 
-interface PillHubSheetHostControls {
+interface TabHubSheetHostControls {
   /** Replaces the hosted sheet. `ownerId` identifies the mounting screen. */
   showSheet: (ownerId: string, node: ReactNode) => void;
   /** Clears the hosted sheet when it belongs to `ownerId`. */
   hideSheet: (ownerId: string) => void;
 }
 
-const PillHubSheetHostContext = createContext<
-  PillHubSheetHostControls | undefined
+const TabHubSheetHostContext = createContext<
+  TabHubSheetHostControls | undefined
 >(undefined);
 
 /**
@@ -33,13 +33,13 @@ const PillHubSheetHostContext = createContext<
  * after the `Tab.Navigator` — the sheet and its backdrop cover the footer,
  * like every other bottom sheet in the app.
  */
-export const PillHubSheetHostProvider: React.FC<{
+export const TabHubSheetHostProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const [sheet, setSheet] = useState<HostedSheet | null>(null);
 
   const value = useMemo(
-    (): PillHubSheetHostControls => ({
+    (): TabHubSheetHostControls => ({
       showSheet: (ownerId, node) => setSheet({ ownerId, node }),
       hideSheet: (ownerId) =>
         setSheet((current) => (current?.ownerId === ownerId ? null : current)),
@@ -48,10 +48,10 @@ export const PillHubSheetHostProvider: React.FC<{
   );
 
   return (
-    <PillHubSheetHostContext.Provider value={value}>
+    <TabHubSheetHostContext.Provider value={value}>
       {children}
       {sheet?.node ?? null}
-    </PillHubSheetHostContext.Provider>
+    </TabHubSheetHostContext.Provider>
   );
 };
 
@@ -65,8 +65,8 @@ interface HostedSheetControls {
  * when no host is mounted (e.g. the screen opened on its own stack route), so
  * the caller renders its sheet inline instead.
  */
-export const usePillHubSheetHost = (): HostedSheetControls | null => {
-  const host = useContext(PillHubSheetHostContext);
+export const useTabHubSheetHost = (): HostedSheetControls | null => {
+  const host = useContext(TabHubSheetHostContext);
   const ownerId = useId();
 
   const setHostedSheet = useCallback(

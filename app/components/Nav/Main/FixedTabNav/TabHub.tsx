@@ -5,14 +5,14 @@ import {
 } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
-import { FixedTabPillRowProvider } from './FixedTabPillRow';
+import { FixedTabRowProvider } from './FixedTabRow';
 import { FixedHubChromeProvider } from './FixedHubChrome';
-import type { FixedTabPill } from './fixedTabNav.types';
+import type { FixedHubTab } from './fixedTabNav.types';
 
-interface PillHubProps {
-  /** Prefix for pill test IDs, for example `fixed-tab-trade`. */
+interface TabHubProps {
+  /** Prefix for tab test IDs, for example `fixed-tab-trade`. */
   testID: string;
-  pills: readonly FixedTabPill[];
+  tabs: readonly FixedHubTab[];
 }
 
 /**
@@ -23,15 +23,15 @@ interface PillHubProps {
  * real top inset so that header can clear the status bar, and zeros the
  * bottom inset because the footer already covers the home indicator.
  */
-const PillHub = ({ testID, pills }: PillHubProps) => {
+const TabHub = ({ testID, tabs }: TabHubProps) => {
   const insets = useSafeAreaInsets();
-  const firstKey = pills[0]?.key ?? '';
+  const firstKey = tabs[0]?.key ?? '';
   const [selectedKey, setSelectedKey] = useState(firstKey);
-  const selected = pills.find((pill) => pill.key === selectedKey) ?? pills[0];
+  const selected = tabs.find((tab) => tab.key === selectedKey) ?? tabs[0];
   const ActiveScreen = selected?.Screen;
 
-  // Returning to the hub (e.g. Home → Trade) lands on the first pill, not the
-  // one the user left on. First mount already defaults to the first pill.
+  // Returning to the hub (e.g. Home → Trade) lands on the first tab, not the
+  // one the user left on. First mount already defaults to the first tab.
   useFocusEffect(
     useCallback(() => {
       setSelectedKey(firstKey);
@@ -48,14 +48,14 @@ const PillHub = ({ testID, pills }: PillHubProps) => {
     [insets.left, insets.right, insets.top],
   );
 
-  const pillRow = useMemo(
+  const tabRow = useMemo(
     () => ({
       testID,
-      pills,
+      tabs,
       selectedKey: selected?.key ?? '',
       onChange: setSelectedKey,
     }),
-    [pills, selected?.key, testID],
+    [tabs, selected?.key, testID],
   );
 
   if (!selected || !ActiveScreen) {
@@ -63,7 +63,7 @@ const PillHub = ({ testID, pills }: PillHubProps) => {
   }
 
   return (
-    <FixedTabPillRowProvider value={pillRow}>
+    <FixedTabRowProvider value={tabRow}>
       <Box twClassName="flex-1 bg-default" testID={testID}>
         <FixedHubChromeProvider>
           <Box key={selected.key} twClassName="flex-1">
@@ -73,8 +73,8 @@ const PillHub = ({ testID, pills }: PillHubProps) => {
           </Box>
         </FixedHubChromeProvider>
       </Box>
-    </FixedTabPillRowProvider>
+    </FixedTabRowProvider>
   );
 };
 
-export default PillHub;
+export default TabHub;

@@ -5,21 +5,20 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import type { FixedTabPill } from './fixedTabNav.types';
+import type { FixedHubTab } from './fixedTabNav.types';
 
-interface FixedTabPillRowContextValue {
+interface FixedTabRowContextValue {
   testID: string;
-  pills: readonly FixedTabPill[];
+  tabs: readonly FixedHubTab[];
   selectedKey: string;
   onChange: (key: string) => void;
 }
 
-const FixedTabPillRowContext =
-  createContext<FixedTabPillRowContextValue | null>(null);
+const FixedTabRowContext = createContext<FixedTabRowContextValue | null>(null);
 
-export const FixedTabPillRowProvider = FixedTabPillRowContext.Provider;
+export const FixedTabRowProvider = FixedTabRowContext.Provider;
 
-interface FixedTabPillPlacement {
+interface FixedTabPlacement {
   /** True while this screen is mounted inside a fixed-tab hub. */
   active: boolean;
   /** Space above the row so it clears a floating header. */
@@ -32,10 +31,10 @@ interface FixedTabPillPlacement {
  * When the row is showing, it sits under a floating header and the content
  * no longer pads for that header. Outside a hub the content keeps its padding.
  */
-export const useFixedTabPillPlacement = (
+export const useFixedTabPlacement = (
   headerClearance: number,
-): FixedTabPillPlacement => {
-  const active = useContext(FixedTabPillRowContext) != null;
+): FixedTabPlacement => {
+  const active = useContext(FixedTabRowContext) != null;
 
   return {
     active,
@@ -44,7 +43,7 @@ export const useFixedTabPillPlacement = (
   };
 };
 
-interface FixedTabPillRowProps {
+interface FixedTabRowProps {
   /** Push the row below a header that floats over the content. */
   topOffset?: number;
   /** Pad for the status bar when no header above the row does. */
@@ -56,34 +55,32 @@ interface FixedTabPillRowProps {
  * underline tab bar (`TabsBar`). Renders nothing outside a hub, so product
  * screens keep their layout when opened on their own.
  *
- * The hub still selects by pill `key`; the bar works by index, so the keys
- * map to their position in the pill list and a press resolves back to a key.
+ * The hub still selects by tab `key`; the bar works by index, so the keys
+ * map to their position in the tab list and a press resolves back to a key.
  */
-const FixedTabPillRow = ({
+const FixedTabRow = ({
   topOffset = 0,
   includeTopInset = false,
-}: FixedTabPillRowProps) => {
-  const value = useContext(FixedTabPillRowContext);
+}: FixedTabRowProps) => {
+  const value = useContext(FixedTabRowContext);
   const insets = useSafeAreaInsets();
 
   const activeIndex = useMemo(() => {
     if (!value) {
       return -1;
     }
-    const index = value.pills.findIndex(
-      (pill) => pill.key === value.selectedKey,
-    );
+    const index = value.tabs.findIndex((tab) => tab.key === value.selectedKey);
     return index === -1 ? 0 : index;
   }, [value]);
 
   const tabs: TabItem[] = useMemo(
     () =>
-      (value?.pills ?? []).map((pill) => ({
-        key: pill.key,
-        label: pill.label,
+      (value?.tabs ?? []).map((tab) => ({
+        key: tab.key,
+        label: tab.label,
         // The bar renders labels only; the screens live in the hub below.
         content: null,
-        testID: value ? `${value.testID}-tab-${pill.key}` : undefined,
+        testID: value ? `${value.testID}-tab-${tab.key}` : undefined,
       })),
     [value],
   );
@@ -93,9 +90,9 @@ const FixedTabPillRow = ({
   }
 
   const handleTabPress = (index: number) => {
-    const pill = value.pills[index];
-    if (pill) {
-      value.onChange(pill.key);
+    const tab = value.tabs[index];
+    if (tab) {
+      value.onChange(tab.key);
     }
   };
 
@@ -108,9 +105,12 @@ const FixedTabPillRow = ({
         marginTop: topOffset,
         paddingTop,
       }}
-      testID={`${value.testID}-pills-chrome`}
+      testID={`${value.testID}-tabs-chrome`}
     >
-      <Box twClassName="border-b border-muted" testID={`${value.testID}-pills`}>
+      <Box
+        twClassName="border-b border-muted"
+        testID={`${value.testID}-tabs-row`}
+      >
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -122,4 +122,4 @@ const FixedTabPillRow = ({
   );
 };
 
-export default FixedTabPillRow;
+export default FixedTabRow;
