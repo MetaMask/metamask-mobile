@@ -218,6 +218,7 @@ jest.mock(
 );
 
 jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => 'mock-image-source'),
 }));
 

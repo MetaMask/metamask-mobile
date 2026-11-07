@@ -929,9 +929,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         hostname={hostnameFromUrlObj}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         defaultSelectedChainIds={selectedChainIds}
+        requestedCaipChainIds={requestedCaipChainIds}
+        requestedNamespaces={requestedNamespacesWithoutWallet}
       />
     ),
-    [isLoading, handleNetworksSelected, hostnameFromUrlObj, selectedChainIds],
+    [
+      isLoading,
+      handleNetworksSelected,
+      hostnameFromUrlObj,
+      selectedChainIds,
+      requestedCaipChainIds,
+      requestedNamespacesWithoutWallet,
+    ],
   );
 
   const renderPhishingModal = useCallback(
