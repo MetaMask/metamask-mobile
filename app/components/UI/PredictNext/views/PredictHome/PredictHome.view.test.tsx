@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
+import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
@@ -84,6 +85,47 @@ describe('PredictHome', () => {
       view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
     ).toBeOnTheScreen();
     expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+  });
+
+  it('shows the user debug control on a development build with Kalshi on', async () => {
+    const view = renderPredictNext();
+
+    expect(await view.findByTestId(KalshiDebugTestIds.OPEN)).toBeOnTheScreen();
+  });
+
+  it('hides the user debug control when Kalshi authentication is off', async () => {
+    const view = renderPredictNext(false, {
+      remoteFeatureFlags: {
+        predictConfig: {
+          enabled: true,
+          venues: {
+            polymarket: { enabled: false },
+            kalshi: { enabled: false },
+          },
+          venueSelection: { enabled: false },
+        },
+      },
+    });
+
+    await view.findByTestId(PredictHomeTestIds.HOME);
+
+    expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+  });
+
+  it('hides the user debug control on a release build', async () => {
+    const devGlobal = globalThis as { __DEV__?: boolean };
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = false;
+
+    try {
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.HOME);
+
+      expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+    } finally {
+      devGlobal.__DEV__ = originalDev;
+    }
   });
 
   it('floats the header over the content when the Predict brand refresh is on', async () => {
