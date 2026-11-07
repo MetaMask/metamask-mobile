@@ -86,6 +86,11 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockConsumePostUnlockResume = jest.fn();
+jest.mock('../../PostUnlockResume', () => ({
+  consumePostUnlockResume: () => mockConsumePostUnlockResume(),
+}));
+
 const mockStartDeeplinkNavigatedTrace = jest.fn();
 const mockCancelDeeplinkNavigatedTrace = jest.fn();
 const mockCancelDeeplinkProcessedTrace = jest.fn();
@@ -115,6 +120,7 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
+    mockConsumePostUnlockResume.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -276,5 +282,30 @@ describe('startupDeeplinkNavigation', () => {
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('opens the pending post-unlock resume state instead of home', async () => {
+    const resumeState = { index: 1, routes: [{ name: 'Home' }] };
+    mockConsumePostUnlockResume.mockResolvedValueOnce(resumeState);
+
+    await navigateToPostUnlockHome();
+
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV, state: resumeState }],
+    });
+  });
+
+  it('lets a handled startup deeplink win over a post-unlock resume', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockConsumePostUnlockResume.mockResolvedValueOnce({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+
+    await navigateToPostUnlockHome();
+
+    expect(mockConsumePostUnlockResume).toHaveBeenCalledTimes(1);
+    expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });
