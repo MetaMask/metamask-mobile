@@ -72,12 +72,14 @@ export function closeAllTabs() {
  *
  * @param {string} url - The website's url
  * @param {string} linkType - optional link type
+ * @param {string} entryPoint - optional discovery surface that opened the tab
  */
-export function createNewTab(url, linkType) {
+export function createNewTab(url, linkType, entryPoint) {
   return {
     type: 'CREATE_NEW_TAB',
     url,
     linkType,
+    entryPoint,
     id: Date.now(),
   };
 }
