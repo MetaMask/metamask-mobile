@@ -19,6 +19,15 @@ export const ImportTokenViewSelectorsIDs = {
   SELECT_NETWORK_BUTTON: 'select-network-button',
   CLEAR_SEARCH_BAR: 'clear-search-bar',
   BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT: 'bottomsheetfooter-button-subsequent',
+  MODE_FIND: 'import-token-mode-find',
+  MODE_OWNED: 'import-token-mode-owned',
+  OWNED_TOKENS_VIEW: 'owned-tokens-view',
+  OWNED_TOKENS_SEARCH: 'owned-tokens-search',
+  OWNED_TOKENS_ADD: 'owned-tokens-add-button',
+  OWNED_TOKENS_EMPTY: 'owned-tokens-empty',
+  OWNED_TOKENS_ERROR: 'owned-tokens-error',
+  OWNED_TOKENS_RETRY: 'owned-tokens-retry',
+  OWNED_TOKENS_SELECT_ALL: 'owned-tokens-select-all',
 };
 
 export const ImportTokenViewSelectorsText = {

@@ -1,7 +1,9 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import TokenView from './TokenView';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { Hex } from '@metamask/utils';
 import {
   MultichainNetworkConfiguration,
@@ -59,6 +61,11 @@ jest.mock('../../components/AddCustomToken/AddCustomToken', () => {
   return ({ tabLabel }: { tabLabel: string }) => (
     <View testID="add-custom-token" accessibilityLabel={tabLabel} />
   );
+});
+
+jest.mock('../../components/OwnedTokens/OwnedTokensView', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="owned-tokens-view" />;
 });
 
 const mockNetworkConfigurations = {
@@ -148,6 +155,17 @@ describe('TokenView', () => {
 
     expect(getByTestId('search-token-autocomplete')).toBeOnTheScreen();
     expect(queryByTestId('add-custom-token')).toBeNull();
+  });
+
+  it('shows owned tokens and hides search tabs and network picker when Tokens I own is selected', () => {
+    const { getByTestId, queryByTestId } = renderComponent();
+    expect(getByTestId('add-asset-network-selector')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(ImportTokenViewSelectorsIDs.MODE_OWNED));
+
+    expect(getByTestId('owned-tokens-view')).toBeOnTheScreen();
+    expect(queryByTestId('add-asset-tabs-container')).toBeNull();
+    expect(queryByTestId('add-asset-network-selector')).toBeNull();
   });
 
   it('shows no tabs when no network is selected', () => {
