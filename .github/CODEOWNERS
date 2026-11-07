@@ -460,6 +460,7 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
+.ai-pr-analyzer/modes/smart-e2e/                                @MetaMask/qa
 .github/actions/download-e2e-artifact/                          @MetaMask/qa
 .github/actions/dual-upload-e2e-artifact/                       @MetaMask/qa
 .github/actions/setup-e2e-env/                                  @MetaMask/qa
