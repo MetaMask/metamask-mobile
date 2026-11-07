@@ -594,14 +594,30 @@ function isPlainName(text, frame, rules, layer) {
   return tokens.length > 0 && tokens.every((token) => isNameToken(token));
 }
 
+function isShippedValue(text, rules) {
+  const known = rules && rules.shippedWords;
+  if (!known || typeof known.has !== 'function') return false;
+  const trimmed = String(text || '').trim();
+  return known.has(trimmed) || known.has(trimmed.toLowerCase());
+}
+
+function isShortCopyWord(text) {
+  const trimmed = String(text || '').trim();
+  if (!/^\p{L}[\p{L}'’-]*$/u.test(trimmed)) return false;
+  const count = checker.characterCount(trimmed);
+  return count >= 2 && count <= 12;
+}
+
 function splitMixedName(text, frame, layer, rules) {
-  if (!nameContext(frame, layer, rules)) return null;
   const parts = String(text || '').split(/\s*·\s*/);
   if (parts.length < 2) return null;
   const name = parts[0].trim();
   const copy = parts.slice(1).join(' · ').trim();
   if (!name || !copy) return null;
   if (!name.split(/\s+/).every((token) => isNameToken(token))) return null;
+  if (isShippedValue(name, rules)) return null;
+  const contextual = nameContext(frame, layer, rules);
+  if (!contextual && !isShortCopyWord(copy) && !isShippedValue(copy, rules)) return null;
   return {
     template: `{name} · ${copy}`,
     copyText: copy,
@@ -622,6 +638,7 @@ function layoutSnapshot(node, pathChildId) {
   return {
     id: node.id || '',
     width: typeof box.width === 'number' ? box.width : null,
+    height: typeof box.height === 'number' ? box.height : null,
     layoutMode: node.layoutMode || null,
     paddingLeft: node.paddingLeft || 0,
     paddingRight: node.paddingRight || 0,
@@ -629,6 +646,7 @@ function layoutSnapshot(node, pathChildId) {
     primaryAxisSizingMode: node.primaryAxisSizingMode || null,
     counterAxisSizingMode: node.counterAxisSizingMode || null,
     layoutSizingHorizontal: node.layoutSizingHorizontal || null,
+    layoutSizingVertical: node.layoutSizingVertical || null,
     clipsContent: Boolean(node.clipsContent),
     overflowDirection: node.overflowDirection || null,
     pathChildId: pathChildId || '',
@@ -639,6 +657,10 @@ function layoutSnapshot(node, pathChildId) {
         : null,
       visible: child.visible !== false,
       absolute: child.layoutPositioning === 'ABSOLUTE',
+      layoutSizingHorizontal: child.layoutSizingHorizontal || null,
+      layoutMode: child.layoutMode || null,
+      primaryAxisSizingMode: child.primaryAxisSizingMode || null,
+      childCount: (child.children || []).filter((grand) => grand.visible !== false && grand.layoutPositioning !== 'ABSOLUTE').length,
     })),
   };
 }
@@ -651,6 +673,13 @@ function hugsWidth(parent) {
   if (parent.layoutSizingHorizontal === 'HUG') return true;
   if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'AUTO') return true;
   if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'AUTO') return true;
+  return false;
+}
+
+function hugsHeight(parent) {
+  if (parent.layoutSizingVertical === 'HUG') return true;
+  if (parent.layoutMode === 'VERTICAL' && parent.primaryAxisSizingMode === 'AUTO') return true;
+  if (parent.layoutMode === 'HORIZONTAL' && parent.counterAxisSizingMode === 'AUTO') return true;
   return false;
 }
 
@@ -704,29 +733,56 @@ function scrolls(parent) {
   return String(parent.overflowDirection || '').toUpperCase().includes('SCROLL');
 }
 
-function siblingWidth(parent) {
+function isSelfSized(child) {
+  if (child.layoutSizingHorizontal === 'HUG') return true;
+  if (child.layoutMode === 'HORIZONTAL' && child.primaryAxisSizingMode === 'AUTO') return true;
+  return false;
+}
+
+function tabLikeRow(parent) {
   const visible = visibleChildren(parent);
-  return visible
-    .filter((child) => child.id !== parent.pathChildId)
-    .reduce((sum, child) => sum + (child.width || 0), 0);
+  if (visible.length < 2) return false;
+  if (!visible.every((child) => isSelfSized(child) && child.childCount <= 1)) return false;
+  const widths = visible.map((child) => child.width || 0).filter((width) => width > 0);
+  if (widths.length < 2) return false;
+  return Math.max(...widths) <= Math.min(...widths) * 2;
 }
 
-function scrollingRow(parent) {
-  if (!rowOverflows(parent) || siblingWidth(parent) <= 0) return false;
-  return !parent.clipsContent || scrolls(parent);
+function scrollCandidate(parent) {
+  if (!rowOverflows(parent)) return false;
+  if (scrolls(parent)) return true;
+  return tabLikeRow(parent);
 }
 
-function clippedOverflowRow(parent) {
-  if (!rowOverflows(parent) || siblingWidth(parent) <= 0) return false;
-  return Boolean(parent.clipsContent) && !scrolls(parent);
+function nearestFixedAncestor(containers, index) {
+  for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+    const parent = containers[cursor];
+    if (hugsWidth(parent)) continue;
+    if (typeof parent.width === 'number') return parent;
+  }
+  return null;
 }
 
-function englishIsOneLine(record) {
-  const mode = String(record.textAutoResize || '').toUpperCase();
-  if (mode === 'TRUNCATE') return false;
-  const lineHeight = record.lineHeightPx || (record.fontSize ? record.fontSize * 1.2 : null);
-  if (typeof record.height !== 'number' || !lineHeight) return mode === 'WIDTH_AND_HEIGHT';
-  return record.height <= lineHeight * 1.25;
+function hugWiderThanFixed(parent, containers, index) {
+  if (!hugsWidth(parent) || parent.layoutMode !== 'HORIZONTAL' || typeof parent.width !== 'number') return false;
+  const fixed = nearestFixedAncestor(containers, index);
+  if (!fixed) return false;
+  const inner = fixed.width - (fixed.paddingLeft || 0) - (fixed.paddingRight || 0);
+  return parent.width > inner + 0.5;
+}
+
+const ROW_WIDER_NOTE = 'row is wider than its container; may scroll';
+
+function ownWidthRow(record, parent, clips) {
+  return {
+    availableWidth: record.width,
+    unconstrained: false,
+    scrolling: !parent.clipsContent || scrolls(parent),
+    pixelBasis: 'measured',
+    clips,
+    reason: ROW_WIDER_NOTE,
+    rowKey: parent.id || '',
+  };
 }
 
 function noRoom(clips) {
@@ -739,36 +795,38 @@ function noRoom(clips) {
   };
 }
 
+function clipsVertically(parent, textHeight) {
+  if (!parent.clipsContent || hugsHeight(parent)) return false;
+  if (typeof parent.height !== 'number' || typeof textHeight !== 'number') return false;
+  return parent.height <= textHeight + 1;
+}
+
 function resolveAvailableWidth(record) {
   const mode = String(record.textAutoResize || '').toUpperCase();
-  const clips = (record.containers || []).some((parent) => parent.clipsContent && !hugsWidth(parent));
+  const containers = record.containers || [];
+  const horizontalClips = containers.some((parent) => parent.clipsContent && !hugsWidth(parent));
+  const verticalClips = containers.some((parent) => clipsVertically(parent, record.height));
+  const clips = mode === 'HEIGHT' ? verticalClips : horizontalClips;
   if (mode !== 'WIDTH_AND_HEIGHT') {
     if (typeof record.width === 'number' && record.width > 0) {
-      return { availableWidth: record.width, unconstrained: false, pixelBasis: 'measured', clips };
-    }
-    return noRoom(clips);
-  }
-  const containers = record.containers || [];
-  let reserved = 0;
-  for (let index = containers.length - 1; index >= 0; index -= 1) {
-    const parent = containers[index];
-    if (!hugsWidth(parent) && clippedOverflowRow(parent)) {
-      return {
-        availableWidth: null,
-        unconstrained: true,
-        pixelBasis: 'estimate',
-        clips: true,
-        reason: 'row is wider than its container; may scroll',
-      };
-    }
-    if (!hugsWidth(parent) && scrollingRow(parent) && englishIsOneLine(record)) {
       return {
         availableWidth: record.width,
         unconstrained: false,
-        scrolling: true,
         pixelBasis: 'measured',
         clips,
+        verticalClips,
       };
+    }
+    return noRoom(clips);
+  }
+  let reserved = 0;
+  for (let index = containers.length - 1; index >= 0; index -= 1) {
+    const parent = containers[index];
+    if (hugWiderThanFixed(parent, containers, index)) {
+      return ownWidthRow(record, parent, clips);
+    }
+    if (!hugsWidth(parent) && scrollCandidate(parent) && (scrolls(parent) || tabLikeRow(parent))) {
+      return ownWidthRow(record, parent, clips);
     }
     if (hugsWidth(parent)) {
       reserved += levelReservation(parent);
@@ -779,15 +837,7 @@ function resolveAvailableWidth(record) {
     if (typeof base !== 'number') return noRoom(clips);
     const available = base - reserved;
     if (!(available > 0)) return noRoom(clips);
-    if (
-      scrollingRow(parent)
-      && englishIsOneLine(record)
-      && typeof record.width === 'number'
-      && record.width > available + 0.5
-    ) {
-      return { availableWidth: record.width, unconstrained: false, scrolling: true, pixelBasis: 'measured', clips };
-    }
-    return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips };
+    return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips, verticalClips };
   }
   return {
     availableWidth: null,

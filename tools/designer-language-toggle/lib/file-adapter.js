@@ -351,16 +351,17 @@ function measurePixels(units, row, text) {
   const currentLines = row.height && lineHeight
     ? Math.max(1, Math.round(row.height / lineHeight))
     : (row.lineCount || 1);
-  const capped = Boolean(row.maxLines) || mode === 'TRUNCATE' || mode === 'NONE' || row.clips;
+  const capped = Boolean(row.maxLines) || mode === 'TRUNCATE' || mode === 'NONE' || (mode !== 'HEIGHT' && row.clips);
   const singleLine = mode === 'HEIGHT'
     ? false
     : mode === 'TRUNCATE' || mode === 'NONE' || mode === 'WIDTH_AND_HEIGHT' || row.layout === 'overflow' || (!mode && row.layout !== 'wrap');
   let overflow = false;
   let note = null;
-  if (mode === 'HEIGHT' && !row.maxLines && !row.clips && !capped) {
-    note = lines > currentLines
-      ? `grows from ${currentLines} to ${lines} lines; check container height`
-      : null;
+  if (mode === 'HEIGHT' && !row.maxLines) {
+    if (lines > currentLines) {
+      note = `grows from ${currentLines} to ${lines} lines; check container height`;
+      if (row.verticalClips) note += '; container clips; text may be cut off';
+    }
   } else {
     if (row.maxLines && (lines > row.maxLines || totalPx > available * row.maxLines + 0.01)) overflow = true;
     if (singleLine && (lines > 1 || totalPx > available + 0.01)) overflow = true;
@@ -482,6 +483,7 @@ function classifyRecord(row, limits, learned) {
       lineHeightUnit: row.context.lineHeightUnit,
       lineHeightPercent: row.context.lineHeightPercent,
       clips: space.clips,
+      verticalClips: space.verticalClips,
       pxSource: model.source,
     });
     if (override !== null) maxCharacters = override;
@@ -533,7 +535,9 @@ function classifyRecord(row, limits, learned) {
     availableWidth: unresolved ? null : space.availableWidth,
     unconstrained: unresolved,
     clips: Boolean(space.clips),
+    verticalClips: Boolean(space.verticalClips),
     reason: space.reason || null,
+    rowKey: space.rowKey || null,
     pixelBasis: pixel ? pixel.basis : null,
     reasons,
     slots: row.context.slots || [],

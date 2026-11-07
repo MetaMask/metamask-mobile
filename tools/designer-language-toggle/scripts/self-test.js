@@ -1774,6 +1774,246 @@ function testReportGaps() {
   assert(politics.kind !== 'name', 'Feed / Markets is not the Feed / Market hint');
   assert(phi.kind === 'name', 'Feed / Market marks PHI as a name');
 
+  function viewportTabs() {
+    const nodes = [];
+    const tab = (id, label, width) => ({
+      type: 'INSTANCE',
+      id,
+      name: 'Tab',
+      layoutMode: 'HORIZONTAL',
+      layoutSizingHorizontal: 'HUG',
+      primaryAxisSizingMode: 'AUTO',
+      absoluteBoundingBox: { width, height: 32 },
+      children: [{
+        type: 'FRAME',
+        id: `${id}-press`,
+        name: 'Pressable',
+        layoutMode: 'HORIZONTAL',
+        layoutSizingHorizontal: 'HUG',
+        primaryAxisSizingMode: 'AUTO',
+        absoluteBoundingBox: { width, height: 24 },
+        children: [{
+          type: 'TEXT',
+          id: `${id}-label`,
+          name: 'Label',
+          characters: label,
+          textAutoResize: 'WIDTH_AND_HEIGHT',
+          absoluteBoundingBox: { width, height: 24 },
+          style: { fontSize: 16, lineHeightPx: 24 },
+        }],
+      }],
+    });
+    figma.collectTextNodes({
+      type: 'INSTANCE',
+      id: 'tabs-bar',
+      name: 'TabsBar',
+      layoutMode: 'HORIZONTAL',
+      layoutSizingHorizontal: 'FIXED',
+      primaryAxisSizingMode: 'FIXED',
+      clipsContent: true,
+      paddingLeft: 16,
+      paddingRight: 16,
+      absoluteBoundingBox: { width: 393, height: 32 },
+      children: [{
+        type: 'SLOT',
+        id: 'tab-row',
+        name: 'TabRow',
+        layoutMode: 'HORIZONTAL',
+        layoutSizingHorizontal: 'HUG',
+        primaryAxisSizingMode: 'AUTO',
+        itemSpacing: 24,
+        clipsContent: true,
+        absoluteBoundingBox: { width: 414, height: 32 },
+        children: [
+          tab('t1', 'Player props', 95),
+          tab('t2', 'Game lines', 86),
+          tab('t3', 'Game props', 92),
+          tab('t4', 'Positions', 69),
+        ],
+      }],
+    }, [], false, nodes);
+    return nodes;
+  }
+  const wideTabs = viewportTabs();
+  wideTabs.forEach((node) => {
+    const space = figma.resolveAvailableWidth(node);
+    assert(space.availableWidth === node.width, 'a sole HUG tab row keeps each label width');
+    assert(space.reason === 'row is wider than its container; may scroll', 'a HUG row wider than the viewport is check visually');
+  });
+  const wideTabReport = buildBreakReport(wideTabs.map((node) => classifyRecord({
+    id: node.id,
+    key: node.id,
+    source_text: node.text,
+    context: {
+      kind: 'tab',
+      width_px: node.width,
+      height: node.height,
+      textAutoResize: node.textAutoResize,
+      fontSize: node.fontSize,
+      lineHeightPx: node.lineHeightPx,
+      component: node.layer_name,
+      screen: node.frame_path,
+      containers: node.containers,
+    },
+  }, limits)), { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(wideTabReport.alreadyOver.length === 0, 'tab labels in a wide HUG row are not already over');
+  assert(wideTabReport.checkVisually.length === 1, 'the wide HUG row is one check visually item');
+
+  function legendRow() {
+    const nodes = [];
+    const key = (id, keyWidth, textWidth, text) => ({
+      type: 'INSTANCE',
+      id,
+      name: 'Key',
+      layoutMode: 'HORIZONTAL',
+      layoutSizingHorizontal: 'HUG',
+      primaryAxisSizingMode: 'AUTO',
+      itemSpacing: 4,
+      clipsContent: false,
+      absoluteBoundingBox: { width: keyWidth, height: 22 },
+      children: [
+        {
+          type: 'INSTANCE',
+          id: `${id}-icon`,
+          name: 'Icon',
+          layoutSizingHorizontal: 'HUG',
+          absoluteBoundingBox: { width: 16, height: 16 },
+        },
+        {
+          type: 'INSTANCE',
+          id: `${id}-copy`,
+          name: 'KeyText',
+          layoutMode: 'HORIZONTAL',
+          layoutSizingHorizontal: 'HUG',
+          primaryAxisSizingMode: 'AUTO',
+          itemSpacing: 10,
+          absoluteBoundingBox: { width: textWidth, height: 22 },
+          children: [{
+            type: 'TEXT',
+            id: `${id}-label`,
+            name: 'String',
+            characters: text,
+            textAutoResize: 'WIDTH_AND_HEIGHT',
+            absoluteBoundingBox: { width: textWidth, height: 22 },
+            style: { fontSize: 14, lineHeightPx: 22 },
+          }],
+        },
+      ],
+    });
+    figma.collectTextNodes({
+      type: 'FRAME',
+      id: 'legend',
+      name: 'Legend',
+      layoutMode: 'HORIZONTAL',
+      layoutSizingHorizontal: 'FILL',
+      primaryAxisSizingMode: 'FIXED',
+      clipsContent: false,
+      paddingLeft: 16,
+      paddingRight: 16,
+      itemSpacing: 8,
+      absoluteBoundingBox: { width: 393, height: 68 },
+      children: [
+        key('leg-a', 145, 125, 'Home team 00%'),
+        key('leg-b', 190, 170, 'Away team score 00%'),
+        key('leg-c', 151, 131, 'Draw result 00%'),
+      ],
+    }, [], false, nodes);
+    return nodes;
+  }
+  const legend = legendRow();
+  const legendSpace = legend.map((node) => figma.resolveAvailableWidth(node));
+  assert(legendSpace[0].reason === 'no room in English layout', 'the first legend label has no room');
+  assert(legendSpace[1].availableWidth === 29 && !legendSpace[1].scrolling, 'the middle legend label keeps the 29px remainder');
+  assert(legendSpace[2].reason === 'no room in English layout', 'the last legend label has no room');
+  const legendReport = buildBreakReport(legend.map((node) => classifyRecord({
+    id: node.id,
+    key: node.id,
+    source_text: node.text,
+    context: {
+      kind: 'label',
+      width_px: node.width,
+      height: node.height,
+      textAutoResize: node.textAutoResize,
+      fontSize: node.fontSize,
+      lineHeightPx: node.lineHeightPx,
+      component: node.layer_name,
+      screen: node.frame_path,
+      containers: node.containers,
+    },
+  }, limits)), { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(legendReport.layoutProblems.length === 1, 'only the legend label with room left is an English layout problem');
+
+  const marketsAlbum = figma.classifyTextNode({
+    id: 'markets-album',
+    layer_name: 'Text',
+    frame_path: 'Feed / Markets / Options Container',
+    text: 'Alexxxx Examplexx · Album',
+    width: 199,
+    visible: true,
+  }, rules);
+  assert(marketsAlbum.template === '{name} · Album' && marketsAlbum.copyText === 'Album', 'a short copy word after a dot splits without a name hint');
+  assert(marketsAlbum.slots[0].characters === 17, 'the name before the dot keeps 17 characters');
+  assert(marketsAlbum.kind !== 'name', 'Feed / Markets does not turn the whole string into a name');
+
+  function clippedHeightBody(id, text, height, clipHeight) {
+    const nodes = [];
+    figma.collectTextNodes({
+      type: 'FRAME',
+      id: `${id}-rules`,
+      name: 'Rules body',
+      layoutMode: 'VERTICAL',
+      layoutSizingHorizontal: 'FILL',
+      layoutSizingVertical: clipHeight ? 'FIXED' : 'HUG',
+      primaryAxisSizingMode: clipHeight ? 'FIXED' : 'AUTO',
+      counterAxisSizingMode: 'FIXED',
+      clipsContent: true,
+      absoluteBoundingBox: { width: 393, height: clipHeight || height + 26 },
+      children: [{
+        type: 'TEXT',
+        id,
+        name: 'Text',
+        characters: text,
+        textAutoResize: 'HEIGHT',
+        layoutSizingHorizontal: 'FILL',
+        absoluteBoundingBox: { width: 361, height },
+        style: { fontSize: 14, lineHeightPx: 22 },
+      }],
+    }, [], false, nodes);
+    return classifyRecord({
+      id: nodes[0].id,
+      key: nodes[0].id,
+      source_text: nodes[0].text,
+      context: {
+        kind: 'body',
+        width_px: nodes[0].width,
+        height: nodes[0].height,
+        textAutoResize: nodes[0].textAutoResize,
+        fontSize: nodes[0].fontSize,
+        lineHeightPx: nodes[0].lineHeightPx,
+        component: nodes[0].layer_name,
+        screen: nodes[0].frame_path,
+        containers: nodes[0].containers,
+      },
+    }, limits);
+  }
+  const heightReport = buildBreakReport([
+    clippedHeightBody('body-2', 'a'.repeat(103), 44),
+    clippedHeightBody('body-3', 'b'.repeat(122), 66),
+    clippedHeightBody('body-cut', 'c'.repeat(103), 44, 44),
+  ], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(
+    heightReport.layoutNotes.some((row) => row.detail === 'grows from 2 to 3 lines; check container height'),
+    'horizontal clipping does not hide a 2 to 3 line HEIGHT note',
+  );
+  assert(
+    heightReport.layoutNotes.some((row) => row.detail === 'grows from 3 to 4 lines; check container height'),
+    'horizontal clipping does not hide a 3 to 4 line HEIGHT note',
+  );
+  assert(
+    heightReport.layoutNotes.some((row) => row.detail === 'grows from 2 to 3 lines; check container height; container clips; text may be cut off'),
+    'a vertically clipping container adds the cut-off note',
+  );
+
   const crossing = buildBreakReport([
     classifyRecord({
       id: 'tight-funds',

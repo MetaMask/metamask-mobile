@@ -471,6 +471,14 @@ function buildBreakReport(lengths, options) {
       layoutProblems.push({ ...row, verdict: 'layout', basis: layoutBasis(row, crowd) });
     }
     if (row.kind === 'name') return;
+    if (row.reason === 'row is wider than its container; may scroll') {
+      checkVisually.push({
+        ...row,
+        visualRow: row.rowKey || row.reason,
+        basis: `estimate: ${row.reason}`,
+        verdict: 'check',
+      });
+    }
     if (row.unconstrained) {
       checkVisually.push({
         ...row,
@@ -541,7 +549,9 @@ function buildBreakReport(lengths, options) {
   function collapse(rows) {
     const groups = new Map();
     rows.forEach((row) => {
-      const key = `${row.source}\u0000${row.verdict}\u0000${row.issue || ''}`;
+      const key = row.visualRow
+        ? `${row.visualRow}\u0000${row.verdict}\u0000${row.basis || ''}`
+        : `${row.source}\u0000${row.verdict}\u0000${row.issue || ''}`;
       const existing = groups.get(key);
       if (!existing) {
         groups.set(key, { ...row, screens: [...(row.screens || [])] });
