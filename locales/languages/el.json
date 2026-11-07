@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "Δεν χρεώνουμε τις καταθέσεις. Ενδέχεται, όμως, να σας χρεώσει η τράπεζά σας.",
       "feature_arrives_title": "Θα φτάσει σε {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Θα φτάσει σε λίγες εργάσιμες ημέρες",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Τα χρήματα πιστώνονται μόλις ολοκληρωθεί η μεταφορά.",
       "feature_set_up_title": "Ρυθμίστε την μία φορά και χρησιμοποιήστε την όποτε θέλετε",
       "feature_set_up_description": "Αποθηκεύστε τον ως δικαιούχο στην εφαρμογή της τράπεζάς σας.",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "Επαληθεύστε την ταυτότητά σας",
-      "description": "Η διαδικασία συνήθως διαρκεί μόνο λίγα λεπτά. Θα χρειαστείτε ένα έγκυρο, επίσημο έγγραφο ταυτοποίησης με φωτογραφία.",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "Φωτογραφίστε το έγγραφο ταυτοποίησής σας",
       "step_take_selfie": "Τραβήξετε μια selfie",
       "step_confirm_details": "Επιβεβαιώστε τα στοιχεία σας",
       "step_answer_questions": "Απαντήστε σε μερικές ερωτήσεις",
-      "footer": "Οι πληροφορίες σας είναι κρυπτογραφημένες και κοινοποιούνται με ασφάλεια στους συνεργάτες μας που διενεργούν την διαδικασία επαλήθευσης. Θα ελέγξετε τα στοιχεία πριν συνεχίσετε.",
-      "powered_by": "Με την υποστήριξη του",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Δεν ήταν δυνατή η φόρτωση των όρων και προϋποθέσεων.",
       "disclaimers_retry": "Προσπαθήστε ξανά",
-      "button": "Συνεχίστε",
-      "terms_sheet_title": "Δεδομένα και απόρρητο",
-      "terms_sheet_description": "Για την επαλήθευση της ταυτότητάς σας, τα στοιχεία σας θα κοινοποιηθούν με ασφάλεια στους παρακάτω παρόχους. Διαβάστε τις πολιτικές απορρήτου και τους όρους τους πριν συνεχίσετε.",
-      "metamask_privacy_policy": "Πολιτική απορρήτου του MetaMask",
-      "metamask_terms": "Όροι και Προϋποθέσεις του MetaMask",
-      "terms_sheet_button": "Αποδεχτείτε τους όρους και ξεκινήστε την διαδικασία επαλήθευσης"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "Δεν ήταν δυνατή η έναρξη της διαδικασίας επαλήθευσης",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "Επαλήθευση της ταυτότητάς σας",
       "description": "Οι περισσότεροι έλεγχοι ολοκληρώνονται σε περίπου 10 δευτερόλεπτα. Μπορείτε να επιστρέψετε αργότερα. Θα σας ενημερώσουμε μόλις ολοκληρωθεί ο έλεγχος.",
-      "button": "Επιστρέψτε αργότερα"
+      "button": "Επιστρέψτε αργότερα",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "Η ταυτότητα επαληθεύτηκε",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Ρεάλ Βραζιλίας",
-        "usd": "Δολάριο ΗΠΑ",
-        "eur": "Ευρώ"
+        "usd": "Δολάριο ΗΠΑ"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "Χρόνος διακράτησης",
         "buy": "Αγορά",
         "sell": "Πώληση",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Έκλεισε ·{{age}}",
         "sold_ago": "Πωλήθηκε · {{age}}"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "Κατανομή σε εσωτερικούς επενδυτές – εξαιρείται",
       "developer": "Δημιουργός συμβολαίου – εξαιρείται",
-      "excluded": "Εξαιρείται από τα κέρδη και τις ζημίες",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "{{count}} κοινοί ακόλουθοι",
       "win_rate": "Ποσοστό επιτυχίας",
       "pnl": "Κ&Ζ",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Χρόνος διακράτησης",
       "avg_hold_time": "Μέσος χρόνος διακράτησης",
       "volume": "Όγκος",
@@ -1724,6 +1753,18 @@
       "section_tokens": "Tokens",
       "section_perpetuals": "Συμβόλαια αορίστου διάρκειας",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "Δεν υπάρχουν ανοιχτές θέσεις",
       "empty_closed": "Δεν υπάρχουν κλειστές θέσεις",
       "empty_open_tokens": "Δεν υπάρχουν ανοιχτές θέσεις με tokens",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "Δεν υπάρχουν ανοιχτές θέσεις με perps",
       "empty_closed_perps": "Δεν υπάρχουν κλειστές θέσεις με perps",
       "empty_title": "Δεν υπάρχουν ακόμη αναρτήσεις",
-      "joined": "Μέλος από {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "Δεν ήταν δυνατή η φόρτωση του προφίλ σας.",
       "no_profile_title": "Δημιουργήστε το προφίλ σας",
@@ -1822,6 +1863,7 @@
       "save_error": "Δεν ήταν δυνατή η αποθήκευση των αλλαγών. Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "Αυτό το όνομα χρήστη δεν είναι διαθέσιμο. Επιλέξτε κάποιο άλλο.",
       "username_too_short": "Χρησιμοποιήστε τουλάχιστον {{min}} χαρακτήρες.",
       "username_too_long": "Χρησιμοποιήστε έως {{max}} χαρακτήρες.",
@@ -1840,6 +1882,11 @@
       "following": "Ακολουθείτε",
       "today": "Σήμερα",
       "market_cap_suffix": "(ΚΑ)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2664,7 +2711,8 @@
       "updating_your_order": "Ενημέρωση εντολής",
       "order_updated": "Η εντολή ενημερώθηκε",
       "order_update_failed": "Δεν ήταν δυνατή η ενημέρωση της εντολής",
-      "order_update_failed_subtitle": "Η εντολή σας παραμένει ανοιχτή στην προηγούμενη τιμή και το προηγούμενο μέγεθος."
+      "order_update_failed_subtitle": "Η εντολή σας παραμένει ανοιχτή στην προηγούμενη τιμή και το προηγούμενο μέγεθος.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Ορισμός απόκλισης",
@@ -2973,6 +3021,8 @@
       "priceMoved": "Η τιμή μεταβλήθηκε κατά {{priceDelta}}%, ξεπερνώντας το όριο απόκλισης ολίσθησης κατά {{maxSlippage}}%. Ελέγξτε την ενημερωμένη τιμή και προσπαθήστε ξανά.",
       "rateLimitExceeded": "Έχουν υποβληθεί πάρα πολλά αιτήματα. Περιμένετε λίγο και προσπαθήστε ξανά.",
       "serviceUnavailable": "Η υπηρεσία είναι προσωρινά μη διαθέσιμη. Προσπαθήστε ξανά αργότερα.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Παρουσιάστηκε σφάλμα δικτύου. Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
       "insufficientBalance": "Το υπόλοιπό σας δεν επαρκεί για την ολοκλήρωση αυτής της ενέργειας. Ελέγξτε τα διαθέσιμα κεφάλαιά σας.",
       "connectionFailed": {
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "ΛΚ στο διάγραμμα",
     "sl_on_chart": "ΠΖ στο διάγραμμα",
     "pnl_hero_card": {
-      "title": "Κεντρική κάρτα Κερδών & Ζημιών",
+      "title": "P&L Hero Card",
       "header_title": "Κοινοποιήστε τη συναλλαγή σας",
       "share_button": "Κοινοποίηση",
       "share_message_without_referral_code": "Κάντε συναλλαγές σε perps του {{asset}} στο MetaMask.",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "Διαθέσιμο υπόλοιπο",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Το υπόλοιπο δεν είναι διαθέσιμο",
       "description": "Δεν ήταν δυνατή η φόρτωση του διαθέσιμου υπολοίπου σας.",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Αναζήτηση αγορών",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "μη διαθέσιμη τιμή",
       "option_accessibility_label": "Επιλογή αγοράς για {{team}}, γραμμή {{line}}, τιμή {{price}}",
       "outcome_accessibility_label": "{{team}}, γραμμή {{line}}, τιμή {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Προβολή κανόνων γεγονότος",
@@ -6173,7 +6244,7 @@
     "balance": "υπόλοιπό σας. Δείτε το άρθρο υποστήριξης",
     "position_pnl": {
       "your_position": "Η θέση σας",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "Αποστολή νέου κωδικού σε {{seconds}} δευτερόλεπτα",
       "resent": "Σας στείλαμε νέο κωδικό.",
       "verifying": "Επαλήθευση κωδικού",
-      "get_new_code": "Αποστολή νέου κωδικού"
+      "get_new_code": "Αποστολή νέου κωδικού",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Ρύθμιση εφαρμογής ελέγχου ταυτότητας",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "Ο κωδικός δεν είναι σωστός. Προσπαθήστε ξανά",
-      "too_many_attempts": "Έχετε κάνει πάρα πολλές προσπάθειες. Ζητήστε νέο κωδικό.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Δεν ήταν δυνατή η επαλήθευση του κλειδιού πρόσβασης. Προσπαθήστε ξανά.",
       "passkey_cancelled": "Το αίτημα για το κλειδί πρόσβασης ακυρώθηκε.",
       "email_taken": "Αυτό το email χρησιμοποιείται ήδη. Δοκιμάστε κάποιο άλλο.",
@@ -9552,6 +9624,11 @@
         "description": "Τα στοιχεία του εικονικού σας λογαριασμού είναι έτοιμα.",
         "cta": "Προβολή στοιχείων λογαριασμού"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Επαλήθευση της ταυτότητάς σας",
         "description": "Ελέγχουμε τα στοιχεία σας. Θα σας ενημερώσουμε μόλις ολοκληρωθεί ο έλεγχος.",
@@ -9698,7 +9775,8 @@
       "add_musd": "Προσθέστε mUSD",
       "receive_external": "Εξωτερική διεύθυνση",
       "coming_soon": "Προσεχώς",
-      "new_badge": "Νέα"
+      "new_badge": "Νέα",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "Περισσότερα",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "Θα ανταλλάξουμε τα tokens σας σε pUSD στο Polygon, το δίκτυο που χρησιμοποιούμε για τις Προβλέψεις. Οι πάροχοι για την ανταλλαγή ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask όχι."
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "Τα τέλη μετατροπής σε mUSD περιλαμβάνουν τα έξοδα δικτύου και ενδέχεται να περιλαμβάνουν τα τέλη παρόχου. Δεν υπάρχει χρέωση στο MetaMask όταν μετατρέπετε σε mUSD."
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "Τιμή αγοράς",
       "limit": "Όριο",
-      "recurring": "Επαναλαμβανόμενα",
-      "new_badge": "Νέα"
+      "recurring": "Επαναλαμβανόμενα"
     },
     "generic_error_toast_title": "Κάτι πήγε στραβά",
     "generic_error_toast_body": "Προσπαθήστε ξανά σε λίγα λεπτά.",
@@ -12535,7 +12618,7 @@
       "total_participants": "Συνολικοί συμμετέχοντες",
       "total_volume": "Συνολικός όγκος συναλλαγών",
       "top_return": "Κορυφαία απόδοση",
-      "top_pnl": "Κορυφαία Κ&Ζ",
+      "top_pnl": "Top P&L",
       "total_yield": "Συνολική απόδοση",
       "total_winners": "Συνολικοί νικητές"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "Απόδοση",
       "label_rank": "Κατάταξη",
       "label_your_rank": "Η κατάταξή σας",
-      "label_pnl": "Κέρδη & Ζημιές",
+      "label_pnl": "P&L",
       "label_volume": "Όγκος",
       "label_notional_volume": "Ονομαστικός όγκος συναλλαγών",
       "pending": "Εκκρεμεί",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "Απαιτούνται ${{amount}}",
       "stats_qualified_title": "Πληροίτε τις προϋποθέσεις",
-      "stats_qualified_description": "Συνεχίστε να κάνετε συναλλαγές για να βελτιώσετε τα Κέρδη & Ζημιές σας και να ανεβείτε στην κατάταξη πριν λήξει ο διαγωνισμός.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Πληροίτε τα κριτήρια για τον πίνακα κατάταξης",
       "stats_qualify_for_rank_description": "Κάντε συναλλαγές επιπλέον {{notionalRemaining}} σε ονομαστικό όγκο για να πληροίτε τα κριτήρια.",
       "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "Η κατάταξή σας",
       "label_roi": "ROI (μετά τις χρεώσεις)",
       "label_total_volume": "Συνολικός όγκος συναλλαγών",
-      "label_pnl": "Κέρδη/Ζημίες (μετά τις χρεώσεις)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Προβλέψτε τώρα",
       "positions_title": "Οι προβλέψεις σας",
       "positions_open_section": "Άνοιγμα",

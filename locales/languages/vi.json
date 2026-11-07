@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "Chúng tôi không thu phí nạp tiền. Ngân hàng của bạn có thể thu phí.",
       "feature_arrives_title": "Đến trong {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Đến trong vài ngày làm việc",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Tiền sẽ được chuyển vào tài khoản ngay khi giao dịch chuyển tiền của bạn thành công.",
       "feature_set_up_title": "Thiết lập một lần, sử dụng bất cứ lúc nào",
       "feature_set_up_description": "Lưu làm người nhận thanh toán trong ứng dụng ngân hàng của bạn.",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "Xác minh danh tính của bạn",
-      "description": "Quá trình này thường chỉ mất vài phút. Bạn cần chuẩn bị sẵn giấy tờ tùy thân có ảnh hợp lệ do chính phủ cấp.",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "Chụp ảnh giấy tờ tùy thân",
       "step_take_selfie": "Chụp ảnh tự chụp",
       "step_confirm_details": "Xác nhận thông tin của bạn",
       "step_answer_questions": "Trả lời một vài câu hỏi",
-      "footer": "Thông tin của bạn được mã hóa và chia sẻ an toàn với các nhà cung cấp dịch vụ xác minh của chúng tôi. Bạn sẽ được xem lại thông tin trước khi tiếp tục.",
-      "powered_by": "Được cung cấp bởi",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Không thể tải các điều khoản và điều kiện.",
       "disclaimers_retry": "Thử lại",
-      "button": "Tiếp tục",
-      "terms_sheet_title": "Dữ liệu và quyền riêng tư",
-      "terms_sheet_description": "Để xác minh danh tính, thông tin của bạn sẽ được chia sẻ an toàn với các nhà cung cấp bên dưới. Hãy xem lại chính sách và điều khoản của họ trước khi tiếp tục.",
-      "metamask_privacy_policy": "Chính sách quyền riêng tư của MetaMask",
-      "metamask_terms": "Điều khoản và điều kiện của MetaMask",
-      "terms_sheet_button": "Đồng ý và bắt đầu xác minh"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "Không thể bắt đầu xác minh",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "Đang xác minh danh tính của bạn",
       "description": "Hầu hết các lần kiểm tra đều hoàn tất trong khoảng 10 giây. Bạn có thể quay lại sau, chúng tôi sẽ thông báo khi quá trình kiểm tra hoàn tất.",
-      "button": "Quay lại sau"
+      "button": "Quay lại sau",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "Đã xác minh danh tính",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Real Brazil",
-        "usd": "Đô-la Mỹ",
-        "eur": "Euro"
+        "usd": "Đô-la Mỹ"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "Thời gian nắm giữ",
         "buy": "Mua",
         "sell": "Bán",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Đã đóng · {{age}}",
         "sold_ago": "Đã bán · {{age}}"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "Phân bổ cho nội bộ - bị loại trừ",
       "developer": "Người tạo hợp đồng - bị loại trừ",
-      "excluded": "Bị loại trừ khỏi Lãi/Lỗ",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "{{count}} người theo dõi lẫn nhau",
       "win_rate": "Tỷ lệ thắng",
       "pnl": "Lãi/Lỗ",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Thời gian nắm giữ",
       "avg_hold_time": "Thời gian nắm giữ vị thế trung bình",
       "volume": "Khối lượng",
@@ -1724,6 +1753,18 @@
       "section_tokens": "Token",
       "section_perpetuals": "Hợp đồng vĩnh cửu",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "Không có vị thế đang mở",
       "empty_closed": "Không có vị thế đã đóng",
       "empty_open_tokens": "Không có token đang mở",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "Không có hợp đồng vĩnh cửu đang mở",
       "empty_closed_perps": "Không có hợp đồng vĩnh cửu đã đóng",
       "empty_title": "Chưa có bài đăng",
-      "joined": "Đã tham gia {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "Không thể tải hồ sơ của bạn.",
       "no_profile_title": "Tạo hồ sơ của bạn",
@@ -1822,6 +1863,7 @@
       "save_error": "Không thể lưu thay đổi. Kiểm tra kết nối của bạn và thử lại.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "Tên người dùng này không khả dụng. Hãy chọn tên khác.",
       "username_too_short": "Sử dụng ít nhất {{min}} ký tự.",
       "username_too_long": "Sử dụng tối đa {{max}} ký tự.",
@@ -1840,6 +1882,11 @@
       "following": "Đang theo dõi",
       "today": "Hôm nay",
       "market_cap_suffix": "(Vốn hóa thị trường)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2664,7 +2711,8 @@
       "updating_your_order": "Đang cập nhật lệnh của bạn",
       "order_updated": "Đã cập nhật lệnh",
       "order_update_failed": "Không thể cập nhật lệnh",
-      "order_update_failed_subtitle": "Lệnh của bạn vẫn đang mở ở mức giá và kích thước trước đó."
+      "order_update_failed_subtitle": "Lệnh của bạn vẫn đang mở ở mức giá và kích thước trước đó.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Đặt mức trượt giá",
@@ -2973,6 +3021,8 @@
       "priceMoved": "Giá đã biến động {{priceDelta}}%, vượt mức trượt giá cho phép là {{maxSlippage}}%. Hãy xem lại giá đã cập nhật rồi thử lại.",
       "rateLimitExceeded": "Có quá nhiều yêu cầu. Hãy đợi một chút rồi thử lại.",
       "serviceUnavailable": "Dịch vụ tạm thời không khả dụng. Hãy thử lại sau.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Đã xảy ra lỗi mạng. Hãy kiểm tra kết nối và thử lại.",
       "insufficientBalance": "Số dư không đủ để hoàn tất thao tác này. Hãy kiểm tra số tiền khả dụng của bạn.",
       "connectionFailed": {
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "Chốt lời trên Biểu đồ",
     "sl_on_chart": "Cắt lỗ trên Biểu đồ",
     "pnl_hero_card": {
-      "title": "Thẻ Anh hùng Lãi/Lỗ",
+      "title": "P&L Hero Card",
       "header_title": "Chia sẻ giao dịch của bạn",
       "share_button": "Chia sẻ",
       "share_message_without_referral_code": "Giao dịch hợp đồng vĩnh cửu {{asset}} trên MetaMask.",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "Số dư khả dụng",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Số dư không khả dụng",
       "description": "Không thể tải số dư khả dụng của bạn.",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Tìm kiếm thị trường",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "giá không khả dụng",
       "option_accessibility_label": "Lựa chọn thị trường cho {{team}}, kèo {{line}}, giá {{price}}",
       "outcome_accessibility_label": "{{team}}, kèo {{line}}, giá {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Xem quy tắc sự kiện",
@@ -6173,7 +6244,7 @@
     "balance": "số dư. Vui lòng xem bài viết hỗ trợ",
     "position_pnl": {
       "your_position": "Vị thế của bạn",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "Gửi lại mã sau {{seconds}} giây",
       "resent": "Chúng tôi đã gửi cho bạn mã mới.",
       "verifying": "Đang xác minh mã",
-      "get_new_code": "Lấy mã mới"
+      "get_new_code": "Lấy mã mới",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Thiết lập ứng dụng xác thực",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "Mã này không chính xác. Hãy thử lại",
-      "too_many_attempts": "Bạn đã thử quá nhiều lần. Hãy yêu cầu mã mới.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Không thể xác minh khóa truy cập của bạn. Hãy thử lại.",
       "passkey_cancelled": "Yêu cầu dùng khóa truy cập đã bị hủy.",
       "email_taken": "Email này đã được sử dụng. Hãy thử email khác.",
@@ -9552,6 +9624,11 @@
         "description": "Thông tin tài khoản ảo của bạn đã sẵn sàng.",
         "cta": "Xem thông tin tài khoản"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Đang xác minh danh tính của bạn",
         "description": "Chúng tôi đang xem xét thông tin của bạn. Chúng tôi sẽ thông báo khi quá trình kiểm tra hoàn tất.",
@@ -9698,7 +9775,8 @@
       "add_musd": "Nạp mUSD",
       "receive_external": "Địa chỉ bên ngoài",
       "coming_soon": "Sắp ra mắt",
-      "new_badge": "Mới"
+      "new_badge": "Mới",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "Thêm",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang pUSD trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "Phí chuyển đổi mUSD bao gồm phí mạng và có thể bao gồm phí từ nhà cung cấp. Không áp dụng phí MetaMask khi bạn chuyển đổi sang mUSD."
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "Thị trường",
       "limit": "Giới hạn",
-      "recurring": "Định kỳ",
-      "new_badge": "Mới"
+      "recurring": "Định kỳ"
     },
     "generic_error_toast_title": "Đã xảy ra sự cố",
     "generic_error_toast_body": "Vui lòng thử lại sau vài phút.",
@@ -12535,7 +12618,7 @@
       "total_participants": "Tổng số người tham gia",
       "total_volume": "Tổng khối lượng",
       "top_return": "Lợi nhuận cao nhất",
-      "top_pnl": "Lãi/Lỗ cao nhất",
+      "top_pnl": "Top P&L",
       "total_yield": "Tổng lợi nhuận",
       "total_winners": "Tổng số người chiến thắng"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "Hiệu suất",
       "label_rank": "Xếp hạng",
       "label_your_rank": "Thứ hạng của bạn",
-      "label_pnl": "Lãi/Lỗ",
+      "label_pnl": "P&L",
       "label_volume": "Khối lượng",
       "label_notional_volume": "Khối lượng danh nghĩa",
       "pending": "Chờ xử lý",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "Yêu cầu ${{amount}}",
       "stats_qualified_title": "Bạn đủ điều kiện",
-      "stats_qualified_description": "Tiếp tục giao dịch để cải thiện Lãi/Lỗ và leo lên bảng xếp hạng trước khi cuộc thi kết thúc.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Đủ điều kiện xuất hiện trên bảng xếp hạng",
       "stats_qualify_for_rank_description": "Giao dịch thêm {{notionalRemaining}} khối lượng danh nghĩa để đủ điều kiện tham gia.",
       "stats_error_title": "Không thể tải số liệu thống kê",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "Thứ hạng của bạn",
       "label_roi": "ROI (sau phí)",
       "label_total_volume": "Tổng khối lượng",
-      "label_pnl": "Lãi/Lỗ (sau phí)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Dự đoán ngay",
       "positions_title": "Dự đoán của bạn",
       "positions_open_section": "Mở",

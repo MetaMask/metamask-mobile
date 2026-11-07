@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "डिपॉज़िट करने के लिए हम कोई शुल्क नहीं लेते। आपका बैंक शुल्क ले सकता है।",
       "feature_arrives_title": "{{timeframe}} में प्राप्त होंगे",
       "feature_arrives_title_no_timeframe": "कुछ व्यावसायिक दिनों में प्राप्त होंगे",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "आपका ट्रांसफ़र पूरा होते ही फंड आ जाते हैं।",
       "feature_set_up_title": "एक बार सेट अप करें, कभी भी इस्तेमाल करें",
       "feature_set_up_description": "इसे अपने बैंकिंग ऐप में पेयी (payee) के तौर पर सेव करें।",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "अपनी पहचान वेरिफ़ाई करें",
-      "description": "इसमें आमतौर पर बस कुछ मिनट लगते हैं। आपके पास सरकार द्वारा जारी एक वैध फोटो ID होना चाहिए।",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "अपनी ID की फोटो लें",
       "step_take_selfie": "सेल्फ़ी लें",
       "step_confirm_details": "अपनी जानकारी कन्फर्म करें",
       "step_answer_questions": "कुछ सवालों के जवाब दें",
-      "footer": "आपकी जानकारी एन्क्रिप्ट की जाती है और हमारे वेरिफ़िकेशन प्रदाताओं के साथ सुरक्षित रूप से साझा की जाती है। आगे बढ़ने से पहले आप विवरण की समीक्षा करेंगे।",
-      "powered_by": "के द्वारा पावर्ड",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "नियम और शर्तें लोड नहीं हो सकीं।",
       "disclaimers_retry": "फिर से प्रयास करें",
-      "button": "जारी रखें",
-      "terms_sheet_title": "डेटा और प्राइवेसी",
-      "terms_sheet_description": "आपकी पहचान वेरिफ़ाई करने के लिए, आपकी जानकारी नीचे दिए गए प्रदाताओं के साथ सुरक्षित रूप से साझा की जाएगी। आगे बढ़ने से पहले उनकी नीतियों और शर्तों की समीक्षा करें।",
-      "metamask_privacy_policy": "MetaMask गोपनीयता नीति",
-      "metamask_terms": "MetaMask के नियम और शर्तें",
-      "terms_sheet_button": "सहमत हों और वेरिफ़िकेशन शुरू करें"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "वेरिफ़िकेशन शुरू नहीं हो सका",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "आपकी पहचान वेरीफाई की जा रही है",
       "description": "ज़्यादातर जांच लगभग 10 सेकंड में पूरी हो जाती हैं। आप बाद में भी वापस आ सकते हैं। जांच पूरी होने पर हम आपको सूचित करेंगे।",
-      "button": "बाद में फिर से देखें"
+      "button": "बाद में फिर से देखें",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "पहचान सत्यापित हो गई",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "ब्राज़ीलियाई रियल",
-        "usd": "अमरीकी डॉलर",
-        "eur": "यूरो"
+        "usd": "अमरीकी डॉलर"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "होल्ड टाइम",
         "buy": "खरीदें",
         "sell": "बेचें",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "बंद किया गया · {{age}}",
         "sold_ago": "बेचा गया · {{age}}"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "इनसाइडर आवंटन - शामिल नहीं किया गया",
       "developer": "कॉन्ट्रैक्ट निर्माता - शामिल नहीं किया गया",
-      "excluded": "PnL में शामिल नहीं",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "{{count}} म्यूचुअल",
       "win_rate": "विन रेट",
       "pnl": "पी एंड एल",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "होल्ड टाइम",
       "avg_hold_time": "एवरेज होल्ड टाइम",
       "volume": "वॉल्यूम",
@@ -1724,6 +1753,18 @@
       "section_tokens": "टोकन",
       "section_perpetuals": "परपेचुअल्स",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "कोइ ओपन पोज़िशन्स नहीं है",
       "empty_closed": "कोई बंद पोज़िशन नहीं",
       "empty_open_tokens": "कोई खुला टोकन नहीं",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "कोई खुला पर्प्स नहीं है",
       "empty_closed_perps": "कोई बंद पर्प्स नहीं है",
       "empty_title": "अभी तक कोई पोस्ट नहीं",
-      "joined": "{{time}} पर शामिल हुए",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "आपकी प्रोफ़ाइल लोड नहीं हो सकी।",
       "no_profile_title": "अपनी प्रोफ़ाइल बनाएं",
@@ -1822,6 +1863,7 @@
       "save_error": "बदलावों को सेव नहीं किया जा सका। अपना कनेक्शन चेक करें और फिर से कोशिश करें।",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "यह हैंडल उपलब्ध नहीं है। कोई दूसरा चुनें।",
       "username_too_short": "कम से कम {{min}} कैरेक्टर इस्तेमाल करें।",
       "username_too_long": "अधिकतम {{max}} कैरेक्टर इस्तेमाल करें।",
@@ -1840,6 +1882,11 @@
       "following": "फ़ॉलो कर रहे हैं",
       "today": "आज",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2664,7 +2711,8 @@
       "updating_your_order": "आपका ऑर्डर अपडेट हो रहा है",
       "order_updated": "ऑर्डर अपडेट हो गया",
       "order_update_failed": "ऑर्डर अपडेट नहीं हो पाया",
-      "order_update_failed_subtitle": "आपका ऑर्डर अभी भी पिछली कीमत और साइज़ पर खुला है।"
+      "order_update_failed_subtitle": "आपका ऑर्डर अभी भी पिछली कीमत और साइज़ पर खुला है।",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "स्लिपेज (slippage) सेट करें",
@@ -2973,6 +3021,8 @@
       "priceMoved": "कीमत {{priceDelta}}% बढ़ गई, जो आपके {{maxSlippage}}% स्लिपेज टॉलरेंस से ज़्यादा है। अपडेटेड कीमत देखें और फिर से कोशिश करें।",
       "rateLimitExceeded": "बहुत ज़्यादा रिक्वेस्ट हैं। थोड़ा इंतज़ार करें और फिर से कोशिश करें।",
       "serviceUnavailable": "सेवा अस्थायी रूप से अनुपलब्ध है। बाद में फिर से प्रयास करें।",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "नेटवर्क में गड़बड़ी हुई। अपना कनेक्शन जांचें और फिर से प्रयास करें।",
       "insufficientBalance": "इस ऑपरेशन को पूरा करने के लिए बैलेंस काफ़ी नहीं है। अपने उपलब्ध फंड चेक करें।",
       "connectionFailed": {
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "चार्ट पर TP",
     "sl_on_chart": "चार्ट पर SL",
     "pnl_hero_card": {
-      "title": "PnL हीरो कार्ड",
+      "title": "P&L Hero Card",
       "header_title": "अपना ट्रेड साझा करें",
       "share_button": "साझा करें",
       "share_message_without_referral_code": "MetaMask पर {{asset}} पर्प्स का ट्रेड करें।",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "उपलब्ध बैलेंस",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "बैलेंस अनुपलब्ध है",
       "description": "आपका उपलब्ध बैलेंस लोड करने में असमर्थ।",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "मार्केट्स खोजें",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "प्राइस अनुपलब्ध है",
       "option_accessibility_label": "{{team}} के लिए मार्केट विकल्प, लाइन {{line}}, प्राइस {{price}}",
       "outcome_accessibility_label": "{{team}}, लाइन {{line}}, प्राइस {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "इवेंट के नियम देखें",
@@ -6173,7 +6244,7 @@
     "balance": "बैलेंस: समर्थन लेख को देखें",
     "position_pnl": {
       "your_position": "आपकी पोज़िशन",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "{{seconds}} सेकंड में कोड फिर से भेजें",
       "resent": "हमने आपको एक नया कोड भेजा है।",
       "verifying": "कोड वेरिफ़ाई किया जा रहा है",
-      "get_new_code": "नया कोड प्राप्त करें"
+      "get_new_code": "नया कोड प्राप्त करें",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "ऑथेंटिकेटर ऐप सेट अप करें",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "यह कोड सही नहीं है। दोबारा प्रयास करें",
-      "too_many_attempts": "बहुत ज़्यादा कोशिशें की गईं। नए कोड का अनुरोध करें।",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "आपकी पासकी वेरिफ़ाई नहीं हो सकी। फिर से कोशिश करें।",
       "passkey_cancelled": "पासकी रिक्वेस्ट कैंसिल कर दी गई थी।",
       "email_taken": "यह ईमेल पहले से इस्तेमाल हो रहा है। कोई दूसरा ईमेल आज़माएँ।",
@@ -9552,6 +9624,11 @@
         "description": "आपके वर्चुअल अकाउंट की डिटेल्स तैयार हैं।",
         "cta": "अकाउंट की डिटेल्स देखें"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "आपकी पहचान वेरीफाई की जा रही है",
         "description": "हम आपकी डिटेल्स देख रहे हैं। जाँच पूरी होने पर हम आपको बता देंगे।",
@@ -9698,7 +9775,8 @@
       "add_musd": "mUSD जोड़ें",
       "receive_external": "बाहरी पता",
       "coming_soon": "जल्द आ रहा है",
-      "new_badge": "नया"
+      "new_badge": "नया",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "अधिक",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "हम आपके टोकन को Polygon पर pUSD में स्वैप करेंगे, जो प्रिडिक्शन्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "mUSD कन्वर्शन शुल्क में नेटवर्क लागत शामिल होती है और इसमें प्रदाता शुल्क भी शामिल हो सकता है। जब आप mUSD में कन्वर्ट करते हैं, तो कोई MetaMask शुल्क लागू नहीं होता।"
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "मार्केट",
       "limit": "सीमित करें",
-      "recurring": "आवर्ती",
-      "new_badge": "नया"
+      "recurring": "आवर्ती"
     },
     "generic_error_toast_title": "कुछ गलत हो गया",
     "generic_error_toast_body": "कृपया कुछ मिनट में फिर से कोशिश करें।",
@@ -12535,7 +12618,7 @@
       "total_participants": "कुल प्रतिभागी",
       "total_volume": "कुल वॉल्यूम",
       "top_return": "शीर्ष रिटर्न",
-      "top_pnl": "शीर्ष PnL",
+      "top_pnl": "Top P&L",
       "total_yield": "टोटल यील्ड",
       "total_winners": "कुल विजेता"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "प्रदर्शन",
       "label_rank": "रैंक",
       "label_your_rank": "आपकी रैंक",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "वॉल्यूम",
       "label_notional_volume": "नोशनल वॉल्यूम",
       "pending": "अभी पूरा नहीं हुआ",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "हाइपरट्रैकर",
       "stats_notional_volume_threshold": "${{amount}} ज़रूरी है",
       "stats_qualified_title": "आप क्वालिफ़ाई कर चुके हैं",
-      "stats_qualified_description": "लीडरबोर्ड में ऊपर आने और अपने PnL को बेहतर बनाने के लिए प्रतियोगिता खत्म होने से पहले ट्रेडिंग जारी रखें।",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "लीडरबोर्ड के लिए क्वालिफाई करें",
       "stats_qualify_for_rank_description": "योग्य बनने के लिए नोशनल वॉल्यूम में {{notionalRemaining}} और ट्रेड करें।",
       "stats_error_title": "स्टैट्स लोड नहीं हो पा रहे हैं",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "आपकी रैंक",
       "label_roi": "ROI (फीस के बाद)",
       "label_total_volume": "कुल वॉल्यूम",
-      "label_pnl": "PnL (फीस के बाद)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "अभी प्रेडिक्ट करें",
       "positions_title": "आपके प्रेडिक्शन",
       "positions_open_section": "ओपन",
