@@ -30,6 +30,8 @@ import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoadi
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MoneyMfaTestIds } from '../../components/MoneyMfa/MoneyMfa.testIds';
+import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -302,6 +304,33 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('../../hooks/useMoneyMfa', () => ({
+  useMoneyMfa: jest.fn(),
+}));
+
+const mockMfaTurnOn = jest.fn();
+const mockMfaRetry = jest.fn();
+const mockMfaDismissBanner = jest.fn();
+const mockMfaRefreshCredentials = jest.fn();
+const mockShowEnabledConfirmation = jest.fn(() => false);
+
+const mockMfaStatus = (
+  status: MoneyMfaStatus,
+  { hasUnseenEnabledConfirmation = false } = {},
+) =>
+  jest.mocked(useMoneyMfa).mockReturnValue({
+    status,
+    turnOn: mockMfaTurnOn,
+    addPasskeyAndTurnOn: jest.fn(),
+    retry: mockMfaRetry,
+    turnOff: jest.fn(),
+    isSettingUpBannerDismissed: false,
+    dismissSettingUpBanner: mockMfaDismissBanner,
+    refreshCredentials: mockMfaRefreshCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation: mockShowEnabledConfirmation,
+  });
 
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -811,6 +840,7 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
     mockRouteParams = undefined;
+    mockMfaStatus('unavailable');
 
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
@@ -2129,6 +2159,201 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+    });
+  });
+
+  describe('2-step verification', () => {
+    it('refreshes the enrolled credentials on focus', () => {
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockMfaRefreshCredentials).toHaveBeenCalled();
+    });
+
+    it('renders the setup card when 2-step verification is not set up', () => {
+      mockMfaStatus('not_set_up');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyMfaTestIds.SETUP_CARD)).toBeOnTheScreen();
+    });
+
+    it.each<MoneyMfaStatus>([
+      'unavailable',
+      'setting_up',
+      'failed',
+      'enabled',
+      'off',
+    ])('omits the setup card when the status is %s', (status) => {
+      mockMfaStatus(status);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
+    });
+
+    it('renders the setup card above the VBA card', () => {
+      mockMfaStatus('not_set_up');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expectTestIdBefore(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
+        MoneyMfaTestIds.SETUP_CARD,
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
+      );
+    });
+
+    it('shows the confirmation when it opens after 2-step verification turned on', () => {
+      mockMfaStatus('enabled', { hasUnseenEnabledConfirmation: true });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no confirmation without a new setup', () => {
+      mockMfaStatus('enabled');
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockShowEnabledConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('turns on 2-step verification when the setup card is pressed', () => {
+      mockMfaStatus('not_set_up');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
+
+      expect(mockMfaTurnOn).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+        label_key: 'money.mfa.card_cta',
+        component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
+      });
+    });
+
+    it('renders the setting up banner while the Money account is set up', () => {
+      mockMfaStatus('setting_up');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER)).toBeOnTheScreen();
+    });
+
+    it('retries the setup from the failed banner', () => {
+      mockMfaStatus('failed');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY));
+
+      expect(mockMfaRetry).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.RETRY_MFA_SETUP,
+        label_key: 'money.mfa.failed_retry',
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
+    });
+
+    it('closes the setting-up banner', () => {
+      mockMfaStatus('setting_up');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
+
+      expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
+    });
+
+    it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
+      mockMfaStatus('setting_up');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+          redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET,
+        }),
+      );
+    });
+
+    it('opens the Transfer sheet when 2-step verification is enabled', () => {
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      });
+    });
+
+    it('shows the header badge when 2-step verification is enabled', () => {
+      mockMfaStatus('enabled');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
+    });
+
+    it('opens the 2-step verification sheet from the header badge', () => {
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_HEADER_BADGE,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_ENABLED_SHEET,
+      });
+    });
+
+    it('opens the 2-step verification sheet from the badge on the pushed header', () => {
+      mockRouteParams = { showBackButton: true };
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
+    });
+
+    it('omits the header badge when 2-step verification is off', () => {
+      mockMfaStatus('off');
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
     });
   });
 

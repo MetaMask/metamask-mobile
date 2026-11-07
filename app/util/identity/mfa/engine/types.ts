@@ -93,7 +93,7 @@ export type MfaFlowErrorCode = MfaErrorCode | MfaKitErrorCode;
  * The features that use the kit. A new one is added here, and to
  * `entry_point` in segment-schema's `metamask-mfa-base.yaml`.
  */
-export type MfaEntryPoint = 'vba' | 'ukyc' | 'settings' | 'qa';
+export type MfaEntryPoint = 'vba' | 'ukyc' | 'settings' | 'qa' | 'money';
 
 export interface MfaReason {
   /**

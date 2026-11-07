@@ -14,6 +14,9 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingVertical: 8,
       minHeight: 59,
     },
+    rowText: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;
