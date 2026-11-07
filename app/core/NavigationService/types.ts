@@ -37,7 +37,6 @@ import type {
   SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
-  WalletTabStackParamList,
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
@@ -497,9 +496,7 @@ export interface SocialV1ProfileViewParams {
 export type RootStackParamList = {
   // Top-level routes
   ReviewModal: undefined;
-  WalletView: undefined;
-  BrowserTabHome: HomeTabsParamList['BrowserTabHome'];
-  BrowserView: BrowserParams | undefined;
+  BrowserTabHome: BrowserParams | undefined;
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
@@ -886,9 +883,6 @@ export type RootStackParamList = {
 
   // Wallet routes
   WalletTabHome: HomeTabsParamList['WalletTabHome'];
-  WalletTabStackFlow:
-    | NavigatorScreenParams<WalletTabStackParamList>
-    | undefined;
   WalletConnectSessionsView: undefined;
   DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
