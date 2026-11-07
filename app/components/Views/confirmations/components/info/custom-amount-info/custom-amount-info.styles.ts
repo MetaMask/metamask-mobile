@@ -3,7 +3,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 const ACCOUNT_SELECTOR_VERTICAL_PADDING = 12;
 const BOTTOM_BLOCK_GAP = 16;
-const BOTTOM_BLOCK_PADDING = 16;
+export const BOTTOM_BLOCK_PADDING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -33,6 +33,13 @@ const styleSheet = (params: { theme: Theme }) => {
       top: '100%',
       left: 0,
       right: 0,
+      marginTop: 14,
+      alignItems: 'center',
+    },
+
+    // In flow below the amount, so the loaded amount and caption center together
+    // in the input container. The caption's height shifts the amount when it changes.
+    amountCaptionInFlow: {
       marginTop: 14,
       alignItems: 'center',
     },

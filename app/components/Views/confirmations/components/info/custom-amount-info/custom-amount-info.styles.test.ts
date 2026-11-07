@@ -10,4 +10,13 @@ describe('custom-amount-info.styles', () => {
       expect(styles.bottomBlock.paddingBottom).toBe(16);
     });
   });
+
+  describe('amountCaptionInFlow', () => {
+    it('lays the caption out below the amount so the group centers', () => {
+      const styles = styleSheet({ theme: mockTheme as Theme });
+
+      expect(styles.amountCaptionInFlow.position).toBeUndefined();
+      expect(styles.amountCaptionInFlow.alignItems).toBe('center');
+    });
+  });
 });
