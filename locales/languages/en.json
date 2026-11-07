@@ -10496,8 +10496,7 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring",
-      "new_badge": "New"
+      "recurring": "Recurring"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
