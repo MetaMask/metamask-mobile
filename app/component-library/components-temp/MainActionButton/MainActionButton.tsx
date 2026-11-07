@@ -12,17 +12,17 @@ import { useAnimatedPressable, useStyles } from '../../hooks';
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
 import styleSheet from './MainActionButton.styles';
-import BoxGlass from '../BoxGlass';
-import {
-  MAINACTIONBUTTON_CONTENT_TEST_ID,
-  MAINACTIONBUTTON_GLASS_TEST_ID,
-} from './MainActionButton.constants';
+import { MAINACTIONBUTTON_CONTENT_TEST_ID } from './MainActionButton.constants';
 
 /**
  * @deprecated Please update your code to use `MainActionButton` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/MainActionButton/README.md}
  * @since @metamask/design-system-react-native@0.11.0
+ *
+ * `isGlass` is accepted so existing call sites keep compiling. The sheen
+ * that used to fake glass on these tiles is not an elevation level. The
+ * tile stays the flat `background.muted` control.
  */
 const MainActionButton = ({
   iconName,
@@ -33,14 +33,13 @@ const MainActionButton = ({
   style,
   containerStyle,
   isDisabled = false,
-  isGlass = false,
+  isGlass: _isGlass = false,
   testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     isDisabled,
-    isGlass,
   });
 
   const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable({
@@ -49,13 +48,7 @@ const MainActionButton = ({
   });
 
   const content = (
-    <View
-      style={[
-        styles.container,
-        isGlass && isDisabled && styles.disabledGlassContent,
-      ]}
-      testID={MAINACTIONBUTTON_CONTENT_TEST_ID}
-    >
+    <View style={styles.container} testID={MAINACTIONBUTTON_CONTENT_TEST_ID}>
       <Icon name={iconName} size={IconSize.Lg} color={IconColor.Alternative} />
       <Text
         variant={TextVariant.BodySMMedium}
@@ -83,19 +76,7 @@ const MainActionButton = ({
         disabled={isDisabled}
         {...props}
       >
-        {isGlass ? (
-          <BoxGlass
-            radiusClassName="rounded-2xl"
-            isInteractive={!isDisabled}
-            hasSheen
-            style={styles.glassContent}
-            testID={MAINACTIONBUTTON_GLASS_TEST_ID}
-          >
-            {content}
-          </BoxGlass>
-        ) : (
-          content
-        )}
+        {content}
       </Pressable>
     </Animated.View>
   );

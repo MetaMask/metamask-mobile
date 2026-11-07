@@ -26,8 +26,8 @@ export interface MainActionButtonProps extends PressableProps {
    */
   isDisabled?: boolean;
   /**
-   * Draws the surface as iOS 26 Liquid Glass. Callers resolve availability
-   * (see `useLiquidGlass`), so other platforms keep the opaque surface.
+   * Accepted for existing call sites. Tiles no longer paint the glass sheen;
+   * they stay the flat muted control. See docs/design-audits/glass-guidelines.md.
    */
   isGlass?: boolean;
 }
@@ -40,5 +40,4 @@ export type MainActionButtonStyleSheetVars = Pick<
   'style'
 > & {
   isDisabled: boolean;
-  isGlass: boolean;
 };

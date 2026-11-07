@@ -129,13 +129,13 @@ describe('AssetDetailsActions', () => {
     expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
   });
 
-  it('renders every button on glass when isGlass is set', () => {
-    const { getAllByTestId } = renderWithProvider(
+  it('keeps every button on the muted control when isGlass is set', () => {
+    const { queryAllByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} isGlass />,
       { state: initialRootState },
     );
 
-    expect(getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(4);
+    expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
   });
 
   it('renders correctly with all buttons displayed', () => {

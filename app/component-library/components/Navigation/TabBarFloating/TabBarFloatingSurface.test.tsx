@@ -6,6 +6,12 @@ import TabBarFloatingSurface from './TabBarFloatingSurface';
 import { TAB_BAR_FLOATING_BLUR_INTENSITY } from './TabBarFloating.constants';
 
 const mockBlurView = jest.fn();
+let mockLiquid = {
+  isGlassEnabled: false,
+  glassColorScheme: 'dark' as const,
+  isBlurEnabled: true,
+  blurTint: 'systemChromeMaterialDark' as const,
+};
 
 jest.mock('expo-blur', () => {
   const ReactActual = jest.requireActual('react');
@@ -18,30 +24,37 @@ jest.mock('expo-blur', () => {
   };
 });
 
-const TEST_ID = 'surface';
+jest.mock('../../../hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => mockLiquid,
+}));
 
-const renderSurface = (
-  isBlurAvailable: boolean,
-  colorScheme: 'light' | 'dark' = 'dark',
-) =>
-  renderWithProvider(
-    <TabBarFloatingSurface
-      isBlurAvailable={isBlurAvailable}
-      colorScheme={colorScheme}
-      twClassName="rounded-full"
-      testID={TEST_ID}
-    >
-      <Text>Tabs</Text>
-    </TabBarFloatingSurface>,
-  );
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+const TEST_ID = 'surface';
 
 describe('TabBarFloatingSurface', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockBlurView.mockClear();
+    mockLiquid = {
+      isGlassEnabled: false,
+      glassColorScheme: 'dark',
+      isBlurEnabled: true,
+      blurTint: 'systemChromeMaterialDark',
+    };
   });
 
-  it('draws a system chrome material where blur is supported', () => {
-    renderSurface(true);
+  it('draws the tab bar at the chrome blur intensity', () => {
+    renderWithProvider(
+      <TabBarFloatingSurface twClassName="rounded-full" testID={TEST_ID}>
+        <Text>Tabs</Text>
+      </TabBarFloatingSurface>,
+    );
 
     expect(mockBlurView).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -51,8 +64,18 @@ describe('TabBarFloatingSurface', () => {
     );
   });
 
-  it('matches the material to the app theme rather than the system one', () => {
-    renderSurface(true, 'light');
+  it('matches the material to the app theme', () => {
+    mockLiquid = {
+      ...mockLiquid,
+      blurTint: 'systemChromeMaterialLight',
+      glassColorScheme: 'light',
+    };
+
+    renderWithProvider(
+      <TabBarFloatingSurface testID={TEST_ID}>
+        <Text>Tabs</Text>
+      </TabBarFloatingSurface>,
+    );
 
     expect(mockBlurView).toHaveBeenCalledWith(
       expect.objectContaining({ tint: 'systemChromeMaterialLight' }),
@@ -60,17 +83,24 @@ describe('TabBarFloatingSurface', () => {
   });
 
   it('paints a flat fill when no blur can be drawn', () => {
-    const { getByTestId } = renderSurface(false);
+    mockLiquid = { ...mockLiquid, isBlurEnabled: false };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBarFloatingSurface testID={TEST_ID}>
+        <Text>Tabs</Text>
+      </TabBarFloatingSurface>,
+    );
 
     expect(getByTestId(TEST_ID)).toBeOnTheScreen();
     expect(mockBlurView).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ['blurred', true],
-    ['opaque', false],
-  ])('renders its children on the %s path', (_name, isBlurAvailable) => {
-    const { getByText } = renderSurface(isBlurAvailable);
+  it('renders its children', () => {
+    const { getByText } = renderWithProvider(
+      <TabBarFloatingSurface testID={TEST_ID}>
+        <Text>Tabs</Text>
+      </TabBarFloatingSurface>,
+    );
 
     expect(getByText('Tabs')).toBeOnTheScreen();
   });

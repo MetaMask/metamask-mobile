@@ -184,48 +184,50 @@ describe('MainActionButton', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('draws the content on an interactive glass surface', () => {
+    it('keeps the muted control fill when isGlass is set', () => {
       const onPress = jest.fn();
-      const { getByTestId, getByText } = render(
-        <MainActionButton
-          iconName={IconName.Add}
-          label="Buy"
-          onPress={onPress}
-          testID={MAINACTIONBUTTON_TEST_ID}
-          isGlass
-        />,
+      const flat = StyleSheet.flatten(
+        render(
+          <MainActionButton
+            iconName={IconName.Add}
+            label="Buy"
+            onPress={jest.fn()}
+            testID={MAINACTIONBUTTON_TEST_ID}
+          />,
+        ).getByTestId(MAINACTIONBUTTON_TEST_ID).props.style,
+      ).backgroundColor;
+      const flagged = StyleSheet.flatten(
+        render(
+          <MainActionButton
+            iconName={IconName.Add}
+            label="Buy"
+            onPress={onPress}
+            testID={MAINACTIONBUTTON_TEST_ID}
+            isGlass
+          />,
+        ).getByTestId(MAINACTIONBUTTON_TEST_ID).props.style,
+      ).backgroundColor;
+
+      expect(flagged).toBe(flat);
+      expect(flagged).toBeDefined();
+
+      fireEvent.press(
+        render(
+          <MainActionButton
+            iconName={IconName.Add}
+            label="Buy"
+            onPress={onPress}
+            testID={MAINACTIONBUTTON_TEST_ID}
+            isGlass
+          />,
+        ).getByTestId(MAINACTIONBUTTON_TEST_ID),
       );
-
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(true);
-      expect(getByText('Buy')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
 
       expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('drops its own fill so only the glass shows', () => {
-      const backgroundOf = (isGlass: boolean) =>
-        StyleSheet.flatten(
-          render(
-            <MainActionButton
-              iconName={IconName.Add}
-              label="Buy"
-              onPress={jest.fn()}
-              testID={MAINACTIONBUTTON_TEST_ID}
-              isGlass={isGlass}
-            />,
-          ).getByTestId(MAINACTIONBUTTON_TEST_ID).props.style,
-        ).backgroundColor;
-
-      expect(backgroundOf(false)).toBeDefined();
-      expect(backgroundOf(true)).toBeUndefined();
-    });
-
-    it('dims the content, not the glass, while disabled', () => {
-      const { getByTestId } = render(
+    it('dims the whole control while disabled when the old glass flag is set', () => {
+      const { getByTestId, queryByTestId } = render(
         <MainActionButton
           iconName={IconName.Add}
           label="Buy"
@@ -236,26 +238,10 @@ describe('MainActionButton', () => {
         />,
       );
 
-      expect(getByTestId(MAINACTIONBUTTON_TEST_ID)).toHaveStyle({ opacity: 1 });
-      expect(getByTestId(MAINACTIONBUTTON_CONTENT_TEST_ID)).toHaveStyle({
+      expect(getByTestId(MAINACTIONBUTTON_TEST_ID)).toHaveStyle({
         opacity: 0.5,
       });
-    });
-
-    it('keeps the glass static while disabled', () => {
-      const { getByTestId } = render(
-        <MainActionButton
-          iconName={IconName.Add}
-          label="Buy"
-          onPress={jest.fn()}
-          isDisabled
-          isGlass
-        />,
-      );
-
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(false);
+      expect(queryByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeNull();
     });
   });
 });
