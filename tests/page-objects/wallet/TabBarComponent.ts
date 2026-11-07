@@ -239,6 +239,10 @@ class TabBarComponent {
   /**
    * Money builds replace the Activity tab with a header clock button. Re-query
    * that button after wallet chrome is showing so the tap is not a stale node.
+   *
+   * Child-indicator wallet readiness (L2) can return before the header clock
+   * mounts after MM Pay Perps/Predict withdraw dismisses the stack — wait for
+   * the button to exist, then tap a fresh node.
    */
   private async openActivityFromWalletHeader(): Promise<void> {
     const isWalletActivityButtonVisible = await Utilities.isElementVisible(
@@ -252,6 +256,10 @@ class TabBarComponent {
         waitForInteractive: true,
       });
     }
+    await Assertions.expectElementToExist(WalletView.activityButton, {
+      description: 'Wallet header Activity button after Money-tab settle',
+      timeout: 10_000,
+    });
     await Gestures.waitAndTap(WalletView.activityButton, {
       timeout: 5_000,
       elemDescription: 'Wallet Activity button',
@@ -303,9 +311,9 @@ class TabBarComponent {
         });
       },
       {
-        // Header tap plus activity-screen postcondition. Outer budget stays 45s.
+        // Header exist-wait (10s) + tap + activity-screen postcondition.
         maxRetries: 15,
-        timeout: 45000,
+        timeout: 60_000,
         description: 'Tap Activity Button',
       },
     );
