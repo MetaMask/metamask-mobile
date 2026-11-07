@@ -211,6 +211,9 @@ describe('PerpsOrderDetailsView', () => {
         ),
       );
 
+      expect(strings('watch_only.blocked_message')).not.toMatch(
+        /\[missing ".*" translation\]/,
+      );
       expect(
         await screen.findByText(strings('watch_only.blocked_message')),
       ).toBeOnTheScreen();
