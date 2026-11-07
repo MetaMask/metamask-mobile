@@ -22,9 +22,19 @@ const CODE_SIGNING_KEYIDS = {
   rc: 'rc',
 };
 
+const APP_NAME = 'MetaMask';
+const IS_FLASK = process.env.METAMASK_BUILD_TYPE === 'flask';
+const IOS_BUNDLE_IDENTIFIER = IS_FLASK
+  ? 'io.metamask.MetaMask-Flask'
+  : 'io.metamask.MetaMask';
+const ANDROID_PACKAGE = IS_FLASK ? 'io.metamask.flask' : 'io.metamask';
+
+// While a root-level `expo` key exists, Expo tooling (@expo/config, @expo/repack-app,
+// @expo/fingerprint) reads only that object and ignores its siblings. Root `name` is
+// imported by index.js for AppRegistry.
 module.exports = {
-  name: 'MetaMask',
-  displayName: 'MetaMask',
+  name: APP_NAME,
+  displayName: APP_NAME,
   // NOTE: React Compiler is enabled via the `react-compiler` babel plugin in
   // babel.config.js, not here. This repo uses the React Native community Metro
   // transformer, which doesn't pass the `supportsReactCompiler` caller flag that
@@ -75,20 +85,17 @@ module.exports = {
     '@react-native-community/datetimepicker',
   ],
   android: {
-    package:
-      process.env.METAMASK_BUILD_TYPE === 'flask'
-        ? 'io.metamask.flask'
-        : 'io.metamask', // Required for @expo/repack-app Android repacking
+    package: ANDROID_PACKAGE,
   },
   ios: {
-    bundleIdentifier:
-      process.env.METAMASK_BUILD_TYPE === 'flask'
-        ? 'io.metamask.MetaMask-Flask'
-        : 'io.metamask.MetaMask', // Required for @expo/repack-app iOS repacking
+    bundleIdentifier: IOS_BUNDLE_IDENTIFIER,
     usesAppleSignIn: true,
     jsEngine: 'hermes',
   },
   expo: {
+    // Written by @expo/repack-app into CFBundleDisplayName and Android's app_name. When
+    // missing, Expo falls back to the package.json name ("metamask").
+    name: APP_NAME,
     owner: 'metamask',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
@@ -104,11 +111,12 @@ module.exports = {
         projectId: PROJECT_ID,
       },
     },
+    // Required for @expo/repack-app, which writes these into the repacked app.
     android: {
-      package: 'io.metamask',
+      package: ANDROID_PACKAGE,
     },
     ios: {
-      bundleIdentifier: 'io.metamask.MetaMask',
+      bundleIdentifier: IOS_BUNDLE_IDENTIFIER,
     },
   },
 };

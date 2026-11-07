@@ -67,6 +67,11 @@ ignores:
   - '@metamask/perps-controller'
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
+  # Required directly only by scripts/app-config.test.ts, which must resolve
+  # app.config.js through the same @expo/config copy that expo and
+  # @expo/repack-app use. It's provided transitively via expo, so we don't
+  # declare it as a direct dependency.
+  - '@expo/config'
 
   # ESLint plugins, resolvers, parsers, configuration, etc.
   - 'eslint-config-prettier'
