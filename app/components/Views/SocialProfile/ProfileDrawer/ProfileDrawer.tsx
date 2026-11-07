@@ -235,7 +235,7 @@ const ProfileDrawer = () => {
             accessibilityLabel={formatProfileHandle(profile)}
             testID={ProfileDrawerSelectorsIDs.PROFILE_IDENTITY}
             style={({ pressed }) =>
-              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+              tw.style('items-center px-4 pb-12 pt-6', pressed && 'opacity-70')
             }
           >
             <Box alignItems={BoxAlignItems.Center} gap={3}>
@@ -248,7 +248,7 @@ const ProfileDrawer = () => {
               />
               <Box alignItems={BoxAlignItems.Center} gap={1} accessible={false}>
                 <Text
-                  variant={TextVariant.HeadingLg}
+                  variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
                   testID={ProfileDrawerSelectorsIDs.PROFILE_HANDLE}
                 >
@@ -262,7 +262,7 @@ const ProfileDrawer = () => {
           // loading settles.
           <Box
             alignItems={BoxAlignItems.Center}
-            twClassName="px-4 pb-6 pt-2"
+            twClassName="px-4 pb-12 pt-6"
             accessible={false}
             testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING}
           >
@@ -272,12 +272,13 @@ const ProfileDrawer = () => {
                   iconName={IconName.UserCircleAdd}
                   size={AvatarIconSize.Xl}
                   severity={AvatarIconSeverity.Neutral}
+                  twClassName="w-16 h-16"
                   testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR}
                 />
               </Skeleton>
               <Skeleton hideChildren>
                 <Text
-                  variant={TextVariant.HeadingLg}
+                  variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
                   testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING}
                 >
@@ -293,7 +294,7 @@ const ProfileDrawer = () => {
             accessibilityLabel={strings('profile_drawer.create_profile')}
             testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
             style={({ pressed }) =>
-              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+              tw.style('items-center px-4 pb-12 pt-6', pressed && 'opacity-70')
             }
           >
             <Box alignItems={BoxAlignItems.Center} gap={3}>
@@ -301,10 +302,11 @@ const ProfileDrawer = () => {
                 iconName={IconName.UserCircleAdd}
                 size={AvatarIconSize.Xl}
                 severity={AvatarIconSeverity.Neutral}
+                twClassName="w-16 h-16"
                 testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
               />
               <Text
-                variant={TextVariant.HeadingLg}
+                variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Bold}
               >
                 {strings('profile_drawer.create_profile')}
