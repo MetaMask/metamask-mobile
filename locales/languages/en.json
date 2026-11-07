@@ -1389,7 +1389,7 @@
       "age": {
         "minutes": "{{count}} min ago",
         "hours": "{{count}} hr ago",
-        "days": "{{count}} d ago"
+        "days": "{{count}}d ago"
       },
       "action": {
         "perps_opened": "opened",
