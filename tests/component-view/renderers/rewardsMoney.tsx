@@ -8,6 +8,9 @@ import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
+import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
+import ReduxService from '../../../app/core/redux/ReduxService';
+import type { ReduxStore } from '../../../app/core/redux/types';
 import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
@@ -327,6 +330,53 @@ export function renderPerformanceTab(
   }
 
   return renderMoneyScreen(Screen, 'PerformanceTab', { ...options, persona });
+}
+
+let restoreRewardsDashboardReduxStore: (() => void) | undefined;
+
+/**
+ * Puts back the store `renderRewardsDashboard` replaced. Start sharing reads
+ * Social V1 from `ReduxService.store`, not from the React provider.
+ */
+export function restoreRewardsDashboardStore(): void {
+  restoreRewardsDashboardReduxStore?.();
+}
+
+/**
+ * Rewards dashboard on the Money preset. Social V1 and the referral copy come
+ * from Redux. The Social profile-onboarding route is a probe.
+ */
+export function renderRewardsDashboard(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const engine = installRewardsMoneyEngine({
+    referralMe: referralMeFixture(options.persona ?? 'plain'),
+    ...options,
+  });
+  const state = rewardsMoneyViewState(options);
+  const result = renderScreenWithRoutes(
+    RewardsDashboard,
+    { name: Routes.REWARDS_DASHBOARD },
+    [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }],
+    { state },
+  );
+
+  restoreRewardsDashboardStore();
+  let previousStore: ReduxStore | undefined;
+  try {
+    previousStore = ReduxService.store;
+  } catch {
+    previousStore = undefined;
+  }
+  ReduxService.store = result.store as unknown as ReduxStore;
+  restoreRewardsDashboardReduxStore = () => {
+    restoreRewardsDashboardReduxStore = undefined;
+    if (previousStore) {
+      ReduxService.store = previousStore;
+    }
+  };
+
+  return { ...result, engine };
 }
 
 export function renderRewardsMoneyDashboard(

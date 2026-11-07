@@ -1,6 +1,6 @@
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -22,7 +22,9 @@ import SocialFeedPostShell, {
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
+import { TokenDetailsIds } from '../../testIds';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
+import { useSocialOnboardingPress } from './useSocialOnboardingPress';
 
 const NEXT_PAGE_TEST_ID = 'token-details-feed-next-page';
 
@@ -51,15 +53,34 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
+  // Set only before Social terms are accepted: a tap anywhere on a card opens
+  // onboarding. The card's own buttons keep their (also gated) press.
+  const onOnboardingPress = useSocialOnboardingPress();
   const renderPost = useCallback(
-    (post: SocialV1FeedPost) => (
-      <SocialFeedPostShell
-        post={post}
-        requireSocialTerms
-        onCopyTrade={onCopyTrade}
-      />
-    ),
-    [onCopyTrade],
+    (post: SocialV1FeedPost) => {
+      const shell = (
+        <SocialFeedPostShell
+          post={post}
+          requireSocialTerms
+          onCopyTrade={onCopyTrade}
+        />
+      );
+      if (!onOnboardingPress) {
+        return shell;
+      }
+      return (
+        // `accessible={false}` keeps the card's own controls reachable by
+        // screen readers and automation; the wrapper only catches taps.
+        <Pressable
+          accessible={false}
+          onPress={onOnboardingPress}
+          testID={TokenDetailsIds.feedPostOnboardingPress(post.id)}
+        >
+          {shell}
+        </Pressable>
+      );
+    },
+    [onCopyTrade, onOnboardingPress],
   );
   const {
     posts,
