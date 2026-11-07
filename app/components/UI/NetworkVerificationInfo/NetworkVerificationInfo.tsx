@@ -365,13 +365,13 @@ const NetworkVerificationInfo = ({
           {strings('wallet.network_details_check')}
         </Text>
         <Text style={styles.bottomSpace}>
-          {strings('app_settings.use_safe_chains_list_validation_desc_1')}{' '}
+          {strings('app_settings.use_safe_chains_list_validation_desc_1')}
           chainid.network{' '}
           {strings('app_settings.use_safe_chains_list_validation_desc_2')}
         </Text>
 
         <Text>
-          {strings('networks.network_select_confirm_use_safe_check')}{' '}
+          {strings('networks.network_select_confirm_use_safe_check')}
           <Text style={styles.boldText}>
             {strings('networks.network_settings_security_privacy')}
           </Text>
