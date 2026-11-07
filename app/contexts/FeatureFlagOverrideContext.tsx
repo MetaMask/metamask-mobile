@@ -16,6 +16,7 @@ import {
   FeatureFlagType,
   getFeatureFlagType,
   isAbTestOptionsArray,
+  resolveVersionedFlagValue,
 } from '../util/feature-flags';
 import Engine from '../core/Engine';
 import type { Json } from '@metamask/utils';
@@ -86,11 +87,10 @@ export const FeatureFlagOverrideProvider: React.FC<
       const currentValue = featureFlagsWithOverrides?.[key];
       const isOverridden = hasOverride(key);
 
-      // A/B flags resolve to a single group's value, so the effective value no
-      // longer carries the `{ name, value }` shape. Detect them from the raw
-      // group array (still stored in `rawRemoteFeatureFlags`) so the override
-      // screen keeps showing the variant picker.
-      const type = isAbTestOptionsArray(originalValue)
+      // Arms only survive in the raw value; the controller resolves an A/B flag to one group's value.
+      const rawArms = resolveVersionedFlagValue(originalValue);
+      const abTestOptions = isAbTestOptionsArray(rawArms) ? rawArms : undefined;
+      const type = abTestOptions
         ? FeatureFlagType.FeatureFlagAbTest
         : getFeatureFlagType(currentValue ?? originalValue);
 
@@ -100,6 +100,7 @@ export const FeatureFlagOverrideProvider: React.FC<
         originalValue,
         type,
         isOverridden,
+        ...(abTestOptions && { abTestOptions }),
       };
       allFlags[key] = flagValue;
     });
