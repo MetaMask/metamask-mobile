@@ -26,6 +26,12 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     DESCRIPTION: 'money-vba-account-ready-card-description',
     CTA_BUTTON: 'money-vba-account-ready-card-cta-button',
   },
+  identity_verified: {
+    CONTAINER: 'money-vba-identity-verified-card-container',
+    TITLE: 'money-vba-identity-verified-card-title',
+    DESCRIPTION: 'money-vba-identity-verified-card-description',
+    CTA_BUTTON: 'money-vba-identity-verified-card-cta-button',
+  },
   kyc_pending: {
     CONTAINER: 'money-vba-kyc-pending-card-container',
     TITLE: 'money-vba-kyc-pending-card-title',

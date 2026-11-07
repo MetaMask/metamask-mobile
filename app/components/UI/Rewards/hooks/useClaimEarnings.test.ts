@@ -59,6 +59,10 @@ import {
 } from '../utils/claimBatchNotifications';
 import { useClaimEarnings } from './useClaimEarnings';
 
+jest.mock('./useFollowTradeClaimOpen', () => ({
+  useFollowTradeClaimOpen: jest.fn(() => false),
+}));
+
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 let storedClaimWait: number | undefined;
@@ -73,6 +77,7 @@ jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({
   selectReferralMeLocalizedText: jest.fn(),
   selectClaimWaitingUntil: jest.fn(),
   selectClaimLock: jest.fn(),
+  selectCommissionMechanisms: jest.fn(() => undefined),
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({

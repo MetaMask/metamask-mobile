@@ -89,6 +89,7 @@ import MyProfileCompactStats from './components/MyProfileCompactStats';
 import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
+import UncountedPositionsSheet from './components/UncountedPositionsSheet';
 import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
@@ -412,6 +413,7 @@ const MyProfileView: React.FC = () => {
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
+  const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const {
     scrollY: scrollYShared,
     onScroll,
@@ -478,6 +480,12 @@ const MyProfileView: React.FC = () => {
 
   const handleCloseProfileOptions = useCallback(() => {
     setIsProfileOptionsOpen(false);
+  }, []);
+  const handleOpenUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(true);
+  }, []);
+  const handleCloseUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(false);
   }, []);
 
   const handleShareProfile = useCallback(() => {
@@ -1011,6 +1019,7 @@ const MyProfileView: React.FC = () => {
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
+                    onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
                 ) : (
                   <ProfilePostsContent
@@ -1082,6 +1091,12 @@ const MyProfileView: React.FC = () => {
             traderName={displayProfile.displayName}
             onBlock={handleBlock}
             onClose={handleCloseProfileOptions}
+          />
+        ) : null}
+        {isUncountedSheetOpen ? (
+          <UncountedPositionsSheet
+            isOwner={isOwner}
+            onClose={handleCloseUncountedSheet}
           />
         ) : null}
       </SafeAreaView>
