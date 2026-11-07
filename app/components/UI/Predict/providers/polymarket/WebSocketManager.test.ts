@@ -3075,4 +3075,82 @@ describe('WebSocketManager', () => {
       expect(mockedLoggerError).not.toHaveBeenCalled();
     });
   });
+
+  describe('PolyBolt crypto prices', () => {
+    it('subscribes with btcusd and reports the caller symbol', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: {
+          apiKey: 'key',
+          secret: 'secret',
+          passphrase: 'pass',
+        },
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 30,
+      });
+
+      expect(
+        mockWebSocketInstances.some((socket) =>
+          socket.url.includes('ws-live-data.polymarket.com'),
+        ),
+      ).toBe(false);
+
+      const socket = mockWebSocketInstances.find(
+        (candidate) => candidate.url === 'wss://ws-live-v2.polymarket.com/ws',
+      );
+      if (!socket) {
+        throw new Error('PolyBolt socket was not opened');
+      }
+
+      socket.simulateOpen();
+      const authFrame = JSON.parse(socket.send.mock.calls[0][0] as string) as {
+        rid: string;
+      };
+      socket.simulateMessage({ op: 'authed', rid: authFrame.rid });
+
+      expect(JSON.parse(socket.send.mock.calls[1][0] as string)).toEqual(
+        expect.objectContaining({
+          op: 'subscribe',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        }),
+      );
+
+      socket.simulateMessage({
+        v: 1,
+        channel: 'price.crypto.twap',
+        snapshot: true,
+        payload: {
+          symbol: 'btcusd',
+          window_seconds: 60,
+          source: 'chainlink',
+          data: [
+            { timestamp: 2, full_accuracy_value: '11' },
+            { timestamp: 1, full_accuracy_value: '10' },
+          ],
+        },
+      });
+
+      expect(callback).toHaveBeenNthCalledWith(1, {
+        symbol: 'btc/usd',
+        price: 10,
+        timestamp: 1,
+        twapWindowSeconds: 60,
+      });
+      expect(callback).toHaveBeenNthCalledWith(2, {
+        symbol: 'btc/usd',
+        price: 11,
+        timestamp: 2,
+        twapWindowSeconds: 60,
+      });
+    });
+  });
 });

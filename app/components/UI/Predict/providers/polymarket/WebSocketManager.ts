@@ -19,8 +19,16 @@ import { POLYMARKET_PROVIDER_ID } from './constants';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { OrderBook } from './types';
+import {
+  PolyBoltCryptoFeed,
+  type PolyBoltChannel,
+  type PolyBoltCredentials,
+  type PolyBoltSubscription,
+  toPolyboltWireSymbol,
+} from './polyboltCryptoFeed';
 
 type WebSocketChannel = 'sports' | 'market' | 'rtds';
+type CryptoFeedMode = 'rtds' | 'polybolt';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -237,6 +245,9 @@ export class WebSocketManager {
   private latestCryptoObservationByTopicAndSymbol: Map<string, number> =
     new Map();
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
+  private cryptoFeedMode: CryptoFeedMode = 'rtds';
+  private readonly polyboltFeed: PolyBoltCryptoFeed;
+  private polyboltLiveBuffer: Map<string, CryptoPriceUpdate> = new Map();
 
   private appStateSubscription: { remove: () => void } | null = null;
 
@@ -248,7 +259,54 @@ export class WebSocketManager {
   private lastConnectionStatus: ConnectionStatus | null = null;
 
   private constructor() {
+    this.polyboltFeed = new PolyBoltCryptoFeed({
+      onSnapshot: (channel, updates) => {
+        updates.forEach((update) => {
+          this.invokeCryptoPriceCallbacks(channel, update);
+        });
+      },
+      onLive: (channel, update) => {
+        this.polyboltLiveBuffer.set(`${channel}|${update.symbol}`, update);
+        this.ensureThrottleTimer();
+      },
+      onConnectionChange: () => {
+        this.emitConnectionStatusIfChanged();
+      },
+    });
     this.setupAppStateListener();
+  }
+
+  /**
+   * Selects the crypto reference-price feed.
+   * PolyBolt replaces RTDS for that feed. Sports and CLOB market sockets stay.
+   *
+   * @param feed - RTDS, or PolyBolt with CLOB API credentials.
+   */
+  useCryptoFeed(
+    feed:
+      | { mode: 'rtds' }
+      | { mode: 'polybolt'; credentials: PolyBoltCredentials },
+  ): void {
+    if (feed.mode === 'rtds') {
+      if (this.cryptoFeedMode === 'polybolt') {
+        this.polyboltFeed.disconnect();
+        this.cryptoFeedMode = 'rtds';
+        if (this.cryptoPriceSubscriptions.size > 0) {
+          this.connectRtds();
+        }
+      }
+      return;
+    }
+
+    const switchingFromRtds = this.cryptoFeedMode === 'rtds';
+    this.cryptoFeedMode = 'polybolt';
+    if (switchingFromRtds) {
+      this.disconnectRtds();
+    }
+    this.polyboltFeed.setCredentials(feed.credentials);
+    if (this.cryptoPriceSubscriptions.size > 0) {
+      this.syncPolyboltSubscriptions();
+    }
   }
 
   static getInstance(): WebSocketManager {
@@ -919,9 +977,13 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection(
-      topicAlreadySubscribed ? [] : [{ topic, type: 'update' }],
-    );
+    if (this.cryptoFeedMode === 'polybolt') {
+      this.syncPolyboltSubscriptions();
+    } else {
+      this.ensureRtdsConnection(
+        topicAlreadySubscribed ? [] : [{ topic, type: 'update' }],
+      );
+    }
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -932,16 +994,92 @@ export class WebSocketManager {
           const topicStillSubscribed = Array.from(
             this.cryptoPriceSubscriptions.keys(),
           ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
-          if (!topicStillSubscribed) {
+          if (this.cryptoFeedMode === 'polybolt') {
+            this.syncPolyboltSubscriptions();
+          } else if (!topicStillSubscribed) {
             this.sendRtdsUnsubscribe([{ topic, type: 'update' }]);
           }
         }
       }
 
       if (this.cryptoPriceSubscriptions.size === 0) {
-        this.disconnectRtds();
+        if (this.cryptoFeedMode === 'polybolt') {
+          this.polyboltFeed.disconnect();
+        } else {
+          this.disconnectRtds();
+        }
       }
     };
+  }
+
+  private syncPolyboltSubscriptions(): void {
+    const subscriptions = new Map<string, PolyBoltSubscription>();
+    this.cryptoPriceSubscriptions.forEach((_callbacks, key) => {
+      const { topic, symbols } = parseCryptoSubscriptionKey(key);
+      const channel = this.polyboltChannelForTopic(topic);
+      if (!channel) {
+        return;
+      }
+
+      symbols.forEach((symbol) => {
+        const wireSymbol = toPolyboltWireSymbol(symbol);
+        if (!wireSymbol) {
+          return;
+        }
+
+        const subscription = { channel, callerSymbol: symbol, wireSymbol };
+        subscriptions.set(`${channel}|${wireSymbol}`, subscription);
+      });
+    });
+    this.polyboltFeed.setSubscriptions(Array.from(subscriptions.values()));
+  }
+
+  private polyboltChannelForTopic(topic: string): PolyBoltChannel | undefined {
+    if (topic === RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC) {
+      return 'price.crypto';
+    }
+    if (
+      topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[30] ||
+      topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[60]
+    ) {
+      return 'price.crypto.twap';
+    }
+    return undefined;
+  }
+
+  private subscriptionMatchesPolybolt(
+    key: string,
+    channel: PolyBoltChannel,
+    symbol: string,
+  ): boolean {
+    const parsedSubscription = parseCryptoSubscriptionKey(key);
+    if (!parsedSubscription.symbols.includes(symbol)) {
+      return false;
+    }
+
+    return this.polyboltChannelForTopic(parsedSubscription.topic) === channel;
+  }
+
+  private invokeCryptoPriceCallbacks(
+    channel: PolyBoltChannel,
+    update: CryptoPriceUpdate,
+  ): void {
+    this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
+      if (!this.subscriptionMatchesPolybolt(key, channel, update.symbol)) {
+        return;
+      }
+
+      callbacks.forEach((callback) => {
+        try {
+          callback(update);
+        } catch (error) {
+          DevLogger.log('WebSocketManager: Crypto price subscriber failed', {
+            error,
+            symbol: update.symbol,
+          });
+        }
+      });
+    });
   }
 
   private ensureMarketConnection(tokenIds: string[]): void {
@@ -1456,8 +1594,18 @@ export class WebSocketManager {
   }
 
   private flushCryptoPriceBuffer(): void {
+    if (this.polyboltLiveBuffer.size > 0) {
+      const pending = Array.from(this.polyboltLiveBuffer.entries());
+      this.polyboltLiveBuffer.clear();
+      pending.forEach(([bufferKey, update]) => {
+        const separatorIndex = bufferKey.indexOf('|');
+        const channel = bufferKey.slice(0, separatorIndex) as PolyBoltChannel;
+        this.invokeCryptoPriceCallbacks(channel, update);
+      });
+    }
+
     if (this.cryptoPriceBuffer.size === 0) {
-      if (this.throttleTimer) {
+      if (this.throttleTimer && this.polyboltLiveBuffer.size === 0) {
         clearInterval(this.throttleTimer);
         this.throttleTimer = null;
       }
@@ -1707,8 +1855,12 @@ export class WebSocketManager {
       this.connectMarket();
     }
     if (this.cryptoPriceSubscriptions.size > 0) {
-      this.rtdsHeartbeatTimeouts = 0;
-      this.connectRtds();
+      if (this.cryptoFeedMode === 'polybolt') {
+        this.polyboltFeed.reconnect();
+      } else {
+        this.rtdsHeartbeatTimeouts = 0;
+        this.connectRtds();
+      }
     }
   }
 
@@ -1716,6 +1868,7 @@ export class WebSocketManager {
     this.disconnectSports();
     this.disconnectMarket();
     this.disconnectRtds();
+    this.polyboltFeed.disconnect();
   }
 
   cleanup(): void {
@@ -1724,6 +1877,7 @@ export class WebSocketManager {
     this.priceSubscriptions.clear();
     this.priceSubscriptionTokenSets.clear();
     this.cryptoPriceSubscriptions.clear();
+    this.polyboltLiveBuffer.clear();
     this.marketPriceCache.clear();
     this.orderbookSubscriptions.clear();
     this.orderbookState.clear();
@@ -1793,7 +1947,10 @@ export class WebSocketManager {
     return {
       sportsConnected: this.sportsWs?.readyState === WebSocket.OPEN,
       marketConnected: this.marketWs?.readyState === WebSocket.OPEN,
-      rtdsConnected: this.rtdsWs?.readyState === WebSocket.OPEN,
+      rtdsConnected:
+        this.cryptoFeedMode === 'polybolt'
+          ? this.polyboltFeed.isConnected()
+          : this.rtdsWs?.readyState === WebSocket.OPEN,
       gameSubscriptionCount: this.gameSubscriptions.size,
       priceSubscriptionCount: this.priceSubscriptions.size,
       cryptoPriceSubscriptionCount: this.cryptoPriceSubscriptions.size,
