@@ -45,6 +45,16 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
   },
 );
 
+export const selectAiSocialPositionShareCardEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialPositionShareCardEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectAiSocialAusCacheRefreshEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

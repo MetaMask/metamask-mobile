@@ -114,6 +114,7 @@ import type { AgenticCliDashboardWebviewParams } from '../../components/Views/Ag
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
 import type { PositionDetailsSheetParams } from '../../components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.types';
+import type { PositionShareComposerViewParams } from '../../components/Views/SocialLeaderboard/PositionShareComposerView/PositionShareComposerView.types';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 
@@ -1101,6 +1102,7 @@ export type RootStackParamList = {
   };
   TraderPositionView: TraderPositionViewParams;
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
+  SocialPositionShareComposerView: PositionShareComposerViewParams;
   SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 

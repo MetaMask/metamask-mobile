@@ -1,5 +1,6 @@
 import {
   selectAiSocialAusCacheRefreshEnabled,
+  selectAiSocialPositionShareCardEnabled,
   selectAiSocialLeaderboardOnboardingEnabled,
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardOptFlowEnabled,
@@ -324,6 +325,63 @@ describe('selectAiSocialAusCacheRefreshEnabled', () => {
 
   it('returns false when remote flag is absent', () => {
     const result = selectAiSocialAusCacheRefreshEnabled.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectAiSocialPositionShareCardEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    const result = selectAiSocialPositionShareCardEnabled.resultFunc({
+      aiSocialPositionShareCardEnabled: {
+        enabled: true,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    const result = selectAiSocialPositionShareCardEnabled.resultFunc({
+      aiSocialPositionShareCardEnabled: {
+        enabled: false,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectAiSocialPositionShareCardEnabled.resultFunc({
+      aiSocialPositionShareCardEnabled: {
+        enabled: true,
+        minimumVersion: '99.0.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    const result = selectAiSocialPositionShareCardEnabled.resultFunc({});
 
     expect(result).toBe(false);
   });
