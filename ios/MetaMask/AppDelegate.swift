@@ -293,6 +293,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 extension AppDelegate: BrazeDelegate {
   // Route Braze URLs instead of always letting BrazeKit call UIApplication.open.
   //
+  // In-app message CTAs for `metamask://` links go straight to React Native
+  // Linking. They carry no Branch link data, and Branch would start a network
+  // session before JS receives them, delaying navigation after the message is
+  // dismissed.
+  //
   // Universal links (Branch domains) are forwarded to Branch for proper routing.
   // Push notification URLs are suppressed here; they are handled exclusively
   // through the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE, to avoid
@@ -305,6 +310,11 @@ extension AppDelegate: BrazeDelegate {
   // app. Open http(s) URLs with UIApplication.open so Safari / the system
   // browser launches outside MetaMask. Custom schemes still go through Braze.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
+    if context.channel == .inAppMessage && context.url.scheme?.lowercased() == "metamask" {
+      _ = RCTLinkingManager.application(UIApplication.shared, open: context.url, options: [:])
+      return false
+    }
+
     if isBrazeUniversalLinkHost(context.url.host) {
       Branch.getInstance().handleDeepLink(context.url)
       return false
