@@ -9,9 +9,8 @@ import {
 } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import { ensureError } from '../utils/predictErrorHandler';
+import { reportPredictError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 import { filterStandaloneMarkets } from '../utils/feed';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
@@ -187,7 +186,7 @@ export const usePredictMarketData = (
         setError(errorMessage);
 
         // Capture exception with market data loading context
-        Logger.error(ensureError(err), {
+        reportPredictError(err, {
           tags: {
             feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictMarketData',

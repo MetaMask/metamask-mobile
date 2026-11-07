@@ -1,7 +1,7 @@
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
   getPredictErrorMessages,
   PREDICT_CONSTANTS,
@@ -24,14 +24,35 @@ export function ensureError(error: unknown): Error {
 }
 
 /**
+ * iOS URLSession connectivity codes. Numeric NSURLErrorDomain codes survive
+ * localization, unlike English connectivity phrases.
+ *
+ * Left as errors on purpose: -999 cancelled, -1011 bad server response,
+ * -1013 auth required, -1018 roaming off, -1020 data not allowed, -1022 ATS,
+ * -1200 secure connection failed, -1202 to -1206 certificate.
+ */
+const IOS_CONNECTIVITY_ERROR_CODES = {
+  timedOut: -1001,
+  cannotFindHost: -1003,
+  cannotConnectToHost: -1004,
+  networkConnectionLost: -1005,
+  notConnectedToInternet: -1009,
+} as const;
+
+const IOS_CONNECTIVITY_ERROR_PATTERN = new RegExp(
+  String.raw`NSURLErrorDomain Code=(${Object.values(IOS_CONNECTIVITY_ERROR_CODES).join('|')})\b`,
+  'u',
+);
+
+/**
  * Patterns that identify transient connectivity failures rather than
  * application bugs. These surface differently across transports
  * (Android Cronet via nitro-fetch, RN default fetch, iOS URLSession) so we
  * match on the substrings each of them emits.
  *
  * Reported as breadcrumbs/warnings instead of Sentry errors, since they are
- * driven by the user's network conditions (DNS failures, timeouts, offline,
- * geo/ISP blocking) and are not actionable as crashes.
+ * driven by the user's network conditions (DNS failures, timeouts, offline)
+ * and are not actionable as crashes.
  */
 const NETWORK_ERROR_PATTERNS: RegExp[] = [
   // Chromium/Cronet (Android nitro-fetch) net::ERR_* codes
@@ -50,6 +71,7 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
   /(the )?internet connection appears to be offline/iu,
   /name (not resolved|resolution failed)/iu,
   /could not (connect|resolve host)/iu,
+  IOS_CONNECTIVITY_ERROR_PATTERN,
 ];
 
 /**
@@ -60,12 +82,48 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
  * @param error - The caught error (Error, string, or unknown)
  * @returns true when the error looks like a connectivity failure
  */
+// shortcut: status is read from "failed: <code>" text, upgrade when errors carry status.
+const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
+
 export function isNetworkError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   if (!message) {
     return false;
   }
+
+  const httpFailure = HTTP_FAILURE_STATUS.exec(message);
+  if (httpFailure) {
+    const status = Number(httpFailure[1]);
+    return status === 408 || status === 504;
+  }
+
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+const NETWORK_FAILURE_BREADCRUMB_MESSAGE =
+  'Predict request failed due to network conditions:';
+
+/**
+ * Reports a Predict failure. Connectivity errors are breadcrumbs so they do
+ * not open Sentry issues; every other error is still reported.
+ *
+ * @param error - The caught error (Error, string, or unknown)
+ * @param errorContext - Searchable Logger context for the call site
+ */
+export function reportPredictError(
+  error: unknown,
+  errorContext: LoggerErrorOptions,
+): void {
+  if (isNetworkError(error)) {
+    Logger.log(
+      NETWORK_FAILURE_BREADCRUMB_MESSAGE,
+      ensureError(error).message,
+      errorContext,
+    );
+    return;
+  }
+
+  Logger.error(ensureError(error), errorContext);
 }
 
 /**
