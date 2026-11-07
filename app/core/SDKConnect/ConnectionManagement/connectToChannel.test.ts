@@ -14,6 +14,7 @@ jest.mock('./../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../SDKConnectConstants');
 jest.mock('../handlers/checkPermissions', () => jest.fn());
+jest.mock('../utils/revokeChannelPermissions.util');
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -29,6 +30,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import checkPermissions from '../handlers/checkPermissions';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 
 describe('connectToChannel', () => {
   let mockInstance = {} as unknown as SDKConnect;
@@ -257,6 +259,75 @@ describe('connectToChannel', () => {
       connectedInstance.remote.state.relayPersistence = true;
 
       expect(connectedInstance.remote.state.relayPersistence).toBe(true);
+    });
+  });
+
+  describe('Leftover channel permissions', () => {
+    it('revokes leftover permissions before connecting a channel without a session', async () => {
+      (checkPermissions as jest.Mock).mockResolvedValue(true);
+
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
+
+      expect(revokeChannelPermissions).toHaveBeenCalledWith(id);
+      expect(
+        (revokeChannelPermissions as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (checkPermissions as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
+    it('keeps permissions for a channel that already has a session', async () => {
+      (checkPermissions as jest.Mock).mockResolvedValue(true);
+      mockInstance.state.connections[id] = {
+        id,
+        otherPublicKey,
+        origin,
+        validUntil,
+      };
+
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
+
+      expect(revokeChannelPermissions).not.toHaveBeenCalled();
+    });
+
+    it('does not connect when leftover permissions cannot be revoked', async () => {
+      (revokeChannelPermissions as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('revoke failed');
+      });
+
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
+
+      expect(checkPermissions).not.toHaveBeenCalled();
+      expect(mockInstance.state.connections[id]).toBeUndefined();
+      expect(mockInstance.state.connected[id]).toBeUndefined();
+      expect(mockInstance.state.connecting[id]).toBe(false);
     });
   });
 
