@@ -239,12 +239,25 @@ function learnedMax(row, learned) {
   return hit ? hit.maxCharacters : null;
 }
 
+function pxModel(units, width, fontSize, mode) {
+  const safeUnits = Math.max(units || 1, 1);
+  const auto = String(mode || '').toUpperCase() === 'WIDTH_AND_HEIGHT';
+  const single = !mode || mode === 'NONE' || mode === 'TRUNCATE';
+  const fontPx = fontSize ? fontSize * 0.5 : null;
+  if ((auto || single) && width) {
+    const reference = fontPx || 7;
+    if (!auto && width > reference * safeUnits * 1.25) {
+      return { px: reference, source: 'font size × 0.5' };
+    }
+    return { px: width / safeUnits, source: 'english measured width' };
+  }
+  if (fontPx) return { px: fontPx, source: 'font size × 0.5' };
+  if (width) return { px: width / safeUnits, source: 'english measured width' };
+  return { px: 7, source: 'font size × 0.5' };
+}
+
 function pxPerUnitFor(units, width, fontSize, mode) {
-  if (String(mode || '').toUpperCase() === 'WIDTH_AND_HEIGHT' && width) return width / units;
-  if (fontSize) return fontSize * 0.5;
-  const fallback = 7;
-  if (width && width <= fallback * units * 1.25) return width / units;
-  return fallback;
+  return pxModel(units, width, fontSize, mode).px;
 }
 
 function wrapTokens(text) {
@@ -302,7 +315,7 @@ function measurePixels(units, row, text) {
     row.fontSize,
     mode,
   );
-  const glyph = glyphLabel(row);
+  const glyph = row.pxSource || glyphLabel(row);
   if (row.pixelUnconstrained || row.unconstrained || !(row.availableWidth > 0)) {
     const reason = row.reason || (row.availableWidth === 0
       ? 'available width is 0 or unresolved'
@@ -319,9 +332,10 @@ function measurePixels(units, row, text) {
   const available = row.availableWidth;
   const textUnits = text ? checker.displayWidth(text) : displayUnits;
   const totalPx = displayUnits * pxPerUnit;
-  const lines = text && Math.abs(textUnits - displayUnits) < 0.51
+  const wrapped = text && Math.abs(textUnits - displayUnits) < 0.51
     ? wrapLines(text, available, pxPerUnit)
     : Math.max(1, Math.ceil(totalPx / available));
+  const lines = Math.max(wrapped, Math.ceil(totalPx / available));
   const currentLines = row.lineCount || (row.lineHeightPx && row.height
     ? Math.max(1, Math.round(row.height / row.lineHeightPx))
     : 1);
@@ -392,7 +406,8 @@ function classifyRecord(row, limits, learned) {
     containers: row.context.containers || [],
   });
   const unresolved = space.unconstrained || !(space.availableWidth > 0);
-  const pxPerUnit = pxPerUnitFor(units, width, row.context.fontSize, row.context.textAutoResize);
+  const model = pxModel(units, width, row.context.fontSize, row.context.textAutoResize);
+  const pxPerUnit = model.px;
   const slotted = hasTemplateSlot(row);
   const narrowControl = control && !slotted && (typeof width !== 'number' || width <= BUTTON_MAX_PX);
   let maxCharacters = override;
@@ -427,6 +442,8 @@ function classifyRecord(row, limits, learned) {
       layout,
       height: row.context.height,
       lineHeightPx: row.context.lineHeightPx,
+      clips: space.clips,
+      pxSource: model.source,
     });
     if (override !== null) maxCharacters = override;
     else if (narrowControl) maxCharacters = BUTTON_MAX_CHARACTERS;
@@ -473,6 +490,7 @@ function classifyRecord(row, limits, learned) {
     framePath: row.context.screen || '',
     maxLines: row.context.maxLines || null,
     pxPerUnit: pixel ? pixel.pxPerUnit : pxPerUnit,
+    pxSource: model.source,
     availableWidth: unresolved ? null : space.availableWidth,
     unconstrained: unresolved,
     clips: Boolean(space.clips),

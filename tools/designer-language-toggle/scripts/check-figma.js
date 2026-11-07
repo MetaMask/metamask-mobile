@@ -57,8 +57,13 @@ function printLang(lang, item, verdict, row) {
   if (!item) return;
   const tag = verdict === 'break' ? ' hard break' : verdict === 'might' ? ' might break' : '';
   const rendered = item.text ? translatedTemplate(row, item.text) : null;
+  const reason = row && row.langReasons ? row.langReasons[lang] : '';
   if (rendered) {
-    console.log(`    ${lang}${tag} ${JSON.stringify(rendered.shown)} (example ${JSON.stringify(rendered.example)})`);
+    console.log(`    ${lang} ${reason}  ${JSON.stringify(rendered.shown)} (example ${JSON.stringify(rendered.example)})`);
+    return;
+  }
+  if (reason) {
+    console.log(`    ${lang} ${reason}`);
     return;
   }
   if (item.basis === 'estimate') {
@@ -129,6 +134,10 @@ function printReport(report, langs) {
       console.log(`    ${item.lang} ${item.issue}  ${how}${detail}${basis}${item.key ? `  key ${item.key}` : ''}`);
     });
   });
+  console.log('');
+  console.log(`Layout problems in the English design (${(report.layoutProblems || []).length})`);
+  if (!report.layoutProblems || report.layoutProblems.length === 0) console.log('  None.');
+  (report.layoutProblems || []).forEach((row) => console.log(`${lineFor(row)}  ${row.basis}`));
   console.log('');
   console.log(`Layout notes (${(report.layoutNotes || []).length})`);
   if (!report.layoutNotes || report.layoutNotes.length === 0) console.log('  None.');
@@ -205,6 +214,7 @@ async function main() {
       slotMax: report.slotMax,
       guideline: report.guideline,
       layoutNotes: report.layoutNotes,
+      layoutProblems: report.layoutProblems,
       mightLanguages: mightLanguageCount(report),
       atRisk: report.atRisk,
       fits: report.fits.length,

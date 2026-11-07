@@ -95,5 +95,6 @@
     "name": 18
   },
   "timeRangeTokens": ["1H", "1D", "1W", "1M", "3M", "1Y", "YTD", "ALL"],
+  "nameHints": ["Roster", "Player", "Matchup", "Scoreboard"],
   "fonts": {}
 }

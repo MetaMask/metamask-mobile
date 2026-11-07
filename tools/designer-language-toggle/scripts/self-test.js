@@ -1341,6 +1341,7 @@ function testReportGaps() {
         layoutMode: 'HORIZONTAL',
         layoutSizingHorizontal: 'HUG',
         primaryAxisSizingMode: 'AUTO',
+        clipsContent: true,
         absoluteBoundingBox: { width: 70, height: 20 },
         children: [
           { type: 'FRAME', id: 'cash-hidden', name: 'Hidden', visible: false, absoluteBoundingBox: { width: 40, height: 10 } },
@@ -1358,7 +1359,7 @@ function testReportGaps() {
     ],
   }, [], false, nested);
   const nestedSpace = figma.resolveAvailableWidth(nested[0]);
-  assert(nestedSpace.availableWidth === 156, 'a nested wrapper is not subtracted from its own row');
+  assert(nestedSpace.availableWidth === 156, 'a clipping HUG wrapper does not freeze the width');
 
   const longButton = classifyRecord({
     id: 'place',
@@ -1483,6 +1484,108 @@ function testReportGaps() {
   assert(zero.unconstrained, 'a resolved width of 0 is not a measured overflow');
   const zeroReport = buildBreakReport([zero], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
   assert(zeroReport.alreadyOver.length === 0 && zeroReport.checkVisually.length === 1, 'an unresolved width is check visually');
+
+  const { assessLanguage } = require('../lib/figma-report');
+  const mixed = classifyRecord({
+    id: 'mix',
+    key: 'mix',
+    source_text: 'Buy',
+    context: { kind: 'button', width_px: 90, fontSize: 14, textAutoResize: 'NONE', component: 'Buy', screen: 'Tabs' },
+  }, limits);
+  const mixedReport = buildBreakReport([mixed], {
+    langs: ['ja', 'id', 'de', 'ru'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'tabs.buy': 'Buy' },
+      ja: { 'tabs.buy': 'プロップベット' },
+      id: { 'tabs.buy': 'Waktu resmi' },
+      de: { 'tabs.buy': 'Auszahlung' },
+      ru: { 'tabs.buy': '1234567890123' },
+    },
+  });
+  const reasons = mixedReport.breaks[0].langReasons;
+  assert(/pixel only/.test(reasons.ja) && !/over 10-char/.test(reasons.ja), '7 japanese characters are pixel-only, not a 10-char failure');
+  assert(mixedReport.guideline.some((row) => (row.overLangs || []).includes('id')), '11 characters are guideline-only when the pixels fit');
+  assert(/fits:/.test(reasons.de) && /10 chars within 10/.test(reasons.de), '10 characters that fit the box are fits');
+  assert(/both/.test(reasons.ru), 'over 10 characters and over the box is both');
+  assert(!mixedReport.breaks.some((row) => row.langVerdicts.id === 'break'), 'a guideline-only language is not a pixel break');
+
+  const toWin = require('../lib/figma-report').translatedTemplate(
+    { template: 'To win {price}', copyText: 'To win', example: 'To win 54¢', source: 'To win 54¢' },
+    'Zum Sieg',
+  );
+  assert(toWin.shown === 'Zum Sieg {price}' && toWin.example === 'Zum Sieg 54¢', 'To win keeps the price slot');
+
+  const person = figma.classifyTextNode({
+    id: 'aidan',
+    layer_name: 'Label',
+    frame_path: 'Roster / Row',
+    text: 'Aidan Mayo',
+    width: 120,
+    visible: true,
+  }, rules);
+  const initial = figma.classifyTextNode({
+    id: 'initial',
+    layer_name: 'Label',
+    frame_path: 'Roster / Row',
+    text: 'M. Kasnikowski',
+    width: 120,
+    visible: true,
+  }, rules);
+  const code = figma.classifyTextNode({
+    id: 'car',
+    layer_name: 'Label',
+    frame_path: 'Scoreboard / Team',
+    text: 'CAR',
+    width: 40,
+    visible: true,
+  }, rules);
+  assert(person.kind === 'name' && initial.kind === 'name' && code.kind === 'name', 'plain names are not translated');
+  const nameOnly = classifyRecord({
+    id: 'aidan',
+    key: 'aidan',
+    source_text: 'Aidan Mayo',
+    context: { kind: 'name', width_px: 120, component: 'Label', screen: 'Roster' },
+  }, limits);
+  const nameReport = buildBreakReport([nameOnly], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: { en: {}, de: {} },
+  });
+  assert(nameReport.atRisk.length === 0 && nameReport.breaks.length === 0, 'a plain name has no translation estimate');
+
+  const chip = classifyRecord({
+    id: 'chip-label',
+    key: 'chip-label',
+    source_text: 'Available balance',
+    context: {
+      kind: 'label',
+      width_px: 125,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      component: 'Label',
+      screen: 'Chip',
+      containers: [{
+        id: 'chip',
+        width: 40,
+        layoutMode: 'HORIZONTAL',
+        primaryAxisSizingMode: 'FIXED',
+        layoutSizingHorizontal: 'FIXED',
+        paddingLeft: 18,
+        paddingRight: 18,
+        itemSpacing: 0,
+        pathChildId: 'chip-label',
+        children: [{ id: 'chip-label', width: 125, visible: true, absolute: false }],
+      }],
+    },
+  }, limits);
+  const chipReport = buildBreakReport([chip], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: { en: { 'chip.balance': 'Available balance' }, de: { 'chip.balance': 'A'.repeat(40) } },
+  });
+  assert(chip.availableWidth === 4, 'the chip slot is 4px');
+  assert(chipReport.breaks.length === 0 && chipReport.labels.length === 0, 'a crowded English layout is not a localization break');
+  assert(chipReport.layoutProblems.length === 1, 'the crowded chip is one layout problem');
 
   const collected = [];
   figma.collectTextNodes({

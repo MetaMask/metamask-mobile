@@ -85,6 +85,7 @@ const DEFAULT_RULES = {
     name: 18,
   },
   timeRangeTokens: ['1H', '1D', '1W', '1M', '3M', '1Y', 'YTD', 'ALL'],
+  nameHints: ['Roster', 'Player', 'Matchup', 'Scoreboard'],
   fonts: {},
   contextHints: {
     predict: ['predict', 'kalshi'],
@@ -488,6 +489,9 @@ function classifyTextNode(node, rules) {
   if (!forced && isTimeRange(text, rules)) {
     return { ...node, kind: 'button', chars: checker.characterCount(text) };
   }
+  if (!forced && isPlainName(text, frame, rules)) {
+    return { ...node, kind: 'name', chars: checker.characterCount(text) };
+  }
   if (!forced && isOnlyPlaceholder(text, split)) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
@@ -530,6 +534,23 @@ function classifyTextNode(node, rules) {
   };
 }
 
+function isPlainName(text, frame, rules) {
+  const hints = rules.nameHints || [];
+  const blob = String(frame || '').toLowerCase();
+  if (!hints.some((hint) => blob.includes(String(hint).toLowerCase()))) return false;
+  const trimmed = String(text || '').trim();
+  if (!trimmed) return false;
+  if (rules.shippedWords && (rules.shippedWords.has(trimmed) || rules.shippedWords.has(trimmed.toLowerCase()))) {
+    return false;
+  }
+  const tokens = trimmed.split(/\s+/);
+  return tokens.length > 0 && tokens.every((token) => (
+    /^\p{Lu}[\p{Ll}'’.-]*$/u.test(token)
+    || /^\p{Lu}\.$/u.test(token)
+    || /^[A-Z]{1,4}$/.test(token)
+  ));
+}
+
 function isTimeRange(text, rules) {
   const value = String(text || '').trim().toUpperCase();
   return (rules.timeRangeTokens || DEFAULT_RULES.timeRangeTokens).some((token) => token.toUpperCase() === value);
@@ -564,11 +585,19 @@ function visibleChildren(parent) {
   return (parent.children || []).filter((child) => child.visible !== false && !child.absolute);
 }
 
+function hugsWidth(parent) {
+  if (parent.layoutSizingHorizontal === 'HUG') return true;
+  if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'AUTO') return true;
+  if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'AUTO') return true;
+  return false;
+}
+
 function stopsWalk(parent) {
-  if (parent.clipsContent) return true;
+  if (hugsWidth(parent)) return false;
   if (parent.layoutSizingHorizontal === 'FIXED' || parent.layoutSizingHorizontal === 'FILL') return true;
   if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'FIXED') return true;
   if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'FIXED') return true;
+  if (parent.clipsContent) return true;
   return false;
 }
 
@@ -588,7 +617,7 @@ function availableFromParent(parent) {
 
 function resolveAvailableWidth(record) {
   const mode = String(record.textAutoResize || '').toUpperCase();
-  const clips = (record.containers || []).some((parent) => parent.clipsContent);
+  const clips = (record.containers || []).some((parent) => parent.clipsContent && !hugsWidth(parent));
   if (mode !== 'WIDTH_AND_HEIGHT') {
     if (typeof record.width === 'number' && record.width > 0) {
       return { availableWidth: record.width, unconstrained: false, pixelBasis: 'measured', clips };
