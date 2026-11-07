@@ -676,6 +676,41 @@ export default class DeeplinkProtocolService {
     return selectedInternalAccountChecksummedAddress;
   }
 
+  private rejectStaleAccountContext(encodedMessage: string) {
+    let requestId: string | undefined;
+    try {
+      requestId = JSON.parse(
+        Buffer.from(encodedMessage, 'base64').toString('utf-8'),
+      ).id;
+    } catch (error) {
+      Logger.log(
+        error,
+        'DeeplinkProtocolService:: handleMessage invalid account context',
+      );
+      return;
+    }
+
+    this.sendMessage(
+      {
+        data: {
+          id: requestId,
+          error: {
+            code: -32602,
+            message: 'The selected account has changed. Please try again.',
+          },
+          jsonrpc: '2.0',
+        },
+        name: 'metamask-provider',
+      },
+      true,
+    ).catch((err) => {
+      Logger.log(
+        err,
+        'DeeplinkProtocolService:: handleMessage error sending account context rejection',
+      );
+    });
+  }
+
   public handleMessage(params: {
     dappPublicKey: string;
     url: string;
@@ -691,15 +726,17 @@ export default class DeeplinkProtocolService {
 
     if (!params.account?.includes('@')) {
       DevLogger.log(
-        `DeeplinkProtocolService:: handleMessage invalid params.account format ${params.account}`,
+        'DeeplinkProtocolService:: handleMessage invalid params.account format',
       );
-    } else {
-      const account = params.account.split('@');
-      walletSelectedAddress = this.getSelectedAddress();
-      walletSelectedChainId = this.getChainId();
-      dappAccountChainId = account[1];
-      dappAccountAddress = account[0];
+      this.rejectStaleAccountContext(params.message);
+      return;
     }
+
+    const account = params.account.split('@');
+    walletSelectedAddress = this.getSelectedAddress();
+    walletSelectedChainId = this.getChainId();
+    dappAccountChainId = account[1];
+    dappAccountAddress = account[0];
 
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
