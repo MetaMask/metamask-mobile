@@ -73,6 +73,7 @@ import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificati
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { buildSocialProfileOpenGraph } from '../navigation/socialShareOpenGraph';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
 import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
@@ -260,15 +261,20 @@ const TraderProfileView = () => {
 
   const handleShareProfile = useCallback(() => {
     playSelection().catch(() => undefined);
-    shareSocialProfile(traderId, () => {
-      trackSocialPost({
-        interaction_type: SocialEvent.Interaction.POST_SHARED,
-        screen_name: SocialEvent.Screen.MY_PROFILE,
-        source: SocialEvent.Source.TRADER_PROFILE,
-        share_destination: SocialEvent.ShareDestination.EXTERNAL,
-      });
-    });
-  }, [trackSocialPost, traderId]);
+    const traderLabel = profile?.profile.name || traderName;
+    shareSocialProfile(
+      traderId,
+      () => {
+        trackSocialPost({
+          interaction_type: SocialEvent.Interaction.POST_SHARED,
+          screen_name: SocialEvent.Screen.MY_PROFILE,
+          source: SocialEvent.Source.TRADER_PROFILE,
+          share_destination: SocialEvent.ShareDestination.EXTERNAL,
+        });
+      },
+      buildSocialProfileOpenGraph(traderLabel),
+    );
+  }, [profile?.profile.name, trackSocialPost, traderId, traderName]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

@@ -62,6 +62,7 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { buildSocialProfileOpenGraph } from '../navigation/socialShareOpenGraph';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
@@ -475,8 +476,12 @@ const MyProfileView: React.FC = () => {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(traderId, trackProfileShared);
-  }, [trackProfileShared, traderId]);
+    shareSocialProfile(
+      traderId,
+      trackProfileShared,
+      buildSocialProfileOpenGraph(displayProfile?.displayName),
+    );
+  }, [displayProfile?.displayName, trackProfileShared, traderId]);
 
   const handleOpenProfileOptions = useCallback(() => {
     setIsProfileOptionsOpen(true);
@@ -497,8 +502,12 @@ const MyProfileView: React.FC = () => {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(myProfile.profileId, trackProfileShared);
-  }, [myProfile?.profileId, trackProfileShared]);
+    shareSocialProfile(
+      myProfile.profileId,
+      trackProfileShared,
+      buildSocialProfileOpenGraph(myProfile.displayName),
+    );
+  }, [myProfile?.displayName, myProfile?.profileId, trackProfileShared]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>

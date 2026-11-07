@@ -499,8 +499,9 @@ describe('TraderProfileView', () => {
     );
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      message:
+        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=Trades+and+posts+from+trader1',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=Trades+and+posts+from+trader1',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);

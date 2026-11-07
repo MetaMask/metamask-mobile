@@ -1646,6 +1646,19 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "Trades and posts from {{trader}}",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_title_no_asset": "{{trader}}'s trade",
+      "position_spot_open": "{{trader}} is trading {{asset}}",
+      "position_spot_closed": "{{trader}} traded {{asset}}",
+      "position_long_open": "{{trader}} is long {{asset}}",
+      "position_short_open": "{{trader}} is short {{asset}}",
+      "position_long_closed": "{{trader}} closed their {{asset}} long",
+      "position_short_closed": "{{trader}} closed their {{asset}} short",
+      "position_no_asset": "A trade from {{trader}}"
+    },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
       "title": "Profiles to follow",

@@ -852,8 +852,9 @@ describe('MyProfileView', () => {
       right: 12,
     });
     expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=current-user',
-      url: 'https://link.metamask.io/social/profile?traderId=current-user',
+      message:
+        'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=Trades+and+posts+from+Giga+Whale',
+      url: 'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=Trades+and+posts+from+Giga+Whale',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
@@ -1208,8 +1209,9 @@ describe('MyProfileView', () => {
     );
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      message:
+        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=Trades+and+posts+from+alpha.eth',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=Trades+and+posts+from+alpha.eth',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
