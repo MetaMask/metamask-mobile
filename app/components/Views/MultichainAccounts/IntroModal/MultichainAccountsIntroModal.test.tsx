@@ -210,11 +210,8 @@ describe('MultichainAccountsIntroModal', () => {
     fireEvent.press(learnMoreButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
-        timestamp: expect.any(Number),
-      },
+      newTabUrl: AppConstants.URLS.MULTICHAIN_ACCOUNTS,
+      timestamp: expect.any(Number),
     });
   });
 
