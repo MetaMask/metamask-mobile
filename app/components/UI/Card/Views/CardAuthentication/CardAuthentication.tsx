@@ -34,6 +34,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import {
+  selectCardBaanxPasswordlessLoginEnabled,
   selectCardForgotPasswordFeatureEnabled,
   selectCardImmersveCountries,
 } from '../../../../../selectors/featureFlagController/card';
@@ -42,6 +43,7 @@ import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import {
   CardProviderError,
   CardProviderErrorCode,
+  CardProviderIds,
   type CardSignInOption,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
@@ -157,13 +159,22 @@ const CardAuthentication = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const walletSignInLock = useRef(false);
+  const emailCodeRequestId = useRef(0);
+  const emailAuthLock = useRef(false);
+  const clearAuthFailureRef = useRef<() => void>(() => undefined);
+  const [emailLoginAttempt, setEmailLoginAttempt] = useState(0);
   const geoLocation = useSelector(selectGeolocationLocation);
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
+  );
+  const isPasswordlessLoginEnabled = useSelector(
+    selectCardBaanxPasswordlessLoginEnabled,
   );
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const { allRegions, isLoading: isLoadingRegions } = useRegions();
@@ -192,6 +203,9 @@ const CardAuthentication = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
+  const [latestEmailCodeSubmitted, setLatestEmailCodeSubmitted] = useState<
+    string | null
+  >(null);
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const lastTrackedAuthView = useRef<string | null>(null);
@@ -213,13 +227,16 @@ const CardAuthentication = () => {
     initiate,
     submit,
     stepAction,
+    requestEmailCode,
     resetToLogin,
     getErrorMessage,
   } = useCardAuth();
   const { mutate: triggerStepAction } = stepAction;
 
   const isOtpStep = currentStep.type === 'otp';
-  const loading = initiate.isPending || submit.isPending;
+  const otpMode = currentStep.type === 'otp' ? currentStep.mode : undefined;
+  const loading =
+    initiate.isPending || submit.isPending || requestEmailCode.isPending;
   const otpLoading = stepAction.isPending;
   const error =
     initiate.error || submit.error
@@ -274,6 +291,20 @@ const CardAuthentication = () => {
     return undefined;
   }, [resolution, countryKey]);
 
+  const isBaanxPasswordless =
+    isPasswordlessLoginEnabled &&
+    emailOption?.providerId === CardProviderIds.Baanx;
+  const authFailure = initiate.error ?? submit.error;
+  const loginError =
+    isBaanxPasswordless &&
+    authFailure instanceof CardProviderError &&
+    authFailure.code === CardProviderErrorCode.InvalidCredentials
+      ? strings('card.card_authentication.errors.invalid_otp_code')
+      : error;
+  const displayedLoginError =
+    loginError ??
+    (requestEmailCode.error ? getErrorMessage(requestEmailCode.error) : null);
+
   const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
     resolveSignInAccountPresentation({
       view,
@@ -311,6 +342,11 @@ const CardAuthentication = () => {
 
   useEffect(() => {
     resetTransientAuthState();
+    emailCodeRequestId.current += 1;
+    setEmailCode('');
+    setEmailCodeSent(false);
+    setLatestEmailCodeSubmitted(null);
+    clearAuthFailureRef.current();
   }, [countryKey, resetTransientAuthState]);
 
   useResetOnResolvedKind(resolution?.kind, resetTransientAuthState);
@@ -329,28 +365,41 @@ const CardAuthentication = () => {
 
   useEffect(() => () => clearOnValueChange(), []);
 
+  const clearAuthFailure = useCallback(() => {
+    if (initiate.error) initiate.reset();
+    if (submit.error) submit.reset();
+    if (requestEmailCode.error) requestEmailCode.reset();
+    setBanner((current) => (current === 'bad_creds' ? null : current));
+  }, [initiate, submit, requestEmailCode]);
+  clearAuthFailureRef.current = clearAuthFailure;
+
   const handleEmailChange = useCallback(
     (newEmail: string) => {
+      emailCodeRequestId.current += 1;
       setEmail(newEmail);
-      if (initiate.error || submit.error) {
-        initiate.reset();
-        submit.reset();
-      }
-      if (banner === 'bad_creds') setBanner(null);
+      setEmailCode('');
+      setEmailCodeSent(false);
+      setLatestEmailCodeSubmitted(null);
+      clearAuthFailure();
     },
-    [initiate, submit, banner],
+    [clearAuthFailure],
   );
 
   const handlePasswordChange = useCallback(
     (newPassword: string) => {
       setPassword(newPassword);
-      if (initiate.error || submit.error) {
-        initiate.reset();
-        submit.reset();
-      }
-      if (banner === 'bad_creds') setBanner(null);
+      clearAuthFailure();
     },
-    [initiate, submit, banner],
+    [clearAuthFailure],
+  );
+
+  const handleEmailCodeChange = useCallback(
+    (value: string) => {
+      setEmailCode(value.replace(/\D/g, '').slice(0, CODE_LENGTH));
+      setLatestEmailCodeSubmitted(null);
+      clearAuthFailure();
+    },
+    [clearAuthFailure],
   );
 
   const handleOtpValueChange = useCallback(
@@ -364,13 +413,13 @@ const CardAuthentication = () => {
   );
 
   useEffect(() => {
-    if (!isOtpStep) return;
+    if (!isOtpStep || otpMode === 'TOTP') return;
     triggerStepAction(undefined, {
       onSuccess: () => setResendCooldown(60),
       onError: (err) =>
         Logger.log('CardAuthentication::Send OTP login failed', err),
     });
-  }, [isOtpStep, triggerStepAction]);
+  }, [isOtpStep, otpMode, triggerStepAction]);
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -416,6 +465,11 @@ const CardAuthentication = () => {
   const performEmailLogin = useCallback(
     async (otpCode?: string) => {
       if (!countryKey || !emailOption) return;
+      const passwordlessEmailCodeLogin = isBaanxPasswordless && !isOtpStep;
+      if (passwordlessEmailCodeLogin && emailAuthLock.current) return;
+      if (passwordlessEmailCodeLogin) {
+        emailAuthLock.current = true;
+      }
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -430,17 +484,29 @@ const CardAuthentication = () => {
       );
 
       try {
+        if (isBaanxPasswordless) {
+          clearAuthFailure();
+        }
         if (!isOtpStep) {
           selectOption(emailOption, countryKey);
           const location = mapCountryToLocation(countryKey);
           await initiate.mutateAsync(location);
         }
-        const result = await submit.mutateAsync({
-          type: 'email_password',
-          email,
-          password,
-          ...(otpCode ? { otpCode } : {}),
-        });
+        const result = await submit.mutateAsync(
+          isBaanxPasswordless
+            ? {
+                type: 'email_code',
+                email: email.trim(),
+                code: emailCode,
+                ...(otpCode ? { otpCode } : {}),
+              }
+            : {
+                type: 'email_password',
+                email,
+                password,
+                ...(otpCode ? { otpCode } : {}),
+              },
+        );
 
         if (result.nextStep?.type === 'otp') return;
 
@@ -506,6 +572,11 @@ const CardAuthentication = () => {
         ) {
           setBanner('bad_creds');
         }
+      } finally {
+        if (passwordlessEmailCodeLogin) {
+          emailAuthLock.current = false;
+          setEmailLoginAttempt((attempt) => attempt + 1);
+        }
       }
     },
     [
@@ -517,12 +588,15 @@ const CardAuthentication = () => {
       submit,
       email,
       password,
+      emailCode,
+      isBaanxPasswordless,
       resumeEmail,
       navigation,
       dispatch,
       trackEvent,
       createEventBuilder,
       postAuthRedirect,
+      clearAuthFailure,
     ],
   );
 
@@ -533,9 +607,33 @@ const CardAuthentication = () => {
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
-      performEmailLogin(confirmCode);
+      void performEmailLogin(confirmCode);
     }
   }, [confirmCode, performEmailLogin, latestValueSubmitted, isOtpStep]);
+
+  // Auto-submit when all digits are entered
+  useEffect(() => {
+    if (
+      !isBaanxPasswordless ||
+      !emailCodeSent ||
+      isOtpStep ||
+      emailAuthLock.current ||
+      emailCode.length !== CODE_LENGTH ||
+      latestEmailCodeSubmitted === emailCode
+    ) {
+      return;
+    }
+    setLatestEmailCodeSubmitted(emailCode);
+    void performEmailLogin();
+  }, [
+    emailCode,
+    emailCodeSent,
+    emailLoginAttempt,
+    isBaanxPasswordless,
+    isOtpStep,
+    latestEmailCodeSubmitted,
+    performEmailLogin,
+  ]);
 
   const handleWalletSignIn = useCallback(async () => {
     if (walletSignInLock.current) return;
@@ -695,6 +793,55 @@ const CardAuthentication = () => {
     resetToLogin();
   }, [resetToLogin]);
 
+  const handleRequestEmailCode = useCallback(async () => {
+    const requestedEmail = email.trim();
+    if (
+      !countryKey ||
+      !emailOption ||
+      !requestedEmail ||
+      loading ||
+      emailAuthLock.current
+    ) {
+      return;
+    }
+    const requestId = emailCodeRequestId.current;
+    emailAuthLock.current = true;
+    selectOption(emailOption, countryKey);
+    clearAuthFailure();
+    try {
+      await initiate.mutateAsync(mapCountryToLocation(countryKey));
+      await requestEmailCode.mutateAsync(requestedEmail);
+      if (requestId !== emailCodeRequestId.current) return;
+      setEmailCode('');
+      setLatestEmailCodeSubmitted(null);
+      setEmailCodeSent(true);
+      setResendCooldown(60);
+    } catch (err) {
+      if (requestId !== emailCodeRequestId.current) {
+        initiate.reset();
+        requestEmailCode.reset();
+        return;
+      }
+      Logger.log('CardAuthentication::Request email code failed', err);
+    } finally {
+      emailAuthLock.current = false;
+    }
+  }, [
+    countryKey,
+    email,
+    emailOption,
+    initiate,
+    loading,
+    requestEmailCode,
+    selectOption,
+    clearAuthFailure,
+  ]);
+
+  const handleResendEmailCode = useCallback(() => {
+    if (resendCooldown > 0 || loading) return;
+    void handleRequestEmailCode();
+  }, [resendCooldown, loading, handleRequestEmailCode]);
+
   const handleForgotPassword = useCallback(() => {
     if (!emailOption || !countryKey) return;
     trackEvent(
@@ -714,29 +861,51 @@ const CardAuthentication = () => {
 
   const handlePrimary = useCallback(() => {
     if (view.mode === 'otp') {
-      performEmailLogin(confirmCode);
+      void performEmailLogin(confirmCode);
       return;
     }
     if (view.mode === 'wallet') {
-      handleWalletSignIn();
+      void handleWalletSignIn();
       return;
     }
     if (view.mode === 'email') {
-      performEmailLogin();
+      if (isBaanxPasswordless && !emailCodeSent) {
+        void handleRequestEmailCode();
+        return;
+      }
+      void performEmailLogin();
     }
-  }, [view.mode, confirmCode, performEmailLogin, handleWalletSignIn]);
+  }, [
+    view.mode,
+    confirmCode,
+    performEmailLogin,
+    handleWalletSignIn,
+    isBaanxPasswordless,
+    emailCodeSent,
+    handleRequestEmailCode,
+  ]);
 
   const title = useMemo(() => {
-    if (view.mode === 'otp')
-      return strings('card.card_otp_authentication.title');
+    if (view.mode === 'otp') {
+      return strings(
+        otpMode === 'TOTP'
+          ? 'card.card_otp_authentication.title_authenticator'
+          : 'card.card_otp_authentication.title',
+      );
+    }
     if (view.mode === 'wallet' && view.origin === 'resume') {
       return strings('card.card_authentication.title_resume');
     }
     return strings('card.card_authentication.title');
-  }, [view]);
+  }, [view, otpMode]);
 
   const description = useMemo(() => {
     if (view.mode === 'otp') {
+      if (otpMode === 'TOTP') {
+        return strings(
+          'card.card_otp_authentication.description_authenticator',
+        );
+      }
       return maskedPhoneNumber
         ? strings(
             'card.card_otp_authentication.description_with_phone_number',
@@ -753,7 +922,7 @@ const CardAuthentication = () => {
       return strings('card.card_authentication.description_resume');
     }
     return strings('card.card_authentication.description');
-  }, [view, maskedPhoneNumber]);
+  }, [view, maskedPhoneNumber, otpMode]);
 
   const ctaLabel = useMemo(() => {
     if (view.mode === 'otp') {
@@ -764,8 +933,11 @@ const CardAuthentication = () => {
         ? strings('card.card_authentication.continue_button')
         : strings('card.card_authentication.siwe_button');
     }
+    if (view.mode === 'email' && isBaanxPasswordless && !emailCodeSent) {
+      return strings('card.card_authentication.request_email_code_button');
+    }
     return strings('card.card_authentication.login_button');
-  }, [view]);
+  }, [view, isBaanxPasswordless, emailCodeSent]);
 
   const ctaDisabled = useMemo(() => {
     if (
@@ -783,6 +955,12 @@ const CardAuthentication = () => {
       return walletSubmitting || !displayAccountAddress || !walletOption;
     }
     if (view.mode === 'email') {
+      if (isBaanxPasswordless) {
+        if (!emailCodeSent) {
+          return email.trim().length === 0 || loading || !emailOption;
+        }
+        return emailCode.length < CODE_LENGTH || loading || !emailOption;
+      }
       return (
         !!error ||
         email.length === 0 ||
@@ -802,6 +980,9 @@ const CardAuthentication = () => {
     error,
     email,
     password,
+    emailCode,
+    emailCodeSent,
+    isBaanxPasswordless,
     emailOption,
   ]);
 
@@ -814,10 +995,11 @@ const CardAuthentication = () => {
       return (
         <SignInOtpFields
           confirmCode={confirmCode}
-          error={error}
+          error={loginError}
           otpError={otpError}
           resendCooldown={resendCooldown}
           otpLoading={otpLoading}
+          showResend={otpMode !== 'TOTP'}
           isScreenTransitionComplete={isScreenTransitionComplete}
           onChangeCode={handleOtpValueChange}
           onResend={handleResendOtp}
@@ -867,6 +1049,11 @@ const CardAuthentication = () => {
             banner={activeBanner}
             deadline={ukMigrationState.deadline}
             showMovedAction={!!(walletOption ?? movedWalletOption)}
+            bodyKey={
+              isBaanxPasswordless && activeBanner === 'bad_creds'
+                ? 'card.card_authentication.banner_bad_code_body'
+                : undefined
+            }
             onChooseAccount={openAccountSelector}
             onImportSrp={() => navigation.navigate(Routes.MULTI_SRP.IMPORT)}
             onMovedAction={() => {
@@ -884,7 +1071,14 @@ const CardAuthentication = () => {
             password={password}
             isPasswordVisible={isPasswordVisible}
             isForgotPasswordEnabled={isForgotPasswordEnabled}
+            usesEmailCode={isBaanxPasswordless}
+            showEmailCode={emailCodeSent}
+            emailCode={emailCode}
+            resendCooldown={resendCooldown}
+            isRequestingCode={loading}
             onEmailChange={handleEmailChange}
+            onEmailCodeChange={handleEmailCodeChange}
+            onResendEmailCode={handleResendEmailCode}
             onPasswordChange={handlePasswordChange}
             onTogglePasswordVisibility={() =>
               setIsPasswordVisible(!isPasswordVisible)
@@ -955,13 +1149,13 @@ const CardAuthentication = () => {
       </>
     ) : (
       <Box twClassName="flex flex-col justify-center gap-2">
-        {error && view.mode === 'email' && (
+        {displayedLoginError && view.mode === 'email' && (
           <Text
             variant={TextVariant.BodySm}
             twClassName="text-error-default"
             testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
           >
-            {error}
+            {displayedLoginError}
           </Text>
         )}
         {view.mode !== 'fork' &&

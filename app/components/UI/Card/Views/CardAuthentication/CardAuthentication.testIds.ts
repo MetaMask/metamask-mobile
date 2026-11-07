@@ -3,6 +3,8 @@ export const CardAuthenticationSelectors = {
   SIGNUP_BUTTON: 'signup-button',
   EMAIL_FIELD: 'email-field',
   PASSWORD_FIELD: 'password-field',
+  EMAIL_CODE_FIELD: 'email-code-field',
+  EMAIL_CODE_RESEND: 'email-code-resend',
   PASSWORD_VISIBILITY_TOGGLE: 'password-visibility-toggle',
   FORGOT_PASSWORD_BUTTON: 'forgot-password-button',
   LOGIN_ERROR_TEXT: 'login-error-text',
