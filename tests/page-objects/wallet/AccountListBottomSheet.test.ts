@@ -2,6 +2,7 @@ jest.mock('../../framework/Gestures', () => ({
   __esModule: true,
   default: {
     scrollIntoView: jest.fn(),
+    scrollIntoViewFullyVisible: jest.fn(),
     waitAndTap: jest.fn(),
     swipe: jest.fn(),
     longPress: jest.fn(),
@@ -156,6 +157,45 @@ describe('AccountListBottomSheet account creation visibility', () => {
       ).rejects.toThrow('No account row found for "Account 3"');
 
       expect(tapAddAccountButtonV2).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('tapAddAccountButtonV2', () => {
+    it('scrolls the Add account control fully into view before tapping', async () => {
+      const tapTarget = createCell();
+      jest
+        .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
+        .mockResolvedValue();
+      jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAddAccountButtonTapTarget: (
+              srpIndex: number,
+            ) => Promise<AppiumElement>;
+          },
+          'getAddAccountButtonTapTarget',
+        )
+        .mockResolvedValue(tapTarget);
+      jest.mocked(Gestures.scrollIntoViewFullyVisible).mockResolvedValue();
+      jest.mocked(Gestures.waitAndTap).mockResolvedValue();
+
+      await AccountListBottomSheet.tapAddAccountButtonV2({
+        syncTimeoutMs: 25_000,
+      });
+
+      expect(Gestures.scrollIntoViewFullyVisible).toHaveBeenCalledWith(
+        expect.any(Promise),
+        { direction: 'down', maxScrolls: 10 },
+      );
+      expect(Gestures.waitAndTap).toHaveBeenCalledWith(
+        expect.any(Promise),
+        expect.objectContaining({
+          elemDescription: 'Add Account button in V2 multichain accounts',
+        }),
+      );
+      expect(
+        Gestures.scrollIntoViewFullyVisible.mock.invocationCallOrder[0],
+      ).toBeLessThan(Gestures.waitAndTap.mock.invocationCallOrder[0]);
     });
   });
 
