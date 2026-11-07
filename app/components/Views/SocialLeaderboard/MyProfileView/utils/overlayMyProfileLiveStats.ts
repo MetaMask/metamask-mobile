@@ -1,4 +1,7 @@
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import {
   EM_DASH,
   formatPercent,
@@ -11,10 +14,16 @@ import {
   prefixFakeStat,
 } from '../../TraderProfileView/components/statsSheetFormatters';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import { sumUnrealizedFromOpenPositions } from './sumUnrealizedFromOpenPositions';
 
 export { FAKE_STATS_PREFIX };
 
-export type PerformanceCellId = 'pnl' | 'winRate' | 'holdTime' | 'volume';
+export type PerformanceCellId =
+  | 'pnl'
+  | 'unrealizedPnl'
+  | 'winRate'
+  | 'holdTime'
+  | 'volume';
 
 export interface PerformanceCell {
   id: PerformanceCellId;
@@ -37,8 +46,12 @@ export interface OverlayedMyProfileStats {
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
+const signedUsdTone = (value: number): PerformanceCell['tone'] =>
+  Math.round(value) >= 0 ? 'success' : 'error';
+
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
+  openPositions: readonly Position[] = [],
 ): PerformanceCell[] => {
   const stats = live?.stats;
   if (!stats) {
@@ -49,7 +62,16 @@ export const buildPerformanceCells = (
     cells.push({
       id: 'pnl',
       value: formatSignedFullUsdNoDecimals(stats.pnl30d),
-      tone: stats.pnl30d >= 0 ? 'success' : 'error',
+      tone: signedUsdTone(stats.pnl30d),
+    });
+  }
+  const unrealized = sumUnrealizedFromOpenPositions(openPositions);
+  if (isPresentNumber(unrealized)) {
+    cells.push({
+      id: 'unrealizedPnl',
+      value: formatSignedFullUsdNoDecimals(unrealized),
+      tone:
+        Math.round(unrealized) === 0 ? 'default' : signedUsdTone(unrealized),
     });
   }
   if (isPresentNumber(stats.winRate30d)) {
@@ -90,6 +112,7 @@ const formatLocalWinRate = (
 export const overlayMyProfileLiveStats = (
   local: MySocialProfile,
   live: TraderProfileResponse | null,
+  openPositions: readonly Position[] = [],
 ): OverlayedMyProfileStats => {
   const liveWinRate = live?.stats.winRate30d;
   const livePnl = live?.stats.pnl30d;
@@ -115,7 +138,7 @@ export const overlayMyProfileLiveStats = (
     isWinRatePositive: winRateValue > 0,
     pnlLabel: hasLivePnl ? pnlRaw : markFakeStat(pnlRaw),
     hasPnl: pnlValue != null,
-    isPnlPositive: pnlValue != null && pnlValue >= 0,
-    performanceCells: buildPerformanceCells(live),
+    isPnlPositive: pnlValue != null && Math.round(pnlValue) >= 0,
+    performanceCells: buildPerformanceCells(live, openPositions),
   };
 };
