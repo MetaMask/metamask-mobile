@@ -9,6 +9,7 @@
 - [How Link Processing Works](#how-link-processing-works) → [See Visual Flow](./deeplinking-diagrams.md#complete-deeplink-flow-with-signature-verification)
 - [Creating New Links](#creating-new-links)
 - [Adding New Handlers](#adding-new-handlers)
+- [Deeplink regression coverage](#deeplink-regression-coverage)
 - [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
 - [Analytics](#analytics) → [See Analytics Documentation](./deeplink-analytics.md)
 - [Performance (Sentry CUFs)](#performance-sentry-cufs) → [See Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md)
@@ -536,6 +537,50 @@ describe('handleYourAction', () => {
   });
 });
 ```
+
+A focused handler test like this one stays useful for the handler's own branches. It mocks the navigation service and the handler's collaborators, so it cannot show that a real URI reaches the handler and builds the expected intent. Cover that with the real-URI resolve contract described in [Deeplink regression coverage](#deeplink-regression-coverage), in the same change.
+
+## Deeplink regression coverage
+
+Real URIs are run through the real parser, universal-link dispatch, and intent builders in **resolve mode**, without Appium and without a React Navigation tree. The **platform** owns the harness and a small set of **exemplars**. **Feature teams** (and their agents) own the scenario rows for their actions.
+
+| Layer                          | What it proves                                                                                                                         | Where                                                                                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| URI fixtures                   | Typed data: real URIs, explicit state, expected intents. Expectations come from the contract — never from calling the code under test. | [`deeplinkUriCases.ts`](../../app/core/DeeplinkManager/__fixtures__/deeplinkUriCases.ts)                                                                         |
+| Unit contract (`resolve` mode) | Each URI resolves to the expected intent (or non-navigation outcome). Resolve neither navigates nor applies prepare effects.           | [`parseDeeplink.routes.test.ts`](../../app/core/DeeplinkManager/utils/parseDeeplink.routes.test.ts)                                                              |
+| Redux / boundary helpers       | Named fixture states and optional HTTP/Engine stubs declared by a case's `boundary`.                                                   | [`presets/deeplinks.ts`](../../tests/component-view/presets/deeplinks.ts), [`deeplinkSwapToken.ts`](../../tests/component-view/api-mocking/deeplinkSwapToken.ts) |
+
+The checked-in matrix is **exemplars only** (home-tab + volatile, alternate scheme, main-stack nesting, prepare presence, HTTP/Engine boundary, explicit `backTab`, non-navigation). It is not a catalogue of every deeplink.
+
+Executor and reset wiring stay in their existing unit suites (`executeDeeplinkIntent.test.ts`, `resetToHomeNav.test.ts`, per-handler tests, `parseDeeplink.test.ts`). Component-view navigation coverage is out of scope for now; add it later only if resolve-mode contracts prove insufficient.
+
+### Run
+
+```bash
+yarn jest app/core/DeeplinkManager/utils/parseDeeplink.routes.test.ts --runInBand --no-watchman --coverage=false
+```
+
+CI runs this suite in the existing unit job.
+
+### Add a scenario (feature team / agent)
+
+Update coverage in the **same change** as the deeplink contract change (including route constants, navigator registrations, or destination screens outside `DeeplinkManager/`):
+
+1. **Append a row** to `DEEPLINK_URI_CASES` in [`deeplinkUriCases.ts`](../../app/core/DeeplinkManager/__fixtures__/deeplinkUriCases.ts). Prefer `toCases({ path, expected, … })` when both `https` and `metamask://` matter; otherwise one scheme is enough. Author `expected.target` independently (helpers: `homeTabIntent`, `mainStackIntent`). Set `state`, `origin`, `volatile`, `hasPrepare`, and `boundary` only when the case needs them.
+2. **State variant.** If the destination depends on Redux not covered by `baseline`, add a `DeeplinkFixtureState` value and a matching override in [`presets/deeplinks.ts`](../../tests/component-view/presets/deeplinks.ts).
+3. **External data.** If the handler needs HTTP or Engine data, extend `boundary` and [`installDeeplinkCaseBoundary`](../../tests/component-view/api-mocking/deeplinkSwapToken.ts) (copy the `swap-source-token` pattern).
+4. **Pickup.** The unit `describe.each` picks new rows up with no test-file edits.
+5. **Verify.** Run the resolve-mode unit suite. Record harness gaps in the PR.
+
+For a **changed or retired** link: update or keep a fallback/rejection row; do not delete the only coverage of a still-supported URI.
+
+### Scope and limits
+
+- Platform exemplars teach the harness. Feature teams own full coverage of their actions (params, fallbacks, schemes, state variants).
+- This layer proves URI → intent. It does not mount React Navigation, prove production route registration, Back/startup stacks, OS dispatch, unlock, or process lifecycle.
+- Legacy switch-only actions (buy, sell, home, asset, send, create-account and others), SDK, WalletConnect and MWP paths stay outside this harness. Do not force them in, and do not add Appium for them automatically.
+- Fixture states: `baseline` plus named variants in the preset. Other tab layouts and feature-flag configurations are not covered unless a team adds a state.
+- Nothing enforces that a new action was added to the matrix. These instructions are the control; green CI on exemplars does not prove coverage of a new action.
 
 ## Signature Verification
 
