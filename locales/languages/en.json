@@ -3162,6 +3162,10 @@
         "feed": "Feed",
         "top_traders": "Holders"
       },
+      "feed_empty": {
+        "title": "Start the conversation",
+        "description": "Trade this market and post your position. When others copy it, you get 15% of the fees."
+      },
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -6530,7 +6534,8 @@
     },
     "feed_tab": {
       "empty": {
-        "no_balance_title": "Post your trade",
+        "no_balance_title": "Start the conversation",
+        "no_balance_description": "Buy this token and post your trade. When others copy it, you get 15% of the fees.",
         "has_balance_title": "Start your first post",
         "description": "You'll get 15% of the fees every time someone copies your moves.",
         "create_post": "Create MetaMask Post"

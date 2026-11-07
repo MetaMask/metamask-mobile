@@ -204,7 +204,7 @@ describe('TokenDetailsFeed', () => {
       <TokenDetailsFeed source={source} location="token_details" />,
     );
 
-    expect(screen.getByText('Post your trade')).toBeOnTheScreen();
+    expect(screen.getByText('Start the conversation')).toBeOnTheScreen();
     expect(screen.queryByText('Start your first post')).toBeNull();
   });
 
