@@ -112,6 +112,12 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
+// Watch-only refusal is covered by the component-view tests.
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: mockGuardWatchOnly }),
+}));
+
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {
