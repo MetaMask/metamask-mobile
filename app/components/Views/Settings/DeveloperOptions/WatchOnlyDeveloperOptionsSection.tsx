@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import {
   Button,
   ButtonVariant,
@@ -22,6 +23,13 @@ const WatchOnlyDeveloperOptionsSection = () => {
   const [address, setAddress] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [result, setResult] = useState<string>();
+
+  // Screen readers otherwise only hear the button when the add finishes.
+  useEffect(() => {
+    if (result) {
+      AccessibilityInfo.announceForAccessibility(result);
+    }
+  }, [result]);
 
   const handleAdd = useCallback(async () => {
     setIsAdding(true);
@@ -89,6 +97,9 @@ const WatchOnlyDeveloperOptionsSection = () => {
         inputProps={{
           autoCapitalize: 'none',
           autoCorrect: false,
+          accessibilityLabel: strings(
+            'app_settings.developer_options.watch_only.address_placeholder',
+          ),
           testID: DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT,
         }}
         twClassName="mt-4"
