@@ -244,7 +244,7 @@ describe('AuthTokenHandler', () => {
           connection: mockConnection,
           refreshToken: mockRefreshToken,
         }),
-      ).rejects.toThrow('Failed to refresh JWT token - respoond json');
+      ).rejects.toThrow('Failed to refresh JWT token - missing id_token');
     });
 
     it('uses the persisted seedless onboarding clientId for iOS refresh requests', async () => {
@@ -883,10 +883,12 @@ describe('AuthTokenHandler', () => {
       });
     });
 
-    it('throws error when required tokens are missing in refreshJWTToken', async () => {
+    it('throws error naming only the missing fields, without token values', async () => {
       // Arrange
       const mockResponse = {
         id_token: 'jwt-token-123',
+        refresh_token: 'secret-refresh-token',
+        revoke_token: 'secret-revoke-token',
         // Missing access_token and metadata_access_token
       };
 
@@ -895,14 +897,81 @@ describe('AuthTokenHandler', () => {
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
-      // Act & Assert
-      await expect(
-        AuthTokenHandler.refreshJWTToken({
+      // Act
+      const error = await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Google,
+        refreshToken: 'test-token',
+      }).catch((e: Error) => e);
+
+      // Assert
+      expect((error as Error).message).toBe(
+        'Failed to refresh JWT token - missing access_token, metadata_access_token',
+      );
+      expect((error as Error).message).not.toMatch(
+        /jwt-token-123|secret-refresh-token|secret-revoke-token/,
+      );
+    });
+
+    it('returns rotated refreshToken and revokeToken when response has both', async () => {
+      // Arrange
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'jwt-token-123',
+          access_token: 'access-abc',
+          metadata_access_token: 'metadata-xyz',
+          refresh_token: 'new-refresh-token',
+          revoke_token: 'new-revoke-token',
+        }),
+      });
+
+      // Act
+      const result = await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Google,
+        refreshToken: 'test-token',
+      });
+
+      // Assert
+      expect(result).toEqual({
+        idTokens: ['jwt-token-123'],
+        accessToken: 'access-abc',
+        metadataAccessToken: 'metadata-xyz',
+        refreshToken: 'new-refresh-token',
+        revokeToken: 'new-revoke-token',
+      });
+    });
+
+    it.each([
+      ['only refresh_token', { refresh_token: 'new-refresh-token' }],
+      ['only revoke_token', { revoke_token: 'new-revoke-token' }],
+    ])(
+      'omits rotated tokens when response has %s',
+      async (_label, rotatedFields) => {
+        // Arrange
+        fetchSpy.mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValueOnce({
+            id_token: 'jwt-token-123',
+            access_token: 'access-abc',
+            metadata_access_token: 'metadata-xyz',
+            ...rotatedFields,
+          }),
+        });
+
+        // Act
+        const result = await AuthTokenHandler.refreshJWTToken({
           connection: AuthConnection.Google,
           refreshToken: 'test-token',
-        }),
-      ).rejects.toThrow('Failed to refresh JWT token - respoond json');
-    });
+        });
+
+        // Assert
+        expect(result).toEqual({
+          idTokens: ['jwt-token-123'],
+          accessToken: 'access-abc',
+          metadataAccessToken: 'metadata-xyz',
+        });
+      },
+    );
 
     it('transforms renewRefreshToken response correctly when all fields present', async () => {
       // Arrange
@@ -1043,7 +1112,9 @@ describe('AuthTokenHandler', () => {
           connection: AuthConnection.Google,
           refreshToken: '',
         }),
-      ).rejects.toThrow('Failed to refresh JWT token - respoond json');
+      ).rejects.toThrow(
+        'Failed to refresh JWT token - missing id_token, access_token, metadata_access_token',
+      );
     });
 
     it('throws error when tokens are null/undefined', async () => {
@@ -1065,7 +1136,9 @@ describe('AuthTokenHandler', () => {
           connection: AuthConnection.Google,
           refreshToken: 'test-token',
         }),
-      ).rejects.toThrow('Failed to refresh JWT token - respoond json');
+      ).rejects.toThrow(
+        'Failed to refresh JWT token - missing id_token, access_token, metadata_access_token',
+      );
     });
 
     it('handles very long token values', async () => {
