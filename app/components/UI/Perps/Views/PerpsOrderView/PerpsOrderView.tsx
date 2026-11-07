@@ -12,6 +12,7 @@ import type {
 import React, {
   useCallback,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -415,14 +416,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Clear confirmation when leaving the order view
   const { onReject } = useConfirmActions();
+  // The reject bound at mount (this view's own approval), held in state so the
+  // unmount effect needs no lint disable.
+  const [rejectOnLeave] = useState(() => onReject);
   useEffect(
     () => () => {
-      onReject(undefined, true).catch(
+      rejectOnLeave(undefined, true).catch(
         logRejection('rejectConfirmationOnUnmount'),
       );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [rejectOnLeave],
   );
 
   useTransactionPayMetrics();
@@ -450,7 +453,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { track } = usePerpsEventTracking();
   const { denomination: sizeDenomination } = usePerpsSizeDenomination();
   const sizeDenominationRef = useRef(sizeDenomination);
-  sizeDenominationRef.current = sizeDenomination;
+  useLayoutEffect(() => {
+    sizeDenominationRef.current = sizeDenomination;
+  }, [sizeDenomination]);
   // Price used to decide the unit on screen. Assigned once effectivePrice
   // exists; events read it at fire time so a price tick does not restart
   // the considered debounce.
@@ -461,7 +466,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Full-screen Lite has no coin toggle. Read the arm at event time so a
   // saved coin unit is not reported for a USD entry.
   const useBottomSheetRef = useRef(useBottomSheet);
-  useBottomSheetRef.current = useBottomSheet;
+  useLayoutEffect(() => {
+    useBottomSheetRef.current = useBottomSheet;
+  }, [useBottomSheet]);
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -710,9 +717,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
-  if (!isInputFocused) {
-    holdUsdSizeEditRef.current = false;
-  }
+  useLayoutEffect(() => {
+    if (!isInputFocused) {
+      holdUsdSizeEditRef.current = false;
+    }
+  }, [isInputFocused]);
   const [isLimitPriceFocused, setIsLimitPriceFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
@@ -1049,7 +1058,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isLoadingMarketData,
     ],
   );
-  sizePriceRef.current = effectivePrice;
+  useLayoutEffect(() => {
+    sizePriceRef.current = effectivePrice;
+  }, [effectivePrice]);
 
   // Live position size for the token-size subtitle only — cheap synchronous
   // calc, safe to recompute every drag frame off the live display amount.
@@ -1238,7 +1249,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // covers both a fresh false→true transition and a quote already loading
       // when this effect first runs (custom token pre-selected), so a
       // completing quote is never missed for lack of a recorded start.
-      payQuoteStartRef.current ??= Date.now();
+      // Explicit check: React Compiler cannot lower `??=`, which would skip
+      // this whole component.
+      if (payQuoteStartRef.current === null) {
+        payQuoteStartRef.current = Date.now();
+      }
       return;
     }
 
@@ -1308,7 +1323,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Snapshot of the abandon-order props, refreshed each render so the
   // focus-effect cleanup emits the latest form state when the user leaves.
-  latestAbandonPropsRef.current = {
+  const abandonProps = {
     [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
       PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
     [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
@@ -1320,6 +1335,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
     [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: orderForm.leverage,
   };
+  useLayoutEffect(() => {
+    latestAbandonPropsRef.current = abandonProps;
+  });
 
   // emit abandon_order on a real exit (back swipe, hardware back,
   // programmatic dismissal) AND on a genuine tab switch away, but never when a
@@ -1800,23 +1818,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
-  useEffect(() => {
-    if (!isInputFocused) {
-      // Only clamp if input was from keypad (not from percentage/slider/max)
-      // This prevents overwriting intentional user selections from other input methods
-      if (inputMethodRef.current === 'keypad') {
-        const currentAmount = parseFloat(orderForm.amount || '0');
+  // Reads the latest amount and max without re-running on them: re-clamping on
+  // every WebSocket update would overwrite the user's input.
+  const clampKeypadAmount = useEffectEvent(() => {
+    // Only clamp if input was from keypad (not from percentage/slider/max)
+    // This prevents overwriting intentional user selections from other input methods
+    if (inputMethodRef.current === 'keypad') {
+      const currentAmount = parseFloat(orderForm.amount || '0');
 
-        // If user-entered amount exceeds the max purchasable with current balance/leverage,
-        // snap it down to the maximum once input is closed.
-        if (currentAmount > maxPossibleAmount) {
-          commitAmount(String(maxPossibleAmount));
-        }
+      // If user-entered amount exceeds the max purchasable with current balance/leverage,
+      // snap it down to the maximum once input is closed.
+      if (currentAmount > maxPossibleAmount) {
+        commitAmount(String(maxPossibleAmount));
       }
     }
-    // CRITICAL: Only isInputFocused dependency prevents infinite loops
-    // Other dependencies would cause re-clamping on WebSocket updates
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    if (!isInputFocused) {
+      clampKeypadAmount();
+    }
   }, [isInputFocused]);
 
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
@@ -1853,8 +1873,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
+  // The post-deposit re-entry calls handlePlaceOrder again; a callback cannot
+  // reference itself under React Compiler, so it goes through this ref.
+  const handlePlaceOrderRef = useRef<
+    ((forceTrade?: boolean) => Promise<void>) | null
+  >(null);
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
+      // The committed handlePlaceOrder (this one), as the direct self-reference resolved to.
+      const placeOrderAgain = handlePlaceOrderRef.current;
       if (
         isSubmittingRef.current ||
         (!forceTrade && isConfirmingDepositRef.current)
@@ -1943,13 +1970,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       let submissionErrors = orderValidation.errors;
       if (orderValidation.isValidating) {
         isSubmittingRef.current = true;
-        try {
-          const validationAttempt = await validateOrderNow();
-          submissionIsValid = validationAttempt.isValid;
-          submissionErrors = validationAttempt.errors;
-        } finally {
+        // Promise `finally` instead of a `finally` block: React Compiler does
+        // not handle try/finally, which kept this whole view uncompiled.
+        const validationAttempt = await validateOrderNow().finally(() => {
           isSubmittingRef.current = false;
-        }
+        });
+        submissionIsValid = validationAttempt.isValid;
+        submissionErrors = validationAttempt.errors;
         // Only a user-initiated submit is abandoned with the sheet. The
         // post-deposit re-entry (`forceTrade`) runs by design after the user
         // has left — the deposit branch itself navigates away once the
@@ -2003,7 +2030,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(
           activeTransactionMeta,
           () => {
-            handlePlaceOrder(true).catch(
+            placeOrderAgain?.(true).catch(
               logRejection('placeOrderAfterDeposit'),
             );
           },
@@ -2015,15 +2042,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // a parallel deposit confirmation.
         isConfirmingDepositRef.current = true;
         let depositConfirmError: unknown;
-        try {
-          await onDepositConfirm({
-            onError: (error) => {
-              depositConfirmError = error;
-            },
-          });
-        } finally {
+        await onDepositConfirm({
+          onError: (error) => {
+            depositConfirmError = error;
+          },
+        }).finally(() => {
           isConfirmingDepositRef.current = false;
-        }
+        });
         if (depositConfirmError) {
           // A cancelled/failed deposit confirmation is not a commitment: keep
           // abandon tracking armed and stay on the screen so the user can retry
@@ -2090,7 +2115,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // the top of this callback for all paths; the button-color assignment is
       // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
-      try {
+      const submitOrder = async () => {
         // Check for cross-margin position (MetaMask only supports isolated margin)
         if (currentMarketPosition?.leverage?.type === 'cross') {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -2273,10 +2298,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           limitPrice: undefined,
         });
         setLimitPrice(undefined);
-      } finally {
-        // Always reset submission flag
+      };
+      // Always reset submission flag
+      await submitOrder().finally(() => {
         isSubmittingRef.current = false;
-      }
+      });
     },
     [
       isDraggingSlider,
@@ -2341,6 +2367,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       fireImpact,
     ],
   );
+  // Layout effect: a tap can never run before the committed callback is stored.
+  useLayoutEffect(() => {
+    handlePlaceOrderRef.current = handlePlaceOrder;
+  }, [handlePlaceOrder]);
 
   // Setup transaction custom amount for deposit
   // Note: This hook requires activeTransactionMeta to exist, otherwise it will crash
