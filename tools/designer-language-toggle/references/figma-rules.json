@@ -95,6 +95,7 @@
     "name": 18
   },
   "timeRangeTokens": ["1H", "1D", "1W", "1M", "3M", "1Y", "YTD", "ALL"],
-  "nameHints": ["Roster", "Player", "Matchup", "Scoreboard"],
+  "nameHintsNote": "Rename the frame so its path contains a hint, such as Feed / Market, or add a [name] tag on the layer. That marks team codes and player names. An unnamed frame is not a hint.",
+  "nameHints": ["Feed / Market", "Roster", "Player", "Matchup", "Scoreboard"],
   "fonts": {}
 }

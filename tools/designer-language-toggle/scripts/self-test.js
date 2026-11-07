@@ -1453,7 +1453,7 @@ function testReportGaps() {
   });
   assert(growReport.labels.length === 0, 'auto-height text is not a break when it can grow');
   assert(
-    growReport.layoutNotes.some((row) => /grows to 3 lines \(box currently 2\)/.test(row.detail || '')),
+    growReport.layoutNotes.some((row) => /grows from 2 to 3 lines; check container height/.test(row.detail || '')),
     'auto-height growth is a layout note',
   );
 
@@ -1584,8 +1584,135 @@ function testReportGaps() {
     sharedFlats: { en: { 'chip.balance': 'Available balance' }, de: { 'chip.balance': 'A'.repeat(40) } },
   });
   assert(chip.availableWidth === 4, 'the chip slot is 4px');
-  assert(chipReport.breaks.length === 0 && chipReport.labels.length === 0, 'a crowded English layout is not a localization break');
   assert(chipReport.layoutProblems.length === 1, 'the crowded chip is one layout problem');
+  assert(chipReport.labels.length === 1, 'a worse translation is still reported, cross-referenced');
+
+  function autoRow(id, text, parentWidth, hug) {
+    const nodes = [];
+    figma.collectTextNodes({
+      type: 'FRAME',
+      id: `${id}-fixed`,
+      name: 'Row',
+      layoutMode: 'HORIZONTAL',
+      primaryAxisSizingMode: 'FIXED',
+      layoutSizingHorizontal: 'FIXED',
+      itemSpacing: 0,
+      absoluteBoundingBox: { width: parentWidth, height: 32 },
+      children: [{
+        type: 'FRAME',
+        id: `${id}-hug`,
+        name: 'Hug',
+        layoutMode: 'HORIZONTAL',
+        layoutSizingHorizontal: 'HUG',
+        primaryAxisSizingMode: 'AUTO',
+        itemSpacing: hug.spacing,
+        absoluteBoundingBox: { width: hug.width, height: 24 },
+        children: [
+          { type: 'FRAME', id: `${id}-side`, name: 'Side', absoluteBoundingBox: { width: hug.side, height: 16 } },
+          {
+            type: 'TEXT',
+            id,
+            name: 'Label',
+            characters: text,
+            textAutoResize: 'WIDTH_AND_HEIGHT',
+            absoluteBoundingBox: { width: hug.text, height: 20 },
+          },
+        ],
+      }],
+    }, [], false, nodes);
+    return figma.resolveAvailableWidth(nodes[0]);
+  }
+  assert(autoRow('title', 'Title', 289, { spacing: 8, width: 80, side: 40, text: 40 }).availableWidth === 241, 'a title reserves the avatar and the gap inside the HUG wrapper');
+  assert(autoRow('label', 'Label', 141, { spacing: 4, width: 50, side: 16, text: 30 }).availableWidth === 121, 'a label reserves the icon and the gap inside the HUG wrapper');
+  const none = autoRow('full', 'Full', 48, { spacing: 8, width: 48, side: 40, text: 8 });
+  assert(none.unconstrained && none.reason === 'no room in English layout', 'no remaining room is not reported as a tiny width');
+
+  const borderline = classifyRecord({
+    id: 'edge',
+    key: 'edge',
+    source_text: 'Edge',
+    context: {
+      kind: 'label',
+      width_px: 27,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      component: 'Label',
+      screen: 'Card',
+      containers: [{
+        id: 'edge-row',
+        width: 26,
+        layoutMode: 'HORIZONTAL',
+        primaryAxisSizingMode: 'FIXED',
+        layoutSizingHorizontal: 'FIXED',
+        paddingLeft: 0,
+        paddingRight: 0,
+        itemSpacing: 0,
+        pathChildId: 'edge',
+        children: [{ id: 'edge', width: 27, visible: true, absolute: false }],
+      }],
+    },
+  }, limits);
+  const edgeReport = buildBreakReport([borderline], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(/borderline/.test(edgeReport.layoutProblems[0].basis), '27px against 26px is borderline');
+
+  const album = figma.classifyTextNode({
+    id: 'album',
+    layer_name: 'Title [name]',
+    frame_path: 'Feed / Market / Row',
+    text: 'Sabrina Carpenter · Album',
+    width: 180,
+    visible: true,
+  }, rules);
+  assert(album.template === '{name} · Album' && album.copyText === 'Album', 'only Album is copy next to a name');
+  assert(album.slots[0].characters === checkerCount('Sabrina Carpenter'), 'the name keeps its English length');
+  const team = figma.classifyTextNode({
+    id: 'phi',
+    layer_name: 'Code',
+    frame_path: 'Feed / Market / Teams',
+    text: 'PHI',
+    width: 32,
+    visible: true,
+  }, rules);
+  assert(team.kind === 'name', 'a path hint marks PHI as a name');
+
+  const fundsRange = buildBreakReport([
+    classifyRecord({
+      id: 'funds',
+      key: 'funds',
+      source_text: 'Add funds',
+      context: { kind: 'button', width_px: 200, fontSize: 14, textAutoResize: 'NONE', component: 'Add funds', screen: 'Wallet' },
+    }, limits),
+  ], {
+    langs: ['tr'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'a.funds': 'Add funds', 'b.funds': 'Add funds', 'c.funds': 'Add funds' },
+      tr: { 'a.funds': '12345678', 'b.funds': '12345678901', 'c.funds': '12345678901234' },
+    },
+  });
+  const trLine = fundsRange.mightBreak[0].langReasons.tr;
+  assert(/might break \(8–14 chars across 3 keys\)/.test(trLine), 'a ranged translation is not labeled fits');
+  assert(!/^fits:/.test(trLine), 'the range line does not say fits');
+
+  const rulesBody = classifyRecord({
+    id: 'rules-body',
+    key: 'rules-body',
+    source_text: 'aaaa aaaa aaaa aaaa',
+    context: {
+      kind: 'body',
+      width_px: 80,
+      height: 40,
+      lineHeightPx: 20,
+      fontSize: 16,
+      textAutoResize: 'HEIGHT',
+      component: 'Body',
+      screen: 'Rules',
+    },
+  }, limits);
+  const bodyReport = buildBreakReport([rulesBody], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(
+    bodyReport.layoutNotes.some((row) => /grows from \d+ to \d+ lines; check container height/.test(row.detail || '')),
+    'HEIGHT body text with a longer estimate gets a layout note',
+  );
 
   const collected = [];
   figma.collectTextNodes({

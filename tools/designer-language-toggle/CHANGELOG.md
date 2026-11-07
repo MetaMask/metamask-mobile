@@ -1,5 +1,7 @@
 # Changelog
 
+- Crossing a HUG wrapper now reserves that wrapper's padding, gaps, and siblings. No remaining room is "no room in English layout". A ranged translation says might break with the min–max count. HEIGHT body text notes when a translation needs more lines. Names tagged with a path hint or `[name]` are not inflated, and a crowded English layout still reports a worse translation.
+
 - A clipping HUG wrapper no longer freezes the available width; the walk stops at a FIXED ancestor. Each language line uses one verdict (guideline only, pixel only, both, or fits). The 10-character group counts characters. Plain names are not estimated. English that is already wider than its slot is a layout problem. HEIGHT growth is a layout note when nothing caps it.
 
 - Available width no longer subtracts the text's own wrapper. Hidden and absolute children take no space. The 10-character button guideline is its own group and counts characters, so 7 Japanese characters are not over 10. Measured "already over" requires a resolved width greater than 0. Names and slots keep their English length. Time-range chips are controls. The report prints every row, and auto-height growth is a note unless a cap stops it.

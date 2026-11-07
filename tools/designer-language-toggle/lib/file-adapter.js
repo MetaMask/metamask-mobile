@@ -346,7 +346,9 @@ function measurePixels(units, row, text) {
   let overflow = false;
   let note = null;
   if (mode === 'HEIGHT' && !row.maxLines && !row.clips && !capped) {
-    note = lines > currentLines ? `grows to ${lines} lines (box currently ${currentLines})` : null;
+    note = lines > currentLines
+      ? `grows from ${currentLines} to ${lines} lines; check container height`
+      : null;
   } else {
     if (row.maxLines && (lines > row.maxLines || totalPx > available * row.maxLines + 0.01)) overflow = true;
     if (singleLine && (lines > 1 || totalPx > available + 0.01)) overflow = true;

@@ -261,11 +261,24 @@ function entryOver(entry, row, useWorst) {
   return valueOver(characters, units, row, useWorst || (row.slots && row.slots.length) ? null : entry.text);
 }
 
+function round1(value) {
+  return Math.round(Number(value) * 10) / 10;
+}
+
 function assessLanguage(entry, row) {
+  const limit = row.maxCharacters || 10;
+  if (entry && entry.basis === 'range' && entry.minCharacters !== entry.maxCharacters && !entry.shortestOver) {
+    return {
+      category: 'might',
+      pixelOver: false,
+      guideline: entry.maxCharacters > limit && entry.minCharacters <= limit,
+      chars: entry.minCharacters,
+      line: `might break (${entry.minCharacters}–${entry.maxCharacters} chars across ${entry.keyCount} keys)`,
+    };
+  }
   const chars = entry && typeof entry.characters === 'number'
     ? entry.characters
     : checker.characterCount(row.source || '');
-  const limit = row.maxCharacters || 10;
   const narrow = (row.bucket === 'button' || row.bucket === 'tab')
     && !row.template
     && (row.width_px == null || row.width_px <= 120);
@@ -278,14 +291,17 @@ function assessLanguage(entry, row) {
   if (guideline && pixelOver) category = 'both';
   else if (pixelOver) category = 'pixel only';
   else if (guideline) category = 'guideline only';
-  const needed = pixel && pixel.pxPerUnit ? Math.round(units * pixel.pxPerUnit * 10) / 10 : null;
-  const source = row.pxSource || 'estimated glyph width';
+  const needed = pixel && pixel.pxPerUnit ? round1(units * pixel.pxPerUnit) : null;
+  const source = row.pxSource === 'font size × 0.5'
+    ? 'estimate: average character width, not shaped glyphs'
+    : (row.pxSource || 'estimate: average character width, not shaped glyphs');
+  const available = row.availableWidth > 0 ? round1(row.availableWidth) : null;
   const parts = [];
   parts.push(guideline ? `${chars} chars over ${limit}-char guideline` : `${chars} chars within ${limit}`);
-  if (needed != null && row.availableWidth > 0) {
+  if (needed != null && available != null) {
     parts.push(pixelOver
-      ? `${needed}px needs > ${row.availableWidth}px available (${source})`
-      : `${needed}px within ${row.availableWidth}px available (${source})`);
+      ? `${needed}px needs > ${available}px available (${source})`
+      : `${needed}px within ${available}px available (${source})`);
   }
   const label = category === 'both' || category === 'pixel only' ? `hard break (${category})` : category;
   return { category, pixelOver, guideline, chars, line: `${label}: ${parts.join('; ')}` };
@@ -293,13 +309,10 @@ function assessLanguage(entry, row) {
 
 function languageVerdict(entry, row) {
   if (!entry || entry.basis === 'estimate') return 'estimate';
-  if (entry.basis === 'range') {
-    if (entry.shortestOver) return 'break';
-    if (entry.someOver) return 'might';
-    return 'fit';
-  }
   const assessment = assessLanguage(entry, row);
-  if (assessment.pixelOver) return 'break';
+  if (assessment.category === 'might') return 'might';
+  if (assessment.pixelOver || entry.shortestOver) return 'break';
+  if (entry.basis === 'range' && entry.someOver) return 'might';
   return 'fit';
 }
 
@@ -323,20 +336,27 @@ function buildBreakReport(lengths, options) {
   const atRisk = [];
   const fits = [];
 
-  function crowded(row) {
-    return row.availableWidth > 0 && typeof row.width_px === 'number' && row.width_px > row.availableWidth + 0.5;
+  function crowdClass(row) {
+    if (!(row.availableWidth > 0) || typeof row.width_px !== 'number') return null;
+    const over = row.width_px - row.availableWidth;
+    if (over <= 0) return null;
+    const tolerance = Math.max(2, row.availableWidth * 0.05);
+    return over <= tolerance ? 'borderline' : 'problem';
+  }
+
+  function layoutBasis(row, crowd) {
+    const width = round1(row.width_px);
+    const available = round1(row.availableWidth);
+    if (crowd === 'borderline') return `borderline: English is ${width}px in a ${available}px slot`;
+    return `English is ${width}px in a ${available}px slot`;
   }
 
   function placeControl(row) {
     if (row.kind === 'name') return;
     if (row.unconstrained) return;
-    if (crowded(row)) {
-      layoutProblems.push({
-        ...row,
-        verdict: 'layout',
-        basis: `English is ${row.width_px}px in a ${row.availableWidth}px slot`,
-      });
-      return;
+    const crowd = crowdClass(row);
+    if (crowd) {
+      layoutProblems.push({ ...row, verdict: 'layout', basis: layoutBasis(row, crowd) });
     }
     const limit = row.maxCharacters || 10;
     const real = realTranslations(row.source, index, shared, langs, row, options);
@@ -413,13 +433,9 @@ function buildBreakReport(lengths, options) {
   }
 
   (lengths || []).filter((row) => row.bucket === 'text' || row.bucket === 'label' || row.bucket === 'button' || row.bucket === 'tab').forEach((row) => {
-    if (crowded(row)) {
-      layoutProblems.push({
-        ...row,
-        verdict: 'layout',
-        basis: `English is ${row.width_px}px in a ${row.availableWidth}px slot`,
-      });
-      return;
+    const crowd = crowdClass(row);
+    if (crowd) {
+      layoutProblems.push({ ...row, verdict: 'layout', basis: layoutBasis(row, crowd) });
     }
     if (row.kind === 'name') return;
     if (row.unconstrained) {
@@ -450,7 +466,8 @@ function buildBreakReport(lengths, options) {
       const entry = real && real.perLang[lang];
       const units = entry ? (entry.units || entry.characters) : estimate.units;
       if (slotBreaks(row, units)) return;
-      const found = labelIssue(units, row, entry ? entry.text : row.source);
+      const sampleText = entry && entry.text && entry.basis !== 'estimate' ? entry.text : null;
+      const found = labelIssue(units, row, sampleText);
       if (!found || found.unconstrained) return;
       if (found.issue === 'note') {
         layoutNotes.push({
@@ -532,10 +549,21 @@ function mightLanguageCount(report) {
 }
 
 function translatedTemplate(row, translation) {
-  if (!row || !row.template || !row.copyText || !translation) return null;
-  const shown = row.template.split(row.copyText).join(translation);
+  if (!row || !row.template || !translation) return null;
+  const slots = row.template.match(/\{[a-z]+\}/gi) || [];
+  let shown = row.template;
+  if (row.copyText && shown.includes(row.copyText)) {
+    shown = shown.split(row.copyText).join(translation);
+  } else if (slots.length) {
+    shown = `${translation} ${slots.join(' ')}`.trim();
+  } else {
+    shown = translation;
+  }
   const exampleSource = row.example || row.source || '';
-  const example = exampleSource.split(row.copyText).join(translation);
+  const example = row.copyText && exampleSource.includes(row.copyText)
+    ? exampleSource.split(row.copyText).join(translation)
+    : exampleSource;
+  if (slots.length && !shown.includes('{')) shown = `${shown} ${slots.join(' ')}`.trim();
   return { shown, example };
 }
 

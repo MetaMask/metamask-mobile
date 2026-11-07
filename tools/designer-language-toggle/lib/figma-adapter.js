@@ -489,9 +489,10 @@ function classifyTextNode(node, rules) {
   if (!forced && isTimeRange(text, rules)) {
     return { ...node, kind: 'button', chars: checker.characterCount(text) };
   }
-  if (!forced && isPlainName(text, frame, rules)) {
+  if (!forced && isPlainName(text, frame, rules, layer)) {
     return { ...node, kind: 'name', chars: checker.characterCount(text) };
   }
+  const mixedName = !forced ? splitMixedName(text, frame, layer, rules) : null;
   if (!forced && isOnlyPlaceholder(text, split)) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
@@ -516,6 +517,20 @@ function classifyTextNode(node, rules) {
   } else if (checker.characterCount(text) > 25) {
     kind = 'body';
   }
+  if (mixedName) {
+    return {
+      ...node,
+      kind,
+      chars: checker.characterCount(text),
+      template: mixedName.template,
+      example: mixedName.example,
+      copyText: mixedName.copyText,
+      dataCharacters: mixedName.dataCharacters,
+      gapCharacters: mixedName.gapCharacters,
+      slots: mixedName.slots,
+      slotMaxLengths: rules.slotMaxLengths || DEFAULT_RULES.slotMaxLengths,
+    };
+  }
   const mixed = split.tokens.length > 0;
   return {
     ...node,
@@ -534,21 +549,45 @@ function classifyTextNode(node, rules) {
   };
 }
 
-function isPlainName(text, frame, rules) {
-  const hints = rules.nameHints || [];
-  const blob = String(frame || '').toLowerCase();
-  if (!hints.some((hint) => blob.includes(String(hint).toLowerCase()))) return false;
+function nameContext(frame, layer, rules) {
+  const blob = `${frame || ''} ${layer || ''}`;
+  if (/\[name\]/i.test(blob)) return true;
+  return (rules.nameHints || []).some((hint) => blob.toLowerCase().includes(String(hint).toLowerCase()));
+}
+
+function isNameToken(token) {
+  return /^\p{Lu}[\p{Ll}'’.-]*$/u.test(token)
+    || /^\p{Lu}\.$/u.test(token)
+    || /^[A-Z]{1,4}$/.test(token);
+}
+
+function isPlainName(text, frame, rules, layer) {
+  if (!nameContext(frame, layer, rules)) return false;
   const trimmed = String(text || '').trim();
   if (!trimmed) return false;
   if (rules.shippedWords && (rules.shippedWords.has(trimmed) || rules.shippedWords.has(trimmed.toLowerCase()))) {
     return false;
   }
   const tokens = trimmed.split(/\s+/);
-  return tokens.length > 0 && tokens.every((token) => (
-    /^\p{Lu}[\p{Ll}'’.-]*$/u.test(token)
-    || /^\p{Lu}\.$/u.test(token)
-    || /^[A-Z]{1,4}$/.test(token)
-  ));
+  return tokens.length > 0 && tokens.every((token) => isNameToken(token));
+}
+
+function splitMixedName(text, frame, layer, rules) {
+  if (!nameContext(frame, layer, rules)) return null;
+  const parts = String(text || '').split(/\s*·\s*/);
+  if (parts.length < 2) return null;
+  const name = parts[0].trim();
+  const copy = parts.slice(1).join(' · ').trim();
+  if (!name || !copy) return null;
+  if (!name.split(/\s+/).every((token) => isNameToken(token))) return null;
+  return {
+    template: `{name} · ${copy}`,
+    copyText: copy,
+    example: String(text),
+    slots: [{ name: 'name', characters: checker.characterCount(name) }],
+    dataCharacters: checker.characterCount(name),
+    gapCharacters: checker.characterCount(String(text)) - checker.characterCount(name) - checker.characterCount(copy),
+  };
 }
 
 function isTimeRange(text, rules) {
@@ -615,6 +654,26 @@ function availableFromParent(parent) {
   return inner;
 }
 
+function levelReservation(parent) {
+  const pad = (parent.paddingLeft || 0) + (parent.paddingRight || 0);
+  const visible = visibleChildren(parent);
+  if (parent.layoutMode !== 'HORIZONTAL') return pad;
+  const others = visible.filter((child) => child.id !== parent.pathChildId);
+  const siblingWidth = others.reduce((sum, child) => sum + (child.width || 0), 0);
+  const gaps = (parent.itemSpacing || 0) * Math.max(visible.length - 1, 0);
+  return pad + siblingWidth + gaps;
+}
+
+function noRoom(clips) {
+  return {
+    availableWidth: null,
+    unconstrained: true,
+    pixelBasis: 'estimate',
+    clips,
+    reason: 'no room in English layout',
+  };
+}
+
 function resolveAvailableWidth(record) {
   const mode = String(record.textAutoResize || '').toUpperCase();
   const clips = (record.containers || []).some((parent) => parent.clipsContent && !hugsWidth(parent));
@@ -622,29 +681,22 @@ function resolveAvailableWidth(record) {
     if (typeof record.width === 'number' && record.width > 0) {
       return { availableWidth: record.width, unconstrained: false, pixelBasis: 'measured', clips };
     }
-    return {
-      availableWidth: null,
-      unconstrained: true,
-      pixelBasis: 'estimate',
-      clips,
-      reason: 'available width is 0 or unresolved',
-    };
+    return noRoom(clips);
   }
   const containers = record.containers || [];
+  let reserved = 0;
   for (let index = containers.length - 1; index >= 0; index -= 1) {
     const parent = containers[index];
-    if (!stopsWalk(parent)) continue;
-    const available = availableFromParent(parent);
-    if (typeof available === 'number' && available > 0) {
-      return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips };
+    if (hugsWidth(parent)) {
+      reserved += levelReservation(parent);
+      continue;
     }
-    return {
-      availableWidth: null,
-      unconstrained: true,
-      pixelBasis: 'estimate',
-      clips,
-      reason: 'available width is 0 or unresolved',
-    };
+    if (!stopsWalk(parent)) continue;
+    const base = availableFromParent(parent);
+    if (typeof base !== 'number') return noRoom(clips);
+    const available = base - reserved;
+    if (!(available > 0)) return noRoom(clips);
+    return { availableWidth: available, unconstrained: false, pixelBasis: 'measured', clips };
   }
   return {
     availableWidth: null,
