@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -37,6 +37,31 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
 jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
   useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
 }));
+
+interface BalanceTextNode {
+  children?: (string | BalanceTextNode)[];
+  props?: { style?: StyleProp<ViewStyle> };
+}
+
+/**
+ * The balance reel keeps every digit cell mounted and clips them. Text queries
+ * concatenate that wheel, so the placeholder check reads the visible glyphs.
+ */
+const visibleBalanceText = (node: BalanceTextNode): string =>
+  (node.children ?? [])
+    .map((child) => {
+      if (typeof child === 'string') {
+        return child;
+      }
+
+      const style = StyleSheet.flatten(child.props?.style);
+      if (style?.position === 'absolute') {
+        return '';
+      }
+
+      return visibleBalanceText(child);
+    })
+    .join('');
 
 jest.mock('./useAccountGroupBalanceFetchState', () => ({
   useAccountGroupBalanceFetchState: jest.fn(() => false),
@@ -156,8 +181,10 @@ describe('AccountGroupBalance', () => {
     expect(style.marginBottom).toBe(10);
     expect(style.marginTop).toBeUndefined();
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('$0.00');
+      visibleBalanceText(
+        getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      ),
+    ).toBe('$0.00');
   });
 
   it('uses the selected currency for the loading balance placeholder', () => {
@@ -168,8 +195,10 @@ describe('AccountGroupBalance', () => {
     });
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('0.00 EUR');
+      visibleBalanceText(
+        getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      ),
+    ).toBe('0.00 EUR');
   });
 
   it('renders formatted balance when balance data is fetched', () => {
