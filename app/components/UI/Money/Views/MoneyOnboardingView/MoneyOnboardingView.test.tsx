@@ -22,7 +22,7 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
@@ -106,7 +106,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
   default: () => mockApy,
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 

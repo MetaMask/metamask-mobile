@@ -44,10 +44,8 @@ import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
-import {
-  useMoneyNavigation,
-  useMoneyDepositNavigation,
-} from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
@@ -261,7 +259,7 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const isMoneyOnboardingRedirectNeeded =

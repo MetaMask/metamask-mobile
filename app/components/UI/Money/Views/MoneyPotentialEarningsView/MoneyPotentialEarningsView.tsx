@@ -33,7 +33,7 @@ import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/P
 import { isPositiveNumber } from '../../utils/number';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
