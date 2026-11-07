@@ -187,4 +187,37 @@ describe('PerpsOrderDetailsView', () => {
       await screen.findByText(strings('perps.errors.order_not_found')),
     ).toBeOnTheScreen();
   });
+  describe('watch-only account', () => {
+    const { keyrings } = Engine.context.KeyringController.state;
+
+    beforeEach(() => {
+      keyrings.push({
+        type: 'watch-only',
+        accounts: ['0x0000000000000000000000000000000000000001'],
+        metadata: { id: 'watch-only', name: '' },
+      });
+    });
+
+    afterEach(() => {
+      keyrings.pop();
+    });
+
+    it('refuses cancel with the watch-only message and sends no request', async () => {
+      renderPerpsOrderDetailsView({ includeToasts: true });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+      );
+
+      expect(strings('watch_only.blocked_message')).not.toMatch(
+        /\[missing ".*" translation\]/,
+      );
+      expect(
+        await screen.findByText(strings('watch_only.blocked_message')),
+      ).toBeOnTheScreen();
+      expect(Engine.context.PerpsController.cancelOrder).not.toHaveBeenCalled();
+    });
+  });
 });

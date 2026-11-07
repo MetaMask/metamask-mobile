@@ -598,4 +598,67 @@ describe('PerpsClosePositionView', () => {
       expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
     },
   );
+
+  describe('watch-only account', () => {
+    const { keyrings } = Engine.context.KeyringController.state;
+
+    afterEach(() => {
+      keyrings.splice(0, keyrings.length);
+    });
+
+    it('keeps the watch-only refusal when the account turns watch-only while the form is open', async () => {
+      const closePosition = Engine.context.PerpsController
+        .closePosition as jest.Mock;
+      const position = createLongPositionForViews();
+      const { stream } = renderPerpsClosePositionView({
+        includeToasts: true,
+        initialParams: { position },
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [position],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+      act(() => {
+        stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(() => {
+        expect(confirmButton).not.toBeDisabled();
+      });
+
+      // The selected account becomes watch-only after the form opened.
+      keyrings.push({
+        type: 'watch-only',
+        accounts: ['0x0000000000000000000000000000000000000001'],
+        metadata: { id: 'watch-only', name: '' },
+      });
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      const blockedMessage = strings('watch_only.blocked_message');
+      expect(blockedMessage).not.toMatch(/\[missing ".*" translation\]/);
+      expect(
+        await screen.findByText(blockedMessage, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.close_position.failed_to_close_position'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(closePosition).not.toHaveBeenCalled();
+    });
+  });
 });

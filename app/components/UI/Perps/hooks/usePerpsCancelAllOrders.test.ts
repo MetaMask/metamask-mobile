@@ -4,6 +4,11 @@ import { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 import Engine from '../../../../core/Engine';
 import { type Order } from '@metamask/perps-controller';
 
+// Watch-only refusal is covered by the component-view tests.
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: () => false }),
+}));
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({

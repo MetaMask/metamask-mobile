@@ -12,6 +12,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: mockGuardWatchOnly }),
+}));
+
 describe('useSendNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,6 +38,18 @@ describe('useSendNavigation', () => {
       });
 
       expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
+    });
+
+    it('does not open send when the selected account is watch-only', () => {
+      mockGuardWatchOnly.mockReturnValueOnce(true);
+      const { result } = renderHookWithProvider(() => useSendNavigation());
+
+      result.current.navigateToSendPage({
+        location: InitSendLocation.AssetOverview,
+        asset: { name: 'ETHEREUM' } as AssetType,
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
