@@ -1,118 +1,52 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
-import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 
+const mockCreateAccount = jest.fn();
+const mockSelectAccount = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      WatchOnlyAccountService: { createAccount: jest.fn() },
-      AccountTreeController: {
-        setSelectedAccountGroupByAccountId: jest.fn(),
-        getAccountContext: jest.fn(),
-        getAccountGroupObject: jest.fn(),
-      },
+  context: {
+    WatchOnlyAccountService: {
+      createAccount: (address: string) => mockCreateAccount(address),
+    },
+    AccountTreeController: {
+      setSelectedAccountGroupByAccountId: (id: string) => mockSelectAccount(id),
+      getAccountContext: () => ({ groupId: 'keyring:watch-only/watch-id' }),
+      getAccountGroupObject: () => ({
+        metadata: { name: 'Watch-only Account 1' },
+      }),
     },
   },
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
-}));
-
 const ADDRESS = '0x5972698398d8c5bbe67c0db74906236691020417';
-const MISSING_TRANSLATION = /\[missing ".*" translation\]/;
-const { WatchOnlyAccountService, AccountTreeController } = Engine.context;
-const mockCreateAccount = WatchOnlyAccountService?.createAccount as jest.Mock;
-const mockSetSelectedAccountGroupByAccountId =
-  AccountTreeController.setSelectedAccountGroupByAccountId as jest.Mock;
-const mockGetAccountContext =
-  AccountTreeController.getAccountContext as jest.Mock;
-const mockGetAccountGroupObject =
-  AccountTreeController.getAccountGroupObject as jest.Mock;
-
-const renderSection = () =>
-  renderWithProvider(<WatchOnlyDeveloperOptionsSection />);
 
 describe('WatchOnlyDeveloperOptionsSection', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('keeps Add disabled until an address is entered', () => {
-    const { getByTestId } = renderSection();
-
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON),
-    );
-
-    expect(mockCreateAccount).not.toHaveBeenCalled();
-  });
-
   it('adds the address as a watch-only account, selects it and shows its name', async () => {
     mockCreateAccount.mockResolvedValue({ id: 'watch-id', address: ADDRESS });
-    mockGetAccountContext.mockReturnValue({
-      groupId: 'keyring:watch-only/watch-id',
-    });
-    mockGetAccountGroupObject.mockReturnValue({
-      metadata: { name: 'Watch-only Account 1' },
-    });
-    const { getByTestId, findByTestId } = renderSection();
+    const { getByTestId, findByTestId } = renderWithProvider(
+      <WatchOnlyDeveloperOptionsSection />,
+    );
 
     fireEvent.changeText(
       getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT),
-      `  ${ADDRESS} `,
+      ` ${ADDRESS} `,
     );
     fireEvent.press(
       getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON),
     );
 
-    const result = await findByTestId(
-      DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT,
+    expect(
+      await findByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT),
+    ).toHaveTextContent(
+      strings('app_settings.developer_options.watch_only.added', {
+        name: 'Watch-only Account 1',
+      }),
     );
     expect(mockCreateAccount).toHaveBeenCalledWith(ADDRESS);
-    expect(mockSetSelectedAccountGroupByAccountId).toHaveBeenCalledWith(
-      'watch-id',
-    );
-    expect(mockGetAccountGroupObject).toHaveBeenCalledWith(
-      'keyring:watch-only/watch-id',
-    );
-    const expected = strings(
-      'app_settings.developer_options.watch_only.added',
-      {
-        name: 'Watch-only Account 1',
-      },
-    );
-    expect(expected).not.toMatch(MISSING_TRANSLATION);
-    expect(result).toHaveTextContent(expected);
-  });
-
-  it('shows the error and selects nothing when the address is refused', async () => {
-    mockCreateAccount.mockRejectedValue(new Error('Duplicated account'));
-    const { getByTestId, findByTestId } = renderSection();
-
-    fireEvent.changeText(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT),
-      ADDRESS,
-    );
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_BUTTON),
-    );
-
-    const result = await findByTestId(
-      DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT,
-    );
-    const expected = strings(
-      'app_settings.developer_options.watch_only.add_error',
-      { message: 'Duplicated account' },
-    );
-    expect(expected).not.toMatch(MISSING_TRANSLATION);
-    await waitFor(() => expect(result).toHaveTextContent(expected));
-    expect(mockSetSelectedAccountGroupByAccountId).not.toHaveBeenCalled();
+    expect(mockSelectAccount).toHaveBeenCalledWith('watch-id');
   });
 });

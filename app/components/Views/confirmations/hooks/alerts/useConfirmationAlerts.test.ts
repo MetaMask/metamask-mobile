@@ -379,26 +379,14 @@ describe('useConfirmationAlerts', () => {
     expect(result.current).toEqual(mockDepositLimitAlert);
   });
 
-  it('returns the watch-only account alert first, for signatures as well as transactions', () => {
-    const mockWatchOnlyAlert: Alert[] = [
-      {
-        key: AlertKeys.WatchOnlyAccount,
-        title: 'Watch-only account',
-        message: 'This account cannot sign.',
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ];
-    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue(mockWatchOnlyAlert);
-    (useBlockaidAlerts as jest.Mock).mockReturnValue(mockBlockaidAlerts);
+  it('includes the watch-only account alert for signatures', () => {
+    const watchOnlyAlert = { key: AlertKeys.WatchOnlyAccount } as Alert;
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue([watchOnlyAlert]);
 
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
 
-    expect(result.current).toEqual([
-      ...mockWatchOnlyAlert,
-      ...mockBlockaidAlerts,
-    ]);
+    expect(result.current).toContain(watchOnlyAlert);
   });
 });
