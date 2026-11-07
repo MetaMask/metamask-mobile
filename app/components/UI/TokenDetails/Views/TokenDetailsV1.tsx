@@ -166,13 +166,13 @@ const TokenDetailsV1TabPlaceholder = ({
 );
 
 /**
- * Room kept at the end of the page for the sticky footer.
+ * Fallback until the sticky footer reports its height.
  *
  * The footer is a design-system `BottomSheetDialog`, positioned `absolute
- * inset-0` rather than laid out, so it covers the end of the scroll instead
- * of shortening it. Without this the last screenful of a tab sits under the
- * footer, and a short tab -- a token with a handful of holders -- has no
- * scroll range to lift it clear, so the page reads as unscrollable.
+ * bottom-0` rather than laid out, so it covers the end of the scroll instead
+ * of shortening it. The page scroll keeps exactly that measured height at the
+ * end: less and the last of a tab sits under the footer, more and the page
+ * scrolls into empty space past it.
  */
 const STICKY_FOOTER_RESERVED_HEIGHT = 190;
 
@@ -483,6 +483,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // as the clamp asks.
   const [viewportHeight, setViewportHeight] = useState(0);
   const [tabBarHeight, setTabBarHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback((height: number) => {
+    setFooterHeight((current) => (current === height ? current : height));
+  }, []);
+  // Match the page scroll to the footer that actually covers it. Until the
+  // first layout, keep the fallback so the last rows are not hidden.
+  const footerInset =
+    footerHeight > 0 ? footerHeight : STICKY_FOOTER_RESERVED_HEIGHT;
   const { onLayout: onPageScrollLayout } = pageScroll;
   const handleScrollViewLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -501,12 +509,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     [handleTabBarLayout, onTabBarOffsetY],
   );
   const tabContentStyle = useMemo(() => {
-    const minHeight =
-      viewportHeight - tabBarHeight - STICKY_FOOTER_RESERVED_HEIGHT;
+    const minHeight = viewportHeight - tabBarHeight - footerInset;
     return {
       minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
     };
-  }, [viewportHeight, tabBarHeight]);
+  }, [footerInset, viewportHeight, tabBarHeight]);
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
@@ -608,36 +615,23 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
   }, []);
   const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
-  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
-  const handleBalanceFooterLayout = useCallback((height: number) => {
-    setBalanceFooterHeight((current) =>
-      current === height ? current : height,
-    );
-  }, []);
-  const emptyFeedBottomPadding = hasBalanceValue
-    ? balanceFooterHeight + 48
-    : 48;
+  const emptyFeedBottomPadding = hasBalanceValue ? footerHeight + 48 : 48;
+  const scrollPaddingBottom = isEmptyFeed
+    ? emptyFeedBottomPadding
+    : footerInset;
   const scrollContentStyle = useMemo(() => {
     if (!isGlassHeader) {
-      return isEmptyFeed
-        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
-        : styles.scrollContent;
+      return [styles.scrollContent, { paddingBottom: scrollPaddingBottom }];
     }
 
     return [
       styles.scrollContent,
       {
         paddingTop: headerInset,
-        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
+        paddingBottom: scrollPaddingBottom,
       },
     ];
-  }, [
-    emptyFeedBottomPadding,
-    headerInset,
-    isGlassHeader,
-    isEmptyFeed,
-    styles.scrollContent,
-  ]);
+  }, [headerInset, isGlassHeader, scrollPaddingBottom, styles.scrollContent]);
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
@@ -789,8 +783,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleOpenContractSecurity,
       showSocialTabs,
       hasBalanceValue,
-      handleFeedEmptyChange,
       handleFeedCopyTrade,
+      handleFeedEmptyChange,
     ],
   );
 
@@ -986,10 +980,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
-          // Measured on the first layout. Attaching this only after the feed
-          // is known empty misses that layout, leaves the height at 0, and the
-          // create-post button stays under the position bar.
-          onFooterLayout={handleBalanceFooterLayout}
+          onFooterLayout={handleFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
