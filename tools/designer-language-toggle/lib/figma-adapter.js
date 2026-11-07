@@ -28,6 +28,7 @@ const DEFAULT_RULES = {
     '\\bTeam A\\b',
     '\\bTeam B\\b',
     '\\bPlayer\\s*\\d+\\b',
+    '\\bPlayer\\s+[A-Z]\\b',
     '\\bPlayer N\\b',
     '\\bHeading Sm\\b',
     '^Title$',
@@ -63,7 +64,6 @@ const DEFAULT_RULES = {
     '%',
     '\\d+\\.\\d+',
     '^[OU] \\d',
-    '\\d+\\+\\s*(?:points|goals)\\b',
     '\\d+\\s*[\\-\\u2013]\\s*\\d+',
     '^\\d+$',
     "\\d+'",
@@ -77,6 +77,13 @@ const DEFAULT_RULES = {
   buttonMaxCharacters: 10,
   chunkAfterChildren: 8,
   chunkSize: 5,
+  slotMaxLengths: {
+    price: 9,
+    pct: 4,
+    num: 6,
+    range: 5,
+    name: 18,
+  },
   contextHints: {
     predict: ['predict', 'kalshi'],
     perps: ['perps', 'perpetual'],
@@ -87,7 +94,7 @@ const DEFAULT_RULES = {
     { name: 'num', pattern: '\\b\\d[\\d,]*(?:\\.\\d+)?[kKmMbB]\\b' },
     { name: 'pct', pattern: '\\d[\\d,]*(?:\\.\\d+)?\\s?%' },
     { name: 'mult', pattern: '\\b\\d+(?:\\.\\d+)?x\\b' },
-    { name: 'points', pattern: '\\b\\d+\\+\\s*(?:points|goals)\\b' },
+    { name: 'num', pattern: '\\b\\d+(?=\\+\\s*(?:points|goals)\\b)' },
     { name: 'ou', pattern: '\\b[OU]\\s+\\d+(?:\\.\\d+)?\\b' },
     { name: 'range', pattern: '\\b\\d+\\s*[-\\u2013]\\s*\\d+\\b' },
     { name: 'clock', pattern: '\\b\\d{1,2}:\\d{2}\\b' },
@@ -329,7 +336,7 @@ function promoteFixedSlots(source, split, rules) {
     const end = start + word.length;
     const overlaps = split.tokens.some((token) => start < token.end && end > token.start);
     const code = /^[A-Z]{2,4}$/.test(word) && !DATA_GLUE.has(word.toLowerCase());
-    const proper = /^\p{Lu}\p{Ll}{2,}$/u.test(word);
+    const proper = /^\p{Lu}\p{Ll}{2,}$/u.test(word) || /^\p{Lu}[\p{L}\p{N}]*\p{Lu}/u.test(word);
     const known = rules && rules.shippedWords;
     const shipped = known ? wordShips(word, rules) : false;
     const unmatchedProper = proper && known && !shipped;
@@ -339,7 +346,7 @@ function promoteFixedSlots(source, split, rules) {
     match = wordPattern.exec(source);
   }
   if (extra.length === 0) return split;
-  const taken = split.tokens.concat(extra);
+  const taken = mergeAdjacentNames(source, split.tokens.concat(extra));
   taken.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
   const kept = [];
   taken.forEach((hit) => {
@@ -347,6 +354,23 @@ function promoteFixedSlots(source, split, rules) {
     kept.push(hit);
   });
   return finishSplit(source, kept);
+}
+
+function mergeAdjacentNames(source, tokens) {
+  const names = tokens.filter((token) => token.name === 'name').sort((a, b) => a.start - b.start);
+  const others = tokens.filter((token) => token.name !== 'name');
+  const merged = [];
+  names.forEach((token) => {
+    const previous = merged[merged.length - 1];
+    const between = previous ? source.slice(previous.end, token.start) : null;
+    if (previous && /^\s+$/.test(between)) {
+      previous.end = token.end;
+      previous.value = source.slice(previous.start, previous.end);
+      return;
+    }
+    merged.push({ ...token });
+  });
+  return others.concat(merged);
 }
 
 function matchesEntireText(value, patterns) {
@@ -489,13 +513,93 @@ function classifyTextNode(node, rules) {
     copyText: mixed ? split.copyText : '',
     dataCharacters: mixed ? split.dataCharacters : 0,
     gapCharacters: mixed ? split.gapCharacters : 0,
+    slots: mixed ? split.tokens.map((token) => ({
+      name: token.name,
+      characters: checker.characterCount(token.value),
+    })) : [],
+    slotMaxLengths: rules.slotMaxLengths || DEFAULT_RULES.slotMaxLengths,
   };
 }
 
-function collectTextNodes(node, ancestors, ancestorHidden, out) {
+function layoutSnapshot(node) {
+  const box = node.absoluteBoundingBox || {};
+  return {
+    id: node.id || '',
+    width: typeof box.width === 'number' ? box.width : null,
+    layoutMode: node.layoutMode || null,
+    paddingLeft: node.paddingLeft || 0,
+    paddingRight: node.paddingRight || 0,
+    itemSpacing: node.itemSpacing || 0,
+    primaryAxisSizingMode: node.primaryAxisSizingMode || null,
+    counterAxisSizingMode: node.counterAxisSizingMode || null,
+    layoutSizingHorizontal: node.layoutSizingHorizontal || null,
+    children: (node.children || []).map((child) => ({
+      id: child.id || '',
+      width: child.absoluteBoundingBox && typeof child.absoluteBoundingBox.width === 'number'
+        ? child.absoluteBoundingBox.width
+        : null,
+    })),
+  };
+}
+
+function parentHugsWidth(parent) {
+  if (parent.layoutSizingHorizontal === 'HUG') return true;
+  if (parent.layoutSizingHorizontal === 'FIXED' || parent.layoutSizingHorizontal === 'FILL') return false;
+  if (parent.layoutMode === 'HORIZONTAL' && parent.primaryAxisSizingMode === 'AUTO') return true;
+  if (parent.layoutMode === 'VERTICAL' && parent.counterAxisSizingMode === 'AUTO') return true;
+  return false;
+}
+
+function availableFromParent(parent, textId) {
+  const pad = (parent.paddingLeft || 0) + (parent.paddingRight || 0);
+  if (typeof parent.width !== 'number') return null;
+  if (parent.layoutMode === 'HORIZONTAL') {
+    const siblings = (parent.children || []).filter((child) => child.id !== textId);
+    const siblingWidth = siblings.reduce((sum, child) => sum + (child.width || 0), 0);
+    const gaps = (parent.itemSpacing || 0) * Math.max((parent.children || []).length - 1, 0);
+    return parent.width - pad - siblingWidth - gaps;
+  }
+  if (parent.layoutMode === 'VERTICAL' || parent.layoutSizingHorizontal === 'FIXED') {
+    return parent.width - pad;
+  }
+  if (!parent.layoutMode && parent.layoutSizingHorizontal === 'FIXED') return parent.width - pad;
+  return null;
+}
+
+function resolveAvailableWidth(record) {
+  const mode = String(record.textAutoResize || '').toUpperCase();
+  if (mode !== 'WIDTH_AND_HEIGHT') {
+    return {
+      availableWidth: record.width,
+      unconstrained: false,
+      pixelBasis: 'measured',
+    };
+  }
+  const containers = record.containers || [];
+  for (let index = containers.length - 1; index >= 0; index -= 1) {
+    const parent = containers[index];
+    if (parentHugsWidth(parent)) continue;
+    const available = availableFromParent(parent, record.id);
+    if (typeof available === 'number') {
+      return {
+        availableWidth: Math.max(0, available),
+        unconstrained: false,
+        pixelBasis: 'measured',
+      };
+    }
+  }
+  return {
+    availableWidth: null,
+    unconstrained: true,
+    pixelBasis: 'estimate',
+  };
+}
+
+function collectTextNodes(node, ancestors, ancestorHidden, out, layouts) {
   if (!node || typeof node !== 'object') return;
   const name = node.name || '';
   const hidden = ancestorHidden || node.visible === false;
+  const chain = layouts || [];
   if (node.type === 'TEXT') {
     const box = node.absoluteBoundingBox || {};
     const style = node.style || {};
@@ -514,12 +618,14 @@ function collectTextNodes(node, ancestors, ancestorHidden, out) {
       maxLines: typeof style.maxLines === 'number'
         ? style.maxLines
         : (typeof node.maxLines === 'number' ? node.maxLines : null),
+      containers: chain,
       visible: !hidden,
     });
     return;
   }
   const nextAncestors = name ? [...ancestors, name] : ancestors;
-  (node.children || []).forEach((child) => collectTextNodes(child, nextAncestors, hidden, out));
+  const nextLayouts = [...chain, layoutSnapshot(node)];
+  (node.children || []).forEach((child) => collectTextNodes(child, nextAncestors, hidden, out, nextLayouts));
 }
 
 function nodeDocument(payload, nodeId) {
@@ -604,6 +710,7 @@ function loadRules(filePath) {
     title: { ...DEFAULT_RULES.title, ...(parsed.title || {}) },
     navTitle: { ...DEFAULT_RULES.navTitle, ...(parsed.navTitle || {}) },
     contextHints: { ...DEFAULT_RULES.contextHints, ...(parsed.contextHints || {}) },
+    slotMaxLengths: { ...DEFAULT_RULES.slotMaxLengths, ...(parsed.slotMaxLengths || {}) },
   };
 }
 
@@ -615,6 +722,7 @@ module.exports = {
   hasPrivateUseGlyph,
   classifyTextNode,
   splitCopyAndData,
+  resolveAvailableWidth,
   collectTextNodes,
   loadTextNodes,
   cachePath,

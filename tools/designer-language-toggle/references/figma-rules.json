@@ -20,6 +20,7 @@
     "\\bTeam A\\b",
     "\\bTeam B\\b",
     "\\bPlayer\\s*\\d+\\b",
+    "\\bPlayer\\s+[A-Z]\\b",
     "\\bPlayer N\\b",
     "\\bHeading Sm\\b",
     "^Title$",
@@ -55,7 +56,6 @@
     "%",
     "\\d+\\.\\d+",
     "^[OU] \\d",
-    "\\d+\\+\\s*(?:points|goals)\\b",
     "\\d+\\s*[\\-\\u2013]\\s*\\d+",
     "^\\d+$",
     "\\d+'",
@@ -76,10 +76,9 @@
   "dataTokens": [
     { "name": "name", "pattern": "<[^>\\n]+>" },
     { "name": "price", "pattern": "\\$\\s?\\d[\\d,]*(?:\\.\\d+)?\\s?[kKmMbB]?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢" },
-    { "name": "num", "pattern": "\\b\\d[\\d,]*(?:\\.\\d+)?[kKmMbB]\\b" },
+    { "name": "num", "pattern": "\\b\\d[\\d,]*(?:\\.\\d+)?[kKmMbB]\\b|\\b\\d+(?=\\+\\s*(?:points|goals)\\b)" },
     { "name": "pct", "pattern": "\\d[\\d,]*(?:\\.\\d+)?\\s?%" },
     { "name": "mult", "pattern": "\\b\\d+(?:\\.\\d+)?x\\b" },
-    { "name": "points", "pattern": "\\b\\d+\\+\\s*(?:points|goals)\\b" },
     { "name": "ou", "pattern": "\\b[OU]\\s+\\d+(?:\\.\\d+)?\\b" },
     { "name": "range", "pattern": "\\b\\d+\\s*[-\\u2013]\\s*\\d+\\b" },
     { "name": "clock", "pattern": "\\b\\d{1,2}:\\d{2}\\b" },
@@ -87,5 +86,12 @@
     { "name": "minutes", "pattern": "\\b\\d+'" },
     { "name": "odds", "pattern": "(?<![\\p{L}\\p{N}])[+\\-]\\d{2,4}\\b" },
     { "name": "decimal", "pattern": "\\b\\d+\\.\\d+\\b" }
-  ]
+  ],
+  "slotMaxLengths": {
+    "price": 9,
+    "pct": 4,
+    "num": 6,
+    "range": 5,
+    "name": 18
+  }
 }

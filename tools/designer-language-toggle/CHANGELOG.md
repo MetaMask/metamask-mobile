@@ -1,5 +1,8 @@
 # Changelog
 
+- Width checks use pixels. The per-character width comes from the font size or from auto-width text, and the available width comes from the box or from the nearest auto-layout parent that does not hug its content. A 20px box and a 2000px box no longer share one budget. Unconstrained auto-width text is "Check visually". Slot lengths are also checked at the maximums in `slotMaxLengths`.
+- `30+ points` keeps the words `{num}+ points`. Adjacent names such as `First Last 27%` are one `{name}` slot. `Player A` is a placeholder. Deduping no longer mixes one occurrence's width with another's height.
+
 - A hard break is decided per language. One language over the limit puts the string in "Breaks with real translations" even when another language fits. "Might break" is only a language whose own candidates straddle the limit.
 - Copy words keep their spaces. Compact numbers, unmatched proper names, team codes, and scoreboard tokens become slots, and a slotted control uses the width budget. `Team A` inside a longer string becomes `{name}` instead of dropping the whole string. The same text in two kinds stays two rows. Titles and body copy use the text overflow group, and HEIGHT text reports how many extra lines it needs.
 

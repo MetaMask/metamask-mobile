@@ -3,6 +3,7 @@
  * Real translations come from the repo flats. Estimates are labeled.
  */
 const checker = require('./checker');
+const { measurePixels } = require('./file-adapter');
 
 function indexEnglish(enFlat) {
   const index = new Map();
@@ -89,9 +90,17 @@ function estimateSize(row, ratio) {
 }
 
 function valueOver(characters, units, row) {
-  if (typeof row.maxUnits === 'number') return units > row.maxUnits;
-  const limit = row.maxCharacters || 10;
-  return characters > limit;
+  const narrow = (row.bucket === 'button' || row.bucket === 'tab')
+    && !row.template
+    && (row.width_px == null || row.width_px <= 120);
+  if (narrow && characters > (row.maxCharacters || 10)) return true;
+  const pixel = pixelResult(units, row);
+  if (pixel && pixel.unconstrained) return false;
+  if (pixel && pixel.overflow) return true;
+  if (!pixel && row.maxCharacters && (row.bucket === 'button' || row.bucket === 'tab')) {
+    return characters > row.maxCharacters;
+  }
+  return false;
 }
 
 function realTranslations(source, index, sharedFlats, langs, row, options) {
@@ -175,31 +184,57 @@ function realTranslations(source, index, sharedFlats, langs, row, options) {
   };
 }
 
+function pixelResult(units, row) {
+  return measurePixels(units, row);
+}
+
 function textOverLimit(text, row) {
-  if (typeof row.maxUnits === 'number') return checker.displayWidth(text) > row.maxUnits;
-  const limit = row.maxCharacters || 10;
-  return checker.characterCount(text) > limit;
+  const units = checker.displayWidth(text);
+  const pixel = pixelResult(units, row);
+  if (pixel && pixel.overflow) return true;
+  const narrow = (row.bucket === 'button' || row.bucket === 'tab') && !row.template && (row.width_px == null || row.width_px <= 120);
+  if (narrow) return checker.characterCount(text) > (row.maxCharacters || 10);
+  if (!pixel && row.maxCharacters) return checker.characterCount(text) > row.maxCharacters;
+  return false;
 }
 
 function labelIssue(units, row) {
-  if (typeof row.maxUnits !== 'number' && row.maxCharacters == null) return null;
+  const pixel = pixelResult(units, row);
+  if (!pixel) return null;
+  if (pixel.unconstrained) return { issue: 'check', detail: null, basis: pixel.basis, unconstrained: true };
+  if (!pixel.overflow) return null;
   const boxLines = Math.max(row.lineCount || row.maxLines || 1, 1);
-  if (row.layout === 'wrap') {
-    const perLine = Math.max(row.widthHint || 1, 1);
-    let linesNeeded = Math.ceil(units / perLine);
-    if (typeof row.maxUnits === 'number' && units <= row.maxUnits) {
-      linesNeeded = Math.min(linesNeeded, 1);
-    }
-    if (linesNeeded > boxLines) {
-      return {
-        issue: 'wrap',
-        detail: `wraps to ${linesNeeded} lines, box fits ${boxLines}`,
-      };
-    }
-    return null;
+  if (row.layout === 'wrap' && pixel.lines > boxLines) {
+    return {
+      issue: 'wrap',
+      detail: `wraps to ${pixel.lines} lines, box fits ${boxLines}`,
+      basis: pixel.basis,
+    };
   }
-  if (valueOver(units, units, row)) return { issue: 'overflow', detail: null };
-  return null;
+  return { issue: 'overflow', detail: null, basis: pixel.basis };
+}
+
+function worstDataCharacters(row) {
+  const limits = row.slotMaxLengths || {};
+  const slots = row.slots || [];
+  if (slots.length === 0) return row.dataCharacters || 0;
+  return slots.reduce((sum, slot) => {
+    const cap = limits[slot.name];
+    const example = slot.characters || 0;
+    return sum + (typeof cap === 'number' ? Math.max(example, cap) : example);
+  }, 0);
+}
+
+function unitsWithSlots(units, row, useWorst) {
+  const example = row.dataCharacters || 0;
+  const data = useWorst ? worstDataCharacters(row) : example;
+  return Math.max(0, (units || 0) - example + data);
+}
+
+function entryOver(entry, row, useWorst) {
+  const units = unitsWithSlots(entry.units || entry.characters, row, useWorst);
+  const characters = (entry.characters || 0) - (row.dataCharacters || 0) + (useWorst ? worstDataCharacters(row) : (row.dataCharacters || 0));
+  return valueOver(characters, units, row);
 }
 
 function languageVerdict(entry, row) {
@@ -209,7 +244,7 @@ function languageVerdict(entry, row) {
     if (entry.someOver) return 'might';
     return 'fit';
   }
-  return valueOver(entry.characters, entry.units || entry.characters, row) ? 'break' : 'fit';
+  return entryOver(entry, row, false) ? 'break' : 'fit';
 }
 
 function buildBreakReport(lengths, options) {
@@ -221,6 +256,8 @@ function buildBreakReport(lengths, options) {
     (row) => row.bucket === 'button' || row.bucket === 'tab',
   );
   const labels = [];
+  const checkVisually = [];
+  const slotMax = [];
   const alreadyOver = [];
   const breaks = [];
   const mightBreak = [];
@@ -228,6 +265,7 @@ function buildBreakReport(lengths, options) {
   const fits = [];
 
   function placeControl(row) {
+    if (row.unconstrained) return;
     const limit = row.maxCharacters || 10;
     const real = realTranslations(row.source, index, shared, langs, row, options);
     const estimate = estimateSize(row, ratio);
@@ -277,19 +315,53 @@ function buildBreakReport(lengths, options) {
 
   buttons.forEach(placeControl);
 
-  (lengths || []).filter((row) => row.bucket === 'text' || row.bucket === 'label').forEach((row) => {
+  function slotBreaks(row, units) {
+    if (!row.slots || row.slots.length === 0) return false;
+    const exampleUnits = unitsWithSlots(units, row, false);
+    const worstUnits = unitsWithSlots(units, row, true);
+    const example = pixelResult(exampleUnits, row);
+    const worst = pixelResult(worstUnits, row);
+    const exampleOver = example ? example.overflow : false;
+    const worstOver = worst ? worst.overflow : false;
+    return !exampleOver && worstOver;
+  }
+
+  (lengths || []).filter((row) => row.bucket === 'text' || row.bucket === 'label' || row.bucket === 'button' || row.bucket === 'tab').forEach((row) => {
+    if (row.unconstrained) {
+      checkVisually.push({
+        ...row,
+        basis: 'estimate: unconstrained auto-width, verify visually',
+        verdict: 'check',
+      });
+      return;
+    }
     const real = realTranslations(row.source, index, shared, langs, row, options);
     const estimate = estimateSize(row, ratio);
+    const sampleUnits = real
+      ? Math.max(...langs.map((lang) => (real.perLang[lang] ? real.perLang[lang].units || real.perLang[lang].characters : 0)))
+      : estimate.units;
+    if (slotBreaks(row, sampleUnits) && row.bucket !== 'button' && row.bucket !== 'tab') {
+      slotMax.push({
+        ...row,
+        verdict: 'slot-max',
+        basis: 'measured',
+        note: 'fits with the example, breaks at max slot length',
+        real,
+      });
+    }
+    if (row.bucket === 'button' || row.bucket === 'tab') return;
     const problems = [];
     langs.forEach((lang) => {
       const entry = real && real.perLang[lang];
       const units = entry ? (entry.units || entry.characters) : estimate.units;
+      if (slotBreaks(row, units)) return;
       const found = labelIssue(units, row);
-      if (!found) return;
+      if (!found || found.unconstrained) return;
       problems.push({
         lang,
         issue: found.issue,
         detail: found.detail,
+        pixelBasis: found.basis,
         basis: entry ? entry.basis : 'estimate',
         characters: entry ? entry.characters : estimate.characters,
         key: entry ? entry.key : null,
@@ -303,20 +375,45 @@ function buildBreakReport(lengths, options) {
     labels.push({
       ...row,
       issue: problems.some((item) => item.issue === 'overflow') ? 'overflow' : 'wrap',
-      basis: real ? 'real' : 'estimate',
+      basis: (problems[0] && problems[0].pixelBasis) || (real ? 'real' : 'estimate'),
       chosenKey: real ? real.chosenKey : null,
       real,
       problems,
-      verdict: 'label',
+      verdict: 'text',
     });
   });
+
+  function collapse(rows) {
+    const groups = new Map();
+    rows.forEach((row) => {
+      const key = `${row.source}\u0000${row.verdict}\u0000${row.issue || ''}`;
+      const existing = groups.get(key);
+      if (!existing) {
+        groups.set(key, { ...row, screens: [...(row.screens || [])] });
+        return;
+      }
+      const worse = (row.availableWidth || Infinity) < (existing.availableWidth || Infinity);
+      const screens = [...new Set([...(existing.screens || []), ...(row.screens || [])])];
+      groups.set(key, worse ? { ...row, screens } : { ...existing, screens });
+    });
+    return [...groups.values()];
+  }
 
   const byExpected = (a, b) => b.expected - a.expected || b.characters - a.characters;
   alreadyOver.sort(byExpected);
   breaks.sort(byExpected);
   mightBreak.sort(byExpected);
   atRisk.sort(byExpected);
-  return { alreadyOver, breaks, mightBreak, atRisk, fits, labels };
+  return {
+    alreadyOver: collapse(alreadyOver),
+    breaks: collapse(breaks),
+    mightBreak: collapse(mightBreak),
+    atRisk: collapse(atRisk),
+    fits: collapse(fits),
+    labels: collapse(labels),
+    checkVisually: collapse(checkVisually),
+    slotMax: collapse(slotMax),
+  };
 }
 
 module.exports = {

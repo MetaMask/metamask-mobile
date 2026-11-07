@@ -474,16 +474,14 @@ function testFileAdapterAndLearned() {
   const grouped = checkDesignFile(fixture, { lang: 'de', limits, pseudo: false });
   assert(grouped.rowsRead === 7, `fixture rows ${grouped.rowsRead}`);
   assert(grouped.skipped.length === 3, `fixture skipped ${grouped.skipped.length}`);
-  assert(grouped.unique === 3, `fixture unique ${grouped.unique}`);
-  const go = grouped.lengths.find((row) => row.source === 'Go');
-  assert(go && go.occurrences === 2, 'duplicate text is counted once');
-  assert(
-    go.screens.includes('Light - Day') && go.screens.includes('Dark - Night'),
-    'duplicate text keeps both screens',
-  );
-  assert(go.bucket === 'button' && go.maxCharacters === 10, 'narrow control uses the 10 character limit');
+  assert(grouped.unique === 4, `fixture unique ${grouped.unique}`);
+  const gos = grouped.lengths.filter((row) => row.source === 'Go');
+  assert(gos.length === 2, 'different widths stay separate');
+  const goScreens = gos.flatMap((row) => row.screens);
+  assert(goScreens.includes('Light - Day') && goScreens.includes('Dark - Night'), 'each Go keeps its own screen');
+  assert(gos[0].bucket === 'button' && gos[0].maxCharacters === 10, 'narrow control uses the 10 character limit');
   const body = grouped.lengths.find((row) => row.kind === 'body');
-  assert(body && body.bucket === 'text' && body.maxUnits > body.characters, 'body copy uses a width budget');
+  assert(body && body.bucket === 'text' && body.availableWidth === 280 && body.status === 'ok', 'body copy is measured against its box');
   const tight = grouped.lengths.find((row) => row.source === 'Continue');
   assert(tight && tight.bucket !== 'button' && tight.status === 'ok', 'a narrow label is not a 10-character button');
   const pseudo = pseudoText('Yes');
@@ -654,9 +652,11 @@ function testClassificationFixes() {
   assert(byText.get('Continue to the next market').kind === 'button', 'a long control stays a button');
   const tableStat = classified.filter((row) => row.frame_path === 'Standings / Table');
   assert(tableStat.length === 1 && tableStat[0].kind === 'label', 'a Table frame is not a tab');
-  ['11.5', 'O 228.5', 'U 228.5', '25+ points', '3+ goals', 'by 6–10', '3-1', "15'", '7:00 p.m. ET', 'May 4', 'Nov 6', '2026-11-06', '+150', '-110', '45¢', '52%'].forEach((text) => {
+  ['11.5', 'O 228.5', 'U 228.5', 'by 6–10', '3-1', "15'", '7:00 p.m. ET', 'May 4', 'Nov 6', '2026-11-06', '+150', '-110', '45¢', '52%'].forEach((text) => {
     assert(byText.get(text).kind === 'number_or_data', `${text} is data`);
   });
+  assert(byText.get('25+ points').template === '{num}+ points', 'points grammar stays in the template');
+  assert(byText.get('3+ goals').template === '{num}+ goals', 'goals grammar stays in the template');
   assert(byText.get('Team A by 6–10').template === '{name} by {range}', 'Team A inside a longer string becomes a name slot');
   assert(byText.get('Team A by 6–10').kind !== 'placeholder_or_annotation', 'a longer string with Team A stays in the check');
   const teamName = figma.classifyTextNode({
@@ -912,7 +912,7 @@ function testReportGaps() {
       screen: 'Wallet / Card',
     },
   }, limits);
-  assert(balance.status === 'ok' && balance.maxUnits > balance.characters, 'a 117px label gets a width budget and the English fits');
+  assert(balance.status === 'ok' && balance.availableWidth === 117, 'a 117px label is measured against that box');
   assert(balance.assumption && /single line/.test(balance.assumption), 'missing auto-resize is called an assumption');
   const wrapped = classifyRecord({
     id: 'balance-wrap',
@@ -1105,7 +1105,7 @@ function testReportGaps() {
     source_text: 'Markets',
     context: { kind: 'title', width_px: 180, component: 'title', screen: 'Home / titleRow' },
   }, limits);
-  assert(title.bucket === 'text' && title.maxUnits > title.characters, 'a title gets the same width budget as a label');
+  assert(title.bucket === 'text' && title.availableWidth === 180 && title.status === 'ok', 'a title is measured against its box');
   const titleReport = buildBreakReport([title], {
     langs: ['de'],
     ratio: limits.ratio,
@@ -1143,6 +1143,180 @@ function testReportGaps() {
     lineReport.labels.some((row) => (row.problems || []).some((item) => item.detail === 'wraps to 3 lines, box fits 2')),
     'wrap text reports the extra lines',
   );
+
+  const probeText = 'Available balance';
+  const probes = [20, 200, 2000].map((width) => classifyRecord({
+    id: `probe-${width}`,
+    key: `probe-${width}`,
+    source_text: probeText,
+    context: {
+      kind: 'label',
+      width_px: width,
+      fontSize: 14,
+      textAutoResize: 'NONE',
+      maxLines: 1,
+      component: 'Label',
+      screen: `Probe ${width}`,
+    },
+  }, limits));
+  assert(probes[0].maxUnits < probes[1].maxUnits && probes[1].maxUnits < probes[2].maxUnits, '20px, 200px, and 2000px are different budgets');
+  const probeReport = buildBreakReport(probes, {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'wallet.balance': probeText },
+      de: { 'wallet.balance': 'A'.repeat(40) },
+    },
+  });
+  const probeScreens = (probeReport.labels || []).flatMap((row) => row.screens || []);
+  assert(probeScreens.includes('Probe 20') && probeScreens.includes('Probe 200'), 'narrow boxes overflow a 40 character translation');
+  assert(!probeScreens.includes('Probe 2000'), 'a 2000px box fits the same translation');
+
+  const rulesCase = classifyRecord({
+    id: 'rules',
+    key: 'rules',
+    source_text: 'Rules',
+    context: {
+      kind: 'label',
+      width_px: 285,
+      fontSize: 16,
+      textAutoResize: 'NONE',
+      maxLines: 1,
+      component: 'Label',
+      screen: 'Sheet',
+    },
+  }, limits);
+  const rulesReport = buildBreakReport([rulesCase], {
+    langs: ['tl'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'sheet.rules': 'Rules' },
+      tl: { 'sheet.rules': 'A'.repeat(14) },
+    },
+  });
+  assert(rulesReport.labels.length === 0, '14 characters in a 285px one-line box still fit');
+
+  const named = figma.classifyTextNode({
+    id: 'person',
+    layer_name: 'Label',
+    frame_path: 'Board',
+    text: 'First Last 27%',
+    width: 120,
+    visible: true,
+  }, { ...rules, shippedWords: new Set(['Buy']) });
+  assert(named.template === '{name} {pct}', 'adjacent capitalized words become one name');
+  const brand = figma.classifyTextNode({
+    id: 'brand',
+    layer_name: 'Label',
+    frame_path: 'Board',
+    text: 'ChatGPT 7%',
+    width: 80,
+    visible: true,
+  }, { ...rules, shippedWords: new Set(['Buy']) });
+  assert(brand.template === '{name} {pct}', 'an unmatched brand before a percent is a name');
+  const player = figma.classifyTextNode({
+    id: 'player',
+    layer_name: 'Label',
+    frame_path: 'Board',
+    text: 'Player A vs Player B',
+    width: 140,
+    visible: true,
+  }, rules);
+  assert(player.template === '{name} vs {name}', 'Player A and Player B are name slots');
+
+  const slotRow = classifyRecord({
+    id: 'slot',
+    key: 'slot',
+    source_text: 'Al 5%',
+    context: {
+      kind: 'label',
+      width_px: 80,
+      fontSize: 14,
+      textAutoResize: 'NONE',
+      maxLines: 1,
+      component: 'Label',
+      screen: 'Card',
+      template: '{name} {pct}',
+      example: 'Al 5%',
+      copyText: '',
+      dataCharacters: 5,
+      gapCharacters: 1,
+      slots: [{ name: 'name', characters: 2 }, { name: 'pct', characters: 2 }],
+      slotMaxLengths: rules.slotMaxLengths,
+    },
+  }, limits);
+  const slotReport = buildBreakReport([slotRow], { langs: ['de'], ratio: limits.ratio, sharedFlats: { en: {}, de: {} } });
+  assert(slotReport.labels.length === 0, 'the short example fits the box');
+  assert(slotReport.slotMax.length === 1, 'the max name and percent lengths do not fit');
+  assert(/fits with the example, breaks at max slot length/.test(slotReport.slotMax[0].note), 'the slot note is separate from overflow');
+
+  const auto = [];
+  figma.collectTextNodes({
+    type: 'FRAME',
+    id: 'row',
+    name: 'Row',
+    layoutMode: 'HORIZONTAL',
+    primaryAxisSizingMode: 'FIXED',
+    layoutSizingHorizontal: 'FIXED',
+    paddingLeft: 16,
+    paddingRight: 16,
+    itemSpacing: 8,
+    absoluteBoundingBox: { width: 320, height: 40 },
+    children: [
+      { type: 'FRAME', id: 'icon', name: 'Icon', absoluteBoundingBox: { width: 24, height: 24 } },
+      {
+        type: 'TEXT',
+        id: 'balance',
+        name: 'Label',
+        characters: 'Balance',
+        textAutoResize: 'WIDTH_AND_HEIGHT',
+        style: { fontSize: 14 },
+        absoluteBoundingBox: { width: 56, height: 20 },
+      },
+      { type: 'FRAME', id: 'chevron', name: 'Chevron', absoluteBoundingBox: { width: 16, height: 16 } },
+    ],
+  }, [], false, auto);
+  const open = figma.resolveAvailableWidth(auto[0]);
+  assert(open.availableWidth === 232, 'horizontal auto-layout leaves room after siblings and padding');
+  const loose = [];
+  figma.collectTextNodes({
+    type: 'FRAME',
+    id: 'hug',
+    name: 'Hug',
+    layoutMode: 'HORIZONTAL',
+    primaryAxisSizingMode: 'AUTO',
+    layoutSizingHorizontal: 'HUG',
+    absoluteBoundingBox: { width: 80, height: 20 },
+    children: [{
+      type: 'TEXT',
+      id: 'free',
+      name: 'Label',
+      characters: 'Balance',
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      absoluteBoundingBox: { width: 56, height: 20 },
+    }],
+  }, [], false, loose);
+  const free = classifyRecord({
+    id: 'free',
+    key: 'free',
+    source_text: 'Balance',
+    context: {
+      kind: 'label',
+      width_px: 56,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      component: 'Label',
+      screen: 'Hug',
+      containers: loose[0].containers,
+    },
+  }, limits);
+  assert(free.unconstrained, 'a hugging parent does not invent a width');
+  const visual = buildBreakReport([free], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: { en: { 'a.balance': 'Balance' }, de: { 'a.balance': 'A'.repeat(40) } },
+  });
+  assert(visual.labels.length === 0 && visual.checkVisually.length === 1, 'unconstrained text is check visually, not an overflow');
+  assert(/verify visually/.test(visual.checkVisually[0].basis), 'the basis says to verify visually');
 
   const collected = [];
   figma.collectTextNodes({

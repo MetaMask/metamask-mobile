@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const checker = require('./checker');
+const { resolveAvailableWidth } = require('./figma-adapter');
 
 const SKIP_KINDS = new Set([
   'placeholder_or_annotation',
@@ -148,6 +149,9 @@ function toStringRecord(row) {
       copyText: row.copyText || '',
       dataCharacters: Number(row.dataCharacters) || 0,
       gapCharacters: Number(row.gapCharacters) || 0,
+      slots: Array.isArray(row.slots) ? row.slots : [],
+      slotMaxLengths: row.slotMaxLengths || null,
+      containers: Array.isArray(row.containers) ? row.containers : [],
       visible: row.visible !== false,
     },
   };
@@ -176,8 +180,20 @@ function limitBucket(row) {
 }
 
 function dedupeKey(row) {
-  const kind = (row.context && row.context.kind) || '';
-  return `${row.source_text}\u0000${kind}\u0000${limitBucket(row)}`;
+  const context = row.context || {};
+  const maxTag = taggedMax(context.component) || '';
+  const width = context.width_px == null ? '' : String(Math.round(context.width_px));
+  const height = context.height == null ? '' : String(Math.round(context.height));
+  return [
+    row.source_text,
+    context.kind || '',
+    limitBucket(row),
+    width,
+    height,
+    context.textAutoResize || '',
+    context.maxLines || '',
+    maxTag,
+  ].join('\u0000');
 }
 
 function dedupeRecords(records) {
@@ -196,19 +212,14 @@ function dedupeRecords(records) {
     group.occurrences += 1;
     const screen = screenLabel(row.context.screen);
     if (screen && !group.screens.includes(screen)) group.screens.push(screen);
-    if (row.context.width_px !== null) group.widths.push(row.context.width_px);
   });
-  return [...groups.values()].map((group) => {
-    const width_px = group.widths.length > 0 ? Math.min(...group.widths) : null;
-    return {
-      ...group,
-      context: {
-        ...group.context,
-        width_px,
-        screens: group.screens,
-      },
-    };
-  });
+  return [...groups.values()].map((group) => ({
+    ...group,
+    context: {
+      ...group.context,
+      screens: group.screens,
+    },
+  }));
 }
 
 function taggedMax(layerName) {
@@ -228,19 +239,49 @@ function learnedMax(row, learned) {
   return hit ? hit.maxCharacters : null;
 }
 
-function wideBudget(source, width, limits) {
-  const characters = checker.characterCount(source);
-  const units = Math.max(checker.displayWidth(source), 1);
-  const ratio = limits && typeof limits.ratio === 'number' ? limits.ratio : 1.4;
-  const minDelta = limits && typeof limits.minDelta === 'number' ? limits.minDelta : 4;
-  // px per unit is this string's own width divided by its display width.
-  // The measured box already fits that many units, so the English is not over.
-  const rawBudget = width > 0 ? Math.max(units * ratio, units + minDelta) : units;
-  const budgetUnits = Math.round(rawBudget * 10) / 10;
-  return {
-    maxCharacters: Math.max(characters, Math.floor(budgetUnits)),
-    maxUnits: budgetUnits,
-  };
+function pxPerUnitFor(units, width, fontSize, mode) {
+  if (String(mode || '').toUpperCase() === 'WIDTH_AND_HEIGHT' && width) return width / units;
+  if (fontSize) return fontSize * 0.5;
+  const fallback = 7;
+  if (width && width <= fallback * units * 1.25) return width / units;
+  return fallback;
+}
+
+function measurePixels(units, row) {
+  const displayUnits = Math.max(units || 0, 0);
+  const mode = String(row.textAutoResize || '').toUpperCase();
+  const pxPerUnit = row.pxPerUnit || pxPerUnitFor(
+    Math.max(row.widthHint || displayUnits, 1),
+    row.width_px,
+    row.fontSize,
+    mode,
+  );
+  if (row.pixelUnconstrained || row.unconstrained) {
+    return {
+      pxPerUnit,
+      availableWidth: null,
+      lines: null,
+      overflow: false,
+      unconstrained: true,
+      basis: 'estimate: unconstrained auto-width, verify visually',
+    };
+  }
+  const available = row.availableWidth;
+  if (typeof available !== 'number' || available <= 0 || !pxPerUnit) return null;
+  const lines = Math.max(1, Math.ceil((displayUnits * pxPerUnit) / available));
+  const fixedHeight = mode === 'NONE' || mode === 'TRUNCATE';
+  const singleLine = mode === 'HEIGHT'
+    ? false
+    : mode === 'TRUNCATE' || mode === 'NONE' || mode === 'WIDTH_AND_HEIGHT' || row.layout === 'overflow' || (!mode && row.layout !== 'wrap');
+  const maxLines = row.maxLines || null;
+  const boxLines = maxLines || row.lineCount || (singleLine ? 1 : null);
+  let overflow = false;
+  if (maxLines && lines > maxLines) overflow = true;
+  if (singleLine && lines > 1) overflow = true;
+  if (fixedHeight && row.lineHeightPx && row.height && lines * row.lineHeightPx > row.height + 0.5) overflow = true;
+  if (!singleLine && !maxLines && row.layout === 'wrap' && boxLines && lines > boxLines) overflow = true;
+  const basis = `measured: box ${Math.round(available)}px, needs ${lines} line${lines === 1 ? '' : 's'}`;
+  return { pxPerUnit, availableWidth: available, lines, overflow, unconstrained: false, basis };
 }
 
 function exceedsBudget(text, maxCharacters, maxUnits) {
@@ -282,6 +323,16 @@ function classifyRecord(row, limits, learned) {
   const explicitText = row.context.kind === 'label' || row.context.kind === 'title' || row.context.kind === 'body';
   const labelLike = !control && (explicitText || (row.context.kind === '' && !longText));
   const override = taggedMax(row.context.component) ?? learnedMax(row, learned) ?? (named ? named.maxCharacters : null);
+  const units = Math.max(checker.displayWidth(source), 1);
+  const space = resolveAvailableWidth({
+    id: row.id,
+    width,
+    textAutoResize: row.context.textAutoResize,
+    containers: row.context.containers || [],
+  });
+  const pxPerUnit = pxPerUnitFor(units, width, row.context.fontSize, row.context.textAutoResize);
+  const slotted = hasTemplateSlot(row);
+  const narrowControl = control && !slotted && (typeof width !== 'number' || width <= BUTTON_MAX_PX);
   let maxCharacters = override;
   let maxUnits = null;
   let status = 'no-limit';
@@ -289,37 +340,45 @@ function classifyRecord(row, limits, learned) {
   let layout = null;
   let lineCount = null;
   let assumption = null;
-  if (control) {
-    if (override === null) {
-      const slotted = hasTemplateSlot(row);
-      const narrow = !slotted && (typeof width !== 'number' || width <= BUTTON_MAX_PX);
-      if (narrow) maxCharacters = BUTTON_MAX_CHARACTERS;
-      else if (typeof width === 'number') {
-        const budget = wideBudget(source, width, limits);
-        maxCharacters = budget.maxCharacters;
-        maxUnits = budget.maxUnits;
-      } else {
-        const units = Math.max(checker.displayWidth(source), 1);
-        const ratio = limits && typeof limits.ratio === 'number' ? limits.ratio : 1.4;
-        const minDelta = limits && typeof limits.minDelta === 'number' ? limits.minDelta : 4;
-        maxUnits = Math.round(Math.max(units * ratio, units + minDelta) * 10) / 10;
-        maxCharacters = Math.max(characters, Math.floor(maxUnits));
-      }
+  let pixel = null;
+  const reasons = [];
+  if (control || (labelLike && typeof width === 'number')) {
+    if (!control) {
+      const info = labelLayout(row);
+      layout = info.layout;
+      lineCount = info.lineCount;
+      assumption = info.assumption;
+    } else if (String(row.context.textAutoResize || '').toUpperCase() === 'HEIGHT') {
+      layout = 'wrap';
+      lineCount = row.context.maxLines || 1;
     }
-    status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
-    bucket = row.context.kind === 'tab' ? 'tab' : 'button';
-  } else if (labelLike && typeof width === 'number') {
-    const info = labelLayout(row);
-    layout = info.layout;
-    lineCount = info.lineCount;
-    assumption = info.assumption;
-    if (override === null) {
-      const budget = wideBudget(source, width, limits);
-      maxCharacters = budget.maxCharacters;
-      maxUnits = budget.maxUnits;
+    pixel = measurePixels(units, {
+      widthHint: units,
+      width_px: width,
+      fontSize: row.context.fontSize,
+      textAutoResize: row.context.textAutoResize,
+      availableWidth: space.availableWidth,
+      unconstrained: space.unconstrained,
+      pxPerUnit,
+      maxLines: row.context.maxLines,
+      lineCount,
+      layout,
+      height: row.context.height,
+      lineHeightPx: row.context.lineHeightPx,
+    });
+    if (override !== null) maxCharacters = override;
+    else if (narrowControl) maxCharacters = BUTTON_MAX_CHARACTERS;
+    else if (pixel && typeof pixel.availableWidth === 'number' && pxPerUnit) {
+      maxUnits = pixel.availableWidth / pxPerUnit;
+      maxCharacters = Math.max(characters, Math.floor(maxUnits));
     }
-    status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
-    bucket = 'text';
+    const guidelineOver = narrowControl && override === null && characters > BUTTON_MAX_CHARACTERS;
+    const overrideOver = override !== null && characters > override;
+    if (guidelineOver) reasons.push('10-character guideline');
+    if (overrideOver) reasons.push(`max ${override}`);
+    if (pixel && pixel.overflow) reasons.push(pixel.basis);
+    status = guidelineOver || overrideOver || (pixel && pixel.overflow) ? 'over' : 'ok';
+    bucket = control ? (row.context.kind === 'tab' ? 'tab' : 'button') : 'text';
   } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
     status = 'check-wrapping';
     bucket = 'wrap';
@@ -351,6 +410,17 @@ function classifyRecord(row, limits, learned) {
     gapCharacters: row.context.gapCharacters || 0,
     framePath: row.context.screen || '',
     maxLines: row.context.maxLines || null,
+    pxPerUnit: pixel ? pixel.pxPerUnit : pxPerUnit,
+    availableWidth: space.unconstrained ? null : space.availableWidth,
+    unconstrained: Boolean(space.unconstrained),
+    pixelBasis: pixel ? pixel.basis : null,
+    reasons,
+    slots: row.context.slots || [],
+    slotMaxLengths: row.context.slotMaxLengths || null,
+    fontSize: row.context.fontSize || null,
+    height: row.context.height || null,
+    lineHeightPx: row.context.lineHeightPx || null,
+    textAutoResize: row.context.textAutoResize || null,
     occurrences: row.occurrences || 1,
     screens: row.context.screens || [screenLabel(row.context.screen)].filter(Boolean),
     component: row.context.component,
@@ -445,6 +515,7 @@ module.exports = {
   pseudoControlHits,
   dedupeRecords,
   classifyRecord,
+  measurePixels,
   exceedsBudget,
   checkDesignFile,
 };

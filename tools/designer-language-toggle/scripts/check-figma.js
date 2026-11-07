@@ -90,6 +90,16 @@ function printReport(report, langs) {
     langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang]));
   });
   console.log('');
+  console.log(`Check visually (${(report.checkVisually || []).length})`);
+  if (!report.checkVisually || report.checkVisually.length === 0) console.log('  None.');
+  (report.checkVisually || []).slice(0, 10).forEach((row) => {
+    console.log(`${lineFor(row)}  ${row.basis}`);
+  });
+  console.log('');
+  console.log(`Fits the example, breaks at max slot length (${(report.slotMax || []).length})`);
+  if (!report.slotMax || report.slotMax.length === 0) console.log('  None.');
+  (report.slotMax || []).slice(0, 10).forEach((row) => console.log(`${lineFor(row)}  ${row.note}`));
+  console.log('');
   console.log(`Text that will overflow or wrap (${report.labels.length})`);
   if (report.labels.length === 0) console.log('  None.');
   report.labels.slice(0, 20).forEach((row) => {
@@ -169,6 +179,8 @@ async function main() {
       breaks: report.breaks,
       mightBreak: report.mightBreak,
       labels: report.labels,
+      checkVisually: report.checkVisually,
+      slotMax: report.slotMax,
       atRisk: report.atRisk,
       fits: report.fits.length,
       pseudo: checked.pseudo
