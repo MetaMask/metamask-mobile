@@ -441,8 +441,6 @@ export const buildPredictDeviceAuthIntegrationHarness = (
       return 'access-token';
     },
     getCanonicalProfileId: () => canonicalProfileId,
-    getSrpIdentifier: async () => '0xabc',
-    signSrpMessage: async () => 'srp-signature',
     isEnabled: () => {
       const config = featureFlagState.remoteFeatureFlags.predictConfig;
       return config.enabled && config.venues.kalshi.enabled;
