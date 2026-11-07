@@ -1109,6 +1109,36 @@ describe('useMoneyActivityItems', () => {
     expect(refetch).toHaveBeenCalled();
   });
 
+  it('reports an error when the VBA transfer fetch fails', () => {
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.error).toBe(true);
+    expect(result.current.isSettling).toBe(false);
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
+  });
+
+  it('leaves the feed empty when the VBA transfer fetch returns no rows', () => {
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: { transfers: [] },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.error).toBe(false);
+    expect(result.current.isSettling).toBe(false);
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
+  });
+
   it('does not surface declined rows or enrichment when flags/capabilities are off', () => {
     const declined: CardTransaction = {
       id: 'declined-1',
