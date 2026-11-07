@@ -10,6 +10,7 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../../util/address', () => ({ isWatchOnlyAccount: jest.fn() }));
 
+const MISSING = /\[missing ".*" translation\]/;
 const mockShowToast = jest.fn();
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <ToastContext.Provider
@@ -38,6 +39,8 @@ describe('useWatchOnlyGuard', () => {
     });
 
     expect(refused).toBe(true);
+    expect(strings('watch_only.blocked_title')).not.toMatch(MISSING);
+    expect(strings('watch_only.blocked_message')).not.toMatch(MISSING);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
