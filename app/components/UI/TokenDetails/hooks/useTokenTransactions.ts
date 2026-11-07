@@ -130,6 +130,68 @@ export const getSwapLegTokenIdentifiers = (
   };
 };
 
+interface BridgeQuoteAsset {
+  assetId?: string;
+  address?: string;
+  symbol?: string;
+}
+
+const toNonEvmMovement = (
+  asset: BridgeQuoteAsset | undefined,
+  amount?: string,
+) => {
+  if (!asset?.assetId) {
+    return undefined;
+  }
+
+  return {
+    address: asset.address ?? '',
+    asset: {
+      fungible: true,
+      type: asset.assetId,
+      unit: asset.symbol ?? '',
+      amount: amount ?? '0',
+    },
+  };
+};
+
+/**
+ * Snap source bridges (e.g. Stellar) often omit `from`/`to`. Copy quote legs
+ * from `bridgeHistory` into that shape so the existing native/token filters
+ * still keep the row.
+ */
+const withFromToFromBridgeHistory = (
+  tx: Transaction,
+  bridgeHistory: Parameters<typeof findBridgeHistoryItem>[0]['bridgeHistory'],
+): Transaction => {
+  if (tx.from?.length || tx.to?.length) {
+    return tx;
+  }
+
+  const quote = findBridgeHistoryItem({
+    bridgeHistory,
+    transactionMetaId: tx.id,
+    transactionHash: tx.id,
+  })?.quote;
+
+  if (!quote) {
+    return tx;
+  }
+
+  const from = toNonEvmMovement(quote.srcAsset, quote.srcTokenAmount);
+  const to = toNonEvmMovement(quote.destAsset, quote.destTokenAmount);
+
+  if (!from && !to) {
+    return tx;
+  }
+
+  return {
+    ...tx,
+    from: from ? [from] : (tx.from ?? []),
+    to: to ? [to] : (tx.to ?? []),
+  };
+};
+
 /**
  * Identity of a non-EVM list so we re-render when the same tx confirms
  * (count and id stay the same; status/type change).
@@ -214,10 +276,15 @@ export const useTokenTransactions = (
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
-      const txs =
+      // Some non-EVM bridge snaps (e.g. Stellar) omit from/to. Copy quote
+      // legs from bridgeHistory so the native/token filters can still match.
+      const txs = (
         nonEvmTransactionsData?.transactions?.filter(
           (tx: Transaction) => tx.chain === asset.chainId,
-        ) || [];
+        ) || []
+      ).map((tx: Transaction) =>
+        withFromToFromBridgeHistory(tx, bridgeHistory),
+      );
 
       const assetAddress = asset.address?.toLowerCase();
       const assetSymbol = asset.symbol?.toLowerCase();
@@ -284,6 +351,7 @@ export const useTokenTransactions = (
     asset.symbol,
     asset.isNative,
     asset.isETH,
+    bridgeHistory,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTransactionsData,
     ///: END:ONLY_INCLUDE_IF
