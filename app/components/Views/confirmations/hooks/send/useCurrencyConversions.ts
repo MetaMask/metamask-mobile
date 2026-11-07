@@ -2,7 +2,11 @@ import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import { getCurrencySymbol } from '../../../../../util/number';
+import {
+  getFormatters,
+  getLocaleLanguageCode,
+} from '../../../../hooks/useFormatters';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { AssetType } from '../../types/token';
@@ -39,6 +43,58 @@ export const getFiatValueFn = ({
   ).toString();
 };
 
+const BIDI_MARKS = /[\u200e\u200f\u061c]/gu;
+
+/**
+ * Places the ADR narrow currency symbol before or after an amount input.
+ * The keypad keeps the typed digits separate from the symbol, so the symbol
+ * and its placement are read from a formatted zero.
+ *
+ * Hermes has no reliable `Intl.NumberFormat.formatToParts`, so this relies on
+ * `format()` only, which every runtime supports.
+ */
+export function getNarrowCurrencyAffix(
+  currency: string | undefined,
+  locale: string = getLocaleLanguageCode(),
+): { prefix: string; suffix: string } {
+  if (!currency) {
+    return { prefix: '', suffix: '' };
+  }
+
+  const code = currency.toUpperCase();
+  let sample: string;
+  try {
+    sample = getIntlNumberFormatter(locale, {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: 'narrowSymbol',
+    })
+      .format(0)
+      .replace(BIDI_MARKS, '');
+  } catch {
+    return { prefix: '', suffix: code };
+  }
+
+  const firstDigit = sample.search(/\d/u);
+  if (firstDigit === -1) {
+    return { prefix: '', suffix: code };
+  }
+
+  let lastDigit = firstDigit;
+  for (let index = firstDigit; index < sample.length; index += 1) {
+    if (/\d/u.test(sample[index])) {
+      lastDigit = index;
+    }
+  }
+
+  const before = sample.slice(0, firstDigit);
+  const after = sample.slice(lastDigit + 1);
+  if (before.trim()) {
+    return { prefix: before, suffix: '' };
+  }
+  return { prefix: '', suffix: after.trim() ? after : code };
+}
+
 export const getFiatDisplayValueFn = ({
   amount,
   conversionRate,
@@ -52,7 +108,14 @@ export const getFiatDisplayValueFn = ({
         decimals,
       })
     : '0.00';
-  return `${getCurrencySymbol(currentCurrency)} ${formatAmountWithCommas(amt)}`;
+  const currency = currentCurrency?.toUpperCase();
+  if (!currency) {
+    return formatAmountWithCommas(amt);
+  }
+
+  return getFormatters().formatCurrency(amt as `${number}`, currency, {
+    currencyDisplay: 'narrowSymbol',
+  });
 };
 
 export const getNativeValueFn = ({

@@ -23,12 +23,20 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
 import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { getFormatters } from '../../../../../../components/hooks/useFormatters';
+import {
+  formatToFixedDecimals,
+  fromHexWithDecimals,
+} from '../../../utils/send';
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
-jest.mock('../../../hooks/send/useCurrencyConversions');
+jest.mock('../../../hooks/send/useCurrencyConversions', () => ({
+  ...jest.requireActual('../../../hooks/send/useCurrencyConversions'),
+  useCurrencyConversions: jest.fn(),
+}));
 
 jest.mock('../../../hooks/send/useSendNavbar', () => ({
   useSendNavbar: () => ({
@@ -206,10 +214,10 @@ describe('Amount', () => {
 
     fireEvent.press(getByTestId('fiat_toggle'));
 
-    const fiatFontSize = getFontSizeForInputLength(4 + 'USD'.length + 2);
+    const fiatFontSize = getFontSizeForInputLength(4 + '$'.length + 2);
 
-    expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
-    expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
+    expect(getByRole('text', { name: '$0.00' })).toBeOnTheScreen();
+    expect(StyleSheet.flatten(getByText('$').props.style)).toMatchObject({
       fontSize: fiatFontSize,
       lineHeight: fiatFontSize,
     });
@@ -461,6 +469,28 @@ describe('Amount', () => {
   //   const { getByText } = renderComponent();
   //   expect(getByText('0.05 TKN available')).toBeTruthy();
   // });
+
+  it('formats the available token balance with the shared quantity formatter', () => {
+    const rawBalance = '0x1E240';
+    const decimals = 5;
+    const tokenAmount = formatToFixedDecimals(
+      fromHexWithDecimals(rawBalance, decimals),
+      decimals,
+    );
+
+    mockUseSendContext.mockReturnValue({
+      asset: { ...SOLANA_ASSET, rawBalance, decimals },
+      updateValue: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByText } = renderComponent(solanaSendStateMock);
+
+    expect(
+      getByText(
+        `${getFormatters().formatTokenQuantity(tokenAmount as `${number}`, 'SOL')} available`,
+      ),
+    ).toBeOnTheScreen();
+  });
 
   it('display total balance correctly for non-evm token', () => {
     mockUseSendContext.mockReturnValue({
