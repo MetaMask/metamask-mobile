@@ -8,4 +8,6 @@ export const MoneyBalanceSummaryTestIds = {
   BALANCE_UNAVAILABLE: 'money-balance-summary-balance-unavailable',
   APY: 'money-balance-summary-apy',
   APY_PRESSABLE: 'money-balance-summary-apy-pressable',
+  PREMIUM_TAG: 'money-balance-summary-premium-tag',
+  UPGRADE_PILL: 'money-balance-summary-upgrade-pill',
 } as const;

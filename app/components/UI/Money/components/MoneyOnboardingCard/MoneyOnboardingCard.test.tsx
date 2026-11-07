@@ -189,6 +189,16 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('visibility guard', () => {
+    it('does not start a positions poll of its own', () => {
+      setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+        positionsRefetchInterval: false,
+      });
+    });
+
     it('returns null when currentStep equals MONEY_ONBOARDING_TOTAL_STEPS', () => {
       setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
 
