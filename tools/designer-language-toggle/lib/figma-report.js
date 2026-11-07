@@ -113,7 +113,12 @@ function estimateSize(row, ratio) {
   return { characters: Math.ceil(exact), units: Math.round(exact * 10) / 10 };
 }
 
+function rowCanGrow(row) {
+  return Boolean(row && row.reason === 'row is wider than its container; may scroll');
+}
+
 function valueOver(characters, units, row, text) {
+  if (rowCanGrow(row)) return false;
   if (row.unconstrained || !(row.availableWidth > 0)) return false;
   const pixel = measurePixels(units, row, text);
   if (pixel && pixel.overflow) return true;
@@ -274,7 +279,7 @@ function assessLanguage(entry, row) {
   if (entry && entry.basis === 'range' && Array.isArray(entry.candidates)) {
     const judged = entry.candidates.map((candidate) => {
       const guidelineHit = guidelineOver(candidate.characters, row);
-      const pixel = row.availableWidth > 0
+      const pixel = !rowCanGrow(row) && row.availableWidth > 0
         ? measurePixels(candidate.units, row, candidate.text)
         : null;
       return { guidelineHit, pixelOver: Boolean(pixel && pixel.overflow) };
@@ -318,7 +323,7 @@ function assessLanguage(entry, row) {
   const guideline = narrow && chars > limit;
   const units = entry && typeof entry.units === 'number' ? entry.units : (row.widthHint || chars);
   const text = entry && entry.text && !(row.slots && row.slots.length) ? entry.text : null;
-  const pixel = row.availableWidth > 0 ? measurePixels(units, row, text) : null;
+  const pixel = !rowCanGrow(row) && row.availableWidth > 0 ? measurePixels(units, row, text) : null;
   const pixelOver = Boolean(pixel && pixel.overflow);
   let category = 'fits';
   if (guideline && pixelOver) category = 'both';
@@ -377,11 +382,19 @@ function buildBreakReport(lengths, options) {
     return over <= tolerance ? 'borderline' : 'problem';
   }
 
-  function layoutBasis(row, crowd) {
+  function layoutBasis(row, crowd, sameLangs) {
     const width = round1(row.width_px);
     const available = round1(row.availableWidth);
-    if (crowd === 'borderline') return `borderline: English is ${width}px in a ${available}px slot`;
-    return `English is ${width}px in a ${available}px slot`;
+    const base = crowd === 'borderline'
+      ? `borderline: English is ${width}px in a ${available}px slot`
+      : `English is ${width}px in a ${available}px slot`;
+    if (sameLangs && sameLangs.length) return `${base}; same collision in ${sameLangs.join(', ')}`;
+    return base;
+  }
+
+  function unitsFor(row, entry, estimate) {
+    if (entry) return entry.units || entry.characters;
+    return estimate.units;
   }
 
   function placeControl(row) {
@@ -465,11 +478,9 @@ function buildBreakReport(lengths, options) {
     return !exampleOver && worstOver;
   }
 
+  const growingItems = [];
   (lengths || []).filter((row) => row.bucket === 'text' || row.bucket === 'label' || row.bucket === 'button' || row.bucket === 'tab').forEach((row) => {
     const crowd = crowdClass(row);
-    if (crowd) {
-      layoutProblems.push({ ...row, verdict: 'layout', basis: layoutBasis(row, crowd) });
-    }
     if (row.kind === 'name') return;
     if (row.reason === 'row is wider than its container; may scroll') {
       checkVisually.push({
@@ -478,6 +489,7 @@ function buildBreakReport(lengths, options) {
         basis: `estimate: ${row.reason}`,
         verdict: 'check',
       });
+      if (row.rowKey) growingItems.push(row);
     }
     if (row.unconstrained) {
       checkVisually.push({
@@ -489,6 +501,15 @@ function buildBreakReport(lengths, options) {
     }
     const real = realTranslations(row.source, index, shared, langs, row, options);
     const estimate = estimateSize(row, ratio);
+    const englishUnits = row.widthHint || checker.displayWidth(row.source);
+    const sameLangs = langs.filter((lang) => {
+      const entry = real && real.perLang[lang];
+      return unitsFor(row, entry, estimate) <= englishUnits + 0.01;
+    });
+    if (crowd) {
+      const sameCollision = sameLangs.length === langs.length ? sameLangs : null;
+      layoutProblems.push({ ...row, verdict: 'layout', basis: layoutBasis(row, crowd, sameCollision) });
+    }
     const sampleUnits = real
       ? Math.max(...langs.map((lang) => (real.perLang[lang] ? real.perLang[lang].units || real.perLang[lang].characters : 0)))
       : estimate.units;
@@ -508,13 +529,21 @@ function buildBreakReport(lengths, options) {
       const units = entry ? (entry.units || entry.characters) : estimate.units;
       if (slotBreaks(row, units)) return;
       const sampleText = entry && entry.text && entry.basis !== 'estimate' ? entry.text : null;
+      if (crowd && units <= englishUnits + 0.01) return;
       const found = labelIssue(units, row, sampleText);
       if (!found || found.unconstrained) return;
       if (found.issue === 'note') {
+        let detail = found.detail;
+        if (entry && entry.basis !== 'estimate' && entry.text) {
+          const which = entry.key
+            ? `using ${lang} ${JSON.stringify(entry.text)}, key ${entry.key}`
+            : `using the ${lang} translation`;
+          detail = detail.replace('estimated at 1.4× English length', which);
+        }
         layoutNotes.push({
           ...row,
           lang,
-          detail: found.detail,
+          detail,
           basis: found.basis,
           verdict: 'note',
         });
@@ -534,7 +563,7 @@ function buildBreakReport(lengths, options) {
         keyCount: entry ? entry.keyCount : 0,
       });
     });
-    if (problems.length === 0 && !textOverLimit(row.source, row)) return;
+    if (problems.length === 0 && (!textOverLimit(row.source, row) || (crowd && sameLangs.length === langs.length))) return;
     labels.push({
       ...row,
       issue: problems.some((item) => item.issue === 'overflow') ? 'overflow' : 'wrap',
@@ -543,6 +572,38 @@ function buildBreakReport(lengths, options) {
       real,
       problems,
       verdict: 'text',
+    });
+  });
+
+  const growingByRow = new Map();
+  growingItems.forEach((row) => {
+    const list = growingByRow.get(row.rowKey) || [];
+    list.push(row);
+    growingByRow.set(row.rowKey, list);
+  });
+  growingByRow.forEach((rows) => {
+    const extraByLang = {};
+    langs.forEach((lang) => {
+      let extra = 0;
+      rows.forEach((row) => {
+        const real = realTranslations(row.source, index, shared, langs, row, options);
+        const estimate = estimateSize(row, ratio);
+        const entry = real && real.perLang[lang];
+        const units = unitsFor(row, entry, estimate);
+        if (!(row.pxPerUnit > 0) || !(row.width_px > 0)) return;
+        extra += Math.max(0, units * row.pxPerUnit - row.width_px);
+      });
+      if (extra > 0.05) extraByLang[lang] = extra;
+    });
+    const codes = langs.filter((lang) => extraByLang[lang]);
+    if (codes.length === 0) return;
+    const widest = Math.max(...codes.map((lang) => extraByLang[lang]));
+    layoutNotes.push({
+      ...rows[0],
+      visualRow: rows[0].rowKey,
+      verdict: 'note',
+      detail: `row gets wider in ${codes.join(', ')} (+${round1(widest)}px in the widest language); check scrolling`,
+      basis: 'measured',
     });
   });
 

@@ -359,7 +359,7 @@ function measurePixels(units, row, text) {
   let note = null;
   if (mode === 'HEIGHT' && !row.maxLines) {
     if (lines > currentLines) {
-      note = `grows from ${currentLines} to ${lines} lines; check container height`;
+      note = `may grow from ${currentLines} to ${lines} lines (estimated at 1.4× English length); check container height`;
       if (row.verticalClips) note += '; container clips; text may be cut off';
     }
   } else {
