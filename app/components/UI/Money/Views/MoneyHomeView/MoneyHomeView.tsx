@@ -126,7 +126,7 @@ import {
 } from '../../../Card/util/metrics';
 
 import { TraceName } from '../../../../../util/trace';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   useMoneyHomePerformance,
@@ -248,7 +248,7 @@ const MoneyHomeView = () => {
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   // Share the single merge/bucket path with the full activity view so the home
   // preview and that view never diverge. The home preview shows the "All"
   // bucket.
@@ -785,24 +785,25 @@ const MoneyHomeView = () => {
       tokenCount: number,
     ) => {
       try {
-        trackTokenButtonClicked({
-          button_type: MONEY_BUTTON_TYPES.TEXT,
-          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-          component_name:
-            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
-          label_key: 'money.potential_earnings.add',
-          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-          token_symbol: token.symbol,
-          token_position_in_list: tokenIndex + 1,
-          token_chain_id: token.chainId ?? '',
-          tokens_in_list: tokenCount,
-          token_has_balance: new BigNumber(token.balance).gt(0),
-        });
-
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
+          },
+          track: ({ button_intent, redirect_target }) => {
+            trackTokenButtonClicked({
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              component_name:
+                COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+              label_key: 'money.potential_earnings.add',
+              redirect_target,
+              token_symbol: token.symbol,
+              token_position_in_list: tokenIndex + 1,
+              token_chain_id: token.chainId ?? '',
+              tokens_in_list: tokenCount,
+              token_has_balance: new BigNumber(token.balance).gt(0),
+            });
           },
         });
       } catch (error) {
@@ -812,7 +813,7 @@ const MoneyHomeView = () => {
         });
       }
     },
-    [initiateDeposit, trackTokenButtonClicked],
+    [navigateToMoneyDeposit, trackTokenButtonClicked],
   );
 
   const handleTokenCardPress = useCallback(
@@ -822,21 +823,22 @@ const MoneyHomeView = () => {
       tokenCount: number,
     ) => {
       try {
-        trackTokenSurfaceClicked({
-          component_name:
-            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
-          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-          token_symbol: token.symbol,
-          token_position_in_list: tokenIndex + 1,
-          token_chain_id: token.chainId ?? '',
-          tokens_in_list: tokenCount,
-          token_has_balance: new BigNumber(token.balance).gt(0),
-        });
-
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
+          },
+          track: ({ redirect_target }) => {
+            trackTokenSurfaceClicked({
+              component_name:
+                COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+              redirect_target,
+              token_symbol: token.symbol,
+              token_position_in_list: tokenIndex + 1,
+              token_chain_id: token.chainId ?? '',
+              tokens_in_list: tokenCount,
+              token_has_balance: new BigNumber(token.balance).gt(0),
+            });
           },
         });
       } catch (error) {
@@ -846,7 +848,7 @@ const MoneyHomeView = () => {
         });
       }
     },
-    [initiateDeposit, trackTokenSurfaceClicked],
+    [navigateToMoneyDeposit, trackTokenSurfaceClicked],
   );
 
   const handleMoneyPotentialEarningsHeaderPressed = useCallback(() => {

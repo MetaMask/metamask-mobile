@@ -25,7 +25,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import {
+  useMoneyDepositNavigation,
+  type TrackMoneyEntry,
+} from '../../hooks/useMoneyNavigation';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -96,6 +99,8 @@ const RIVE_CURRENT_STEP_PATH = 'currentStep';
  */
 const FINAL_STEP_INDEX = 4;
 const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
+type MoneyDepositRedirectTarget =
+  Parameters<TrackMoneyEntry>[0]['redirect_target'];
 
 /** Transition speed passed to the Rive artboard. */
 const RIVE_TRANSITION_SPEED = 300;
@@ -283,7 +288,7 @@ const MoneyOnboardingView = () => {
 
   const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
   const [isRiveReady, setIsRiveReady] = useState(false);
   const { riveViewRef, setHybridRef } = useRive();
@@ -413,63 +418,74 @@ const MoneyOnboardingView = () => {
     );
   }, [analyticsContext, navigation]);
 
-  const navigateToPostOnboardingDestination = useCallback(async () => {
-    if (
-      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
-    ) {
-      navigateToMoneyHome();
-      return;
-    }
+  const navigateToPostOnboardingDestination = useCallback(
+    async (
+      stepIndex: number,
+      stepAction:
+        | MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED
+        | MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+    ) => {
+      const trackRedirect = (redirectTarget: MoneyDepositRedirectTarget) => {
+        trackOnboardingEvent({
+          step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
+          step_title: stepTitlesEnglish[stepIndex],
+          total_steps: TOTAL_ONBOARDING_STEPS,
+          step_action: stepAction,
+          redirect_target: redirectTarget,
+        });
+      };
 
-    try {
-      await initiateDeposit({
-        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
-        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
-          ? {
-              autoSelectFiatPayment:
-                postOnboardingRedirect.autoSelectFiatPayment,
-            }
-          : {}),
-        ...(postOnboardingRedirect.intent
-          ? { intent: postOnboardingRedirect.intent }
-          : {}),
-        replaceConfirmation: true,
-        onDepositSetupFailure: navigateToMoneyHome,
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[Money Account] Failed to initiate deposit after onboarding',
-      );
-    }
-  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+      if (
+        postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+      ) {
+        trackRedirect(SCREEN_NAMES.MONEY_HOME);
+        navigateToMoneyHome();
+        return;
+      }
 
-  const postOnboardingRedirectTarget =
-    postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
-      ? SCREEN_NAMES.MONEY_DEPOSIT
-      : SCREEN_NAMES.MONEY_HOME;
+      try {
+        await navigateToMoneyDeposit({
+          preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+          ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
+            ? {
+                autoSelectFiatPayment:
+                  postOnboardingRedirect.autoSelectFiatPayment,
+              }
+            : {}),
+          ...(postOnboardingRedirect.intent
+            ? { intent: postOnboardingRedirect.intent }
+            : {}),
+          replaceConfirmation: true,
+          onDepositSetupFailure: navigateToMoneyHome,
+          isPostOnboardingContinuation: true,
+          track: ({ redirect_target }) => trackRedirect(redirect_target),
+        });
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Money Account] Failed to initiate deposit after onboarding',
+        );
+      }
+    },
+    [
+      navigateToMoneyDeposit,
+      navigateToMoneyHome,
+      postOnboardingRedirect,
+      stepTitlesEnglish,
+      trackOnboardingEvent,
+    ],
+  );
 
   const handleClose = useCallback(
     async (stepIndex: number) => {
       playImpact(ImpactMoment.PageNavigation);
-      trackOnboardingEvent({
-        step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
-        step_title: stepTitlesEnglish[stepIndex],
-        total_steps: TOTAL_ONBOARDING_STEPS,
-        step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
-        redirect_target: postOnboardingRedirectTarget,
-      });
-
       dispatch(setMoneyOnboardingSeen(true));
-      await navigateToPostOnboardingDestination();
+      await navigateToPostOnboardingDestination(
+        stepIndex,
+        MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+      );
     },
-    [
-      dispatch,
-      navigateToPostOnboardingDestination,
-      postOnboardingRedirectTarget,
-      stepTitlesEnglish,
-      trackOnboardingEvent,
-    ],
+    [dispatch, navigateToPostOnboardingDestination],
   );
 
   const handleModalRequestClose = useCallback(() => {
@@ -491,24 +507,18 @@ const MoneyOnboardingView = () => {
 
   const handleComplete = useCallback(
     (stepIndex: number) => {
-      trackOnboardingEvent({
-        step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
-        step_title: stepTitlesEnglish[stepIndex],
-        total_steps: TOTAL_ONBOARDING_STEPS,
-        step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
-        redirect_target: postOnboardingRedirectTarget,
-      });
-
       dispatch(setMoneyOnboardingSeen(true));
-      navigateToPostOnboardingDestination();
+      navigateToPostOnboardingDestination(
+        stepIndex,
+        MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+      ).catch((error) => {
+        Logger.error(
+          error as Error,
+          '[Money Account] Failed to navigate after onboarding completion',
+        );
+      });
     },
-    [
-      dispatch,
-      navigateToPostOnboardingDestination,
-      postOnboardingRedirectTarget,
-      stepTitlesEnglish,
-      trackOnboardingEvent,
-    ],
+    [dispatch, navigateToPostOnboardingDestination],
   );
 
   useEffect(() => {
@@ -677,11 +687,12 @@ const MoneyOnboardingView = () => {
 // Used in E2E and performance tests to complete onboarding without rendering Rive.
 const MoneyOnboardingViewE2E = () => {
   const dispatch = useDispatch();
+  const hasCompletedOnboardingRef = useRef(false);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(
@@ -703,7 +714,7 @@ const MoneyOnboardingViewE2E = () => {
     }
 
     try {
-      await initiateDeposit({
+      await navigateToMoneyDeposit({
         preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
         ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
           ? {
@@ -716,6 +727,7 @@ const MoneyOnboardingViewE2E = () => {
           : {}),
         replaceConfirmation: true,
         onDepositSetupFailure: navigateToMoneyHome,
+        isPostOnboardingContinuation: true,
       });
     } catch (error) {
       Logger.error(
@@ -723,9 +735,13 @@ const MoneyOnboardingViewE2E = () => {
         '[Money Account] Failed to initiate deposit after onboarding',
       );
     }
-  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+  }, [navigateToMoneyDeposit, navigateToMoneyHome, postOnboardingRedirect]);
 
   const completeOnboardingAndRedirect = useCallback(() => {
+    if (hasCompletedOnboardingRef.current) {
+      return;
+    }
+    hasCompletedOnboardingRef.current = true;
     dispatch(setMoneyOnboardingSeen(true));
     navigateToPostOnboardingDestination();
   }, [dispatch, navigateToPostOnboardingDestination]);
