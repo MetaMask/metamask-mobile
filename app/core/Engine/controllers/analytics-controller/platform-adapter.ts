@@ -81,6 +81,7 @@ function mergeAnalyticsContext(
       : existingConsent?.categoryPreferences;
     const nextContext: OutboundSegmentContext = {
       ...existingContext,
+      ...(context.protocols ? { protocols: context.protocols } : {}),
       ...(categoryPreferences
         ? {
             consent: {

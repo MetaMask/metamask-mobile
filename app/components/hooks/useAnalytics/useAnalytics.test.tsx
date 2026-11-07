@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import type { AnalyticsContext } from '@metamask/analytics-controller';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
@@ -116,6 +117,34 @@ describe('useAnalytics', () => {
 
     act(() => {
       result.current.trackEvent(event);
+    });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(event);
+  });
+
+  it('forwards event context separately from properties', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Test Event')
+      .addProperties({ source: 'wallet' })
+      .build();
+    const context: AnalyticsContext = { protocols: { event_version: 2 } };
+    const { result } = renderHook(() => useAnalytics());
+
+    act(() => {
+      result.current.trackEvent(event, context);
+    });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(event, context);
+    expect(event.properties).not.toHaveProperty('protocols');
+  });
+
+  it('keeps the one-argument call when context is explicitly undefined', () => {
+    const event =
+      AnalyticsEventBuilder.createEventBuilder('Test Event').build();
+    const { result } = renderHook(() => useAnalytics());
+
+    act(() => {
+      result.current.trackEvent(event, undefined);
     });
 
     expect(analytics.trackEvent).toHaveBeenCalledWith(event);
