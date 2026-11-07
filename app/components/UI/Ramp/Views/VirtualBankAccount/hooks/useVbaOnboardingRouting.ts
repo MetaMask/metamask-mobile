@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { Alert } from 'react-native';
 import {
   CommonActions,
   StackActions,
@@ -363,6 +364,10 @@ const resumePersistedKycSession = async (): Promise<void> => {
       vendor: VBA_KYC_VENDOR,
     });
   } catch (error) {
+    Alert.alert(
+      'resumePersistedKycSession',
+      error instanceof Error ? error.message : String(error),
+    );
     // The latest session can disappear between the lookup and start. Creating
     // one still belongs on the email screen.
     if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
