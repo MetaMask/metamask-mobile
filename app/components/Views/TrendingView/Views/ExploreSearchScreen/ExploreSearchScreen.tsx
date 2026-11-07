@@ -775,12 +775,9 @@ const ExploreSearchScreen: React.FC = () => {
   const handleBrowserTabsPress = useCallback(() => {
     Keyboard.dismiss();
     navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        showTabsView: true,
-        timestamp: Date.now(),
-        fromExploreSearch: true,
-      },
+      showTabsView: true,
+      timestamp: Date.now(),
+      fromExploreSearch: true,
     });
   }, [navigation]);
 
