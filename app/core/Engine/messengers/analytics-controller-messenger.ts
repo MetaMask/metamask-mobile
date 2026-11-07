@@ -27,6 +27,12 @@ export function getAnalyticsControllerMessenger(
     namespace: 'AnalyticsController',
     parent: rootMessenger,
   });
+  // Event-purpose classification (eventsConfig) comes from the config registry.
+  rootMessenger.delegate({
+    actions: ['ConfigRegistryController:getState'],
+    events: ['ConfigRegistryController:stateChanged'],
+    messenger,
+  });
   return messenger;
 }
 
