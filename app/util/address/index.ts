@@ -57,7 +57,7 @@ import type {
   NetworkState,
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { isWatchOnlyKeyringType } from '@metamask/accounts-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
@@ -318,7 +318,7 @@ export function isSnapAccount(address: string) {
  */
 export function isWatchOnlyAccount(address: string): boolean {
   const keyring = getKeyringByAddress(address);
-  return Boolean(keyring && isWatchOnlyKeyringType(keyring.type));
+  return keyring?.type === KeyringType.WatchOnly;
 }
 
 /**
