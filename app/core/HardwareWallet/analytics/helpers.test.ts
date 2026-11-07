@@ -189,8 +189,10 @@ describe('analytics helpers', () => {
       expect(getAnalyticsDeviceType(HardwareWalletType.Qr)).toBe('QR Hardware');
     });
 
-    it('returns OneKey for OneKey type', () => {
-      expect(getAnalyticsDeviceType(HardwareWalletType.OneKey)).toBe('OneKey');
+    it('returns QR Hardware for OneKey type, since OneKey connects over QR', () => {
+      expect(getAnalyticsDeviceType(HardwareWalletType.OneKey)).toBe(
+        'QR Hardware',
+      );
     });
 
     it('returns Lattice for Lattice type', () => {
