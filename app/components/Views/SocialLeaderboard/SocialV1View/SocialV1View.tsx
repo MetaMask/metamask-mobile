@@ -6,10 +6,12 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useIsFocused,
@@ -26,7 +28,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, type LayoutChangeEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
@@ -35,7 +37,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
@@ -50,10 +55,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import {
-  TabsBar,
-  type TabItem,
-} from '../../../../component-library/components-temp/Tabs';
+import PillTabsBar from '../../../Nav/Main/FixedTabNav/PillTabsBar';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -362,6 +364,24 @@ const SocialV1ViewContent: React.FC = () => {
   const titleHeightSv = useSharedValue(0);
   const titleHeight = 0;
 
+  // Glass header: float over the content on a backdrop that fades in with
+  // scrollY, matching the Money/Trade/Collect hubs. The pill-tab row pins under
+  // the header, so the backdrop extends to cover it.
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const insets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, insets.top);
+
+  // Height of the pinned pill-tab row, so the header's glass backdrop extends
+  // to cover it (same blur the Money/Trade/Collect hubs get over their pills).
+  const tabsHeightSv = useSharedValue(0);
+  const handleTabsLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      tabsHeightSv.value = event.nativeEvent.layout.height;
+    },
+    [tabsHeightSv],
+  );
+
   /**
    * Brings the incoming page's scroll offset into agreement with the outgoing
    * one over the header's collapse range, so switching tabs never flips the
@@ -592,14 +612,13 @@ const SocialV1ViewContent: React.FC = () => {
     NotificationService.openSystemSettings();
   }, []);
 
-  // `content` is unused: the pages live in the PagerView below so they stay
-  // swipeable, and TabsBar renders the bar only.
-  const tabs: TabItem[] = useMemo(
+  // Pages live in the PagerView below so they stay swipeable; PillTabsBar
+  // renders the shared pill row only (no per-tab content slot).
+  const tabs = useMemo(
     () =>
       tabOrder.map((tab) => ({
         key: tab,
         label: strings(SOCIAL_SHELL_TAB_CONFIG[tab].labelKey),
-        content: null,
       })),
     [tabOrder],
   );
@@ -665,6 +684,18 @@ const SocialV1ViewContent: React.FC = () => {
     [changeTab],
   );
 
+  // PillTabsBar reports by key; map back to the pager index so tab taps and
+  // swipes share the same change path.
+  const handlePillChange = useCallback(
+    (key: string) => {
+      const index = tabOrder.indexOf(key as SocialShellTab);
+      if (index !== -1) {
+        handleTabPress(index);
+      }
+    },
+    [handleTabPress, tabOrder],
+  );
+
   const handlePageSelected = useCallback(
     (e: { nativeEvent: { position: number } }) => {
       changeTab(e.nativeEvent.position);
@@ -688,10 +719,13 @@ const SocialV1ViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialV1ViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandardAnimated
+        <HeaderStandardAnimatedGlass
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
           includesTopInset
           scrollY={scrollY}
           titleSectionHeight={titleHeightSv}
+          backdropExtension={tabsHeightSv}
           title={title}
           titleProps={{
             testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
@@ -776,15 +810,16 @@ const SocialV1ViewContent: React.FC = () => {
         <Box twClassName="flex-1 overflow-hidden">
           <Animated.View
             style={[
-              tw.style('absolute top-0 left-0 right-0'),
+              tw.style('absolute left-0 right-0'),
+              { top: headerInset },
               collapsingBlockStyle,
             ]}
           >
-            <Box twClassName="mt-4">
-              <TabsBar
+            <Box onLayout={handleTabsLayout}>
+              <PillTabsBar
                 tabs={tabs}
-                activeIndex={activeIndex}
-                onTabPress={handleTabPress}
+                selectedKey={tabOrder[activeIndex]}
+                onChange={handlePillChange}
                 testID={SocialV1ViewSelectorsIDs.TABS}
               />
             </Box>

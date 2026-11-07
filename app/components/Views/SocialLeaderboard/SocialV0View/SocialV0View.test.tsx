@@ -232,7 +232,9 @@ describe('SocialV0View', () => {
     expect(
       screen.getByTestId(SocialV0ViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(SocialV0ViewSelectorsIDs.TABS)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pills-chrome`),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialV0ViewSelectorsIDs.TITLE),
     ).toBeOnTheScreen();
@@ -324,7 +326,7 @@ describe('SocialV0View', () => {
       renderWithProvider(<SocialV0View />);
 
       for (const present of [
-        SocialV0ViewSelectorsIDs.TABS,
+        `${SocialV0ViewSelectorsIDs.TABS}-pills-chrome`,
         SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE,
         SocialV0ViewSelectorsIDs.FEED_PAGE,
       ]) {
@@ -438,7 +440,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-feed`),
     );
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
@@ -448,7 +450,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-leaderboard`),
     );
 
     expect(mockPlaySelection).not.toHaveBeenCalled();
@@ -466,7 +468,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-feed`),
     );
 
     expect(
@@ -510,12 +512,11 @@ describe('SocialV0View', () => {
     it('keeps Leaderboard as the leftmost tab by default', () => {
       renderWithProvider(<SocialV0View />);
 
-      expect(
-        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0-label`),
-      ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
-      expect(
-        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1-label`),
-      ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
+      const pills = screen.getAllByTestId(/-pill-/);
+      expect(pills[0]).toHaveTextContent(
+        'social_leaderboard.feed.tabs.leaderboard',
+      );
+      expect(pills[1]).toHaveTextContent('social_leaderboard.feed.tabs.feed');
     });
 
     it('moves Feed to the leftmost tab when the feed is the landing tab', () => {
@@ -523,12 +524,11 @@ describe('SocialV0View', () => {
 
       renderWithProvider(<SocialV0View />);
 
-      expect(
-        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0-label`),
-      ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
-      expect(
-        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1-label`),
-      ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
+      const pills = screen.getAllByTestId(/-pill-/);
+      expect(pills[0]).toHaveTextContent('social_leaderboard.feed.tabs.feed');
+      expect(pills[1]).toHaveTextContent(
+        'social_leaderboard.feed.tabs.leaderboard',
+      );
     });
 
     it('deactivates the feed when the second tab is selected in a feed-first order', () => {
@@ -536,7 +536,7 @@ describe('SocialV0View', () => {
       renderWithProvider(<SocialV0View />);
 
       fireEvent.press(
-        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-leaderboard`),
       );
 
       expect(
@@ -676,7 +676,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-feed`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -693,7 +693,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-feed`),
     );
     mockTrack.mockClear();
 
@@ -716,7 +716,7 @@ describe('SocialV0View', () => {
     renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-pill-leaderboard`),
     );
     expect(mockTrack).not.toHaveBeenCalled();
     mockTrack.mockClear();

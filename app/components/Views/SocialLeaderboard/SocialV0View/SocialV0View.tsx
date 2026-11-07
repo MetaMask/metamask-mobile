@@ -54,10 +54,7 @@ import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import {
-  TabsBar,
-  type TabItem,
-} from '../../../../component-library/components-temp/Tabs';
+import PillTabsBar from '../../../Nav/Main/FixedTabNav/PillTabsBar';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import Routes from '../../../../constants/navigation/Routes';
 import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
@@ -358,9 +355,9 @@ const SocialV0View: React.FC = () => {
     NotificationService.openSystemSettings();
   }, []);
 
-  // `content` is unused: the pages live in the PagerView below so they stay
-  // swipeable, and TabsBar renders the bar only.
-  const tabs: TabItem[] = useMemo(
+  // Pages live in the PagerView below so they stay swipeable; PillTabsBar
+  // renders the shared pill row only (no per-tab content slot).
+  const tabs = useMemo(
     () =>
       tabOrder.map((tab) => ({
         key: tab,
@@ -368,7 +365,6 @@ const SocialV0View: React.FC = () => {
           tab === 'feed'
             ? strings('social_leaderboard.feed.tabs.feed')
             : strings('social_leaderboard.feed.tabs.leaderboard'),
-        content: null,
       })),
     [tabOrder],
   );
@@ -409,6 +405,18 @@ const SocialV0View: React.FC = () => {
       changeTab(index);
     },
     [changeTab],
+  );
+
+  // PillTabsBar reports by key; map back to the pager index so tab taps and
+  // swipes share the same change path.
+  const handlePillChange = useCallback(
+    (key: string) => {
+      const index = tabOrder.indexOf(key as SocialTradersTab);
+      if (index !== -1) {
+        handleTabPress(index);
+      }
+    },
+    [handleTabPress, tabOrder],
   );
 
   const handlePageSelected = useCallback(
@@ -452,14 +460,12 @@ const SocialV0View: React.FC = () => {
         </Box>
       ) : null}
 
-      <Box>
-        <TabsBar
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-          testID={SocialV0ViewSelectorsIDs.TABS}
-        />
-      </Box>
+      <PillTabsBar
+        tabs={tabs}
+        selectedKey={tabOrder[activeIndex]}
+        onChange={handlePillChange}
+        testID={SocialV0ViewSelectorsIDs.TABS}
+      />
 
       {/* Pages are rendered in `tabOrder` so the pager positions stay
           aligned with the tabs bar. */}

@@ -353,16 +353,16 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-trending`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.trending');
     expect(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.following');
     expect(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-leaderboard`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
     expect(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-live`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
   });
 
@@ -378,7 +378,7 @@ describe('SocialV1View', () => {
     expect(screen.queryByTestId('top-traders-view')).toBeNull();
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-leaderboard`),
     );
 
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
@@ -544,7 +544,7 @@ describe('SocialV1View', () => {
     it('does not pin the new post on Following', () => {
       renderWithProvider(<SocialV1View />);
       fireEvent.press(
-        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
       );
 
       expect(
@@ -582,7 +582,7 @@ describe('SocialV1View', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-live`),
     );
 
     expect(mockSocialFeed).toHaveBeenLastCalledWith(
@@ -590,7 +590,7 @@ describe('SocialV1View', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-trending`),
     );
 
     expect(mockSocialFeed).toHaveBeenLastCalledWith(
@@ -664,7 +664,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
     fireEvent.press(
       screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
@@ -683,7 +683,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-live`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -699,7 +699,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -716,7 +716,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-leaderboard`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -732,12 +732,12 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
     mockTrack.mockClear();
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-trending`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -754,7 +754,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
     mockTrack.mockClear();
 
@@ -777,7 +777,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-trending`),
     );
     expect(mockTrack).not.toHaveBeenCalled();
     mockTrack.mockClear();
@@ -826,7 +826,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
@@ -836,7 +836,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-trending`),
     );
 
     expect(mockPlaySelection).not.toHaveBeenCalled();
@@ -846,7 +846,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-pill-following`),
     );
 
     expect(
