@@ -1,4 +1,9 @@
-import FixtureBuilder from './FixtureBuilder';
+import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from './FixtureBuilder';
+import {
+  REFEREE_INVITED_BENEFIT_TITLE,
+  REWARDS_MONEY_E2E_PROFILE_ID,
+  REWARDS_MONEY_SUBSCRIPTION_ID,
+} from '../../api-mocking/mock-responses/rewards-money';
 import { STATE_LOG_SEEDED_MARKERS } from './state-log-omitted-fields';
 import defaultFixture from './json/default-fixture.json';
 
@@ -137,5 +142,45 @@ describe('FixtureBuilder state log fields', () => {
 
     expect(rewardsMoney.existingField).toBe('kept');
     expect(rewardsMoney.referralMe).toBeDefined();
+  });
+});
+
+describe('FixtureBuilder rewards money referee', () => {
+  it('seeds an opted-in subscription and a referee referral payload', () => {
+    const fixture = new FixtureBuilder().withRewardsMoneyReferee().build();
+    const background = fixture.state.engine.backgroundState;
+    const rewards = background.RewardsController as {
+      activeAccount: { account: string; subscriptionId: string };
+    };
+    const rewardsMoney = background.RewardsMoneyController as {
+      referralMe: Record<
+        string,
+        {
+          payload: {
+            roles: string[];
+            localized_text: { invitedBenefitTitle: string };
+          };
+        }
+      >;
+    };
+    const slice = fixture.state.rewardsMoney as {
+      referralMe: Record<string, { data: { roles: string[] } }>;
+    };
+    const payload =
+      rewardsMoney.referralMe[REWARDS_MONEY_E2E_PROFILE_ID].payload;
+
+    expect(rewards.activeAccount.subscriptionId).toBe(
+      REWARDS_MONEY_SUBSCRIPTION_ID,
+    );
+    expect(rewards.activeAccount.account).toBe(
+      `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+    );
+    expect(payload.roles).toEqual(['REFEREE']);
+    expect(payload.localized_text.invitedBenefitTitle).toBe(
+      REFEREE_INVITED_BENEFIT_TITLE,
+    );
+    expect(slice.referralMe[REWARDS_MONEY_E2E_PROFILE_ID].data.roles).toEqual([
+      'REFEREE',
+    ]);
   });
 });
