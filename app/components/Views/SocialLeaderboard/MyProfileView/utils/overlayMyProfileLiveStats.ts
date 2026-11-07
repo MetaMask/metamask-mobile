@@ -6,6 +6,7 @@ import {
   EM_DASH,
   formatPercent,
   formatSignedFullUsdNoDecimals,
+  formatSignedProfileUsd,
 } from '../../../../UI/SocialFeed/utils/formatters';
 import {
   FAKE_STATS_PREFIX,
@@ -47,11 +48,13 @@ const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
 const signedUsdTone = (value: number): PerformanceCell['tone'] =>
-  Math.round(value) >= 0 ? 'success' : 'error';
+  value >= 0 ? 'success' : 'error';
 
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
   openPositions: readonly Position[] = [],
+  /** Unrealized P&L already followed to the live price; wins over the API sum. */
+  liveUnrealizedPnl?: number | null,
 ): PerformanceCell[] => {
   const stats = live?.stats;
   if (!stats) {
@@ -61,17 +64,20 @@ export const buildPerformanceCells = (
   if (isPresentNumber(stats.pnl30d)) {
     cells.push({
       id: 'pnl',
-      value: formatSignedFullUsdNoDecimals(stats.pnl30d),
+      value: formatSignedProfileUsd(stats.pnl30d),
       tone: signedUsdTone(stats.pnl30d),
     });
   }
-  const unrealized = sumUnrealizedFromOpenPositions(openPositions);
+  const unrealized =
+    liveUnrealizedPnl !== undefined
+      ? liveUnrealizedPnl
+      : sumUnrealizedFromOpenPositions(openPositions);
   if (isPresentNumber(unrealized)) {
     cells.push({
       id: 'unrealizedPnl',
-      value: formatSignedFullUsdNoDecimals(unrealized),
+      value: formatSignedProfileUsd(unrealized),
       tone:
-        Math.round(unrealized) === 0 ? 'default' : signedUsdTone(unrealized),
+        Math.abs(unrealized) < 0.005 ? 'default' : signedUsdTone(unrealized),
     });
   }
   if (isPresentNumber(stats.winRate30d)) {
@@ -113,6 +119,7 @@ export const overlayMyProfileLiveStats = (
   local: MySocialProfile,
   live: TraderProfileResponse | null,
   openPositions: readonly Position[] = [],
+  liveUnrealizedPnl?: number | null,
 ): OverlayedMyProfileStats => {
   const liveWinRate = live?.stats.winRate30d;
   const livePnl = live?.stats.pnl30d;
@@ -139,6 +146,10 @@ export const overlayMyProfileLiveStats = (
     pnlLabel: hasLivePnl ? pnlRaw : markFakeStat(pnlRaw),
     hasPnl: pnlValue != null,
     isPnlPositive: pnlValue != null && Math.round(pnlValue) >= 0,
-    performanceCells: buildPerformanceCells(live, openPositions),
+    performanceCells: buildPerformanceCells(
+      live,
+      openPositions,
+      liveUnrealizedPnl,
+    ),
   };
 };
