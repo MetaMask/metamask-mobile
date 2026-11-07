@@ -21,10 +21,7 @@ import useCurrency from '../../../Base/Keypad/useCurrency';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
-import {
-  formatCurrency,
-  getCurrencySymbol,
-} from '../../Bridge/utils/currencyUtils';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
@@ -73,24 +70,9 @@ const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 // does not change the centered block's height.
 const AMOUNT_ROW_STYLE = { minHeight: getFontSizeForInputLength(0) };
 
-/** True when the currency symbol appears before the digits for this locale. */
-function isCurrencySymbolPrefix(currency: string): boolean {
-  const symbol = getCurrencySymbol(currency);
-  if (!symbol) {
-    return true;
-  }
-  const formatted = formatCurrency(1, currency);
-  const digitIndex = formatted.search(/\d/);
-  const symbolIndex = formatted.indexOf(symbol);
-  if (digitIndex < 0 || symbolIndex < 0) {
-    return true;
-  }
-  return symbolIndex < digitIndex;
-}
-
 /**
  * Show keypad-internal amounts (dot decimal) with the currency's locale
- * separator so editing matches the closed-keypad `formatCurrency` headline.
+ * separator so editing matches the closed-keypad formatted headline.
  */
 export function formatAmountDigitsForDisplay(
   amount: string,
@@ -117,6 +99,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const formatters = useFormatters();
   const hardwareTier = useMemo(() => getHardwareTier(), []);
   const networkTier = useNetworkTier();
   // Glyph motion is local. The UX matrix only reduces it for LOW hardware on
@@ -175,10 +158,18 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     if (isUnpricedSource) {
       amountSuffix = sourceSymbol ? ` ${sourceSymbol}` : '';
     } else if (currency) {
-      const symbol = getCurrencySymbol(currency);
-      if (symbol && isCurrencySymbolPrefix(currency)) {
+      const formattedZero = formatters.formatCurrency(0, currency, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      const symbol =
+        formattedZero.replace(/[\d\s.,'’_-]/gu, '').trim() ||
+        currency.toUpperCase();
+      const formattedOne = formatters.formatCurrency(1, currency);
+      const isPrefix = formattedOne.indexOf(symbol) < formattedOne.search(/\d/);
+      if (isPrefix) {
         amountPrefix = symbol;
-      } else if (symbol) {
+      } else {
         amountSuffix = ` ${symbol}`;
       }
     }

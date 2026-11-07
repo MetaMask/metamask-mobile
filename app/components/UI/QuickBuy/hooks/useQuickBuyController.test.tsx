@@ -246,6 +246,8 @@ jest.mock('../../Bridge/hooks/usePriceImpactViewData', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
