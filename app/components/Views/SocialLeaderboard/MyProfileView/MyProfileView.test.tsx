@@ -853,8 +853,8 @@ describe('MyProfileView', () => {
     });
     expect(Share.open).toHaveBeenCalledWith({
       message:
-        'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Follow+giga-whale.metamask+on+MetaMask+Social&$og_description=Trades+and+posts+from+giga-whale.metamask',
-      url: 'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Follow+giga-whale.metamask+on+MetaMask+Social&$og_description=Trades+and+posts+from+giga-whale.metamask',
+        'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=See+Giga+Whale%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
+      url: 'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=See+Giga+Whale%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
@@ -1210,8 +1210,8 @@ describe('MyProfileView', () => {
 
     expect(Share.open).toHaveBeenCalledWith({
       message:
-        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Follow+alpha.eth+on+MetaMask+Social&$og_description=Trades+and+posts+from+alpha.eth',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Follow+alpha.eth+on+MetaMask+Social&$og_description=Trades+and+posts+from+alpha.eth',
+        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=See+alpha.eth%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=See+alpha.eth%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);

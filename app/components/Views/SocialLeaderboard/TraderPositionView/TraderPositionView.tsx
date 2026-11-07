@@ -264,19 +264,11 @@ const TraderPositionView = () => {
       buildSocialPositionOpenGraph({
         traderName: readTraderShareName(fetchedProfile?.profile, traderName),
         assetSymbol: symbol,
-        side: displayPosition
-          ? getPerpPositionDirection(displayPosition)
-          : null,
-        isPerp: positionData.isPerp,
-        isClosed,
       }),
     );
   }, [
-    displayPosition,
     effectivePositionId,
     fetchedProfile?.profile,
-    isClosed,
-    positionData.isPerp,
     sourceParam,
     symbol,
     trackSocialPost,

@@ -11,6 +11,7 @@ import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 /** Branch reads these query keys as dynamic open-graph tags. */
 const OPEN_GRAPH_TITLE_PARAM = '$og_title';
 const OPEN_GRAPH_DESCRIPTION_PARAM = '$og_description';
+const OPEN_GRAPH_IMAGE_PARAM = '$og_image_url';
 const MAX_OPEN_GRAPH_TITLE_LENGTH = 60;
 const MAX_OPEN_GRAPH_DESCRIPTION_LENGTH = 90;
 
@@ -48,11 +49,16 @@ const withOpenGraph = (url: URL, openGraph?: SocialLinkOpenGraph): string => {
     if (description) {
       url.searchParams.set(OPEN_GRAPH_DESCRIPTION_PARAM, description);
     }
+    const imageUrl = openGraph.imageUrl?.trim();
+    if (imageUrl) {
+      url.searchParams.set(OPEN_GRAPH_IMAGE_PARAM, imageUrl);
+    }
   }
   return url
     .toString()
     .replace(/%24og_title=/g, '$og_title=')
-    .replace(/%24og_description=/g, '$og_description=');
+    .replace(/%24og_description=/g, '$og_description=')
+    .replace(/%24og_image_url=/g, '$og_image_url=');
 };
 
 /**

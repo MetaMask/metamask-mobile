@@ -500,8 +500,8 @@ describe('TraderProfileView', () => {
 
     expect(Share.open).toHaveBeenCalledWith({
       message:
-        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Follow+trader1+on+MetaMask+Social&$og_description=Trades+and+posts+from+trader1',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Follow+trader1+on+MetaMask+Social&$og_description=Trades+and+posts+from+trader1',
+        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=See+trader1%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=See+trader1%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
       failOnCancel: false,
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
