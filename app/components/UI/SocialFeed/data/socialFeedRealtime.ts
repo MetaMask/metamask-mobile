@@ -36,6 +36,30 @@ export interface SocialFeedRow extends TraderFeedRow {
   serverEngagement?: AuthorComment['engagement'];
 }
 
+/** Fields the all and trending feeds add that `CoreFeedItem` does not type yet. */
+type CoreFeedItemWithId = CoreFeedItem & { feedItemId?: string };
+
+/**
+ * The id realtime revisions of this row carry. The all and trending feeds
+ * return it; the other scopes have one row per position and key on that.
+ */
+export const getRowFeedItemId = (row: TraderFeedRow): string =>
+  (row.core as CoreFeedItemWithId).feedItemId ?? row.core.positionId;
+
+/**
+ * Where the server placed the row: its `occurredAt` on the all and trending
+ * feeds, where a comment is placed at the time it was written, and its latest
+ * trade elsewhere.
+ */
+export const getRowSortTimestamp = (row: TraderFeedRow): number => {
+  const occurredAt = Date.parse(row.core.occurredAt ?? '');
+  return Number.isNaN(occurredAt) ? row.item.timestamp : occurredAt;
+};
+
+/** A position can hold several feed items, so its id alone may repeat. */
+const getRowStableId = (row: TraderFeedRow): string =>
+  (row.core as CoreFeedItemWithId).feedItemId ?? row.item.id;
+
 export interface PendingRealtimeEvent {
   event: SocialFeedEvent;
   /** True when the event announced a post the list did not have yet. */
@@ -121,9 +145,9 @@ export const mergeRealtimeFeedItem = (
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
-  stableId: row.item.id,
-  sortTimestamp: row.item.timestamp,
-  feedItemId: row.core.positionId,
+  stableId: getRowStableId(row),
+  sortTimestamp: getRowSortTimestamp(row),
+  feedItemId: getRowFeedItemId(row),
   revision: row.core.revision,
 });
 
@@ -157,7 +181,8 @@ export const applyRealtimeEventToRow = (
     return null;
   }
 
-  const stableId = previous?.stableId ?? row?.item.id ?? mappedItem.id;
+  const stableId =
+    previous?.stableId ?? (row ? getRowStableId(row) : event.feedItemId);
 
   return {
     item: {
@@ -167,7 +192,8 @@ export const applyRealtimeEventToRow = (
     core: mergedCore,
     stableId,
     sortTimestamp:
-      previous?.sortTimestamp ?? row?.item.timestamp ?? mappedItem.timestamp,
+      previous?.sortTimestamp ??
+      getRowSortTimestamp(row ?? { item: mappedItem, core: mergedCore }),
     realtimeEventId: previous
       ? previous.realtimeEventId
       : animate
@@ -284,7 +310,7 @@ export const mergeRealtimeRows = ({
   const byId = new Map<string, SocialFeedRow>();
   const serverById = new Map<string, TraderFeedRow>();
   serverRows.forEach((row) => {
-    const feedItemId = row.core.positionId;
+    const feedItemId = getRowFeedItemId(row);
     serverById.set(feedItemId, row);
     if (shouldDeferPendingNewRow(pending.get(feedItemId))) {
       return;

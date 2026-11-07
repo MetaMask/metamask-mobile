@@ -27,6 +27,7 @@ import {
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
   getVisiblePendingNewCount,
   mergeRealtimeRows,
   rememberEvictedRevision,
@@ -140,7 +141,7 @@ export const useSocialFeedRealtime = (
   const serverRowsById = useMemo(
     () =>
       realtimeScope
-        ? new Map(rows.map((row) => [row.core.positionId, row]))
+        ? new Map(rows.map((row) => [getRowFeedItemId(row), row]))
         : EMPTY_ROWS_BY_ID,
     [realtimeScope, rows],
   );
