@@ -1085,6 +1085,16 @@ jest.mock(
           testID: 'perps-trade-sheet',
         });
       },
+      PerpsTradeSheetFrame: ({ children }: { children: React.ReactNode }) =>
+        children,
+      PerpsTradeSheetPlaceholder: ({ onLayout }: { onLayout: () => void }) => {
+        ReactActual.useEffect(() => {
+          onLayout();
+        }, [onLayout]);
+        return ReactActual.createElement(View, {
+          testID: 'perps-trade-sheet-placeholder',
+        });
+      },
     };
   },
 );
@@ -1340,6 +1350,13 @@ global.requestAnimationFrame = jest.fn((cb) => {
   return 1;
 });
 
+// The trade sheet mounts the order form one frame after its placeholder lays
+// out; run that frame synchronously so sheet tests see the form after render.
+const runFrameSynchronously = (cb: FrameRequestCallback) => {
+  cb(0);
+  return 1;
+};
+
 function applyDefaultHookMocks() {
   (usePerpsOrderForm as jest.Mock).mockImplementation(
     mockDefaultUsePerpsOrderForm,
@@ -1384,6 +1401,9 @@ describe('PerpsOrderView', () => {
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
+    (global.requestAnimationFrame as jest.Mock).mockImplementation(
+      runFrameSynchronously,
+    );
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
     mockProfileTradingActivityPrivate = false;
@@ -1433,7 +1453,19 @@ describe('PerpsOrderView', () => {
         canGoBack: mockParentCanGoBack,
         goBack: mockParentGoBack,
       }),
-      addListener: jest.fn(() => jest.fn()),
+      // The full-screen order view defers non-critical work until its push
+      // transition ends; tests render it with the transition already finished.
+      addListener: jest.fn(
+        (
+          event: string,
+          listener: (e: { data: { closing: boolean } }) => void,
+        ) => {
+          if (event === 'transitionEnd') {
+            listener({ data: { closing: false } });
+          }
+          return jest.fn();
+        },
+      ),
     });
 
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
