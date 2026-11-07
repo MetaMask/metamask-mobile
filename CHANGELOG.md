@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Show the existing post-only messages for Hyperliquid order rejections, and report a cancelled original when a post-only edit would cross the spread
+
 ### Changed
 
 - Load composer GIFs through the social API when the `aiSocialGifApi` flag is on

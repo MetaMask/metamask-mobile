@@ -4793,22 +4793,48 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('shows an error toast when the separate TP/SL update fails', async () => {
-      // Arrange
+    it('shows retryable copy when a separate TP/SL update returns unclassified text', async () => {
+      const diagnostic = 'nope';
       mockOrderForm.takeProfitPrice = '95000';
       mockUpdatePositionTPSL.mockResolvedValue({
         success: false,
-        error: 'nope',
+        error: diagnostic,
       });
       const { result } = renderProForm();
 
-      // Act
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
 
-      // Assert
-      expect(updateTPSLError).toHaveBeenCalledWith('nope');
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.unknownError'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
+    });
+
+    it('translates a separate TP/SL failure from its provider error code', async () => {
+      const diagnostic =
+        'Hyperliquid signer 0xabc returned an internal stack trace';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: diagnostic,
+        errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+          provider: 'hyperliquid',
+        },
+      });
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(updateTPSLError).toHaveBeenCalledWith(
+        strings('perps.errors.clientReinitializing'),
+      );
+      expect(updateTPSLError).not.toHaveBeenCalledWith(diagnostic);
     });
   });
 

@@ -130,6 +130,15 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     );
   });
 
+  it('maps post-only codes to the existing post-only copy', () => {
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS],
+    ).toBe('perps.errors.postOnlyWouldCross');
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW],
+    ).toBe('perps.errors.postOnlyWindow');
+  });
+
   it('resolves every mapped i18n key to English copy', () => {
     const unresolved = errorCodes
       .map((code) => ERROR_CODE_TO_I18N_KEY[code])

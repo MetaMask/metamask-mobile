@@ -428,20 +428,58 @@ describe('PerpsOrderView', () => {
   });
 
   it.each([
-    [
-      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
-      'perps.errors.clientReinitializing',
-    ],
-    [undefined, 'perps.errors.unknownError'],
+    {
+      label: 'a lifecycle-stale code',
+      failure: {
+        success: false as const,
+        error: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      },
+      messageKey: 'perps.errors.clientReinitializing',
+      hiddenText: undefined,
+    },
+    {
+      label: 'a missing error',
+      failure: { success: false as const },
+      messageKey: 'perps.errors.unknownError',
+      hiddenText: undefined,
+    },
+    {
+      label: 'a provider-tagged code whose text is unclassified',
+      failure: {
+        success: false as const,
+        error: 'Hyperliquid signer 0xabc returned an internal stack trace',
+        errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+          provider: 'hyperliquid' as const,
+        },
+      },
+      messageKey: 'perps.errors.clientReinitializing',
+      hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
+    },
+    {
+      label: 'unclassified venue text',
+      failure: {
+        success: false as const,
+        error: 'Hyperliquid signer 0xabc returned an internal stack trace',
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid' as const,
+        },
+      },
+      messageKey: 'perps.errors.unknownError',
+      hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
+    },
   ])(
-    'shows the translated TP/SL failure %s after submitting a market order',
-    async (error, messageKey) => {
+    'shows translated TP/SL copy for $label after submitting a market order',
+    async ({ failure, messageKey, hiddenText }) => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const updatePositionTPSL = Engine.context.PerpsController
         .updatePositionTPSL as jest.Mock;
       // Once is consumed by any earlier call in the same case, and the
       // following call then resolves success and never shows the error toast.
-      updatePositionTPSL.mockResolvedValue({ success: false, error });
+      updatePositionTPSL.mockResolvedValue(failure);
       const { stream } = renderPerpsOrderView({
         includeToasts: true,
         overrides: {
@@ -525,6 +563,9 @@ describe('PerpsOrderView', () => {
       expect(
         screen.getByText(strings('perps.position.tpsl.update_failed')),
       ).toBeOnTheScreen();
+      if (hiddenText) {
+        expect(screen.queryByText(hiddenText)).not.toBeOnTheScreen();
+      }
     },
   );
 

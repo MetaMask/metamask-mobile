@@ -214,7 +214,7 @@ describe('usePerpsOrderValidation', () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: 'Minimum order size is $10.00',
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
       });
       const { result, rerender } = renderHook(
         (params) => usePerpsOrderValidation(params),
@@ -224,7 +224,7 @@ describe('usePerpsOrderValidation', () => {
         await Promise.resolve();
       });
       await fastWaitFor(() => {
-        expect(result.current.errors).toContain('Minimum order size is $10.00');
+        expect(result.current.errors).toContain('Minimum order size is $10');
       });
 
       // Act
@@ -269,7 +269,7 @@ describe('usePerpsOrderValidation', () => {
     it('returns false when protocol validation fails', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: 'Minimum order size is $10.00',
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
       });
 
       const { result } = renderHook(() =>
@@ -291,7 +291,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain('Minimum order size is $10.00');
+      expect(result.current.errors).toContain('Minimum order size is $10');
     });
   });
 
@@ -1182,10 +1182,11 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('multiple errors', () => {
-    it('combines multiple validation errors', async () => {
+    it('combines a local balance error with the retryable fallback for unclassified protocol text', async () => {
+      const unclassifiedProtocolError = 'Order too small';
       mockValidateOrder.mockResolvedValue({
         isValid: false,
-        error: 'Order too small',
+        error: unclassifiedProtocolError,
       });
 
       const { result } = renderHook(() =>
@@ -1207,7 +1208,8 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toHaveLength(2);
-      expect(result.current.errors).toContain('Order too small');
+      expect(result.current.errors).toContain('perps.errors.unknownError');
+      expect(result.current.errors).not.toContain(unclassifiedProtocolError);
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );

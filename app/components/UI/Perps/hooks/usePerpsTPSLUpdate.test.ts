@@ -451,6 +451,37 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
+  it('translates a provider-tagged TP/SL failure from its error code', async () => {
+    const diagnostic =
+      'Hyperliquid signer 0xabc returned an internal stack trace';
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onError });
+
+    mockUpdatePositionTPSL.mockResolvedValue({
+      success: false,
+      error: diagnostic,
+      errorCode: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
+      errorDetails: {
+        code: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
+        provider: 'hyperliquid',
+      },
+    });
+
+    await act(async () => {
+      await result.current.handleUpdateTPSL(
+        createMockPosition(),
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
+    expect(onError).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
+    expect(onError).not.toHaveBeenCalledWith(diagnostic);
+  });
+
   it('should handle undefined TP/SL prices', async () => {
     const { result } = renderHookWithToast();
     const position = createMockPosition();
