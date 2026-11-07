@@ -7,6 +7,7 @@ import { ChoiceMarketGroupCardTestIds } from '../../../events/markets/ChoiceMark
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
+import { MarketGroupCard } from '../../../events/markets/internal/MarketGroupCard';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -22,6 +23,13 @@ import { EventMarketLayoutCard } from './EventMarketLayoutCard';
 jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
+
+jest.mock('../../../events/markets/internal/MarketGroupCard', () => {
+  const actual = jest.requireActual(
+    '../../../events/markets/internal/MarketGroupCard',
+  );
+  return { ...actual, MarketGroupCard: jest.fn(actual.MarketGroupCard) };
+});
 
 const game: PredictGame = {
   status: 'scheduled',
@@ -341,5 +349,41 @@ describe('EventMarketLayoutCard', () => {
     expect(onRulesPress).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'single' }),
     );
+  });
+
+  it('re-renders a rebuilt card only when one of its Markets changes', () => {
+    const card = lines('totals', 'total') as Extract<
+      MarketLayoutCard,
+      { type: 'marketSelector' }
+    >;
+    const props = {
+      game,
+      onSelectMarket: jest.fn(),
+      onOrder: jest.fn(),
+      onRulesPress: jest.fn(),
+    };
+    const { rerender } = render(
+      <EventMarketLayoutCard card={card} {...props} />,
+    );
+    jest.mocked(MarketGroupCard).mockClear();
+
+    rerender(
+      <EventMarketLayoutCard
+        card={{ ...card, markets: [...card.markets] }}
+        {...props}
+      />,
+    );
+
+    expect(MarketGroupCard).not.toHaveBeenCalled();
+
+    const [over, ...rest] = card.markets;
+    rerender(
+      <EventMarketLayoutCard
+        card={{ ...card, markets: [{ ...over }, ...rest] }}
+        {...props}
+      />,
+    );
+
+    expect(MarketGroupCard).toHaveBeenCalledTimes(1);
   });
 });

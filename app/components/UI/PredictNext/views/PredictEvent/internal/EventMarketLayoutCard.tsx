@@ -137,12 +137,46 @@ const LabelledChoiceCard = ({
   return <ChoiceMarketGroupCard {...props} describeRow={describeRow} />;
 };
 
+const cardMarkets = (card: MarketLayoutCard): readonly PredictMarket[] =>
+  card.type === 'standard' ? [card.market] : card.markets;
+
+const cardMarketType = (card: MarketLayoutCard) =>
+  card.type === 'marketSelector' ? card.marketType : undefined;
+
+/**
+ * Every live quote rebuilds the Event's cards, so a card is the same when it
+ * shows the same Market objects: those only change when their own quote does.
+ */
+const isSameCard = (card: MarketLayoutCard, next: MarketLayoutCard) => {
+  if (card === next) return true;
+  const markets = cardMarkets(card);
+  const nextMarkets = cardMarkets(next);
+  return (
+    card.type === next.type &&
+    card.key === next.key &&
+    cardMarketType(card) === cardMarketType(next) &&
+    markets.length === nextMarkets.length &&
+    markets.every((market, index) => market === nextMarkets[index])
+  );
+};
+
+const arePropsEqual = (
+  props: EventMarketLayoutCardProps,
+  next: EventMarketLayoutCardProps,
+) =>
+  props.game === next.game &&
+  props.selectedMarketId === next.selectedMarketId &&
+  props.onSelectMarket === next.onSelectMarket &&
+  props.onOrder === next.onOrder &&
+  props.onRulesPress === next.onRulesPress &&
+  isSameCard(props.card, next.card);
+
 /**
  * Renders one projected card with the component for its group's shape. Line
  * pickers have no title or rules button: the section header names them. A
  * threshold picker is the exception: it's titled with its label and line.
  */
-export const EventMarketLayoutCard = ({
+const EventMarketLayoutCardContent = ({
   card,
   game,
   selectedMarketId,
@@ -232,3 +266,8 @@ export const EventMarketLayoutCard = ({
       );
   }
 };
+
+export const EventMarketLayoutCard = React.memo(
+  EventMarketLayoutCardContent,
+  arePropsEqual,
+);
