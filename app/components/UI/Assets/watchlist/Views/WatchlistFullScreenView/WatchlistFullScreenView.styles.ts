@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     titleContainer: {
       paddingHorizontal: 16,
-      paddingTop: 8,
+      paddingTop: 12,
       paddingBottom: 8,
     },
     listContainer: {
@@ -56,11 +56,6 @@ const styleSheet = (params: { theme: Theme }) => {
     editControlHidden: {
       width: 0,
       overflow: 'hidden',
-    },
-    headerEndActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
     },
   });
 };

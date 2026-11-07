@@ -312,7 +312,7 @@ describe('WatchlistFullScreenView', () => {
       isLoading: false,
     });
 
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+    const { getByTestId, queryByText } = render(<WatchlistFullScreenView />);
 
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
@@ -320,6 +320,7 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).toBeDefined();
+    expect(queryByText('Edit')).toBeNull();
     expect(
       getByTestId('editable-row-mode-eip155:1/erc20:0xeth').props.children,
     ).toBe('view');
