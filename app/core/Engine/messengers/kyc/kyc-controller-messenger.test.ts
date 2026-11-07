@@ -25,6 +25,8 @@ describe('getKycControllerMessenger', () => {
       expect.objectContaining({
         actions: expect.arrayContaining([
           'KycService:resetWrappingKeys',
+          'KycService:createDeletion',
+          'KycService:completeDeletion',
           'AuthenticatedUserStorageService:putIdentitySharingConsent',
           'AuthenticationController:getPartnerIdentityToken',
         ]),
