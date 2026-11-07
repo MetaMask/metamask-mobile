@@ -112,13 +112,6 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
-// Watch-only refusal is covered with real account state in
-// PerpsClosePositionView.view.test.tsx.
-const mockGuardWatchOnly = jest.fn(() => false);
-jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
-  useWatchOnlyGuard: () => ({ isWatchOnly: false, guard: mockGuardWatchOnly }),
-}));
-
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {

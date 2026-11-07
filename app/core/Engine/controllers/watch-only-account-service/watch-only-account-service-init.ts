@@ -19,12 +19,11 @@ type WatchOnlyAccountService =
  * @returns The initialized service, or no service when the gate is off.
  */
 export const watchOnlyAccountServiceInit: MessengerClientInitFunction<
-  WatchOnlyAccountService,
+  WatchOnlyAccountService | undefined,
   WatchOnlyAccountServiceMessenger
 > = ({ controllerMessenger }) => {
   if (!isWatchOnlyAccountsBuildEnabled()) {
-    // Optional client: `EngineContext` types it as possibly undefined.
-    return { controller: undefined as unknown as WatchOnlyAccountService };
+    return { controller: undefined };
   }
 
   // Loaded on demand so builds without the gate never evaluate the package.
