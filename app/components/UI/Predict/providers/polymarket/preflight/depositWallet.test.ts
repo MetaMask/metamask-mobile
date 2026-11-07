@@ -21,7 +21,12 @@ jest.mock('./compileRequirementTransactions', () => ({
 
 import { PERMIT2_ADDRESS } from '../safe/constants';
 import { OperationType, type SafeTransaction } from '../safe/types';
+import {
+  MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+} from '../constants';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
+import { POLYMARKET_POSITIONS_PROTOCOL } from '../protocol/definitions';
 import { planDepositWalletPreflight } from './depositWallet';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
@@ -100,6 +105,68 @@ describe('planDepositWalletPreflight', () => {
     mockCompileRequirementTransactions.mockReturnValue([]);
 
     const plan = await planDepositWalletPreflight({ walletAddress });
+
+    expect(mockCompileRequirementTransactions).toHaveBeenCalledWith([]);
+    expect(plan).toEqual({ missingRequirements: [], transactions: [] });
+  });
+});
+
+describe('planDepositWalletPreflight with the positions protocol', () => {
+  const positionsRequirements: V2AllowanceRequirement[] = [
+    {
+      type: 'erc20-allowance',
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      spender: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+    },
+    {
+      type: 'erc1155-operator',
+      tokenAddress: MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
+      operator: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+    },
+  ];
+  const positionsPermit2Requirement: V2AllowanceRequirement = {
+    type: 'erc20-allowance',
+    tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    spender: PERMIT2_ADDRESS,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockInspectMissingRequirements.mockResolvedValue(missingRequirements);
+    mockCompileRequirementTransactions.mockReturnValue(compiledTransactions);
+  });
+
+  it('filters the positions requirements for the deposit wallet and compiles missing repairs', async () => {
+    const plan = await planDepositWalletPreflight({
+      walletAddress,
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+    });
+
+    expect(mockFilterDepositWalletUnsupportedRequirements).toHaveBeenCalledWith(
+      [...positionsRequirements, positionsPermit2Requirement],
+    );
+    expect(mockGetActiveV2AllowanceRequirements).not.toHaveBeenCalled();
+    expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
+      address: walletAddress,
+      requirements: positionsRequirements,
+    });
+    expect(mockCompileRequirementTransactions).toHaveBeenCalledWith(
+      missingRequirements,
+    );
+    expect(plan).toEqual({
+      missingRequirements,
+      transactions: compiledTransactions,
+    });
+  });
+
+  it('returns no transactions when no positions requirements are missing', async () => {
+    mockInspectMissingRequirements.mockResolvedValue([]);
+    mockCompileRequirementTransactions.mockReturnValue([]);
+
+    const plan = await planDepositWalletPreflight({
+      walletAddress,
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+    });
 
     expect(mockCompileRequirementTransactions).toHaveBeenCalledWith([]);
     expect(plan).toEqual({ missingRequirements: [], transactions: [] });

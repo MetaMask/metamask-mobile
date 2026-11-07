@@ -1,6 +1,12 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import {
   TokenDetails as TokenDetailsRoute,
   TokenDetailsLegacyRouteWrapper as TokenDetails,
@@ -27,11 +33,13 @@ import {
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
 } from '../../../../selectors/bridge/featureFlags';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
 import {
   selectAssetsMemecoinTdpV1Enabled,
   selectMemecoinTdpV1PriceApiBaseUrl,
@@ -42,6 +50,34 @@ import { usePriceApiHost } from '../context/PriceApiHostContext';
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
 const mockUseMostRecentOrder = jest.fn();
+const getSelectedAccountByScopeStub = (scope: string) =>
+  scope.startsWith('eip155:')
+    ? { address: '0x1234567890123456789012345678901234567890' }
+    : { address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61' };
+
+// Shared default useSelector implementation used by the beforeEach and reused by
+// helpers that only need to override a single flag. Keeping a single source of
+// truth guarantees factory selectors (e.g. selectSelectedInternalAccountByScope
+// returns a function) and the bridge/deposit selectors stay handled everywhere.
+const defaultSelectorImpl = (selector: unknown): unknown => {
+  if (selector === selectNetworkConfigurationByChainId)
+    return { name: 'Ethereum' };
+  if (selector === selectNetworkConfigurations)
+    return { '0x1': { nativeCurrency: 'ETH' } };
+  if (selector === selectCurrencyRates)
+    // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+    return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+  if (selector === getRampNetworks) return [];
+  if (selector === selectDepositActiveFlag) return false;
+  if (selector === selectDepositMinimumVersionFlag) return null;
+  if (selector === selectSelectedInternalAccountByScope)
+    return getSelectedAccountByScopeStub;
+  if (selector === selectBridgeLimitOrderFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  if (selector === selectBridgeRecurringBuyFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  return undefined;
+};
 
 jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: () => 'HIGH',
@@ -146,6 +182,19 @@ jest.mock('../hooks/useTokenPrice', () => ({
 const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
+}));
+
+const mockUseTraderPositionPnl = jest.fn(
+  (
+    _args?: unknown,
+  ): {
+    traderPositionPnl: Record<string, unknown> | undefined;
+  } => ({
+    traderPositionPnl: undefined,
+  }),
+);
+jest.mock('../TraderPositionPnl/useTraderPositionPnl', () => ({
+  useTraderPositionPnl: (args: unknown) => mockUseTraderPositionPnl(args),
 }));
 
 jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
@@ -353,9 +402,10 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: (props: { header?: React.ReactNode }) => {
+  default: (props: { header?: React.ReactNode; loading?: boolean }) => {
     mockTransactions(props);
-    return props.header ?? null;
+    // Mirrors Transactions, which shows only its loader while loading.
+    return props.loading ? null : (props.header ?? null);
   },
 }));
 
@@ -372,6 +422,7 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({
     '0x1': { nativeCurrency: 'ETH' },
   })),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
@@ -463,10 +514,19 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
-jest.mock('../components/AssetDetailsQuickBuy', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
-}));
+jest.mock('../components/AssetDetailsQuickBuy', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockAssetDetailsQuickBuy(props);
+      return ReactLib.createElement(View, {
+        testID: 'asset-details-quick-buy',
+      });
+    },
+  };
+});
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -504,6 +564,11 @@ describe('TokenDetails', () => {
       isError: false,
     });
     mockBeforeRemoveListener = undefined;
+    // clearAllMocks keeps mockReturnValue, so reset the default each test to
+    // stop a per-test position from leaking into later suites.
+    mockUseTraderPositionPnl.mockReturnValue({
+      traderPositionPnl: undefined,
+    });
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
@@ -553,25 +618,7 @@ describe('TokenDetails', () => {
       tokenFormattedBalance: '1.5 ETH',
     });
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkConfigurationByChainId)
-        return { name: 'Ethereum' };
-      if (selector === selectNetworkConfigurations)
-        return { '0x1': { nativeCurrency: 'ETH' } };
-      if (selector === selectCurrencyRates)
-        // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === getRampNetworks) return [];
-      if (selector === selectDepositActiveFlag) return false;
-      if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectSelectedInternalAccountFormattedAddress)
-        return '0x1234567890123456789012345678901234567890';
-      if (selector === selectBridgeLimitOrderFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      if (selector === selectBridgeRecurringBuyFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      return undefined;
-    });
+    mockUseSelector.mockImplementation(defaultSelectorImpl);
   });
 
   it('loads the most recent order for the current asset', () => {
@@ -593,6 +640,63 @@ describe('TokenDetails', () => {
     expect(mockUseTokenActions).toHaveBeenCalledWith(
       expect.objectContaining({ tdpVersion: 'v2' }),
     );
+  });
+
+  describe('trader position P&L footer', () => {
+    const applySelectorsWithMemeFlag = (flagEnabled: boolean) => {
+      // Delegate to the default selector impl so factory selectors (e.g.
+      // selectSelectedInternalAccountByScope returns a function) and the
+      // bridge/deposit selectors stay handled; only override the meme flag.
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectAssetsMemecoinTdpV1Enabled
+          ? flagEnabled
+          : defaultSelectorImpl(selector),
+      );
+    };
+
+    it('never mounts the position hook when the flag is off', () => {
+      applySelectorsWithMemeFlag(false);
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      // Flag off renders the plain footer, so the trader-position machinery
+      // (open position, profile, share-to-feed) is never mounted.
+      expect(mockUseTraderPositionPnl).not.toHaveBeenCalled();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    it('mounts the position hook and shows the line when the flag is on', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$103.31',
+          pnl: { amount: '+$15.01', percentage: '+16.99%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenKey: expect.any(String) }),
+      );
+      expect(
+        getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+    });
+
+    it('still shows the footer buttons and omits the line until the position resolves', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: undefined,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      // Append-when-loaded: the footer buttons render immediately, only the
+      // position line waits for the position to resolve.
+      expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
   });
 
   it('does not render a full-page loader when txLoading is true', () => {
@@ -944,6 +1048,8 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectSelectedInternalAccountByScope)
+        return getSelectedAccountByScopeStub;
       return undefined;
     });
 
@@ -1119,6 +1225,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1222,6 +1330,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1729,8 +1839,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectSelectedInternalAccountFormattedAddress)
-          return '0x1234567890123456789012345678901234567890';
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         if (selector === selectBridgeLimitOrderFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         if (selector === selectBridgeRecurringBuyFeatureFlags)
@@ -1896,6 +2006,118 @@ describe('TokenDetails', () => {
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: undefined }),
+      );
+    });
+  });
+
+  describe('glass header', () => {
+    const lastProps = (mock: jest.Mock) => mock.mock.calls.at(-1)?.[0];
+    const callProp = (mock: jest.Mock, name: string, ...args: unknown[]) => {
+      const handler = lastProps(mock)?.[name];
+      if (typeof handler !== 'function') {
+        throw new Error(`Expected a ${name} handler`);
+      }
+      act(() => {
+        handler(...args);
+      });
+    };
+    const withBrandRefresh = () => {
+      const base = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectTokenDetailsBrandRefreshEnabled
+          ? true
+          : base?.(selector),
+      );
+    };
+
+    it('keeps the plain header in place by default', () => {
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
+    });
+
+    it('floats the glass header and starts the content below it', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('keeps the transactions loader below the glass header', () => {
+      withBrandRefresh();
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { getByTestId } = render(<TokenDetails />);
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('adds no spacer above the transactions loader with the plain header', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
+    });
+
+    it('renders the Quick Buy sheet above the glass header', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      const content = getByTestId(TokenDetailsTestIds.CONTENT);
+
+      expect(content).toHaveStyle({ isolation: 'isolate' });
+      expect(
+        within(content).queryByTestId('asset-details-quick-buy'),
+      ).toBeNull();
+      expect(getByTestId('asset-details-quick-buy')).toBeOnTheScreen();
+    });
+
+    it('keeps the footer outside the isolated content, so its sheets open above the glass header', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(
+        within(getByTestId(TokenDetailsTestIds.CONTENT)).queryByTestId(
+          'bottomsheetfooter',
+        ),
+      ).toBeNull();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+    });
+
+    it('fades the header backdrop with the list scroll', () => {
+      withBrandRefresh();
+      render(<TokenDetails />);
+
+      callProp(mockTransactions, 'onScrollThroughContent', 64);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({
+          scrollY: expect.objectContaining({ value: 64 }),
+        }),
       );
     });
   });

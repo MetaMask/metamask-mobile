@@ -33,8 +33,8 @@ export const useReferralFunnel = (
       if (!profileId || !enabled) {
         return;
       }
-      // The Performance tab stays mounted, so this instance is the only
-      // caller. A second call waits until the in-flight one settles.
+      // The Performance tab is the only caller. A second call waits until the
+      // in-flight one settles.
       if (isLoadingRef.current) {
         return;
       }

@@ -20,6 +20,7 @@ import {
   validateEmail,
   formatPercentChange,
   formatMusdBaseUnits,
+  isPositiveBaseUnits,
   isPercentChangeNonNegative,
   getChainHex,
   getAssetReference,
@@ -28,6 +29,8 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -224,6 +227,24 @@ describe('formatUtils', () => {
         formatRewardsRelativeTime(new Date('2026-09-21T12:00:00.000Z'), now),
       ).toBe('4d ago');
     });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-18T12:00:00.000Z'), now),
+      ).toBe('1w ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-08-26T12:00:00.000Z'), now),
+      ).toBe('1mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-06-25T12:00:00.000Z'), now),
+      ).toBe('3mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2025-09-25T12:00:00.000Z'), now),
+      ).toBe('1y ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2024-09-25T12:00:00.000Z'), now),
+      ).toBe('2y ago');
+    });
   });
 
   describe('formatRewardsRelativeDay', () => {
@@ -242,6 +263,15 @@ describe('formatUtils', () => {
     it('counts whole UTC days', () => {
       expect(formatRewardsRelativeDay('2026-09-24', now)).toBe('1d ago');
       expect(formatRewardsRelativeDay('2026-09-21', now)).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(formatRewardsRelativeDay('2026-09-18', now)).toBe('1w ago');
+      expect(formatRewardsRelativeDay('2026-08-27', now)).toBe('4w ago');
+      expect(formatRewardsRelativeDay('2026-08-26', now)).toBe('1mo ago');
+      expect(formatRewardsRelativeDay('2025-09-26', now)).toBe('12mo ago');
+      expect(formatRewardsRelativeDay('2025-09-25', now)).toBe('1y ago');
+      expect(formatRewardsRelativeDay('2024-09-25', now)).toBe('2y ago');
     });
   });
 
@@ -1765,6 +1795,34 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatPredictPositionUsd', () => {
+    it.each([
+      [10, '$10'],
+      [0, '$0'],
+      [12.5, '$12.50'],
+      [1234.567, '$1,234.57'],
+      [9.999, '$10'],
+      [-3.2, '-$3.20'],
+      [NaN, '$0.00'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionUsd(value)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictPositionPercent', () => {
+    it.each([
+      [25, '25%'],
+      [0, '0%'],
+      [-12.5, '-12.5%'],
+      [33.3333, '33.33%'],
+      [10.1, '10.1%'],
+      [-0.001, '0%'],
+      [NaN, '0%'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionPercent(value)).toBe(expected);
+    });
+  });
+
   describe('formatSignedUsd', () => {
     it('returns em dash for null', () => {
       expect(formatSignedUsd(null)).toBe('—');
@@ -1899,6 +1957,18 @@ describe('formatUtils', () => {
           thousandSuffix: 'k',
         }),
       ).toBe('123k');
+    });
+  });
+
+  describe('isPositiveBaseUnits', () => {
+    it('is true only for a positive integer string', () => {
+      expect(isPositiveBaseUnits('1')).toBe(true);
+      expect(isPositiveBaseUnits('1000000')).toBe(true);
+      expect(isPositiveBaseUnits('0')).toBe(false);
+      expect(isPositiveBaseUnits('-1')).toBe(false);
+      expect(isPositiveBaseUnits(undefined)).toBe(false);
+      expect(isPositiveBaseUnits('')).toBe(false);
+      expect(isPositiveBaseUnits('1.5')).toBe(false);
     });
   });
 });

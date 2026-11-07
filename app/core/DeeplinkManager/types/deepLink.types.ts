@@ -46,6 +46,11 @@ export interface DeeplinkUrlParams {
   expiresInMinutes?: string;
   priceTolerance?: string;
 
+  // Recurring Buy-specific parameters
+  every?: string;
+  unit?: string;
+  repeatCount?: string;
+
   // Perps-specific parameters
   symbol?: string;
   screen?: string;
@@ -116,10 +121,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;
@@ -157,6 +158,8 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.TRENDING,
   ACTIONS.WHATS_HAPPENING,
   ACTIONS.TOP_TRADERS,
+  ACTIONS.SOCIAL,
+  ACTIONS.SOCIAL_TRADER,
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,

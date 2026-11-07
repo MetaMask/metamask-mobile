@@ -13,6 +13,21 @@ import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
 import StakingBalance from './StakingBalance';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+
+// The glass test needs the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -433,5 +448,19 @@ describe('StakingBalance', () => {
 
     expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
+  });
+
+  it('passes glass to the stake buttons', () => {
+    const { queryAllByTestId, rerender } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+    expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+
+    rerender(<StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} isGlass />);
+
+    expect(
+      queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID).length,
+    ).toBeGreaterThan(0);
   });
 });

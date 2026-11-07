@@ -16,6 +16,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
+import { resolveSocialDeeplinkTarget } from './socialDeeplinkPath';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -478,7 +479,9 @@ const routeExtractors: Record<
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
   [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
   [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_POST]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -623,7 +626,10 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.WHATS_HAPPENING:
       return DeepLinkRoute.WHATS_HAPPENING;
     case ACTIONS.TOP_TRADERS:
+    case ACTIONS.SOCIAL:
       return DeepLinkRoute.TOP_TRADERS;
+    case ACTIONS.SOCIAL_TRADER:
+      return DeepLinkRoute.SOCIAL_TRADER;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -655,6 +661,19 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
     default:
       return DeepLinkRoute.INVALID;
+  }
+};
+
+const mapSocialSegmentsToRoute = (pathSegments: string[]): DeepLinkRoute => {
+  switch (resolveSocialDeeplinkTarget(pathSegments.join('/'))) {
+    case 'position':
+      return DeepLinkRoute.SOCIAL_TRADER_POSITION;
+    case 'trader':
+      return DeepLinkRoute.SOCIAL_TRADER;
+    case 'post':
+      return DeepLinkRoute.SOCIAL_POST;
+    default:
+      return DeepLinkRoute.TOP_TRADERS;
   }
 };
 
@@ -707,6 +726,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.WHATS_HAPPENING;
       case 'top-traders':
         return DeepLinkRoute.TOP_TRADERS;
+      case 'social':
+        return mapSocialSegmentsToRoute(pathSegments);
+      case 'social-trader':
+        return DeepLinkRoute.SOCIAL_TRADER;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':

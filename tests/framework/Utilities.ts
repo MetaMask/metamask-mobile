@@ -6,6 +6,10 @@ import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from './services/appium/sessionRecovery.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 import { Json } from '@metamask/utils';
@@ -472,6 +476,17 @@ export default class Utilities {
         const elapsedTime = Date.now() - startTime;
         const timeoutExceeded = elapsedTime >= timeout;
         const maxRetriesReached = attempt >= maxRetries;
+        // A crashed UiAutomator session will not recover in place.
+        // Ask the next Playwright attempt to create a new one, and stop retrying here.
+        const sessionDead = isDeviceHealthError(error);
+
+        if (sessionDead) {
+          requestSharedSessionRecreate();
+          logger.warn(
+            `${action} stopped after a dead WebDriver session (${lastError.message})`,
+          );
+          break;
+        }
 
         if (timeoutExceeded || maxRetriesReached) {
           break;

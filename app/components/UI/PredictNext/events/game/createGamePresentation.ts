@@ -8,6 +8,20 @@ import type {
 } from '../../types';
 
 export type GameSelection = 'away' | 'home';
+
+export type GameTeamOrder = readonly [GameSelection, GameSelection];
+
+const AWAY_FIRST: GameTeamOrder = ['away', 'home'];
+const HOME_FIRST: GameTeamOrder = ['home', 'away'];
+
+/**
+ * The order Teams appear in across a Game's UI: header, cards, footer and
+ * line pickers. The API sends it per Game; when absent the away Team comes
+ * first.
+ */
+export const getGameTeamOrder = (game?: PredictGame): GameTeamOrder =>
+  game?.teamOrder === 'home_first' ? HOME_FIRST : AWAY_FIRST;
+
 export type GamePresentationVariant = 'compact' | 'featured' | 'detail';
 
 export interface GameStatusLine {
@@ -48,7 +62,8 @@ export const getEventGame = (event: PredictEvent): PredictGame | undefined =>
 const getStatusLabel = (status: PredictGameStatus) =>
   strings(`predict.game_status.${STATUS_KEYS[status]}`);
 
-const getTeamAbbreviation = (team: PredictTeam): string =>
+/** A Team's short label: its abbreviation, else its first three letters. */
+export const getTeamAbbreviation = (team: PredictTeam): string =>
   (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
 
 const TIME_OPTIONS: Intl.DateTimeFormatOptions = {

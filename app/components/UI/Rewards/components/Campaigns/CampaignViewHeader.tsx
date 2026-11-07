@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import {
-  HeaderStandard,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getCampaignMechanicsButtonProps } from '../../utils/campaignHeaderUtils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CampaignViewHeaderProps {
   title: string;
@@ -23,9 +23,12 @@ const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
   hasCampaign,
   campaignId,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       title={title}
       titleProps={{ variant: TextVariant.HeadingSm }}
       onBack={() => navigation.goBack()}

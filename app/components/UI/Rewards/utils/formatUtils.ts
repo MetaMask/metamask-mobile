@@ -86,10 +86,31 @@ export const formatRewardsTimeOnly = (
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
+const DAYS_PER_WEEK = 7;
+const DAYS_PER_MONTH = 30;
+const DAYS_PER_YEAR = 365;
+
+/**
+ * Compact label for a positive whole-day age.
+ * Days through six, then weeks until a month, months until a year, then years.
+ * Months use `mo` so they stay distinct from minutes.
+ */
+function formatDaysAgo(diffDays: number): string {
+  if (diffDays < DAYS_PER_WEEK) {
+    return `${diffDays}d ago`;
+  }
+  if (diffDays < DAYS_PER_MONTH) {
+    return `${Math.floor(diffDays / DAYS_PER_WEEK)}w ago`;
+  }
+  if (diffDays < DAYS_PER_YEAR) {
+    return `${Math.floor(diffDays / DAYS_PER_MONTH)}mo ago`;
+  }
+  return `${Math.floor(diffDays / DAYS_PER_YEAR)}y ago`;
+}
 
 /**
  * Short relative time for a past instant.
- * @example 'just now', '5m ago', '3h ago', '4d ago'
+ * @example 'just now', '5m ago', '3h ago', '4d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeTime = (
   date: Date,
@@ -113,7 +134,7 @@ export const formatRewardsRelativeTime = (
   if (diffHours < 24) {
     return `${diffHours}h ago`;
   }
-  return `${diffDays}d ago`;
+  return formatDaysAgo(diffDays);
 };
 
 const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -121,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '4d ago'
+ * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -147,7 +168,7 @@ export const formatRewardsRelativeDay = (
   if (diffDays <= 0) {
     return 'today';
   }
-  return `${diffDays}d ago`;
+  return formatDaysAgo(diffDays);
 };
 
 /**
@@ -500,6 +521,18 @@ export const formatSignedUsd = (
   return `${sign}${formatUsd(value, options)}`;
 };
 
+/** True for a positive integer string of base units. Zero and junk are not. */
+export function isPositiveBaseUnits(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
  * base-unit integer strings, because they exceed what a JSON number holds
@@ -604,6 +637,27 @@ export const formatCompactUsd = (
   return `${sign}$${compactValue}`;
 };
 
+/**
+ * Formats a Predict campaign position amount the way Predict lists its own
+ * positions: whole dollars without cents, otherwise two decimals.
+ *
+ * @example formatPredictPositionUsd(10)     // '$10'
+ * @example formatPredictPositionUsd(1234.5) // '$1,234.50'
+ * @example formatPredictPositionUsd(NaN)    // '$0.00'
+ */
+export const formatPredictPositionUsd = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '$0.00';
+  }
+  const rounded = Math.round(value * 100) / 100;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: rounded === Math.floor(rounded) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(rounded);
+};
+
 // ── Percent / rate formatting ───────────────────────────────────────────
 
 /**
@@ -629,6 +683,26 @@ export const formatPercentChange = (value: string | number): string => {
 export const isPercentChangeNonNegative = (value: string | number): boolean => {
   const num = typeof value === 'number' ? value : parseFloat(value);
   return !Number.isNaN(num) && num >= 0;
+};
+
+/**
+ * Formats a Predict campaign position percentage (already in percent, not a
+ * ratio) the way Predict lists its own positions: up to two decimals,
+ * trailing zeros dropped, no sign on gains.
+ *
+ * @example formatPredictPositionPercent(25)     // '25%'
+ * @example formatPredictPositionPercent(-12.5)  // '-12.5%'
+ * @example formatPredictPositionPercent(-0.001) // '0%'
+ */
+export const formatPredictPositionPercent = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '0%';
+  }
+  if (value === Math.floor(value)) {
+    return `${value}%`;
+  }
+  const formatted = value.toFixed(2).replace(/\.?0+$/, '');
+  return formatted === '-0' ? '0%' : `${formatted}%`;
 };
 
 // ── Ordinal rank (English) ─────────────────────────────────────────────

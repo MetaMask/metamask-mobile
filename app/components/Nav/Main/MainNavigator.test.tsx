@@ -21,6 +21,7 @@ import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selec
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -140,7 +141,6 @@ jest.mock('../../UI/Perps', () => ({
 jest.mock('../../UI/Predict', () => {
   const { Fragment } = jest.requireActual('react');
   return {
-    PredictScreenStack: () => 'PredictScreenStack',
     PredictModalStack: () => 'PredictModalStack',
     PredictPreviewSheetProvider: ({
       children,
@@ -151,6 +151,24 @@ jest.mock('../../UI/Predict', () => {
       mockSelectPredictEnabledFlag(state),
   };
 });
+
+// Stub only PredictRoot so the entry point's other exports, which Wallet's
+// Homepage callers read, stay real.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => 'PredictRoot',
+}));
+
+// On the legacy lane Predict availability is the legacy flag. Mock the
+// selector's own module: a factory spreading the PredictNext entry point
+// re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({
+    selectPredictAvailability: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  }),
+);
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -292,6 +310,26 @@ describe('MainNavigator', () => {
       expect(result).not.toBeNull();
     });
 
+    it('hosts Quick Buy above the tab navigator', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the tabs mount
+      const { UNSAFE_root } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+
+      // Then the Quick Buy host wraps the tab navigator
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+      expect(
+        host.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        ),
+      ).toHaveLength(1);
+    });
+
     it('sets the wallet tab stack background to the theme background', () => {
       // Given HomeTabs is rendered
       const HomeTabs = getHomeTabsComponent();
@@ -428,6 +466,14 @@ describe('MainNavigator', () => {
 
     beforeEach(() => {
       mockIsNativeTabBar = true;
+    });
+
+    it('hosts Quick Buy above the native tab screens', () => {
+      const { UNSAFE_root } = renderHomeTabs();
+
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+
+      expect(findNativeScreens(host).length).toBeGreaterThan(0);
     });
 
     it('renders native tab screens instead of the JS navigator', () => {
@@ -649,6 +695,20 @@ describe('MainNavigator', () => {
       expect(homeScreen).toBeDefined();
     });
 
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
+    });
+
     it('includes TokensFullView screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -815,6 +875,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.EDIT_AVATAR,
         Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
@@ -1758,7 +1819,7 @@ describe('MainNavigator', () => {
 
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: { name: string; displayName?: string };
     }
     const screenProps: ScreenChild[] = container.root
       .findAll(
@@ -1776,36 +1837,44 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialV0View');
+    expect(topTradersScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV0View)',
+    );
 
     const bundleV1Screen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1,
     );
 
     expect(bundleV1Screen).toBeDefined();
-    expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+    expect(bundleV1Screen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV1View)',
+    );
 
     const myProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
     );
 
     expect(myProfileScreen).toBeDefined();
-    expect(myProfileScreen?.component.name).toBe('MyProfileView');
+    expect(myProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const v1ProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
     );
 
     expect(v1ProfileScreen).toBeDefined();
-    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+    expect(v1ProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
 
     expect(followConnectionsScreen).toBeDefined();
-    expect(followConnectionsScreen?.component.name).toBe(
-      'FollowConnectionsView',
+    expect(followConnectionsScreen?.component.displayName).toBe(
+      'withSocialAccountGate(FollowConnectionsView)',
     );
 
     const profilesToFollowScreen = screenProps?.find(
@@ -1813,21 +1882,27 @@ describe('MainNavigator', () => {
     );
 
     expect(profilesToFollowScreen).toBeDefined();
-    expect(profilesToFollowScreen?.component.name).toBe('ProfilesToFollowView');
+    expect(profilesToFollowScreen?.component.displayName).toBe(
+      'withSocialAccountGate(ProfilesToFollowView)',
+    );
 
     const postComposerScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
     );
 
     expect(postComposerScreen).toBeDefined();
-    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+    expect(postComposerScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialPostComposerView)',
+    );
 
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
 
     expect(manageProfileScreen).toBeDefined();
-    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
+    expect(manageProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(ManageProfileView)',
+    );
   });
 
   it('omits Social V1 screens for the control variant', () => {
@@ -1880,6 +1955,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.EDIT_AVATAR);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
@@ -2119,7 +2195,7 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'TabScreen' &&
           node.props?.name === Routes.SOCIAL.TAB,
-      )[0]?.props?.component?.name;
+      )[0]?.props?.component?.displayName;
 
     it.each(['searchFocused', 'tradeFocused'])(
       'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
@@ -2129,7 +2205,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV1View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV1View)');
       },
     );
 
@@ -2141,7 +2217,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV0View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV0View)');
       },
     );
   });
@@ -2513,6 +2589,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        );
+        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -2566,24 +2645,24 @@ describe('MainNavigator', () => {
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding for a plain user without a subscription', () => {
+        it('opens the points dashboard for a plain user without a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: 'plain',
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding when the referral fetch resolved with no persona', () => {
+        it('opens the points dashboard when the referral fetch resolved with no persona', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: undefined,
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
         it('keeps the points path when Money is disabled', () => {
@@ -2693,6 +2772,7 @@ describe('MainNavigator', () => {
           expect.arrayContaining([
             Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
@@ -2734,6 +2814,7 @@ describe('MainNavigator', () => {
         expect(screenNamesIn(group)).toEqual([
           Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,

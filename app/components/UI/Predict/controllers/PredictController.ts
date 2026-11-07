@@ -69,6 +69,7 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { calculateFees } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -141,10 +142,14 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { getPredictClaimOutcomeVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
-import { resolvePredictFeePolicy } from '../utils/predictFeePolicy';
+import {
+  resolvePredictFeePolicy,
+  syncPreviewWithFeePolicy,
+} from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
   findLiveMarket,
@@ -396,6 +401,12 @@ interface ClaimAmountFromSimulationOptions {
 const PAYOUT_REDEMPTION_INTERFACE = new Interface([
   'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
 ]);
+
+const TRANSFER_EVENT_INTERFACE = new Interface([
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+]);
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
   MATIC_CONTRACTS_V2.collateral.toLowerCase(),
@@ -737,50 +748,6 @@ export class PredictController extends BaseController<
     } catch {
       return undefined;
     }
-  }
-
-  /**
-   * Adds the current fee policy to provider parameters when a waiver is
-   * available. A previously attached policy is removed before revalidation so
-   * stale previews cannot carry a fee waiver into submission. Membership
-   * previews retain their standard fees in `originalFees`; restore those fees
-   * when the policy is no longer available so standard submissions use the
-   * correct Permit2 amount.
-   *
-   * Preview calls stop here. `previewOrder` assigns the waived fees. Submit
-   * calls `priceSubmitPreviewWithFeePolicy` when the policy was not present
-   * while the preview was priced.
-   *
-   * @param params - Provider parameters that may contain a previous policy.
-   * @returns Provider parameters with the current waiver policy, if any.
-   */
-  private async withPredictFeePolicy<
-    T extends {
-      feePolicy?: PredictFeePolicy;
-      fees?: OrderPreview['fees'];
-      originalFees?: OrderPreview['originalFees'];
-    },
-  >(params: T): Promise<T> {
-    const previousFeePolicy = params.feePolicy;
-    const paramsWithFeePolicy = { ...params };
-    delete paramsWithFeePolicy.feePolicy;
-
-    const feePolicy = await this.getPredictFeePolicy();
-
-    if (!feePolicy) {
-      if (previousFeePolicy && params.originalFees) {
-        paramsWithFeePolicy.fees = params.originalFees;
-      } else if (previousFeePolicy) {
-        // Do not submit a stale waived fee when an older preview does not
-        // contain the standard fee snapshot needed to restore it.
-        delete paramsWithFeePolicy.fees;
-      }
-
-      delete paramsWithFeePolicy.originalFees;
-      return paramsWithFeePolicy;
-    }
-
-    return { ...paramsWithFeePolicy, feePolicy };
   }
 
   /**
@@ -1967,7 +1934,8 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner();
-      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
       return provider.previewOrder({
         ...paramsWithFeePolicy,
@@ -1995,7 +1963,8 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
-      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
       return provider.previewMaxBuyOrder({
         ...paramsWithFeePolicy,
@@ -2085,9 +2054,10 @@ export class PredictController extends BaseController<
     let previewWithFeePolicy: OrderPreview;
 
     try {
-      previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
-        await this.withPredictFeePolicy(params.preview),
-      );
+      const feePolicy = await this.getPredictFeePolicy();
+      const syncedPreview = syncPreviewWithFeePolicy(params.preview, feePolicy);
+      previewWithFeePolicy =
+        await this.priceSubmitPreviewWithFeePolicy(syncedPreview);
       await validateMarketBettable({
         provider: this.provider,
         preview: previewWithFeePolicy,
@@ -2595,6 +2565,7 @@ export class PredictController extends BaseController<
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
           entryPoint: analyticsProperties?.entryPoint,
+          outcomeVersion: previewWithFeePolicy.outcomeVersion,
           completionDuration,
         }),
       );
@@ -2740,6 +2711,33 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by claim preparation');
       }
 
+      // The provider can skip positions (Protocol V2 ones while the kill
+      // switch is on). Keep only the claimed ones, so the confirmation,
+      // beforeSign, publish, and confirmClaim leave the skipped positions
+      // claimable.
+      const claimedPositions = prepareClaimResult.positions;
+      if (
+        claimedPositions &&
+        claimedPositions.length < claimablePositions.length
+      ) {
+        claimablePositions = claimedPositions;
+        this.update((state) => {
+          const addressKey =
+            this.findClaimablePositionsAddress(signer.address) ??
+            signer.address;
+          state.claimablePositions[addressKey] = [...claimedPositions];
+        });
+      }
+
+      // Re-stash the claim analytics with the claimed positions and their
+      // market versions, which are only known after prepareClaim.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+          prepareClaimResult.marketVersions,
+        );
+
       // Find network client - can fail if chain is not supported
       const networkClientId = this.messenger.call(
         'NetworkController:findNetworkClientIdByChainId',
@@ -2841,6 +2839,9 @@ export class PredictController extends BaseController<
         e,
         this.getErrorContext('claimWithConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
+          outcomeVersion:
+            this.pendingClaimAnalytics[signer.address.toLowerCase()]
+              ?.outcomeVersion,
         }),
       );
 
@@ -2878,10 +2879,12 @@ export class PredictController extends BaseController<
    * event. Always sets `transaction_type: mm_predict_claim`. When a single
    * market is being claimed, `market_id`/`market_title` are populated; for
    * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   * `outcome_version` is set when the positions' market versions are passed.
    */
   private buildClaimAnalyticsProperties(
     analyticsContext?: PredictTradeAnalyticsProperties,
     claimablePositions?: PredictPosition[],
+    marketVersions?: Record<string, string | undefined>,
   ): PredictTradeAnalyticsProperties {
     const properties: PredictTradeAnalyticsProperties = {
       entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
@@ -2900,6 +2903,14 @@ export class PredictController extends BaseController<
         properties.marketId = properties.marketId ?? singlePosition.marketId;
         properties.marketTitle = properties.marketTitle ?? singlePosition.title;
       }
+    }
+
+    const outcomeVersion = getPredictClaimOutcomeVersion(
+      claimablePositions,
+      marketVersions,
+    );
+    if (outcomeVersion) {
+      properties.outcomeVersion = outcomeVersion;
     }
 
     return properties;
@@ -4272,47 +4283,105 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    let payoutRaw = 0n;
-    let hasPayoutRedemption = false;
+    let ctfPayoutRaw = 0n;
+    let pUsdMintRaw = 0n;
+    let legacySweepRaw = 0n;
+    let hasCtfPayout = false;
+    let hasPUsdMint = false;
 
     for (const log of logs) {
-      if (
-        log.address?.toLowerCase() !==
-        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
-      ) {
-        continue;
-      }
-
+      const logAddress = log.address?.toLowerCase();
       const topics = this.normalizeLogTopics(log.topics);
       if (!topics || !log.data) {
         continue;
       }
 
-      try {
-        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
-          topics,
-          data: log.data,
-        });
-        const payout = parsedLog.args.payout?.toString();
+      if (logAddress === MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()) {
+        // CTF-protocol claims emit PayoutRedemption from the ConditionalTokens
+        // contract.
+        try {
+          const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const payout = parsedLog.args.payout?.toString();
 
-        if (payout === undefined) {
+          if (payout === undefined) {
+            continue;
+          }
+
+          ctfPayoutRaw += BigInt(payout);
+          hasCtfPayout = true;
+        } catch (_error) {
           continue;
         }
+      } else if (logAddress === MATIC_CONTRACTS_V2.collateral.toLowerCase()) {
+        // Positions-protocol (v2) redemption mints collateral and emits no
+        // CTF event, so read the payout from collateral ERC20 `Transfer`
+        // logs sourced by the zero address. The token filter keeps
+        // ERC721-shaped `Transfer` events (identical signature) from other
+        // contracts out of the sum.
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const from = parsedLog.args.from?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
 
-        payoutRaw += BigInt(payout);
-        hasPayoutRedemption = true;
-      } catch (_error) {
-        continue;
+          if (!from || value === undefined || from !== ZERO_ADDRESS) {
+            continue;
+          }
+
+          pUsdMintRaw += BigInt(value);
+          hasPUsdMint = true;
+        } catch (_error) {
+          continue;
+        }
+      } else if (logAddress === USDC_E_ADDRESS.toLowerCase()) {
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const to = parsedLog.args.to?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
+
+          if (
+            !to ||
+            value === undefined ||
+            to !== COLLATERAL_ONRAMP_ADDRESS.toLowerCase()
+          ) {
+            continue;
+          }
+
+          legacySweepRaw += BigInt(value);
+        } catch (_error) {
+          continue;
+        }
       }
     }
 
-    if (!hasPayoutRedemption) {
-      return undefined;
+    // Claim batches can wrap legacy USDC.e before redemption. Remove that
+    // maintenance mint before using the remaining pUSD mint as settlement.
+    const claimPUsdMintRaw =
+      pUsdMintRaw > legacySweepRaw ? pUsdMintRaw - legacySweepRaw : 0n;
+
+    // In a mixed claim, the settlement mint already includes the CTF
+    // redemption. Adding both event totals would count the CTF leg twice.
+    if (hasPUsdMint && claimPUsdMintRaw > 0n) {
+      return parseFloat(
+        formatUnits(claimPUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
     }
 
-    return parseFloat(
-      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
-    );
+    if (hasCtfPayout) {
+      return parseFloat(
+        formatUnits(ctfPayoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
+    }
+
+    return undefined;
   }
 
   private getClaimAmountFromSimulation(

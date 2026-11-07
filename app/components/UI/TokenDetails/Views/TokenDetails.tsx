@@ -25,6 +25,8 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -61,6 +63,9 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -76,6 +81,8 @@ import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -93,7 +100,8 @@ import {
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../Earn/constants/networks';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -101,7 +109,6 @@ import {
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
-
 import TokenDetailsPagePending from './TokenDetailsPagePending';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -111,6 +118,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
     },
   });
 };
@@ -215,6 +226,40 @@ const ShareTokenBottomSheetController = forwardRef<
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
 
 /**
+ * Legacy-TDP sticky footer that also mounts the trader-position P&L line.
+ *
+ * The trader-position machinery (open position, profile, share-to-feed) is
+ * isolated in its own component so it only runs when the legacy page actually
+ * renders this variant — i.e. when the memecoin flag is on. A flag-off page
+ * renders the plain {@link TokenDetailsStickyFooter} and never mounts these
+ * hooks, so it fires no Social/profile/open-position requests and shows no
+ * position line (today's footer). The line is appended once it resolves; the
+ * action buttons render immediately either way.
+ */
+const TokenDetailsStickyFooterWithTraderPosition: React.FC<
+  Omit<
+    React.ComponentProps<typeof TokenDetailsStickyFooter>,
+    'traderPositionPnl'
+  > & {
+    /** Identity of the token on screen; resets the expanded state when it changes. */
+    tokenKey: string;
+  }
+> = ({ tokenKey, ...footerProps }) => {
+  const { traderPositionPnl } = useTraderPositionPnl({
+    token: footerProps.token,
+    tokenKey,
+  });
+
+  return (
+    <TokenDetailsStickyFooter
+      {...footerProps}
+      reserveTraderPositionLayout
+      traderPositionPnl={traderPositionPnl}
+    />
+  );
+};
+
+/**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
@@ -266,6 +311,12 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
+  // Port the memecoin TDP V1 position line to the legacy page, gated on the
+  // same flag. Flag off renders the plain footer, so the position machinery
+  // (Social/profile/open-position) is never mounted — today's footer.
+  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
+
   const shareUrl = useMemo(
     () =>
       caip19AssetId
@@ -274,9 +325,10 @@ const TokenDetails: React.FC<{
     [caip19AssetId],
   );
 
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const limitOrderFeatureFlags = useSelector(
     selectBridgeLimitOrderFeatureFlags,
   );
@@ -381,11 +433,27 @@ const TokenDetails: React.FC<{
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
   const handleMultichainScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
     },
-    [onScrollOffset],
+    [handleListScrollOffset],
   );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
@@ -622,8 +690,16 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const headerSpacer = headerInset > 0 && (
+    <View
+      style={{ height: headerInset }}
+      testID={TokenDetailsTestIds.HEADER_SPACER}
+    />
+  );
+
   const renderHeader = () => (
     <>
+      {headerSpacer}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -686,76 +762,110 @@ const TokenDetails: React.FC<{
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        tdpVersion="v2"
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-        description={headerDescription}
-      />
+      <View style={styles.content} testID={TokenDetailsTestIds.CONTENT}>
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          tdpVersion="v2"
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsChainSupported &&
+            (currentPriceUsd ?? 0) > 0 &&
+            caip19AssetId
+              ? handlePriceAlertPress
+              : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+          description={headerDescription}
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
+        />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-          onScroll={handleMultichainScroll}
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={transactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={bridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer
+            location={TransactionDetailLocation.AssetDetails}
+            onScroll={handleMultichainScroll}
+            refreshControlOffset={headerInset}
+          />
+        ) : (
+          <>
+            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
+            {!transactionsUpdated && headerSpacer}
+            <Transactions
+              header={renderHeader()}
+              onScrollThroughContent={handleListScrollOffset}
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              hideEmptyState
+              location={TransactionDetailLocation.AssetDetails}
+              refreshControlOffset={headerInset}
+            />
+          </>
+        )}
+      </View>
+      {/* Outside the isolated content, so its sheets open above the glass header. */}
+      {isMemecoinTdpEnabled ? (
+        <TokenDetailsStickyFooterWithTraderPosition
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
+          tokenKey={traderPositionTokenKey}
         />
       ) : (
-        <Transactions
-          header={renderHeader()}
-          onScrollThroughContent={onScrollOffset}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
         />
       )}
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
-        networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyDepositCta={moneyDepositCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
-        onSwapPress={onCtaClicked}
-        onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
-        onOpenQuickBuy={openQuickBuy}
-      />
 
       {shareUrl && (
         <ShareTokenBottomSheetController

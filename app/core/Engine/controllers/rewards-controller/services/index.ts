@@ -9,7 +9,6 @@ export type {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceValidateReferralCodeAction,
   RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceMobileJoinAction,

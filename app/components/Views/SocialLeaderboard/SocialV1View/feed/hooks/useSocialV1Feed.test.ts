@@ -9,14 +9,30 @@ import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
 import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
 import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
-  COMPOSER_POSTING_DELAY_MS,
-  resetSocialV1ComposedFeedStore,
-  startSocialV1PendingPostCountdown,
-  submitSocialV1ComposedPost,
-} from '../store/socialV1ComposedFeedStore';
+  addPendingPost,
+  resetPendingPosts,
+} from '../../../pendingPosts/pendingPostsStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
 jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
+
+let mockViewerProfileId: string | undefined = 'viewer-profile';
+jest.mock('../../../MyProfileView/hooks/useMyProfile', () => ({
+  useMyProfile: () => ({
+    profile: mockViewerProfileId ? { profileId: mockViewerProfileId } : null,
+  }),
+}));
+
+// Unlocked wallet, unknown network: the overlay's defaults.
+let mockIsSocialV1Treatment = true;
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsSocialV1Treatment,
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+const OWNER = 'viewer-profile';
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
@@ -47,13 +63,14 @@ const arrangeFeed = (
   });
 };
 
-const composedPost = () => ({
-  id: 'composed-1',
-  authorHandle: 'giga-whale',
+const pendingPost = () => ({
+  id: 'pending-comment-1',
+  commentId: 'comment-1',
+  authorHandle: 'Giga Whale',
   timestampMs: Date.now(),
   reactions: [],
   item: mockOpenPerpsFeedItem({
-    id: 'composed-item',
+    id: 'pending-item',
     comment: 'this is alpha',
   }),
 });
@@ -61,16 +78,18 @@ const composedPost = () => ({
 describe('useSocialV1Feed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialV1Treatment = true;
+    mockViewerProfileId = 'viewer-profile';
     jest.useFakeTimers();
     arrangeFeed([buildRow('pos-1'), buildRow('pos-2')]);
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
   });
 
   afterEach(() => {
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
     jest.useRealTimers();
   });
@@ -100,23 +119,54 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
-    it('reads the leaderboard scope on Trending', () => {
+    it('reads the trending scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'all',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        {
+          performance: { tab: 'trending' },
+        },
+      );
     });
 
     // Following must hit its own scope, or both tabs would render one list.
+    it('drops the viewer’s own posts from Following', () => {
+      mockViewerProfileId = 'profile-2';
+
+      const { result } = renderHook(() => useSocialV1Feed('following'));
+
+      expect(result.current.posts).toEqual([]);
+    });
+
+    it('keeps the viewer’s own posts on Trending', () => {
+      mockViewerProfileId = 'profile-2';
+
+      const { result } = renderHook(() => useSocialV1Feed('trending'));
+
+      expect(result.current.posts).toHaveLength(2);
+    });
+
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'following',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'following' },
+        {
+          performance: { tab: 'following' },
+        },
+      );
+    });
+
+    it('omits performance tracing outside the Social V1 treatment', () => {
+      mockIsSocialV1Treatment = false;
+
+      renderHook(() => useSocialV1Feed('trending'));
+
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        { performance: undefined },
+      );
     });
 
     // Without these forwarded, the feed stops after page one and a failed
@@ -162,63 +212,53 @@ describe('useSocialV1Feed', () => {
     });
   });
 
-  describe('composer', () => {
-    it('keeps composed posts off the Following tab', () => {
-      const composed = composedPost();
-      submitSocialV1ComposedPost(composed);
-
+  describe('pending posts', () => {
+    it('does not pin a local post on Following', () => {
       const { result } = renderHook(() => useSocialV1Feed('following'));
 
-      expect(
-        result.current.posts.every((post) => post.id !== composed.id),
-      ).toBe(true);
-      expect(result.current.pendingPost).toBeNull();
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+
+      expect(result.current.pinnedPosts).toEqual([]);
+      expect(result.current.posts).toHaveLength(2);
     });
 
-    it('prepends a composed post on Trending after the posting delay', () => {
-      const composed = composedPost();
-      const { result } = renderHook(() => useSocialV1Feed('trending'));
-
+    it('shows the post on Following once the feed returns that comment', () => {
+      const { result, rerender } = renderHook(() =>
+        useSocialV1Feed('following'),
+      );
       act(() => {
-        submitSocialV1ComposedPost(composed);
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
       });
 
-      expect(result.current.pendingPost?.item.comment).toBe('this is alpha');
-      // The clock only starts once the banner is on screen, so the post is
-      // still pending here no matter how much time passes.
-      expect(result.current.pendingStartedAtMs).toBeNull();
-
-      act(() => {
-        startSocialV1PendingPostCountdown();
+      arrangeFeed([buildRow('pos-2')], {
+        posts: [
+          {
+            ...toSocialFeedPosts([buildRow('pos-2')])[0],
+            commentId: 'comment-1',
+          },
+        ],
       });
+      rerender({});
 
-      expect(result.current.pendingStartedAtMs).not.toBeNull();
-
-      act(() => {
-        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-      });
-
-      expect(result.current.pendingPost).toBeNull();
-      expect(result.current.posts[0].id).toBe(composed.id);
+      expect(result.current.pinnedPosts).toEqual([]);
+      expect(result.current.posts[0].commentId).toBe('comment-1');
     });
 
-    it('keeps live posts below a composed one', () => {
-      const composed = composedPost();
-      const { result } = renderHook(() => useSocialV1Feed('trending'));
+    it('does not refetch Following because a local post is waiting', async () => {
+      const refresh = jest.fn(async () => undefined);
+      arrangeFeed([buildRow('pos-1')], { refresh });
+      renderHook(() => useSocialV1Feed('following'));
 
       act(() => {
-        submitSocialV1ComposedPost(composed);
-        startSocialV1PendingPostCountdown();
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
       });
-      act(() => {
-        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
       });
 
-      expect(result.current.posts.map((post) => post.id)).toEqual([
-        composed.id,
-        'pos-1-1700000500',
-        'pos-2-1700000500',
-      ]);
+      expect(refresh).not.toHaveBeenCalled();
     });
   });
 });

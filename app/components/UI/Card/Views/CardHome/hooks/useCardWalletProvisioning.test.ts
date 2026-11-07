@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { renderHook } from '@testing-library/react-native';
 import {
   IconColor,
@@ -6,16 +7,15 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
 import {
   resolveWalletEntry,
   useCardWalletProvisioning,
   type WalletEntry,
 } from './useCardWalletProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import {
   CardStatus,
   CardType,
@@ -26,12 +26,21 @@ import {
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockUsePushProvisioning = jest.fn();
+const mockReplace = jest.fn();
 const showToast = jest.fn();
 const closeToast = jest.fn();
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ replace: mockReplace }),
+}));
+
 jest.mock('../../../pushProvisioning', () => ({
   usePushProvisioning: (...args: unknown[]) => mockUsePushProvisioning(...args),
-  getWalletName: () => 'Apple Wallet',
+  getWalletName: () =>
+    jest.requireActual<typeof import('react-native')>('react-native').Platform
+      .OS === 'ios'
+      ? 'Apple Wallet'
+      : 'Google Wallet',
 }));
 
 jest.mock('../../../../../../component-library/components/Toast', () => {
@@ -98,20 +107,34 @@ function renderProvisioning(
   toastRef: React.RefObject<ToastRef | null> = {
     current: { showToast, closeToast },
   },
+  options?: {
+    onSuccess?: () => void;
+    platformWalletSupported?: boolean;
+  },
 ) {
-  return renderHook(() => useCardWalletProvisioning(data, true), {
-    wrapper: ({ children }) =>
-      React.createElement(
-        ToastContext.Provider,
-        { value: { toastRef } },
-        children,
-      ),
-  });
+  return renderHook(
+    () =>
+      useCardWalletProvisioning(data, {
+        platformWalletSupported: true,
+        ...options,
+      }),
+    {
+      wrapper: ({ children }) =>
+        React.createElement(
+          ToastContext.Provider,
+          { value: { toastRef } },
+          children,
+        ),
+    },
+  );
 }
 
 describe('useCardWalletProvisioning', () => {
+  const originalPlatform = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios';
     mockUsePushProvisioning.mockReturnValue({
       initiateProvisioning: jest.fn(),
       isProvisioning: false,
@@ -122,6 +145,10 @@ describe('useCardWalletProvisioning', () => {
       canOpenInWallet: true,
       openInWallet: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatform;
   });
 
   it('passes wallet provisioning and the card id to the push hook', () => {
@@ -139,6 +166,114 @@ describe('useCardWalletProvisioning', () => {
     expect(result.current.openInWallet).toBe(
       mockUsePushProvisioning.mock.results[0]?.value.openInWallet,
     );
+  });
+
+  it('opens the Apple Pay confirmation screen without a success toast', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    onSuccess();
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('runs the caller success callback after opening the confirmation screen', () => {
+    const onSuccess = jest.fn();
+
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    passedOptions.onSuccess();
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
+    expect(showToast).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the Google Wallet success toast instead of the Apple Pay confirmation', () => {
+    Platform.OS = 'android';
+    const onSuccess = jest.fn();
+
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    passedOptions.onSuccess();
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: 'Google Wallet',
+            }),
+          },
+        ],
+        startAccessory: expect.objectContaining({
+          props: {
+            name: IconName.Confirmation,
+            color: IconColor.SuccessDefault,
+            size: IconSize.Lg,
+          },
+        }),
+      }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not toast when the pass still needs verification', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: (result: { activationState: string }) => void;
+    };
+    onSuccess({ activationState: 'requires_activation' });
+
+    expect(showToast).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not toast when Apple Wallet already showed the error', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onError: (error: { message: string; code: string }) => void;
+    };
+    onError({
+      message: 'An unexpected error occurred. Try again or contact support.',
+      code: ProvisioningErrorCode.WALLET_DECLINED,
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('hides every wallet entry when Immersve Apple Pay is switched off', () => {
+    mockUsePushProvisioning.mockReturnValue({
+      initiateProvisioning: jest.fn(),
+      isProvisioning: false,
+      isLoading: false,
+      canAddToWallet: false,
+      isCardInWallet: false,
+      pendingVerificationDevices: [],
+      canOpenInWallet: false,
+      openInWallet: jest.fn(),
+      hideProvisioningUi: true,
+    });
+
+    const { result } = renderProvisioning(homeData(walletProvisioning));
+
+    expect(result.current.walletEntry).toBe('none');
   });
 
   it('passes null provisioning when the provider has no card', () => {
@@ -183,36 +318,6 @@ describe('useCardWalletProvisioning', () => {
         userAddress: expect.objectContaining({
           addressTwo: undefined,
           administrativeArea: '',
-        }),
-      }),
-    );
-  });
-
-  it('shows a confirmation toast after the card is added', () => {
-    renderProvisioning(homeData(walletProvisioning));
-
-    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
-      onSuccess: () => void;
-    };
-    onSuccess();
-
-    expect(showToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('card.push_provisioning.success_message', {
-              walletName: 'Apple Wallet',
-            }),
-          },
-        ],
-        startAccessory: expect.objectContaining({
-          props: {
-            name: IconName.Confirmation,
-            color: IconColor.SuccessDefault,
-            size: IconSize.Lg,
-          },
         }),
       }),
     );
@@ -267,6 +372,9 @@ describe('useCardWalletProvisioning', () => {
     onSuccess();
     onError({ message: 'Wallet rejected the card' });
 
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
     expect(showToast).not.toHaveBeenCalled();
   });
 });

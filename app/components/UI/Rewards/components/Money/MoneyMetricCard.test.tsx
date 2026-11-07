@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
@@ -12,7 +13,7 @@ const renderCard = (
       iconName={IconName.UserCircleAdd}
       label="Referrals"
       amount="$41.75"
-      caption="recorded claims"
+      caption="recorded earnings"
       testID="metric-card"
       {...props}
     />,
@@ -21,19 +22,20 @@ const renderCard = (
 
 describe('MoneyMetricCard', () => {
   it('renders the label, amount, and caption', () => {
-    const { getByText, getByTestId } = renderCard();
+    const { getByText, getByTestId, queryByTestId } = renderCard();
 
     expect(getByTestId('metric-card')).toBeOnTheScreen();
+    expect(queryByTestId('metric-card-info')).toBeNull();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('recorded claims')).toBeOnTheScreen();
+    expect(getByText('recorded earnings')).toBeOnTheScreen();
   });
 
   it('keeps the label and caption when there is no amount', () => {
     const { getByText, queryByText } = renderCard({ amount: null });
 
     expect(getByText('Referrals')).toBeOnTheScreen();
-    expect(getByText('recorded claims')).toBeOnTheScreen();
+    expect(getByText('recorded earnings')).toBeOnTheScreen();
     expect(getByText('—')).toBeOnTheScreen();
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
   });
@@ -42,5 +44,13 @@ describe('MoneyMetricCard', () => {
     const { queryByText } = renderCard({ isLoading: true });
 
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
+  });
+
+  it('opens info when the icon is pressed', () => {
+    const onInfoPress = jest.fn();
+    const { getByTestId } = renderCard({ onInfoPress });
+
+    fireEvent.press(getByTestId('metric-card-info'));
+    expect(onInfoPress).toHaveBeenCalledTimes(1);
   });
 });

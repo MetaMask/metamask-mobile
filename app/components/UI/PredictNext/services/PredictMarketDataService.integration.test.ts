@@ -1,10 +1,7 @@
 import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import {
-  KALSHI_VENUE_ID,
-  type PredictEntityId,
-  type PredictFeedId,
-} from '../types';
+import { type PredictEntityId, type PredictFeedId } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
@@ -74,6 +71,23 @@ describe('PredictNext public market data', () => {
 
   afterEach(() => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
+  });
+
+  it('serves the static Kalshi Venue catalog through the messenger without a network read', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 500 }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getVenueCatalog',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toMatchObject({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: { 'nfl-games': 'sports-football-nfl-games' },
+      searchSupported: true,
+    });
+    expect(harness.fetchMock).not.toHaveBeenCalled();
   });
 
   it('reads Balance through the authenticated service-to-transport chain', async () => {

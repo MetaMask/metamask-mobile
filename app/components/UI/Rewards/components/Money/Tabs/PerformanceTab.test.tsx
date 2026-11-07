@@ -2,9 +2,11 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type {
   CommissionEntryView,
+  EarningsSummaryDto,
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
+  ReferralRole,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -12,8 +14,20 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
+import PerformanceTab from './PerformanceTab';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
+
+jest.mock('../../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock(
+  '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: jest.fn(),
+  }),
+);
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -40,7 +54,7 @@ const PROFILE_ID = 'profile-a';
 
 const LOCALIZED_TEXT = {
   referrals: 'Referrals',
-  last30DaysUpdatedDaily: 'Last 30 days · Updated daily',
+  updatedDaily: 'Updated daily',
   funnelConfirmed: 'Confirmed referrals',
   funnelConfirmedDescription: 'Friends who completed a first eligible action',
   funnelFeeGenerating: 'Fee-generating referrals',
@@ -48,15 +62,21 @@ const LOCALIZED_TEXT = {
     'Referred friends whose activity generated eligible fees',
   funnelCodeUses: 'Code uses',
   funnelActive: 'Active referrals',
+  eligibleFees: 'Eligible fees',
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
   tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
 } as unknown as ReferralLocalizedText;
 
@@ -116,6 +136,7 @@ const renderTab = (
     funnelLoading = false,
     funnelData = { enrolled: 12, earning_generating: 5 },
     active = true,
+    roles,
   }: {
     commissions?: CommissionEntryView[];
     rebates?: LedgerEarningEntryDto[];
@@ -125,6 +146,7 @@ const renderTab = (
     funnelLoading?: boolean;
     funnelData?: { enrolled: number; earning_generating: number } | null;
     active?: boolean;
+    roles?: ReferralRole[];
   } = {},
 ) => {
   (useReferralFunnel as jest.Mock).mockReturnValue({
@@ -154,6 +176,7 @@ const renderTab = (
               error: false,
               data: {
                 localized_text: LOCALIZED_TEXT,
+                roles,
               } as ReferralMeDto,
             },
           },
@@ -162,6 +185,19 @@ const renderTab = (
               loading: funnelLoading,
               error: funnelError,
               data: funnelData,
+            },
+          },
+          earningsSummary: {
+            [PROFILE_ID]: {
+              loading: false,
+              error: false,
+              data: {
+                earned_by_others: {
+                  by_claim_family: {
+                    REFERRAL_REV_SHARE: { lifetime: '41750000' },
+                  },
+                },
+              } as unknown as EarningsSummaryDto,
             },
           },
         },
@@ -175,24 +211,31 @@ describe('PerformanceTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the two-stage funnel for a referrer, not commissions or rebates', () => {
+  it('shows the two-stage funnel and commissions for a referrer, not rebates', () => {
     const { getByTestId, getByText, queryByTestId, queryByText } =
       renderTab('referrer');
 
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
     expect(getByText('Confirmed referrals')).toBeOnTheScreen();
     expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
+    expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Eligible fees')).toBeOnTheScreen();
+    expect(getByText('Updated daily')).toBeOnTheScreen();
+    expect(queryByText('Last 30 days · Updated daily')).toBeNull();
     expect(queryByText('Code uses')).toBeNull();
     expect(queryByText('Active referrals')).toBeNull();
     expect(getByText('12')).toBeOnTheScreen();
     expect(getByText('5')).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
-    expect(queryByText('Trade commissions')).toBeNull();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(
-      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER),
-    ).toBeNull();
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
     });
     expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
@@ -200,20 +243,52 @@ describe('PerformanceTab', () => {
     });
   });
 
-  it('shows rebates for a referee, not the funnel or commissions', () => {
-    const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderTab('referee');
+  it('shows commissions and rebates for a referee, not the funnel', () => {
+    const { getByTestId, getByText, queryByTestId } = renderTab('referee');
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
-    expect(queryByText('Trading commissions')).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+  });
+
+  it('hides commissions and skips that read for a cashback experiment member', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT'],
+    });
+
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: false,
     });
     expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
+    });
+  });
+
+  it('hides rebates and skips that read for a copy-trading sharer', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['COPY_TRADING'],
+    });
+
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
     });
   });
 
@@ -232,7 +307,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows an empty message in rebates when there are no rows', () => {
-    const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
+    const { getByText, getByTestId, queryByRole, queryByTestId } = renderTab(
       'referee',
       {
         commissions: [],
@@ -241,14 +316,19 @@ describe('PerformanceTab', () => {
     );
 
     expect(
-      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
-    ).toBeNull();
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
     ).toBeOnTheScreen();
     expect(
-      getAllByText('Your activity is empty now. Start trading to earn today!'),
-    ).toHaveLength(1);
+      getByText(
+        'You can earn rewards from sharing a trade. Start sharing to earn today!',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
     ).toBeOnTheScreen();
@@ -264,44 +344,38 @@ describe('PerformanceTab', () => {
     });
     expect(queryByRole('button', { name: 'Trading rebates' })).toBeNull();
     expect(
-      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
-    ).toBeNull();
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
 
     expect(navigateToRewardsRoute).not.toHaveBeenCalled();
   });
 
-  it('hides the commissions preview while commissions are disabled', () => {
+  it('caps the commissions preview at five rows', () => {
     const commissions = Array.from({ length: 8 }, (_, index) => ({
       ...commission,
       id: `row-${index}`,
     }));
 
-    const { queryAllByTestId, queryByTestId } = renderTab('referrer', {
-      commissions,
-    });
+    const { getAllByTestId, getByTestId, queryByTestId } = renderTab(
+      'referrer',
+      {
+        commissions,
+      },
+    );
 
     expect(
-      queryAllByTestId(
-        new RegExp(PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW),
+      getAllByTestId(
+        new RegExp(`^${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-`),
       ),
-    ).toHaveLength(0);
+    ).toHaveLength(5);
     expect(
-      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
+      queryByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-row-5`),
     ).toBeNull();
-  });
-
-  it('shows a funnel row skeleton while the funnel is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
-      funnelData: null,
-      funnelLoading: true,
-    });
-
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON),
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
     ).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
   });
 
   it('keeps cached funnel data without an error banner', () => {
@@ -330,8 +404,8 @@ describe('PerformanceTab', () => {
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
   });
 
-  it('hides a commissions error while commissions are disabled', () => {
-    const { queryByTestId, queryByText } = renderTab('referrer', {
+  it('keeps cached commissions without an error banner', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
       commissionsError: 'failed',
     });
 
@@ -339,11 +413,11 @@ describe('PerformanceTab', () => {
       queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
     ).toBeNull();
     expect(queryByText('Error loading your transactions')).toBeNull();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
     expect(retryCommissions).not.toHaveBeenCalled();
   });
 
-  it('shows the referral error when the funnel failed with nothing cached and commissions are hidden', () => {
+  it('shows the referral error when the funnel failed with nothing cached', () => {
     const { getByTestId, getByText, queryByTestId } = renderTab('referrer', {
       commissionsError: 'failed',
       funnelError: true,
@@ -372,7 +446,7 @@ describe('PerformanceTab', () => {
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR)).toBeNull();
     expect(queryByText('Error loading your transactions')).toBeNull();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
   });
 
   it('retries rebates from the transactions error when nothing is cached', () => {
@@ -422,17 +496,6 @@ describe('PerformanceTab', () => {
 
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(queryByText('Referrals')).toBeNull();
-    expect(queryByText('Trade commissions')).toBeNull();
-  });
-
-  it('navigates to the rebates list from the section header', () => {
-    const { getByTestId } = renderTab('referee');
-
-    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
-
-    expect(navigateToRewardsRoute).toHaveBeenCalledWith(
-      expect.anything(),
-      Routes.REWARDS_TRADING_REBATES_VIEW,
-    );
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
   });
 });

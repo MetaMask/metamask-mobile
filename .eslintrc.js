@@ -3,6 +3,16 @@
 const {
   routeIsolationZones,
 } = require('./scripts/eslint-route-isolation-zones');
+// Predict boundary fence (PRED-1399): outside Predict, import only
+// `app/components/UI/PredictNext/index.ts`. The zones carry both allowlists
+// (permanent composition wiring and the shrink-only burn-down list) in their
+// `target`, so every override below that sets `import-x/no-restricted-paths`
+// spreads `predictBoundaryZones` verbatim. PRED-1340 migration PRs delete
+// their files from `predictImportBurndownFiles` in
+// scripts/eslint-predict-boundary-zones.js.
+const {
+  predictBoundaryZones,
+} = require('./scripts/eslint-predict-boundary-zones');
 
 // Existing BN.js migration zone, kept in a named const so it can be
 // re-declared by the route-isolation overrides below without duplicating
@@ -56,14 +66,12 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/constants/activityStyles.ts',
   'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
-  'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
@@ -86,7 +94,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
@@ -101,6 +108,16 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
+
+// Shared by the *.view.test.* and tests/component-view/** overrides so the
+// fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
+// variants included.
+const cvFakeTimerBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
+  message:
+    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+};
 
 module.exports = {
   root: true,
@@ -422,6 +439,27 @@ module.exports = {
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
+          cvFakeTimerBan,
+        ],
+      },
+    },
+    {
+      // Shared component-view helpers keep the base no-restricted-syntax bans
+      // and add the fake-timer ban. The jest.mock ban above does not apply
+      // here (mocks.ts mocks Engine).
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          cvFakeTimerBan,
         ],
       },
     },
@@ -709,9 +747,13 @@ module.exports = {
         // burn-down allowlist from this override's `excludedFiles`; the
         // burn-down override below intentionally does not re-declare this
         // rule, so allow-listed files remain exempt.
+        //
+        // ESLint replaces this rule per override instead of merging it, so
+        // every override that sets it must spread `predictBoundaryZones`
+        // (scripts/eslint-predict-boundary-zones.test.ts checks that).
         'import-x/no-restricted-paths': [
           'error',
-          { zones: [utilNumberDeprecationZone] },
+          { zones: [utilNumberDeprecationZone, ...predictBoundaryZones] },
         ],
       },
     },
@@ -758,7 +800,11 @@ module.exports = {
         'import-x/no-restricted-paths': [
           'error',
           {
-            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+            zones: [
+              utilNumberDeprecationZone,
+              ...routeIsolationZones,
+              ...predictBoundaryZones,
+            ],
           },
         ],
       },
@@ -769,12 +815,29 @@ module.exports = {
       // those files complete their BigInt migration; route isolation must
       // still apply so new cross-route imports added to a burn-down file
       // are caught. Route-isolation zones target only `Views/<route>`
-      // paths, so this override is a no-op for non-Views burn-down files.
+      // paths, so they are a no-op for non-Views burn-down files; the
+      // Predict boundary zones apply to every burn-down file.
       files: utilNumberImportBurndownFiles,
       rules: {
         'import-x/no-restricted-paths': [
           'error',
-          { zones: routeIsolationZones },
+          { zones: [...routeIsolationZones, ...predictBoundaryZones] },
+        ],
+      },
+    },
+    {
+      // The default import-fence override excludes these trees (for
+      // expo-haptics and the legacy number utils), which also drops its
+      // `import-x/no-restricted-paths` zones. Give them the Predict boundary
+      // so no file under `app/` falls outside it.
+      files: [
+        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
+        'app/util/number/**/*.{ts,tsx,js,jsx}',
+      ],
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: predictBoundaryZones },
         ],
       },
     },

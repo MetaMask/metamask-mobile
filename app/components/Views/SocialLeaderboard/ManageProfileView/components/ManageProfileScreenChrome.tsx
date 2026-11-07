@@ -1,9 +1,12 @@
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, type ReactNode } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../../shared/scrollableScreenSafeArea';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface ManageProfileScreenChromeProps {
   title: string;
@@ -20,6 +23,7 @@ const ManageProfileScreenChrome: React.FC<ManageProfileScreenChromeProps> = ({
   backTestID,
   children,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation();
   const tw = useTailwind();
 
@@ -33,7 +37,9 @@ const ManageProfileScreenChrome: React.FC<ManageProfileScreenChromeProps> = ({
       style={tw.style('flex-1 bg-default')}
       testID={testID}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={title}
         onBack={handleBack}

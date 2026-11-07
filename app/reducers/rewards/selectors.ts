@@ -113,16 +113,6 @@ export const selectBalanceTotal = createSelector(
   (entry) => entry?.balanceTotal ?? null,
 );
 
-export const selectReferralCount = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.refereeCount ?? 0,
-);
-
-export const selectReferredByCode = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.referredByCode ?? null,
-);
-
 export const selectIsVipReferee = createSelector(
   [selectCurrentReferralDetails],
   (entry) => entry?.isVipReferee ?? false,
@@ -189,9 +179,6 @@ export const selectSeasonWaysToEarn = (
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 
-export const selectOnboardingReferralCode = (state: RootState) =>
-  state.rewards.onboardingReferralCode;
-
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
 
@@ -203,16 +190,6 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 
 export const selectOptinAllowedForGeoError = (state: RootState) =>
   state.rewards.optinAllowedForGeoError;
-
-export const selectReferralDetailsLoading = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.loading ?? false,
-);
-
-export const selectReferralDetailsError = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.error ?? false,
-);
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;

@@ -20,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import {
   canAcceptMoneyReferralInvite,
+  selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
 } from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -37,6 +38,7 @@ import {
   MONEY_REFERRAL_CODE_MIN_LENGTH,
   useValidateMoneyReferralCode,
 } from '../../hooks/useValidateMoneyReferralCode';
+import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
@@ -98,7 +100,10 @@ export interface AcceptInviteSheetProps {
  * Header close / swipe / overlay dismiss without declining; the Decline CTA
  * is the explicit declined path. While a registration is in flight the sheet
  * is not interactable, so overlay, swipe, and hardware back cannot unmount it
- * before the accepted splash opens.
+ * before the accepted splash opens. A confirmed geo exclusion closes the sheet
+ * the same way a non-NONE variant does — the invite is not offered there.
+ * Region copy is still kept for edge cases: a race before the dismiss
+ * effect runs, and a server GEO refusal when client geo failed open.
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -108,11 +113,19 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
+  // Once Accept has been pressed, a late geo exclusion must not close the
+  // sheet: that would interrupt registerReferee, hide a server region
+  // refusal, or pop the accepted splash after a successful navigate.
+  const acceptStartedRef = useRef(false);
 
   const profileId = useSelector(selectSessionProfileId);
   const isProfileResolved = Boolean(profileId);
+  useGeoRewardsMetadata({ enabled: true });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
+  );
+  const acceptAllowedForGeo = useSelector((state: RootState) =>
+    selectMoneyReferralAllowedForGeo(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
   // Once this sheet has shown an eligible invite, accept's own refresh to
@@ -150,17 +163,30 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     acceptReferralCode,
     isLoading: isAccepting,
     errorMessage: registerError,
+    refusalReason,
     acceptBlockedUntil,
     clearError,
   } = useAcceptMoneyReferralCode();
+
+  // Confirmed exclusion only — unknown geo fails open and stays on screen.
+  // After Accept has started (or while it is loading), keep the sheet
+  // mounted so registration and its refusal copy own the outcome.
+  const shouldDismissForGeo =
+    !acceptAllowedForGeo && !acceptStartedRef.current && !isAccepting;
+  const shouldAutoDismiss =
+    shouldDismissForReferralVariant || shouldDismissForGeo;
 
   const hasCodeToValidate =
     referralCode.length >= MONEY_REFERRAL_CODE_MIN_LENGTH;
   // A code the server rejected, as opposed to validation that could not run.
   const isRejectedCode =
     hasCodeToValidate && !isValidating && !isValid && !isUnknownError;
+  const geoBlockedMessage = !acceptAllowedForGeo
+    ? strings('rewards.onboarding.not_supported_region_description')
+    : '';
   const errorMessage =
     registerError ||
+    geoBlockedMessage ||
     (isRejectedCode
       ? strings('rewards.error_messages.invalid_referral_code')
       : isUnknownError
@@ -171,19 +197,23 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // is the authority on it; a rejected one would only be refused again.
   const isRateLimited =
     acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
+  // Geo exclusion disables Accept until the auto-dismiss effect runs, and
+  // still gates a press if the sheet is briefly still mounted.
   const canAccept =
     hasCodeToValidate &&
     !isValidating &&
     !isRejectedCode &&
     !isAccepting &&
-    !isRateLimited;
+    !isRateLimited &&
+    acceptAllowedForGeo;
 
   // An offer is viewed only once this sheet is showing one: never on a
-  // payload still in flight, and never for a stale deeplink or an existing
-  // referee, which close themselves without the user seeing an invite. Those
-  // closes answer nothing, so a viewed interaction here would have no answer
-  // to pair with.
-  const isOfferOnScreen = !isCopyPending && !shouldDismissForReferralVariant;
+  // payload still in flight, and never for a stale deeplink, an existing
+  // referee, or a geo-blocked country, which close themselves without the
+  // user seeing an invite. Those closes answer nothing, so a viewed
+  // interaction here would have no answer to pair with — unless geo lands
+  // after the offer was already viewed, which is answered as dismissed.
+  const isOfferOnScreen = !isCopyPending && !shouldAutoDismiss;
 
   useEffect(() => {
     if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
@@ -219,25 +249,36 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       if (!hasTrackedOfferViewedRef.current) {
         return;
       }
+      const properties: {
+        referral_code: string;
+        interaction_type: 'accepted' | 'declined' | 'dismissed';
+        refusal_reason?: ReferralRefusalReason;
+      } = {
+        referral_code: referralCode,
+        interaction_type: interactionType,
+      };
+      if (
+        refusalReason &&
+        (interactionType === 'declined' || interactionType === 'dismissed')
+      ) {
+        properties.refusal_reason = refusalReason;
+      }
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
         )
-          .addProperties({
-            referral_code: referralCode,
-            interaction_type: interactionType,
-          })
+          .addProperties(properties)
           .build(),
       );
     },
-    [createEventBuilder, referralCode, trackEvent],
+    [createEventBuilder, referralCode, refusalReason, trackEvent],
   );
 
   // Failed Accept: the user tried to take the invite and the server turned
   // them away. Does not lock the one-answer guard, so a later answer or
   // another failed Accept can still fire.
   const trackRefused = useCallback(
-    (refusalReason: ReferralRefusalReason) => {
+    (reason: ReferralRefusalReason) => {
       if (!hasTrackedOfferViewedRef.current) {
         return;
       }
@@ -248,7 +289,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           .addProperties({
             referral_code: referralCode,
             interaction_type: 'refused',
-            refusal_reason: refusalReason,
+            refusal_reason: reason,
           })
           .build(),
       );
@@ -291,6 +332,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Accept is about to refresh me to REFEREE. Record that this sheet was
     // the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
+    acceptStartedRef.current = true;
     // Registration is the accept. A refused write leaves the sheet open, so
     // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
@@ -332,13 +374,35 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       // Deliberately not `handleGoBack`: no offer was on screen to answer, so
       // this close is not a response and no viewed was recorded for it.
       navigation.goBack();
+      return;
     }
-  }, [navigation, shouldDismissForReferralVariant]);
+    if (!shouldDismissForGeo) {
+      return;
+    }
+    // Same in-flight posture as handleGoBack / handleClose / handleDecline:
+    // never pop mid-registerReferee. acceptStartedRef also covers a late geo
+    // flip after a refused write (keep the region error) or after accept has
+    // already navigated to the splash.
+    if (isAccepting || acceptInFlightRef.current || acceptStartedRef.current) {
+      return;
+    }
+    // `trackResponded` no-ops when the offer was never viewed (geo known at
+    // open). If geo landed after a viewed offer, pair that viewed with
+    // dismissed rather than leave the funnel unanswered.
+    trackResponded('dismissed');
+    navigation.goBack();
+  }, [
+    isAccepting,
+    navigation,
+    shouldDismissForGeo,
+    shouldDismissForReferralVariant,
+    trackResponded,
+  ]);
 
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
-  // referrer or referee.
-  if (shouldDismissForReferralVariant) {
+  // referrer or referee, or a geo-blocked country.
+  if (shouldAutoDismiss) {
     return null;
   }
 

@@ -1,5 +1,7 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -12,6 +14,9 @@ import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccount
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileLinkedAccountView from './ManageProfileLinkedAccountView';
+
+const SOLANA_MAINNET_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const MOCK_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
@@ -37,6 +42,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
+    Checkbox: ({ isSelected }: { isSelected: boolean }) => {
+      const { View } = jest.requireActual('react-native');
+      const { createElement } = jest.requireActual('react');
+      return createElement(View, {
+        testID: isSelected ? 'radio-checked' : 'radio-unchecked',
+      });
+    },
   };
 });
 
@@ -55,12 +67,17 @@ const linkableAccounts: LinkableSocialAccount[] = [
     name: 'Main Wallet',
     address: internalAccount1.address,
     balanceLabel: '$1,234.56',
+    linkedAddresses: [
+      `eip155:1:${internalAccount1.address}`,
+      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+    ],
   },
   {
     id: internalAccount2.id,
     name: 'Trading',
     address: internalAccount2.address,
     balanceLabel: '',
+    linkedAddresses: [`eip155:1:${internalAccount2.address}`],
   },
 ];
 
@@ -105,6 +122,27 @@ describe('ManageProfileLinkedAccountView', () => {
     );
   });
 
+  it('selects the linked account even when its Solana address is stored first', () => {
+    mockUseProfileController.mockReturnValue(
+      controllerResult({
+        isControllerBacked: true,
+        linkedAddresses: [
+          `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+          `eip155:1:${internalAccount2.address}`,
+        ],
+      }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    expect(
+      within(getRow(internalAccount2.id)).getByTestId('radio-checked'),
+    ).toBeOnTheScreen();
+    expect(
+      within(getRow(internalAccount1.id)).getByTestId('radio-unchecked'),
+    ).toBeOnTheScreen();
+  });
+
   it('does not update the profile when not controller backed', () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
@@ -118,7 +156,7 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(updateProfile).not.toHaveBeenCalled();
   });
 
-  it('updates the profile with the selected EVM account', async () => {
+  it('updates the profile with every address in the selected account', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
       controllerResult({ isControllerBacked: true, updateProfile }),
@@ -131,7 +169,119 @@ describe('ManageProfileLinkedAccountView', () => {
     });
 
     expect(updateProfile).toHaveBeenCalledWith({
-      linked_addresses: [`eip155:1:${internalAccount1.address}`],
+      linked_addresses: [
+        `eip155:1:${internalAccount1.address}`,
+        `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+      ],
     });
+  });
+
+  it('explains and announces the 30-day limit when the server refuses the change', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(
+        Object.assign(
+          new Error(
+            'ProfileService: failed to update profile: 403: Linked addresses can only be updated once every 30 days',
+          ),
+          { httpStatus: 403 },
+        ),
+      );
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    const cooldownMessage = strings(
+      'social_leaderboard.manage_profile.linked_account_cooldown',
+      {
+        days: 30,
+      },
+    );
+    const errorText = screen.getByText(cooldownMessage);
+    expect(errorText).toBeOnTheScreen();
+    expect(errorText).toHaveProp('accessibilityRole', 'alert');
+    expect(errorText).toHaveProp('accessibilityLiveRegion', 'polite');
+    expect(announceSpy).toHaveBeenCalledWith(cooldownMessage);
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.save_error'),
+      ),
+    ).not.toBeOnTheScreen();
+    announceSpy.mockRestore();
+  });
+
+  it('keeps the generic save error for a 403 that is not the cooldown', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(
+        Object.assign(
+          new Error('ProfileService: failed to update profile: 403: Forbidden'),
+          { httpStatus: 403 },
+        ),
+      );
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+          days: 30,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps and announces the generic save error for a failure that is not a refusal', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('Network request failed'));
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    await act(async () => {
+      fireEvent.press(getRow(internalAccount2.id));
+    });
+
+    const saveErrorMessage = strings(
+      'social_leaderboard.manage_profile.save_error',
+    );
+    const errorText = screen.getByText(saveErrorMessage);
+    expect(errorText).toBeOnTheScreen();
+    expect(errorText).toHaveProp('accessibilityRole', 'alert');
+    expect(errorText).toHaveProp('accessibilityLiveRegion', 'polite');
+    expect(announceSpy).toHaveBeenCalledWith(saveErrorMessage);
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+          days: 30,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+    announceSpy.mockRestore();
   });
 });

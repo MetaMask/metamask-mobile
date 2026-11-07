@@ -14,7 +14,7 @@ import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import VbaDetails, {
   VbaDetailsSelectorsIDs,
@@ -112,11 +112,10 @@ describeForPlatforms('VbaIdentityVerified view', () => {
   ) => {
     const Flow = createFlow(DetailsScreen);
     return renderWithProvider(<Flow />, {
-      state: initialStateWallet()
+      state: initialStateVba({ location: 'BR-SP' })
         .withOverrides({
           engine: {
             backgroundState: {
-              GeolocationController: { location: 'BR-SP' },
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
                   moneyMovementNeobank: {
@@ -186,6 +185,11 @@ describeForPlatforms('VbaIdentityVerified view', () => {
 
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(
+        strings('virtual_bank_account.creating_account.description'),
+      ),
     ).toBeOnTheScreen();
     releaseCreate();
     expect(

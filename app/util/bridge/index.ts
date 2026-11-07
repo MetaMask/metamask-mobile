@@ -2,7 +2,7 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, isCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../constants/bridge';
 
 export function isSwapsNativeAsset(token: { address: string } | undefined) {
@@ -18,8 +18,16 @@ export function isSwapsNativeAsset(token: { address: string } | undefined) {
  * absent or non-EVM.
  */
 export function getMaybeHexChainId(chainId?: string): Hex | undefined {
-  if (!chainId) {
+  if (!chainId || isNonEvmChainId(chainId)) {
     return undefined;
   }
-  return isNonEvmChainId(chainId) ? undefined : formatChainIdToHex(chainId);
+  // A CAIP-2 ID outside `eip155` (e.g. the `kalshi:mainnet` venue key) is not
+  // EVM either, even when bridge-controller doesn't know its namespace.
+  if (
+    isCaipChainId(chainId) &&
+    !chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+  ) {
+    return undefined;
+  }
+  return formatChainIdToHex(chainId);
 }

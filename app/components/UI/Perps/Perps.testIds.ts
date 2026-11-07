@@ -72,6 +72,7 @@ export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
   HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
+  POST_TO_FEED_BUTTON: 'position-card-post-to-feed',
   PNL_CARD: 'position-card-pnl',
   PNL_VALUE: 'position-card-pnl-value',
   RETURN_CARD: 'position-card-return',
@@ -326,8 +327,6 @@ export const PerpsHomeViewSelectorsIDs = {
   SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
-  SOCIAL_FEED_TRENDING_SEE_MORE: 'perps-social-feed-trending-see-more',
-  SOCIAL_FEED_TOP_TRADERS_EMPTY: 'perps-social-feed-top-traders-empty',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -468,6 +467,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
 export const PerpsMarketDetailsViewSelectorsIDs = {
   CONTAINER: 'perps-market-details-view',
   SCROLL_VIEW: 'perps-market-details-scroll-view',
+  HEADER_SPACER: 'perps-market-details-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-market-details-bottom-inset-spacer',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
@@ -521,6 +522,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   CONTAINER: 'perps-pro-market-view',
   ERROR: 'perps-pro-market-error',
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER_SPACER: 'perps-pro-market-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-pro-market-bottom-inset-spacer',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
   HEADER_BACK_BUTTON: 'perps-pro-market-header-back-button',
@@ -564,6 +567,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
   ORDER_BOOK_COLLAPSE_BUTTON: 'perps-pro-market-order-book-collapse',
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
+  ORDER_BOOK_SIZE_ON_CLICK_SWITCH:
+    'perps-pro-market-order-book-panel-config-sheet-size-on-click',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
   POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
   POSITIONS_HISTORY_BUTTON: 'perps-pro-market-positions-history',
@@ -828,6 +833,10 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${SUMMARY_FEES_VALUE}-taker`/`-maker`.
+  SUMMARY_FEES_VALUE_TAKER: 'perps-pro-order-form-summary-fees-value-taker',
+  SUMMARY_FEES_VALUE_MAKER: 'perps-pro-order-form-summary-fees-value-maker',
   SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
   SUMMARY_TWAP_RUNTIME_VALUE: 'perps-pro-order-form-summary-twap-runtime-value',
   SUMMARY_TWAP_SIZE_PER_SUBORDER:
@@ -1059,6 +1068,10 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${FEES_VALUE}-taker`/`-maker`.
+  FEES_VALUE_TAKER: 'perps-order-view-fees-value-taker',
+  FEES_VALUE_MAKER: 'perps-order-view-fees-value-maker',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
@@ -1116,6 +1129,10 @@ export const PerpsTradeSheetSelectorsIDs = {
     'perps-trade-sheet-limit-price-preset-percentage-1',
   LIMIT_PRICE_PRESET_PERCENTAGE_2:
     'perps-trade-sheet-limit-price-preset-percentage-2',
+  KEYPAD_25_PERCENT_BUTTON: 'perps-trade-sheet-keypad-25-percent-button',
+  KEYPAD_50_PERCENT_BUTTON: 'perps-trade-sheet-keypad-50-percent-button',
+  KEYPAD_MAX_BUTTON: 'perps-trade-sheet-keypad-max-button',
+  AMOUNT_KEYPAD_DONE_BUTTON: 'perps-trade-sheet-amount-keypad-done-button',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
@@ -1316,7 +1333,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
   CAROUSEL_WRAPPER: 'perps-hero-card-view-carousel-wrapper',
   CAROUSEL: 'perps-hero-card-view-carousel',
   CARD_CONTAINER: 'perps-hero-card-view-card-container',
-  REFERRAL_CODE_TAG: 'perps-hero-card-view-referral-code-tag',
   QR_CODE: 'perps-hero-card-view-qr-code',
   ASSET_SYMBOL: 'perps-hero-card-view-asset-symbol',
   DIRECTION_BADGE: 'perps-hero-card-view-direction-badge',
@@ -1330,8 +1346,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
 export const getPerpsHeroCardViewSelector = {
   cardContainer: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.CARD_CONTAINER}-${index}`,
-  referralCodeTag: (index: number) =>
-    `${PerpsHeroCardViewSelectorsIDs.REFERRAL_CODE_TAG}-${index}`,
   qrCode: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.QR_CODE}-${index}`,
   assetSymbol: (index: number) =>
