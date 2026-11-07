@@ -8,8 +8,6 @@ import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
-import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
-import { useAnalytics } from '../useAnalytics/useAnalytics';
 
 /** Payload the QR tab switcher hands back on a successful scan. */
 export interface QRScanResult {
@@ -17,10 +15,13 @@ export interface QRScanResult {
   seed?: string;
 }
 
-/** Opens the QR tab switcher; scans resolve to private-key import, seed-phrase refusal, or the deeplink parser. */
+/**
+ * Opens the QR tab switcher. QRScanner emits QR Scanner Opened once the
+ * camera is ready. Scans resolve to private-key import, seed-phrase refusal,
+ * or the deeplink parser.
+ */
 export function useQRScanner(): { openQRScanner: () => void } {
   const navigation = useNavigation<AppNavigationProp>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const onScanSuccess = useCallback(
     (data: QRScanResult, content?: string) => {
@@ -75,8 +76,7 @@ export function useQRScanner(): { openQRScanner: () => void } {
       Routes.QR_TAB_SWITCHER,
       { onScanSuccess },
     ]);
-    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
-  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
+  }, [navigation, onScanSuccess]);
 
   return { openQRScanner };
 }

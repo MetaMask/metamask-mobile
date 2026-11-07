@@ -4,8 +4,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
@@ -21,7 +19,6 @@ export const useScanRecipientQrCode = ({
   onAddressScanned,
 }: UseScanRecipientQrCodeParams) => {
   const { navigate } = useNavigation<AppNavigationProp>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleScanSuccess = useCallback(
     (data: ScanSuccess) => {
@@ -33,8 +30,7 @@ export const useScanRecipientQrCode = ({
   );
 
   const openScanner = useCallback(() => {
-    trackEvent(createEventBuilder(MetaMetricsEvents.QR_SCANNER_OPENED).build());
-
+    // QRScanner emits QR Scanner Opened when the camera is ready.
     // createQRScannerNavDetails returns a [routeName: string, params] tuple, so
     // the route name isn't a compile-time literal.
     navigateWithDetails(
@@ -46,7 +42,7 @@ export const useScanRecipientQrCode = ({
         origin: Routes.SEND_FLOW.SEND_TO,
       }),
     );
-  }, [createEventBuilder, handleScanSuccess, navigate, trackEvent]);
+  }, [handleScanSuccess, navigate]);
 
   return { openScanner };
 };
