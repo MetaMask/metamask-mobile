@@ -1375,7 +1375,7 @@ export type MessengerClientInitRequest<
  * Function to initialize a controller instance and return associated data.
  */
 export type MessengerClientInitFunction<
-  MessengerClientType extends MessengerClient,
+  MessengerClientType extends MessengerClient | undefined,
   ControllerMessengerType extends ControllerMessenger,
   InitMessengerType extends void | ControllerMessenger = void,
 > = (
@@ -1391,8 +1391,11 @@ export type MessengerClientInitFunction<
  * Map of messenger client init functions by messenger client name.
  */
 export type MessengerClientInitFunctionsByMessengerClientName = {
+  // Optional clients may be left uninitialized (see `EngineContext`).
   [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
-    MessengerClientsByName[Name],
+    Name extends keyof OptionalControllers
+      ? MessengerClientsByName[Name] | undefined
+      : MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;

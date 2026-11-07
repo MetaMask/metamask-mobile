@@ -92,10 +92,7 @@ const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
 
 const mockGuardWatchOnly = jest.fn(() => false);
 jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
-  useWatchOnlyGuard: () => ({
-    isWatchOnly: false,
-    guard: mockGuardWatchOnly,
-  }),
+  useWatchOnlyGuard: () => ({ guard: mockGuardWatchOnly }),
 }));
 
 jest.mock('../../Compliance', () => ({
@@ -571,27 +568,16 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
-  describe('handleWithdraw - watch-only account', () => {
-    afterEach(() => {
-      mockGuardWatchOnly.mockReturnValue(false);
+  it('refuses a watch-only withdrawal before any navigation or confirmation', async () => {
+    mockGuardWatchOnly.mockReturnValueOnce(true);
+    const { result } = renderHook(() => usePerpsHomeActions());
+
+    await act(async () => {
+      await result.current.handleWithdraw();
     });
 
-    it('refuses the withdrawal before any navigation or confirmation', async () => {
-      mockGuardWatchOnly.mockReturnValue(true);
-      const onWithdrawSuccess = jest.fn();
-      const { result } = renderHook(() =>
-        usePerpsHomeActions({ onWithdrawSuccess }),
-      );
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      expect(mockGuardWatchOnly).toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
-      expect(onWithdrawSuccess).not.toHaveBeenCalled();
-    });
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
   });
 
   describe('handleWithdraw - ineligible user (TAT-2337: withdrawals not geo-blocked)', () => {

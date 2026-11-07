@@ -170,6 +170,7 @@ export function getKeyringBuilders(
   // watch-only keyring, and the controller keeps an unrecognised keyring in
   // the vault untouched, so the builder can stay behind the build gate.
   if (isWatchOnlyAccountsBuildEnabled()) {
+    // @ts-expect-error: `addAccounts` is missing in `WatchOnlyKeyringV1Adapter`.
     keyrings.push(buildWatchOnlyKeyringBuilder());
   }
 

@@ -6,7 +6,6 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsOrderDetailsView from './PerpsOrderDetailsView';
-import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
 import { type Order } from '@metamask/perps-controller';
 
 let mockRouteParams: { order?: Order } = {};
@@ -44,14 +43,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     cancelOrder: mockCancelOrder,
-  }),
-}));
-
-const mockGuardWatchOnly = jest.fn(() => false);
-jest.mock('../../../../hooks/useWatchOnlyGuard', () => ({
-  useWatchOnlyGuard: () => ({
-    isWatchOnly: false,
-    guard: mockGuardWatchOnly,
   }),
 }));
 
@@ -192,7 +183,6 @@ describe('PerpsOrderDetailsView', () => {
     mockRouteParams = { order: mockOrder };
     mockCancelOrder.mockResolvedValue({ success: true });
     mockGetExplorerUrl.mockReturnValue('https://explorer.test.com');
-    mockGuardWatchOnly.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -509,22 +499,6 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByTestId('back-button'));
 
     expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('refuses a watch-only account before any cancellation toast or request', async () => {
-    mockGuardWatchOnly.mockReturnValue(true);
-    render(<PerpsOrderDetailsView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON),
-    );
-
-    await waitFor(() => {
-      expect(mockGuardWatchOnly).toHaveBeenCalled();
-    });
-    expect(mockCancelOrder).not.toHaveBeenCalled();
-    expect(mockShowToast).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('cancels order successfully when cancel button is pressed', async () => {

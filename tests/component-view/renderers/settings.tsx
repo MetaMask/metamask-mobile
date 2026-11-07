@@ -87,9 +87,17 @@ export const renderAdvancedSettingsWithBackRoute = (
     options,
   );
 
-export const renderDeveloperOptions = (options: SettingsRendererOptions = {}) =>
+export const renderDeveloperOptions = () =>
   renderComponentViewScreen(
-    DeveloperOptions as unknown as React.ComponentType,
+    DeveloperOptions,
     { name: Routes.SETTINGS.DEVELOPER_OPTIONS },
-    { state: buildSettingsState(options) },
+    {
+      state: buildSettingsState({
+        overrides: {
+          engine: {
+            backgroundState: { MoneyAccountController: { moneyAccounts: {} } },
+          },
+        },
+      }),
+    },
   );

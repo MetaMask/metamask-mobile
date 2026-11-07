@@ -10,7 +10,6 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigateToPerpsHome } from '../utils/perpsModeSwitch';
-import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 export interface UsePerpsCancelAllOrdersOptions {
   /** Callback invoked when cancellation succeeds */
@@ -61,7 +60,6 @@ export const usePerpsCancelAllOrders = (
   const navigation = useNavigation<AppNavigationProp>();
   const navigateToPerpsHome = useNavigateToPerpsHome();
   const [isCanceling, setIsCanceling] = useState(false);
-  const { guard: guardWatchOnly } = useWatchOnlyGuard();
   const [error, setError] = useState<Error | null>(null);
 
   const {
@@ -74,9 +72,6 @@ export const usePerpsCancelAllOrders = (
   const orderCount = orders?.length || 0;
 
   const handleCancelAll = useCallback(async () => {
-    if (guardWatchOnly()) {
-      return;
-    }
     if (!orders || orders.length === 0) {
       DevLogger.log('[usePerpsCancelAllOrders] No orders to cancel');
       return;
@@ -147,7 +142,6 @@ export const usePerpsCancelAllOrders = (
       setIsCanceling(false);
     }
   }, [
-    guardWatchOnly,
     orders,
     isFiltered,
     onSuccess,
