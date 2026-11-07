@@ -166,7 +166,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         (sum, layout) => sum + (layout?.width ?? 0),
         0,
       );
-      const gapsWidth = (tabs.length - 1) * 24; // Account for gaps between tabs
+      const gapsWidth = (tabs.length - 1) * 16; // Account for gaps between tabs
       const calculatedContentWidth = totalTabsWidth + gapsWidth;
 
       // Account for container's px-4 padding (16px * 2 = 32px)
@@ -250,7 +250,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
               (sum, layout) => sum + (layout?.width || 0),
               0,
             );
-            const gapsWidth = (tabs.length - 1) * 24;
+            const gapsWidth = (tabs.length - 1) * 16;
             // Account for container's px-4 padding (16px * 2 = 32px)
             const shouldScroll = totalWidth + gapsWidth > containerWidth - 32;
             setScrollEnabled(shouldScroll);
@@ -288,7 +288,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="relative gap-6"
+      twClassName="relative gap-4"
     >
       {tabs.map((tab, index) => (
         <Tab
