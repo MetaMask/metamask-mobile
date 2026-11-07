@@ -781,6 +781,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Only the exporter below may see the full secrets JSON; metro and its
+          # dependencies inherit this shell's environment.
+          secrets_json="$ALL_SECRETS"
+          unset ALL_SECRETS
+
           # Apply builds.yml env + secrets into THIS shell so metro (child of yarn
           # build:repack) inherits them. set-secrets-from-config only writes GITHUB_ENV
           # for later steps, which is too late for a same-step metro invoke.
@@ -816,7 +821,7 @@ jobs:
           export_build_env() {
             local build_name="$1"
             eval "$(node scripts/apply-build-config.js "$build_name" --export)"
-            eval "$(node /tmp/export-profile-secrets.js "$build_name")"
+            eval "$(ALL_SECRETS="$secrets_json" node /tmp/export-profile-secrets.js "$build_name")"
           }
 
           # Expo export:embed forces resetCache=false when CI=true (see
