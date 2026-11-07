@@ -10850,9 +10850,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@npm:^0.13.0":
-  version: 0.13.0
-  resolution: "@metamask/kyc-controller@npm:0.13.0"
+"@metamask/kyc-controller@npm:^0.15.0":
+  version: 0.15.0
+  resolution: "@metamask/kyc-controller@npm:0.15.0"
   dependencies:
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -10869,7 +10869,7 @@ __metadata:
     "@scure/base": "npm:^1.2.6"
     "@tanstack/query-core": "npm:^5.103.2"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/cdbd28255c9439868a1f00ab3c24a79fc81a4a64c46a21eb465b091b1b18343bddf1fef783bb3e2b706630538d9caf33fdeea8bbf662f1dede185d1da1003294
+  checksum: 10/37f17a3f7d967d97fd401af5fa4bd6a777518df1554b0e40f46e188a27e4231b52a46183aca0b08c5205124165dede1c9fd32bf950990c7e9e4ea3e4cf33b620
   languageName: node
   linkType: hard
 
@@ -38339,7 +38339,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^4.0.0"
     "@metamask/keyring-snap-client": "npm:^10.0.1"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "npm:^0.13.0"
+    "@metamask/kyc-controller": "npm:^0.15.0"
     "@metamask/logging-controller": "npm:^10.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"

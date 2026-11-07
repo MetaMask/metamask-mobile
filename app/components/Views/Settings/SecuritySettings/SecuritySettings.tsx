@@ -33,6 +33,7 @@ import {
   ClearPrivacy,
   BlockaidSettings,
   SupportConsentPreferenceSection,
+  IdentityVerificationSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -453,6 +454,7 @@ const Settings: React.FC = () => {
             <SupportConsentPreferenceSection />
           </View>
           <DeleteWalletData />
+          <IdentityVerificationSection />
           <TopTradersSection />
           {renderHint()}
         </View>

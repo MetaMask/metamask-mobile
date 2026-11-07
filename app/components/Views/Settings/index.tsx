@@ -118,6 +118,7 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandardGlass
