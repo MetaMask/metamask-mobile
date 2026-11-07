@@ -230,7 +230,7 @@ describe('WatchlistFullScreenView', () => {
   });
 
   it('renders the fullscreen container and title', () => {
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+    const { getByTestId, queryByText } = render(<WatchlistFullScreenView />);
 
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.CONTAINER),
@@ -238,9 +238,7 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.TITLE),
     ).toBeDefined();
-    expect(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB),
-    ).toBeDefined();
+    expect(queryByText('Tokens')).toBeNull();
   });
 
   it('renders five skeletons while loading', () => {
@@ -314,7 +312,7 @@ describe('WatchlistFullScreenView', () => {
       isLoading: false,
     });
 
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+    const { getByTestId, queryByText } = render(<WatchlistFullScreenView />);
 
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
@@ -322,6 +320,7 @@ describe('WatchlistFullScreenView', () => {
     expect(
       getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).toBeDefined();
+    expect(queryByText('Edit')).toBeNull();
     expect(
       getByTestId('editable-row-mode-eip155:1/erc20:0xeth').props.children,
     ).toBe('view');
