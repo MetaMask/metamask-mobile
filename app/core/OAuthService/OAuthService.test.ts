@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { AuthConnection } from './OAuthInterface';
+import { AuthConnection, OAuthLoginResultType } from './OAuthInterface';
 import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
@@ -7,6 +7,7 @@ import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { TraceName, TraceOperation, TraceContext } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
+import { authenticateSeedlessViaMfaIdentifier } from '../MfaRecovery/seedlessPasswordUnlockViaMfa';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -97,9 +98,17 @@ jest.mock('../../util/environment', () => ({
   getE2EByoaAuthSecret: () => mockGetE2EByoaAuthSecret(),
 }));
 
+jest.mock('../MfaRecovery/seedlessPasswordUnlockViaMfa', () => ({
+  authenticateSeedlessViaMfaIdentifier: jest.fn(),
+}));
+
 import { analytics } from '../../util/analytics/analytics';
 import { AccountType } from '../../constants/onboarding';
 import OAuthLoginService from './OAuthService';
+
+const mockAuthenticateSeedlessViaMfaIdentifier = jest.mocked(
+  authenticateSeedlessViaMfaIdentifier,
+);
 const defaultLoginHandlerResponse = () => ({
   idToken: MOCK_JWT_TOKEN,
   authConnection: AuthConnection.Google,
@@ -1021,6 +1030,150 @@ describe('OAuth login service', () => {
         clientId: 'e2e-mock-google-client-id',
         authConnection: AuthConnection.Google,
       });
+    });
+  });
+
+  describe('handleMfaSeedlessPasswordUnlock', () => {
+    const mfaParams = {
+      identifier: {
+        type: 'social',
+        namespace: 'https://accounts.google.com',
+        value: '',
+      },
+      expectedSeedlessUserId: 'auth-sub',
+      authConnection: AuthConnection.Google,
+      clientId: 'mock-google-client-id',
+    };
+    const parentTrace = { name: 'parent' } as unknown as TraceContext;
+
+    beforeEach(() => {
+      OAuthLoginService.resetOauthState();
+      mockAuthenticateSeedlessViaMfaIdentifier.mockReset();
+      mockAuthenticateSeedlessViaMfaIdentifier.mockResolvedValue({
+        type: 'success',
+        existingUser: true,
+        accountName: 'user@example.com',
+        session: {} as never,
+      });
+      mockPreloadToprfNodeDetails.mockResolvedValue(undefined);
+    });
+
+    it('unlocks via MFA authenticate helper and persists clientId', async () => {
+      const result = await OAuthLoginService.handleMfaSeedlessPasswordUnlock(
+        mfaParams,
+        true,
+        parentTrace,
+      );
+
+      expect(mockAuthenticateSeedlessViaMfaIdentifier).toHaveBeenCalledWith(
+        mfaParams.identifier,
+        {
+          expectedSeedlessUserId: 'auth-sub',
+          clientId: 'mock-google-client-id',
+        },
+      );
+      expect(result).toEqual({
+        type: OAuthLoginResultType.SUCCESS,
+        existingUser: true,
+        accountName: 'user@example.com',
+      });
+      expect(OAuthLoginService.localState).toMatchObject({
+        loginInProgress: false,
+        oauthLoginSuccess: true,
+        userClickedRehydration: true,
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: SET_SEEDLESS_ONBOARDING,
+        clientId: 'mock-google-client-id',
+        authConnection: AuthConnection.Google,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+          parentContext: parentTrace,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+          data: { success: true },
+        }),
+      );
+      expect(mockPreloadToprfNodeDetails).toHaveBeenCalled();
+    });
+
+    it('rejects when a login is already in progress', async () => {
+      OAuthLoginService.updateLocalState({ loginInProgress: true });
+
+      await expectOAuthError(
+        OAuthLoginService.handleMfaSeedlessPasswordUnlock(mfaParams, false),
+        OAuthErrorType.LoginInProgress,
+      );
+      expect(mockAuthenticateSeedlessViaMfaIdentifier).not.toHaveBeenCalled();
+    });
+
+    it('continues when TOPRF preload fails and still unlocks', async () => {
+      mockPreloadToprfNodeDetails.mockRejectedValueOnce(
+        new Error('preload failed'),
+      );
+
+      const result = await OAuthLoginService.handleMfaSeedlessPasswordUnlock(
+        mfaParams,
+        false,
+      );
+
+      expect(result.type).toBe(OAuthLoginResultType.SUCCESS);
+      expect(mockAuthenticateSeedlessViaMfaIdentifier).toHaveBeenCalled();
+    });
+
+    it('rethrows OAuthError after dispatching post-login error state', async () => {
+      const oauthError = new OAuthError(
+        'user cancelled',
+        OAuthErrorType.UserCancelled,
+      );
+      mockAuthenticateSeedlessViaMfaIdentifier.mockRejectedValue(oauthError);
+
+      await expect(
+        OAuthLoginService.handleMfaSeedlessPasswordUnlock(mfaParams, true),
+      ).rejects.toBe(oauthError);
+
+      expect(OAuthLoginService.localState).toMatchObject({
+        loginInProgress: false,
+        oauthLoginSuccess: false,
+        oauthLoginError: oauthError.message,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+          data: { success: false },
+        }),
+      );
+    });
+
+    it('wraps non-OAuth errors as LoginError', async () => {
+      mockAuthenticateSeedlessViaMfaIdentifier.mockRejectedValue(
+        new Error('seedless failed'),
+      );
+
+      await expectOAuthError(
+        OAuthLoginService.handleMfaSeedlessPasswordUnlock(mfaParams, false),
+        OAuthErrorType.LoginError,
+      );
+      expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
+    });
+
+    it('wraps non-Error throw values as LoginError', async () => {
+      mockAuthenticateSeedlessViaMfaIdentifier.mockRejectedValue('boom');
+
+      await expectOAuthError(
+        OAuthLoginService.handleMfaSeedlessPasswordUnlock(mfaParams, false),
+        OAuthErrorType.LoginError,
+      );
     });
   });
 });

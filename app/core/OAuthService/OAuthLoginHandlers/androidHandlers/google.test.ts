@@ -30,6 +30,25 @@ describe('AndroidGoogleLoginHandler', () => {
   });
 
   describe('login', () => {
+    it('sends the caller nonce to Google ACM', async () => {
+      const boundHandler = new AndroidGoogleLoginHandler({
+        clientId: 'test-client-id',
+        authServerUrl: 'https://test-auth-server.com',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+        nonce: '0xbound-nonce',
+      });
+      mockSignInWithGoogle.mockResolvedValue({
+        type: 'google-signin',
+        idToken: 'google-id-token',
+      });
+
+      await boundHandler.login();
+
+      expect(mockSignInWithGoogle).toHaveBeenCalledWith(
+        expect.objectContaining({ nonce: '0xbound-nonce' }),
+      );
+    });
+
     it('throws UserCancelled when user explicitly cancels', async () => {
       mockSignInWithGoogle.mockRejectedValue(new Error('User cancelled'));
 
