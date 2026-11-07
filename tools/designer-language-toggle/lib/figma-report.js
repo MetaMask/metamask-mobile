@@ -330,9 +330,11 @@ function assessLanguage(entry, row) {
   else if (pixelOver) category = 'pixel only';
   else if (guideline) category = 'guideline only';
   const needed = pixel && pixel.pxPerUnit ? round1(units * pixel.pxPerUnit) : null;
-  const source = row.pxSource === 'font size × 0.5'
-    ? 'estimate: average character width, not shaped glyphs'
-    : (row.pxSource || 'estimate: average character width, not shaped glyphs');
+  const source = row.pxSource === 'english measured width'
+    ? 'width basis: English measured width'
+    : row.pxSource === 'font size × 0.5'
+      ? 'estimate: average character width, not shaped glyphs'
+      : (row.pxSource || 'estimate: average character width, not shaped glyphs');
   const available = row.availableWidth > 0 ? round1(row.availableWidth) : null;
   const parts = [];
   parts.push(guideline ? `${chars} chars over ${limit}-char guideline` : `${chars} chars within ${limit}`);
@@ -341,6 +343,7 @@ function assessLanguage(entry, row) {
       ? `${needed}px needs > ${available}px available (${source})`
       : `${needed}px within ${available}px available (${source})`);
   }
+  if (entry && entry.basis === 'estimate') parts.push('estimated at 1.4× English length');
   const label = category === 'both' || category === 'pixel only' ? `hard break (${category})` : category;
   return { category, pixelOver, guideline, chars, line: `${label}: ${parts.join('; ')}` };
 }
@@ -582,28 +585,38 @@ function buildBreakReport(lengths, options) {
     growingByRow.set(row.rowKey, list);
   });
   growingByRow.forEach((rows) => {
+    const prepared = rows.map((row) => {
+      const real = realTranslations(row.source, index, shared, langs, row, options);
+      const estimate = estimateSize(row, ratio);
+      return { row, real, estimate };
+    });
     const extraByLang = {};
     langs.forEach((lang) => {
       let extra = 0;
-      rows.forEach((row) => {
-        const real = realTranslations(row.source, index, shared, langs, row, options);
-        const estimate = estimateSize(row, ratio);
-        const entry = real && real.perLang[lang];
-        const units = unitsFor(row, entry, estimate);
-        if (!(row.pxPerUnit > 0) || !(row.width_px > 0)) return;
-        extra += Math.max(0, units * row.pxPerUnit - row.width_px);
+      prepared.forEach((item) => {
+        const entry = item.real && item.real.perLang[lang];
+        const units = unitsFor(item.row, entry, item.estimate);
+        if (!(item.row.pxPerUnit > 0) || !(item.row.width_px > 0)) return;
+        extra += Math.max(0, units * item.row.pxPerUnit - item.row.width_px);
       });
       if (extra > 0.05) extraByLang[lang] = extra;
     });
     const codes = langs.filter((lang) => extraByLang[lang]);
     if (codes.length === 0) return;
+    const estimated = prepared.filter((item) => codes.some((lang) => {
+      const entry = item.real && item.real.perLang[lang];
+      return !entry || entry.basis === 'estimate';
+    })).length;
+    let basis = 'from shipped translations';
+    if (estimated === prepared.length) basis = 'estimated at 1.4× English length';
+    else if (estimated > 0) basis = `partly estimated (${estimated} of ${prepared.length} labels)`;
     const widest = Math.max(...codes.map((lang) => extraByLang[lang]));
     layoutNotes.push({
       ...rows[0],
       visualRow: rows[0].rowKey,
       verdict: 'note',
       detail: `row gets wider in ${codes.join(', ')} (+${round1(widest)}px in the widest language); check scrolling`,
-      basis: 'measured',
+      basis,
     });
   });
 

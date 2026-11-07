@@ -1843,10 +1843,82 @@ function testReportGaps() {
   assert(wideTabReport.checkVisually.length === 1, 'the wide HUG row is one check visually item');
   assert(wideTabReport.guideline.some((row) => row.source === 'Blue' && (row.overLangs || []).includes('de')), 'the 10-character guideline still applies');
   assert(blueRow && /guideline only/.test(blueRow.langReasons.de) && !/pixel/.test(blueRow.langReasons.de), 'the wider translation is guideline only');
-  assert(
-    wideTabReport.layoutNotes.some((row) => row.detail === 'row gets wider in de (+140px in the widest language); check scrolling'),
-    'the row notes how much wider the widest language is',
-  );
+  const wideNote = wideTabReport.layoutNotes.find((row) => row.detail === 'row gets wider in de (+140px in the widest language); check scrolling');
+  assert(wideNote && wideNote.basis === 'from shipped translations', 'a fully shipped row names that basis');
+
+  function scrollMember(id, text, width, rowId, members) {
+    return {
+      id,
+      text,
+      kind: 'tab',
+      layer_name: 'Label',
+      frame_path: 'Screen',
+      width,
+      height: 20,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      visible: true,
+      containers: [
+        {
+          id: `view-${rowId}`,
+          width: 80,
+          layoutMode: 'HORIZONTAL',
+          layoutSizingHorizontal: 'FIXED',
+          primaryAxisSizingMode: 'FIXED',
+          clipsContent: true,
+          pathChildId: rowId,
+          children: [{ id: rowId, width: 160, visible: true, absolute: false }],
+        },
+        {
+          id: rowId,
+          width: 160,
+          layoutMode: 'HORIZONTAL',
+          layoutSizingHorizontal: 'HUG',
+          primaryAxisSizingMode: 'AUTO',
+          pathChildId: id,
+          children: members,
+        },
+      ],
+    };
+  }
+  const sharedMembers = [
+    { id: 'aaa-1', width: 30 },
+    { id: 'bbb-1', width: 40 },
+    { id: 'ccc-1', width: 50 },
+  ];
+  const secondMembers = [
+    { id: 'aaa-2', width: 30 },
+    { id: 'bbb-2', width: 40 },
+    { id: 'ddd-1', width: 40 },
+  ];
+  const plainMembers = [
+    { id: 'ee-1', width: 20 },
+    { id: 'ff-1', width: 20 },
+  ];
+  const repeatFile = path.join(os.tmpdir(), 'designer-repeat-rows.json');
+  writeJson(repeatFile, [
+    scrollMember('aaa-1', 'Aaa', 30, 'row-one', sharedMembers),
+    scrollMember('bbb-1', 'Bbbb', 40, 'row-one', sharedMembers),
+    scrollMember('ccc-1', 'Ccccc', 50, 'row-one', sharedMembers),
+    scrollMember('aaa-2', 'Aaa', 30, 'row-two', secondMembers),
+    scrollMember('bbb-2', 'Bbbb', 40, 'row-two', secondMembers),
+    scrollMember('ddd-1', 'Dddd', 40, 'row-two', secondMembers),
+    scrollMember('ee-1', 'Ee', 20, 'row-three', plainMembers),
+    scrollMember('ff-1', 'Ff', 20, 'row-three', plainMembers),
+  ]);
+  const repeated = require('../lib/file-adapter').checkDesignFile(repeatFile, { limits, pseudo: false });
+  const repeatReport = buildBreakReport(repeated.allLengths, {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'a.row': 'Aaa', 'b.row': 'Bbbb', 'c.row': 'Ccccc', 'd.row': 'Dddd' },
+      de: { 'a.row': 'Aaaaaa', 'b.row': 'Bbbbbbbb', 'c.row': 'Cccccccc' },
+    },
+  });
+  const repeatNotes = repeatReport.layoutNotes.filter((row) => /row gets wider/.test(row.detail || ''));
+  assert(repeated.allLengths.length > repeated.lengths.length, 'shared labels stay in the row sum after dedupe');
+  assert(repeatNotes.some((row) => row.detail === 'row gets wider in de (+100px in the widest language); check scrolling' && row.basis === 'from shipped translations'), 'each row adds its shared labels');
+  assert(repeatNotes.some((row) => row.detail === 'row gets wider in de (+86px in the widest language); check scrolling' && row.basis === 'partly estimated (1 of 3 labels)'), 'a mixed row says how many labels are estimated');
+  assert(repeatNotes.some((row) => row.detail === 'row gets wider in de (+16px in the widest language); check scrolling' && row.basis === 'estimated at 1.4× English length'), 'a row with no shipped translation says it is estimated');
 
   function crowdedRow() {
     const nodes = [];

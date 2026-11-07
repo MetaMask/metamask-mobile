@@ -1,5 +1,7 @@
 # Changelog
 
+- Row growth is summed for every visible label in that row, including a label that also appears in another row. The note basis is "from shipped translations", "estimated at 1.4× English length", or "partly estimated (N of M labels)". The calibration phrase prints as "width basis: English measured width".
+
 - A HUG label in a row that may scroll is not a pixel hard break. The row gets one note, "row gets wider in de (+Npx in the widest language); check scrolling", and the 10-character guideline still applies on its own. A `{name} {pct}` string that is already too wide in English, and whose slots do not grow, stays an English layout problem and names the languages that share that collision. HEIGHT notes say "may grow from N to M lines (estimated at 1.4× English length)" unless a shipped translation was measured, in which case the note names that translation.
 
 - A HUG row that is wider than the fixed viewport around it keeps each label's own width, including when that row is the viewport's only child, and the row is one "Check visually" item. A crowded row that shares space with icons is "no room in English layout" when the remainder is zero or less; that remainder is calculated before any own-width fallback. `Name · Album` splits the short copy word without a name-hint path. HEIGHT growth notes are not suppressed by a horizontal clip. A container that clips vertically adds "container clips; text may be cut off".

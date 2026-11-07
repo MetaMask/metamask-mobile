@@ -67,7 +67,7 @@ function printLang(lang, item, verdict, row) {
     return;
   }
   if (item.basis === 'estimate') {
-    console.log(`    ${lang}${tag} estimate ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
+    console.log(`    ${lang}${tag} estimated at 1.4× English length ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
     return;
   }
   if (item.basis === 'range') {
@@ -135,7 +135,7 @@ function printReport(report, langs) {
       const shown = formatTranslationDisplay(row, item);
       const how = shown
         || (item.basis === 'estimate'
-          ? 'estimate'
+          ? 'estimated at 1.4× English length'
           : item.basis === 'range'
             ? `${item.minCharacters}–${item.maxCharacters}`
             : JSON.stringify(item.text));
@@ -202,7 +202,7 @@ async function main() {
     pseudo: Boolean(args.pseudo),
     ratio: args.ratio ? Number(args.ratio) : limits.ratio,
   });
-  const report = buildBreakReport(checked.lengths, {
+  const report = buildBreakReport(checked.allLengths || checked.lengths, {
     langs,
     sharedFlats: shared,
     context: args.context || '',

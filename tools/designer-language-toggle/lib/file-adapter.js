@@ -326,7 +326,9 @@ function measurePixels(units, row, text) {
     row.fontSize,
     mode,
   );
-  const glyph = row.pxSource || glyphLabel(row);
+  const glyph = row.pxSource === 'english measured width'
+    ? 'width basis: English measured width'
+    : (row.pxSource || glyphLabel(row));
   if (row.pixelUnconstrained || row.unconstrained || !(row.availableWidth > 0)) {
     const reason = row.reason || (row.availableWidth === 0
       ? 'available width is 0 or unresolved'
@@ -584,7 +586,9 @@ function checkDesignFile(filePath, options) {
   const { kept, skipped } = splitSkipped(records, Boolean(options.includeSkipped));
   const unique = dedupeRecords(kept);
   const limits = options.limits;
-  const lengths = unique.map((row) => classifyRecord(row, limits, options.learned));
+  const learned = options.learned;
+  const lengths = unique.map((row) => classifyRecord(row, limits, learned));
+  const allLengths = kept.map((row) => classifyRecord(row, limits, learned));
   let report = null;
   if (options.lang) {
     report = checker.check(unique, {
@@ -627,6 +631,7 @@ function checkDesignFile(filePath, options) {
     kept: unique,
     skipped,
     lengths,
+    allLengths,
     report,
     pseudo,
   };
