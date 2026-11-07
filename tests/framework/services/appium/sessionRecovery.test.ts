@@ -1,6 +1,7 @@
 import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  isIosAccessibilityServerError,
   recreateSharedSessionNow,
   requestSharedSessionRecreate,
   resetSharedSessionRecreateState,
@@ -54,6 +55,28 @@ describe('isDeviceHealthError', () => {
     expect(isDeviceHealthError(new Error('adb: error: device offline'))).toBe(
       true,
     );
+  });
+
+  it('returns true when the iOS accessibility server is gone', () => {
+    expect(
+      isDeviceHealthError(
+        new Error(
+          'stale element reference: WebDriverError: The previously found element "Application \'io.metamask.MetaMask\'" is not present in the current view anymore. Original error: Error getting main window kAXErrorServerNotFound when running "window/rect" with method "GET"',
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isIosAccessibilityServerError(
+        new Error(
+          'Error getting main window kAXErrorServerNotFound when running "window/rect"',
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isIosAccessibilityServerError(
+        new Error('element still not displayed after 3000ms'),
+      ),
+    ).toBe(false);
   });
 
   it('returns false for ordinary assertion failures', () => {
