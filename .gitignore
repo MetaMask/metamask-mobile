@@ -281,3 +281,5 @@ sourcemaps/**/*.js.map
 # Local planning artifacts. Not team-shared storage.
 .specs/
 .briefs/
+
+.auto/bench/run_*.out
