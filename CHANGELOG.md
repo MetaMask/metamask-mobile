@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed trader identicons so a holder on a Perps market matches that trader's profile by seeding every fallback icon from the profile id
+- Added top padding above the Activity screen title
 
 ## [8.18.0]
 
