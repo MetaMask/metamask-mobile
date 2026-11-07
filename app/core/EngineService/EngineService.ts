@@ -99,7 +99,13 @@ export class EngineService {
       }
       this.updateBatcher.add(controllerName);
 
-      if (controllerName === 'ApprovalController') {
+      if (
+        controllerName === 'ApprovalController' ||
+        // Each quote stream replaces the list with its first quote, which the
+        // user is waiting on. Later quotes stay batched.
+        (controllerName === 'BridgeController' &&
+          engine.context.BridgeController.state.quotes.length === 1)
+      ) {
         this.updateBatcher.flush();
       }
     };
