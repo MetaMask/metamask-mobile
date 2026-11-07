@@ -19,6 +19,13 @@ export const ImportTokenViewSelectorsIDs = {
   SELECT_NETWORK_BUTTON: 'select-network-button',
   CLEAR_SEARCH_BAR: 'clear-search-bar',
   BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT: 'bottomsheetfooter-button-subsequent',
+  HIDDEN_TOKENS_BUTTON: 'add-asset-hidden-tokens-button',
+  HIDDEN_TOKENS_CONTAINER: 'add-asset-hidden-tokens-screen',
+  CUSTOM_TOKEN_BUTTON: 'add-asset-custom-token-button',
+  EMPTY_STATE_CUSTOM_TOKEN_BUTTON: 'add-asset-empty-state-custom-token-button',
+  NETWORK_FILTER_SHEET: 'add-asset-network-filter-sheet',
+  UNHIDE_BUTTON: 'add-asset-unhide-button',
+  HIDDEN_EMPTY_STATE: 'add-asset-hidden-empty-state',
 };
 
 export const ImportTokenViewSelectorsText = {
@@ -28,7 +35,6 @@ export const ImportTokenViewSelectorsText = {
   CANCEL_IMPORT_TOKEN: enContent.confirmation_modal.cancel_cta,
   CONFIRM_CANCEL_IMPORT_TOKEN: enContent.confirmation_modal.confirm_cta,
   TOKEN_SYMBOL: enContent.token.token_symbol,
-  CUSTOM_TOKEN_TAB: enContent.add_asset.custom_token,
 };
 
 export const NFTImportScreenSelectorsIDs = {

@@ -13,7 +13,7 @@ import {
   SortDirection,
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import {
   convertTrendingAssetsToImporAssets,
@@ -92,6 +92,7 @@ jest.mock(
 );
 
 jest.mock('../../utils/utils', () => ({
+  ...jest.requireActual('../../utils/utils'),
   convertTrendingAssetsToImporAssets: jest.fn(() => []),
 }));
 
@@ -166,15 +167,17 @@ const setupWithTokenResults = () => {
 
 const renderComponent = (
   overrides: {
-    selectedChainId?: SupportedCaipChainId | Hex | null;
+    selectedChainId?: CaipChainId | null;
+    isSearching?: boolean;
     state?: typeof mockInitialState;
   } = {},
 ) =>
   renderWithProvider(
     <SearchTokenAutocomplete
       navigation={mockNavigation}
-      tabLabel=""
-      selectedChainId={overrides.selectedChainId ?? '0x1'}
+      selectedChainId={overrides.selectedChainId ?? null}
+      searchQuery=""
+      isSearching={overrides.isSearching}
     />,
     { state: overrides.state ?? mockInitialState },
   );
@@ -221,13 +224,6 @@ describe('SearchTokenAutocomplete', () => {
       mockAddCustomAsset;
   });
 
-  it('renders search bar', () => {
-    const { getByTestId } = renderComponent();
-    expect(
-      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
-    ).toBeOnTheScreen();
-  });
-
   it('calls useTrendingSearch with MarketCap sort options', () => {
     renderComponent();
 
@@ -241,11 +237,20 @@ describe('SearchTokenAutocomplete', () => {
     );
   });
 
-  it('renders with null selectedChainId', () => {
-    const { getByTestId } = renderComponent({ selectedChainId: null });
-    expect(
-      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
-    ).toBeOnTheScreen();
+  it('searches the selected network only', () => {
+    renderComponent({ selectedChainId: 'eip155:1' });
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ chainIds: ['eip155:1'] }),
+    );
+  });
+
+  it('searches all networks when no network is selected', () => {
+    renderComponent({ selectedChainId: null });
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ chainIds: null }),
+    );
   });
 
   it('shows token detection banner when detection is disabled', () => {
@@ -268,7 +273,7 @@ describe('SearchTokenAutocomplete', () => {
     expect(getByText(/token detection/i)).toBeOnTheScreen();
   });
 
-  it('hides token detection banner when search input is focused', () => {
+  it('hides token detection banner while searching', () => {
     const stateWithDetectionDisabled = {
       ...mockInitialState,
       engine: {
@@ -281,12 +286,10 @@ describe('SearchTokenAutocomplete', () => {
       },
     };
 
-    const { getByTestId, queryByText } = renderComponent({
+    const { queryByText } = renderComponent({
       state: stateWithDetectionDisabled,
+      isSearching: true,
     });
-
-    const searchBar = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
-    fireEvent(searchBar, 'focus');
 
     expect(queryByText(/token detection/i)).toBeNull();
   });
@@ -319,28 +322,6 @@ describe('SearchTokenAutocomplete', () => {
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).not.toBeDisabled();
-  });
-
-  it('shows clear button when search has text and clears on press', () => {
-    const { getByTestId, queryByTestId } = renderComponent();
-
-    expect(
-      queryByTestId(ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR),
-    ).toBeNull();
-
-    const searchBar = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
-    fireEvent.changeText(searchBar, 'ETH');
-
-    const clearButton = getByTestId(
-      ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
-    );
-    expect(clearButton).toBeOnTheScreen();
-
-    fireEvent.press(clearButton);
-
-    expect(
-      queryByTestId(ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR),
-    ).toBeNull();
   });
 
   it('deselects a previously selected token when pressed again', () => {
@@ -380,17 +361,6 @@ describe('SearchTokenAutocomplete', () => {
   });
 
   describe('addTokens - EVM chain', () => {
-    it('disables the Next button when selectedChainId is null (no tokens to add)', () => {
-      setupWithTokenResults();
-
-      // allTokens is always [] when selectedChainId is null, so nothing can be selected
-      const { getByTestId } = renderComponent({ selectedChainId: null });
-
-      expect(
-        getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON),
-      ).toBeDisabled();
-    });
-
     it('calls AssetsController.addCustomAsset for each selected token', async () => {
       setupWithTokenResults();
       const expectedCaipAssetType =
@@ -633,6 +603,35 @@ describe('SearchTokenAutocomplete', () => {
       ).toBeDisabled();
     });
 
+    it('does not disable the same address on a different network', () => {
+      mockConvertTokens.mockReturnValue([
+        { ...mockImportAset, chainId: '0x89' } as ImportAsset,
+      ]);
+
+      const { getByTestId } = renderComponent({
+        state: {
+          ...mockInitialState,
+          engine: {
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              AssetsController: {
+                customAssets: { 'evm-account-id': [assetId] },
+                assetsBalance: {},
+                assetPreferences: {},
+                assetsInfo: {},
+                assetsPrice: {},
+                selectedCurrency: 'usd',
+              },
+            },
+          },
+        } as typeof mockInitialState,
+      });
+
+      expect(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+      ).not.toBeDisabled();
+    });
+
     it('keeps a hidden token selectable so it can be re-imported', () => {
       setupWithTokenResults();
 
@@ -694,9 +693,7 @@ describe('SearchTokenAutocomplete', () => {
     it('hides Arc USDC ERC-20 from search results on Arc chain', () => {
       mockConvertTokens.mockReturnValue([arcErc20Token, arcNativeToken]);
 
-      const { queryAllByTestId } = renderComponent({
-        selectedChainId: ARC_CHAIN_ID,
-      });
+      const { queryAllByTestId } = renderComponent();
 
       const results = queryAllByTestId(
         ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,

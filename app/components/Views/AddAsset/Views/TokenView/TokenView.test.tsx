@@ -1,159 +1,148 @@
 import React from 'react';
+import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import TokenView from './TokenView';
-import { Hex } from '@metamask/utils';
-import {
-  MultichainNetworkConfiguration,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: (chainId: string) => chainId.startsWith('solana:'),
+const mockUseHiddenAssetIds = jest.fn();
+jest.mock('../../hooks/useHiddenAssetIds', () => ({
+  useHiddenAssetIds: () => mockUseHiddenAssetIds(),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../util/networks'),
-  getNetworkImageSource: jest.fn(() => ({ uri: 'mock' })),
-}));
-
-const mockUseSearchRequest = jest.fn();
-jest.mock(
-  '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest',
-  () => ({
-    useSearchRequest: (...args: unknown[]) => mockUseSearchRequest(...args),
-  }),
-);
-
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockScrollableTabView = ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <View>{children}</View>;
-  MockScrollableTabView.displayName = 'ScrollableTabView';
-  return {
-    __esModule: true,
-    default: MockScrollableTabView,
-  };
-});
-
+const mockAutocomplete = jest.fn();
 jest.mock(
   '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete',
   () => {
     const { View } = jest.requireActual('react-native');
-    return ({ tabLabel }: { tabLabel: string }) => (
-      <View testID="search-token-autocomplete" accessibilityLabel={tabLabel} />
-    );
+    return (props: unknown) => {
+      mockAutocomplete(props);
+      return <View testID="search-token-autocomplete" />;
+    };
   },
 );
-
-jest.mock('../../components/AddCustomToken/AddCustomToken', () => {
-  const { View } = jest.requireActual('react-native');
-  return ({ tabLabel }: { tabLabel: string }) => (
-    <View testID="add-custom-token" accessibilityLabel={tabLabel} />
-  );
-});
-
-const mockNetworkConfigurations = {
-  '0x1': {
-    chainId: '0x1' as Hex,
-    name: 'Ethereum Mainnet',
-    nativeCurrency: 'ETH',
-    isEvm: true,
-    rpcEndpoints: [{ networkClientId: 'mainnet' }],
-  },
-} as unknown as Record<string, MultichainNetworkConfiguration>;
 
 const mockInitialState = {
   settings: {},
   engine: { backgroundState: { ...backgroundState } },
 };
 
-const defaultProps = {
-  selectedNetwork: '0x1' as Hex,
-  openNetworkSelector: jest.fn(),
-  networkConfigurations: mockNetworkConfigurations,
-};
+const renderComponent = () =>
+  renderWithProvider(<TokenView />, { state: mockInitialState });
 
-const renderComponent = (
-  overrides: Partial<
-    Omit<typeof defaultProps, 'selectedNetwork'> & {
-      selectedNetwork: SupportedCaipChainId | Hex | null;
-    }
-  > = {},
-) =>
-  renderWithProvider(<TokenView {...defaultProps} {...overrides} />, {
-    state: mockInitialState,
-  });
+const lastAutocompleteProps = () =>
+  mockAutocomplete.mock.calls[mockAutocomplete.mock.calls.length - 1][0];
 
 describe('TokenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSearchRequest.mockReturnValue({
-      error: null,
-      isLoading: false,
-      results: [],
-      search: jest.fn(),
-    });
+    mockUseHiddenAssetIds.mockReturnValue([]);
   });
 
-  it('shows loading indicator while search support is being probed', () => {
-    mockUseSearchRequest.mockReturnValue({
-      error: null,
-      isLoading: true,
-      results: [],
-      search: jest.fn(),
-    });
-
+  it('shows the custom token shortcut and the token list by default', () => {
     const { getByTestId, queryByTestId } = renderComponent();
 
-    expect(getByTestId('add-asset-loading-indicator')).toBeOnTheScreen();
-    expect(queryByTestId('add-asset-tabs-container')).toBeNull();
-  });
-
-  it('shows both tabs for EVM chain when search is supported', () => {
-    const { getByTestId, queryByTestId } = renderComponent();
-
-    expect(queryByTestId('add-asset-loading-indicator')).toBeNull();
-    expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+    ).toBeOnTheScreen();
     expect(getByTestId('search-token-autocomplete')).toBeOnTheScreen();
-    expect(getByTestId('add-custom-token')).toBeOnTheScreen();
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    ).toBeNull();
+    expect(lastAutocompleteProps()).toMatchObject({
+      selectedChainId: null,
+      isSearching: false,
+    });
   });
 
-  it('shows only custom token tab for EVM chain when search probe fails', () => {
-    mockUseSearchRequest.mockReturnValue({
-      error: new Error('Bad request'),
-      isLoading: false,
-      results: [],
-      search: jest.fn(),
-    });
+  it('hides the hidden tokens shortcut when no token is hidden', () => {
+    const { queryByTestId } = renderComponent();
 
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON),
+    ).toBeNull();
+  });
+
+  it('shows the hidden tokens shortcut and opens its screen', () => {
+    mockUseHiddenAssetIds.mockReturnValue(['eip155:1/erc20:0xabc']);
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(
+      getByTestId(ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HIDDEN_TOKENS);
+  });
+
+  it('opens the custom token screen from the shortcut', () => {
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(
+      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.ADD_CUSTOM_TOKEN);
+  });
+
+  it('enters search mode: shortcuts leave and the network pill appears', () => {
     const { getByTestId, queryByTestId } = renderComponent();
 
-    expect(queryByTestId('search-token-autocomplete')).toBeNull();
-    expect(getByTestId('add-custom-token')).toBeOnTheScreen();
+    fireEvent.press(getByTestId('explore-view-search-button'));
+
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(lastAutocompleteProps()).toMatchObject({ isSearching: true });
   });
 
-  it('shows only search tab for non-EVM chains', () => {
-    const { getByTestId, queryByTestId } = renderComponent({
-      selectedNetwork: 'solana:mainnet' as unknown as Hex,
+  it('opens the network sheet and applies the selected network', () => {
+    const { getByTestId } = renderComponent();
+    fireEvent.press(getByTestId('explore-view-search-button'));
+
+    fireEvent.press(
+      getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    );
+
+    const [route, params] = mockNavigate.mock.calls[0];
+    expect(route).toBe(Routes.MODAL.TOKEN_NETWORK_FILTER);
+    expect(params.selectedNetwork).toBeNull();
+
+    act(() => params.onSelect('eip155:1'));
+
+    expect(lastAutocompleteProps()).toMatchObject({
+      selectedChainId: 'eip155:1',
     });
-
-    expect(getByTestId('search-token-autocomplete')).toBeOnTheScreen();
-    expect(queryByTestId('add-custom-token')).toBeNull();
   });
 
-  it('shows no tabs when no network is selected', () => {
-    const { queryByTestId } = renderComponent({ selectedNetwork: null });
+  it('leaves search mode on Cancel and resets the network', () => {
+    const { getByTestId, getByText, queryByTestId } = renderComponent();
+    fireEvent.press(getByTestId('explore-view-search-button'));
+    fireEvent.press(
+      getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    );
+    act(() => mockNavigate.mock.calls[0][1].onSelect('eip155:1'));
 
-    expect(queryByTestId('search-token-autocomplete')).toBeNull();
-    expect(queryByTestId('add-custom-token')).toBeNull();
+    fireEvent.press(getByText('Cancel'));
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    ).toBeNull();
+    expect(lastAutocompleteProps()).toMatchObject({
+      selectedChainId: null,
+      isSearching: false,
+    });
   });
 });

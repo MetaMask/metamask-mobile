@@ -172,6 +172,7 @@ const Routes = {
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
+    TOKEN_NETWORK_FILTER: 'TokenNetworkFilterSheet',
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
@@ -343,6 +344,8 @@ const Routes = {
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
     WATCHLIST_FULL_VIEW: 'WatchlistFullView',
+    ADD_CUSTOM_TOKEN: 'AddCustomToken',
+    HIDDEN_TOKENS: 'HiddenTokens',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

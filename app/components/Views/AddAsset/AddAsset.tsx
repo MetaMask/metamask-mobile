@@ -68,13 +68,7 @@ const AddAsset = () => {
         onBack={() => navigation.goBack()}
       />
 
-      {assetType === 'token' && (
-        <TokenView
-          openNetworkSelector={() => setOpenNetworkSelector(true)}
-          selectedNetwork={selectedNetwork}
-          networkConfigurations={networkConfigurations}
-        />
-      )}
+      {assetType === 'token' && <TokenView />}
 
       {assetType === 'collectible' && (
         <NFTView
@@ -85,13 +79,13 @@ const AddAsset = () => {
         />
       )}
 
-      {openNetworkSelector ? (
+      {assetType === 'collectible' && openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={selectedNetwork}
           setSelectedNetwork={setSelectedNetwork}
           setOpenNetworkSelector={setOpenNetworkSelector}
           sheetRef={sheetRef}
-          displayEvmNetworksOnly={assetType === 'collectible'}
+          displayEvmNetworksOnly
         />
       ) : null}
     </SafeAreaView>

@@ -15,9 +15,11 @@ import {
   BoxFlexDirection,
   Text,
   TextVariant,
+  TextButton,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { ImportAsset } from '../../utils/utils';
+import { getImportAssetKey, ImportAsset } from '../../utils/utils';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import AddAssetTokenRow from '../AddAssetTokenRow/AddAssetTokenRow';
 
 interface Props {
@@ -46,13 +48,17 @@ interface Props {
    */
   networkName?: string;
   /**
-   * Set of already added token addresses (lowercase)
+   * Set of already added tokens, keyed with `getImportAssetKey`
    */
   alreadyAddedTokens?: Set<string>;
   /**
    * Whether the search results are loading
    */
   isLoading?: boolean;
+  /**
+   * When provided, the empty state offers to add a custom token
+   */
+  onAddCustomToken?: () => void;
 }
 
 interface SearchTokenResultRowProps {
@@ -131,6 +137,7 @@ const SearchTokenResults = ({
   networkName,
   alreadyAddedTokens,
   isLoading = false,
+  onAddCustomToken,
 }: Props) => {
   const tw = useTailwind();
   const tokensImage = useAssetFromTheme(
@@ -138,8 +145,13 @@ const SearchTokenResults = ({
     emptyStateDefiDark,
   );
 
-  const selectedAddresses = useMemo(
-    () => new Set(selectedAsset.map((token) => token.address)),
+  const selectedKeys = useMemo(
+    () =>
+      new Set(
+        selectedAsset.map((token) =>
+          getImportAssetKey(token.chainId, token.address),
+        ),
+      ),
     [selectedAsset],
   );
 
@@ -150,10 +162,13 @@ const SearchTokenResults = ({
 
   const renderItem = useCallback<ListRenderItem<ImportAsset>>(
     ({ item }) => {
-      const { address } = item;
-      const isSelected = selectedAddresses.has(address);
+      const { address, chainId } = item;
+      const assetKey = getImportAssetKey(chainId, address);
+      const isSelected = selectedKeys.has(assetKey);
+      // Native tokens are inherent to their chain, so they are always "added".
       const isAlreadyAdded =
-        alreadyAddedTokens?.has(address.toLowerCase()) ?? false;
+        address.toLowerCase() === NATIVE_SWAPS_TOKEN_ADDRESS.toLowerCase() ||
+        (alreadyAddedTokens?.has(assetKey) ?? false);
 
       return (
         <SearchTokenResultRow
@@ -165,7 +180,7 @@ const SearchTokenResults = ({
         />
       );
     },
-    [selectedAddresses, alreadyAddedTokens, networkName, handleSelectAsset],
+    [selectedKeys, alreadyAddedTokens, networkName, handleSelectAsset],
   );
 
   // Show skeleton loaders when loading
@@ -175,6 +190,8 @@ const SearchTokenResults = ({
         data={Array(5).fill(null)}
         renderItem={() => <TokenSkeleton />}
         keyExtractor={(_, index) => `skeleton-${index}`}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
       />
     );
   }
@@ -196,6 +213,15 @@ const SearchTokenResults = ({
             ? strings('token.tokens_empty_description')
             : strings('token.no_tokens_found')}
         </Text>
+        {onAddCustomToken && searchQuery.trim().length > 0 ? (
+          <TextButton
+            onPress={onAddCustomToken}
+            twClassName="mt-2 text-center"
+            testID={ImportTokenViewSelectorsIDs.EMPTY_STATE_CUSTOM_TOKEN_BUTTON}
+          >
+            {strings('add_asset.add_custom_token_cta')}
+          </TextButton>
+        ) : null}
       </Box>
     );
   }
@@ -205,6 +231,8 @@ const SearchTokenResults = ({
       data={searchResults}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
     />
   );
 };

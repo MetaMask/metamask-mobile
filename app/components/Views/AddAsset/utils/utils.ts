@@ -6,11 +6,24 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { getTrendingTokenImageUrl } from '../../../UI/Trending/utils/getTrendingTokenImageUrl';
-import { formatChainIdToHex } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import { constants } from 'ethers';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export type ImportAsset = Token & { chainId: Hex | CaipChainId };
+
+/**
+ * Stable per-network identity for an import asset. The same contract address
+ * can exist on several networks, so address alone is not a safe key once the
+ * list can span networks.
+ */
+export const getImportAssetKey = (
+  chainId: Hex | CaipChainId,
+  address: string,
+): string => `${formatChainIdToCaip(chainId)}|${address.toLowerCase()}`;
 
 export const convertTrendingAssetsToImporAssets = (
   apiTokens: TrendingAsset[],
