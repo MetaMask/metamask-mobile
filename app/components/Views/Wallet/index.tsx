@@ -15,6 +15,7 @@ import {
   useBalanceRefresh,
   useHomepageEntryPoint,
 } from './hooks';
+import { usePrefetchMoneyAccountPlusSubscriptions } from '../../../hooks/usePrefetchMoneyAccountPlusSubscriptions';
 
 import {
   ActivityIndicator,
@@ -365,6 +366,9 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
+  // Fills SubscriptionController before the accounts menu or profile drawer
+  // opens, so the Orange row can use the stored membership.
+  usePrefetchMoneyAccountPlusSubscriptions();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
   const scrollViewRef = useRef<ScrollView>(null);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -32,9 +32,12 @@ import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { useResumeMembership } from './hooks/useResumeMembership';
 import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
@@ -116,6 +119,11 @@ const ProHub = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { model: membershipBanner } = useMembershipBannerModel();
+  const {
+    resumeMembership,
+    isResuming,
+    errorMessage: resumeErrorMessage,
+  } = useResumeMembership();
   const proAccess = useMoneyAccountPlusAccess();
   const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
@@ -143,11 +151,17 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
+  // Same rule as the Orange row. Resolved access means the subscriptions
+  // query has produced a result, so it stands in for a settled list here.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled: proAccess !== MoneyAccountPlusAccess.Unknown,
+  });
   // A cached membership is enough to render the hub. Access stays Unknown
   // for past-due, awaiting-funds, and unpaid plans until the subscriptions
   // query settles, and a failed refresh would otherwise leave only the header.
-  const showHubContent =
-    hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled;
+  const showHubContent = entry === MoneyAccountPlusEntry.Hub;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -157,21 +171,42 @@ const ProHub = () => {
   // first fetch. A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
     if (
-      proAccess === MoneyAccountPlusAccess.Unknown ||
-      (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
+      entry === MoneyAccountPlusEntry.Hub ||
+      entry === MoneyAccountPlusEntry.Pending
     ) {
       return;
     }
     navigation.goBack();
-  }, [hasMembership, navigation, proAccess]);
+  }, [entry, navigation]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
+  // Card is inside Home. Naming it here keeps the accounts menu, which is
+  // still the Home screen under Pro Hub, from appearing before the card.
   const handleGetCard = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+      screen: Routes.CARD.ROOT,
+    });
   }, [navigation]);
+
+  // Live regions miss users whose focus stays on the banner action.
+  useEffect(() => {
+    if (!isResuming) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.resume_in_progress'),
+    );
+  }, [isResuming]);
+
+  useEffect(() => {
+    if (!resumeErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
+  }, [resumeErrorMessage]);
 
   const handleMembershipAlertAction = useCallback(
     (action: MembershipAlertAction) => {
@@ -184,13 +219,18 @@ const ProHub = () => {
         case MembershipAlertAction.Renew:
           navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
           return;
+        case MembershipAlertAction.Resume:
+          // A period-end cancel is still a membership, so the subscription
+          // screen would send the user straight back. Uncancel here instead.
+          void resumeMembership();
+          return;
         default: {
           const unexpectedAction: never = action;
           return unexpectedAction;
         }
       }
     },
-    [navigation],
+    [navigation, resumeMembership],
   );
 
   return (
@@ -232,6 +272,8 @@ const ProHub = () => {
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
               model={membershipBanner}
               onAction={handleMembershipAlertAction}
+              isActionBusy={isResuming}
+              actionErrorMessage={resumeErrorMessage}
             />
 
             <Box

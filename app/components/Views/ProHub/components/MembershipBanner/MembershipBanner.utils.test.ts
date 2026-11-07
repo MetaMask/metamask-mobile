@@ -61,7 +61,101 @@ describe('getMembershipBannerModel', () => {
       status: SUBSCRIPTION_STATUSES.active,
       trialPeriodDays: 14,
       trialEnd: '2026-10-04T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model).toEqual({
+      statusKind: MembershipStatusKind.Active,
+      statusKey: 'pro_hub.membership_status.active',
+    });
+  });
+
+  it('keeps Active and shows the cancelled alert while a period-end cancel can be resumed', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
       cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Active);
+    expect(model.statusKey).toBe('pro_hub.membership_status.active');
+    expect(model.iconColor).toBe(IconColor.WarningDefault);
+    expect(model.alert).toEqual({
+      severity: BannerAlertSeverity.Warning,
+      titleKey: 'pro_hub.membership_alert.cancelled.title',
+      descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+      descriptionValues: { date: 'Jan 15, 2099' },
+      actionKey: 'pro_hub.membership.resume_membership',
+      action: MembershipAlertAction.Resume,
+    });
+  });
+
+  it('keeps Active and shows the cancelled alert when a trial is pending period-end cancellation', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.trialing,
+      trialPeriodDays: 14,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Active);
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.cancelled.title',
+    );
+    expect(model.alert?.action).toBe(MembershipAlertAction.Resume);
+  });
+
+  it.each([
+    [SUBSCRIPTION_STATUSES.pastDue, MembershipStatusKind.Overdue],
+    [SUBSCRIPTION_STATUSES.paused, MembershipStatusKind.Deactivated],
+    [SUBSCRIPTION_STATUSES.unpaid, MembershipStatusKind.Deactivated],
+    [SUBSCRIPTION_STATUSES.awaitingFunds, MembershipStatusKind.Active],
+  ] as const)(
+    'keeps the payment status for a scheduled %s cancel',
+    (status, statusKind) => {
+      const model = getMembershipBannerModel(
+        createSubscription({
+          status,
+          cancelAtPeriodEnd: true,
+          currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+        }),
+      );
+
+      expect(model.statusKind).toBe(statusKind);
+      expect(model.alert?.action).toBe(MembershipAlertAction.AddFunds);
+    },
+  );
+
+  it('keeps the renewal-failed alert when an active plan is also scheduled to cancel', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({
+        status: SUBSCRIPTION_STATUSES.active,
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+        lastInvoice: {
+          id: 'inv-failed',
+          status: INVOICE_PAYMENT_STATUSES.FAILED,
+        },
+      }),
+    );
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Active);
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.renewal_failed.title',
+    );
+    expect(model.alert?.action).toBe(MembershipAlertAction.AddFunds);
+  });
+
+  it('shows Active with no alert when a period-end cancel can no longer be resumed', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2020-01-01T12:00:00.000Z',
     });
 
     const model = getMembershipBannerModel(subscription);

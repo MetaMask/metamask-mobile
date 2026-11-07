@@ -3,6 +3,10 @@ import { renderHook } from '@testing-library/react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import {
+  clearActivationToastDebt,
+  getActivationToastOwed,
+} from '../utils/activationToastDebt';
 import { openProHubFromSubscriptionModal } from '../utils/openProHubFromSubscriptionModal';
 import { useProSubscriptionPaymentToasts } from './useProSubscriptionPaymentToasts';
 
@@ -59,6 +63,17 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('useProSubscriptionPaymentToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearActivationToastDebt();
+  });
+
+  it('records that the active membership toast is still owed', () => {
+    const { result } = renderHook(() => useProSubscriptionPaymentToasts(), {
+      wrapper,
+    });
+
+    result.current.showProcessingToast();
+
+    expect(getActivationToastOwed()).toBe(true);
   });
 
   it('offers a Pro Hub action when the user is on another screen', () => {

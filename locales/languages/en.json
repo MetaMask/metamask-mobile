@@ -13382,6 +13382,7 @@
       "load_error": "Couldn't load your allowances.",
       "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
       "unavailable": "Member pricing isn't available right now.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Try again"
     },
     "physical_card": {
@@ -13438,6 +13439,7 @@
       "paying_with": "Paying with",
       "money_account": "Money account",
       "renews_on": "Renews on",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
@@ -13529,7 +13531,7 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "As an Orange member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
         "description2": "APY is variable and not guaranteed."
       },
       "cashback": {
