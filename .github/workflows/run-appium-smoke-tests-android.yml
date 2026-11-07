@@ -182,4 +182,4 @@ jobs:
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
       android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

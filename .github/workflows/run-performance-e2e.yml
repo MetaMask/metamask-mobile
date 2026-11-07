@@ -331,7 +331,7 @@ jobs:
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # =============================================================================
   # ONBOARDING AND IMPORTED WALLET TESTS (TestMu HyperExecute)
@@ -368,7 +368,7 @@ jobs:
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   run-android-imported-wallet-tests-testmu:
     name: Performance Test Android TestMu HyperExecute (Imported Wallet)
@@ -401,7 +401,7 @@ jobs:
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   aggregate-results:
     name: Aggregate All Test Results

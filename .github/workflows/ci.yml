@@ -693,7 +693,7 @@ jobs:
       issues: write
       id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     uses: ./.github/workflows/dependency-audit-escalation.yml
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   js-bundle-size-check:
     # Stays on 8x16 (MCWP-813). It is the thinnest margin on the profile — 14.3 GB
@@ -1726,7 +1726,7 @@ jobs:
       # fallback; app-changing PRs use normal fingerprint reuse with JS repacking.
       reuse_main_builds: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
     permissions:
       contents: write
       id-token: write
@@ -1760,7 +1760,7 @@ jobs:
           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
       use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   prepare-e2e-timings:
     name: 'Prepare E2E Timings'
@@ -1846,7 +1846,7 @@ jobs:
           vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
       use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1886,7 +1886,7 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
@@ -1927,7 +1927,7 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   # Runs on Android only, so on PRs into main it runs when path filters select
@@ -1972,7 +1972,7 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
