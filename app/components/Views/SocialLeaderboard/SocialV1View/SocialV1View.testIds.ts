@@ -10,6 +10,8 @@ export const SocialV1ViewSelectorsIDs = {
   FOLLOWING_PAGE: 'social-v1-view-following-page',
   LIVE_PAGE: 'social-v1-view-live-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
+  HEADER_START: 'social-v1-view-header-start',
+  BACK_BUTTON: 'social-v1-view-back-button',
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
   ACCOUNT_AVATAR: 'social-v1-view-account-avatar',
   PLUS_BUTTON: 'social-v1-view-plus-button',
