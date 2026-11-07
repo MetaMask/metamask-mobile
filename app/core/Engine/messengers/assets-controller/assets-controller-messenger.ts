@@ -6,6 +6,7 @@ import {
 } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
@@ -91,6 +92,7 @@ export function getAssetsControllerMessenger(
 type AssetsControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | PreferencesControllerGetStateAction
+  | RemoteFeatureFlagControllerGetStateAction
   | AnalyticsControllerActions;
 
 export type AssetsControllerInitMessenger = Messenger<
@@ -121,6 +123,7 @@ export function getAssetsControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
+      'RemoteFeatureFlagController:getState',
       'AnalyticsController:trackEvent',
     ],
     events: [],
