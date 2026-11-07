@@ -14,6 +14,7 @@ import LINEA_MAINNET from './linea-mainnet-logo.png';
 import SOLANA from './solana-logo.png';
 import SOLANA_DEVNET from './solana-devnet.jpg';
 import GRAVITY from './gravity.png';
+import QUANTPAY from './quantpay.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
@@ -90,6 +91,7 @@ export default {
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
   G: GRAVITY,
+  QPC: QUANTPAY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
   SOLANA,

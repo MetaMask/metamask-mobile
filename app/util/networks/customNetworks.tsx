@@ -522,6 +522,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.APECHAIN_MAINNET]: require('../../images/apechain.png'),
   [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
   [NETWORK_CHAIN_ID.GRAVITY]: require('../../images/gravity.png'),
+  ['0x1a2f9d']: require('../../images/quantpay.png'),
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
