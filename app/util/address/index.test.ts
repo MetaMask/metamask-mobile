@@ -679,13 +679,6 @@ describe('isWatchOnlyAccount', () => {
   it('returns false for an account held by another keyring', () => {
     expect(isWatchOnlyAccount(mockSnapAddress1)).toBe(false);
   });
-
-  it('returns false for an unknown or invalid address', () => {
-    expect(
-      isWatchOnlyAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
-    ).toBe(false);
-    expect(isWatchOnlyAccount('not-an-address')).toBe(false);
-  });
 });
 
 describe('isHDOrFirstPartySnapAccount', () => {

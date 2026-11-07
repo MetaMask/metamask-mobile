@@ -15,8 +15,6 @@ import {
   type OrderEditRejection,
 } from '../utils/translatePerpsError';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
-import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
-import { strings } from '../../../../../locales/i18n';
 import {
   type AccountState,
   type CancelOrderParams,
@@ -111,29 +109,10 @@ function getIssuingPerpsUiScope(
  */
 export function usePerpsTrading() {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-  const { guard: guardWatchOnly } = useWatchOnlyGuard();
-
-  /**
-   * Committing mutations refuse a watch-only account here, before reaching the
-   * controller, so every order, cancel, close and funds path gets the same
-   * clear message whichever screen started it.
-   */
-  const refuseWatchOnly = useCallback(
-    () =>
-      guardWatchOnly()
-        ? {
-            success: false as const,
-            error: strings('watch_only.blocked_message'),
-          }
-        : undefined,
-    [guardWatchOnly],
-  );
   const useTerminalApi = useSelector(selectPerpsTerminalBackendEnabledFlag);
 
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       const requestId = __DEV__
         ? beginPerpsUiSubmission(
@@ -150,7 +129,7 @@ export function usePerpsTrading() {
         throw error;
       }
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const cancelOrder = useCallback(
@@ -158,8 +137,6 @@ export function usePerpsTrading() {
       skipCufConfirmationTrace,
       ...params
     }: MobileCancelOrderParams): Promise<CancelOrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       const requestId = __DEV__
         ? beginPerpsUiCancellation(
@@ -224,7 +201,7 @@ export function usePerpsTrading() {
         throw error;
       }
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const editOrder = useCallback(
@@ -238,8 +215,6 @@ export function usePerpsTrading() {
         watchPriceUpdate?: boolean;
       },
     ): Promise<EditOrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const { watchPriceUpdate, ...controllerParams } = params;
       const controller = Engine.context.PerpsController;
       const editCufOpId = startPerpsCufTrace({
@@ -299,17 +274,15 @@ export function usePerpsTrading() {
         throw error;
       }
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const closePosition = useCallback(
     async (params: ClosePositionParams): Promise<OrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       return controller.closePosition(params);
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const getMarkets = useCallback(
@@ -391,12 +364,10 @@ export function usePerpsTrading() {
 
   const withdraw = useCallback(
     async (params: WithdrawParams): Promise<WithdrawResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       return controller.withdraw(params);
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const calculateLiquidationPrice = useCallback(
@@ -432,32 +403,26 @@ export function usePerpsTrading() {
 
   const updatePositionTPSL = useCallback(
     async (params: UpdatePositionTPSLParams): Promise<OrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       return controller.updatePositionTPSL(params);
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const updateMargin = useCallback(
     async (params: UpdateMarginParams): Promise<MarginResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       return controller.updateMargin(params);
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const flipPosition = useCallback(
     async (params: FlipPositionParams): Promise<OrderResult> => {
-      const refusal = refuseWatchOnly();
-      if (refusal) return refusal;
       const controller = Engine.context.PerpsController;
       return controller.flipPosition(params);
     },
-    [refuseWatchOnly],
+    [],
   );
 
   const calculateFees = useCallback(

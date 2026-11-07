@@ -1,7 +1,4 @@
-import type {
-  KeyringBuilder,
-  KeyringV2Builder,
-} from '@metamask/keyring-controller';
+import type { KeyringV2Builder } from '@metamask/keyring-controller';
 import {
   isWatchOnlyKeyringV1Adapter,
   WatchOnlyKeyring,
@@ -14,21 +11,16 @@ import {
  * The V1 entry is a `WatchOnlyKeyringV1Adapter` wrapping the V2
  * `WatchOnlyKeyring`, so the `KeyringController` can store it in the vault.
  * Registering the builder creates nothing: the keyring only enters the vault
- * when `WatchOnlyAccountService` creates the first watch-only account.
+ * when `WatchOnlyAccountService` creates the first watch-only account. The
+ * adapter lacks V1 `addAccounts`, so it is not a full `KeyringBuilder`.
  *
  * @returns The watch-only keyring builder.
  */
-export function buildWatchOnlyKeyringBuilder(): KeyringBuilder {
-  // The adapter does not implement the full V1 `Keyring` contract (notably
-  // `addAccounts`), like the Snap keyring V1 adapter.
-  const builder = (() =>
-    new WatchOnlyKeyringV1Adapter(
-      new WatchOnlyKeyring(),
-    )) as unknown as KeyringBuilder;
-
-  builder.type = WatchOnlyKeyring.type;
-
-  return builder;
+export function buildWatchOnlyKeyringBuilder() {
+  return Object.assign(
+    () => new WatchOnlyKeyringV1Adapter(new WatchOnlyKeyring()),
+    { type: WatchOnlyKeyring.type },
+  );
 }
 
 /**
@@ -40,7 +32,7 @@ export function buildWatchOnlyKeyringBuilder(): KeyringBuilder {
  * @returns The watch-only keyring V2 builder.
  */
 export function buildWatchOnlyKeyringV2Builder(): KeyringV2Builder {
-  const builder = Object.assign(
+  return Object.assign(
     (keyring: unknown) => {
       if (!isWatchOnlyKeyringV1Adapter(keyring)) {
         throw new Error(
@@ -52,8 +44,4 @@ export function buildWatchOnlyKeyringV2Builder(): KeyringV2Builder {
     },
     { type: WatchOnlyKeyring.type },
   );
-
-  // `KeyringV2Builder` is typed against `@metamask/keyring-controller`'s
-  // `KeyringV2`, which the unwrapped keyring satisfies structurally.
-  return builder as unknown as KeyringV2Builder;
 }
