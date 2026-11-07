@@ -76,6 +76,7 @@ import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
 import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
+import { withLiveTraderCardStats } from '../MyProfileView/utils/withLiveTraderCardStats';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
@@ -173,7 +174,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
   const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
   const {
-    posts,
+    posts: loadedPosts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -181,6 +182,20 @@ const TraderProfileView = () => {
     error: postsError,
     refresh: refreshPosts,
   } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
+  const posts = useMemo(
+    () =>
+      withLiveTraderCardStats(
+        loadedPosts,
+        profile
+          ? {
+              pnl30d: profile.stats.pnl30d,
+              winRate30d: profile.stats.winRate30d,
+              followerCount: profile.followerCount,
+            }
+          : null,
+      ),
+    [loadedPosts, profile],
+  );
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);

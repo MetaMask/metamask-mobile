@@ -219,6 +219,11 @@ jest.mock('./hooks', () => ({
   useMyProfilePosts: () => mockUseMyProfilePosts(),
 }));
 
+jest.mock('../../../UI/SocialFeed/live/SocialLivePricesProvider', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
   useTraderBlock: (profileId?: string) => mockUseTraderBlock(profileId),

@@ -39,6 +39,7 @@ import React, {
 import {
   ActivityIndicator,
   RefreshControl,
+  View,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -95,7 +96,10 @@ import ProfileAvatar from './components/ProfileAvatar';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
+import { useLiveUnrealizedPnl } from './hooks/useLiveUnrealizedPnl';
+import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
+import { withLiveTraderCardStats } from './utils/withLiveTraderCardStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
@@ -379,7 +383,7 @@ const MyProfileView: React.FC = () => {
     }, [isOwner]),
   );
   const {
-    posts,
+    posts: loadedPosts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -390,6 +394,20 @@ const MyProfileView: React.FC = () => {
     ownerProfileId: isOwner ? myProfile?.profileId : undefined,
     isActive: activeTab === 'posts' && !isBlocked,
   });
+  const posts = useMemo(
+    () =>
+      withLiveTraderCardStats(
+        loadedPosts,
+        liveProfile.profile
+          ? {
+              pnl30d: liveProfile.profile.stats.pnl30d,
+              winRate30d: liveProfile.profile.stats.winRate30d,
+              followerCount: liveProfile.profile.followerCount,
+            }
+          : null,
+      ),
+    [loadedPosts, liveProfile.profile],
+  );
   const {
     openPositions,
     closedPositions,
@@ -404,6 +422,8 @@ const MyProfileView: React.FC = () => {
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
+  const { trackRef: performanceTrackRef, unrealizedPnl: liveUnrealizedPnl } =
+    useLiveUnrealizedPnl(openPositions);
   const overlayedStats = useMemo(
     () =>
       displayProfile
@@ -411,9 +431,10 @@ const MyProfileView: React.FC = () => {
             displayProfile,
             liveProfile.profile,
             openPositions,
+            liveUnrealizedPnl,
           )
         : null,
-    [displayProfile, liveProfile.profile, openPositions],
+    [displayProfile, liveProfile.profile, openPositions, liveUnrealizedPnl],
   );
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
@@ -981,9 +1002,11 @@ const MyProfileView: React.FC = () => {
               </Box>
             ) : (
               <>
-                <MyProfilePerformanceStats
-                  cells={overlayedStats.performanceCells}
-                />
+                <View ref={performanceTrackRef} collapsable={false}>
+                  <MyProfilePerformanceStats
+                    cells={overlayedStats.performanceCells}
+                  />
+                </View>
 
                 <Box
                   flexDirection={BoxFlexDirection.Row}
@@ -1109,4 +1132,14 @@ const MyProfileView: React.FC = () => {
   );
 };
 
-export default MyProfileView;
+/**
+ * Streams prices for the open positions on screen, so the Unrealized cell and
+ * the open post cards follow the market instead of the last 30s snapshot.
+ */
+const MyProfileViewWithLivePrices: React.FC = () => (
+  <SocialLivePricesProvider>
+    <MyProfileView />
+  </SocialLivePricesProvider>
+);
+
+export default MyProfileViewWithLivePrices;

@@ -149,6 +149,25 @@ export function formatSignedFullUsdNoDecimals(
 }
 
 /**
+ * Signed full USD that keeps cents for small amounts (`+$0.75`, `-$6.20`) and
+ * drops them from $100 up (`+$1,200`). Whole-dollar rounding turned a +$0.75
+ * profile P&L into `+$1` beside a post that read `$0.75`.
+ */
+export function formatSignedProfileUsd(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  const absoluteValue = Math.abs(value);
+  if (absoluteValue >= 100 || absoluteValue < 0.005) {
+    return formatSignedFullUsdNoDecimals(value);
+  }
+  return (
+    (value > 0 ? '+' : '-') +
+    formatPerpsFiat(absoluteValue, { minimumDecimals: 2, maximumDecimals: 2 })
+  );
+}
+
+/**
  * Unsigned full USD with thousands separators and no fractional digits
  * (e.g. `$7,100`). Used when color, not a +/- prefix, carries the sign.
  */

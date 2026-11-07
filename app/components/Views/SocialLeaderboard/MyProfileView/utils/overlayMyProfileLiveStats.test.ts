@@ -171,9 +171,21 @@ describe('buildPerformanceCells', () => {
     });
   });
 
-  it('shows unsigned $0 unrealized when a tiny loss rounds to zero dollars', () => {
+  it('keeps cents on a small unrealized loss instead of rounding it away', () => {
     const cells = buildPerformanceCells(liveProfile(), [
       openPosition('dust', { pnlValueUsd: 9.6, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '-$0.40',
+      tone: 'error',
+    });
+  });
+
+  it('shows unsigned $0 unrealized when the move is under half a cent', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('dust', { pnlValueUsd: 10.001, realizedPnl: 10 }),
     ]);
 
     expect(cells[1]).toEqual({
@@ -181,6 +193,14 @@ describe('buildPerformanceCells', () => {
       value: '$0',
       tone: 'default',
     });
+  });
+
+  it('shows a sub-dollar P&L with cents so it matches the post line', () => {
+    const [pnlCell] = buildPerformanceCells(
+      liveProfile({ stats: { pnl30d: 0.75 } }),
+    );
+
+    expect(pnlCell).toEqual({ id: 'pnl', value: '+$0.75', tone: 'success' });
   });
 
   it('marks negative P&L with the error tone', () => {
