@@ -534,4 +534,37 @@ describe('PerpsCancelAllOrdersView', () => {
       screen.getByText(strings('perps.cancel_all_modal.confirm')),
     ).toBeOnTheScreen();
   });
+  describe('watch-only account', () => {
+    const { keyrings } = Engine.context.KeyringController.state;
+
+    beforeEach(() => {
+      keyrings.push({
+        type: 'watch-only',
+        accounts: ['0x0000000000000000000000000000000000000001'],
+        metadata: { id: 'watch-only', name: '' },
+      });
+    });
+
+    afterEach(() => {
+      keyrings.pop();
+    });
+
+    it('refuses cancel all with the watch-only message and sends no request', async () => {
+      renderPerpsCancelAllOrdersView({
+        streamOverrides: { orders },
+        includeToasts: true,
+      });
+
+      fireEvent.press(
+        await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+      );
+
+      expect(
+        await screen.findByText(strings('watch_only.blocked_message')),
+      ).toBeOnTheScreen();
+      expect(
+        Engine.context.PerpsController.cancelOrders,
+      ).not.toHaveBeenCalled();
+    });
+  });
 });

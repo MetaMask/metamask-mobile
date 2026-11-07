@@ -447,6 +447,7 @@ const renderProMarketWithTriggeredOrdersFlag = (
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
   activeProvider: 'hyperliquid' | 'lighter' = 'hyperliquid',
+  includeToasts = false,
 ) => {
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -465,6 +466,7 @@ const renderProMarketWithTwapFlag = (
     );
 
   return renderPerpsProMarketView({
+    includeToasts,
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
     },
@@ -5823,5 +5825,46 @@ describe('Pro fee display format', () => {
     expect(calculateFees()).not.toHaveBeenCalledWith(
       expect.objectContaining({ orderType: 'limit' }),
     );
+  });
+});
+
+describeForPlatforms('Pro TWAP watch-only account', () => {
+  const { keyrings } = Engine.context.KeyringController.state;
+
+  beforeEach(() => {
+    keyrings.push({
+      type: 'watch-only',
+      accounts: ['0x0000000000000000000000000000000000000001'],
+      metadata: { id: 'watch-only', name: '' },
+    });
+  });
+
+  afterEach(() => {
+    keyrings.pop();
+  });
+
+  it('refuses TWAP termination with the watch-only message and sends no request', async () => {
+    mockTwapOrders([activeTwap]);
+    renderProMarketWithTwapFlag(true, 'hyperliquid', true);
+    await openTwapManagementTab();
+
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsProTwapTerminateSelector(
+          getTwapOrderProviderId(activeTwap),
+          activeTwap.orderId,
+        ),
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM,
+      ),
+    );
+
+    expect(
+      await screen.findByText(strings('watch_only.blocked_message')),
+    ).toBeOnTheScreen();
+    expect(Engine.context.PerpsController.cancelOrder).not.toHaveBeenCalled();
   });
 });
