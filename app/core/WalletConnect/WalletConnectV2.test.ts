@@ -236,6 +236,10 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
   })),
 }));
 
+jest.mock('./wc-persisted-state', () => ({
+  hasPersistedWalletConnectState: jest.fn().mockResolvedValue(true),
+}));
+
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
   getScopedPermissions: jest.fn().mockResolvedValue({
@@ -2618,6 +2622,174 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal as any);
 
       expect(mockDisconnectSession).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('WC2Manager lazy start', () => {
+  const internals = WC2Manager as unknown as {
+    instance?: WC2Manager;
+    _initialized: boolean;
+    initPromise?: Promise<WC2Manager | undefined>;
+  };
+  const mockHasState = jest.requireMock('./wc-persisted-state')
+    .hasPersistedWalletConnectState as jest.Mock;
+  const fakeInstance = { getSessions: () => [] } as unknown as WC2Manager;
+
+  const resetSingleton = () => {
+    internals.instance = undefined;
+    internals._initialized = false;
+    internals.initPromise = undefined;
+  };
+
+  /** init that "succeeds" by setting the singleton, like the real one. */
+  const mockInitSucceeds = () =>
+    jest.spyOn(WC2Manager, 'init').mockImplementation(async () => {
+      internals._initialized = true;
+      internals.instance = fakeInstance;
+      return fakeInstance;
+    });
+
+  beforeEach(() => {
+    resetSingleton();
+    mockHasState.mockReset();
+    mockHasState.mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    resetSingleton();
+  });
+
+  describe('startIfNeeded (unlock)', () => {
+    it('does not start WalletConnect when nothing is stored', async () => {
+      mockHasState.mockResolvedValue(false);
+      const init = mockInitSucceeds();
+
+      expect(await WC2Manager.startIfNeeded()).toBeUndefined();
+      expect(init).not.toHaveBeenCalled();
+    });
+
+    it('starts WalletConnect when sessions or pairings are stored', async () => {
+      const init = mockInitSucceeds();
+
+      expect(await WC2Manager.startIfNeeded()).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(1);
+      expect(init).toHaveBeenCalledWith({});
+    });
+
+    it('returns the running instance without reading storage again', async () => {
+      internals.instance = fakeInstance;
+
+      expect(await WC2Manager.startIfNeeded()).toBe(fakeInstance);
+      expect(mockHasState).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ensureInitialized', () => {
+    it('shares one start between concurrent callers', async () => {
+      let finish: () => void = () => undefined;
+      const init = jest.spyOn(WC2Manager, 'init').mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finish = () => {
+              internals.instance = fakeInstance;
+              resolve(fakeInstance);
+            };
+          }),
+      );
+
+      const first = WC2Manager.ensureInitialized();
+      const second = WC2Manager.ensureInitialized();
+      finish();
+
+      expect(await first).toBe(fakeInstance);
+      expect(await second).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(1);
+    });
+
+    it('tries again after a start that failed', async () => {
+      const init = jest
+        .spyOn(WC2Manager, 'init')
+        .mockImplementationOnce(async () => {
+          internals._initialized = true;
+          throw new Error('relay unreachable');
+        })
+        .mockImplementationOnce(async () => {
+          internals._initialized = true;
+          internals.instance = fakeInstance;
+          return fakeInstance;
+        });
+
+      await expect(WC2Manager.ensureInitialized()).rejects.toThrow(
+        'relay unreachable',
+      );
+      expect(internals._initialized).toBe(false);
+
+      expect(await WC2Manager.ensureInitialized()).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(2);
+    });
+
+    it('tries again after a start that was skipped (no instance)', async () => {
+      const init = jest
+        .spyOn(WC2Manager, 'init')
+        .mockResolvedValueOnce(undefined)
+        .mockImplementationOnce(async () => {
+          internals.instance = fakeInstance;
+          return fakeInstance;
+        });
+
+      expect(await WC2Manager.ensureInitialized()).toBeUndefined();
+      expect(await WC2Manager.ensureInitialized()).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getInstance (first use: deeplink, QR code, sessions screen)', () => {
+    it('starts WalletConnect when it is not running yet', async () => {
+      const init = mockInitSucceeds();
+
+      expect(await WC2Manager.getInstance()).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts it once for concurrent first uses', async () => {
+      const init = mockInitSucceeds();
+
+      const [a, b, c] = await Promise.all([
+        WC2Manager.getInstance(),
+        WC2Manager.getInstance(),
+        WC2Manager.getInstance(),
+      ]);
+
+      expect([a, b, c]).toEqual([fakeInstance, fakeInstance, fakeInstance]);
+      expect(init).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not start it again when it is already running', async () => {
+      internals.instance = fakeInstance;
+      const init = mockInitSucceeds();
+
+      expect(await WC2Manager.getInstance()).toBe(fakeInstance);
+      expect(init).not.toHaveBeenCalled();
+    });
+
+    it('retries while waiting when the first start ends without an instance', async () => {
+      jest.useFakeTimers();
+      const init = jest
+        .spyOn(WC2Manager, 'init')
+        .mockResolvedValueOnce(undefined)
+        .mockImplementation(async () => {
+          internals.instance = fakeInstance;
+          return fakeInstance;
+        });
+
+      const pending = WC2Manager.getInstance();
+      await jest.advanceTimersByTimeAsync(1100);
+
+      expect(await pending).toBe(fakeInstance);
+      expect(init).toHaveBeenCalledTimes(2);
     });
   });
 });
