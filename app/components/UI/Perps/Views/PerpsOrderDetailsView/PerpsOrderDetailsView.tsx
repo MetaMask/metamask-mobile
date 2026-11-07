@@ -22,6 +22,7 @@ import {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsTrading } from '../../hooks/usePerpsTrading';
+import { useWatchOnlyGuard } from '../../../../hooks/useWatchOnlyGuard';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import { useBottomSafeAreaInset } from '../../../../hooks/useBottomSafeAreaInset';
@@ -70,6 +71,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSafeAreaInset = useBottomSafeAreaInset();
   const { cancelOrder } = usePerpsTrading();
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
@@ -196,7 +198,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   }, [order, priceMetrics]);
 
   const handleCancelOrder = useCallback(async () => {
-    if (!order || !canCancel) return;
+    if (!order || !canCancel || guardWatchOnly()) return;
 
     setIsCanceling(true);
 
@@ -252,6 +254,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   }, [
     order,
     canCancel,
+    guardWatchOnly,
     cancelOrder,
     navigation,
     showToast,
