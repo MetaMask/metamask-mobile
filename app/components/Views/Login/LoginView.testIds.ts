@@ -13,6 +13,9 @@ export const LoginViewSelectors = {
   OTHER_METHODS_BUTTON: 'other-methods-button',
   /** Long-press target for downloading state logs (dev diagnostics). */
   DOWNLOAD_LOGS_BUTTON: 'login-download-logs-button',
+  /** Dev-only aggregate3 codec benchmark. Temporary PoC for core#11010. */
+  AGGREGATE3_BENCHMARK_BUTTON: 'aggregate3-codec-benchmark-button',
+  AGGREGATE3_BENCHMARK_RESULT: 'aggregate3-codec-benchmark-result',
 };
 
 export const LoginViewSelectorText = {
