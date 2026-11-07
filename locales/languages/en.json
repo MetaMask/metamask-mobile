@@ -6020,6 +6020,7 @@
     "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
     "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
     "disconnect_confirm": "Disconnect",
+    "disconnect_failed": "Couldn't disconnect. Try again.",
     "cancel": "Cancel"
   },
   "sdk_return_to_app_toast": {

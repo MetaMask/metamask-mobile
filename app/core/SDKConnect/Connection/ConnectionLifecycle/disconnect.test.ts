@@ -79,11 +79,23 @@ describe('disconnect', () => {
       expect(mockRemoteDisconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call disconnect on the remote when termination fails', async () => {
+    it('should call disconnect on the remote when the terminate send fails', async () => {
       mockRemoteSendMessage.mockResolvedValue(false);
       await disconnect({ instance: mockConnection, terminate: true });
 
-      expect(mockRemoteDisconnect).not.toHaveBeenCalled();
+      expect(mockRemoteDisconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should close the remote when the terminate send throws', async () => {
+      mockRemoteSendMessage.mockRejectedValue(new Error('socket closed'));
+
+      const result = await disconnect({
+        instance: mockConnection,
+        terminate: true,
+      });
+
+      expect(result).toBe(true);
+      expect(mockRemoteDisconnect).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -121,13 +133,13 @@ describe('disconnect', () => {
       expect(getOriginProvenance('testChannelId')).toBeUndefined();
     });
 
-    it('keeps the provenance when termination fails so a retry can still find it', async () => {
+    it('drops the provenance when the terminate send fails', async () => {
       stampTestProvenance();
       mockRemoteSendMessage.mockResolvedValue(false);
 
       await disconnect({ instance: mockConnection, terminate: true });
 
-      expect(getOriginProvenance('testChannelId')).toBeDefined();
+      expect(getOriginProvenance('testChannelId')).toBeUndefined();
     });
 
     it('keeps the provenance on non-terminal disconnects because the connection can resume', async () => {
@@ -147,10 +159,10 @@ describe('disconnect', () => {
     expect(result).toBe(true);
 
     mockRemoteSendMessage.mockResolvedValue(false);
-    const falseResult = await disconnect({
+    const localClose = await disconnect({
       instance: mockConnection,
       terminate: true,
     });
-    expect(falseResult).toBe(false);
+    expect(localClose).toBe(true);
   });
 });
