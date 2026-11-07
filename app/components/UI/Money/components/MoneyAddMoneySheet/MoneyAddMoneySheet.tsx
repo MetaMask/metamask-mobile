@@ -310,13 +310,6 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       disabled: !hasMusdBalance && !canDepositFiat,
     },
     ...comingSoonBankAccountOptions,
-    {
-      label: strings('money.add_money_sheet.receive_external'),
-      icon: IconName.QrCode,
-      testID: MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
   ];
 
   return (
