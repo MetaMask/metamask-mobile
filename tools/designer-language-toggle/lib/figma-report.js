@@ -183,15 +183,33 @@ function textOverLimit(text, row) {
 
 function labelIssue(units, row) {
   if (typeof row.maxUnits !== 'number' && row.maxCharacters == null) return null;
-  const lines = Math.max(row.lineCount || 1, 1);
+  const boxLines = Math.max(row.lineCount || row.maxLines || 1, 1);
   if (row.layout === 'wrap') {
-    const perLine = (row.maxUnits || row.widthHint || 1) / lines;
-    const linesNeeded = Math.ceil(units / Math.max(perLine, 0.1));
-    if (linesNeeded > lines) return 'wrap';
+    const perLine = Math.max(row.widthHint || 1, 1);
+    let linesNeeded = Math.ceil(units / perLine);
+    if (typeof row.maxUnits === 'number' && units <= row.maxUnits) {
+      linesNeeded = Math.min(linesNeeded, 1);
+    }
+    if (linesNeeded > boxLines) {
+      return {
+        issue: 'wrap',
+        detail: `wraps to ${linesNeeded} lines, box fits ${boxLines}`,
+      };
+    }
     return null;
   }
-  if (valueOver(units, units, row)) return 'overflow';
+  if (valueOver(units, units, row)) return { issue: 'overflow', detail: null };
   return null;
+}
+
+function languageVerdict(entry, row) {
+  if (!entry || entry.basis === 'estimate') return 'estimate';
+  if (entry.basis === 'range') {
+    if (entry.shortestOver) return 'break';
+    if (entry.someOver) return 'might';
+    return 'fit';
+  }
+  return valueOver(entry.characters, entry.units || entry.characters, row) ? 'break' : 'fit';
 }
 
 function buildBreakReport(lengths, options) {
@@ -228,27 +246,20 @@ function buildBreakReport(lengths, options) {
       return;
     }
     const entries = real ? langs.map((lang) => real.perLang[lang]).filter(Boolean) : [];
-    const realEntries = entries.filter((entry) => entry.basis === 'real' || entry.basis === 'range');
-    const best = realEntries.reduce((min, entry) => {
-      const units = entry.basis === 'range' ? entry.units : (entry.units || entry.characters);
-      const characters = entry.basis === 'range' ? entry.minCharacters : entry.characters;
-      if (!min || units < min.units) return { units, characters };
-      return min;
-    }, null);
-    const someOver = realEntries.some((entry) => (
-      entry.basis === 'range'
-        ? entry.someOver
-        : valueOver(entry.characters, entry.units || entry.characters, row)
-    ));
-    const shortestOver = best ? valueOver(best.characters, best.units, row) : false;
-    if (shortestOver) {
+    const verdicts = {};
+    langs.forEach((lang) => {
+      verdicts[lang] = languageVerdict(real && real.perLang[lang], row);
+    });
+    item.langVerdicts = verdicts;
+    item.hardLangs = langs.filter((lang) => verdicts[lang] === 'break');
+    item.mightLangs = langs.filter((lang) => verdicts[lang] === 'might');
+    if (item.hardLangs.length > 0) {
       item.verdict = 'break';
       breaks.push(item);
       return;
     }
-    if (someOver) {
+    if (item.mightLangs.length > 0) {
       item.verdict = 'might break';
-      item.basis = 'range';
       mightBreak.push(item);
       return;
     }
@@ -266,18 +277,19 @@ function buildBreakReport(lengths, options) {
 
   buttons.forEach(placeControl);
 
-  (lengths || []).filter((row) => row.bucket === 'label').forEach((row) => {
+  (lengths || []).filter((row) => row.bucket === 'text' || row.bucket === 'label').forEach((row) => {
     const real = realTranslations(row.source, index, shared, langs, row, options);
     const estimate = estimateSize(row, ratio);
     const problems = [];
     langs.forEach((lang) => {
       const entry = real && real.perLang[lang];
       const units = entry ? (entry.units || entry.characters) : estimate.units;
-      const issue = labelIssue(units, row);
-      if (!issue) return;
+      const found = labelIssue(units, row);
+      if (!found) return;
       problems.push({
         lang,
-        issue,
+        issue: found.issue,
+        detail: found.detail,
         basis: entry ? entry.basis : 'estimate',
         characters: entry ? entry.characters : estimate.characters,
         key: entry ? entry.key : null,

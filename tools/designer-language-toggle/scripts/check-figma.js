@@ -53,18 +53,19 @@ function lineFor(row) {
   return `  ${shown}  ${row.characters} characters, ${row.width_px === null ? 'no width' : `${row.width_px}px`}${screens ? `, ${screens}` : ''}${key}`;
 }
 
-function printLang(lang, item) {
+function printLang(lang, item, verdict) {
   if (!item) return;
+  const tag = verdict === 'break' ? ' hard break' : verdict === 'might' ? ' might break' : '';
   if (item.basis === 'estimate') {
-    console.log(`    ${lang} estimate ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
+    console.log(`    ${lang}${tag} estimate ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
     return;
   }
   if (item.basis === 'range') {
-    console.log(`    ${lang} ${item.minCharacters}–${item.maxCharacters} across ${item.keyCount} keys`);
+    console.log(`    ${lang}${tag} ${item.minCharacters}–${item.maxCharacters} across ${item.keyCount} keys`);
     return;
   }
   const mark = item.over10 ? ' over 10' : '';
-  console.log(`    ${lang} ${JSON.stringify(item.text)} (${item.characters}${mark}${item.key ? `, key ${item.key}` : ''})`);
+  console.log(`    ${lang}${tag} ${JSON.stringify(item.text)} (${item.characters}${mark}${item.key ? `, key ${item.key}` : ''})`);
 }
 
 function printReport(report, langs) {
@@ -78,25 +79,26 @@ function printReport(report, langs) {
   if (report.breaks.length === 0) console.log('  None.');
   report.breaks.slice(0, 20).forEach((row) => {
     console.log(lineFor(row));
-    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang]));
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang]));
   });
   console.log('');
   console.log(`Might break (${report.mightBreak.length})`);
   if (report.mightBreak.length === 0) console.log('  None.');
-  else console.log('  Some shipped translations fit and some do not. The shortest one still fits.');
+  else console.log('  In that language the shortest shipped candidate still fits, and a longer one does not.');
   report.mightBreak.slice(0, 20).forEach((row) => {
     console.log(lineFor(row));
-    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang]));
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang], row.langVerdicts && row.langVerdicts[lang]));
   });
   console.log('');
-  console.log(`Labels that will overflow or wrap (${report.labels.length})`);
+  console.log(`Text that will overflow or wrap (${report.labels.length})`);
   if (report.labels.length === 0) console.log('  None.');
   report.labels.slice(0, 20).forEach((row) => {
     const assumed = row.assumption ? `  ${row.assumption}` : '';
-    console.log(`${lineFor(row)}  ${row.issue}${assumed}`);
+    console.log(`${lineFor(row)}  ${row.issue || 'check'}${assumed}`);
     (row.problems || []).forEach((item) => {
       const how = item.basis === 'estimate' ? 'estimate' : item.basis === 'range' ? `${item.minCharacters}–${item.maxCharacters}` : JSON.stringify(item.text);
-      console.log(`    ${item.lang} ${item.issue}  ${how}${item.key ? `  key ${item.key}` : ''}`);
+      const detail = item.detail ? `  ${item.detail}` : '';
+      console.log(`    ${item.lang} ${item.issue}  ${how}${detail}${item.key ? `  key ${item.key}` : ''}`);
     });
   });
   console.log('');
@@ -132,6 +134,12 @@ async function main() {
   const rules = figma.loadRules(
     require('path').join(root, 'tools/designer-language-toggle/references/figma-rules.json'),
   );
+  const shared = lib.loadShippedFlats(root);
+  rules.shippedWords = new Set(
+    Object.keys(shared.en || {})
+      .map((key) => shared.en[key])
+      .filter((value) => typeof value === 'string'),
+  );
   const records = await figma.loadTextNodes(parsed.fileKey, parsed.nodeId, token, fetch, rules);
   const cache = figma.writeCache(root, parsed.fileKey, parsed.nodeId, records);
   const limits = lib.loadLimits(lib.defaultLimitsPath());
@@ -143,7 +151,6 @@ async function main() {
     pseudo: Boolean(args.pseudo),
     ratio: args.ratio ? Number(args.ratio) : limits.ratio,
   });
-  const shared = lib.loadShippedFlats(root);
   const report = buildBreakReport(checked.lengths, {
     langs,
     sharedFlats: shared,

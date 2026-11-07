@@ -482,8 +482,8 @@ function testFileAdapterAndLearned() {
     'duplicate text keeps both screens',
   );
   assert(go.bucket === 'button' && go.maxCharacters === 10, 'narrow control uses the 10 character limit');
-  const body = grouped.lengths.find((row) => row.bucket === 'wrap');
-  assert(body && body.status === 'check-wrapping', 'long text is wrap-checked');
+  const body = grouped.lengths.find((row) => row.kind === 'body');
+  assert(body && body.bucket === 'text' && body.maxUnits > body.characters, 'body copy uses a width budget');
   const tight = grouped.lengths.find((row) => row.source === 'Continue');
   assert(tight && tight.bucket !== 'button' && tight.status === 'ok', 'a narrow label is not a 10-character button');
   const pseudo = pseudoText('Yes');
@@ -657,7 +657,8 @@ function testClassificationFixes() {
   ['11.5', 'O 228.5', 'U 228.5', '25+ points', '3+ goals', 'by 6–10', '3-1', "15'", '7:00 p.m. ET', 'May 4', 'Nov 6', '2026-11-06', '+150', '-110', '45¢', '52%'].forEach((text) => {
     assert(byText.get(text).kind === 'number_or_data', `${text} is data`);
   });
-  assert(byText.get('Team A by 6–10').kind === 'placeholder_or_annotation', 'Team A inside a longer string is a placeholder');
+  assert(byText.get('Team A by 6–10').template === '{name} by {range}', 'Team A inside a longer string becomes a name slot');
+  assert(byText.get('Team A by 6–10').kind !== 'placeholder_or_annotation', 'a longer string with Team A stays in the check');
   const teamName = figma.classifyTextNode({
     id: 'team-america',
     layer_name: 'Label',
@@ -1021,6 +1022,128 @@ function testReportGaps() {
   assert(missing.fits[0].real.perLang.ja.key === 'sample.yes', 'the estimate keeps the matched key');
   assert(missing.fits[0].real.perLang.de.text === 'Ja!', 'the shipped language is still shown');
 
+  const cash = classifyRecord({
+    id: 'cash',
+    key: 'cash',
+    source_text: 'Cash out',
+    context: { kind: 'button', width_px: 80, component: 'Cash out', screen: 'Home' },
+  }, limits);
+  const cashReport = buildBreakReport([cash], {
+    langs: ['ru', 'ja'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: { 'wallet.cash': 'Cash out' },
+      ru: { 'wallet.cash': '12345678901234' },
+      ja: { 'wallet.cash': '出金' },
+    },
+  });
+  assert(checkerCount('12345678901234') === 14, 'russian fixture is 14 characters');
+  assert(cashReport.mightBreak.length === 0, 'one language over is not a might-break');
+  assert(cashReport.breaks.length === 1, 'ru over 10 is a hard break even when ja fits');
+  assert(cashReport.breaks[0].hardLangs.includes('ru'), 'ru is listed as a hard break');
+  assert(!cashReport.breaks[0].hardLangs.includes('ja'), 'ja is not a hard break');
+  assert(cashReport.breaks[0].langVerdicts.ru === 'break', 'ru verdict is break');
+  assert(cashReport.breaks[0].langVerdicts.ja === 'fit', 'ja verdict is fit');
+
+  const grammar = node('54% to win', 'Board');
+  assert(grammar.copyText === 'to win', 'spaces stay between copy words');
+  assert(grammar.template === '{pct} to win', 'the percent is the data slot');
+  assert(node('$4.8M', 'Board').kind === 'number_or_data', '$4.8M is data');
+  assert(node('61K', 'Board').kind === 'number_or_data', '61K is data');
+  assert(node('1.2B', 'Board').kind === 'number_or_data', '1.2B is data');
+  assert(node('12.3K', 'Board').kind === 'number_or_data', '12.3K is data');
+  const namedRules = { ...rules, shippedWords: new Set(['Buy']) };
+  const panthers = figma.classifyTextNode({
+    id: 'panthers',
+    layer_name: 'Label',
+    frame_path: 'Trade / Button',
+    text: 'Panthers · 54¢',
+    width: 90,
+    visible: true,
+  }, namedRules);
+  assert(panthers.template === '{name} · {price}', 'an unmatched name next to a price becomes a slot');
+  const pantherRow = classifyRecord({
+    id: 'panthers',
+    key: 'panthers',
+    source_text: 'Panthers · 54¢',
+    context: {
+      kind: 'button',
+      width_px: 90,
+      component: 'Panthers · 54¢',
+      screen: 'Trade / Button',
+      template: panthers.template,
+      example: 'Panthers · 54¢',
+      copyText: panthers.copyText,
+      dataCharacters: panthers.dataCharacters,
+      gapCharacters: panthers.gapCharacters,
+    },
+  }, limits);
+  assert(pantherRow.status === 'ok' && pantherRow.maxCharacters !== 10, 'a name slot uses the width budget, not the 10 character cap');
+  const board = node('CAR · 2-2', 'Board');
+  assert(board.template === '{name} · {range}', 'a scoreboard token splits into a name and a score');
+  const versus = node('Team A vs. Team B', 'Board');
+  assert(versus.kind !== 'placeholder_or_annotation', 'Team A versus Team B stays in the check');
+  assert(versus.template === '{name} vs. {name}', 'each team placeholder is a name slot');
+  assert(versus.copyText === 'vs.', 'the grammar between the names is kept');
+  assert(node('Team A', 'Board').kind === 'placeholder_or_annotation', 'a string that is only a placeholder is skipped');
+
+  const liveFile = path.join(os.tmpdir(), 'designer-live-dedupe.json');
+  fs.writeFileSync(liveFile, JSON.stringify([
+    { id: 'live-label', layer_name: 'Status', frame_path: 'Header', text: 'LIVE', kind: 'label', width: 40, visible: true },
+    { id: 'live-button', layer_name: 'Label', frame_path: 'Range / Button', text: 'LIVE', kind: 'button', width: 40, visible: true },
+  ]));
+  const live = require('../lib/file-adapter').checkDesignFile(liveFile, { lang: 'de', limits, pseudo: false });
+  fs.rmSync(liveFile, { force: true });
+  assert(live.unique === 2, 'the same text with two kinds stays two rows');
+  assert(live.lengths.some((row) => row.source === 'LIVE' && row.kind === 'label'), 'LIVE can be a label');
+  assert(live.lengths.some((row) => row.source === 'LIVE' && row.kind === 'button'), 'LIVE can also be a button');
+
+  const title = classifyRecord({
+    id: 'title',
+    key: 'title',
+    source_text: 'Markets',
+    context: { kind: 'title', width_px: 180, component: 'title', screen: 'Home / titleRow' },
+  }, limits);
+  assert(title.bucket === 'text' && title.maxUnits > title.characters, 'a title gets the same width budget as a label');
+  const titleReport = buildBreakReport([title], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'nav.markets': 'Markets' },
+      de: { 'nav.markets': 'A'.repeat(40) },
+    },
+  });
+  assert(titleReport.labels.some((row) => row.kind === 'title'), 'title overflow is reported with the other text');
+
+  const lines = classifyRecord({
+    id: 'lines',
+    key: 'lines',
+    source_text: 'Line count',
+    context: {
+      kind: 'label',
+      width_px: 80,
+      height: 40,
+      lineHeightPx: 20,
+      textAutoResize: 'HEIGHT',
+      component: 'Label',
+      screen: 'Card',
+    },
+  }, limits);
+  assert(lines.lineCount === 2, 'height and line height make a two line box');
+  const lineReport = buildBreakReport([lines], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    sharedFlats: {
+      en: { 'card.lines': 'Line count' },
+      de: { 'card.lines': 'A'.repeat(25) },
+    },
+  });
+  assert(
+    lineReport.labels.some((row) => (row.problems || []).some((item) => item.detail === 'wraps to 3 lines, box fits 2')),
+    'wrap text reports the extra lines',
+  );
+
   const collected = [];
   figma.collectTextNodes({
     type: 'FRAME',
@@ -1031,11 +1154,13 @@ function testReportGaps() {
       name: 'Label',
       characters: 'Available balance',
       absoluteBoundingBox: { width: 117, height: 20 },
-      style: { textAutoResize: 'HEIGHT', fontSize: 14, lineHeightPx: 20 },
+      style: { textAutoResize: 'HEIGHT', fontSize: 14, lineHeightPx: 20, maxLines: 2 },
     }],
   }, [], false, collected);
   assert(collected[0].textAutoResize === 'HEIGHT', 'text auto-resize is read from the REST style');
   assert(collected[0].lineHeightPx === 20, 'line height is read from the REST style');
+  assert(collected[0].fontSize === 14, 'font size is read from the REST style');
+  assert(collected[0].maxLines === 2, 'max lines are read from the REST style');
 }
 
 function checkerCount(value) {

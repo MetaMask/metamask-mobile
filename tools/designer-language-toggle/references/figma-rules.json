@@ -75,7 +75,8 @@
   },
   "dataTokens": [
     { "name": "name", "pattern": "<[^>\\n]+>" },
-    { "name": "price", "pattern": "\\$\\s?\\d[\\d,]*(?:\\.\\d+)?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢" },
+    { "name": "price", "pattern": "\\$\\s?\\d[\\d,]*(?:\\.\\d+)?\\s?[kKmMbB]?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢" },
+    { "name": "num", "pattern": "\\b\\d[\\d,]*(?:\\.\\d+)?[kKmMbB]\\b" },
     { "name": "pct", "pattern": "\\d[\\d,]*(?:\\.\\d+)?\\s?%" },
     { "name": "mult", "pattern": "\\b\\d+(?:\\.\\d+)?x\\b" },
     { "name": "points", "pattern": "\\b\\d+\\+\\s*(?:points|goals)\\b" },

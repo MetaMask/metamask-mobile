@@ -83,7 +83,8 @@ const DEFAULT_RULES = {
   },
   dataTokens: [
     { name: 'name', pattern: '<[^>\\n]+>' },
-    { name: 'price', pattern: '\\$\\s?\\d[\\d,]*(?:\\.\\d+)?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢' },
+    { name: 'price', pattern: '\\$\\s?\\d[\\d,]*(?:\\.\\d+)?\\s?[kKmMbB]?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢' },
+    { name: 'num', pattern: '\\b\\d[\\d,]*(?:\\.\\d+)?[kKmMbB]\\b' },
     { name: 'pct', pattern: '\\d[\\d,]*(?:\\.\\d+)?\\s?%' },
     { name: 'mult', pattern: '\\b\\d+(?:\\.\\d+)?x\\b' },
     { name: 'points', pattern: '\\b\\d+\\+\\s*(?:points|goals)\\b' },
@@ -246,36 +247,106 @@ function splitCopyAndData(text, rules) {
     taken.push(hit);
   });
   taken.sort((a, b) => a.start - b.start);
+  return finishSplit(source, taken);
+}
+
+function finishSplit(source, taken) {
   let template = '';
-  let copy = '';
+  let rawCopy = '';
   let cursor = 0;
   let dataCharacters = 0;
-  let gapCharacters = 0;
   taken.forEach((hit) => {
     const between = source.slice(cursor, hit.start);
     template += between;
-    for (const char of between) {
-      if (/\s/u.test(char)) gapCharacters += 1;
-      else copy += char;
-    }
+    rawCopy += between;
     template += `{${hit.name}}`;
     dataCharacters += checker.characterCount(hit.value);
     cursor = hit.end;
   });
   const tail = source.slice(cursor);
   template += tail;
-  for (const char of tail) {
-    if (/\s/u.test(char)) gapCharacters += 1;
-    else copy += char;
-  }
+  rawCopy += tail;
+  const copyText = rawCopy.replace(/\s+/g, ' ').trim();
+  const tokenSpaces = taken.reduce(
+    (sum, hit) => sum + ((String(hit.value).match(/\s/g) || []).length),
+    0,
+  );
+  const allSpaces = (String(source).match(/\s/g) || []).length;
+  const internalSpaces = (copyText.match(/\s/g) || []).length;
   return {
     template: template.replace(/\s+/g, ' ').trim(),
-    copyText: copy.replace(/\s+/g, ' ').trim(),
+    copyText,
     tokens: taken,
     dataCharacters,
-    gapCharacters,
+    gapCharacters: Math.max(0, allSpaces - tokenSpaces - internalSpaces),
     hasName: taken.some((token) => token.name === 'name'),
   };
+}
+
+function placeholderHits(text, rules) {
+  const hits = [];
+  (rules.placeholderPatterns || []).forEach((source) => {
+    let pattern;
+    try {
+      pattern = new RegExp(source, 'giu');
+    } catch (error) {
+      return;
+    }
+    let match = pattern.exec(text);
+    while (match) {
+      if (match[0]) {
+        hits.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          name: 'name',
+          value: match[0],
+        });
+      } else {
+        pattern.lastIndex += 1;
+      }
+      match = pattern.exec(text);
+    }
+  });
+  return hits;
+}
+
+function wordShips(word, rules) {
+  const known = rules && rules.shippedWords;
+  if (!known) return false;
+  if (typeof known.has === 'function') return known.has(word) || known.has(word.toLowerCase());
+  return false;
+}
+
+function promoteFixedSlots(source, split, rules) {
+  const hasData = split.tokens.some((token) => token.name !== 'name');
+  if (!hasData) return split;
+  const extra = [];
+  const wordPattern = /\p{L}[\p{L}\p{N}]*/gu;
+  let match = wordPattern.exec(source);
+  while (match) {
+    const word = match[0];
+    const start = match.index;
+    const end = start + word.length;
+    const overlaps = split.tokens.some((token) => start < token.end && end > token.start);
+    const code = /^[A-Z]{2,4}$/.test(word) && !DATA_GLUE.has(word.toLowerCase());
+    const proper = /^\p{Lu}\p{Ll}{2,}$/u.test(word);
+    const known = rules && rules.shippedWords;
+    const shipped = known ? wordShips(word, rules) : false;
+    const unmatchedProper = proper && known && !shipped;
+    if (!overlaps && !shipped && (code || unmatchedProper)) {
+      extra.push({ start, end, name: 'name', value: word });
+    }
+    match = wordPattern.exec(source);
+  }
+  if (extra.length === 0) return split;
+  const taken = split.tokens.concat(extra);
+  taken.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const kept = [];
+  taken.forEach((hit) => {
+    if (kept.some((item) => hit.start < item.end && hit.end > item.start)) return;
+    kept.push(hit);
+  });
+  return finishSplit(source, kept);
 }
 
 function matchesEntireText(value, patterns) {
@@ -349,11 +420,12 @@ function compileList(patterns) {
     });
 }
 
-function isPlaceholderText(text, rules) {
+function isOnlyPlaceholder(text, split) {
   const value = String(text || '').trim();
-  if ((rules.skipExactText || []).includes(value)) return true;
-  const patterns = rules._placeholderPatterns || compileList(rules.placeholderPatterns || rules.skipTextIncludes);
-  return patterns.some((pattern) => pattern.test(value));
+  if (!value) return false;
+  if (!split || split.tokens.length === 0) return false;
+  if (!split.tokens.every((token) => token.name === 'name')) return false;
+  return !/\p{L}/u.test(split.copyText || '');
 }
 
 function classifyTextNode(node, rules) {
@@ -371,11 +443,21 @@ function classifyTextNode(node, rules) {
   if (!forced && hasPrivateUseGlyph(text)) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
-  if (!forced && isPlaceholderText(text, rules)) {
+  const patterns = node._compiledPatterns || compilePatterns(rules);
+  const withPlaceholders = splitCopyAndData(text, { ...rules, _compiledPatterns: patterns });
+  const placeholderTokens = placeholderHits(text, rules);
+  const merged = withPlaceholders.tokens.concat(placeholderTokens);
+  merged.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const kept = [];
+  merged.forEach((hit) => {
+    if (kept.some((item) => hit.start < item.end && hit.end > item.start)) return;
+    kept.push(hit);
+  });
+  let split = finishSplit(text, kept);
+  split = promoteFixedSlots(text, split, rules);
+  if (!forced && isOnlyPlaceholder(text, split)) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
-  const patterns = node._compiledPatterns || compilePatterns(rules);
-  const split = splitCopyAndData(text, { ...rules, _compiledPatterns: patterns });
   if (!forced && isPureData(text, { ...rules, _compiledPatterns: patterns, _split: split })) {
     return { ...node, kind: 'number_or_data', chars: checker.characterCount(text) };
   }
@@ -429,6 +511,9 @@ function collectTextNodes(node, ancestors, ancestorHidden, out) {
       textAutoResize,
       lineHeightPx: typeof style.lineHeightPx === 'number' ? style.lineHeightPx : null,
       fontSize: typeof style.fontSize === 'number' ? style.fontSize : null,
+      maxLines: typeof style.maxLines === 'number'
+        ? style.maxLines
+        : (typeof node.maxLines === 'number' ? node.maxLines : null),
       visible: !hidden,
     });
     return;

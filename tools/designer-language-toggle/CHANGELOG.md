@@ -1,5 +1,8 @@
 # Changelog
 
+- A hard break is decided per language. One language over the limit puts the string in "Breaks with real translations" even when another language fits. "Might break" is only a language whose own candidates straddle the limit.
+- Copy words keep their spaces. Compact numbers, unmatched proper names, team codes, and scoreboard tokens become slots, and a slotted control uses the width budget. `Team A` inside a longer string becomes `{name}` instead of dropping the whole string. The same text in two kinds stays two rows. Titles and body copy use the text overflow group, and HEIGHT text reports how many extra lines it needs.
+
 - Mixed copy such as `Buy 54¢` and `<Name> 81%` is checked as a template plus data tokens. Only a purely data string is skipped. Lone punctuation and multipliers such as `40x` are data.
 - Labels get a width budget. HEIGHT text is judged by its line count, and a fixed or WIDTH_AND_HEIGHT label can overflow. Missing auto-resize is an explicit single-line assumption. Label problems are reported separately from control breaks.
 - When one English string matches several shipped keys, frame names and `--context` prefer a feature from `contextHints`. Otherwise the report shows the min-to-max range. A break requires the shortest translation to be over. A missing language falls back to the estimate. `--json` includes the chosen key.

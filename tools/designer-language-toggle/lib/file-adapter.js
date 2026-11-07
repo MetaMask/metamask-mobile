@@ -140,8 +140,9 @@ function toStringRecord(row) {
       width_px: width,
       height: numericField(row, ['height']),
       textAutoResize: row.textAutoResize || row.textAutoResizing || null,
-      lineHeightPx: numericField(row, ['lineHeightPx', 'line_height_px']),
+      lineHeightPx: numericField(row, ['lineHeightPx', 'lineHeight', 'line_height_px']),
       fontSize: numericField(row, ['fontSize', 'font_size']),
+      maxLines: numericField(row, ['maxLines', 'max_lines']),
       template: row.template || null,
       example: row.example || null,
       copyText: row.copyText || '',
@@ -165,10 +166,24 @@ function splitSkipped(records, includeSkipped) {
   return { kept, skipped };
 }
 
+function limitBucket(row) {
+  const kind = (row.context && row.context.kind) || '';
+  const width = row.context && row.context.width_px;
+  if (kind === 'button' || kind === 'tab') {
+    return typeof width === 'number' && width > BUTTON_MAX_PX ? 'wide-control' : 'narrow-control';
+  }
+  return 'text';
+}
+
+function dedupeKey(row) {
+  const kind = (row.context && row.context.kind) || '';
+  return `${row.source_text}\u0000${kind}\u0000${limitBucket(row)}`;
+}
+
 function dedupeRecords(records) {
   const groups = new Map();
   records.forEach((row) => {
-    const text = row.source_text;
+    const text = dedupeKey(row);
     if (!groups.has(text)) {
       groups.set(text, {
         ...row,
@@ -238,8 +253,10 @@ function labelLayout(row) {
   const height = row.context.height;
   const lineHeight = row.context.lineHeightPx || (row.context.fontSize ? row.context.fontSize * 1.2 : null);
   const measuredLines = lineHeight && height ? Math.max(1, Math.round(height / lineHeight)) : null;
+  const capped = row.context.maxLines;
+  const boxLines = capped || measuredLines || 1;
   if (mode === 'HEIGHT') {
-    return { layout: 'wrap', lineCount: measuredLines || 1, assumption: null };
+    return { layout: 'wrap', lineCount: boxLines, assumption: null };
   }
   if (mode === 'NONE' || mode === 'WIDTH_AND_HEIGHT' || mode === 'TRUNCATE') {
     return { layout: 'overflow', lineCount: 1, assumption: null };
@@ -251,6 +268,10 @@ function labelLayout(row) {
   };
 }
 
+function hasTemplateSlot(row) {
+  return Boolean(row.context.template && row.context.template.includes('{'));
+}
+
 function classifyRecord(row, limits, learned) {
   const source = row.source_text || '';
   const characters = checker.characterCount(source);
@@ -258,8 +279,8 @@ function classifyRecord(row, limits, learned) {
   const named = limits && limits.keys && limits.keys[row.key];
   const longText = characters > WRAP_MIN_CHARACTERS;
   const control = row.context.kind === 'button' || row.context.kind === 'tab';
-  const explicitLabel = row.context.kind === 'label' || row.context.kind === 'title';
-  const labelLike = !control && (explicitLabel || (row.context.kind === '' && !longText));
+  const explicitText = row.context.kind === 'label' || row.context.kind === 'title' || row.context.kind === 'body';
+  const labelLike = !control && (explicitText || (row.context.kind === '' && !longText));
   const override = taggedMax(row.context.component) ?? learnedMax(row, learned) ?? (named ? named.maxCharacters : null);
   let maxCharacters = override;
   let maxUnits = null;
@@ -270,12 +291,19 @@ function classifyRecord(row, limits, learned) {
   let assumption = null;
   if (control) {
     if (override === null) {
-      const narrow = typeof width !== 'number' || width <= BUTTON_MAX_PX;
+      const slotted = hasTemplateSlot(row);
+      const narrow = !slotted && (typeof width !== 'number' || width <= BUTTON_MAX_PX);
       if (narrow) maxCharacters = BUTTON_MAX_CHARACTERS;
-      else {
+      else if (typeof width === 'number') {
         const budget = wideBudget(source, width, limits);
         maxCharacters = budget.maxCharacters;
         maxUnits = budget.maxUnits;
+      } else {
+        const units = Math.max(checker.displayWidth(source), 1);
+        const ratio = limits && typeof limits.ratio === 'number' ? limits.ratio : 1.4;
+        const minDelta = limits && typeof limits.minDelta === 'number' ? limits.minDelta : 4;
+        maxUnits = Math.round(Math.max(units * ratio, units + minDelta) * 10) / 10;
+        maxCharacters = Math.max(characters, Math.floor(maxUnits));
       }
     }
     status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
@@ -291,7 +319,7 @@ function classifyRecord(row, limits, learned) {
       maxUnits = budget.maxUnits;
     }
     status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
-    bucket = 'label';
+    bucket = 'text';
   } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
     status = 'check-wrapping';
     bucket = 'wrap';
@@ -322,6 +350,7 @@ function classifyRecord(row, limits, learned) {
     dataCharacters: row.context.dataCharacters || 0,
     gapCharacters: row.context.gapCharacters || 0,
     framePath: row.context.screen || '',
+    maxLines: row.context.maxLines || null,
     occurrences: row.occurrences || 1,
     screens: row.context.screens || [screenLabel(row.context.screen)].filter(Boolean),
     component: row.context.component,
