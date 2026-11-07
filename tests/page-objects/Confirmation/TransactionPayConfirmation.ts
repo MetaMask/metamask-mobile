@@ -441,6 +441,70 @@ class TransactionPayConfirmation {
     );
   }
 
+  get noQuoteAlert(): Promise<AppiumElement> {
+    return Matchers.getElementByID('no-quote-alert');
+  }
+
+  /**
+   * Fails with the real quote error when the confirmation shows the generic
+   * "payment route isn't available" alert instead of a fee row.
+   *
+   * The alert collapses every quote failure into one sentence. Its
+   * `no-quote-alert` container reveals the underlying message after two taps.
+   * That container only renders when the pay controller stored a quote error,
+   * so a missing container means the alert came from state without one (for
+   * example a withdraw whose post-quote config was never initialised).
+   *
+   * @param step - Label prefixed to the error so a spec with several
+   * checkpoints reports which one failed.
+   */
+  async verifyNoQuoteError(step = 'confirmation'): Promise<void> {
+    const waitUntilOrDeadline = (
+      isDone: () => Promise<boolean>,
+      timeoutMs: number,
+    ) => {
+      const deadline = Date.now() + timeoutMs;
+      return Utilities.waitUntil(
+        async () => (await isDone()) || Date.now() >= deadline,
+        { interval: 300, timeout: timeoutMs + 2000 },
+      );
+    };
+    const hasFeeRow = async () =>
+      (await this.bridgeFeeRow).unwrap().isExisting();
+    const hasQuoteErrorAlert = async () =>
+      (await this.noQuoteAlert).unwrap().isExisting();
+
+    await waitUntilOrDeadline(
+      async () => (await hasFeeRow()) || (await hasQuoteErrorAlert()),
+      15000,
+    );
+
+    if (await hasFeeRow()) {
+      return;
+    }
+
+    if (!(await hasQuoteErrorAlert())) {
+      throw new Error(
+        `[${step}] Neither bridge-fee-row nor a quote error alert appeared. The pay controller stored no quote error, so the alert (if any) came from empty quotes or an uninitialised withdraw config.`,
+      );
+    }
+
+    // A transient alert can precede the fee row, so give the row a moment.
+    await waitUntilOrDeadline(hasFeeRow, 3000);
+    if (await hasFeeRow()) {
+      return;
+    }
+
+    const alertElement = (await this.noQuoteAlert).unwrap();
+    await alertElement.click();
+    await alertElement.click();
+    const details = (await alertElement.getText()).replace(/\s+/gu, ' ').trim();
+
+    throw new Error(
+      `[${step}] Quote failed instead of showing a fee row: ${details}`,
+    );
+  }
+
   async verifyTransactionFeeVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.bridgeFeeRow, {
       description: 'Bridge fee row should be visible',

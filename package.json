@@ -487,7 +487,7 @@
     "@metamask/transaction-pay-controller": "^30.4.3",
     "@metamask/tron-wallet-snap": "^4.3.0",
     "@metamask/utils": "^12.0.0",
-    "@metamask/wallet": "^18.0.0",
+    "@metamask/wallet": "patch:@metamask/wallet@npm%3A18.0.0#~/.yarn/patches/@metamask-wallet-npm-18.0.0-f8f57a3dc0.patch",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.3",
     "@noble/curves": "1.9.7",
