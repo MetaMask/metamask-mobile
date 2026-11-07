@@ -102,6 +102,55 @@ describe('getTransactionPayControllerMessenger', () => {
       'RampsController:transakGetBuyQuote',
     );
   });
+
+  it('delegates the actions Core needs to quote, sign and recover Solana Pay', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
+          'SnapController:handleRequest',
+          'TransactionController:confirmTransaction',
+          'TransactionController:failTransaction',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates the AccountTreeController actions Core needs to resolve the non-EVM source account', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getAccountContext',
+          'AccountTreeController:getAccountGroupObject',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates TransactionController:addTransactionBatch for the Solana Pay Money Account second leg', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'TransactionController:addTransactionBatch',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {

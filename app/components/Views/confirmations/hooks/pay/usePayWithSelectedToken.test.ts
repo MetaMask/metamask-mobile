@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { Hex } from '@metamask/utils';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { usePayWithSelectedToken } from './usePayWithSelectedToken';
@@ -13,7 +13,8 @@ const AUTOMATIC_TOKEN_MOCK = {
   chainId: '0x1' as Hex,
 };
 
-const SELECTED_PAY_TOKEN_MOCK: TransactionPaymentToken = {
+const SELECTED_PAY_TOKEN_MOCK: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as const,
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
   balanceFiat: '$20.00',
   balanceHuman: '20',
@@ -24,7 +25,8 @@ const SELECTED_PAY_TOKEN_MOCK: TransactionPaymentToken = {
   symbol: 'POL',
 };
 
-const MATCHING_PAY_TOKEN_MOCK: TransactionPaymentToken = {
+const MATCHING_PAY_TOKEN_MOCK: EvmPaymentToken = {
+  assetId: `eip155:${parseInt(AUTOMATIC_TOKEN_MOCK.chainId, 16)}/erc20:${AUTOMATIC_TOKEN_MOCK.address}`,
   address: AUTOMATIC_TOKEN_MOCK.address,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',

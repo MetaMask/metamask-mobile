@@ -140,7 +140,7 @@ const mockTransactionPayData: Record<
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
   ...jest.requireActual('../../../../selectors/transactionPayController'),
-  selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
+  selectAccountOverrideAddressByTransactionId: (_state: unknown, id: string) =>
     mockTransactionPayData[id]?.accountOverride,
   selectTransactionPayFiatPaymentByTransactionId: (
     _state: unknown,
@@ -886,6 +886,38 @@ describe('useMoneyTransactionStatus', () => {
         expect.anything(),
         expect.stringMatching(/^0x1111/i),
       );
+    });
+
+    it('confirmed quoted withdraw → success toast falls back to "your account" when the transfer stays on the money account', () => {
+      const MONEY_ACCOUNT_ADDRESS =
+        '0x2222222222222222222222222222222222222222';
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: MONEY_ACCOUNT_ADDRESS,
+            data: encodeWithdrawData(BigInt(50_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(
+                MONEY_ACCOUNT_ADDRESS,
+                BigInt(50_000_000),
+              ),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      const params = withdrawSuccessFn.mock.calls[0][0];
+      expect(params.amountFiat).toContain('50.00');
+      expect(params.destination).toBe('your account');
+      expect(getMemoizedInternalAccountByAddress).not.toHaveBeenCalled();
     });
 
     it('confirmed → success amount is the transfer amount, not the teller share amount', () => {

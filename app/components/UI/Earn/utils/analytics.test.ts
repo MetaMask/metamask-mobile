@@ -103,10 +103,11 @@ describe('getMusdConversionQuoteTrackingData', () => {
       sourceAmount: { usd: overrides.sourceAmountUsd ?? '100.00' },
       targetAmount: { usd: overrides.targetAmountUsd ?? '99.50' },
       request: {
-        sourceChainId: overrides.sourceChainId ?? SOURCE_CHAIN_ID,
+        sourceAssetId: `eip155:${parseInt(
+          overrides.sourceChainId ?? SOURCE_CHAIN_ID,
+          16,
+        )}/erc20:${overrides.sourceTokenAddress ?? SOURCE_TOKEN_ADDRESS}`,
         targetChainId: overrides.targetChainId ?? TARGET_CHAIN_ID,
-        sourceTokenAddress:
-          overrides.sourceTokenAddress ?? SOURCE_TOKEN_ADDRESS,
         targetTokenAddress:
           overrides.targetTokenAddress ?? TARGET_TOKEN_ADDRESS,
       },
@@ -178,6 +179,23 @@ describe('getMusdConversionQuoteTrackingData', () => {
     const result = getMusdConversionQuoteTrackingData(txMeta, [quote]);
 
     expect(result.pay_quote_strategy).toBe('unknown');
+  });
+
+  it('omits quote payment fields for a non-EVM source quote', () => {
+    const txMeta = {
+      chainId: TARGET_CHAIN_ID,
+      txParams: { to: TX_TO_ADDRESS },
+    } as unknown as TransactionMeta;
+    const quote = buildQuote();
+    (
+      quote as unknown as { request: Record<string, unknown> }
+    ).request.sourceAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    const result = getMusdConversionQuoteTrackingData(txMeta, [quote]);
+
+    expect(result.quote_payment_chain_id).toBeUndefined();
+    expect(result.quote_payment_token_address).toBeUndefined();
   });
 
   it('lowercases the strategy string', () => {

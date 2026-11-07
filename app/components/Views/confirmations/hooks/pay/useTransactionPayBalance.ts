@@ -3,7 +3,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { MUSD_DECIMALS } from '../../../../UI/Earn/constants/musd';
@@ -16,7 +15,11 @@ import {
 } from '../../../../../core/redux/slices/moneyBalance';
 import { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import {
+  selectPaymentOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../../selectors/transactionPayController';
+import { isMoneyAccountFunding } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 
@@ -65,6 +68,9 @@ export function useTransactionPayBalance({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const payToken = useSelector((state: RootState) =>
+    selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  );
 
   const moneyAccountBalance = useMoneyAccountPayBalance();
   const perpsBalance = usePerpsBalance();
@@ -83,7 +89,7 @@ export function useTransactionPayBalance({
     hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountWithdraw,
     ]) ||
-    paymentOverride === PaymentOverride.MoneyAccount
+    isMoneyAccountFunding({ paymentOverride, payToken, transactionMeta })
   ) {
     return moneyAccountBalance;
   }

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleProp, ViewStyle } from 'react-native';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
@@ -12,6 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { isHardwareAccount } from '../../../../../util/address';
+import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -32,6 +33,9 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
   const accountOverride = useTransactionAccountOverride();
+  const getInternalAccountsByAddresses = useSelector(
+    selectInternalAccountByAddresses,
+  );
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -74,21 +78,35 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
         return;
       }
 
-      replaceAccountInNestedTransactions({
-        transactionId,
-        nestedTransactions: transactionMeta?.nestedTransactions,
-        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-        newAddress: address,
-      });
+      const [selectedAccount] = getInternalAccountsByAddresses([address]);
+
+      // Withdraws re-encode the transfer once the override is set, see
+      // `useMoneyAccountWithdrawTransferSync`. A quoted withdraw transfers to
+      // the money account, which the teller withdraw also pays, so an address
+      // swap would redirect the vault redemption.
+      if (!isMoneyAccountWithdraw) {
+        replaceAccountInNestedTransactions({
+          transactionId,
+          nestedTransactions: transactionMeta?.nestedTransactions,
+          oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+          newAddress: address,
+        });
+      }
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          config.accountOverride = address as Hex;
+          config.accountOverride = selectedAccount.id;
         },
       );
     },
-    [accountOverride, transactionId, transactionMeta],
+    [
+      accountOverride,
+      getInternalAccountsByAddresses,
+      isMoneyAccountWithdraw,
+      transactionId,
+      transactionMeta,
+    ],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {

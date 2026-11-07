@@ -1,9 +1,13 @@
 import { useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
 import { updateEIP7702BatchData } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
+import type { RootState } from '../../../../../reducers';
+import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
+import { getEvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
@@ -16,6 +20,12 @@ export function useUpdateTransactionPayAmount() {
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountOverride = useTransactionAccountOverride();
+  const paymentToken = useSelector((state: RootState) =>
+    selectTransactionPaymentTokenByTransactionId(
+      state,
+      transactionMeta?.id ?? '',
+    ),
+  );
   const latestAmountRef = useRef<string | undefined>(undefined);
 
   const decimals = requiredTokens?.[0]?.decimals;
@@ -32,6 +42,7 @@ export function useUpdateTransactionPayAmount() {
         transactionMeta,
         amountHuman,
         accountOverride,
+        getEvmPaymentToken(paymentToken),
       );
 
       // A single-call transfer already lands in one transaction state update.
@@ -65,7 +76,13 @@ export function useUpdateTransactionPayAmount() {
 
       return true;
     },
-    [accountOverride, decimals, transactionMeta, updateTokenAmount],
+    [
+      accountOverride,
+      decimals,
+      paymentToken,
+      transactionMeta,
+      updateTokenAmount,
+    ],
   );
 
   return {

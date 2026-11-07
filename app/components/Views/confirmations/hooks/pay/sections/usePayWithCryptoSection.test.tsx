@@ -1,10 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../../util/transactions/payment-token';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
@@ -77,7 +75,8 @@ jest.mock('../usePayWithSelectedToken');
 jest.mock('../useTransactionPayData');
 jest.mock('../useTransactionPayToken');
 
-const TOKEN_MOCK: TransactionPaymentToken = {
+const TOKEN_MOCK: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
@@ -1007,6 +1006,43 @@ describe('usePayWithCryptoSection', () => {
       expect(selectedRow).toBeUndefined();
     });
 
+    it('does not treat a Money Account deposit funded from Solana as money account selected', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: {},
+      } as never);
+      useTransactionPayTokenMock.mockReturnValue({
+        nonEvmPayToken: {
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          balanceFiat: '300',
+          balanceHuman: '2',
+          balanceRaw: '2000000000',
+          balanceUsd: '300',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 9,
+          symbol: 'SOL',
+        },
+        payToken: undefined,
+        setPayToken: setPayTokenMock,
+      });
+      usePayWithPreferredTokenMock.mockReturnValue({
+        hasTokens: true,
+        preferredToken: {
+          ...TOKEN_MOCK,
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+        },
+        selectedToken: undefined,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      expect(
+        result.current?.rows.find((row) => row.id === 'crypto-preferred-token'),
+      ).toBeDefined();
+    });
+
     it('omits preferred token row when it matches MUSD on MONAD', () => {
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
@@ -1432,7 +1468,7 @@ describe('usePayWithCryptoSection', () => {
         symbol: 'USDT',
         balanceUsd: '10',
       };
-      const noFeeTokenFullMock: TransactionPaymentToken = {
+      const noFeeTokenFullMock: EvmPaymentToken = {
         ...TOKEN_MOCK,
         address: noFeeTokenMock.address,
         chainId: noFeeTokenMock.chainId,

@@ -12,6 +12,7 @@ import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { INFURA_PROJECT_ID } from '../../../../constants/network';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -30,6 +31,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
         getDelegationTransaction(initMessenger, transaction, isSubsidized),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
+      infuraProjectId: INFURA_PROJECT_ID,
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

@@ -15,7 +15,7 @@ import {
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionDataByTransactionId,
-  selectAccountOverrideByTransactionId,
+  selectAccountOverrideAddressByTransactionId,
   selectPaymentOverrideByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
 
@@ -76,7 +76,7 @@ export function useMmPayQuoteDebug(): MmPayQuoteDebug {
     selectTransactionDataByTransactionId(state, txId),
   );
   const accountOverride = useSelector((state: RootState) =>
-    selectAccountOverrideByTransactionId(state, txId),
+    selectAccountOverrideAddressByTransactionId(state, txId),
   );
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, txId),

@@ -15,6 +15,10 @@ import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
 jest.mock('../../../../util/environment');
+jest.mock('../../../../constants/network', () => ({
+  ...jest.requireActual('../../../../constants/network'),
+  INFURA_PROJECT_ID: 'test-infura-project-id',
+}));
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -130,6 +134,12 @@ describe('Transaction Pay Controller Init', () => {
     const getBalance = testConstructorOption('getBalance');
 
     expect(getBalance).toBeInstanceOf(Function);
+  });
+
+  it('passes the Infura project ID for Solana RPC URLs', () => {
+    const infuraProjectId = testConstructorOption('infuraProjectId');
+
+    expect(infuraProjectId).toBe('test-infura-project-id');
   });
 
   it('wires fiat test options through controller options', () => {

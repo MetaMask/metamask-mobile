@@ -4,7 +4,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 
 import Engine from '../../../../Engine';
@@ -110,7 +109,7 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
   }
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
-    config.accountOverride = selectedAccount.address as Hex;
+    config.accountOverride = selectedAccount.id;
 
     if (!isMoneyAccountWithdraw(transaction)) {
       config.isQuoteRequired = true;

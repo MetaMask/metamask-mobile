@@ -18,7 +18,10 @@ import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { renderShortAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  renderShortAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   TOAST_TRACKING_CLEANUP_DELAY_MS,
@@ -377,8 +380,19 @@ export const useMoneyTransactionStatus = () => {
         const amountFiat = transfer
           ? formatMusdAmountForToast(BigInt(transfer.amount))
           : undefined;
+        // A quoted withdrawal transfers the mUSD to the money account itself
+        // and Pay delivers the output, so that transfer names no destination.
+        const isQuotedWithdraw = Boolean(
+          transfer &&
+            areAddressesEqual(
+              transfer.recipient,
+              transactionMeta.txParams?.from ?? '',
+            ),
+        );
         const destination =
-          resolveWithdrawDestination(transfer?.recipient) ??
+          (isQuotedWithdraw
+            ? undefined
+            : resolveWithdrawDestination(transfer?.recipient)) ??
           strings('money.toasts.withdraw_fallback_destination');
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),

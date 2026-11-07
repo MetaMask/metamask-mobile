@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { Hex } from '@metamask/utils';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { usePayWithPreferredToken } from './usePayWithPreferredToken';
@@ -15,7 +15,8 @@ jest.mock('./useTransactionPayToken');
 jest.mock('./usePayTokenAccountBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
-const TOKEN_MOCK: TransactionPaymentToken = {
+const TOKEN_MOCK: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as const,
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
@@ -26,7 +27,8 @@ const TOKEN_MOCK: TransactionPaymentToken = {
   symbol: 'USDC',
 };
 
-const OTHER_TOKEN_MOCK: TransactionPaymentToken = {
+const OTHER_TOKEN_MOCK: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as const,
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
   balanceFiat: '$20.00',
   balanceHuman: '20',

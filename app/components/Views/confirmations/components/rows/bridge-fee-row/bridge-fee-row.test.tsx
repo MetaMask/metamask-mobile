@@ -23,13 +23,14 @@ import {
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
 jest.mock('../../token-icon', () => ({
   ...jest.requireActual('../../token-icon'),
   TokenIcon: jest.fn(() => null),
+  NonEvmTokenIcon: jest.fn(() => null),
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
@@ -41,6 +42,8 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 
 const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SOURCE_CHAIN_ID_MOCK = '0xa';
+const SOURCE_ASSET_ID_MOCK =
+  `eip155:10/erc20:${SOURCE_TOKEN_ADDRESS_MOCK}` as const;
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
 function createQuoteMock(
@@ -106,8 +109,7 @@ describe('BridgeFeeRow', () => {
 
     useTransactionPayQuotesMock.mockReturnValue([
       createQuoteMock({
-        sourceChainId: SOURCE_CHAIN_ID_MOCK,
-        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+        sourceAssetId: SOURCE_ASSET_ID_MOCK,
       }),
     ]);
 
@@ -500,8 +502,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
           isPostQuote: true,
-          sourceChainId: SOURCE_CHAIN_ID_MOCK,
-          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+          sourceAssetId: SOURCE_ASSET_ID_MOCK,
           targetChainId: '0x1',
           targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         }),
@@ -575,6 +576,32 @@ describe('BridgeFeeRow', () => {
         expect.objectContaining({
           address: NATIVE_TOKEN_ADDRESS_MOCK,
           chainId: '0x1',
+        }),
+        undefined,
+      );
+    });
+
+    it('renders native SOL for a Solana source quote', async () => {
+      useTransactionPayQuotesMock.mockReturnValue([
+        createQuoteMock({
+          sourceAssetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        }),
+      ]);
+
+      const { getByTestId, getByText } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(getByText('$1.23')).toBeDefined();
+      expect(tokenIconMock).not.toHaveBeenCalled();
+      expect(jest.mocked(NonEvmTokenIcon)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          variant: TokenIconVariant.Row,
         }),
         undefined,
       );

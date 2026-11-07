@@ -8,7 +8,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
 import {
@@ -36,6 +35,7 @@ import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
+  isMoneyAccountFunding,
 } from '../../../utils/transaction-pay';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
@@ -86,7 +86,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     isSelectedDistinctFromAutomatic,
     selectedToken: selectedTokenDisplay,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
-  const { setPayToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken, setPayToken } = useTransactionPayToken();
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const {
@@ -112,8 +112,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const isMoneyAccountSelected =
-    paymentOverride === PaymentOverride.MoneyAccount;
+  // A Money Account deposit funded from Solana keeps the override for its
+  // second leg, but the Solana source is what is selected.
+  const isMoneyAccountSelected = isMoneyAccountFunding({
+    paymentOverride,
+    payToken: payToken ?? nonEvmPayToken,
+    transactionMeta,
+  });
   const isPredictBalanceImplicitlySelected =
     isPredictDepositAndOrder && isPredictBalanceSelected;
   const fiatPayment = useTransactionPayFiatPayment();
