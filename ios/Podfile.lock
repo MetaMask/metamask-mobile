@@ -430,10 +430,10 @@ PODS:
   - hermes-engine (250829098.0.17):
     - hermes-engine/Pre-built (= 250829098.0.17)
   - hermes-engine/Pre-built (250829098.0.17)
-  - IdensicMobileSDK (1.45.1):
-    - IdensicMobileSDK/Default (= 1.45.1)
-  - IdensicMobileSDK/Core (1.45.1)
-  - IdensicMobileSDK/Default (1.45.1):
+  - IdensicMobileSDK (1.46.1):
+    - IdensicMobileSDK/Default (= 1.46.1)
+  - IdensicMobileSDK/Core (1.46.1)
+  - IdensicMobileSDK/Default (1.46.1):
     - IdensicMobileSDK/Core
   - libavif/core (1.0.0)
   - libavif/libdav1d (1.0.0):
@@ -2247,8 +2247,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-mobilesdk-module (1.45.1):
-    - IdensicMobileSDK (= 1.45.1)
+  - react-native-mobilesdk-module (1.46.1):
+    - IdensicMobileSDK (= 1.46.1)
     - React-Core
   - react-native-netinfo (11.5.2):
     - hermes-engine
@@ -4277,7 +4277,7 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 63c5db7d529c36335fada6582fd293ae2a105d77
-  IdensicMobileSDK: b32caa39919bd9d0ad64897b2a17de81e16f23fd
+  IdensicMobileSDK: 55901f7749293cf02ea8c13f9ee04b1473c9214f
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
@@ -4344,7 +4344,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: ce68b0d160ca7a2314ce238bb1becb935b8de773
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ffda49ce01998ce9c48f87cb8413f67300abc206
-  react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
+  react-native-mobilesdk-module: 0e8970b28d34a00541b3b6353ab248e09991a1a2
   react-native-netinfo: 4319d381f35bc11b53dafebd5cd99c04c66a9fb4
   react-native-pager-view: 6b98421fc9198e59349977100dc252bbd979cc16
   react-native-performance: 3290079971f56838ae50f7f1d65d6e075d88b932
