@@ -6,17 +6,74 @@ import {
   SOCIAL_PROFILE_POSITION_SUBPATH,
   SOCIAL_PROFILE_SUBPATH,
 } from '../../../../core/DeeplinkManager/util/deeplinks/socialDeeplinkPath';
+import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
+
+/** Branch reads these query keys as dynamic open-graph tags. */
+const OPEN_GRAPH_TITLE_PARAM = '$og_title';
+const OPEN_GRAPH_DESCRIPTION_PARAM = '$og_description';
+const OPEN_GRAPH_IMAGE_PARAM = '$og_image_url';
+const MAX_OPEN_GRAPH_TITLE_LENGTH = 60;
+const MAX_OPEN_GRAPH_DESCRIPTION_LENGTH = 90;
+
+/**
+ * Keeps a preview string short enough that the shared URL stays compact.
+ * Cuts on a word boundary when the text has one.
+ */
+const compactOpenGraphText = (value: string, maxLength: number): string => {
+  const collapsed = value.replace(/\s+/g, ' ').trim();
+  if (collapsed.length <= maxLength) {
+    return collapsed;
+  }
+  const sliced = collapsed.slice(0, maxLength);
+  const lastSpace = sliced.lastIndexOf(' ');
+  return (lastSpace >= 12 ? sliced.slice(0, lastSpace) : sliced).trimEnd();
+};
+
+/**
+ * Appends `$og_title` and `$og_description`. The `$` stays literal because
+ * Branch matches those key names before percent-decoding.
+ */
+const withOpenGraph = (url: URL, openGraph?: SocialLinkOpenGraph): string => {
+  if (openGraph) {
+    const title = compactOpenGraphText(
+      openGraph.title,
+      MAX_OPEN_GRAPH_TITLE_LENGTH,
+    );
+    const description = compactOpenGraphText(
+      openGraph.description,
+      MAX_OPEN_GRAPH_DESCRIPTION_LENGTH,
+    );
+    if (title) {
+      url.searchParams.set(OPEN_GRAPH_TITLE_PARAM, title);
+    }
+    if (description) {
+      url.searchParams.set(OPEN_GRAPH_DESCRIPTION_PARAM, description);
+    }
+    const imageUrl = openGraph.imageUrl?.trim();
+    if (imageUrl) {
+      url.searchParams.set(OPEN_GRAPH_IMAGE_PARAM, imageUrl);
+    }
+  }
+  return url
+    .toString()
+    .replace(/%24og_title=/g, '$og_title=')
+    .replace(/%24og_description=/g, '$og_description=')
+    .replace(/%24og_image_url=/g, '$og_image_url=');
+};
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
  * from `socialAiTSA1122AbtestSocialBundleV1`.
  */
-export const buildSocialTraderDeeplink = (traderId: string): string => {
+export const buildSocialTraderDeeplink = (
+  traderId: string,
+  openGraph?: SocialLinkOpenGraph,
+): string => {
   const url = new URL(
     `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_SUBPATH}`,
   );
   url.searchParams.set('traderId', traderId);
-  return url.toString();
+  return withOpenGraph(url, openGraph);
 };
 
 /**
@@ -39,13 +96,14 @@ const toShareContent = (
 export const buildSocialTraderPositionDeeplink = (
   positionId: string,
   traderId: string,
+  openGraph?: SocialLinkOpenGraph,
 ): string => {
   const url = new URL(
     `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBPATH}`,
   );
   url.searchParams.set('positionId', positionId);
   url.searchParams.set('traderId', traderId);
-  return url.toString();
+  return withOpenGraph(url, openGraph);
 };
 
 /**
@@ -55,8 +113,9 @@ export const buildSocialTraderPositionDeeplink = (
 export const buildSocialTraderShareContent = (
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
+  openGraph?: SocialLinkOpenGraph,
 ): { message: string; url?: string } =>
-  toShareContent(buildSocialTraderDeeplink(traderId), os);
+  toShareContent(buildSocialTraderDeeplink(traderId, openGraph), os);
 
 /**
  * Share payload for a trader position. Same iOS message/url split as a
@@ -66,8 +125,12 @@ export const buildSocialTraderPositionShareContent = (
   positionId: string,
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
+  openGraph?: SocialLinkOpenGraph,
 ): { message: string; url?: string } =>
-  toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
+  toShareContent(
+    buildSocialTraderPositionDeeplink(positionId, traderId, openGraph),
+    os,
+  );
 
 /**
  * Whether the native sheet completed a share.
@@ -105,8 +168,12 @@ const openShareSheet = (
 export const shareSocialProfile = (
   traderId: string,
   onShared?: () => void,
+  openGraph?: SocialLinkOpenGraph,
 ): void => {
-  openShareSheet(buildSocialTraderShareContent(traderId), onShared);
+  openShareSheet(
+    buildSocialTraderShareContent(traderId, Platform.OS, openGraph),
+    onShared,
+  );
 };
 
 /**
@@ -116,9 +183,15 @@ export const shareSocialTraderPosition = (
   positionId: string,
   traderId: string,
   onShared?: () => void,
+  openGraph?: SocialLinkOpenGraph,
 ): void => {
   openShareSheet(
-    buildSocialTraderPositionShareContent(positionId, traderId),
+    buildSocialTraderPositionShareContent(
+      positionId,
+      traderId,
+      Platform.OS,
+      openGraph,
+    ),
     onShared,
   );
 };

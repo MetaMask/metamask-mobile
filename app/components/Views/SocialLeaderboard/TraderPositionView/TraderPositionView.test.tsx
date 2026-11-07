@@ -428,8 +428,8 @@ describe('TraderPositionView', () => {
 
     expect(Share.open).toHaveBeenCalledWith({
       message:
-        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&$og_title=trader1%27s+PEPE+trade&$og_description=trader1+is+trading+PEPE&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
+      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&$og_title=trader1%27s+PEPE+trade&$og_description=trader1+is+trading+PEPE&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
       failOnCancel: false,
     });
     expect(

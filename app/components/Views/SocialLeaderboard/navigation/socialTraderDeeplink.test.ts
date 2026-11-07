@@ -28,12 +28,52 @@ describe('buildSocialTraderDeeplink', () => {
       'https://link.metamask.io/social/profile?traderId=trader+id%2Fa%3Fb',
     );
   });
+
+  it('appends compact open graph title and description', () => {
+    expect(
+      buildSocialTraderDeeplink('trader-1', {
+        title: "Giga Whale's profile",
+        description: 'Trades and posts from Giga Whale',
+      }),
+    ).toBe(
+      'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Giga+Whale%27s+profile&$og_description=Trades+and+posts+from+Giga+Whale',
+    );
+  });
+
+  it('drops open graph text that would make the url long', () => {
+    const title = `${'Very long trader name '.repeat(8)}on MetaMask`;
+    const description = `${'Trades and posts from a very long trader name '.repeat(4)}`;
+
+    const url = new URL(
+      buildSocialTraderDeeplink('trader-1', { title, description }).replace(
+        /\$og_/g,
+        '%24og_',
+      ),
+    );
+
+    expect(url.searchParams.get('$og_title')?.length).toBeLessThanOrEqual(60);
+    expect(url.searchParams.get('$og_description')?.length).toBeLessThanOrEqual(
+      90,
+    );
+    expect(url.searchParams.get('$og_title')).not.toMatch(/\s$/);
+  });
 });
 
 describe('buildSocialTraderPositionDeeplink', () => {
   it('builds the social trader position universal link', () => {
     expect(buildSocialTraderPositionDeeplink('position-1', 'trader-1')).toBe(
       'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1',
+    );
+  });
+
+  it('appends open graph copy that names the trader and asset', () => {
+    expect(
+      buildSocialTraderPositionDeeplink('position-1', 'trader-1', {
+        title: "Ada's ETH trade",
+        description: 'Ada is short ETH',
+      }),
+    ).toBe(
+      'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1&$og_title=Ada%27s+ETH+trade&$og_description=Ada+is+short+ETH',
     );
   });
 });

@@ -49,6 +49,10 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  buildSocialPositionOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
@@ -246,15 +250,31 @@ const TraderPositionView = () => {
       return;
     }
     const source = getSocialEventSource(sourceParam);
-    shareSocialTraderPosition(effectivePositionId, traderId, () => {
-      trackSocialPost({
-        interaction_type: SocialEvent.Interaction.POST_SHARED,
-        screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
-        share_destination: SocialEvent.ShareDestination.EXTERNAL,
-        ...(source ? { source } : {}),
-      });
-    });
-  }, [effectivePositionId, sourceParam, trackSocialPost, traderId]);
+    shareSocialTraderPosition(
+      effectivePositionId,
+      traderId,
+      () => {
+        trackSocialPost({
+          interaction_type: SocialEvent.Interaction.POST_SHARED,
+          screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+          share_destination: SocialEvent.ShareDestination.EXTERNAL,
+          ...(source ? { source } : {}),
+        });
+      },
+      buildSocialPositionOpenGraph({
+        traderName: readTraderShareName(fetchedProfile?.profile, traderName),
+        assetSymbol: symbol,
+      }),
+    );
+  }, [
+    effectivePositionId,
+    fetchedProfile?.profile,
+    sourceParam,
+    symbol,
+    trackSocialPost,
+    traderId,
+    traderName,
+  ]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
