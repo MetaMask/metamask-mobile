@@ -49,6 +49,7 @@ import {
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
+import { completeWalletHomeOnboardingFundFlow } from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
 import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
 import {
   RAMP_SCREEN_CONTENT_STATE,
@@ -69,6 +70,20 @@ const PENDING_STATUSES = new Set([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.Unknown,
 ]);
+
+const ONBOARDING_FUND_FLOW_ACCEPTED_STATUSES = new Set([
+  RampsOrderStatus.Pending,
+  RampsOrderStatus.Created,
+  RampsOrderStatus.Completed,
+]);
+
+export function isWalletHomeOnboardingFundFlowOrderAccepted(
+  status: RampsOrderStatus | undefined,
+): boolean {
+  return (
+    status !== undefined && ONBOARDING_FUND_FLOW_ACCEPTED_STATUSES.has(status)
+  );
+}
 
 /**
  * V2 order detail screen. Reads RampsOrder from controller state only.
@@ -201,6 +216,15 @@ const OrderDetails = () => {
         .build(),
     );
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const handleOnboardingFundFlowClose = useCallback(() => {
+    if (
+      params.showCloseButton &&
+      isWalletHomeOnboardingFundFlowOrderAccepted(order?.status)
+    ) {
+      completeWalletHomeOnboardingFundFlow();
+    }
+  }, [order?.status, params.showCloseButton]);
 
   const handleRetryCallbackFetch = useCallback(async () => {
     if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
@@ -441,6 +465,7 @@ const OrderDetails = () => {
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
+              onClose={handleOnboardingFundFlowClose}
             />
           </ScreenLayout.Content>
         </ScrollView>

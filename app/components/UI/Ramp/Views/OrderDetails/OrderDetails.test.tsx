@@ -3,11 +3,17 @@ import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import OrderDetails, {
   createRampsOrderDetailsNavDetails,
+  isWalletHomeOnboardingFundFlowOrderAccepted,
 } from './OrderDetails';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  cancelWalletHomeOnboardingFundFlow,
+  consumeWalletHomeOnboardingFundFlowCompletion,
+  startWalletHomeOnboardingFundFlow,
+} from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -27,6 +33,7 @@ const mockGetOrderById = jest.fn();
 const mockRefreshOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
 const mockAddOrder = jest.fn();
+let mockOrderContentOnClose: (() => void) | undefined;
 jest.mock('../../hooks/useRampsOrders', () => ({
   useRampsOrders: () => ({
     getOrderById: mockGetOrderById,
@@ -72,9 +79,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn<Record<string, string | undefined>, []>(() => ({
-  orderId: 'test-order-123',
-}));
+const mockUseParams = jest.fn<Record<string, string | boolean | undefined>, []>(
+  () => ({
+    orderId: 'test-order-123',
+  }),
+);
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
@@ -90,12 +99,20 @@ jest.mock('./OrderContent', () => {
   const { View, Text } = require('react-native');
   return {
     __esModule: true,
-    default: ({ order }: { order: { providerOrderId: string } }) =>
-      ReactActual.createElement(
+    default: ({
+      order,
+      onClose,
+    }: {
+      order: { providerOrderId: string };
+      onClose?: () => void;
+    }) => {
+      mockOrderContentOnClose = onClose;
+      return ReactActual.createElement(
         View,
         { testID: 'order-content' },
         ReactActual.createElement(Text, null, order?.providerOrderId ?? ''),
-      ),
+      );
+    },
   };
 });
 
@@ -133,6 +150,8 @@ function render() {
 describe('OrderDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cancelWalletHomeOnboardingFundFlow();
+    mockOrderContentOnClose = undefined;
     mockGetOrderById.mockReturnValue(mockOrder);
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
@@ -341,6 +360,7 @@ describe('OrderDetails', () => {
   });
 
   it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    startWalletHomeOnboardingFundFlow();
     const { getByTestId } = render();
 
     await waitFor(() => {
@@ -353,6 +373,77 @@ describe('OrderDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+  });
+
+  it.each([
+    RampsOrderStatus.Pending,
+    RampsOrderStatus.Created,
+    RampsOrderStatus.Completed,
+  ])('treats %s orders as accepted for onboarding', (status) => {
+    expect(isWalletHomeOnboardingFundFlowOrderAccepted(status)).toBe(true);
+  });
+
+  it('marks an accepted onboarding order when the final Close action is pressed', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockOrderContentOnClose).toEqual(expect.any(Function));
+    });
+
+    mockOrderContentOnClose?.();
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
+  });
+
+  it('does not mark a failed onboarding order when the final Close action is pressed', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Failed,
+    });
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-failed',
+      showCloseButton: true,
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockOrderContentOnClose).toEqual(expect.any(Function));
+    });
+
+    mockOrderContentOnClose?.();
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+  });
+
+  it('does not mark a cancelled onboarding order when the final Close action is pressed', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Cancelled,
+    });
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-cancelled',
+      showCloseButton: true,
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockOrderContentOnClose).toEqual(expect.any(Function));
+    });
+
+    mockOrderContentOnClose?.();
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('shows V2 order toast when callback fetch succeeds', async () => {
@@ -385,6 +476,26 @@ describe('OrderDetails', () => {
         }),
       );
     });
+  });
+
+  it('does not complete the onboarding flow when callback order loading fails', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+      showCloseButton: true,
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(new Error('Callback failed'));
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('resets to build quote when callback returns no order', async () => {
