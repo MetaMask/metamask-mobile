@@ -8925,10 +8925,31 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'moneyAccountDebugEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
+    productionDefault: [
+      {
+        metaMetricsIds: [],
+        name: 'debug-users',
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        value: {
+          enabled: false,
+          minimumVersion: '7.70.0',
+        },
+      },
+      {
+        value: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        name: 'everyone',
+        scope: {
+          value: 1,
+          type: 'threshold',
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
