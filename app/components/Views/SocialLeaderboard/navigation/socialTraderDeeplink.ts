@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import branch from 'react-native-branch';
 import Share from 'react-native-share';
 import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
 import AppConstants from '../../../../core/AppConstants';
@@ -6,74 +7,33 @@ import {
   SOCIAL_PROFILE_POSITION_SUBPATH,
   SOCIAL_PROFILE_SUBPATH,
 } from '../../../../core/DeeplinkManager/util/deeplinks/socialDeeplinkPath';
+import Logger from '../../../../util/Logger';
 import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 
-/** Branch reads these query keys as dynamic open-graph tags. */
-const OPEN_GRAPH_TITLE_PARAM = '$og_title';
-const OPEN_GRAPH_DESCRIPTION_PARAM = '$og_description';
-const OPEN_GRAPH_IMAGE_PARAM = '$og_image_url';
-const MAX_OPEN_GRAPH_TITLE_LENGTH = 60;
-const MAX_OPEN_GRAPH_DESCRIPTION_LENGTH = 90;
+const SHORT_LINK_TIMEOUT_MS = 8000;
+const PROFILE_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_SUBPATH}`;
+const POSITION_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBPATH}`;
 
 /**
- * Keeps a preview string short enough that the shared URL stays compact.
- * Cuts on a word boundary when the text has one.
+ * A later share replaces an in-flight one. The older short-link result must
+ * not open a sheet after the user has already asked for something else.
  */
-const compactOpenGraphText = (value: string, maxLength: number): string => {
-  const collapsed = value.replace(/\s+/g, ' ').trim();
-  if (collapsed.length <= maxLength) {
-    return collapsed;
-  }
-  const sliced = collapsed.slice(0, maxLength);
-  const lastSpace = sliced.lastIndexOf(' ');
-  return (lastSpace >= 12 ? sliced.slice(0, lastSpace) : sliced).trimEnd();
-};
-
-/**
- * Appends `$og_title` and `$og_description`. The `$` stays literal because
- * Branch matches those key names before percent-decoding.
- */
-const withOpenGraph = (url: URL, openGraph?: SocialLinkOpenGraph): string => {
-  if (openGraph) {
-    const title = compactOpenGraphText(
-      openGraph.title,
-      MAX_OPEN_GRAPH_TITLE_LENGTH,
-    );
-    const description = compactOpenGraphText(
-      openGraph.description,
-      MAX_OPEN_GRAPH_DESCRIPTION_LENGTH,
-    );
-    if (title) {
-      url.searchParams.set(OPEN_GRAPH_TITLE_PARAM, title);
-    }
-    if (description) {
-      url.searchParams.set(OPEN_GRAPH_DESCRIPTION_PARAM, description);
-    }
-    const imageUrl = openGraph.imageUrl?.trim();
-    if (imageUrl) {
-      url.searchParams.set(OPEN_GRAPH_IMAGE_PARAM, imageUrl);
-    }
-  }
-  return url
-    .toString()
-    .replace(/%24og_title=/g, '$og_title=')
-    .replace(/%24og_description=/g, '$og_description=')
-    .replace(/%24og_image_url=/g, '$og_image_url=');
-};
+let shareGeneration = 0;
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
  * from `socialAiTSA1122AbtestSocialBundleV1`.
+ *
+ * This is the navigation URL. Preview text is not put on the query string;
+ * a Branch short link carries that, and this URL is the fallback when Branch
+ * does not return one.
  */
-export const buildSocialTraderDeeplink = (
-  traderId: string,
-  openGraph?: SocialLinkOpenGraph,
-): string => {
+export const buildSocialTraderDeeplink = (traderId: string): string => {
   const url = new URL(
-    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_SUBPATH}`,
+    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${PROFILE_DEEPLINK_PATH}`,
   );
   url.searchParams.set('traderId', traderId);
-  return withOpenGraph(url, openGraph);
+  return url.toString();
 };
 
 /**
@@ -96,14 +56,13 @@ const toShareContent = (
 export const buildSocialTraderPositionDeeplink = (
   positionId: string,
   traderId: string,
-  openGraph?: SocialLinkOpenGraph,
 ): string => {
   const url = new URL(
-    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBPATH}`,
+    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${POSITION_DEEPLINK_PATH}`,
   );
   url.searchParams.set('positionId', positionId);
   url.searchParams.set('traderId', traderId);
-  return withOpenGraph(url, openGraph);
+  return url.toString();
 };
 
 /**
@@ -113,9 +72,8 @@ export const buildSocialTraderPositionDeeplink = (
 export const buildSocialTraderShareContent = (
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-  openGraph?: SocialLinkOpenGraph,
 ): { message: string; url?: string } =>
-  toShareContent(buildSocialTraderDeeplink(traderId, openGraph), os);
+  toShareContent(buildSocialTraderDeeplink(traderId), os);
 
 /**
  * Share payload for a trader position. Same iOS message/url split as a
@@ -125,12 +83,100 @@ export const buildSocialTraderPositionShareContent = (
   positionId: string,
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-  openGraph?: SocialLinkOpenGraph,
 ): { message: string; url?: string } =>
-  toShareContent(
-    buildSocialTraderPositionDeeplink(positionId, traderId, openGraph),
-    os,
-  );
+  toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
+
+const isHttpsUrl = (value: unknown): value is string => {
+  if (typeof value !== 'string' || value.length === 0) {
+    return false;
+  }
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const withTimeout = <T>(work: Promise<T>, timeoutMs: number): Promise<T> =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error('Branch short link timed out')),
+      timeoutMs,
+    );
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
+
+/**
+ * Asks Branch for a short link whose preview uses the universal object's
+ * title, description, and image. Those fields are what the SDK stores as
+ * `$og_title`, `$og_description`, and `$og_image_url`.
+ *
+ * A short link is shorter than a URL with those fields in the query. It does
+ * not prove the preview is authentic: the public Branch key can create other
+ * links on the same domain. Callers fall back to `canonicalUrl` when Branch
+ * returns nothing usable.
+ */
+export const createSocialBranchShortUrl = async (
+  canonicalUrl: string,
+  deeplinkPath: string,
+  openGraph?: SocialLinkOpenGraph,
+  timeoutMs: number = SHORT_LINK_TIMEOUT_MS,
+): Promise<string> => {
+  type CreatedObject = Awaited<
+    ReturnType<typeof branch.createBranchUniversalObject>
+  >;
+  let universalObject: CreatedObject | undefined;
+  const pending = (async () => {
+    const created = await branch.createBranchUniversalObject(deeplinkPath, {
+      locallyIndex: false,
+      publiclyIndex: false,
+      canonicalUrl,
+      title: openGraph?.title,
+      contentDescription: openGraph?.description,
+      contentImageUrl: openGraph?.imageUrl,
+    });
+    universalObject = created;
+    // `$deeplink_path` is a Branch link-data key. The RN control-param type
+    // does not list it, but the native SDK and our link rewriter both use it.
+    const controlParams = {
+      $deeplink_path: deeplinkPath,
+      $fallback_url: canonicalUrl,
+      $desktop_url: canonicalUrl,
+    };
+    const { url } = await created.generateShortUrl(
+      { feature: 'share', channel: 'social' },
+      controlParams as Parameters<CreatedObject['generateShortUrl']>[1],
+    );
+    return url;
+  })();
+
+  try {
+    const shortUrl = await withTimeout(pending, timeoutMs);
+    return isHttpsUrl(shortUrl) ? shortUrl : canonicalUrl;
+  } catch (error) {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      'Social share Branch short link failed',
+    );
+    return canonicalUrl;
+  } finally {
+    pending
+      .then(
+        () => universalObject?.release(),
+        () => universalObject?.release(),
+      )
+      .catch(() => undefined);
+  }
+};
 
 /**
  * Whether the native sheet completed a share.
@@ -162,22 +208,43 @@ const openShareSheet = (
     .catch(() => undefined);
 };
 
+const shareLink = (
+  canonicalUrl: string,
+  deeplinkPath: string,
+  openGraph: SocialLinkOpenGraph | undefined,
+  onShared?: () => void,
+): void => {
+  const generation = ++shareGeneration;
+  createSocialBranchShortUrl(canonicalUrl, deeplinkPath, openGraph)
+    .then((sharedUrl) => {
+      if (generation !== shareGeneration) {
+        return;
+      }
+      openShareSheet(toShareContent(sharedUrl, Platform.OS), onShared);
+    })
+    .catch(() => undefined);
+};
+
 /**
- * Opens the native share sheet with the trader profile deeplink.
+ * Opens the native share sheet with a Branch short link for the profile.
+ * The canonical profile URL is shared when Branch does not return a link.
  */
 export const shareSocialProfile = (
   traderId: string,
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
 ): void => {
-  openShareSheet(
-    buildSocialTraderShareContent(traderId, Platform.OS, openGraph),
+  shareLink(
+    buildSocialTraderDeeplink(traderId),
+    PROFILE_DEEPLINK_PATH,
+    openGraph,
     onShared,
   );
 };
 
 /**
- * Opens the native share sheet with the trader position deeplink.
+ * Opens the native share sheet with a Branch short link for the position.
+ * The canonical position URL is shared when Branch does not return a link.
  */
 export const shareSocialTraderPosition = (
   positionId: string,
@@ -185,13 +252,10 @@ export const shareSocialTraderPosition = (
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
 ): void => {
-  openShareSheet(
-    buildSocialTraderPositionShareContent(
-      positionId,
-      traderId,
-      Platform.OS,
-      openGraph,
-    ),
+  shareLink(
+    buildSocialTraderPositionDeeplink(positionId, traderId),
+    POSITION_DEEPLINK_PATH,
+    openGraph,
     onShared,
   );
 };

@@ -822,6 +822,43 @@ describe('rewriteBranchUri', () => {
       rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
     ).toBe(uri);
   });
+
+  it('fills trader and position ids from a link.metamask.io canonical url', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'social/profile/position',
+        $canonical_url:
+          'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+      }),
+    ).toBe(
+      'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+    );
+  });
+
+  it('keeps a query key the short link already has', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf?traderId=kept';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'social/profile',
+        $canonical_url:
+          'https://link.metamask.io/social/profile?traderId=replaced',
+      }),
+    ).toBe('https://link.metamask.io/social/profile?traderId=kept');
+  });
+
+  it('ignores a canonical url that is not a link.metamask.io https url', () => {
+    const uri = 'https://metamask-alternate.app.link/AbCdEf';
+    expect(
+      rewriteBranchUri(uri, {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'social/profile',
+        $canonical_url: 'http://link.metamask.io/social/profile?traderId=nope',
+      }),
+    ).toBe('https://link.metamask.io/social/profile');
+  });
 });
 
 describe('DeeplinkManager.start Branch deeplink handling', () => {

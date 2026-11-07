@@ -33,11 +33,31 @@ import { getUnlockAppStartType } from '../Performance/unlockTraces';
 // example when the user dismisses the interstitial during startup resolution.
 export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
+const readMetamaskCanonicalUrl = (value: unknown): URL | undefined => {
+  if (typeof value !== 'string' || value.length === 0) {
+    return undefined;
+  }
+  try {
+    const url = new URL(value);
+    if (
+      url.protocol !== 'https:' ||
+      url.host !== AppConstants.MM_IO_UNIVERSAL_LINK_HOST
+    ) {
+      return undefined;
+    }
+    return url;
+  } catch {
+    return undefined;
+  }
+};
+
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
  * with link.metamask.io/$deeplink_path while preserving the original query string.
+ * Query keys missing from that string are filled from a link.metamask.io
+ * `$canonical_url`.
  */
 export function rewriteBranchUri(
   uri: string | undefined,
@@ -52,6 +72,16 @@ export function rewriteBranchUri(
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
     // Set the pathname to the sanitized $deeplink_path
     parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    // A Branch short link's own query does not carry traderId or positionId.
+    // Those live on $canonical_url, which is the link.metamask.io URL the
+    // share flow registered. Copy only keys the short link does not already
+    // have, so an existing query such as a swap amount stays as it was.
+    const canonicalUrl = readMetamaskCanonicalUrl(params.$canonical_url);
+    canonicalUrl?.searchParams.forEach((value, key) => {
+      if (!parsed.searchParams.has(key)) {
+        parsed.searchParams.set(key, value);
+      }
+    });
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);

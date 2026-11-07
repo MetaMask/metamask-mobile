@@ -1,13 +1,25 @@
 import { Platform } from 'react-native';
 import Share from 'react-native-share';
+import { SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL } from './socialShareOpenGraph';
 import {
   buildSocialTraderDeeplink,
   buildSocialTraderPositionDeeplink,
   buildSocialTraderPositionShareContent,
   buildSocialTraderShareContent,
+  createSocialBranchShortUrl,
   shareSocialProfile,
   shareSocialTraderPosition,
 } from './socialTraderDeeplink';
+
+const mockCreateBranchUniversalObject = jest.fn();
+
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    createBranchUniversalObject: (...args: unknown[]) =>
+      mockCreateBranchUniversalObject(...args),
+  },
+}));
 
 jest.mock('react-native-share', () => ({
   __esModule: true,
@@ -15,6 +27,12 @@ jest.mock('react-native-share', () => ({
     open: jest.fn(),
   },
 }));
+
+const flush = async () => {
+  for (let step = 0; step < 10; step += 1) {
+    await Promise.resolve();
+  }
+};
 
 const PROFILE_URL = 'https://link.metamask.io/social/profile?traderId=trader-1';
 
@@ -28,52 +46,12 @@ describe('buildSocialTraderDeeplink', () => {
       'https://link.metamask.io/social/profile?traderId=trader+id%2Fa%3Fb',
     );
   });
-
-  it('appends compact open graph title and description', () => {
-    expect(
-      buildSocialTraderDeeplink('trader-1', {
-        title: "Giga Whale's profile",
-        description: 'Trades and posts from Giga Whale',
-      }),
-    ).toBe(
-      'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=Giga+Whale%27s+profile&$og_description=Trades+and+posts+from+Giga+Whale',
-    );
-  });
-
-  it('drops open graph text that would make the url long', () => {
-    const title = `${'Very long trader name '.repeat(8)}on MetaMask`;
-    const description = `${'Trades and posts from a very long trader name '.repeat(4)}`;
-
-    const url = new URL(
-      buildSocialTraderDeeplink('trader-1', { title, description }).replace(
-        /\$og_/g,
-        '%24og_',
-      ),
-    );
-
-    expect(url.searchParams.get('$og_title')?.length).toBeLessThanOrEqual(60);
-    expect(url.searchParams.get('$og_description')?.length).toBeLessThanOrEqual(
-      90,
-    );
-    expect(url.searchParams.get('$og_title')).not.toMatch(/\s$/);
-  });
 });
 
 describe('buildSocialTraderPositionDeeplink', () => {
   it('builds the social trader position universal link', () => {
     expect(buildSocialTraderPositionDeeplink('position-1', 'trader-1')).toBe(
       'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1',
-    );
-  });
-
-  it('appends open graph copy that names the trader and asset', () => {
-    expect(
-      buildSocialTraderPositionDeeplink('position-1', 'trader-1', {
-        title: "Ada's ETH trade",
-        description: 'Ada is short ETH',
-      }),
-    ).toBe(
-      'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1&$og_title=Ada%27s+ETH+trade&$og_description=Ada+is+short+ETH',
     );
   });
 });
@@ -114,12 +92,103 @@ describe('buildSocialTraderShareContent', () => {
   });
 });
 
+const profilePreview = {
+  title: 'Dip Spicy Maxi on MetaMask',
+  description: "See Dip Spicy Maxi's trades on MetaMask",
+  imageUrl: SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL,
+};
+
+const shortUrl = 'https://metamask.app.link/social-profile';
+
+const mockShortLink = (url: string | Promise<{ url: string }>) => {
+  const generateShortUrl = jest.fn(() =>
+    typeof url === 'string' ? Promise.resolve({ url }) : url,
+  );
+  const release = jest.fn();
+  mockCreateBranchUniversalObject.mockResolvedValueOnce({
+    generateShortUrl,
+    release,
+  });
+  return { generateShortUrl, release };
+};
+
+describe('createSocialBranchShortUrl', () => {
+  beforeEach(() => {
+    mockCreateBranchUniversalObject.mockReset();
+  });
+
+  it('sends the preview on the universal object and the route on the link', async () => {
+    const { generateShortUrl, release } = mockShortLink(shortUrl);
+
+    await expect(
+      createSocialBranchShortUrl(PROFILE_URL, 'social/profile', profilePreview),
+    ).resolves.toBe(shortUrl);
+
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile',
+      {
+        locallyIndex: false,
+        publiclyIndex: false,
+        canonicalUrl: PROFILE_URL,
+        title: profilePreview.title,
+        contentDescription: profilePreview.description,
+        contentImageUrl: profilePreview.imageUrl,
+      },
+    );
+    expect(generateShortUrl).toHaveBeenCalledWith(
+      { feature: 'share', channel: 'social' },
+      {
+        $deeplink_path: 'social/profile',
+        $fallback_url: PROFILE_URL,
+        $desktop_url: PROFILE_URL,
+      },
+    );
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the canonical url when Branch fails or returns a non-https url', async () => {
+    mockCreateBranchUniversalObject.mockRejectedValueOnce(
+      new Error('branch down'),
+    );
+    await expect(
+      createSocialBranchShortUrl(PROFILE_URL, 'social/profile', profilePreview),
+    ).resolves.toBe(PROFILE_URL);
+
+    mockShortLink('http://metamask.app.link/insecure');
+    await expect(
+      createSocialBranchShortUrl(PROFILE_URL, 'social/profile', profilePreview),
+    ).resolves.toBe(PROFILE_URL);
+  });
+
+  it('returns the canonical url when Branch does not answer in time', async () => {
+    jest.useFakeTimers();
+    mockCreateBranchUniversalObject.mockReturnValueOnce(
+      new Promise(() => undefined),
+    );
+
+    const pending = createSocialBranchShortUrl(
+      PROFILE_URL,
+      'social/profile',
+      profilePreview,
+      50,
+    );
+    await jest.advanceTimersByTimeAsync(50);
+
+    await expect(pending).resolves.toBe(PROFILE_URL);
+    jest.useRealTimers();
+  });
+});
+
 describe('OS share completion', () => {
   const openShare = Share.open as jest.Mock;
   const originalOs = Platform.OS;
 
   beforeEach(() => {
     openShare.mockReset();
+    mockCreateBranchUniversalObject.mockReset();
+    mockCreateBranchUniversalObject.mockRejectedValue(
+      new Error('branch unavailable'),
+    );
   });
 
   afterEach(() => {
@@ -131,8 +200,8 @@ describe('OS share completion', () => {
     const onShared = jest.fn();
     openShare.mockResolvedValueOnce({ success: true, message: 'shared' });
 
-    shareSocialProfile('trader-1', onShared);
-    await Promise.resolve();
+    shareSocialProfile('trader-1', onShared, profilePreview);
+    await flush();
 
     expect(openShare).toHaveBeenCalledWith({
       message: PROFILE_URL,
@@ -148,7 +217,7 @@ describe('OS share completion', () => {
       message: '',
     });
     shareSocialProfile('trader-1', onShared);
-    await Promise.resolve();
+    await flush();
     expect(onShared).not.toHaveBeenCalled();
   });
 
@@ -160,7 +229,7 @@ describe('OS share completion', () => {
     openShare.mockResolvedValueOnce({ success: true, message: 'shared' });
 
     shareSocialTraderPosition('position-1', 'trader-1', onShared);
-    await Promise.resolve();
+    await flush();
 
     expect(openShare).toHaveBeenCalledWith({
       message: positionUrl,
@@ -175,7 +244,7 @@ describe('OS share completion', () => {
       message: '',
     });
     shareSocialTraderPosition('position-1', 'trader-1', onShared);
-    await Promise.resolve();
+    await flush();
     expect(onShared).not.toHaveBeenCalled();
   });
 
@@ -184,8 +253,45 @@ describe('OS share completion', () => {
     openShare.mockRejectedValueOnce(new Error('share failed'));
 
     shareSocialProfile('trader-1', onShared);
-    await Promise.resolve();
+    await flush();
 
     expect(onShared).not.toHaveBeenCalled();
+  });
+
+  it('shares the Branch short link and ignores an older in-flight link', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+    let resolveSlow: (value: { url: string }) => void = () => undefined;
+    const slowRelease = jest.fn();
+    const fastRelease = jest.fn();
+    mockCreateBranchUniversalObject
+      .mockResolvedValueOnce({
+        generateShortUrl: () =>
+          new Promise((resolve) => {
+            resolveSlow = resolve;
+          }),
+        release: slowRelease,
+      })
+      .mockResolvedValueOnce({
+        generateShortUrl: () =>
+          Promise.resolve({ url: 'https://metamask.app.link/newer' }),
+        release: fastRelease,
+      });
+    openShare.mockResolvedValue({ success: true, message: 'shared' });
+
+    shareSocialProfile('trader-1', undefined, profilePreview);
+    shareSocialProfile('trader-2', undefined, profilePreview);
+    await flush();
+
+    expect(openShare).toHaveBeenCalledTimes(1);
+    expect(openShare).toHaveBeenCalledWith({
+      message: 'https://metamask.app.link/newer',
+      url: 'https://metamask.app.link/newer',
+      failOnCancel: false,
+    });
+
+    resolveSlow({ url: 'https://metamask.app.link/older' });
+    await flush();
+    expect(openShare).toHaveBeenCalledTimes(1);
+    expect(fastRelease).toHaveBeenCalledTimes(1);
   });
 });

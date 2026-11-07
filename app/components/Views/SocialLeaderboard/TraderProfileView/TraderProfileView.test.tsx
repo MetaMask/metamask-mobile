@@ -3,7 +3,13 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import Share from 'react-native-share';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
@@ -491,18 +497,19 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shares the trader profile deeplink from the header', () => {
+  it('shares the trader profile deeplink from the header', async () => {
     renderWithProvider(<TraderProfileView />);
 
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message:
-        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=See+trader1%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=trader1+on+MetaMask&$og_description=See+trader1%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message: 'https://link.metamask.io/social/profile?traderId=trader-1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(

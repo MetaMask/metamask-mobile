@@ -833,7 +833,7 @@ describe('MyProfileView', () => {
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
-  it('shares the owner profile deeplink from the share profile button', () => {
+  it('shares the owner profile deeplink from the share profile button', async () => {
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
@@ -851,11 +851,13 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    expect(Share.open).toHaveBeenCalledWith({
-      message:
-        'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=See+Giga+Whale%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      url: 'https://link.metamask.io/social/profile?traderId=current-user&$og_title=Giga+Whale+on+MetaMask&$og_description=See+Giga+Whale%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=current-user',
+        url: 'https://link.metamask.io/social/profile?traderId=current-user',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
@@ -1196,7 +1198,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('shares the profile deeplink from another profile header', () => {
+  it('shares the profile deeplink from another profile header', async () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
       traderName: 'alpha.eth',
@@ -1208,11 +1210,12 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message:
-        'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=See+alpha.eth%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1&$og_title=alpha.eth+on+MetaMask&$og_description=See+alpha.eth%27s+trades+on+MetaMask&$og_image_url=https%3A%2F%2Fimages.ctfassets.net%2Fclixtyxoaeas%2F7Bth2z7E82BB90X6C3YG7m%2F1584de92dd8e66ce9a1114da44a6e874%2F405c96f0-a551-47fe-860f-068e08a45380.png',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message: 'https://link.metamask.io/social/profile?traderId=trader-1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
