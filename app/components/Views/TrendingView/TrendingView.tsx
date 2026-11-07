@@ -245,21 +245,15 @@ export const ExploreFeed: React.FC = () => {
   const handleBrowserPress = useCallback(() => {
     if (browserTabsCount > 0) {
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          showTabsView: true,
-          timestamp: Date.now(),
-          fromTrending: true,
-        },
+        showTabsView: true,
+        timestamp: Date.now(),
+        fromTrending: true,
       });
     } else {
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: portfolioUrl.href,
-          timestamp: Date.now(),
-          fromTrending: true,
-        },
+        newTabUrl: portfolioUrl.href,
+        timestamp: Date.now(),
+        fromTrending: true,
       });
     }
   }, [navigation, portfolioUrl.href, browserTabsCount]);
