@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "Für Einzahlungen erheben wir keine Gebühren. Ihre Bank möglicherweise schon.",
       "feature_arrives_title": "Kommt in {{timeframe}} an",
       "feature_arrives_title_no_timeframe": "Kommt innerhalb weniger Werktage an",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Die Gelder gehen ein, sobald Ihre Überweisung abgewickelt ist.",
       "feature_set_up_title": "Einmal einrichten, jederzeit nutzen",
       "feature_set_up_description": "Als Zahlungsempfänger in Ihrer Banking-App einspeichern.",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "Verifizieren Sie Ihre Identität",
-      "description": "Dies dauert in der Regel nur wenige Minuten. Halten Sie einen gültigen, behördlich ausgestellten Lichtbildausweis bereit.",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "Fotografieren Sie Ihren Ausweis",
       "step_take_selfie": "Machen Sie ein Selfie",
       "step_confirm_details": "Bestätigen Sie Ihre Angaben",
       "step_answer_questions": "Beantworten Sie einige Fragen",
-      "footer": "Ihre Daten werden verschlüsselt und sicher an unsere Verifizierungsanbieter übermittelt. Sie können die Angaben überprüfen, bevor Sie fortfahren.",
-      "powered_by": "Unterstützt durch",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Nutzungsbedingungen konnten nicht geladen werden.",
       "disclaimers_retry": "Erneut versuchen",
-      "button": "Fortfahren",
-      "terms_sheet_title": "Daten und Datenschutz",
-      "terms_sheet_description": "Zur Überprüfung Ihrer Identität werden Ihre Daten sicher an die nachstehenden Anbieter übermittelt. Bitte lesen Sie sich deren Richtlinien und Bedingungen durch, bevor Sie fortfahren.",
-      "metamask_privacy_policy": "Datenschutzerklärung von MetaMask",
-      "metamask_terms": "Allgemeine Geschäftsbedingungen von MetaMask",
-      "terms_sheet_button": "Zustimmen und Verifizierung starten"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "Verifizierung konnte nicht gestartet werden",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "Verifizieren Ihrer Identität",
       "description": "Die meisten Überprüfungen sind in etwa 10 Sekunden abgeschlossen. Sie können es später erneut versuchen. Wir geben Ihnen Bescheid, sobald die Überprüfung abgeschlossen ist.",
-      "button": "Später erneut versuchen"
+      "button": "Später erneut versuchen",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "Identität überprüft",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brasilianischer Real",
-        "usd": "US-Dollar",
-        "eur": "Euro"
+        "usd": "US-Dollar"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "Haltedauer",
         "buy": "Kaufen",
         "sell": "Verkaufen",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Geschlossen · {{age}}",
         "sold_ago": "Verkauft · {{age}}"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "Zuteilung an Insider – ausgeschlossen",
       "developer": "Contract-Ersteller – ausgeschlossen",
-      "excluded": "Von GuV-Rechnung ausgeschlossen",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "{{count}} gemeinsame Follower",
       "win_rate": "Gewinnrate",
       "pnl": "GuV",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Haltedauer",
       "avg_hold_time": "Durchschnittliche Haltedauer",
       "volume": "Volumen",
@@ -1724,6 +1753,18 @@
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "Keine offenen Positionen",
       "empty_closed": "Keine geschlossenen Positionen",
       "empty_open_tokens": "Keine offenen Token",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "Keine offenen Perps",
       "empty_closed_perps": "Keine geschlossenen Perps",
       "empty_title": "Noch keine Beiträge",
-      "joined": "Beigetreten {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "Ihr Profil konnte nicht geladen werden.",
       "no_profile_title": "Erstellen Sie Ihr Profil",
@@ -1822,6 +1863,7 @@
       "save_error": "Änderungen konnten nicht gespeichert werden. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "Dieser Nutzername ist nicht verfügbar. Bitte wählen Sie einen anderen aus.",
       "username_too_short": "Der Name muss mindestens {{min}} Zeichen enthalten.",
       "username_too_long": "Der Name darf höchstens {{max}} Zeichen enthalten.",
@@ -1840,6 +1882,11 @@
       "following": "Verfolgen",
       "today": "Heute",
       "market_cap_suffix": "(MK)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2664,7 +2711,8 @@
       "updating_your_order": "Aktualisierung Ihrer Order",
       "order_updated": "Order aktualisiert",
       "order_update_failed": "Aktualisierung der Order fehlgeschlagen",
-      "order_update_failed_subtitle": "Ihre Order bleibt weiterhin zum bisherigen Preis und in der bisherigen Größe offen."
+      "order_update_failed_subtitle": "Ihre Order bleibt weiterhin zum bisherigen Preis und in der bisherigen Größe offen.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Slippage festlegen",
@@ -2973,6 +3021,8 @@
       "priceMoved": "Der Kurs hat sich um {{priceDelta}} % bewegt und damit Ihre Slippage-Toleranz von {{maxSlippage}} % überschritten. Überprüfen Sie den aktuellen Kurs und versuchen Sie es erneut.",
       "rateLimitExceeded": "Zu viele Anfragen. Warten Sie einen Augenblick und versuchen Sie es erneut.",
       "serviceUnavailable": "Der Service ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Ein Netzwerkfehler ist aufgetreten. Prüfe deine Verbindung und versuche es erneut.",
       "insufficientBalance": "Unzureichendes Guthaben, um diesen Vorgang abzuschließen. Überprüfen Sie Ihr verfügbares Guthaben.",
       "connectionFailed": {
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "TP auf dem Chart",
     "sl_on_chart": "SL auf dem Chart",
     "pnl_hero_card": {
-      "title": "GuV-Heldenkarte",
+      "title": "P&L Hero Card",
       "header_title": "Teilen Sie Ihren Trade",
       "share_button": "Teilen",
       "share_message_without_referral_code": "Handeln Sie {{asset}}-Perps auf MetaMask.",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "Verfügbares Guthaben",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Kontostand nicht verfügbar",
       "description": "Ihr verfügbares Guthaben konnte nicht geladen werden.",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Märkte durchsuchen",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "Preis nicht verfügbar",
       "option_accessibility_label": "Marktoption für {{team}}, Linie {{line}}, Kurs {{price}}",
       "outcome_accessibility_label": "{{team}}, Linie {{line}}, Kurs {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Veranstaltungsregeln anzeigen",
@@ -6173,7 +6244,7 @@
     "balance": "Guthaben nicht laden. Bitte lesen Sie den Support-Artikel",
     "position_pnl": {
       "your_position": "Ihre Position",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "Code in {{seconds}} Sek. erneut senden",
       "resent": "Wir haben Ihnen einen neuen Code zugesandt.",
       "verifying": "Code wird verifiziert",
-      "get_new_code": "Neuen Code abrufen"
+      "get_new_code": "Neuen Code abrufen",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Authentifizierungs-App einrichten",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "Dieser Code ist falsch. Bitte erneut versuchen",
-      "too_many_attempts": "Zu viele Versuche. Bitte fordern Sie einen neuen Code an.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Ihr Passkey konnte nicht verifiziert werden. Bitte versuchen Sie es erneut.",
       "passkey_cancelled": "Die Passkey-Anfrage wurde abgebrochen.",
       "email_taken": "Diese E-Mail-Adresse wird bereits verwendet. Bitte geben Sie eine andere ein.",
@@ -9552,6 +9624,11 @@
         "description": "Die Daten zu Ihrem virtuellen Konto liegen nun vor.",
         "cta": "Kontodetails anzeigen"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "Verifizieren Ihrer Identität",
         "description": "Wir prüfen gerade Ihre Angaben. Wir geben Ihnen Bescheid, sobald die Überprüfung abgeschlossen ist.",
@@ -9698,7 +9775,8 @@
       "add_musd": "mUSD hinzufügen",
       "receive_external": "Externe Adresse",
       "coming_soon": "Demnächst verfügbar",
-      "new_badge": "Neu"
+      "new_badge": "Neu",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "Mehr",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "Wir swappen Ihre Token gegen pUSD auf Polygon, dem von Predictions verwendeten Netzwerk. Swap-Anbieter erheben möglicherweise eine Gebühr, MetaMask jedoch nicht."
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "Die Gebühren für die mUSD-Konvertierung beinhalten Netzwerkkosten und können Anbietergebühren beinhalten. Bei der Konvertierung in mUSD fällt keine MetaMask-Gebühr an."
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "Markt",
       "limit": "Limit",
-      "recurring": "Wiederkehrend",
-      "new_badge": "Neu"
+      "recurring": "Wiederkehrend"
     },
     "generic_error_toast_title": "Hoppla! Etwas ist schiefgelaufen ...",
     "generic_error_toast_body": "Bitte versuche es in ein paar Minuten erneut.",
@@ -12535,7 +12618,7 @@
       "total_participants": "Gesamteilnehmer",
       "total_volume": "Gesamtvolumen",
       "top_return": "Top-Rendite",
-      "top_pnl": "Top-GuV",
+      "top_pnl": "Top P&L",
       "total_yield": "Gesamtertrag",
       "total_winners": "Gewinner insgesamt"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "Performance",
       "label_rank": "Rang",
       "label_your_rank": "Ihr Rang",
-      "label_pnl": "GuV",
+      "label_pnl": "P&L",
       "label_volume": "Volumen",
       "label_notional_volume": "Nominalvolumen",
       "pending": "Ausstehend",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "{{amount}} $ erforderlich",
       "stats_qualified_title": "Sie sind qualifiziert",
-      "stats_qualified_description": "Handeln Sie weiter, um Ihren GuV zu verbessern und in der Bestenliste aufzusteigen, bevor der Wettbewerb endet.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Für die Rangliste qualifizieren",
       "stats_qualify_for_rank_description": "Handeln Sie {{notionalRemaining}} mehr an Nominalvolumen, um berechtigt zu sein.",
       "stats_error_title": "Statistiken konnten nicht geladen werden",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "Ihr Rang",
       "label_roi": "ROI (nach Gebühren)",
       "label_total_volume": "Gesamtvolumen",
-      "label_pnl": "GuV (nach Gebühren)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Jetzt prognostizieren",
       "positions_title": "Ihre Prognosen",
       "positions_open_section": "Eröffnen",

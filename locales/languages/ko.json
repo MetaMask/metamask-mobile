@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "예치 수수료는 부과되지 않지만, 은행에서 수수료를 부과할 수 있습니다.",
       "feature_arrives_title": "{{timeframe}} 이내 입금",
       "feature_arrives_title_no_timeframe": "영업일 기준 수일 내 예치",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "이체가 완료되면 자금이 바로 예치됩니다.",
       "feature_set_up_title": "한 번 설정으로 언제든지 사용 가능",
       "feature_set_up_description": "은행 앱에 수취인으로 저장하세요.",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "본인 인증",
-      "description": "보통 몇 분이면 완료됩니다. 정부에서 발급한 유효한 사진 부착 신분증을 준비하세요.",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "신분증을 촬영하세요",
       "step_take_selfie": "본인 사진 촬영",
       "step_confirm_details": "입력한 정보를 확인하세요",
       "step_answer_questions": "몇 가지 질문에 답변해 주세요",
-      "footer": "입력하신 정보는 암호화되어 인증 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 정보를 검토하게 됩니다.",
-      "powered_by": "제공자:",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
       "disclaimers_retry": "다시 시도",
-      "button": "계속",
-      "terms_sheet_title": "데이터 및 개인 정보 보호",
-      "terms_sheet_description": "본인 인증을 위해 입력하신 정보가 아래 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 해당 업체의 정책과 약관을 확인하세요.",
-      "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
-      "metamask_terms": "MetaMask 이용약관",
-      "terms_sheet_button": "동의하고 인증 시작"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "인증을 시작하지 못했습니다",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "본인 인증 중",
       "description": "대부분의 인증은 약 10초 내에 완료됩니다. 나중에 다시 확인하셔도 됩니다. 인증이 완료되면 알려드리겠습니다.",
-      "button": "나중에 다시 확인"
+      "button": "나중에 다시 확인",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "본인 인증 완료",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "브라질 헤알",
-        "usd": "미국 달러",
-        "eur": "유로"
+        "usd": "미국 달러"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "보유 기간",
         "buy": "매수",
         "sell": "매도",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "청산 · {{age}} 전",
         "sold_ago": "매도 · {{age}} 전"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "내부자 할당량 - 제외됨",
       "developer": "계약 생성자 - 제외됨",
-      "excluded": "손익에서 제외됨",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "맞팔로우 {{count}}명",
       "win_rate": "승률",
       "pnl": "손익",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "보유 기간",
       "avg_hold_time": "평균 보유 시간",
       "volume": "거래량",
@@ -1724,6 +1753,18 @@
       "section_tokens": "토큰",
       "section_perpetuals": "영구계약",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "열린 포지션 없음",
       "empty_closed": "청산된 포지션 없음",
       "empty_open_tokens": "미청산 토큰 없음",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "미청산 무기한 선물 없음",
       "empty_closed_perps": "청산된 무기한 선물 없음",
       "empty_title": "아직 게시물이 없습니다",
-      "joined": "{{time}}에 가입",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "프로필을 불러올 수 없습니다.",
       "no_profile_title": "프로필 생성",
@@ -1822,6 +1863,7 @@
       "save_error": "변경 사항을 저장할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "이 사용자 이름은 사용할 수 없습니다. 다른 이름을 선택하세요.",
       "username_too_short": "{{min}}자 이상이어야 합니다.",
       "username_too_long": "{{max}}자 이하여야 합니다.",
@@ -1840,6 +1882,11 @@
       "following": "팔로우 중",
       "today": "오늘",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2664,7 +2711,8 @@
       "updating_your_order": "주문 업데이트 중",
       "order_updated": "주문 업데이트 완료",
       "order_update_failed": "주문 업데이트 실패",
-      "order_update_failed_subtitle": "기존 가격 및 수량으로 주문이 미체결 상태로 유지됩니다."
+      "order_update_failed_subtitle": "기존 가격 및 수량으로 주문이 미체결 상태로 유지됩니다.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "슬리피지 설정",
@@ -2973,6 +3021,8 @@
       "priceMoved": "가격이 {{priceDelta}}% 변동하여 {{maxSlippage}}%의 슬리피지 허용 범위를 초과했습니다. 변경된 가격을 확인하고 다시 시도하세요.",
       "rateLimitExceeded": "요청이 너무 많습니다. 잠시 기다린 후 다시 시도해 주세요.",
       "serviceUnavailable": "서비스를 일시적으로 이용할 수 없습니다. 나중에 다시 시도해 주세요.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해 주세요.",
       "insufficientBalance": "잔액이 부족해 이 작업을 완료할 수 없습니다. 사용 가능한 자금을 확인하세요.",
       "connectionFailed": {
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "차트 상 익절",
     "sl_on_chart": "차트 상 손절",
     "pnl_hero_card": {
-      "title": "손익 히어로 카드",
+      "title": "P&L Hero Card",
       "header_title": "거래 공유",
       "share_button": "공유",
       "share_message_without_referral_code": "MetaMask에서 {{asset}} 무기한 선물을 거래하세요.",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "사용 가능한 잔액",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "잔액을 확인할 수 없음",
       "description": "사용 가능한 잔액을 불러올 수 없습니다.",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "시장 검색",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "가격 사용 불가",
       "option_accessibility_label": "{{team}}의 시장 옵션, {{line}} 라인, {{price}} 가격",
       "outcome_accessibility_label": "{{team}}, {{line}} 라인, {{price}} 가격",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "이벤트 규칙 보기",
@@ -6173,7 +6244,7 @@
     "balance": "불러올 수 없습니다. 지원 문서를 확인하고",
     "position_pnl": {
       "your_position": "내 포지션",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "{{seconds}}초 후 코드 다시 보내기",
       "resent": "새 코드를 보냈습니다.",
       "verifying": "코드 확인 중",
-      "get_new_code": "새 코드 받기"
+      "get_new_code": "새 코드 받기",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "인증 앱 설정",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "잘못된 코드입니다. 다시 시도하세요",
-      "too_many_attempts": "시도 횟수가 너무 많습니다. 새 코드를 요청하세요.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "패스키를 인증할 수 없습니다. 다시 시도하세요.",
       "passkey_cancelled": "패스키 요청이 취소되었습니다.",
       "email_taken": "이 이메일 주소는 이미 사용 중입니다. 다른 이메일 주소를 사용해 보세요.",
@@ -9552,6 +9624,11 @@
         "description": "가상 계정 정보가 준비되었습니다.",
         "cta": "계정 정보 보기"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "본인 인증 중",
         "description": "세부 정보를 검토하고 있습니다. 확인이 완료되면 알려드리겠습니다.",
@@ -9698,7 +9775,8 @@
       "add_musd": "mUSD 추가",
       "receive_external": "외부 주소",
       "coming_soon": "곧 추가 예정",
-      "new_badge": "신규"
+      "new_badge": "신규",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "더 보기",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "'예측'에서 사용하는 Polygon 네트워크를 통해 회원님의 토큰을 pUSD로 스왑합니다. 스왑 제공업체는 수수료를 부과할 수 있으나 MetaMask의 경우 수수료가 없습니다."
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "mUSD 환전 수수료에는 네트워크 비용이 포함되며 제공업체 수수료가 포함될 수 있습니다. mUSD로 환전할 때 MetaMask 수수료는 적용되지 않습니다."
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "시장",
       "limit": "한도",
-      "recurring": "반복",
-      "new_badge": "신규"
+      "recurring": "반복"
     },
     "generic_error_toast_title": "문제가 발생했습니다",
     "generic_error_toast_body": "몇 분 후 다시 시도해 주세요.",
@@ -12535,7 +12618,7 @@
       "total_participants": "총 참가자 수",
       "total_volume": "총 거래량",
       "top_return": "최고 수익률",
-      "top_pnl": "손익 상위",
+      "top_pnl": "Top P&L",
       "total_yield": "총 수익률",
       "total_winners": "총 우승자 수"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "실적",
       "label_rank": "순위",
       "label_your_rank": "내 등급",
-      "label_pnl": "손익",
+      "label_pnl": "P&L",
       "label_volume": "거래량",
       "label_notional_volume": "명목 거래량",
       "pending": "보류 중",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} 필요함",
       "stats_qualified_title": "자격 충족",
-      "stats_qualified_description": "대회 종료 전까지 계속 거래해 손익을 개선하고 리더보드 순위도 올려보세요.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "리더보드 자격 얻기",
       "stats_qualify_for_rank_description": "참가 자격을 획득하려면 명목 거래량 기준으로 {{notionalRemaining}}만큼 더 거래해야 합니다.",
       "stats_error_title": "통계를 불러올 수 없음",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "내 등급",
       "label_roi": "ROI(수수료 차감 후)",
       "label_total_volume": "총 거래량",
-      "label_pnl": "손익(수수료 차감 후)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "지금 예측하기",
       "positions_title": "내 예측",
       "positions_open_section": "미체결",

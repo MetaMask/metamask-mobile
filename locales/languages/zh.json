@@ -1138,6 +1138,7 @@
       "feature_no_fees_description": "我们不会对存款收费。您的银行可能会收费。",
       "feature_arrives_title": "预计到账：{{timeframe}}",
       "feature_arrives_title_no_timeframe": "预计几个工作日内到账",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "您的转账清算完成后，资金即会到账。",
       "feature_set_up_title": "设置一次，随时使用",
       "feature_set_up_description": "将其保存为您银行应用中的收款人。",
@@ -1156,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "验证您的身份",
-      "description": "这通常只需几分钟。您需要准备好政府签发的带照片的有效身份证件。",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "拍摄您的身份证件",
       "step_take_selfie": "拍摄自拍照",
       "step_confirm_details": "确认您的详细信息",
       "step_answer_questions": "回答几个问题",
-      "footer": "您的信息会加密，并安全地共享给我们的验证服务提供商。继续之前，您将有机会查看这些详细信息。",
-      "powered_by": "技术支持：",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "无法加载条款与条件。",
       "disclaimers_retry": "请重试",
-      "button": "继续",
-      "terms_sheet_title": "数据和隐私",
-      "terms_sheet_description": "为验证您的身份，您的信息将安全地共享给以下服务提供商。继续之前，请查看提供商的政策和条款。",
-      "metamask_privacy_policy": "MetaMask 隐私政策",
-      "metamask_terms": "MetaMask 条款和条件",
-      "terms_sheet_button": "同意并开始验证"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "无法开始验证",
@@ -1190,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "正在验证您的身份",
       "description": "大多数检查大约会在 10 秒内完成。您可以稍后回来，检查完成后我们会通知您。",
-      "button": "稍后回来"
+      "button": "稍后回来",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "身份已验证",
@@ -1246,8 +1273,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "巴西雷亚尔",
-        "usd": "美元",
-        "eur": "欧元"
+        "usd": "美元"
       }
     },
     "vba_details": {
@@ -1446,6 +1472,7 @@
         "hold_time": "持有时间",
         "buy": "买入",
         "sell": "卖出",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "已平仓 · {{age}}",
         "sold_ago": "已卖出 · {{age}}"
       }
@@ -1637,7 +1664,7 @@
     "position_flags": {
       "insider": "内部人员分配——已排除",
       "developer": "合约创建者——已排除",
-      "excluded": "不计入盈亏",
+      "excluded": "Excluded from P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
@@ -1708,6 +1735,8 @@
       "mutuals_tab": "{{count}} 个互相关注",
       "win_rate": "胜率",
       "pnl": "损益",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "持有时间",
       "avg_hold_time": "平均持有时间",
       "volume": "交易量",
@@ -1724,6 +1753,18 @@
       "section_tokens": "代币",
       "section_perpetuals": "永续合约",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "无未平仓仓位",
       "empty_closed": "暂无已平仓仓位",
       "empty_open_tokens": "暂无未平仓代币",
@@ -1731,7 +1772,7 @@
       "empty_open_perps": "暂无未平仓永续合约",
       "empty_closed_perps": "暂无已平仓永续合约",
       "empty_title": "暂无帖子",
-      "joined": "加入于 {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "无法加载您的个人资料。",
       "no_profile_title": "创建您的个人资料",
@@ -1822,6 +1863,7 @@
       "save_error": "无法保存更改。请检查网络连接后重试。",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "此用户名不可用。请选择其他用户名。",
       "username_too_short": "至少使用 {{min}} 个字符。",
       "username_too_long": "最多使用 {{max}} 个字符。",
@@ -1840,6 +1882,11 @@
       "following": "正在关注",
       "today": "今天",
       "market_cap_suffix": "（市值）",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
       "transactions_tab": "Transactions ({{count}})",
       "no_posts": "No posts on this trade yet",
@@ -2399,7 +2446,7 @@
       "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
       "estimated_points": "预计积分",
       "market": "市价",
-      "limit": "限制",
+      "limit": "限价",
       "open_orders": "订单",
       "max": "最大值",
       "cancel_order": "取消订单",
@@ -2535,7 +2582,7 @@
           "description": "以最佳可用价格立即执行"
         },
         "limit": {
-          "title": "限制",
+          "title": "限价",
           "description": "以您指定的价格或更优价格执行"
         },
         "scale": {
@@ -2664,7 +2711,8 @@
       "updating_your_order": "正在更新您的订单",
       "order_updated": "订单已更新",
       "order_update_failed": "更新订单失败",
-      "order_update_failed_subtitle": "您的订单仍以之前的价格和规模保持未平仓状态。"
+      "order_update_failed_subtitle": "您的订单仍以之前的价格和规模保持未平仓状态。",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "设置滑移",
@@ -2973,6 +3021,8 @@
       "priceMoved": "价格已变动 {{priceDelta}}%，超过了您 {{maxSlippage}}% 的滑移范围。请查看更新后的价格并重试。",
       "rateLimitExceeded": "请求过多。请稍候再试。",
       "serviceUnavailable": "服务暂时不可用。请稍后再试。",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "发生网络错误。请检查您的连接并重试。",
       "insufficientBalance": "余额不足，无法完成此操作。请检查您的可用资金。",
       "connectionFailed": {
@@ -3518,11 +3568,11 @@
       "tabs": {
         "trades": "交易",
         "orders": "订单",
-        "funding": "添加资金",
+        "funding": "资金费",
         "withdraw": "提取",
         "deposit": "保证金",
         "deposits": "保证金",
-        "funding_description": "资金历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
+        "funding_description": "资金费历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
       },
       "not_found": "交易未找到",
       "unknown_pnl": "未知",
@@ -3667,7 +3717,7 @@
     "tp_on_chart": "图表显示止盈",
     "sl_on_chart": "图表显示止损",
     "pnl_hero_card": {
-      "title": "盈亏核心数据",
+      "title": "P&L Hero Card",
       "header_title": "分享您的交易",
       "share_button": "共享",
       "share_message_without_referral_code": "在 MetaMask 交易 {{asset}} 永续合约。",
@@ -3734,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "可用余额",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "余额不可用",
       "description": "无法加载您的可用余额。",
@@ -3776,7 +3830,18 @@
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "搜索市场",
@@ -3957,7 +4022,13 @@
       "price_unavailable": "价格不可用",
       "option_accessibility_label": "{{team}} 的市场选项，分项 {{line}}，价格 {{price}}",
       "outcome_accessibility_label": "{{team}}，分项 {{line}}，价格 {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "查看活动规则",
@@ -4338,7 +4409,7 @@
       "claim_detail": "已领取收益",
       "not_available": "不适用",
       "date": "日期",
-      "market": "市价",
+      "market": "市场",
       "outcome": "结局",
       "predicted_amount": "预测金额",
       "shares_bought": "已买入股",
@@ -6173,7 +6244,7 @@
     "balance": "余额。请参阅支持文章",
     "position_pnl": {
       "your_position": "您的排名",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -8750,7 +8821,8 @@
       "resend_in": "{{seconds}} 秒后重新发送验证码",
       "resent": "我们已向您发送新验证码。",
       "verifying": "正在验证验代码",
-      "get_new_code": "获取新验证码"
+      "get_new_code": "获取新验证码",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "设置身份验证应用",
@@ -8779,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "该验证码不正确。请重试",
-      "too_many_attempts": "尝试次数过多。请请求新的验证码。",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "您的通行密钥无法验证。请重试。",
       "passkey_cancelled": "通行密钥请求已取消。",
       "email_taken": "此电子邮件已使用。请尝试其他电子邮件。",
@@ -9552,6 +9624,11 @@
         "description": "您的虚拟账户详情已准备就绪。",
         "cta": "查看账户详情"
       },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
+      },
       "kyc_pending": {
         "title": "正在验证您的身份",
         "description": "我们正在审核您的详情。审核完成后，我们会通知您。",
@@ -9698,7 +9775,8 @@
       "add_musd": "添加 mUSD",
       "receive_external": "外部地址",
       "coming_soon": "即将推出",
-      "new_badge": "新增"
+      "new_badge": "新增",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "展开",
@@ -10276,6 +10354,12 @@
       "predict_deposit": {
         "transaction_fee": "我们将在预测所使用的 Polygon 网络上将您的代币兑换为 pUSD。兑换提供商可能收取费用，但 MetaMask 不收取费用。"
       },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask will swap to your desired token for you."
+      },
       "musd_conversion": {
         "transaction_fee": "mUSD 兑换费用包含网络费用，并可能包含提供商费用。兑换为 mUSD 时，MetaMask 不收取任何费用。"
       },
@@ -10428,8 +10512,7 @@
     "tabs": {
       "market": "市场",
       "limit": "限制",
-      "recurring": "定期",
-      "new_badge": "新增"
+      "recurring": "定期"
     },
     "generic_error_toast_title": "出错了......",
     "generic_error_toast_body": "请几分钟后再试。",
@@ -10473,7 +10556,7 @@
       "from_market_above": "（较市场价 +{{percent}}%）",
       "from_market_above_capped": "（较市场价 >+{{percent}}%）",
       "trigger_price_near_market": "触发价格距市场价仅 {{percent}}%，您的订单可能立即成交。",
-      "market": "市场型",
+      "market": "市价",
       "custom": "自定义",
       "expires": "过期时间",
       "expiration": "过期时间",
@@ -12535,7 +12618,7 @@
       "total_participants": "总参与人数",
       "total_volume": "总交易量",
       "top_return": "最高收益",
-      "top_pnl": "最高盈亏（PnL）",
+      "top_pnl": "Top P&L",
       "total_yield": "总收益",
       "total_winners": "获奖者总数"
     },
@@ -12645,7 +12728,7 @@
       "performance_title": "表现",
       "label_rank": "排名",
       "label_your_rank": "您的排名",
-      "label_pnl": "盈亏",
+      "label_pnl": "P&L",
       "label_volume": "交易量",
       "label_notional_volume": "名义交易量",
       "pending": "待定",
@@ -12661,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker 极速追踪",
       "stats_notional_volume_threshold": "需要 {{amount}} 美元",
       "stats_qualified_title": "您已具备资格",
-      "stats_qualified_description": "在比赛结束前继续交易，提升您的盈亏（PnL）表现并冲击排行榜。",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "获得排行榜资格",
       "stats_qualify_for_rank_description": "还需完成{{notionalRemaining}}名义交易量即可获得资格。",
       "stats_error_title": "无法加载统计数据",
@@ -12675,7 +12758,7 @@
       "label_your_rank": "您的排名",
       "label_roi": "投资回报率（扣除费用后）",
       "label_total_volume": "总交易量",
-      "label_pnl": "盈亏（扣除费用后）",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "立即预测",
       "positions_title": "您的预测",
       "positions_open_section": "未平仓",
