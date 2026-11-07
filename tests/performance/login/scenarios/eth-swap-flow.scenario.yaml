@@ -1,0 +1,48 @@
+# Step-based version of tests/performance/login/eth-swap-flow.spec.ts.
+# Steps are plain language; eth-swap-flow.scenario.lock.json binds each one to
+# the Page Object method and locators that implement it today.
+#
+# Shadow scenario: the shadow tag keeps it out of scheduled, labeled and system
+# performance runs. The loader rejects tags those lanes grep for.
+
+id: swap-eth-to-usdc
+# Distinct title so shadow runs never mix into the real scenario's Sentry /
+# TestMu history. Timer names below match the existing spec exactly.
+title: 'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 [scenario shadow]'
+tags: ['@PerformanceShadow']
+team: '@swap-bridge-dev-team'
+# Matches the existing spec, which skips iOS while the swap flow is investigated.
+platforms: [android]
+precondition: logged-in
+profiling: hermes
+
+steps:
+  - id: open-swap
+    do: Tap the Swap button on the wallet home
+  - id: swap-screen-visible
+    expect: The swap screen with the source amount input is visible
+  - id: pick-destination
+    do: Select USDC on Ethereum as the destination token
+    params: { network: Ethereum, token: USDC }
+  - id: enter-amount
+    do: Enter 0.01 as the source amount
+    params: { amount: '0.01' }
+  - id: close-keypad
+    do: Dismiss the amount keypad
+  - id: quote-visible
+    expect: A quote with a positive destination amount is displayed
+
+timers:
+  - name: 'Time since the user clicks on the "Swap" button until the swap page is loaded'
+    after: open-swap
+    until: swap-screen-visible
+    threshold: { ios: 2000, android: 2500 }
+  - name: 'Time since the user enters the amount until the quote is displayed'
+    after: close-keypad
+    until: quote-visible
+    threshold: { ios: 9000, android: 3000 }
+
+visual:
+  - baseline: Swap-Confirmation-ETH-USDC.png
+    config: swapReview
+    options: { stabilityWait: 3000 }

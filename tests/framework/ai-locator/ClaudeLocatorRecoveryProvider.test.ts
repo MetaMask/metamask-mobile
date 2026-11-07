@@ -2,6 +2,7 @@ import type { Browser } from 'webdriverio';
 import { ClaudeProvider } from '../ai-visual/providers/claude';
 import {
   ClaudeLocatorRecoveryProvider,
+  createLocatorRecoveryPrompt,
   pageSourceContainsSecrets,
 } from './ClaudeLocatorRecoveryProvider';
 
@@ -42,6 +43,34 @@ describe('pageSourceContainsSecrets', () => {
         '<AppiumAUT><XCUIElementTypeButton name="wallet-send-button"/></AppiumAUT>',
       ),
     ).toBe(false);
+  });
+});
+
+describe('createLocatorRecoveryPrompt', () => {
+  it('omits the known-locators section when none are provided', () => {
+    const prompt = createLocatorRecoveryPrompt(
+      'tap Send',
+      'not found',
+      '<tree/>',
+    );
+
+    expect(prompt).toContain(
+      'Primary locator error: not found\n\nAccessibility tree:',
+    );
+    expect(prompt).not.toContain('Locators that matched this control before');
+  });
+
+  it('lists known locators before the accessibility tree', () => {
+    const prompt = createLocatorRecoveryPrompt(
+      'tap Swap',
+      'not found',
+      '<tree/>',
+      [{ strategy: 'testID', value: 'wallet-swap-button' }],
+    );
+
+    expect(prompt).toContain(
+      'Locators that matched this control before (they no longer match):\n- testID: wallet-swap-button\n\nAccessibility tree:',
+    );
   });
 });
 
