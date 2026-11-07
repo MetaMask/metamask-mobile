@@ -267,6 +267,7 @@ const TraderPositionView = () => {
         side: displayPosition
           ? getPerpPositionDirection(displayPosition)
           : null,
+        isPerp: positionData.isPerp,
         isClosed,
       }),
     );
@@ -275,6 +276,7 @@ const TraderPositionView = () => {
     effectivePositionId,
     fetchedProfile?.profile,
     isClosed,
+    positionData.isPerp,
     sourceParam,
     symbol,
     trackSocialPost,

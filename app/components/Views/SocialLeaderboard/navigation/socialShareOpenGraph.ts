@@ -10,6 +10,8 @@ export interface SocialPositionShareContext {
   traderName: string;
   assetSymbol?: string;
   side?: 'long' | 'short' | null;
+  /** True for a perp. A perp with no known side reads as "traded". */
+  isPerp?: boolean;
   isClosed?: boolean;
 }
 
@@ -17,30 +19,18 @@ const MAX_TRADER_NAME_LENGTH = 24;
 const MAX_ASSET_SYMBOL_LENGTH = 12;
 
 export interface TraderShareNameSource {
-  /** Username stored on `profile.name`. */
+  /** Username. `profile.name` on the trader profile API. */
   name?: string | null;
-  /** Public display name, when the profile API sends one. */
-  displayName?: string | null;
 }
 
 /**
- * Name to put in a share preview. Prefers the public display name, then the
- * username, then whatever the screen already showed.
+ * Name to put in a share preview: the username, else whatever the screen
+ * already showed.
  */
 export const readTraderShareName = (
   profile: TraderShareNameSource | null | undefined,
   fallback?: string | null,
-): string => {
-  const displayName = profile?.displayName?.trim();
-  if (displayName) {
-    return displayName;
-  }
-  const name = profile?.name?.trim();
-  if (name) {
-    return name;
-  }
-  return fallback?.trim() ?? '';
-};
+): string => profile?.name?.trim() || fallback?.trim() || '';
 
 /**
  * Collapses whitespace and caps a label so the share URL stays short.
@@ -56,10 +46,7 @@ const clipShareLabel = (value: string, maxLength: number): string => {
   return (lastSpace >= 8 ? sliced.slice(0, lastSpace) : sliced).trimEnd();
 };
 
-/**
- * Profile preview copy. Names the trader and nothing else, so the link
- * stays short enough to share in a chat.
- */
+/** Profile preview copy: "Follow <username> on MetaMask Social". */
 export const buildSocialProfileOpenGraph = (
   traderName: string | undefined,
 ): SocialLinkOpenGraph | undefined => {
@@ -75,33 +62,38 @@ export const buildSocialProfileOpenGraph = (
   };
 };
 
-const positionDescriptionKey = ({
+const positionTitleKey = ({
   side,
+  isPerp,
   isClosed,
-}: Pick<SocialPositionShareContext, 'side' | 'isClosed'>): string => {
+}: Pick<
+  SocialPositionShareContext,
+  'side' | 'isPerp' | 'isClosed'
+>): string => {
   if (side === 'long') {
-    return isClosed
-      ? 'social_leaderboard.share_link.position_long_closed'
-      : 'social_leaderboard.share_link.position_long_open';
+    return 'social_leaderboard.share_link.position_longed';
   }
   if (side === 'short') {
-    return isClosed
-      ? 'social_leaderboard.share_link.position_short_closed'
-      : 'social_leaderboard.share_link.position_short_open';
+    return 'social_leaderboard.share_link.position_shorted';
+  }
+  if (isPerp) {
+    return 'social_leaderboard.share_link.position_traded';
   }
   return isClosed
-    ? 'social_leaderboard.share_link.position_spot_closed'
-    : 'social_leaderboard.share_link.position_spot_open';
+    ? 'social_leaderboard.share_link.position_sold'
+    : 'social_leaderboard.share_link.position_bought';
 };
 
 /**
- * Position preview copy. Names the trader and, when we have one, the asset
- * and whether the position is a long, a short, or a spot trade.
+ * Position preview copy: "<username> bought|sold|longed|shorted <asset>".
+ * Spot reads as bought while open and sold once closed; a perp reads as its
+ * side either way.
  */
 export const buildSocialPositionOpenGraph = ({
   traderName,
   assetSymbol,
   side,
+  isPerp = false,
   isClosed = false,
 }: SocialPositionShareContext): SocialLinkOpenGraph | undefined => {
   const trader = clipShareLabel(traderName, MAX_TRADER_NAME_LENGTH);
@@ -114,17 +106,18 @@ export const buildSocialPositionOpenGraph = ({
       title: strings('social_leaderboard.share_link.position_title_no_asset', {
         trader,
       }),
-      description: strings('social_leaderboard.share_link.position_no_asset', {
-        trader,
-      }),
+      description: strings(
+        'social_leaderboard.share_link.position_description_no_asset',
+        { trader },
+      ),
     };
   }
   return {
-    title: strings('social_leaderboard.share_link.position_title', {
+    title: strings(positionTitleKey({ side, isPerp, isClosed }), {
       trader,
       asset,
     }),
-    description: strings(positionDescriptionKey({ side, isClosed }), {
+    description: strings('social_leaderboard.share_link.position_description', {
       trader,
       asset,
     }),

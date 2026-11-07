@@ -485,12 +485,12 @@ const MyProfileView: React.FC = () => {
       buildSocialProfileOpenGraph(
         readTraderShareName(
           liveProfile.profile?.profile,
-          displayProfile?.displayName,
+          displayProfile?.handle,
         ),
       ),
     );
   }, [
-    displayProfile?.displayName,
+    displayProfile?.handle,
     liveProfile.profile?.profile,
     trackProfileShared,
     traderId,
@@ -518,9 +518,9 @@ const MyProfileView: React.FC = () => {
     shareSocialProfile(
       myProfile.profileId,
       trackProfileShared,
-      buildSocialProfileOpenGraph(myProfile.displayName),
+      buildSocialProfileOpenGraph(myProfile.handle),
     );
-  }, [myProfile?.displayName, myProfile?.profileId, trackProfileShared]);
+  }, [myProfile?.handle, myProfile?.profileId, trackProfileShared]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>

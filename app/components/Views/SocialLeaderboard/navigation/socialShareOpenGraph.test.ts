@@ -5,28 +5,23 @@ import {
 } from './socialShareOpenGraph';
 
 describe('readTraderShareName', () => {
-  it('prefers the public display name over the username', () => {
+  it('uses the username from the profile', () => {
     expect(
-      readTraderShareName(
-        { name: 'wen_silent_gecko', displayName: 'The OG Swiss Cheese' },
-        'wen_silent_gecko',
-      ),
-    ).toBe('The OG Swiss Cheese');
+      readTraderShareName({ name: 'wen_silent_gecko' }, 'The OG Swiss Cheese'),
+    ).toBe('wen_silent_gecko');
   });
 
-  it('falls back to the username, then the screen label', () => {
-    expect(readTraderShareName({ name: 'dip_spicy_maxi' })).toBe(
-      'dip_spicy_maxi',
-    );
-    expect(readTraderShareName(undefined, 'Ada')).toBe('Ada');
+  it('falls back to the screen label', () => {
+    expect(readTraderShareName({ name: '  ' }, 'Ada')).toBe('Ada');
+    expect(readTraderShareName(undefined, undefined)).toBe('');
   });
 });
 
 describe('buildSocialProfileOpenGraph', () => {
-  it('names the trader in a short title and description', () => {
-    expect(buildSocialProfileOpenGraph('Giga Whale')).toEqual({
-      title: 'Giga Whale on MetaMask',
-      description: 'Trades and posts from Giga Whale',
+  it('asks the reader to follow the trader', () => {
+    expect(buildSocialProfileOpenGraph('dip_spicy_maxi')).toEqual({
+      title: 'Follow dip_spicy_maxi on MetaMask Social',
+      description: 'Trades and posts from dip_spicy_maxi',
     });
   });
 
@@ -37,62 +32,40 @@ describe('buildSocialProfileOpenGraph', () => {
 
   it('clips a long trader name on a word boundary', () => {
     expect(
-      buildSocialProfileOpenGraph('Supercalifragilistic Expialidocious Whale'),
-    ).toEqual({
-      title: 'Supercalifragilistic on MetaMask',
-      description: 'Trades and posts from Supercalifragilistic',
-    });
+      buildSocialProfileOpenGraph('Supercalifragilistic Expialidocious Whale')
+        ?.title,
+    ).toBe('Follow Supercalifragilistic on MetaMask Social');
   });
 });
 
 describe('buildSocialPositionOpenGraph', () => {
-  it('names an open spot trade and its asset', () => {
+  it.each([
+    [{ isClosed: false }, 'trader1 bought PEPE'],
+    [{ isClosed: true }, 'trader1 sold PEPE'],
+    [{ isPerp: true, side: 'long' as const }, 'trader1 longed PEPE'],
+    [
+      { isPerp: true, side: 'long' as const, isClosed: true },
+      'trader1 longed PEPE',
+    ],
+    [{ isPerp: true, side: 'short' as const }, 'trader1 shorted PEPE'],
+    [{ isPerp: true, side: null }, 'trader1 traded PEPE'],
+  ])('titles %o as "%s"', (context, title) => {
     expect(
       buildSocialPositionOpenGraph({
         traderName: 'trader1',
         assetSymbol: 'PEPE',
+        ...context,
       }),
     ).toEqual({
-      title: "trader1's PEPE trade",
-      description: 'trader1 is trading PEPE',
-    });
-  });
-
-  it('names a closed short', () => {
-    expect(
-      buildSocialPositionOpenGraph({
-        traderName: 'Ada',
-        assetSymbol: 'ETH',
-        side: 'short',
-        isClosed: true,
-      }),
-    ).toEqual({
-      title: "Ada's ETH trade",
-      description: 'Ada closed their ETH short',
-    });
-  });
-
-  it('names an open long', () => {
-    expect(
-      buildSocialPositionOpenGraph({
-        traderName: 'Wen Cat',
-        assetSymbol: 'BTC',
-        side: 'long',
-      }),
-    ).toEqual({
-      title: "Wen Cat's BTC trade",
-      description: 'Wen Cat is long BTC',
+      title,
+      description: "See trader1's PEPE trade on MetaMask Social",
     });
   });
 
   it('still names the trader when the asset is missing', () => {
-    expect(
-      buildSocialPositionOpenGraph({
-        traderName: 'alpha.eth',
-      }),
-    ).toEqual({
-      title: "alpha.eth's trade",
-      description: 'A trade from alpha.eth',
+    expect(buildSocialPositionOpenGraph({ traderName: 'alpha.eth' })).toEqual({
+      title: 'A trade from alpha.eth',
+      description: "See alpha.eth's trade on MetaMask Social",
     });
   });
 });

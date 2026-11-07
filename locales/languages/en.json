@@ -1647,17 +1647,16 @@
     "follow": "Follow",
     "following": "Following",
     "share_link": {
-      "profile_title": "{{trader}} on MetaMask",
+      "profile_title": "Follow {{trader}} on MetaMask Social",
       "profile_description": "Trades and posts from {{trader}}",
-      "position_title": "{{trader}}'s {{asset}} trade",
-      "position_title_no_asset": "{{trader}}'s trade",
-      "position_spot_open": "{{trader}} is trading {{asset}}",
-      "position_spot_closed": "{{trader}} traded {{asset}}",
-      "position_long_open": "{{trader}} is long {{asset}}",
-      "position_short_open": "{{trader}} is short {{asset}}",
-      "position_long_closed": "{{trader}} closed their {{asset}} long",
-      "position_short_closed": "{{trader}} closed their {{asset}} short",
-      "position_no_asset": "A trade from {{trader}}"
+      "position_bought": "{{trader}} bought {{asset}}",
+      "position_sold": "{{trader}} sold {{asset}}",
+      "position_longed": "{{trader}} longed {{asset}}",
+      "position_shorted": "{{trader}} shorted {{asset}}",
+      "position_traded": "{{trader}} traded {{asset}}",
+      "position_title_no_asset": "A trade from {{trader}}",
+      "position_description": "See {{trader}}'s {{asset}} trade on MetaMask Social",
+      "position_description_no_asset": "See {{trader}}'s trade on MetaMask Social"
     },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
