@@ -933,6 +933,57 @@ describe('selectIsCardStateResolved', () => {
     });
     expect(selectIsCardStateResolved(state)).toBe(false);
   });
+
+  it('resolves a closed-only profile even when the selected account still has the label', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'closed',
+            linkedAccountRef: null,
+            closedReason: 'migrated',
+            migratedToProvider: 'immersve',
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+      },
+      undefined,
+      { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('stays unresolved for a labelled account until data is fetched while the flag is off', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardholderAccounts: ['eip155:0:0xabc'],
+      },
+      undefined,
+      { cardLinkApi: { enabled: false, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
 });
 
 const mockPrimaryAsset = {
