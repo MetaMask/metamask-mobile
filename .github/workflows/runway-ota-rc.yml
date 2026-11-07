@@ -54,6 +54,10 @@ jobs:
     needs: [resolve-context, validate-ota-pr]
     permissions:
       contents: read
+      # push-eas-update.yml always requests these on require-ci, including RC.
+      # A called workflow cannot elevate the caller's token.
+      checks: read
+      actions: read
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
