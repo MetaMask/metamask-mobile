@@ -1,4 +1,8 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  type MetamaskPaySolanaExecution,
+} from '@metamask/transaction-controller';
+import type { SolanaPaySupportDiagnostics } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../../../../reducers';
@@ -6,6 +10,7 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
 import { selectTransactionDataByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { selectConfirmationMetricsById } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { useMmPayFlagsDebug } from './useMmPayFlagsDebug';
+import Engine from '../../../../../../core/Engine';
 
 export interface MmPayDebugSection {
   key: string;
@@ -18,11 +23,28 @@ export interface MmPayDebugCopyAllPayload {
   transactionPay: unknown;
   mmPayFlags: unknown;
   transactionMetrics: unknown;
+  solanaPaySupportDiagnostics: SolanaPaySupportDiagnostics | undefined;
 }
 
 export interface MmPayDebugData {
   sections: MmPayDebugSection[];
   copyAllPayload: MmPayDebugCopyAllPayload;
+}
+
+interface SolanaPayDiagnosticsController {
+  getSolanaPaySupportDiagnostics: (
+    transactionId: string,
+  ) => SolanaPaySupportDiagnostics;
+}
+
+export function getSolanaPaySupportDiagnosticsForTransaction(
+  transactionId: string,
+  execution: MetamaskPaySolanaExecution | undefined,
+  controller: SolanaPayDiagnosticsController,
+): SolanaPaySupportDiagnostics | undefined {
+  return execution
+    ? controller.getSolanaPaySupportDiagnostics(transactionId)
+    : undefined;
 }
 
 export function useMmPayDebugData(): MmPayDebugData {
@@ -33,6 +55,12 @@ export function useMmPayDebugData(): MmPayDebugData {
   const transactionPay = useSelector((state: RootState) =>
     selectTransactionDataByTransactionId(state, txId),
   );
+  const solanaPaySupportDiagnostics =
+    getSolanaPaySupportDiagnosticsForTransaction(
+      txId,
+      transactionMeta?.metamaskPay?.solanaExecution,
+      Engine.context.TransactionPayController,
+    );
 
   const mmPayFlags = useMmPayFlagsDebug(transactionType);
 
@@ -41,6 +69,11 @@ export function useMmPayDebugData(): MmPayDebugData {
   );
 
   const sections: MmPayDebugSection[] = [
+    {
+      key: 'solanaPaySupportDiagnostics',
+      title: 'Solana Pay Support Diagnostics',
+      value: solanaPaySupportDiagnostics,
+    },
     {
       key: 'transactionPay',
       title: 'TransactionPay State',
@@ -64,6 +97,7 @@ export function useMmPayDebugData(): MmPayDebugData {
     transactionPay,
     mmPayFlags,
     transactionMetrics,
+    solanaPaySupportDiagnostics,
   };
 
   return { sections, copyAllPayload };
