@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { HttpError } from '@metamask/controller-utils';
 import {
   Box,
   BoxAlignItems,
@@ -39,10 +40,22 @@ export const VbaEmailAdapterSelectorsIDs = {
   RETRY_BUTTON: 'vba-email-adapter-retry-button',
 } as const;
 
+// `KycService` builds this message, including the request URL, for non-OK responses.
+const KYC_FETCH_ERROR_MESSAGE =
+  /Fetching 'https?:\/\/[^']+' failed with status '\d+'/u;
+
+const isKycHttpError = (error: unknown): boolean =>
+  error instanceof HttpError ||
+  (error instanceof Error && KYC_FETCH_ERROR_MESSAGE.test(error.message));
+
 const getVerificationErrorMessage = (error: unknown): string => {
   const code = getMfaErrorCode(error);
   if (code) {
     return getErrorMessage(code as MfaFlowErrorCode);
+  }
+
+  if (isKycHttpError(error)) {
+    return strings('virtual_bank_account.kyc_email.http_error');
   }
 
   if (error instanceof Error && error.message) {
