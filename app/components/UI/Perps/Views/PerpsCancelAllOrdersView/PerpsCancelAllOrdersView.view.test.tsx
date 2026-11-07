@@ -556,9 +556,14 @@ describe('PerpsCancelAllOrdersView', () => {
       });
 
       fireEvent.press(
-        await screen.findByText(strings('perps.cancel_all_modal.confirm')),
+        await screen.findByTestId(
+          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+        ),
       );
 
+      expect(strings('watch_only.blocked_message')).not.toMatch(
+        /\[missing ".*" translation\]/,
+      );
       expect(
         await screen.findByText(strings('watch_only.blocked_message')),
       ).toBeOnTheScreen();
