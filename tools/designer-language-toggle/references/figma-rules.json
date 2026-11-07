@@ -68,5 +68,23 @@
   "buttonMaxPx": 120,
   "buttonMaxCharacters": 10,
   "chunkAfterChildren": 8,
-  "chunkSize": 5
+  "chunkSize": 5,
+  "contextHints": {
+    "predict": ["predict", "kalshi"],
+    "perps": ["perps", "perpetual"]
+  },
+  "dataTokens": [
+    { "name": "name", "pattern": "<[^>\\n]+>" },
+    { "name": "price", "pattern": "\\$\\s?\\d[\\d,]*(?:\\.\\d+)?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢" },
+    { "name": "pct", "pattern": "\\d[\\d,]*(?:\\.\\d+)?\\s?%" },
+    { "name": "mult", "pattern": "\\b\\d+(?:\\.\\d+)?x\\b" },
+    { "name": "points", "pattern": "\\b\\d+\\+\\s*(?:points|goals)\\b" },
+    { "name": "ou", "pattern": "\\b[OU]\\s+\\d+(?:\\.\\d+)?\\b" },
+    { "name": "range", "pattern": "\\b\\d+\\s*[-\\u2013]\\s*\\d+\\b" },
+    { "name": "clock", "pattern": "\\b\\d{1,2}:\\d{2}\\b" },
+    { "name": "date", "pattern": "\\b\\d{4}-\\d{2}-\\d{2}\\b|\\b\\d{1,2}/\\d{1,2}\\b|\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}\\b" },
+    { "name": "minutes", "pattern": "\\b\\d+'" },
+    { "name": "odds", "pattern": "(?<![\\p{L}\\p{N}])[+\\-]\\d{2,4}\\b" },
+    { "name": "decimal", "pattern": "\\b\\d+\\.\\d+\\b" }
+  ]
 }

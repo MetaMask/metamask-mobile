@@ -841,6 +841,203 @@ function testClassificationFixes() {
   assert(learnedCap.maxCharacters === 12 && learnedCap.status === 'over', 'a learned limit overrides the measured width');
 }
 
+function testReportGaps() {
+  const figma = require('../lib/figma-adapter');
+  const { classifyRecord } = require('../lib/file-adapter');
+  const { buildBreakReport } = require('../lib/figma-report');
+  const rules = figma.loadRules(
+    path.join(lib.findRepoRoot(), 'tools/designer-language-toggle/references/figma-rules.json'),
+  );
+  const limits = lib.loadLimits(lib.defaultLimitsPath());
+  const node = (text, frame, extra) => figma.classifyTextNode({
+    id: text,
+    layer_name: 'Label',
+    frame_path: frame,
+    text,
+    width: 80,
+    visible: true,
+    ...(extra || {}),
+  }, rules);
+  const buy = node('Buy 54¢', 'Predict / Buttons / Frame 1');
+  assert(buy.kind === 'button', 'Buy 54¢ stays a button');
+  assert(buy.template === 'Buy {price}', 'price is split out of the copy');
+  assert(buy.example === 'Buy 54¢', 'the example keeps the original price');
+  assert(buy.copyText === 'Buy', 'the copy word is Buy');
+  const outcome = node('<Name> 81%', 'Predict / Market');
+  assert(outcome.kind === 'label', 'a name and percent stay a label');
+  assert(outcome.template === '{name} {pct}', 'the outcome becomes a template');
+  assert(node('.', 'Board').kind === 'number_or_data', 'lone punctuation is data');
+  assert(node('40x', 'Board').kind === 'number_or_data', 'a multiplier token is data');
+
+  const buyRow = classifyRecord({
+    id: 'buy',
+    key: 'buy',
+    source_text: 'Buy 54¢',
+    context: {
+      kind: 'button',
+      width_px: 80,
+      component: 'Buy 54¢',
+      screen: 'Predict / Buttons / Frame 1',
+      template: buy.template,
+      example: buy.example,
+      copyText: buy.copyText,
+      dataCharacters: buy.dataCharacters,
+      gapCharacters: buy.gapCharacters,
+    },
+  }, limits);
+  const buyReport = buildBreakReport([buyRow], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: { 'predict.trade.buy': 'Buy' },
+      de: { 'predict.trade.buy': 'Einkaufen' },
+    },
+  });
+  assert(buyReport.breaks.length === 1, 'Buy plus an unchanged price can miss a 10 character control');
+  assert(buyReport.breaks[0].template === 'Buy {price}', 'the break shows the template');
+  assert(buyReport.breaks[0].example === 'Buy 54¢', 'the break keeps the example');
+  assert(buyReport.breaks[0].chosenKey === 'predict.trade.buy', 'the Buy key is the one that matched');
+  assert(buyReport.breaks[0].real.perLang.de.characters > 10, 'the price length counts toward the total');
+
+  const balance = classifyRecord({
+    id: 'balance',
+    key: 'balance',
+    source_text: 'Available balance',
+    context: {
+      kind: 'label',
+      width_px: 117,
+      component: 'Label',
+      screen: 'Wallet / Card',
+    },
+  }, limits);
+  assert(balance.status === 'ok' && balance.maxUnits > balance.characters, 'a 117px label gets a width budget and the English fits');
+  assert(balance.assumption && /single line/.test(balance.assumption), 'missing auto-resize is called an assumption');
+  const wrapped = classifyRecord({
+    id: 'balance-wrap',
+    key: 'balance-wrap',
+    source_text: 'Available balance',
+    context: {
+      kind: 'label',
+      width_px: 117,
+      height: 20,
+      lineHeightPx: 20,
+      textAutoResize: 'HEIGHT',
+      component: 'Label',
+      screen: 'Wallet / Card',
+    },
+  }, limits);
+  assert(wrapped.layout === 'wrap' && !wrapped.assumption, 'HEIGHT text is allowed to wrap');
+  const fixed = classifyRecord({
+    id: 'balance-fixed',
+    key: 'balance-fixed',
+    source_text: 'Available balance',
+    context: {
+      kind: 'label',
+      width_px: 117,
+      textAutoResize: 'WIDTH_AND_HEIGHT',
+      component: 'Label',
+      screen: 'Wallet / Card',
+    },
+  }, limits);
+  assert(fixed.layout === 'overflow' && !fixed.assumption, 'WIDTH_AND_HEIGHT can overflow');
+  const longLabel = 'A'.repeat(40);
+  const labelReport = buildBreakReport([balance, wrapped], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: { 'wallet.balance': 'Available balance' },
+      de: { 'wallet.balance': longLabel },
+    },
+  });
+  assert(labelReport.breaks.length === 0, 'label overflows stay out of the control breaks');
+  assert(labelReport.labels.length === 2, 'both labels are reported on their own');
+  assert(labelReport.labels.some((row) => row.issue === 'overflow' && row.assumption), 'a fixed label overflows');
+  assert(labelReport.labels.some((row) => row.issue === 'wrap' && row.layout === 'wrap'), 'auto-height text is reported as wrap');
+
+  const ambiguous = classifyRecord({
+    id: 'ambiguous',
+    key: 'ambiguous',
+    source_text: 'Buy',
+    context: { kind: 'button', width_px: 70, component: 'Buy', screen: 'Home / Buttons' },
+  }, limits);
+  const shared = {
+    en: { 'perps.buy': 'Buy', 'predict.trade.buy': 'Buy', 'other.buy': 'Buy' },
+    de: { 'perps.buy': 'Kauf', 'predict.trade.buy': 'Einkaufen', 'other.buy': 'Bitte kaufen sie jetzt' },
+  };
+  const ranged = buildBreakReport([ambiguous], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: shared,
+  });
+  assert(ranged.breaks.length === 0, 'a short translation keeps an ambiguous string out of the hard breaks');
+  assert(ranged.mightBreak.length === 1, 'differing translations are might-break');
+  assert(ranged.mightBreak[0].real.perLang.de.basis === 'range', 'the report shows a range');
+  assert(ranged.mightBreak[0].real.perLang.de.keyCount === 3, 'all three keys are counted');
+  assert(ranged.mightBreak[0].real.perLang.de.minCharacters === 4, 'the range starts at the shortest');
+  assert(ranged.mightBreak[0].chosenKey === null, 'no single key is chosen when they disagree');
+  const picked = buildBreakReport([ambiguous], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    context: 'predict',
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: shared.en,
+      de: { 'perps.buy': 'Kauf', 'predict.trade.buy': 'Bitte kaufen', 'other.buy': 'Kauf' },
+    },
+  });
+  assert(picked.breaks.length === 1 && picked.breaks[0].chosenKey === 'predict.trade.buy', 'context picks the predict key');
+  const allOver = buildBreakReport([ambiguous], {
+    langs: ['de'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: shared.en,
+      de: { 'perps.buy': 'Einkaufen!!', 'predict.trade.buy': 'Bitte kaufen', 'other.buy': 'Bitte kaufen sie jetzt' },
+    },
+  });
+  assert(allOver.breaks.length === 1 && allOver.mightBreak.length === 0, 'a break is reported when the shortest translation is over');
+
+  const yes = classifyRecord({
+    id: 'yes',
+    key: 'yes',
+    source_text: 'Yes',
+    context: { kind: 'button', width_px: 40, component: 'Yes', screen: 'Home / Buttons' },
+  }, limits);
+  const missing = buildBreakReport([yes], {
+    langs: ['de', 'ja'],
+    ratio: limits.ratio,
+    contextHints: rules.contextHints,
+    sharedFlats: {
+      en: { 'sample.yes': 'Yes' },
+      de: { 'sample.yes': 'Ja!' },
+    },
+  });
+  assert(missing.fits.length === 1, 'a short control with one fitting translation still fits');
+  assert(missing.fits[0].real.perLang.ja.basis === 'estimate', 'a missing language falls back to an estimate');
+  assert(missing.fits[0].real.perLang.ja.missing === true, 'the estimate is marked missing');
+  assert(missing.fits[0].real.perLang.ja.key === 'sample.yes', 'the estimate keeps the matched key');
+  assert(missing.fits[0].real.perLang.de.text === 'Ja!', 'the shipped language is still shown');
+
+  const collected = [];
+  figma.collectTextNodes({
+    type: 'FRAME',
+    name: 'Card',
+    children: [{
+      type: 'TEXT',
+      id: '9:9',
+      name: 'Label',
+      characters: 'Available balance',
+      absoluteBoundingBox: { width: 117, height: 20 },
+      style: { textAutoResize: 'HEIGHT', fontSize: 14, lineHeightPx: 20 },
+    }],
+  }, [], false, collected);
+  assert(collected[0].textAutoResize === 'HEIGHT', 'text auto-resize is read from the REST style');
+  assert(collected[0].lineHeightPx === 20, 'line height is read from the REST style');
+}
+
 function checkerCount(value) {
   return require('../lib/checker').characterCount(value);
 }
@@ -859,6 +1056,7 @@ function main() {
   testPerpsRegression();
   testFileAdapterAndLearned();
   testClassificationFixes();
+  testReportGaps();
   return testFigmaAdapter().then(() => {
   if (failures > 0) {
     console.error(`${failures} failed`);

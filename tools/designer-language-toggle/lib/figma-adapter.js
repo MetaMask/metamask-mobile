@@ -77,7 +77,30 @@ const DEFAULT_RULES = {
   buttonMaxCharacters: 10,
   chunkAfterChildren: 8,
   chunkSize: 5,
+  contextHints: {
+    predict: ['predict', 'kalshi'],
+    perps: ['perps', 'perpetual'],
+  },
+  dataTokens: [
+    { name: 'name', pattern: '<[^>\\n]+>' },
+    { name: 'price', pattern: '\\$\\s?\\d[\\d,]*(?:\\.\\d+)?|\\d[\\d,]*(?:\\.\\d+)?\\s?¢' },
+    { name: 'pct', pattern: '\\d[\\d,]*(?:\\.\\d+)?\\s?%' },
+    { name: 'mult', pattern: '\\b\\d+(?:\\.\\d+)?x\\b' },
+    { name: 'points', pattern: '\\b\\d+\\+\\s*(?:points|goals)\\b' },
+    { name: 'ou', pattern: '\\b[OU]\\s+\\d+(?:\\.\\d+)?\\b' },
+    { name: 'range', pattern: '\\b\\d+\\s*[-\\u2013]\\s*\\d+\\b' },
+    { name: 'clock', pattern: '\\b\\d{1,2}:\\d{2}\\b' },
+    { name: 'date', pattern: '\\b\\d{4}-\\d{2}-\\d{2}\\b|\\b\\d{1,2}/\\d{1,2}\\b|\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}\\b' },
+    { name: 'minutes', pattern: "\\b\\d+'" },
+    { name: 'odds', pattern: '(?<![\\p{L}\\p{N}])[+\\-]\\d{2,4}\\b' },
+    { name: 'decimal', pattern: '\\b\\d+\\.\\d+\\b' },
+  ],
 };
+
+const DATA_GLUE = new Set([
+  'by', 'to', 'vs', 'at', 'o', 'u', 'over', 'under', 'from',
+  'am', 'pm', 'et', 'pt', 'ct', 'mt', 'utc',
+]);
 
 function parseFigmaUrl(input) {
   let url;
@@ -183,10 +206,101 @@ function compilePatterns(rules) {
     });
 }
 
-function isDataText(text, patterns) {
+function substantiveCopy(copyText) {
+  const words = String(copyText || '').match(/\p{L}+/gu) || [];
+  return words.some((word) => word.length >= 2 && !DATA_GLUE.has(word.toLowerCase()));
+}
+
+function tokenSpecs(rules) {
+  const list = (rules && rules.dataTokens) || DEFAULT_RULES.dataTokens;
+  return list.map((item) => ({
+    name: item.name,
+    pattern: new RegExp(item.pattern, 'giu'),
+  }));
+}
+
+function splitCopyAndData(text, rules) {
+  const source = String(text || '');
+  const hits = [];
+  tokenSpecs(rules).forEach((spec) => {
+    spec.pattern.lastIndex = 0;
+    let match = spec.pattern.exec(source);
+    while (match) {
+      if (match[0].length > 0) {
+        hits.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          name: spec.name,
+          value: match[0],
+        });
+      } else {
+        spec.pattern.lastIndex += 1;
+      }
+      match = spec.pattern.exec(source);
+    }
+  });
+  hits.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const taken = [];
+  hits.forEach((hit) => {
+    if (taken.some((item) => hit.start < item.end && hit.end > item.start)) return;
+    taken.push(hit);
+  });
+  taken.sort((a, b) => a.start - b.start);
+  let template = '';
+  let copy = '';
+  let cursor = 0;
+  let dataCharacters = 0;
+  let gapCharacters = 0;
+  taken.forEach((hit) => {
+    const between = source.slice(cursor, hit.start);
+    template += between;
+    for (const char of between) {
+      if (/\s/u.test(char)) gapCharacters += 1;
+      else copy += char;
+    }
+    template += `{${hit.name}}`;
+    dataCharacters += checker.characterCount(hit.value);
+    cursor = hit.end;
+  });
+  const tail = source.slice(cursor);
+  template += tail;
+  for (const char of tail) {
+    if (/\s/u.test(char)) gapCharacters += 1;
+    else copy += char;
+  }
+  return {
+    template: template.replace(/\s+/g, ' ').trim(),
+    copyText: copy.replace(/\s+/g, ' ').trim(),
+    tokens: taken,
+    dataCharacters,
+    gapCharacters,
+    hasName: taken.some((token) => token.name === 'name'),
+  };
+}
+
+function matchesEntireText(value, patterns) {
+  return patterns.some((pattern) => {
+    pattern.lastIndex = 0;
+    const match = pattern.exec(value);
+    return Boolean(match) && match.index === 0 && match[0] === value;
+  });
+}
+
+function isPureData(text, rules) {
   const value = String(text || '').trim();
   if (!value) return true;
-  return patterns.some((pattern) => pattern.test(value));
+  if (/^[^\p{L}\p{N}]+$/u.test(value)) return true;
+  if (/^\d+(?:\.\d+)?x$/i.test(value)) return true;
+  const patterns = rules._compiledPatterns || compilePatterns(rules);
+  if (matchesEntireText(value, patterns)) return true;
+  const split = rules._split || splitCopyAndData(value, rules);
+  if (split.hasName) return false;
+  if (substantiveCopy(split.copyText)) return false;
+  if (split.tokens.length > 0) return true;
+  return patterns.some((pattern) => {
+    pattern.lastIndex = 0;
+    return pattern.test(value);
+  });
 }
 
 function tokenize(value) {
@@ -261,7 +375,8 @@ function classifyTextNode(node, rules) {
     return { ...node, kind: 'placeholder_or_annotation', chars: checker.characterCount(text) };
   }
   const patterns = node._compiledPatterns || compilePatterns(rules);
-  if (!forced && isDataText(text, patterns)) {
+  const split = splitCopyAndData(text, { ...rules, _compiledPatterns: patterns });
+  if (!forced && isPureData(text, { ...rules, _compiledPatterns: patterns, _split: split })) {
     return { ...node, kind: 'number_or_data', chars: checker.characterCount(text) };
   }
   const marker = String(rules.buttonMarker || '[button]').toLowerCase();
@@ -282,7 +397,17 @@ function classifyTextNode(node, rules) {
   } else if (checker.characterCount(text) > 25) {
     kind = 'body';
   }
-  return { ...node, kind, chars: checker.characterCount(text) };
+  const mixed = split.tokens.length > 0;
+  return {
+    ...node,
+    kind,
+    chars: checker.characterCount(text),
+    template: mixed ? split.template : null,
+    example: mixed ? text : null,
+    copyText: mixed ? split.copyText : '',
+    dataCharacters: mixed ? split.dataCharacters : 0,
+    gapCharacters: mixed ? split.gapCharacters : 0,
+  };
 }
 
 function collectTextNodes(node, ancestors, ancestorHidden, out) {
@@ -291,6 +416,8 @@ function collectTextNodes(node, ancestors, ancestorHidden, out) {
   const hidden = ancestorHidden || node.visible === false;
   if (node.type === 'TEXT') {
     const box = node.absoluteBoundingBox || {};
+    const style = node.style || {};
+    const textAutoResize = node.textAutoResize || node.textAutoResizing || style.textAutoResize || style.textAutoResizing || null;
     out.push({
       id: node.id || '',
       layer_name: name,
@@ -299,6 +426,9 @@ function collectTextNodes(node, ancestors, ancestorHidden, out) {
       chars: checker.characterCount(node.characters || ''),
       width: typeof box.width === 'number' ? box.width : null,
       height: typeof box.height === 'number' ? box.height : null,
+      textAutoResize,
+      lineHeightPx: typeof style.lineHeightPx === 'number' ? style.lineHeightPx : null,
+      fontSize: typeof style.fontSize === 'number' ? style.fontSize : null,
       visible: !hidden,
     });
     return;
@@ -388,6 +518,7 @@ function loadRules(filePath) {
     button: { ...DEFAULT_RULES.button, ...(parsed.button || {}) },
     title: { ...DEFAULT_RULES.title, ...(parsed.title || {}) },
     navTitle: { ...DEFAULT_RULES.navTitle, ...(parsed.navTitle || {}) },
+    contextHints: { ...DEFAULT_RULES.contextHints, ...(parsed.contextHints || {}) },
   };
 }
 
@@ -398,6 +529,7 @@ module.exports = {
   missingTokenMessage,
   hasPrivateUseGlyph,
   classifyTextNode,
+  splitCopyAndData,
   collectTextNodes,
   loadTextNodes,
   cachePath,

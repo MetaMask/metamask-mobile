@@ -23,6 +23,8 @@ Options
   --lang de,ja          One or more shipped languages. Real translations are shown when the English already ships.
   --pseudo              Accent and pad the English. Labeled pseudo. Not a translation.
   --json                Print one JSON object. --format json does the same.
+  --context predict,perps
+                        Prefer shipped keys in these features when one English string matches several.
   --root <path>         Repo root
 
 The read stays in tools/designer-language-toggle/.cache/figma/ and is gitignored.
@@ -44,7 +46,25 @@ function parseLangs(value) {
 
 function lineFor(row) {
   const screens = (row.screens || []).slice(0, 4).join(', ');
-  return `  ${JSON.stringify(row.source)}  ${row.characters} characters, ${row.width_px === null ? 'no width' : `${row.width_px}px`}${screens ? `, ${screens}` : ''}`;
+  const shown = row.template
+    ? `${row.template}  example ${JSON.stringify(row.example)}`
+    : JSON.stringify(row.source);
+  const key = row.chosenKey ? `  key ${row.chosenKey}` : '';
+  return `  ${shown}  ${row.characters} characters, ${row.width_px === null ? 'no width' : `${row.width_px}px`}${screens ? `, ${screens}` : ''}${key}`;
+}
+
+function printLang(lang, item) {
+  if (!item) return;
+  if (item.basis === 'estimate') {
+    console.log(`    ${lang} estimate ${item.characters} (no shipped translation${item.key ? `, key ${item.key}` : ''})`);
+    return;
+  }
+  if (item.basis === 'range') {
+    console.log(`    ${lang} ${item.minCharacters}–${item.maxCharacters} across ${item.keyCount} keys`);
+    return;
+  }
+  const mark = item.over10 ? ' over 10' : '';
+  console.log(`    ${lang} ${JSON.stringify(item.text)} (${item.characters}${mark}${item.key ? `, key ${item.key}` : ''})`);
 }
 
 function printReport(report, langs) {
@@ -58,11 +78,25 @@ function printReport(report, langs) {
   if (report.breaks.length === 0) console.log('  None.');
   report.breaks.slice(0, 20).forEach((row) => {
     console.log(lineFor(row));
-    langs.forEach((lang) => {
-      const item = row.real && row.real.perLang[lang];
-      if (!item) return;
-      const mark = item.over10 ? ' over 10' : '';
-      console.log(`    ${lang} ${JSON.stringify(item.text)} (${item.characters}${mark})`);
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang]));
+  });
+  console.log('');
+  console.log(`Might break (${report.mightBreak.length})`);
+  if (report.mightBreak.length === 0) console.log('  None.');
+  else console.log('  Some shipped translations fit and some do not. The shortest one still fits.');
+  report.mightBreak.slice(0, 20).forEach((row) => {
+    console.log(lineFor(row));
+    langs.forEach((lang) => printLang(lang, row.real && row.real.perLang[lang]));
+  });
+  console.log('');
+  console.log(`Labels that will overflow or wrap (${report.labels.length})`);
+  if (report.labels.length === 0) console.log('  None.');
+  report.labels.slice(0, 20).forEach((row) => {
+    const assumed = row.assumption ? `  ${row.assumption}` : '';
+    console.log(`${lineFor(row)}  ${row.issue}${assumed}`);
+    (row.problems || []).forEach((item) => {
+      const how = item.basis === 'estimate' ? 'estimate' : item.basis === 'range' ? `${item.minCharacters}–${item.maxCharacters}` : JSON.stringify(item.text);
+      console.log(`    ${item.lang} ${item.issue}  ${how}${item.key ? `  key ${item.key}` : ''}`);
     });
   });
   console.log('');
@@ -110,7 +144,13 @@ async function main() {
     ratio: args.ratio ? Number(args.ratio) : limits.ratio,
   });
   const shared = lib.loadShippedFlats(root);
-  const report = buildBreakReport(checked.lengths, { langs, sharedFlats: shared });
+  const report = buildBreakReport(checked.lengths, {
+    langs,
+    sharedFlats: shared,
+    context: args.context || '',
+    contextHints: rules.contextHints || {},
+    ratio: args.ratio ? Number(args.ratio) : limits.ratio,
+  });
   if (wantJson) {
     console.log(JSON.stringify({
       fileKey: parsed.fileKey,
@@ -120,6 +160,8 @@ async function main() {
       unique: checked.unique,
       alreadyOver: report.alreadyOver,
       breaks: report.breaks,
+      mightBreak: report.mightBreak,
+      labels: report.labels,
       atRisk: report.atRisk,
       fits: report.fits.length,
       pseudo: checked.pseudo

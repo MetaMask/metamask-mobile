@@ -1,5 +1,9 @@
 # Changelog
 
+- Mixed copy such as `Buy 54¢` and `<Name> 81%` is checked as a template plus data tokens. Only a purely data string is skipped. Lone punctuation and multipliers such as `40x` are data.
+- Labels get a width budget. HEIGHT text is judged by its line count, and a fixed or WIDTH_AND_HEIGHT label can overflow. Missing auto-resize is an explicit single-line assumption. Label problems are reported separately from control breaks.
+- When one English string matches several shipped keys, frame names and `--context` prefer a feature from `contextHints`. Otherwise the report shows the min-to-max range. A break requires the shortest translation to be over. A missing language falls back to the estimate. `--json` includes the chosen key.
+
 - Control names match as tokens, including plurals and camelCase. Buttons, Button Group, PrimaryButton, CTA, CTAs, Actions, Tabs, Chips, Pills, and Segmented count. Buttonhole and Table do not. The list is `controlAncestors` and `tabAncestors` in `references/figma-rules.json`.
 - Controls wider than 120px no longer use a flat 10-character limit. The budget comes from the measured width and the English string's display width, plus the checker's 1.4× and 4-unit headroom. English that fits the box is not already over. A longer translation is flagged when it exceeds that width. `[max:N]` on the layer name, or `maxCharacters` in `references/learned/limits.json`, overrides the budget.
 

@@ -100,13 +100,14 @@ function readDesignFile(filePath) {
   throw new Error('Design files must be .csv or .json.');
 }
 
-function numericWidth(row) {
-  const raw = row.width_px !== undefined && row.width_px !== null && row.width_px !== ''
-    ? row.width_px
-    : row.width;
-  if (raw === undefined || raw === null || raw === '') return null;
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
+function numericField(row, names) {
+  for (let index = 0; index < names.length; index += 1) {
+    const raw = row[names[index]];
+    if (raw === undefined || raw === null || raw === '') continue;
+    const value = Number(raw);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
 }
 
 function screenLabel(framePath) {
@@ -125,7 +126,7 @@ function toStringRecord(row) {
   if (!id) {
     throw new Error('Each design row needs an id.');
   }
-  const width = numericWidth(row);
+  const width = numericField(row, ['width_px', 'width']);
   return {
     id,
     key: id,
@@ -137,6 +138,15 @@ function toStringRecord(row) {
       component: row.layer_name || row.component || '',
       kind: row.kind || '',
       width_px: width,
+      height: numericField(row, ['height']),
+      textAutoResize: row.textAutoResize || row.textAutoResizing || null,
+      lineHeightPx: numericField(row, ['lineHeightPx', 'line_height_px']),
+      fontSize: numericField(row, ['fontSize', 'font_size']),
+      template: row.template || null,
+      example: row.example || null,
+      copyText: row.copyText || '',
+      dataCharacters: Number(row.dataCharacters) || 0,
+      gapCharacters: Number(row.gapCharacters) || 0,
       visible: row.visible !== false,
     },
   };
@@ -223,6 +233,24 @@ function exceedsBudget(text, maxCharacters, maxUnits) {
   return checker.characterCount(text) > maxCharacters;
 }
 
+function labelLayout(row) {
+  const mode = String(row.context.textAutoResize || '').toUpperCase();
+  const height = row.context.height;
+  const lineHeight = row.context.lineHeightPx || (row.context.fontSize ? row.context.fontSize * 1.2 : null);
+  const measuredLines = lineHeight && height ? Math.max(1, Math.round(height / lineHeight)) : null;
+  if (mode === 'HEIGHT') {
+    return { layout: 'wrap', lineCount: measuredLines || 1, assumption: null };
+  }
+  if (mode === 'NONE' || mode === 'WIDTH_AND_HEIGHT' || mode === 'TRUNCATE') {
+    return { layout: 'overflow', lineCount: 1, assumption: null };
+  }
+  return {
+    layout: 'overflow',
+    lineCount: 1,
+    assumption: 'Assumed single line. Figma did not say whether this text wraps.',
+  };
+}
+
 function classifyRecord(row, limits, learned) {
   const source = row.source_text || '';
   const characters = checker.characterCount(source);
@@ -230,11 +258,16 @@ function classifyRecord(row, limits, learned) {
   const named = limits && limits.keys && limits.keys[row.key];
   const longText = characters > WRAP_MIN_CHARACTERS;
   const control = row.context.kind === 'button' || row.context.kind === 'tab';
+  const explicitLabel = row.context.kind === 'label' || row.context.kind === 'title';
+  const labelLike = !control && (explicitLabel || (row.context.kind === '' && !longText));
   const override = taggedMax(row.context.component) ?? learnedMax(row, learned) ?? (named ? named.maxCharacters : null);
   let maxCharacters = override;
   let maxUnits = null;
   let status = 'no-limit';
   let bucket = 'label';
+  let layout = null;
+  let lineCount = null;
+  let assumption = null;
   if (control) {
     if (override === null) {
       const narrow = typeof width !== 'number' || width <= BUTTON_MAX_PX;
@@ -247,6 +280,18 @@ function classifyRecord(row, limits, learned) {
     }
     status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
     bucket = row.context.kind === 'tab' ? 'tab' : 'button';
+  } else if (labelLike && typeof width === 'number') {
+    const info = labelLayout(row);
+    layout = info.layout;
+    lineCount = info.lineCount;
+    assumption = info.assumption;
+    if (override === null) {
+      const budget = wideBudget(source, width, limits);
+      maxCharacters = budget.maxCharacters;
+      maxUnits = budget.maxUnits;
+    }
+    status = exceedsBudget(source, maxCharacters, maxUnits) ? 'over' : 'ok';
+    bucket = 'label';
   } else if (longText || (typeof width === 'number' && width > BUTTON_MAX_PX)) {
     status = 'check-wrapping';
     bucket = 'wrap';
@@ -268,6 +313,15 @@ function classifyRecord(row, limits, learned) {
     maxUnits,
     status,
     bucket,
+    layout,
+    lineCount,
+    assumption,
+    template: row.context.template || null,
+    example: row.context.example || null,
+    copyText: row.context.copyText || '',
+    dataCharacters: row.context.dataCharacters || 0,
+    gapCharacters: row.context.gapCharacters || 0,
+    framePath: row.context.screen || '',
     occurrences: row.occurrences || 1,
     screens: row.context.screens || [screenLabel(row.context.screen)].filter(Boolean),
     component: row.context.component,
