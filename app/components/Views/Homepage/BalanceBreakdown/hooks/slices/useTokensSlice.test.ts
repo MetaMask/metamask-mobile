@@ -63,7 +63,30 @@ describe('useTokensSlice', () => {
     });
   });
 
-  it('stays loading until the account-group balance is fetched', () => {
+  it('uses a positive cached balance while account-group assets refresh', () => {
+    mockUseAccountGroupBalanceFetchState.mockReturnValue(false);
+
+    const { result } = renderHook(() => useTokensSlice());
+
+    expect(result.current.status).toBe('ready');
+    expect(result.current.valueFiat).toBe(125);
+    expect(result.current.delta).toEqual({ amount: 5, percent: 0.04 });
+  });
+
+  it('stays loading for a zero balance until account-group assets are fetched', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === mockBalanceSelector) {
+        return {
+          totalBalanceInUserCurrency: 0,
+          userCurrency: 'USD',
+        };
+      }
+      if (selector === mockBalanceChangeSelector) {
+        return undefined;
+      }
+      if (selector === mockEmptyStateSelector) return 0;
+      return undefined;
+    });
     mockUseAccountGroupBalanceFetchState.mockReturnValue(false);
 
     const { result } = renderHook(() => useTokensSlice());

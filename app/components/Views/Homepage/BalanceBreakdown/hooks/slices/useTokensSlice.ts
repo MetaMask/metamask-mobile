@@ -30,7 +30,11 @@ export function useTokensSlice(): BalanceSlice {
   const balanceChange1d = useSelector(balanceChangeSelector);
   const hasBalanceFetched = useAccountGroupBalanceFetchState();
 
-  const status = !groupBalance || !hasBalanceFetched ? 'loading' : 'ready';
+  const hasCachedBalance = (groupBalance?.totalBalanceInUserCurrency ?? 0) > 0;
+  const status =
+    !groupBalance || (!hasBalanceFetched && !hasCachedBalance)
+      ? 'loading'
+      : 'ready';
   const valueFiat =
     status === 'ready' ? (groupBalance?.totalBalanceInUserCurrency ?? 0) : 0;
 
