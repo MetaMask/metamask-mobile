@@ -254,7 +254,11 @@ export function toSocialV1FeedItem(
   const base = {
     id: item.id,
     author,
-    timestamp: item.timestamp,
+    // A comment card is a post made when the comment was written, which can be
+    // long after the trade it is about.
+    timestamp: authorComment
+      ? tradeTimestampToMs(authorComment.timestamp)
+      : item.timestamp,
     asset: {
       symbol: displaySymbol,
       ...(assetName ? { name: assetName } : {}),
