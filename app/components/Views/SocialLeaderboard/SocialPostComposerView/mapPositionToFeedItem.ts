@@ -71,8 +71,29 @@ const earliestTradeTimestamp = (position: Position): number => {
   );
 };
 
+/**
+ * When an open hold started. `firstTradeAt` is the position row's first fill,
+ * so it stays right when the loaded trades are truncated or empty. The fills
+ * are the fallback for payloads that predate that field.
+ */
+const openHoldStart = (position: Position): number => {
+  const firstTradeAt = (
+    position as Position & { firstTradeAt?: number | null }
+  ).firstTradeAt;
+  if (
+    typeof firstTradeAt === 'number' &&
+    Number.isFinite(firstTradeAt) &&
+    firstTradeAt > 0
+  ) {
+    return firstTradeAt;
+  }
+  return earliestTradeTimestamp(position);
+};
+
 const holdTimeLabel = (position: Position, isClosed: boolean): string => {
-  const start = earliestTradeTimestamp(position);
+  const start = isClosed
+    ? earliestTradeTimestamp(position)
+    : openHoldStart(position);
   const end = isClosed
     ? position.lastTradeAt
     : Math.max(tradeTimestampToMs(position.lastTradeAt), Date.now());
@@ -204,6 +225,7 @@ export const mapPositionToFeedItem = (
       markPriceLabel: markPriceLabel(position),
       leverageLabel: leverageLabel(position),
       entryPriceLabel: entryPriceLabel(position),
+      holdTimeLabel: holdTimeLabel(position, false),
       valueLabel: formatUsd(position.currentValueUSD ?? null),
       pnlLabel,
       pnlValueLabel: pnlValueLabel(position),
