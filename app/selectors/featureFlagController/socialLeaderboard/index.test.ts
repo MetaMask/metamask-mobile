@@ -1,6 +1,7 @@
 import {
   selectAiSocialAusCacheRefreshEnabled,
   selectAiSocialLeaderboardOnboardingEnabled,
+  selectAiSocialShareOgImagesEnabled,
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardOptFlowEnabled,
   selectSocialLeaderboardPerpsEnabled,
@@ -269,6 +270,56 @@ describe('selectAiSocialLeaderboardOnboardingEnabled', () => {
     });
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectAiSocialShareOgImagesEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when the remote flag is enabled and the version is met', () => {
+    expect(
+      selectAiSocialShareOgImagesEnabled.resultFunc({
+        aiSocialShareOgImagesEnabled: {
+          enabled: true,
+          minimumVersion: '7.72.0',
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when the version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+    expect(
+      selectAiSocialShareOgImagesEnabled.resultFunc({
+        aiSocialShareOgImagesEnabled: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is absent or malformed', () => {
+    expect(selectAiSocialShareOgImagesEnabled.resultFunc({})).toBe(false);
+    expect(
+      selectAiSocialShareOgImagesEnabled.resultFunc({
+        aiSocialShareOgImagesEnabled: { enabled: 'yes' },
+      }),
+    ).toBe(false);
   });
 });
 
