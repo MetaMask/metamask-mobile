@@ -13,15 +13,23 @@ import {
   getSocialOgDefaultImageUrl,
   type SocialOgImageRequest,
 } from './socialOgImageService';
+import { logSocialOgShare } from './socialOgShareLog';
 import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 
 const SHORT_LINK_TIMEOUT_MS = 8000;
 const OG_IMAGE_TIMEOUT_MS = 6000;
 const PROFILE_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_SUBPATH}`;
 const POSITION_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBPATH}`;
+type SocialShareLinkMode = 'long' | 'branch-short';
 
 /**
- * A later share replaces an in-flight one. The older short-link result must
+ * Use long links while Branch short links keep the account's default image.
+ * Change this to `branch-short` once per-link images work through the SDK.
+ */
+export const SOCIAL_SHARE_LINK_MODE: SocialShareLinkMode = 'long';
+
+/**
+ * A later share replaces an in-flight one. An older card or link result must
  * not open a sheet after the user has already asked for something else.
  */
 let shareGeneration = 0;
@@ -40,9 +48,8 @@ export type BuildSocialOgImageRequest = () => Promise<
  * Universal link for a trader profile. The same URL opens Social V0 or V1
  * from `socialAiTSA1122AbtestSocialBundleV1`.
  *
- * This is the navigation URL. Preview text is not put on the query string;
- * a Branch short link carries that, and this URL is the fallback when Branch
- * does not return one.
+ * This is the navigation URL. Preview metadata is added later according to
+ * `SOCIAL_SHARE_LINK_MODE`.
  */
 export const buildSocialTraderDeeplink = (traderId: string): string => {
   const url = new URL(
@@ -102,6 +109,31 @@ export const buildSocialTraderPositionShareContent = (
 ): { message: string; url?: string } =>
   toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
 
+/**
+ * Adds preview metadata directly to a Branch long link. Branch maps
+ * `$og_image_url` to both the Open Graph and Twitter image tags for these
+ * links, while the explicit Twitter copy avoids account-level defaults.
+ */
+export const buildSocialLongShareUrl = (
+  canonicalUrl: string,
+  openGraph?: SocialLinkOpenGraph,
+): string => {
+  if (!openGraph) {
+    return canonicalUrl;
+  }
+
+  const url = new URL(canonicalUrl);
+  url.searchParams.set('$og_title', openGraph.title);
+  url.searchParams.set('$og_description', openGraph.description);
+  if (openGraph.imageUrl) {
+    url.searchParams.set('$og_image_url', openGraph.imageUrl);
+  }
+  url.searchParams.set('$twitter_card', 'summary_large_image');
+  url.searchParams.set('$twitter_title', openGraph.title);
+  url.searchParams.set('$twitter_description', openGraph.description);
+  return url.toString();
+};
+
 const isHttpsUrl = (value: unknown): value is string => {
   if (typeof value !== 'string' || value.length === 0) {
     return false;
@@ -151,34 +183,82 @@ export const createSocialBranchShortUrl = async (
     ReturnType<typeof branch.createBranchUniversalObject>
   >;
   let universalObject: CreatedObject | undefined;
+  const universalObjectOptions = {
+    locallyIndex: false,
+    publiclyIndex: false,
+    canonicalUrl,
+    title: openGraph?.title,
+    contentDescription: openGraph?.description,
+    contentImageUrl: openGraph?.imageUrl,
+  };
+  const linkProperties = { feature: 'share', channel: 'social' };
+  // These Branch link-data keys are not listed by the RN control-param type.
+  // The dashboard defaults otherwise fill the Twitter tags. In particular,
+  // `$twitter_image_url` did not override `twitter:image:src` in the generated
+  // page, so use Branch's custom-meta-tag escape hatch for the image.
+  const controlParams = {
+    $deeplink_path: deeplinkPath,
+    $fallback_url: canonicalUrl,
+    $desktop_url: canonicalUrl,
+    ...(openGraph
+      ? {
+          $twitter_card: 'summary_large_image',
+          $twitter_title: openGraph.title,
+          $twitter_description: openGraph.description,
+          ...(openGraph.imageUrl
+            ? {
+                $custom_meta_tags: JSON.stringify({
+                  'twitter:image': openGraph.imageUrl,
+                  'twitter:image:src': openGraph.imageUrl,
+                }),
+              }
+            : {}),
+        }
+      : {}),
+  };
+  logSocialOgShare('Branch createBranchUniversalObject input', {
+    identifier: deeplinkPath,
+    options: universalObjectOptions,
+  });
+  logSocialOgShare('Branch generateShortUrl input', {
+    linkProperties,
+    controlParams,
+    timeoutMs,
+  });
+
   const pending = (async () => {
-    const created = await branch.createBranchUniversalObject(deeplinkPath, {
-      locallyIndex: false,
-      publiclyIndex: false,
-      canonicalUrl,
-      title: openGraph?.title,
-      contentDescription: openGraph?.description,
-      contentImageUrl: openGraph?.imageUrl,
-    });
+    const created = await branch.createBranchUniversalObject(
+      deeplinkPath,
+      universalObjectOptions,
+    );
     universalObject = created;
-    // `$deeplink_path` is a Branch link-data key. The RN control-param type
-    // does not list it, but the native SDK and our link rewriter both use it.
-    const controlParams = {
-      $deeplink_path: deeplinkPath,
-      $fallback_url: canonicalUrl,
-      $desktop_url: canonicalUrl,
-    };
+    logSocialOgShare('Branch universal object created', {
+      ident: created.ident,
+    });
     const { url } = await created.generateShortUrl(
-      { feature: 'share', channel: 'social' },
+      linkProperties,
       controlParams as Parameters<CreatedObject['generateShortUrl']>[1],
     );
+    logSocialOgShare('Branch generateShortUrl returned', { url });
     return url;
   })();
 
   try {
     const shortUrl = await withTimeout(pending, timeoutMs);
-    return isHttpsUrl(shortUrl) ? shortUrl : canonicalUrl;
+    if (isHttpsUrl(shortUrl)) {
+      logSocialOgShare('Using Branch short link', { shortUrl });
+      return shortUrl;
+    }
+    logSocialOgShare(
+      'Branch returned a non-https url; using the canonical url',
+      { shortUrl, canonicalUrl },
+    );
+    return canonicalUrl;
   } catch (error) {
+    logSocialOgShare('Branch short link failed; using the canonical url', {
+      error: error instanceof Error ? error.message : String(error),
+      canonicalUrl,
+    });
     Logger.error(
       error instanceof Error ? error : new Error(String(error)),
       'Social share Branch short link failed',
@@ -211,17 +291,24 @@ const openShareSheet = (
   content: { message: string; url?: string },
   onShared?: () => void,
 ): void => {
+  logSocialOgShare('Opening share sheet', content);
   Share.open({
     message: content.message,
     ...(content.url ? { url: content.url } : {}),
     failOnCancel: false,
   })
     .then((result) => {
-      if (didCompleteNativeShare(result)) {
+      const completed = didCompleteNativeShare(result);
+      logSocialOgShare('Share sheet closed', { result, completed });
+      if (completed) {
         onShared?.();
       }
     })
-    .catch(() => undefined);
+    .catch((error: unknown) => {
+      logSocialOgShare('Share sheet failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
 };
 
 /**
@@ -237,21 +324,41 @@ export const resolveSocialShareImageUrl = async (
   const controller = new AbortController();
   const abort = () => controller.abort();
   signal?.addEventListener('abort', abort);
+  logSocialOgShare('Resolving card image', { timeoutMs });
   try {
     const work = (async () => {
-      const request = (await buildRequest()) ?? { kind: 'generic' as const };
+      const built = await buildRequest();
+      const request = built ?? { kind: 'generic' as const };
+      logSocialOgShare(
+        built
+          ? 'Card request built'
+          : 'Screen could not fill a card; requesting the generic card',
+        request,
+      );
       return createSocialOgImage(request, controller.signal);
     })();
-    return await withTimeout(work, timeoutMs);
+    const imageUrl = await withTimeout(work, timeoutMs);
+    logSocialOgShare('Card image resolved', { imageUrl });
+    return imageUrl;
   } catch (error) {
     controller.abort();
+    const defaultImageUrl = getSocialOgDefaultImageUrl();
+    logSocialOgShare(
+      signal?.aborted
+        ? 'Card request aborted by a newer share; using the default card'
+        : 'Card request failed; using the default card',
+      {
+        error: error instanceof Error ? error.message : String(error),
+        defaultImageUrl,
+      },
+    );
     if (!signal?.aborted) {
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         'Social share og-image request failed',
       );
     }
-    return getSocialOgDefaultImageUrl();
+    return defaultImageUrl;
   } finally {
     signal?.removeEventListener('abort', abort);
   }
@@ -269,6 +376,14 @@ const shareLink = (
   const controller = new AbortController();
   activeShareAbort = controller;
   const isCurrent = () => generation === shareGeneration;
+  logSocialOgShare('Share started', {
+    generation,
+    canonicalUrl,
+    deeplinkPath,
+    linkMode: SOCIAL_SHARE_LINK_MODE,
+    openGraph,
+    hasCardBuilder: Boolean(buildOgImageRequest),
+  });
 
   (async () => {
     let preview = openGraph;
@@ -278,25 +393,49 @@ const shareLink = (
         controller.signal,
       );
       if (!isCurrent()) {
+        logSocialOgShare('Share superseded after the card step', {
+          generation,
+        });
         return;
       }
       preview = { ...openGraph, imageUrl };
+    } else if (!openGraph) {
+      logSocialOgShare('No preview copy (missing trader name); skipping card', {
+        generation,
+      });
     }
-    const sharedUrl = await createSocialBranchShortUrl(
-      canonicalUrl,
-      deeplinkPath,
+    logSocialOgShare('Preview ready for link generation', {
+      generation,
+      linkMode: SOCIAL_SHARE_LINK_MODE,
       preview,
-    );
+    });
+    const sharedUrl =
+      SOCIAL_SHARE_LINK_MODE === 'branch-short'
+        ? await createSocialBranchShortUrl(canonicalUrl, deeplinkPath, preview)
+        : buildSocialLongShareUrl(canonicalUrl, preview);
+    logSocialOgShare('Share link generated', {
+      generation,
+      linkMode: SOCIAL_SHARE_LINK_MODE,
+      sharedUrl,
+    });
     if (!isCurrent()) {
+      logSocialOgShare('Share superseded after link generation', {
+        generation,
+        sharedUrl,
+      });
       return;
     }
     openShareSheet(toShareContent(sharedUrl, Platform.OS), onShared);
-  })().catch(() => undefined);
+  })().catch((error: unknown) => {
+    logSocialOgShare('Share flow threw', {
+      generation,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 };
 
 /**
- * Opens the native share sheet with a Branch short link for the profile.
- * The canonical profile URL is shared when Branch does not return a link.
+ * Opens the native share sheet with the configured link type for the profile.
  * Pass `buildOgImageRequest` to use a server-rendered card as the preview
  * image instead of the brand image on `openGraph`.
  */
@@ -316,8 +455,7 @@ export const shareSocialProfile = (
 };
 
 /**
- * Opens the native share sheet with a Branch short link for the position.
- * The canonical position URL is shared when Branch does not return a link.
+ * Opens the native share sheet with the configured link type for the position.
  * Pass `buildOgImageRequest` to use a server-rendered card as the preview
  * image instead of the brand image on `openGraph`.
  */

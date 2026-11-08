@@ -132,6 +132,7 @@ import {
   fetchPerpOgSeries,
   getEarliestTradeMs,
 } from '../navigation/socialOgImageCards';
+import { logSocialOgShare } from '../navigation/socialOgShareLog';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -265,6 +266,15 @@ const TraderPositionView = () => {
                 Date.now(),
               )
             : historicalPrices;
+          logSocialOgShare('Building trade card on the position screen', {
+            positionId: effectivePositionId,
+            isPerp: positionData.isPerp,
+            isClosed,
+            priceSource: positionData.isPerp
+              ? 'hyperliquid candles'
+              : 'on-screen chart',
+            pricePoints: prices.length,
+          });
           return buildSocialTradeOgImageRequest({
             traderId,
             positionId: effectivePositionId,

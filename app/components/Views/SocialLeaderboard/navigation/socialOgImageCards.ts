@@ -10,6 +10,7 @@ import {
   type HyperliquidCandleInterval,
 } from '../utils/hyperliquidPrices';
 import type { SocialOgImageRequest } from './socialOgImageService';
+import { logSocialOgShare } from './socialOgShareLog';
 
 /** The API accepts at most 200 points per series. */
 export const MAX_OG_SERIES_POINTS = 200;
@@ -136,12 +137,24 @@ export const fetchPerpOgSeries = async (
       limit <= MAX_PERP_OG_CANDLES ||
       interval === PERP_OG_INTERVALS[PERP_OG_INTERVALS.length - 1]
     ) {
-      return fetchHyperliquidHistoricalPrices({
+      const cappedLimit = Math.min(limit, MAX_PERP_OG_CANDLES);
+      logSocialOgShare('Fetching perp candles for the card', {
         symbol,
         interval,
-        limit: Math.min(limit, MAX_PERP_OG_CANDLES),
+        limit: cappedLimit,
+        earliestTradeMs,
+      });
+      const prices = await fetchHyperliquidHistoricalPrices({
+        symbol,
+        interval,
+        limit: cappedLimit,
         nowMs,
       });
+      logSocialOgShare('Perp candles fetched', {
+        symbol,
+        points: prices.length,
+      });
+      return prices;
     }
   }
   return [];
@@ -178,16 +191,6 @@ export const buildSocialTradeOgImageRequest = (
   const handle = toOgHandle(input.username);
   const market = input.market.trim();
   const perpSide = input.position.perpPositionType ?? null;
-  if (
-    !handle ||
-    !market ||
-    !isFiniteNumber(input.pnlUsd) ||
-    !isFiniteNumber(input.pnlPct) ||
-    (input.isPerp && perpSide == null)
-  ) {
-    return undefined;
-  }
-
   const entryPrice = averageFillPrice(input.position.trades, 'enter');
   const points = downsampleSeries(
     input.prices.filter(
@@ -197,7 +200,26 @@ export const buildSocialTradeOgImageRequest = (
         price > 0,
     ),
   );
-  if (!entryPrice || points.length < 2) {
+  const missing = [
+    !handle && 'handle',
+    !market && 'market',
+    !isFiniteNumber(input.pnlUsd) && 'pnlUsd',
+    !isFiniteNumber(input.pnlPct) && 'pnlPct',
+    input.isPerp && perpSide == null && 'perp side',
+    !entryPrice && 'entryPrice',
+    points.length < 2 && 'series (needs 2+ prices)',
+  ].filter(Boolean);
+  if (missing.length) {
+    logSocialOgShare('Trade card skipped', {
+      missing,
+      positionId: input.positionId,
+      isPerp: input.isPerp,
+      rawPricePoints: input.prices.length,
+      usablePricePoints: points.length,
+    });
+    return undefined;
+  }
+  if (!handle || !entryPrice) {
     return undefined;
   }
 
@@ -317,10 +339,22 @@ export const buildSocialProfileOgImageRequest = (
   const stats = input.profile?.stats;
   const pnl30dUsd = stats?.pnl30d;
   if (!handle || !input.profile || !isFiniteNumber(pnl30dUsd)) {
+    logSocialOgShare('Profile card skipped', {
+      missing: [
+        !handle && 'handle',
+        !input.profile && 'profile (not loaded)',
+        !isFiniteNumber(pnl30dUsd) && 'pnl30dUsd',
+      ].filter(Boolean),
+      traderId: input.traderId,
+    });
     return undefined;
   }
 
   const recent = closedInLast30Days(input.closedPositions, input.nowMs);
+  logSocialOgShare('Profile card derived values', {
+    closedPositionsLoaded: input.closedPositions.length,
+    closedInLast30Days: recent.length,
+  });
   const winRate = stats?.winRate30d;
   const tradeCount = stats?.tradeCount30d;
 

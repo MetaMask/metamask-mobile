@@ -1,4 +1,5 @@
 import Engine from '../../../../core/Engine';
+import { logSocialOgShare } from './socialOgShareLog';
 
 /**
  * The og-image API runs on the dev host while it is still being tested.
@@ -111,20 +112,43 @@ export const createSocialOgImage = async (
   request: SocialOgImageRequest,
   signal?: AbortSignal,
 ): Promise<string> => {
+  const url = `${socialApiBase()}/api/v1/og-images`;
+  const body = JSON.stringify(request);
   const token = await Engine.controllerMessenger.call(
     'AuthenticationController:getBearerToken',
   );
-  const response = await fetch(`${socialApiBase()}/api/v1/og-images`, {
+  logSocialOgShare('POST og-images', {
+    url,
+    kind: request.kind,
+    bodyBytes: body.length,
+    hasToken: Boolean(token),
+  });
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(request),
+    body,
     signal,
   });
   if (!response.ok) {
+    let errorBody = '';
+    try {
+      errorBody = await response.text();
+    } catch {
+      // The status alone is enough to fail the request.
+    }
+    logSocialOgShare('POST og-images failed', {
+      status: response.status,
+      body: errorBody,
+    });
     throw new SocialOgImageHttpError(response.status);
   }
-  return readImageUrl(await response.json());
+  const json: unknown = await response.json();
+  logSocialOgShare('POST og-images response', {
+    status: response.status,
+    body: json,
+  });
+  return readImageUrl(json);
 };
