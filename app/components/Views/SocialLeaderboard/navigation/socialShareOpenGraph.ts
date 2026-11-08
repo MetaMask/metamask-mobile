@@ -1,12 +1,12 @@
 import { strings } from '../../../../../locales/i18n';
 
 /**
- * One brand image for every Social share preview at launch.
- * This is the public MetaMask open-graph card (1200×630) until a
- * Social-specific asset is published. Swap this constant when it is.
+ * One brand image for every Social share preview. This is the static default
+ * card the social API serves (`/api/v1/og-images/default.jpg`) on the dev
+ * host while the share-card API is still being tested.
  */
 export const SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL =
-  'https://images.ctfassets.net/clixtyxoaeas/7Bth2z7E82BB90X6C3YG7m/1584de92dd8e66ce9a1114da44a6e874/405c96f0-a551-47fe-860f-068e08a45380.png';
+  'https://social.dev-api.cx.metamask.io/api/v1/og-images/default.jpg';
 
 /** Branch dynamic open-graph fields attached to a shared social link. */
 export interface SocialLinkOpenGraph {
