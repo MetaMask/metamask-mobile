@@ -1179,6 +1179,15 @@ async function queryUiTarget(options: {
   if (!target || visibility === 'tree') return base;
 
   const stateNode = findMeasurableStateNode(target, true, tree);
+  if (stateNode && !findMeasurableStateNode(target, false, tree)) {
+    DevLogger.log(
+      '[MANUAL-000180] BUG_MARKER: viewport query measured an ancestor surrogate',
+      JSON.stringify({
+        testId: options.testId,
+        textContains: options.textContains,
+      }),
+    );
+  }
   if (!stateNode) {
     return {
       ...base,
