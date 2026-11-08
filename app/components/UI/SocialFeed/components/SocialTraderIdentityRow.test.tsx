@@ -4,7 +4,6 @@ import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialV1FeedAuthor } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
-import { strings } from '../../../../../locales/i18n';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { SocialTraderIdentityRowSelectorsIDs } from './SocialTraderIdentityRow.testIds';
 import { X_TRUST_MARK_TEST_ID } from './XTrustMark';
@@ -145,9 +144,6 @@ describe('SocialTraderIdentityRow', () => {
     );
 
     expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
-    expect(screen.getByTestId('identity-press').props.accessibilityLabel).toBe(
-      `cented, ${strings('social_leaderboard.trader_profile.x_connected')}`,
-    );
   });
 
   it('omits the X mark when the author has no X handle', () => {

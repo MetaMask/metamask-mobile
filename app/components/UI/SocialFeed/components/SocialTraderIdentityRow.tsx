@@ -67,9 +67,6 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
 }) => {
   const tw = useTailwind();
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
-  const identityLabel = author.xHandle
-    ? `${handle}, ${strings('social_leaderboard.trader_profile.x_connected')}`
-    : handle;
 
   const avatar = (
     <TraderAvatar
@@ -107,7 +104,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           >
             {handle}
           </Text>
-          {author.xHandle ? <XTrustMark accessible={!onIdentityPress} /> : null}
+          {author.xHandle ? <XTrustMark /> : null}
         </Box>
         <Text
           variant={TextVariant.BodyXs}
@@ -161,7 +158,6 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
             <Pressable
               onPress={onIdentityPress}
               accessibilityRole="button"
-              accessibilityLabel={identityLabel}
               testID={testIDs?.identityPress}
               style={tw.style('flex-1 min-w-0')}
             >

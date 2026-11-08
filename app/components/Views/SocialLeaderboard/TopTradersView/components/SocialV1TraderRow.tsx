@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
 import Animated from 'react-native-reanimated';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
@@ -185,7 +184,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           >
             {trader.username}
           </Text>
-          {trader.xHandle ? <XTrustMark accessible={false} /> : null}
+          {trader.xHandle ? <XTrustMark /> : null}
           {nameTag ? (
             <Tag
               severity={
@@ -258,13 +257,6 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         }
         disabled={!onTraderPress}
         testID={testID ?? getTraderRowTestId(trader.id)}
-        accessibilityLabel={
-          trader.xHandle
-            ? `${trader.username}, ${strings(
-                'social_leaderboard.trader_profile.x_connected',
-              )}`
-            : undefined
-        }
       >
         <Box twClassName={highlighted ? 'px-2 py-1' : 'px-4'}>
           {highlighted ? (

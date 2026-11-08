@@ -1717,7 +1717,6 @@
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "View on X (Twitter)",
-      "x_connected": "Connected to X",
       "sort": {
         "value": "Value",
         "top_trades": "Top Trades",
