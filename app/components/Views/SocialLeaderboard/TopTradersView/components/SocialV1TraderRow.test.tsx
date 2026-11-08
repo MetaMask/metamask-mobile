@@ -6,6 +6,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
+import { strings } from '../../../../../../locales/i18n';
+import { X_TRUST_MARK_TEST_ID } from '../../../../UI/SocialFeed/components/XTrustMark';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -140,6 +142,33 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
     ).toHaveTextContent('20x Short');
+  });
+
+  it('renders the X mark when the trader is connected to X', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, xHandle: 'alpha' }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        `alpha.eth, ${strings('social_leaderboard.trader_profile.x_connected')}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the trader has no X handle', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
   });
 
   it('renders no name tag by default', () => {

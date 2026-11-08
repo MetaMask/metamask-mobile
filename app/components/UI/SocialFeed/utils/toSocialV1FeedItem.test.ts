@@ -188,6 +188,30 @@ describe('toSocialV1FeedItem', () => {
       expect(result.asset.symbol).toBe(core.tokenSymbol);
     });
 
+    it('copies an X handle from the actor social handles', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          actor: {
+            profileId: 'profile-2',
+            address: '0x2222222222222222222222222222222222222222',
+            name: 'aparjey',
+            imageUrl: null,
+            socialHandles: { twitter: ' @aparjey ' },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.author.xHandle).toBe('aparjey');
+    });
+
+    it('leaves the X handle empty when the actor has none', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.author.xHandle).toBeNull();
+    });
+
     it('carries value, P&L and leverage straight from the mapped row', () => {
       const row = buildRow(mockPerpFeedItem());
 
