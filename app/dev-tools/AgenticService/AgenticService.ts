@@ -254,7 +254,10 @@ interface AgenticBridge {
 type WalletFixture = Parameters<AgenticBridge['setupWallet']>[0];
 
 declare module 'react-native/Libraries/ReactNative/RendererProxy' {
-  /** Fabric renderer export that the published typings omit. */
+  /**
+   * Fabric renderer export that the published typings omit. Verified on
+   * react-native 0.86.3; re-check on React Native upgrades.
+   */
   export function getPublicInstanceFromInternalInstanceHandle(
     internalInstanceHandle: object,
   ): {
