@@ -1,15 +1,42 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
+import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
+import { ThemeContext } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import type {
   PredictGame,
   PredictHexColor,
   PredictTimestamp,
 } from '../../types';
-import { useGameTeamColors } from './useGameTeamColors';
+import {
+  getContrastRatio,
+  MIN_TEAM_COLOR_CONTRAST,
+  useGameTeamColors,
+} from './useGameTeamColors';
 
 // Team colors come from the Venue, not design tokens.
 const CAROLINA = `#${'0085CA'}`;
 const GREEN_BAY = `#${'203731'}`;
+const RAVENS = `#${'241773'}`;
+const GIANTS = `#${'0B2265'}`;
+const DOLPHINS = `#${'008E97'}`;
+const WHITE = `#${'FFFFFF'}`;
+const BLACK = `#${'000000'}`;
+
+const darkThemeWrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(
+    ThemeContext.Provider,
+    {
+      value: {
+        colors: darkTheme.colors,
+        themeAppearance: AppThemeKey.dark,
+        typography: darkTheme.typography,
+        shadows: darkTheme.shadows,
+        brandColors: brandColor,
+      },
+    },
+    children,
+  );
 
 const game = (colors: { away?: string; home?: string } = {}): PredictGame => ({
   status: 'scheduled',
@@ -49,5 +76,71 @@ describe('useGameTeamColors', () => {
       away: lightTheme.colors.info.default,
       home: lightTheme.colors.success.default,
     });
+  });
+
+  it('replaces dark Team colors with the theme colors in dark mode', () => {
+    const { result } = renderHook(
+      () => useGameTeamColors(game({ away: RAVENS, home: GIANTS })),
+      { wrapper: darkThemeWrapper },
+    );
+
+    expect(result.current).toEqual({
+      away: darkTheme.colors.info.default,
+      home: darkTheme.colors.success.default,
+    });
+  });
+
+  it('keeps a Team color that is readable in dark mode', () => {
+    const { result } = renderHook(
+      () => useGameTeamColors(game({ away: DOLPHINS, home: GIANTS })),
+      { wrapper: darkThemeWrapper },
+    );
+
+    expect(result.current).toEqual({
+      away: DOLPHINS,
+      home: darkTheme.colors.success.default,
+    });
+  });
+
+  it('keeps dark Team colors in light mode', () => {
+    const { result } = renderHook(() =>
+      useGameTeamColors(game({ away: RAVENS, home: GIANTS })),
+    );
+
+    expect(result.current).toEqual({ away: RAVENS, home: GIANTS });
+  });
+
+  it('keeps a Team color whose contrast cannot be measured', () => {
+    const { result } = renderHook(
+      () => useGameTeamColors(game({ away: 'navy' })),
+      { wrapper: darkThemeWrapper },
+    );
+
+    expect(result.current.away).toBe('navy');
+  });
+});
+
+describe('getContrastRatio', () => {
+  it('returns 21 for black on white', () => {
+    expect(getContrastRatio(BLACK, WHITE)).toBeCloseTo(21);
+  });
+
+  it('reads short hex colors', () => {
+    expect(getContrastRatio(`#${'000'}`, `#${'fff'}`)).toBeCloseTo(21);
+  });
+
+  it('puts the dark Team colors below the floor on the dark card', () => {
+    const background = darkTheme.colors.background.section;
+
+    expect(getContrastRatio(RAVENS, background)).toBeLessThan(
+      MIN_TEAM_COLOR_CONTRAST,
+    );
+    expect(getContrastRatio(GIANTS, background)).toBeLessThan(
+      MIN_TEAM_COLOR_CONTRAST,
+    );
+  });
+
+  it('returns undefined for a color that is not hex', () => {
+    expect(getContrastRatio('navy', WHITE)).toBeUndefined();
   });
 });
