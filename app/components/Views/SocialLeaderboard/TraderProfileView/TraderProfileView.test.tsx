@@ -106,6 +106,7 @@ jest.mock(
     selectSocialLeaderboardEnabled: () => true,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
+    selectAiSocialShareOgImagesEnabled: () => false,
   }),
 );
 

@@ -7,11 +7,23 @@ import {
   buildSocialTraderPositionShareContent,
   buildSocialTraderShareContent,
   createSocialBranchShortUrl,
+  resolveSocialShareImageUrl,
   shareSocialProfile,
   shareSocialTraderPosition,
 } from './socialTraderDeeplink';
+import type { SocialOgImageRequest } from './socialOgImageService';
 
 const mockCreateBranchUniversalObject = jest.fn();
+const mockCreateSocialOgImage = jest.fn();
+const DEFAULT_CARD_URL = 'https://social.test/api/v1/og-images/default.jpg';
+const GENERATED_CARD_URL =
+  'https://social.test/api/v1/og-images/card-1.png?v=1';
+
+jest.mock('./socialOgImageService', () => ({
+  createSocialOgImage: (...args: unknown[]) => mockCreateSocialOgImage(...args),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.test/api/v1/og-images/default.jpg',
+}));
 
 jest.mock('react-native-branch', () => ({
   __esModule: true,
@@ -293,5 +305,177 @@ describe('OS share completion', () => {
     await flush();
     expect(openShare).toHaveBeenCalledTimes(1);
     expect(fastRelease).toHaveBeenCalledTimes(1);
+  });
+});
+
+const tradeRequest: SocialOgImageRequest = {
+  kind: 'trade',
+  traderId: 'trader-1',
+  positionId: 'position-1',
+  trade: {
+    handle: '@trader1',
+    market: 'BTC',
+    side: 'Long',
+    status: 'open',
+    pnlUsd: 10,
+    pnlPct: 1,
+    entryPrice: 100,
+    series: [100, 110],
+    showDollar: true,
+  },
+};
+
+describe('resolveSocialShareImageUrl', () => {
+  beforeEach(() => {
+    mockCreateSocialOgImage.mockReset();
+  });
+
+  it('returns the rendered card url', async () => {
+    mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+
+    await expect(
+      resolveSocialShareImageUrl(async () => tradeRequest),
+    ).resolves.toBe(GENERATED_CARD_URL);
+    expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
+      tradeRequest,
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('asks for the generic card when the screen cannot fill a card', async () => {
+    mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+
+    await resolveSocialShareImageUrl(async () => undefined);
+
+    expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
+      { kind: 'generic' },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('returns the default card when building or rendering fails', async () => {
+    await expect(
+      resolveSocialShareImageUrl(async () => {
+        throw new Error('no prices');
+      }),
+    ).resolves.toBe(DEFAULT_CARD_URL);
+
+    mockCreateSocialOgImage.mockRejectedValueOnce(new Error('401'));
+    await expect(
+      resolveSocialShareImageUrl(async () => tradeRequest),
+    ).resolves.toBe(DEFAULT_CARD_URL);
+  });
+
+  it('returns the default card and aborts the request after the timeout', async () => {
+    jest.useFakeTimers();
+    let requestSignal: AbortSignal | undefined;
+    mockCreateSocialOgImage.mockImplementationOnce(
+      (_request: SocialOgImageRequest, signal: AbortSignal) => {
+        requestSignal = signal;
+        return new Promise(() => undefined);
+      },
+    );
+
+    const pending = resolveSocialShareImageUrl(
+      async () => tradeRequest,
+      undefined,
+      50,
+    );
+    await jest.advanceTimersByTimeAsync(50);
+
+    await expect(pending).resolves.toBe(DEFAULT_CARD_URL);
+    expect(requestSignal?.aborted).toBe(true);
+    jest.useRealTimers();
+  });
+});
+
+describe('share with a generated card', () => {
+  const openShare = Share.open as jest.Mock;
+  const originalOs = Platform.OS;
+
+  afterEach(() => {
+    jest.replaceProperty(Platform, 'OS', originalOs);
+  });
+
+  beforeEach(() => {
+    openShare.mockReset();
+    openShare.mockResolvedValue({ success: true, message: 'shared' });
+    mockCreateBranchUniversalObject.mockReset();
+    mockCreateSocialOgImage.mockReset();
+  });
+
+  it('puts the rendered card on the Branch link, keeping the title and description', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+    mockShortLink('https://metamask.app.link/position');
+    const buildRequest = jest.fn(async () => tradeRequest);
+
+    shareSocialTraderPosition(
+      'position-1',
+      'trader-1',
+      undefined,
+      {
+        title: "trader1's BTC trade",
+        description: 'trader1 is trading BTC',
+        imageUrl: SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL,
+      },
+      buildRequest,
+    );
+    await flush();
+
+    expect(buildRequest).toHaveBeenCalledTimes(1);
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile/position',
+      expect.objectContaining({
+        title: "trader1's BTC trade",
+        contentDescription: 'trader1 is trading BTC',
+        contentImageUrl: GENERATED_CARD_URL,
+      }),
+    );
+    expect(openShare).toHaveBeenCalledWith({
+      message: 'https://metamask.app.link/position',
+      failOnCancel: false,
+    });
+  });
+
+  it('keeps the brand image when no card builder is passed', async () => {
+    mockShortLink('https://metamask.app.link/profile');
+
+    shareSocialProfile('trader-1', undefined, profilePreview);
+    await flush();
+
+    expect(mockCreateSocialOgImage).not.toHaveBeenCalled();
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile',
+      expect.objectContaining({
+        contentImageUrl: SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL,
+      }),
+    );
+  });
+
+  it('aborts an older card request when the user shares again', async () => {
+    let firstSignal: AbortSignal | undefined;
+    mockCreateSocialOgImage
+      .mockImplementationOnce(
+        (_request: SocialOgImageRequest, signal: AbortSignal) => {
+          firstSignal = signal;
+          return new Promise(() => undefined);
+        },
+      )
+      .mockResolvedValueOnce(GENERATED_CARD_URL);
+    mockShortLink('https://metamask.app.link/second');
+
+    shareSocialProfile('trader-1', undefined, profilePreview, async () => ({
+      kind: 'generic',
+    }));
+    await flush();
+    shareSocialProfile('trader-2', undefined, profilePreview, async () => ({
+      kind: 'generic',
+    }));
+    await flush();
+
+    expect(firstSignal?.aborted).toBe(true);
+    expect(openShare).toHaveBeenCalledTimes(1);
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledTimes(1);
   });
 });

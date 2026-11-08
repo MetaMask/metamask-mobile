@@ -64,7 +64,11 @@ import {
   type TraderProfileScreenViewedSource,
 } from '../analytics';
 
-import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectAiSocialShareOgImagesEnabled,
+  selectSocialLeaderboardPerpsEnabled,
+} from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
@@ -159,6 +163,9 @@ const TraderProfileView = () => {
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const isShareOgImagesEnabled = useSelector(
+    selectAiSocialShareOgImagesEnabled,
+  );
 
   const {
     profile,
@@ -276,8 +283,26 @@ const TraderProfileView = () => {
         });
       },
       buildSocialProfileOpenGraph(traderLabel),
+      isShareOgImagesEnabled
+        ? async () =>
+            buildSocialProfileOgImageRequest({
+              traderId,
+              username: profile?.profile.name || traderName,
+              avatarUrl: profile?.profile.imageUrl,
+              profile,
+              closedPositions,
+              nowMs: Date.now(),
+            })
+        : undefined,
     );
-  }, [profile?.profile, trackSocialPost, traderId, traderName]);
+  }, [
+    closedPositions,
+    isShareOgImagesEnabled,
+    profile,
+    trackSocialPost,
+    traderId,
+    traderName,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

@@ -126,7 +126,15 @@ import {
   type PerpMetrics,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
-import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectAiSocialShareOgImagesEnabled,
+  selectSocialLeaderboardPerpsEnabled,
+} from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  buildSocialTradeOgImageRequest,
+  fetchPerpOgSeries,
+  getEarliestTradeMs,
+} from '../navigation/socialOgImageCards';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -158,6 +166,9 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const isShareOgImagesEnabled = useSelector(
+    selectAiSocialShareOgImagesEnabled,
+  );
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
@@ -250,6 +261,35 @@ const TraderPositionView = () => {
       return;
     }
     const source = getSocialEventSource(sourceParam);
+    const sharedPosition = displayPosition;
+    const buildOgImageRequest =
+      isShareOgImagesEnabled && sharedPosition
+        ? async () => {
+            const prices = positionData.isPerp
+              ? await fetchPerpOgSeries(
+                  sharedPosition.tokenSymbol,
+                  getEarliestTradeMs(sharedPosition.trades),
+                  Date.now(),
+                )
+              : historicalPrices;
+            return buildSocialTradeOgImageRequest({
+              traderId,
+              positionId: effectivePositionId,
+              username: fetchedProfile?.profile?.name || traderName,
+              avatarUrl: traderImageUrl,
+              position: sharedPosition,
+              market: symbol,
+              marketIconUrl:
+                sharedPosition.tokenImageUrl ?? positionData.tokenImageUrl,
+              isPerp: positionData.isPerp,
+              isClosed,
+              pnlUsd: pnlValue,
+              pnlPct: pnlPercent,
+              markPrice: currentPrice,
+              prices,
+            });
+          }
+        : undefined;
     shareSocialTraderPosition(
       effectivePositionId,
       traderId,
@@ -265,14 +305,25 @@ const TraderPositionView = () => {
         traderName: readTraderShareName(fetchedProfile?.profile, traderName),
         assetSymbol: symbol,
       }),
+      buildOgImageRequest,
     );
   }, [
+    currentPrice,
+    displayPosition,
     effectivePositionId,
     fetchedProfile?.profile,
+    historicalPrices,
+    isClosed,
+    isShareOgImagesEnabled,
+    pnlPercent,
+    pnlValue,
+    positionData.isPerp,
+    positionData.tokenImageUrl,
     sourceParam,
     symbol,
     trackSocialPost,
     traderId,
+    traderImageUrl,
     traderName,
   ]);
 

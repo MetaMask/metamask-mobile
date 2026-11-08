@@ -8,9 +8,15 @@ import {
   SOCIAL_PROFILE_SUBPATH,
 } from '../../../../core/DeeplinkManager/util/deeplinks/socialDeeplinkPath';
 import Logger from '../../../../util/Logger';
+import {
+  createSocialOgImage,
+  getSocialOgDefaultImageUrl,
+  type SocialOgImageRequest,
+} from './socialOgImageService';
 import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 
 const SHORT_LINK_TIMEOUT_MS = 8000;
+const OG_IMAGE_TIMEOUT_MS = 6000;
 const PROFILE_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_SUBPATH}`;
 const POSITION_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBPATH}`;
 
@@ -19,6 +25,16 @@ const POSITION_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBP
  * not open a sheet after the user has already asked for something else.
  */
 let shareGeneration = 0;
+let activeShareAbort: AbortController | undefined;
+
+/**
+ * Builds the card body only once the user has tapped share. Resolve to
+ * `undefined` when the screen lacks a required field; the generic card is
+ * rendered instead.
+ */
+export type BuildSocialOgImageRequest = () => Promise<
+  SocialOgImageRequest | undefined
+>;
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
@@ -208,54 +224,115 @@ const openShareSheet = (
     .catch(() => undefined);
 };
 
+/**
+ * Image URL for a share preview: a card rendered by `POST /api/v1/og-images`,
+ * or the API's static default card when building or rendering the card
+ * fails, times out, or is aborted. Never rejects.
+ */
+export const resolveSocialShareImageUrl = async (
+  buildRequest: BuildSocialOgImageRequest,
+  signal?: AbortSignal,
+  timeoutMs: number = OG_IMAGE_TIMEOUT_MS,
+): Promise<string> => {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort);
+  try {
+    const work = (async () => {
+      const request = (await buildRequest()) ?? { kind: 'generic' as const };
+      return createSocialOgImage(request, controller.signal);
+    })();
+    return await withTimeout(work, timeoutMs);
+  } catch (error) {
+    controller.abort();
+    if (!signal?.aborted) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Social share og-image request failed',
+      );
+    }
+    return getSocialOgDefaultImageUrl();
+  } finally {
+    signal?.removeEventListener('abort', abort);
+  }
+};
+
 const shareLink = (
   canonicalUrl: string,
   deeplinkPath: string,
   openGraph: SocialLinkOpenGraph | undefined,
   onShared?: () => void,
+  buildOgImageRequest?: BuildSocialOgImageRequest,
 ): void => {
   const generation = ++shareGeneration;
-  createSocialBranchShortUrl(canonicalUrl, deeplinkPath, openGraph)
-    .then((sharedUrl) => {
-      if (generation !== shareGeneration) {
+  activeShareAbort?.abort();
+  const controller = new AbortController();
+  activeShareAbort = controller;
+  const isCurrent = () => generation === shareGeneration;
+
+  (async () => {
+    let preview = openGraph;
+    if (openGraph && buildOgImageRequest) {
+      const imageUrl = await resolveSocialShareImageUrl(
+        buildOgImageRequest,
+        controller.signal,
+      );
+      if (!isCurrent()) {
         return;
       }
-      openShareSheet(toShareContent(sharedUrl, Platform.OS), onShared);
-    })
-    .catch(() => undefined);
+      preview = { ...openGraph, imageUrl };
+    }
+    const sharedUrl = await createSocialBranchShortUrl(
+      canonicalUrl,
+      deeplinkPath,
+      preview,
+    );
+    if (!isCurrent()) {
+      return;
+    }
+    openShareSheet(toShareContent(sharedUrl, Platform.OS), onShared);
+  })().catch(() => undefined);
 };
 
 /**
  * Opens the native share sheet with a Branch short link for the profile.
  * The canonical profile URL is shared when Branch does not return a link.
+ * Pass `buildOgImageRequest` to use a server-rendered card as the preview
+ * image instead of the brand image on `openGraph`.
  */
 export const shareSocialProfile = (
   traderId: string,
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
+  buildOgImageRequest?: BuildSocialOgImageRequest,
 ): void => {
   shareLink(
     buildSocialTraderDeeplink(traderId),
     PROFILE_DEEPLINK_PATH,
     openGraph,
     onShared,
+    buildOgImageRequest,
   );
 };
 
 /**
  * Opens the native share sheet with a Branch short link for the position.
  * The canonical position URL is shared when Branch does not return a link.
+ * Pass `buildOgImageRequest` to use a server-rendered card as the preview
+ * image instead of the brand image on `openGraph`.
  */
 export const shareSocialTraderPosition = (
   positionId: string,
   traderId: string,
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
+  buildOgImageRequest?: BuildSocialOgImageRequest,
 ): void => {
   shareLink(
     buildSocialTraderPositionDeeplink(positionId, traderId),
     POSITION_DEEPLINK_PATH,
     openGraph,
     onShared,
+    buildOgImageRequest,
   );
 };

@@ -36,6 +36,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -62,6 +63,8 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { selectAiSocialShareOgImagesEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import {
   buildSocialProfileOpenGraph,
   readTraderShareName,
@@ -467,6 +470,22 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
+  const isShareOgImagesEnabled = useSelector(
+    selectAiSocialShareOgImagesEnabled,
+  );
+  const buildProfileOgImageRequest = useCallback(
+    (shareTraderId: string, username: string | undefined) => async () =>
+      buildSocialProfileOgImageRequest({
+        traderId: shareTraderId,
+        username: liveProfile.profile?.profile.name || username,
+        avatarUrl:
+          liveProfile.profile?.profile.imageUrl ?? displayProfile?.imageUrl,
+        profile: liveProfile.profile,
+        closedPositions,
+        nowMs: Date.now(),
+      }),
+    [closedPositions, displayProfile?.imageUrl, liveProfile.profile],
+  );
   const trackProfileShared = useCallback(() => {
     trackSocialPost({
       interaction_type: Interaction.POST_SHARED,
@@ -488,9 +507,15 @@ const MyProfileView: React.FC = () => {
           displayProfile?.displayName,
         ),
       ),
+      isShareOgImagesEnabled
+        ? buildProfileOgImageRequest(traderId, displayProfile?.handle)
+        : undefined,
     );
   }, [
+    buildProfileOgImageRequest,
     displayProfile?.displayName,
+    displayProfile?.handle,
+    isShareOgImagesEnabled,
     liveProfile.profile?.profile,
     trackProfileShared,
     traderId,
@@ -519,8 +544,18 @@ const MyProfileView: React.FC = () => {
       myProfile.profileId,
       trackProfileShared,
       buildSocialProfileOpenGraph(myProfile.displayName),
+      isShareOgImagesEnabled
+        ? buildProfileOgImageRequest(myProfile.profileId, myProfile.handle)
+        : undefined,
     );
-  }, [myProfile?.displayName, myProfile?.profileId, trackProfileShared]);
+  }, [
+    buildProfileOgImageRequest,
+    isShareOgImagesEnabled,
+    myProfile?.displayName,
+    myProfile?.handle,
+    myProfile?.profileId,
+    trackProfileShared,
+  ]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>
