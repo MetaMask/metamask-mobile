@@ -2564,6 +2564,70 @@ describe('PredictEventScreen', () => {
       ).toHaveTextContent('Yes');
     });
 
+    it('titles a threshold Position by its line, not its Yes or No label', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      const labelled = `${event.id}-rushing_yards-Rhamondre Stevenson-60`;
+      const unlabelled = `${event.id}-rushing_yards-Kenneth Walker-50`;
+      configurePredictNextFeeds({
+        details: [
+          {
+            ...event,
+            venueId,
+            id: eventId,
+            markets: event.markets.map((market) =>
+              market.id === unlabelled && market.group
+                ? { ...market, group: { ...market.group, label: undefined } }
+                : market,
+            ),
+          },
+        ],
+        positions: [
+          makePredictNextPosition({
+            marketId: labelled,
+            side: 'yes',
+            context: {
+              eventId,
+              eventTitle: 'Patriots vs Seahawks',
+              marketQuestion: 'Rhamondre Stevenson: 60+',
+              outcomeLabel: 'Yes',
+            },
+          }),
+          makePredictNextPosition({
+            marketId: unlabelled,
+            side: 'no',
+            context: {
+              eventId,
+              eventTitle: 'Patriots vs Seahawks',
+              marketQuestion: 'Kenneth Walker: 50+',
+              outcomeLabel: 'No',
+            },
+          }),
+        ],
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await pressPositionsTab(view);
+
+      const labelledRow = view.getByTestId(
+        EventMarketListTestIds.positionRow(labelled, 'yes'),
+      );
+      expect(
+        within(labelledRow).getByText('Yes · Rhamondre Stevenson · 60+'),
+      ).toBeOnTheScreen();
+      expect(
+        within(labelledRow).getByLabelText(
+          /^Yes · Rhamondre Stevenson · 60\+, /u,
+        ),
+      ).toBeOnTheScreen();
+      const unlabelledRow = view.getByTestId(
+        EventMarketListTestIds.positionRow(unlabelled, 'no'),
+      );
+      expect(within(unlabelledRow).getByText('No · 50+')).toBeOnTheScreen();
+      expect(
+        within(unlabelledRow).getByLabelText(/^No · 50\+, /u),
+      ).toBeOnTheScreen();
+    });
+
     it('walks later Positions pages for held Positions beyond the first page', async () => {
       configurePredictNextFeeds({
         details: [createEvent()],

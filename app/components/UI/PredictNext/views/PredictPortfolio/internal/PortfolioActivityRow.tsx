@@ -20,7 +20,7 @@ import type {
   PredictTradeEntry,
 } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
-import { getOutcomeName } from '../../../utils/entryCopy';
+import { useEntryOutcomeName } from '../../../hooks/useEntryOutcomeName';
 import {
   formatActivityTimestamp,
   formatSettlementProceeds,
@@ -35,8 +35,7 @@ interface PortfolioActivityRowProps {
   onPress?: (entry: PredictActivityEntry) => void;
 }
 
-const getTitle = (entry: PredictActivityEntry): string => {
-  const outcome = getOutcomeName(entry.side, entry.context);
+const getTitle = (entry: PredictActivityEntry, outcome: string): string => {
   if (entry.type === 'settlement') {
     return strings('predict_next.portfolio.activity_rows.settled_outcome', {
       outcome,
@@ -133,7 +132,7 @@ export const PortfolioActivityRow = ({
   const { context } = entry;
   const subtitle =
     context?.marketQuestion ?? strings('predict_next.portfolio.unknown_market');
-  const title = getTitle(entry);
+  const title = getTitle(entry, useEntryOutcomeName(entry));
 
   return (
     <TouchableOpacity

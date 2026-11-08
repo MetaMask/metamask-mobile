@@ -34,6 +34,25 @@ export const formatThresholdLine = (
 };
 
 /**
+ * An Outcome named with its threshold line, wherever the line is not on
+ * screen: "Yes · Josh Jacobs · 60+", or "Yes · 60+" without a label. A
+ * threshold line's Outcomes are only "Yes" and "No", so two Players' lines
+ * would otherwise read the same. Undefined for any other Market.
+ */
+export const formatThresholdOutcome = (
+  market: PredictMarket,
+  outcome: string,
+): string | undefined => {
+  const line = formatThresholdLine(market);
+  return line === undefined
+    ? undefined
+    : strings('predict.market_groups.threshold_order_outcome', {
+        outcome,
+        line,
+      });
+};
+
+/**
  * A threshold card's title: the card's label and the selected line
  * ("Josh Jacobs: 60+"), or just the line without a label. Undefined for any
  * other Market.

@@ -14,7 +14,9 @@ import { initialStatePredict } from '../../../../../tests/component-view/presets
 import {
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
+  makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
+  makePredictNextThresholdEntry,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   makePredictNextSummary,
@@ -336,6 +338,48 @@ describe('PredictHomeSection', () => {
         expect(totalOf(view)).toEqual({ status: 'ready', valueUsd: 440 }),
       );
       expect(sliceOf(view)).toEqual({ status: 'ready', valueFiat: 220 });
+    });
+
+    it('names threshold Positions by their line, so two Players in one Game read differently', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      configurePredictNextFeeds({
+        details: [event],
+        positions: [
+          makePredictNextPosition(
+            makePredictNextThresholdEntry(
+              event,
+              'Rhamondre Stevenson',
+              60,
+              'yes',
+            ),
+          ),
+          makePredictNextPosition({
+            ...makePredictNextThresholdEntry(
+              event,
+              'Kenneth Walker',
+              50,
+              'yes',
+            ),
+            costBasis: undefined,
+            unrealizedPnl: undefined,
+            unrealizedPnlPercent: undefined,
+          }),
+        ],
+      });
+
+      const view = renderSection({ predictConfig: KALSHI_ONLY });
+
+      expect(
+        await view.findByText(
+          '$41.25 on Yes · Rhamondre Stevenson · 60+ to win $75.00',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByText('Yes · Kenneth Walker · 50+ · 75 shares'),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByLabelText(`${event.title} - Yes · Rhamondre Stevenson · 60+`),
+      ).toBeOnTheScreen();
     });
 
     it('subscribes to the Summary once and the top open Positions by value, and nothing else', async () => {

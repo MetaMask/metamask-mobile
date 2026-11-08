@@ -2,6 +2,7 @@ export { formatAskPrice } from './formatAskPrice';
 export { formatMarketGroupOption } from './formatMarketGroupOption';
 export {
   formatThresholdLine,
+  formatThresholdOutcome,
   formatThresholdTitle,
 } from './formatThresholdLine';
 export { formatVolume } from './formatVolume';

@@ -37,6 +37,15 @@ jest.mock('./internal/legacy/details/PredictSettlementDetails', () => {
   };
 });
 
+jest.mock('./internal/next/details/NextSettlementDetails', () => {
+  const { Text: MockText } = jest.requireActual('react-native');
+  return {
+    NextSettlementDetails: ({ item }: { item: ActivityListItem }) => (
+      <MockText testID="next-settlement-details">{item.type}</MockText>
+    ),
+  };
+});
+
 jest.mock('./internal/next/details/NextTradeDetails', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   return {
@@ -108,7 +117,7 @@ describe('PredictActivityDetails', () => {
 
     render(<PredictActivityDetails item={buildItem('predictionSettled')} />);
 
-    expect(screen.getByTestId('settlement-details')).toHaveTextContent(
+    expect(screen.getByTestId('next-settlement-details')).toHaveTextContent(
       'predictionSettled',
     );
     expect(screen.queryByTestId('legacy-details')).toBeNull();

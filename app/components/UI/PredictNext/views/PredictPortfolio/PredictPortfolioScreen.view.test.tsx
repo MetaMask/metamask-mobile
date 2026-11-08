@@ -7,11 +7,13 @@ import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
+  makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   makePredictNextSettlement,
   makePredictNextSummary,
+  makePredictNextThresholdEntry,
   makePredictNextTrade,
   messengerCall,
   mockPredictNextMessenger,
@@ -417,6 +419,48 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
+  it('names threshold Positions by their line, so two Players in one Game read differently', async () => {
+    const event = makePredictNextPlayerPropsEvent();
+    configurePredictNextFeeds({
+      details: [event],
+      positions: [
+        makePredictNextPosition(
+          makePredictNextThresholdEntry(
+            event,
+            'Rhamondre Stevenson',
+            60,
+            'yes',
+          ),
+        ),
+        makePredictNextPosition(
+          makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'yes'),
+        ),
+        makePredictNextPosition(),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
+    const [stevenson, walker, lakers] = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.POSITION_ROW,
+    );
+
+    expect(
+      await within(stevenson).findByText(
+        'Yes · Rhamondre Stevenson · 60+ · 75 shares',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      await within(walker).findByText('Yes · Kenneth Walker · 50+ · 75 shares'),
+    ).toBeOnTheScreen();
+    expect(within(lakers).getByText('Lakers · 75 shares')).toBeOnTheScreen();
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id,
+    );
+  });
+
   it('shows an unquoted Position as having no price, never $0.00', async () => {
     configurePredictNextFeeds({
       positions: [
@@ -566,6 +610,44 @@ describe('PredictPortfolioScreen', () => {
       KALSHI_VENUE_ID,
       { limit: 20 },
     );
+  });
+
+  it('names threshold trades and Settlements by their line', async () => {
+    const event = makePredictNextPlayerPropsEvent();
+    configurePredictNextFeeds({
+      details: [event],
+      activity: [
+        makePredictNextTrade(
+          makePredictNextThresholdEntry(
+            event,
+            'Rhamondre Stevenson',
+            60,
+            'yes',
+          ),
+        ),
+        makePredictNextSettlement(
+          makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
+        ),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
+    const [trade, settlement] = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_ROW,
+    );
+
+    expect(
+      await within(trade).findByText('Sold Yes · Rhamondre Stevenson · 60+'),
+    ).toBeOnTheScreen();
+    expect(
+      await within(settlement).findByText(
+        'Settled · No · Kenneth Walker · 50+',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders a losing Settlement without context as $0.00 with neutral copy', async () => {
@@ -1122,6 +1204,31 @@ describe('PredictPortfolioScreen', () => {
       expect(
         view.queryByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toBeOnTheScreen();
+    });
+
+    it('names a threshold Position by its line in the Cash Out sheet', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      configurePredictNextFeeds({
+        details: [event],
+        positions: [
+          makePredictNextPosition(
+            makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
+          ),
+        ],
+      });
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        composePredictNextOrderService();
+      globalThis.fetch = jest.fn() as unknown as typeof fetch;
+
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+      await view.findByText('No · Kenneth Walker · 50+ · 75 shares');
+      fireEvent.press(
+        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT),
+      );
+
+      expect(
+        await view.findByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('No · Kenneth Walker · 50+');
     });
 
     it('leaves the reduced Position visible after a partial Cash Out', async () => {

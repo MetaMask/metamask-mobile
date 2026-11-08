@@ -22,7 +22,7 @@ import {
   formatPrice,
 } from '../../../../../Predict/utils/format';
 import { useNextVenueId } from '../../../../implementation';
-import { getOutcomeName } from '../../../../utils/entryCopy';
+import { useEntryOutcomeName } from '../../../../hooks/useEntryOutcomeName';
 import {
   PredictMarketContext,
   StatusAndDateRows,
@@ -79,12 +79,13 @@ export function NextTradeDetails({
   const venueId = useNextVenueId();
   const { entry, isLoading } = useNextActivityEntry(venueId, item.hash);
   const openPredictHome = useOpenPredictHome();
+  const trade = entry?.type === 'trade' ? entry : undefined;
+  const outcome = useEntryOutcomeName(trade);
 
   if (!entry && isLoading) {
     return null;
   }
 
-  const trade = entry?.type === 'trade' ? entry : undefined;
   const isBuy = item.type === 'predictionPlaced';
   const tokenAmount = item.data.token
     ? getHumanReadableTokenAmount(item.data.token)
@@ -102,9 +103,7 @@ export function NextTradeDetails({
         <ActivityDetailSection>
           <PredictMarketContext
             icon={item.data.icon}
-            outcome={
-              trade ? getOutcomeName(trade.side, trade.context) : undefined
-            }
+            outcome={outcome}
             title={
               trade?.context?.marketQuestion ??
               item.data.eventTitle ??

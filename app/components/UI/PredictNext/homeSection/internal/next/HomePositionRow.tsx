@@ -16,7 +16,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../types';
-import { getEntryTitle, getOutcomeName } from '../../../utils/entryCopy';
+import { useEntryOutcomeName } from '../../../hooks/useEntryOutcomeName';
+import { getEntryTitle } from '../../../utils/entryCopy';
 import {
   formatSharesAmount,
   formatSignedPercent,
@@ -34,15 +35,18 @@ interface HomePositionRowProps {
 
 /** "$41.25 on Lakers to win $75.00", or "Lakers · 75 shares" when the
  * backend cannot account for the cost basis: none is invented. */
-const positionInfo = ({ costBasis, shares, side, context }: PredictPosition) =>
+const positionInfo = (
+  { costBasis, shares }: PredictPosition,
+  outcome: string,
+) =>
   costBasis === undefined
     ? strings('predict_next.portfolio.outcome_shares', {
-        outcome: getOutcomeName(side, context),
+        outcome,
         shares: formatSharesAmount(shares),
       })
     : strings('predict_next.home_section.position_info', {
         costBasis: formatUsdAmount(costBasis),
-        outcome: getOutcomeName(side, context),
+        outcome,
         payout: formatUsdAmount(shares),
       });
 
@@ -62,13 +66,14 @@ export const HomePositionRow = ({
   const { context, currentValue, unrealizedPnl, unrealizedPnlPercent } =
     position;
   const title = getEntryTitle(context);
+  const outcome = useEntryOutcomeName(position);
 
   return (
     <TouchableOpacity
       onPress={onPress ? () => onPress(position) : undefined}
       disabled={!onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${title} - ${getOutcomeName(position.side, context)}`}
+      accessibilityLabel={`${title} - ${outcome}`}
       testID={PredictHomeSectionTestIds.POSITION_ROW}
       style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
@@ -94,7 +99,7 @@ export const HomePositionRow = ({
           length={SensitiveTextLength.Long}
           numberOfLines={1}
         >
-          {positionInfo(position)}
+          {positionInfo(position, outcome)}
         </SensitiveText>
       </Box>
       <Box twClassName="items-end">

@@ -16,6 +16,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { getTeamAbbreviation } from '../../../events/game';
 import {
   formatAskPrice,
+  formatThresholdLine,
   getAskPricePercent,
 } from '../../../events/shared/formatting';
 import { isOutcomeTradeable } from '../../../events/shared/tradeable';
@@ -73,23 +74,27 @@ const getMarketTeam = (
 
 /**
  * "Yes · Chicago", or "Yes · Derrick Henry 60+ yards" for a titled `choice`
- * card. Other group types don't show their label.
+ * card. A threshold line's Outcome is only "Yes" or "No", so its title names
+ * the line instead: "Yes · Josh Jacobs · 60+". Other group types don't show
+ * their label.
  */
 const getTitle = (
   position: PredictPosition,
   heldOutcome?: PredictOutcome,
   market?: PredictMarket,
 ): string => {
+  const side = strings(`predict_next.portfolio.outcome_side.${position.side}`);
+  const line = market ? formatThresholdLine(market) : undefined;
+  if (line) {
+    return strings('predict_next.event.position.title', { side, name: line });
+  }
   const outcome =
     position.context?.outcomeLabel ??
     (heldOutcome?.label || getOutcomeName(position.side));
   const label =
     market?.group?.groupType === 'choice' ? market.group.label : undefined;
   const name = label ? `${label} ${outcome}` : outcome;
-  return strings('predict_next.event.position.title', {
-    side: strings(`predict_next.portfolio.outcome_side.${position.side}`),
-    name,
-  });
+  return strings('predict_next.event.position.title', { side, name });
 };
 
 const PositionImage = ({

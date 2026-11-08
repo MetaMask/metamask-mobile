@@ -2,6 +2,7 @@ import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictEntityId, PredictMarket } from '../../../types';
 import {
   formatThresholdLine,
+  formatThresholdOutcome,
   formatThresholdTitle,
 } from './formatThresholdLine';
 
@@ -64,5 +65,28 @@ describe('formatThresholdTitle', () => {
 
   it('titles no other Market', () => {
     expect(formatThresholdTitle(createMarket(undefined))).toBeUndefined();
+  });
+});
+
+describe('formatThresholdOutcome', () => {
+  it('names an Outcome with its threshold line and label', () => {
+    expect(
+      formatThresholdOutcome(
+        createMarket(thresholdGroup('Josh Jacobs')),
+        'Yes',
+      ),
+    ).toBe('Yes · Josh Jacobs · 60+');
+  });
+
+  it('names an Outcome with an unlabelled threshold line', () => {
+    expect(formatThresholdOutcome(createMarket(thresholdGroup()), 'No')).toBe(
+      'No · 60+',
+    );
+  });
+
+  it('names no Outcome of any other Market', () => {
+    expect(
+      formatThresholdOutcome(createMarket(undefined), 'Yes'),
+    ).toBeUndefined();
   });
 });
