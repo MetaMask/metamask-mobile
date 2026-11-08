@@ -3530,7 +3530,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
