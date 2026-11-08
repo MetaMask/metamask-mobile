@@ -28,6 +28,7 @@ import {
   markQuickBuyTradeSettled,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
+import type { QuickBuyTradeMode } from './types';
 
 type TerminalOutcome = 'complete' | 'failed';
 
@@ -42,46 +43,66 @@ export const QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS = REFRESH_INTERVAL_MS;
 interface BridgeTerminalResolution {
   outcome: TerminalOutcome;
   transactionHash?: string;
-  /** Cross-chain: the hash is the destination-chain transaction. */
-  isBridge: boolean;
+  /** Bridged buy: the hash is the destination-chain transaction. */
+  sharesDestinationTxHash: boolean;
   /** Complete, but the destination-chain hash has not been reported yet. */
   isAwaitingDestinationTxHash?: boolean;
 }
 
-/** When each cross-chain trade first completed without a destination hash. */
+/** When each bridged buy first completed without a destination hash. */
 const awaitingDestinationTxHashSince = new Map<string, number>();
+
+/** Clears the destination-hash wait state. Intended for test isolation. */
+export function clearAwaitingDestinationTxHashes(): void {
+  awaitingDestinationTxHashSince.clear();
+}
 
 /**
  * Authoritative terminal status from `BridgeStatusController`. Covers EVM swaps
  * (marked `COMPLETE` on `TransactionController:transactionConfirmed`) and all
  * cross-chain bridges, incl. Solana → EVM (settled via Bridge API polling).
  *
- * A bridge's swap comment indexes the token on the destination chain, so a
- * completed bridge reports `status.destChain.txHash` rather than the source
- * transaction.
+ * The swap comment names the position token's chain: the bought token is
+ * received on the destination chain, the sold token leaves from the source
+ * chain. A completed bridged buy therefore reports `status.destChain.txHash`;
+ * every other trade reports the source transaction.
  */
 function resolveFromBridgeStatus(
   txMetaId: string,
+  tradeMode: QuickBuyTradeMode,
 ): BridgeTerminalResolution | undefined {
   const historyItem =
     Engine.context.BridgeStatusController.getBridgeHistoryItemByTxMetaId(
       txMetaId,
     );
   const status = historyItem?.status?.status;
-  const isBridge = Boolean(
-    historyItem?.quote &&
-      isCrossChain(historyItem.quote.srcChainId, historyItem.quote.destChainId),
-  );
+  const sharesDestinationTxHash =
+    tradeMode === 'buy' &&
+    Boolean(
+      historyItem?.quote &&
+        isCrossChain(
+          historyItem.quote.srcChainId,
+          historyItem.quote.destChainId,
+        ),
+    );
   if (status === StatusTypes.COMPLETE) {
-    if (isBridge) {
+    if (sharesDestinationTxHash) {
       const destinationTxHash = historyItem?.status?.destChain?.txHash;
       return destinationTxHash
-        ? { outcome: 'complete', transactionHash: destinationTxHash, isBridge }
-        : { outcome: 'complete', isBridge, isAwaitingDestinationTxHash: true };
+        ? {
+            outcome: 'complete',
+            transactionHash: destinationTxHash,
+            sharesDestinationTxHash,
+          }
+        : {
+            outcome: 'complete',
+            sharesDestinationTxHash,
+            isAwaitingDestinationTxHash: true,
+          };
     }
     return {
       outcome: 'complete',
-      isBridge,
+      sharesDestinationTxHash,
       transactionHash:
         historyItem?.reportedSubmittedTxHash ??
         historyItem?.status?.srcChain?.txHash,
@@ -90,7 +111,7 @@ function resolveFromBridgeStatus(
   if (status === StatusTypes.FAILED) {
     return {
       outcome: 'failed',
-      isBridge,
+      sharesDestinationTxHash,
       transactionHash:
         historyItem?.reportedSubmittedTxHash ??
         historyItem?.status?.srcChain?.txHash,
@@ -168,7 +189,7 @@ function emitTerminalToast(
   showToast: ToastRef['showToast'],
   theme: Theme,
   transactionHash: string | undefined,
-  isBridge: boolean,
+  sharesDestinationTxHash: boolean,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
   awaitingDestinationTxHashSince.delete(txMetaId);
@@ -186,9 +207,11 @@ function emitTerminalToast(
       trade.postTradeShareSessionId,
       {
         status: isComplete ? 'complete' : 'failed',
-        // A bridge session holds the source hash from submit. Replace it, even
-        // with nothing, so a bridge is never shared under its source hash.
-        ...(transactionHash || isBridge ? { transactionHash } : {}),
+        // A bridged buy session holds the source hash from submit. Replace it,
+        // even with nothing, so it is never shared under its source hash.
+        ...(transactionHash || sharesDestinationTxHash
+          ? { transactionHash }
+          : {}),
       },
     );
     if (!sessionUpdated) {
@@ -230,7 +253,7 @@ function emitTerminalToast(
  * `MultichainTransactionsController`. See `quickBuyTradeTracker` and the bridge
  * team thread on the upstream gap.
  *
- * A completed bridge without its destination hash stays pending for up to
+ * A completed bridged buy without its destination hash stays pending for up to
  * {@link QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS}. The controller stops polling
  * once a bridge completes, so a timer re-runs this check. If the hash is still
  * missing, the trade settles as complete with no hash and no post is offered.
@@ -249,7 +272,7 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  const bridgeResolution = resolveFromBridgeStatus(txMetaId);
+  const bridgeResolution = resolveFromBridgeStatus(txMetaId, trade.tradeMode);
   if (bridgeResolution?.isAwaitingDestinationTxHash) {
     const awaitingSince = awaitingDestinationTxHashSince.get(txMetaId);
     if (awaitingSince === undefined) {
@@ -265,11 +288,12 @@ export function resolveQuickBuyTerminalToast(
     }
   }
 
-  const isBridge = bridgeResolution?.isBridge ?? false;
+  const sharesDestinationTxHash =
+    bridgeResolution?.sharesDestinationTxHash ?? false;
   let outcome = bridgeResolution?.outcome;
-  // `txSignature` is the submitted (source) hash, so a bridge never falls back
-  // to it.
-  const transactionHash = isBridge
+  // `txSignature` is the submitted (source) hash, so a bridged buy never falls
+  // back to it.
+  const transactionHash = sharesDestinationTxHash
     ? bridgeResolution?.transactionHash
     : (bridgeResolution?.transactionHash ?? trade.txSignature);
   if (!outcome && trade.isNonEvmSwap) {
@@ -286,6 +310,6 @@ export function resolveQuickBuyTerminalToast(
     showToast,
     theme,
     transactionHash,
-    isBridge,
+    sharesDestinationTxHash,
   );
 }
