@@ -77,9 +77,8 @@ const earliestTradeTimestamp = (position: Position): number => {
  * are the fallback for payloads that predate that field.
  */
 const openHoldStart = (position: Position): number => {
-  const firstTradeAt = (
-    position as Position & { firstTradeAt?: number | null }
-  ).firstTradeAt;
+  const firstTradeAt = (position as Position & { firstTradeAt?: number | null })
+    .firstTradeAt;
   if (
     typeof firstTradeAt === 'number' &&
     Number.isFinite(firstTradeAt) &&
