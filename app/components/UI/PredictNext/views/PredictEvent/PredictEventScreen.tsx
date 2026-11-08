@@ -49,7 +49,10 @@ import {
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
-import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
+import {
+  firstMarketOf,
+  projectFlatMarketCards,
+} from './internal/projectFlatMarketCards';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 type RulesTarget =
@@ -215,8 +218,8 @@ export const PredictEventScreen = () => {
     () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
     [liveEvent],
   );
-  const marketProjection = useMemo(
-    () => createMarketGroupProjection(liveEvent?.markets ?? []),
+  const flatCards = useMemo(
+    () => projectFlatMarketCards(liveEvent?.markets ?? []),
     [liveEvent?.markets],
   );
   usePredictNextMeasurement({
@@ -226,7 +229,7 @@ export const PredictEventScreen = () => {
       hasEvent: Boolean(liveEvent),
       error: query.isError,
       marketCount: liveEvent?.markets.length ?? 0,
-      projectionCount: marketProjection.length,
+      projectionCount: flatCards.length,
     },
   });
   useEffect(() => {
@@ -307,10 +310,7 @@ export const PredictEventScreen = () => {
     const eventRules = event.rules?.trim();
     const onEventRulesPress = eventRules ? handleEventRulesPress : undefined;
     const isGameEvent = Boolean(getEventGame(event));
-    const firstProjectedMarket =
-      marketProjection[0]?.type === 'group'
-        ? marketProjection[0].markets[0]
-        : marketProjection[0]?.market;
+    const firstProjectedMarket = firstMarketOf(flatCards);
     const moneylineMarkets = getGameMoneylineMarkets(event);
     const historyMarket =
       moneylineMarkets[0] ?? firstProjectedMarket ?? event.markets[0];

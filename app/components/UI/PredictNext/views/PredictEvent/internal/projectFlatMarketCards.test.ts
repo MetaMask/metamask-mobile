@@ -4,7 +4,7 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import { createMarketGroupProjection } from './createMarketGroupProjection';
+import { projectFlatMarketCards } from './projectFlatMarketCards';
 
 const createMarket = (
   id: string,
@@ -41,7 +41,25 @@ const createGroup = (
   displayOrder,
 });
 
-describe('createMarketGroupProjection', () => {
+const standardCard = (market: PredictMarket) => ({
+  type: 'standard' as const,
+  key: `market:${market.id}`,
+  market,
+});
+
+const lineCard = (
+  key: string,
+  marketType: (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES],
+  markets: PredictMarket[],
+) => ({
+  type: 'marketSelector' as const,
+  key,
+  marketType,
+  markets,
+  name: 'self' as const,
+});
+
+describe('projectFlatMarketCards', () => {
   it('groups related Markets, orders options, and keeps the group position', () => {
     const markets = [
       createMarket('standard'),
@@ -56,18 +74,10 @@ describe('createMarketGroupProjection', () => {
       createMarket('after-standard'),
     ];
 
-    const result = createMarketGroupProjection(markets);
-
-    expect(result).toEqual([
-      { type: 'standard', market: markets[0], firstIndex: 0 },
-      {
-        type: 'group',
-        key: 'totals',
-        marketType: PREDICT_MARKET_TYPES.TOTAL,
-        markets: [markets[2], markets[1]],
-        firstIndex: 1,
-      },
-      { type: 'standard', market: markets[3], firstIndex: 3 },
+    expect(projectFlatMarketCards(markets)).toEqual([
+      standardCard(markets[0]),
+      lineCard('totals', PREDICT_MARKET_TYPES.TOTAL, [markets[2], markets[1]]),
+      standardCard(markets[3]),
     ]);
   });
 
@@ -92,22 +102,13 @@ describe('createMarketGroupProjection', () => {
       ),
     ];
 
-    expect(createMarketGroupProjection(markets)).toEqual([
-      { type: 'standard', market: markets[0], firstIndex: 0 },
-      {
-        type: 'group',
-        key: 'spreads',
-        marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets: [markets[3], markets[1]],
-        firstIndex: 1,
-      },
-      {
-        type: 'group',
-        key: 'totals',
-        marketType: 'total',
-        markets: [markets[4], markets[2]],
-        firstIndex: 2,
-      },
+    expect(projectFlatMarketCards(markets)).toEqual([
+      standardCard(markets[0]),
+      lineCard('spreads', PREDICT_MARKET_TYPES.SPREAD, [
+        markets[3],
+        markets[1],
+      ]),
+      lineCard('totals', PREDICT_MARKET_TYPES.TOTAL, [markets[4], markets[2]]),
     ]);
   });
 
@@ -135,21 +136,15 @@ describe('createMarketGroupProjection', () => {
       ),
     ];
 
-    expect(createMarketGroupProjection(markets)).toEqual([
-      {
-        type: 'group',
-        key: 'home-spreads',
-        marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets: [markets[0], markets[2]],
-        firstIndex: 0,
-      },
-      {
-        type: 'group',
-        key: 'away-spreads',
-        marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets: [markets[1], markets[3]],
-        firstIndex: 1,
-      },
+    expect(projectFlatMarketCards(markets)).toEqual([
+      lineCard('home-spreads', PREDICT_MARKET_TYPES.SPREAD, [
+        markets[0],
+        markets[2],
+      ]),
+      lineCard('away-spreads', PREDICT_MARKET_TYPES.SPREAD, [
+        markets[1],
+        markets[3],
+      ]),
     ]);
   });
 
@@ -177,16 +172,13 @@ describe('createMarketGroupProjection', () => {
       ),
     ];
 
-    const result = createMarketGroupProjection(markets);
-
-    expect(result).toEqual([
-      {
-        type: 'group',
-        key: 'spreads',
-        marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets: [markets[0], markets[2], markets[3], markets[1]],
-        firstIndex: 0,
-      },
+    expect(projectFlatMarketCards(markets)).toEqual([
+      lineCard('spreads', PREDICT_MARKET_TYPES.SPREAD, [
+        markets[0],
+        markets[2],
+        markets[3],
+        markets[1],
+      ]),
     ]);
   });
 
@@ -204,16 +196,8 @@ describe('createMarketGroupProjection', () => {
       ),
     ];
 
-    const result = createMarketGroupProjection(markets);
-
-    expect(result).toEqual([
-      {
-        type: 'group',
-        key: 'spreads',
-        marketType: PREDICT_MARKET_TYPES.SPREAD,
-        markets,
-        firstIndex: 0,
-      },
+    expect(projectFlatMarketCards(markets)).toEqual([
+      lineCard('spreads', PREDICT_MARKET_TYPES.SPREAD, markets),
     ]);
   });
 
@@ -223,9 +207,7 @@ describe('createMarketGroupProjection', () => {
       groupType: 'futureGroup',
     });
 
-    expect(createMarketGroupProjection([market])).toEqual([
-      { type: 'standard', market, firstIndex: 0 },
-    ]);
+    expect(projectFlatMarketCards([market])).toEqual([standardCard(market)]);
   });
 
   it('falls back to standard cards for duplicate total options', () => {
@@ -238,9 +220,9 @@ describe('createMarketGroupProjection', () => {
       createGroup(PREDICT_MARKET_TYPES.TOTAL, 'bad', 1, 1),
     );
 
-    expect(createMarketGroupProjection([duplicate, duplicateAgain])).toEqual([
-      { type: 'standard', market: duplicate, firstIndex: 0 },
-      { type: 'standard', market: duplicateAgain, firstIndex: 1 },
+    expect(projectFlatMarketCards([duplicate, duplicateAgain])).toEqual([
+      standardCard(duplicate),
+      standardCard(duplicateAgain),
     ]);
   });
 });

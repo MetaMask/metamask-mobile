@@ -1,13 +1,14 @@
 import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictMarket } from '../../../types';
+import type { MarketLayoutCard } from './createMarketLayoutProjection';
 import {
   hasConsistentLines,
   isMarketSelectorMarket,
   type MarketSelectorMarket,
 } from './marketSelectorGroup';
 
-// Only the line pickers this flat path renders. Kept narrow on purpose:
-// `EventMarketList` renders anything that isn't a total as a spread card.
+// Spread and total are the only line pickers a Market without layout renders
+// as one card. Other groups stay standard cards, one per Market.
 type SupportedMarketType =
   | typeof PREDICT_MARKET_TYPES.TOTAL
   | typeof PREDICT_MARKET_TYPES.SPREAD;
@@ -16,23 +17,15 @@ type GroupedMarket = MarketSelectorMarket & {
   group: MarketSelectorMarket['group'] & { marketType: SupportedMarketType };
 };
 
-export interface StandardMarketProjection {
-  type: 'standard';
-  market: PredictMarket;
-  firstIndex: number;
-}
-
-export interface GroupedMarketProjection {
-  type: 'group';
-  key: string;
-  marketType: SupportedMarketType;
-  markets: readonly GroupedMarket[];
-  firstIndex: number;
-}
-
-export type MarketGroupProjection =
-  | StandardMarketProjection
-  | GroupedMarketProjection;
+type FlatRow =
+  | { type: 'standard'; market: PredictMarket; firstIndex: number }
+  | {
+      type: 'group';
+      key: string;
+      marketType: SupportedMarketType;
+      markets: readonly GroupedMarket[];
+      firstIndex: number;
+    };
 
 interface GroupCandidate {
   firstIndex: number;
@@ -71,9 +64,31 @@ function getProjectedMarkets(
     .map(({ market }) => market);
 }
 
-export function createMarketGroupProjection(
+function toCard(row: FlatRow): MarketLayoutCard {
+  if (row.type === 'standard') {
+    return {
+      type: 'standard',
+      key: `market:${row.market.id}`,
+      market: row.market,
+    };
+  }
+  return {
+    type: 'marketSelector',
+    key: row.key,
+    marketType: row.marketType,
+    markets: row.markets,
+    name: 'self',
+  };
+}
+
+/**
+ * Projects Markets that have no layout into the same cards a laid-out Event
+ * uses. A spread or total group with consistent lines is one self-named line
+ * picker. Every other Market is a standard card.
+ */
+export function projectFlatMarketCards(
   markets: readonly PredictMarket[],
-): readonly MarketGroupProjection[] {
+): readonly MarketLayoutCard[] {
   const candidates = new Map<string, GroupCandidate>();
 
   markets.forEach((market, index) => {
@@ -105,7 +120,7 @@ export function createMarketGroupProjection(
       )
       .map(([key]) => key),
   );
-  const groupEntries = new Map<string, GroupedMarketProjection>();
+  const groupEntries = new Map<string, FlatRow>();
 
   for (const [key, candidate] of candidates) {
     if (invalidGroupKeys.has(key)) {
@@ -122,7 +137,7 @@ export function createMarketGroupProjection(
   }
 
   return markets
-    .flatMap((market, index): MarketGroupProjection[] => {
+    .flatMap((market, index): FlatRow[] => {
       if (!isSupportedMarket(market)) {
         return [{ type: 'standard', market, firstIndex: index }];
       }
@@ -140,7 +155,17 @@ export function createMarketGroupProjection(
       const group = groupEntries.get(projectionGroupKey);
       return group === undefined ? [] : [group];
     })
-    .sort((left, right) => left.firstIndex - right.firstIndex);
+    .sort((left, right) => left.firstIndex - right.firstIndex)
+    .map(toCard);
 }
 
-export default createMarketGroupProjection;
+/** The first Market of the first card, for the Event history fallback. */
+export function firstMarketOf(
+  cards: readonly MarketLayoutCard[],
+): PredictMarket | undefined {
+  const card = cards[0];
+  if (card === undefined) {
+    return undefined;
+  }
+  return card.type === 'standard' ? card.market : card.markets[0];
+}

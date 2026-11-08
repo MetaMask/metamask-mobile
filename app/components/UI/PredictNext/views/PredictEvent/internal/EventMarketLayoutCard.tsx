@@ -207,9 +207,30 @@ export const EventMarketLayoutCard = ({
 
   switch (card.marketType) {
     case PREDICT_MARKET_TYPES.SPREAD:
-      return <SpreadMarketGroupCard {...groupProps} game={game} />;
+      return (
+        <SpreadMarketGroupCard
+          {...groupProps}
+          game={game}
+          title={
+            card.name === 'self'
+              ? strings('predict.market_groups.spread')
+              : undefined
+          }
+          onRulesPress={card.name === 'self' ? onRulesPress : undefined}
+        />
+      );
     case PREDICT_MARKET_TYPES.TOTAL:
-      return <TotalMarketGroupCard {...groupProps} />;
+      return (
+        <TotalMarketGroupCard
+          {...groupProps}
+          title={
+            card.name === 'self'
+              ? strings('predict.market_groups.total_points')
+              : undefined
+          }
+          onRulesPress={card.name === 'self' ? onRulesPress : undefined}
+        />
+      );
     case PREDICT_MARKET_TYPES.THRESHOLD:
       return (
         <ThresholdMarketGroupCard {...groupProps} onRulesPress={onRulesPress} />

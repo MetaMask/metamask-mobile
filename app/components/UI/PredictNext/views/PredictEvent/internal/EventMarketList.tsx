@@ -13,14 +13,8 @@ import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { strings } from '../../../../../../../locales/i18n';
-import { PREDICT_MARKET_TYPES } from '../../../constants';
 import { getEventGame } from '../../../events/game';
-import {
-  MarketList,
-  MarketStandardCard,
-  SpreadMarketGroupCard,
-  TotalMarketGroupCard,
-} from '../../../events/markets';
+import { MarketList } from '../../../events/markets';
 import type {
   PredictEvent,
   PredictMarket,
@@ -29,14 +23,11 @@ import type {
 } from '../../../types';
 import { EventPositionCard } from './EventPositionCard';
 import {
-  createMarketGroupProjection,
-  type MarketGroupProjection,
-} from './createMarketGroupProjection';
-import {
   createMarketLayoutProjection,
   type MarketLayoutCard,
   type MarketLayoutSection,
 } from './createMarketLayoutProjection';
+import { projectFlatMarketCards } from './projectFlatMarketCards';
 import { EventMarketLayoutCard } from './EventMarketLayoutCard';
 import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
 import {
@@ -124,7 +115,7 @@ type SectionRow =
       marketCount: number;
     };
 type ContentRow =
-  | MarketGroupProjection
+  | MarketLayoutCard
   | SectionRow
   | { type: 'position'; position: PredictPosition };
 
@@ -160,7 +151,7 @@ interface MarketTab {
   label: string;
   testID: string;
   sections: readonly SectionEntry[];
-  flatRows: readonly MarketGroupProjection[];
+  flatCards: readonly MarketLayoutCard[];
 }
 
 const getRowKey = (row: ContentRow): string => {
@@ -181,9 +172,9 @@ const getRowKey = (row: ContentRow): string => {
   if (row.type === 'sectionViewAll') {
     return `markets:view-all:${row.stateKey}`;
   }
-  return row.type === 'group'
-    ? `markets:group:${row.key}`
-    : `markets:market:${row.market.id}`;
+  return row.type === 'standard'
+    ? `markets:market:${row.market.id}`
+    : `markets:group:${row.key}`;
 };
 
 /**
@@ -194,10 +185,10 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
   const { tabs, remainingMarkets } = createMarketLayoutProjection(
     event.markets,
   );
-  const flatRows = createMarketGroupProjection(remainingMarkets);
+  const flatCards = projectFlatMarketCards(remainingMarkets);
 
   if (tabs.length === 0) {
-    return flatRows.length === 0
+    return flatCards.length === 0
       ? []
       : [
           {
@@ -209,7 +200,7 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
             ),
             testID: EventMarketListTestIds.MARKETS_TAB,
             sections: [],
-            flatRows,
+            flatCards,
           },
         ];
   }
@@ -223,7 +214,7 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
       section,
       index,
     })),
-    flatRows: tabIndex === 0 ? flatRows : [],
+    flatCards: tabIndex === 0 ? flatCards : [],
   }));
 };
 
@@ -345,7 +336,7 @@ const EventMarketListContent = ({
               expandedSections,
             }),
           ),
-          ...tab.flatRows,
+          ...tab.flatCards,
         ]
       : [];
   }, [
@@ -415,6 +406,19 @@ const EventMarketListContent = ({
   );
   const renderMarket = useCallback(
     (projection: Exclude<ContentRow, { type: 'position' }>) => {
+      const renderCard = (card: MarketLayoutCard) => (
+        <EventMarketLayoutCard
+          card={card}
+          game={game}
+          selectedMarketId={
+            card.type === 'standard' ? undefined : selectedMarketIds[card.key]
+          }
+          onSelectMarket={handleGroupMarketSelect}
+          onOrder={onOrder}
+          onRulesPress={onRulesPress}
+        />
+      );
+
       if (projection.type === 'sectionHeader') {
         return (
           <EventMarketLayoutSectionHeader
@@ -462,62 +466,12 @@ const EventMarketListContent = ({
               card.key,
             )}
           >
-            <EventMarketLayoutCard
-              card={card}
-              game={game}
-              selectedMarketId={
-                card.type === 'standard'
-                  ? undefined
-                  : selectedMarketIds[card.key]
-              }
-              onSelectMarket={handleGroupMarketSelect}
-              onOrder={onOrder}
-              onRulesPress={onRulesPress}
-            />
+            {renderCard(card)}
           </Box>
         );
       }
 
-      if (projection.type === 'standard') {
-        return (
-          <MarketStandardCard
-            market={projection.market}
-            onOrder={onOrder}
-            onRulesPress={onRulesPress}
-          />
-        );
-      }
-
-      const selectedMarket =
-        projection.markets.find(
-          (market) => market.id === selectedMarketIds[projection.key],
-        ) ?? projection.markets[0];
-      if (!selectedMarket) {
-        return null;
-      }
-
-      const groupProps = {
-        groupKey: projection.key,
-        markets: projection.markets,
-        selectedMarket,
-        onSelectMarket: (marketId: PredictMarket['id']) =>
-          handleGroupMarketSelect(projection.key, marketId),
-        onOrder,
-        onRulesPress,
-      };
-
-      return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
-        <TotalMarketGroupCard
-          {...groupProps}
-          title={strings('predict.market_groups.total_points')}
-        />
-      ) : (
-        <SpreadMarketGroupCard
-          {...groupProps}
-          title={strings('predict.market_groups.spread')}
-          game={game}
-        />
-      );
+      return renderCard(projection);
     },
     [
       game,

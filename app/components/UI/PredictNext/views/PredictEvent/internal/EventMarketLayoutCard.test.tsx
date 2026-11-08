@@ -237,18 +237,34 @@ describe('EventMarketLayoutCard', () => {
   });
 
   it.each([
-    ['spread', 'spreads'],
-    ['total', 'totals'],
-  ])('renders a %s line picker without a title', (type, key) => {
-    renderCard(lines(key, type));
+    ['spread', 'spreads', 'predict.market_groups.spread'],
+    ['total', 'totals', 'predict.market_groups.total_points'],
+  ])(
+    'renders a section %s line picker without a title, and a self-named one with its title',
+    (type, key, titleKey) => {
+      renderCard(lines(key, type));
 
-    expect(
-      screen.getByTestId(MarketGroupCardTestIds.card(key)),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MarketGroupCardTestIds.title(key)),
-    ).not.toBeOnTheScreen();
-  });
+      expect(
+        screen.getByTestId(MarketGroupCardTestIds.card(key)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MarketGroupCardTestIds.title(key)),
+      ).not.toBeOnTheScreen();
+
+      const { onRulesPress } = renderCard({
+        ...lines(key, type),
+        name: 'self',
+      });
+      fireEvent.press(screen.getByTestId(MarketGroupCardTestIds.title(key)));
+
+      expect(
+        screen.getByTestId(MarketGroupCardTestIds.title(key)),
+      ).toHaveTextContent(strings(titleKey));
+      expect(onRulesPress).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'over' }),
+      );
+    },
+  );
 
   it.each([
     ['away', game.awayTeam.name],

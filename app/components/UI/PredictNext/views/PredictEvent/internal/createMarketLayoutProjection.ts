@@ -17,6 +17,11 @@ export type MarketLayoutCard =
       key: string;
       marketType: PredictMarketType;
       markets: readonly PredictMarket[];
+      /**
+       * Present when this card sits outside a section and must name itself.
+       * A section card omits it: the section header is the name.
+       */
+      name?: 'self';
     }
   | { type: 'standard'; key: string; market: PredictMarket };
 
