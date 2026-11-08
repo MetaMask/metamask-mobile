@@ -1,5 +1,10 @@
-import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
+
+/**
+ * The og-image API runs on the dev host while it is still being tested.
+ * TODO: switch to `AppConstants.SOCIAL_API_URL` once it ships to prod.
+ */
+const SOCIAL_OG_IMAGE_BASE_URL = 'https://social.dev-api.cx.metamask.io';
 
 export type SocialOgImageTheme = 'mono' | 'blue' | 'purple' | 'orange';
 
@@ -66,8 +71,7 @@ export class SocialOgImageHttpError extends Error {
   }
 }
 
-const socialApiBase = (): string =>
-  AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
+const socialApiBase = (): string => SOCIAL_OG_IMAGE_BASE_URL.replace(/\/$/, '');
 
 /**
  * Static card the API serves for links that have no card of their own.

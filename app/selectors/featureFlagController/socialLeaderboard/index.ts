@@ -45,20 +45,6 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
   },
 );
 
-/**
- * Server-rendered share cards from `POST /api/v1/og-images`. Off by default
- * until that endpoint is deployed.
- */
-export const selectAiSocialShareOgImagesEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.aiSocialShareOgImagesEnabled as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 export const selectAiSocialAusCacheRefreshEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

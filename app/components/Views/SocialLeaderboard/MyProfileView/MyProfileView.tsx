@@ -63,7 +63,6 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
-import { selectAiSocialShareOgImagesEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import {
   buildSocialProfileOpenGraph,
@@ -470,9 +469,6 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  const isShareOgImagesEnabled = useSelector(
-    selectAiSocialShareOgImagesEnabled,
-  );
   const buildProfileOgImageRequest = useCallback(
     (shareTraderId: string, username: string | undefined) => async () =>
       buildSocialProfileOgImageRequest({
@@ -507,15 +503,12 @@ const MyProfileView: React.FC = () => {
           displayProfile?.displayName,
         ),
       ),
-      isShareOgImagesEnabled
-        ? buildProfileOgImageRequest(traderId, displayProfile?.handle)
-        : undefined,
+      buildProfileOgImageRequest(traderId, displayProfile?.handle),
     );
   }, [
     buildProfileOgImageRequest,
     displayProfile?.displayName,
     displayProfile?.handle,
-    isShareOgImagesEnabled,
     liveProfile.profile?.profile,
     trackProfileShared,
     traderId,
@@ -544,13 +537,10 @@ const MyProfileView: React.FC = () => {
       myProfile.profileId,
       trackProfileShared,
       buildSocialProfileOpenGraph(myProfile.displayName),
-      isShareOgImagesEnabled
-        ? buildProfileOgImageRequest(myProfile.profileId, myProfile.handle)
-        : undefined,
+      buildProfileOgImageRequest(myProfile.profileId, myProfile.handle),
     );
   }, [
     buildProfileOgImageRequest,
-    isShareOgImagesEnabled,
     myProfile?.displayName,
     myProfile?.handle,
     myProfile?.profileId,

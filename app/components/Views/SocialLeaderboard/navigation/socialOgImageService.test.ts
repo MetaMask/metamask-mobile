@@ -8,10 +8,7 @@ import {
 const mockCall = jest.fn();
 const mockFetch = jest.fn();
 
-jest.mock('../../../../core/AppConstants', () => ({
-  __esModule: true,
-  default: { SOCIAL_API_URL: 'https://social.test/' },
-}));
+const OG_IMAGE_HOST = 'https://social.dev-api.cx.metamask.io';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -55,7 +52,7 @@ describe('createSocialOgImage', () => {
       'AuthenticationController:getBearerToken',
     );
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://social.test/api/v1/og-images',
+      `${OG_IMAGE_HOST}/api/v1/og-images`,
       {
         method: 'POST',
         headers: {
@@ -92,9 +89,9 @@ describe('createSocialOgImage', () => {
 });
 
 describe('getSocialOgDefaultImageUrl', () => {
-  it('points at the static default card on the social API host', () => {
+  it('points at the static default card on the dev og-image host', () => {
     expect(getSocialOgDefaultImageUrl()).toBe(
-      'https://social.test/api/v1/og-images/default.jpg',
+      `${OG_IMAGE_HOST}/api/v1/og-images/default.jpg`,
     );
   });
 });

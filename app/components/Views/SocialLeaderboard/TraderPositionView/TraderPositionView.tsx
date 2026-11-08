@@ -126,10 +126,7 @@ import {
   type PerpMetrics,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
-import {
-  selectAiSocialShareOgImagesEnabled,
-  selectSocialLeaderboardPerpsEnabled,
-} from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   buildSocialTradeOgImageRequest,
   fetchPerpOgSeries,
@@ -166,9 +163,6 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
-  const isShareOgImagesEnabled = useSelector(
-    selectAiSocialShareOgImagesEnabled,
-  );
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
@@ -262,34 +256,33 @@ const TraderPositionView = () => {
     }
     const source = getSocialEventSource(sourceParam);
     const sharedPosition = displayPosition;
-    const buildOgImageRequest =
-      isShareOgImagesEnabled && sharedPosition
-        ? async () => {
-            const prices = positionData.isPerp
-              ? await fetchPerpOgSeries(
-                  sharedPosition.tokenSymbol,
-                  getEarliestTradeMs(sharedPosition.trades),
-                  Date.now(),
-                )
-              : historicalPrices;
-            return buildSocialTradeOgImageRequest({
-              traderId,
-              positionId: effectivePositionId,
-              username: fetchedProfile?.profile?.name || traderName,
-              avatarUrl: traderImageUrl,
-              position: sharedPosition,
-              market: symbol,
-              marketIconUrl:
-                sharedPosition.tokenImageUrl ?? positionData.tokenImageUrl,
-              isPerp: positionData.isPerp,
-              isClosed,
-              pnlUsd: pnlValue,
-              pnlPct: pnlPercent,
-              markPrice: currentPrice,
-              prices,
-            });
-          }
-        : undefined;
+    const buildOgImageRequest = sharedPosition
+      ? async () => {
+          const prices = positionData.isPerp
+            ? await fetchPerpOgSeries(
+                sharedPosition.tokenSymbol,
+                getEarliestTradeMs(sharedPosition.trades),
+                Date.now(),
+              )
+            : historicalPrices;
+          return buildSocialTradeOgImageRequest({
+            traderId,
+            positionId: effectivePositionId,
+            username: fetchedProfile?.profile?.name || traderName,
+            avatarUrl: traderImageUrl,
+            position: sharedPosition,
+            market: symbol,
+            marketIconUrl:
+              sharedPosition.tokenImageUrl ?? positionData.tokenImageUrl,
+            isPerp: positionData.isPerp,
+            isClosed,
+            pnlUsd: pnlValue,
+            pnlPct: pnlPercent,
+            markPrice: currentPrice,
+            prices,
+          });
+        }
+      : undefined;
     shareSocialTraderPosition(
       effectivePositionId,
       traderId,
@@ -314,7 +307,6 @@ const TraderPositionView = () => {
     fetchedProfile?.profile,
     historicalPrices,
     isClosed,
-    isShareOgImagesEnabled,
     pnlPercent,
     pnlValue,
     positionData.isPerp,
