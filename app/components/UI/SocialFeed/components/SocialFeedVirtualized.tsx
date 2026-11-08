@@ -24,6 +24,7 @@ import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
@@ -154,6 +155,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
@@ -372,6 +374,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               now={clock}
+              viewerProfileId={viewerProfileId}
             />
           );
         case 'inline':
@@ -402,6 +405,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       requireSocialProfile,
       scheduleEntryDelay,
       state,
+      viewerProfileId,
     ],
   );
 
