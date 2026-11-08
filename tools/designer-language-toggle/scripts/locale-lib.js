@@ -666,7 +666,55 @@ function buildPseudoBundle(root, mode) {
   }, '');
 }
 
-function renderStartupBlock(override, pseudoRequire) {
+function renderDraftRuntime(enabled) {
+  if (!enabled) {
+    return [
+      '// Draft overlay is off. There is no require() of designer-drafts.overlay.json,',
+      '// so a missing file cannot break the bundle.',
+    ].join('\n');
+  }
+  return [
+    'if (typeof __DEV__ !== \'undefined\' && __DEV__ && __DESIGNER_LOCALE_OVERRIDE.drafts) {',
+    '  let __designerDraftOverlay = null;',
+    '  try {',
+    '    // eslint-disable-next-line import-x/no-commonjs',
+    "    __designerDraftOverlay = require('./designer-drafts.overlay.json');",
+    '  } catch (draftError) {',
+    '    __designerDraftOverlay = null;',
+    '  }',
+    '  if (__designerDraftOverlay && __designerDraftOverlay.devOnly === true && __designerDraftOverlay.locales) {',
+    '    const __designerMarker = __designerDraftOverlay.marker === true;',
+    '    Object.keys(__designerDraftOverlay.locales).forEach((code) => {',
+    '      const bucket = I18n.translations[code];',
+    '      if (!bucket || typeof bucket !== \'object\') return;',
+    '      const entries = __designerDraftOverlay.locales[code] || {};',
+    '      Object.keys(entries).forEach((key) => {',
+    '        const entry = entries[key] || {};',
+    '        const linguist = entry.linguist && typeof entry.linguist.edit === \'string\'',
+    '          ? entry.linguist.edit.trim()',
+    '          : \'\';',
+    '        const base = linguist || (typeof entry.text === \'string\' ? entry.text : \'\');',
+    '        if (!base) return;',
+    '        const shown = __designerMarker && entry.source === \'draft\' && !linguist',
+    '          ? `⟦draft⟧ ${base}`',
+    '          : base;',
+    '        const parts = String(key).split(\'.\');',
+    '        let node = bucket;',
+    '        for (let index = 0; index < parts.length - 1; index += 1) {',
+    '          if (!node[parts[index]] || typeof node[parts[index]] !== \'object\') {',
+    '            node[parts[index]] = {};',
+    '          }',
+    '          node = node[parts[index]];',
+    '        }',
+    '        node[parts[parts.length - 1]] = shown;',
+    '      });',
+    '    });',
+    '  }',
+    '}',
+  ].join('\n');
+}
+
+function renderStartupBlock(override, pseudoRequire, draftsRequire) {
   const literal = JSON.stringify(override, null, 2)
     .split('\n')
     .map((line, index) => (index === 0 ? line : `  ${line}`))
@@ -698,6 +746,7 @@ function renderStartupBlock(override, pseudoRequire) {
     ') {',
     '  I18n.locale = __DESIGNER_LOCALE_OVERRIDE.locale;',
     '}',
+    renderDraftRuntime(Boolean(draftsRequire)),
     `// ${MARKER_END}`,
   ].join('\n');
 }
@@ -751,7 +800,11 @@ function transformI18nSource(source, override, options) {
       'Could not find the translations assignment in locales/i18n.js. The startup hook needs an update.',
     );
   }
-  const startup = renderStartupBlock(override, Boolean(options.pseudoRequire));
+  const startup = renderStartupBlock(
+    override,
+    Boolean(options.pseudoRequire),
+    Boolean(options.draftsRequire),
+  );
   let next =
     source.slice(0, anchorAt + anchor.length) +
     `\n${startup}` +
@@ -918,6 +971,7 @@ module.exports = {
   scanDateSource,
   accentString,
   buildPseudoBundle,
+  renderDraftRuntime,
   transformI18nSource,
   i18nPath,
   backupPath,

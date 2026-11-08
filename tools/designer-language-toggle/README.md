@@ -26,6 +26,10 @@ These preview files are gitignored so a later commit does not pick them up:
 - `locales/designer-pseudo.generated.json`
 - `locales/.designer-locale.i18n.js.bak`
 - `locales/i18n.js.designer-tmp`
+- `locales/designer-drafts.overlay.json`
+- `locales/designer-drafts.needed.json`
+- `locales/designer-drafts.review.csv`
+- `locales/designer-drafts.review.xlsx`
 
 `locales/i18n.js` itself is tracked. The apply script changes it locally. Revert before you commit anything else, and do not commit that file as part of a language preview.
 
@@ -36,6 +40,18 @@ These preview files are gitignored so a later commit does not pick them up:
 3. **Flag strings** that are missing, still English, or too long. You can limit this to Perps or Social.
 4. **Stress truncation** with an accented pseudo-locale or the longest shipped translation of each string.
 5. **List the string keys on a screen** so a linguist has context. A blank note for that is `FEEDBACK.md`.
+6. **Draft Japanese or Portuguese** for new English, preview it in the running build, and hand linguists a review sheet. Cursor uses the same steps.
+
+## Draft translations
+
+1. Tell the agent the new keys, or the feature you are looking at, and that you want Japanese and Portuguese.
+2. The agent reuses translations that already shipped when the English is the same, and any wording linguists already accepted.
+3. The agent writes a draft only for what is still missing. Placeholders such as `{{name}}` stay as they are.
+4. You reload the preview and click through the real screens. Drafts sit on top of the shipped language in a dev build only. They are not in the Crowdin files.
+5. The agent gives you a spreadsheet. The columns are ID, English, Location, Space, Draft, Source, Fit check, Shorter option, Linguist edit, Linguist status, and Comments. Location is the file, screen, and key.
+6. When the sheet comes back, the agent imports it. Linguist notes that are already filled in are kept. Accepted wording shows up in the preview.
+
+The draft files stay on your machine. Do not commit them.
 
 Shipped languages: German (de), Greek (el), English (en), Spanish (es), French (fr), Hindi (hi), Indonesian (id), Japanese (ja), Korean (ko), Portuguese (pt), Russian (ru), Filipino (tl), Turkish (tr), Vietnamese (vi), Chinese (zh).
 
@@ -50,6 +66,12 @@ node tools/designer-language-toggle/scripts/apply-locale.js --locale ja --langua
 node tools/designer-language-toggle/scripts/apply-locale.js --pseudo longest
 node tools/designer-language-toggle/scripts/apply-locale.js --pseudo accented
 node tools/designer-language-toggle/scripts/revert-locale.js
+
+node tools/designer-language-toggle/scripts/draft-copy.js --gather --lang ja,pt --feature perps
+node tools/designer-language-toggle/scripts/draft-copy.js --write drafts.json --lang ja,pt
+node tools/designer-language-toggle/scripts/apply-locale.js --locale ja --drafts
+node tools/designer-language-toggle/scripts/draft-copy.js --export
+node tools/designer-language-toggle/scripts/draft-copy.js --import locales/designer-drafts.review.csv
 
 node tools/designer-language-toggle/scripts/check-strings.js --lang de --feature perps
 node tools/designer-language-toggle/scripts/check-strings.js --lang ja --feature social

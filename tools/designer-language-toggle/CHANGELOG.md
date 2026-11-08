@@ -1,5 +1,7 @@
 # Changelog
 
+- Designers can draft ja and pt (and the other shipped languages) for new English inside Replit or Cursor. Shipped strings and learned corrections are reused. New drafts stay in a gitignored dev-only overlay, with an optional ⟦draft⟧ marker that is off unless asked. A review CSV/XLSX round-trips linguist columns without clearing them, and accepted edits update the preview and the learned store. Placeholders are checked before a draft is saved. No model API is called.
+
 - Row growth is summed for every visible label in that row, including a label that also appears in another row. The note basis is "from shipped translations", "estimated at 1.4× English length", or "partly estimated (N of M labels)". The calibration phrase prints as "width basis: English measured width".
 
 - A HUG label in a row that may scroll is not a pixel hard break. The row gets one note, "row gets wider in de (+Npx in the widest language); check scrolling", and the 10-character guideline still applies on its own. A `{name} {pct}` string that is already too wide in English, and whose slots do not grow, stays an English layout problem and names the languages that share that collision. HEIGHT notes say "may grow from N to M lines (estimated at 1.4× English length)" unless a shipped translation was measured, in which case the note names that translation.

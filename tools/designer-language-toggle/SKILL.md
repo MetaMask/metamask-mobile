@@ -1,13 +1,12 @@
 ---
 name: designer-language-toggle
 description: >
-  Preview MetaMask Mobile in another language and check translation length for
-  designers on Replit Agent or Cursor. Use when someone asks to show the app in
-  a language, limit the language picker (for example English and Japanese),
-  flag missing, still-English, or too-long strings, stress truncation with a
-  pseudo-locale, or list string keys for a screenshot. Covers the 15 shipped
-  locales. Perps and Social are the first screens. Does not edit Crowdin JSON,
-  does not commit or open a pull request, and does not enable RTL.
+  Preview MetaMask Mobile in another language, check translation length, and
+  draft translations for new English copy. Use when someone asks to show the
+  app in a language, limit the language picker, flag missing or too-long
+  strings, stress truncation, list string keys, or draft Japanese or Portuguese
+  for new copy and preview it. Covers the 15 shipped locales. Does not edit
+  Crowdin JSON, does not commit or open a pull request, and does not enable RTL.
 compatibility: Node.js 18+ in a MetaMask Mobile checkout. Replit Agent or any agent that reads Agent Skills.
 metadata:
   author: MetaMask Mobile design
@@ -56,6 +55,10 @@ Start a new Agent chat after linking.
 | Only this part of the screen | `screenshot-keys.js --feature perps --match PerpsProPositionCard`. Without it, a designer gets all 1234 Perps keys. |
 | Report a translation problem | Fill in `FEEDBACK.md`, then submit it through Laurel's intake form |
 | Put it back / revert | `revert-locale.js` |
+| Draft Japanese and Portuguese for the new copy I'm working on | `draft-copy.js --gather --lang ja,pt`, then write the unmatched drafts, then `--write` and `apply-locale.js --locale ja --drafts` |
+| Preview the drafts I already have | `apply-locale.js --locale ja --drafts` |
+| Export the draft review sheet | `draft-copy.js --export` |
+| Import the linguist's sheet | `draft-copy.js --import <review.csv>` |
 
 Run the scripts from the repo root with `node tools/designer-language-toggle/scripts/<name>.js`.
 
@@ -137,6 +140,23 @@ A string is skipped only when it is purely data or purely a placeholder. Decimal
 Labels, titles, and body copy use the pixel check, not the 10-character cap. Every overflow or wrap line says whether it was measured (`measured: box 285px, needs 1 line`) or is only an estimate. Unconstrained auto-width text is listed under "Check visually". HEIGHT text still reports extra lines, for example "may grow from 2 to 3 lines (estimated at 1.4× English length); check container height". A shipped translation replaces that estimate and the note names the language and key. A slot-only string that is already wider than its English slot stays one layout problem, cross-referenced to the languages that share the collision. A horizontal clip on an ancestor does not hide that note. A container that clips vertically adds "container clips; text may be cut off". `{name} · Album` splits when the word after the dot is short copy or a shipped locale value, even on a path that is not a name hint. The same text keeps separate rows when the kind, width, auto-resize, max lines, or `[max:N]` differ. Identical verdicts collapse to the worst box and list every screen.
 
 `Team A` or `Team B` inside a longer string becomes a `{name}` slot, so `{name} vs. {name}` and the grammar around it stay in the check. A string that is only placeholders is skipped. Edit `placeholderPatterns` in `references/figma-rules.json` to change that list. A shipped English string matches only when it is the same text after trimming. Values shorter than 3 characters, or made only of punctuation, are ignored, and a shorter English value is not matched inside a longer string. When one English string matches several keys, a frame name or `--context predict,perps` picks the feature from `contextHints`. For each language, "might break" means some candidate crosses the pixel limit or the 10-character guideline and some candidate does not. When every candidate fits, the line says all fit. When every candidate breaks, that language is a break. The string is a hard break if any language is. A matched key with no value for a language uses the 1.4× estimate for that language and labels it estimate. `[copy]` keeps a layer and `[skip]` drops it. Trust the text, not the layer name. `--pseudo` pads button and tab labels and compares that padding with the limit for that control.
+
+## Draft new copy in Replit
+
+Use this when a designer has new English in a running build or a coded prototype and wants to see Japanese or Portuguese before linguists review it. Cursor uses the same commands.
+
+1. Ask which language, and which keys or feature. Start with `ja` and `pt` unless they name others. The same command works for every shipped language. The eight regional files (`ja-jp`, `pt-br`, and the rest) are read as extra memory. The app still loads the two-letter file.
+2. Run `draft-copy.js --gather --lang ja,pt`. Add `--feature perps` or `--keys some.key,other.key` when they are looking at one area.
+3. The script reuses a shipped translation when the English matches, and a learned correction when one is stored. It lists only the strings that still need words.
+4. You write those drafts. Keep every `{{placeholder}}` exactly. Do not call a translation API. `--model` does nothing unless someone has set a model URL, and even then the script does not call it.
+5. Save the drafts as JSON, `{ "ja": { "some.key": "…" }, "pt": { "some.key": "…" } }`, and run `draft-copy.js --write that-file.json --lang ja,pt`.
+6. The script checks placeholders and length, then writes a gitignored overlay. It also writes a review CSV and XLSX with the columns ID, English, Location, Space, Draft, Source, Fit check, Shorter option, Linguist edit, Linguist status, and Comments. Source is `shipped:<key>`, `learned`, or `draft`.
+7. Run `apply-locale.js --locale ja --drafts` and tell them to reload. The overlay is applied only when the bundle is a dev build. A release build does not show drafts. Offer the revert command.
+8. Marker mode is off. Pass `--marker` on `--write` only if they want new drafts prefixed with ⟦draft⟧.
+
+When a linguist sends the sheet back, run `draft-copy.js --import <file>`. Empty linguist cells do not erase notes that were already imported. An accepted edit updates the preview and the learned store. Never copy those edits into `locales/languages`.
+
+Do not commit the overlay, the needed-draft list, or the review file. They are gitignored.
 
 ## Design-stage copy
 

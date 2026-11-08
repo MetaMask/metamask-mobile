@@ -288,6 +288,10 @@ locales/designer-locale.override.json
 locales/designer-pseudo.generated.json
 locales/.designer-locale.i18n.js.bak
 locales/i18n.js.designer-tmp
+locales/designer-drafts.overlay.json
+locales/designer-drafts.needed.json
+locales/designer-drafts.review.csv
+locales/designer-drafts.review.xlsx
 
 # Figma extracts are local. Do not commit design-stage copy.
 tools/designer-language-toggle/.cache/

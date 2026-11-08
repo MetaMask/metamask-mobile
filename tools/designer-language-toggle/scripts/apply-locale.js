@@ -22,6 +22,7 @@ Options
   --pseudo accented      English with accents inside ⟦ ⟧, to find text that is not translated
   --pseudo longest       Each string becomes the longest shipped translation
   --languages en,ja      Can be combined with --locale or --pseudo
+  --drafts               Show the gitignored draft overlay on top of shipped strings
   --dry-run              Print the plan and do not write files
   --root <path>          Repo root
 
@@ -36,9 +37,9 @@ Reload the preview after it runs. Ask to revert when you are done.
 
 function main() {
   const args = lib.parseArgs(process.argv.slice(2));
-  if (args.help || (!args.locale && !args.languages && !args.pseudo)) {
+  if (args.help || (!args.locale && !args.languages && !args.pseudo && !args.drafts)) {
     console.log(HELP.trim());
-    if (!args.help && !args.locale && !args.languages && !args.pseudo) {
+    if (!args.help && !args.locale && !args.languages && !args.pseudo && !args.drafts) {
       process.exitCode = 1;
     }
     return;
@@ -83,10 +84,20 @@ function main() {
     throw new Error('Pass --pseudo accented or --pseudo longest.');
   }
 
+  const drafts = require('../lib/drafts');
+  const draftFile = drafts.overlayPath(root);
+  if (args.drafts && !fs.existsSync(draftFile)) {
+    throw new Error(
+      'No draft overlay yet. Ask the agent to draft the new copy first. The overlay is locales/designer-drafts.overlay.json and is not committed.',
+    );
+  }
+  if (args.drafts) drafts.assertDevOnly(drafts.loadOverlay(draftFile));
+
   const override = {
     locale: pseudo ? null : locale,
     languages: uniqueLanguages.length > 0 ? uniqueLanguages : null,
     pseudo,
+    drafts: Boolean(args.drafts),
     force: Boolean(locale) || Boolean(pseudo),
   };
 
@@ -154,6 +165,7 @@ function main() {
 
   const patched = lib.transformI18nSource(original, override, {
     pseudoRequire: Boolean(pseudo),
+    draftsRequire: Boolean(args.drafts),
   });
   if (!fs.existsSync(backupFile)) {
     fs.writeFileSync(backupFile, original);
@@ -175,6 +187,10 @@ function main() {
   console.log('  Note:    locales/designer-locale.override.json');
   if (pseudo) {
     console.log('  Bundle:  locales/designer-pseudo.generated.json');
+  }
+  if (args.drafts) {
+    console.log('  Drafts:  locales/designer-drafts.overlay.json (dev only, gitignored)');
+    console.log('  Draft strings are layered on the shipped language. A release build does not show them.');
   }
   console.log('');
   console.log(

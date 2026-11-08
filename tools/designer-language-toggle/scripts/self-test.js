@@ -286,6 +286,10 @@ function testRealI18nTransform(realI18n) {
     'startup skips saved language when force is on',
   );
   assert(!patched.includes("require('./designer-pseudo.generated.json')"), 'no pseudo require');
+  assert(
+    !patched.includes("require('./designer-drafts.overlay.json')"),
+    'draft overlay is not required unless drafts are on',
+  );
 
   let blocked = false;
   try {
@@ -2232,6 +2236,168 @@ function checkerCount(value) {
   return require('../lib/checker').characterCount(value);
 }
 
+function testDrafts() {
+  const drafts = require('../lib/drafts');
+  assert(drafts.modelDraftEnabled({}) === false, 'the draft model stays off without a URL');
+  assert(
+    drafts.modelDraftEnabled({ DESIGNER_DRAFT_MODEL_URL: 'https://example.invalid/draft' }) === true,
+    'the draft model can be turned on without being called',
+  );
+  const invalid = drafts.validatePlaceholders('Hello {{name}}', 'Hello');
+  assert(invalid && /missing \{\{name\}\}/.test(invalid), 'a draft must keep placeholders');
+  assert(drafts.validatePlaceholders('Hello {{name}}', 'Hi {{name}}') === null, 'the same placeholder is valid');
+
+  const flats = {
+    en: {
+      'old.hello': 'Hello {{name}}',
+      'new.hello': 'Hello {{name}}',
+      'new.bye': 'Goodbye',
+      'new.wave': 'Wave {{name}}',
+    },
+    ja: { 'old.hello': 'Ya {{name}}' },
+    pt: {},
+    regional: {
+      pt: { 'pt-br.json': { 'old.hello': 'Ola {{name}}' } },
+    },
+  };
+  const learned = {
+    corrections: [{
+      lang: 'pt',
+      key: 'new.bye',
+      source_text: 'Goodbye',
+      preferred_text: 'Adeus',
+      reason: 'test',
+      reviewer: 't',
+      date: '2026-11-08',
+    }],
+  };
+  const items = drafts.gatherStrings(flats.en, {
+    langs: ['ja', 'pt'],
+    keys: ['new.hello', 'new.bye', 'new.wave'],
+    flats,
+  });
+  const composed = drafts.composeDrafts(items, {
+    ja: { 'new.wave': 'Nami' },
+    pt: { 'new.wave': 'Onda {{name}}' },
+  }, { langs: ['ja', 'pt'], flats, learned });
+  assert(
+    composed.overlay.locales.ja['new.hello'].source === 'shipped:old.hello',
+    'matching English reuses the shipped translation',
+  );
+  assert(composed.overlay.locales.ja['new.hello'].text === 'Ya {{name}}', 'the reused text is the shipped one');
+  assert(composed.overlay.locales.pt['new.bye'].source === 'learned', 'a learned correction wins');
+  assert(composed.overlay.locales.pt['new.hello'].source === 'shipped:pt-br.json:old.hello', 'a regional file can supply translation memory');
+  assert(composed.overlay.locales.pt['new.wave'].source === 'draft', 'unmatched copy stays a draft');
+  assert(composed.errors.some((error) => error.indexOf('ja new.wave') === 0), 'a draft that drops a placeholder is rejected');
+  assert(!composed.overlay.locales.ja['new.wave'], 'an invalid draft is not stored');
+
+  const base = { ja: { demo: { hello: 'shipped' } } };
+  const overlay = {
+    version: 1,
+    devOnly: true,
+    marker: true,
+    locales: {
+      ja: {
+        'demo.hello': { text: 'Hi {{name}}', source: 'draft', english: 'Hello {{name}}' },
+      },
+    },
+  };
+  assert(drafts.applyDraftOverlay(base, overlay, { dev: false }) === base, 'drafts do not change a production bundle');
+  assert(
+    drafts.applyDraftOverlay(base, { ...overlay, devOnly: false }, { dev: true }) === base,
+    'an overlay that is not marked dev-only is ignored',
+  );
+  const marked = drafts.applyDraftOverlay(base, overlay, { dev: true });
+  assert(marked.ja.demo.hello === '⟦draft⟧ Hi {{name}}', 'marker mode is optional and prefixes drafts');
+  const quiet = drafts.applyDraftOverlay(base, { ...overlay, marker: false }, { dev: true });
+  assert(quiet.ja.demo.hello === 'Hi {{name}}', 'marker mode is off unless asked');
+  assert(base.ja.demo.hello === 'shipped', 'the shipped bundle object is not mutated');
+
+  const reviewed = drafts.importRecords([{
+    ID: 'demo.hello',
+    English: 'Hello {{name}}',
+    Location: 'ja | locales/languages/en.json | demo | demo.hello',
+    Space: 'demo',
+    Draft: 'Hi {{name}}',
+    Source: 'draft',
+    'Fit check': 'fits',
+    'Shorter option': 'Yo {{name}}',
+    'Linguist edit': 'Hello there {{name}}',
+    'Linguist status': 'accepted',
+    Comments: 'keep the name',
+  }], overlay, { corrections: [], date: '2026-11-08' });
+  const again = drafts.importRecords([{
+    ID: 'demo.hello',
+    English: 'Hello {{name}}',
+    Location: 'ja | locales/languages/en.json | demo | demo.hello',
+    Space: 'demo',
+    Draft: 'Hi {{name}}',
+    Source: 'draft',
+    'Fit check': 'fits',
+    'Shorter option': '',
+    'Linguist edit': '',
+    'Linguist status': '',
+    Comments: '',
+  }], reviewed.overlay, reviewed.learned);
+  const kept = again.overlay.locales.ja['demo.hello'].linguist;
+  assert(kept.edit === 'Hello there {{name}}', 'a later import does not clear the linguist edit');
+  assert(kept.shorter === 'Yo {{name}}', 'a later import does not clear the shorter option');
+  assert(kept.status === 'accepted', 'a later import does not clear the linguist status');
+  assert(kept.comments === 'keep the name', 'a later import does not clear comments');
+  assert(again.learned.corrections.length === 1, 'the same accepted edit is stored once');
+  assert(again.learned.corrections[0].preferred_text === 'Hello there {{name}}', 'the learned store gets the linguist edit');
+  const shown = drafts.applyDraftOverlay({ ja: { demo: { hello: 'shipped' } } }, again.overlay, { dev: true });
+  assert(shown.ja.demo.hello === 'Hello there {{name}}', 'the linguist edit is what the preview shows');
+
+  const csvFile = path.join(os.tmpdir(), 'designer-draft-review.csv');
+  const xlsxFile = path.join(os.tmpdir(), 'designer-draft-review.xlsx');
+  const rows = drafts.reviewRowsFromOverlay(again.overlay);
+  drafts.writeReview(csvFile, rows);
+  drafts.writeReview(xlsxFile, rows);
+  const fromCsv = drafts.parseCsv(fs.readFileSync(csvFile, 'utf8'));
+  const fromXlsx = drafts.readReview(xlsxFile);
+  assert(fromCsv[0]['Linguist edit'] === 'Hello there {{name}}', 'the csv keeps the linguist column');
+  assert(fromXlsx[0]['Linguist edit'] === 'Hello there {{name}}', 'the workbook keeps the linguist column');
+  assert(fromCsv[0].ID === 'demo.hello' && fromCsv[0].Source === 'draft', 'the review columns round-trip');
+
+  const runtime = lib.renderDraftRuntime(true);
+  assert(runtime.includes('typeof __DEV__') && runtime.includes("require('./designer-drafts.overlay.json')"), 'the dev bundle gates the overlay on __DEV__');
+  const run = new Function('I18n', '__DEV__', 'require', runtime);
+  const live = { translations: { ja: { demo: { hello: 'shipped' } } } };
+  let required = 0;
+  run(live, false, () => {
+    required += 1;
+    return overlay;
+  });
+  assert(required === 0 && live.translations.ja.demo.hello === 'shipped', 'a production run does not load the overlay');
+
+  const draftRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'designer-drafts-'));
+  try {
+    fs.writeFileSync(path.join(draftRoot, 'package.json'), '{}\n');
+    fs.mkdirSync(path.join(draftRoot, 'locales', 'languages'), { recursive: true });
+    const enFile = path.join(draftRoot, 'locales', 'languages', 'en.json');
+    fs.writeFileSync(enFile, `${JSON.stringify({ demo: { hello: 'Hello {{name}}' } })}\n`);
+    const before = fs.readFileSync(enFile, 'utf8');
+    fs.writeFileSync(
+      path.join(draftRoot, 'locales', 'i18n.js'),
+      fs.readFileSync(path.join(lib.findRepoRoot(), 'locales', 'i18n.js'), 'utf8'),
+    );
+    drafts.saveOverlay(drafts.overlayPath(draftRoot), overlay);
+    const applied = runNode(
+      [path.join(scriptsDir, 'apply-locale.js'), '--root', draftRoot, '--locale', 'ja', '--drafts'],
+      draftRoot,
+    );
+    assert(applied.status === 0, `draft preview status ${applied.status} ${applied.stderr}`);
+    const patched = fs.readFileSync(path.join(draftRoot, 'locales', 'i18n.js'), 'utf8');
+    assert(patched.includes('typeof __DEV__'), 'the patched preview checks __DEV__');
+    assert(fs.readFileSync(enFile, 'utf8') === before, 'draft preview does not edit en.json');
+    const syntax = runNode(['--check', path.join(draftRoot, 'locales', 'i18n.js')], draftRoot);
+    assert(syntax.status === 0, `draft preview syntax ${syntax.stderr}`);
+  } finally {
+    fs.rmSync(draftRoot, { recursive: true, force: true });
+  }
+}
+
 function main() {
   testWidthAndAccent();
   const { root, realI18n } = makeFixture();
@@ -2247,6 +2413,7 @@ function main() {
   testFileAdapterAndLearned();
   testClassificationFixes();
   testReportGaps();
+  testDrafts();
   return testFigmaAdapter().then(() => {
   if (failures > 0) {
     console.error(`${failures} failed`);

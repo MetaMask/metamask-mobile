@@ -418,6 +418,7 @@ module.exports = {
   characterCount,
   charCount,
   placeholderCounts,
+  placeholderDiff,
   checkFlats,
   check,
   matchLearned,
