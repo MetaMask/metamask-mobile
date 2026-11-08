@@ -21,6 +21,7 @@ describe('PerpsCloseTotals', () => {
     expect(row).toHaveTextContent(
       new RegExp(`^${label}-\\$[\\d.]+ \\(-10[\\d.]*%\\)$`),
     );
+    expect(row).not.toHaveTextContent(/\[missing/iu);
   });
 
   it('omits the percentage from the group when RoE is unavailable', () => {
@@ -31,5 +32,6 @@ describe('PerpsCloseTotals', () => {
     );
 
     expect(row).toHaveTextContent(new RegExp(`^${label}\\+\\$[\\d.]+$`));
+    expect(row).not.toHaveTextContent(/\[missing/iu);
   });
 });
