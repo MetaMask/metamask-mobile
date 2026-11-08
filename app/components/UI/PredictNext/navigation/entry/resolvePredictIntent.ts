@@ -5,12 +5,15 @@ import type {
 } from '../../implementation';
 import { getVenueImplementation } from '../../implementation/venueImplementations';
 import type { PredictIntent } from './intents';
-import { resolveLegacyIntent } from './internal/legacy/resolveLegacyIntent';
+import {
+  resolveLegacyIntent,
+  type LegacyLinkFeedContext,
+} from './internal/legacy/resolveLegacyIntent';
 import { resolveNextIntent } from './internal/next/resolveNextIntent';
 import { unavailable, type PredictIntentResolution } from './targets';
 
 /** Whether the implementation serving the Active Venue serves `venue`. */
-const servesVenue = (
+export const servesVenue = (
   implementation: Extract<PredictImplementationResolution, { status: 'ready' }>,
   venue: PredictConfiguredVenue,
 ): boolean =>
@@ -27,16 +30,20 @@ const servesVenue = (
  * intents resolve on that branch too. Every other intent depends on the
  * Venue and opens nothing until it is known. So does an intent a campaign
  * opens: it belongs to the campaign's Venue, and opens nothing on another.
+ * A V1 link's list parameters behave like a feed. `legacyLinkFeeds` carries
+ * the legacy flags they depend on.
  */
 export const resolvePredictIntent = (
   intent: PredictIntent,
   implementation: PredictImplementationResolution,
+  legacyLinkFeeds?: LegacyLinkFeedContext,
 ): PredictIntentResolution => {
   const campaign = intent.type === 'home' ? intent.campaign : undefined;
   if (implementation.status === 'resolving') {
     return (intent.type === 'home' && campaign === undefined) ||
-      intent.type === 'feed'
-      ? resolveLegacyIntent(intent)
+      intent.type === 'feed' ||
+      intent.type === 'linkList'
+      ? resolveLegacyIntent(intent, legacyLinkFeeds)
       : unavailable('resolving');
   }
   if (
@@ -46,6 +53,6 @@ export const resolvePredictIntent = (
     return unavailable('venueMismatch');
   }
   return implementation.implementation === 'legacy'
-    ? resolveLegacyIntent(intent)
+    ? resolveLegacyIntent(intent, legacyLinkFeeds)
     : resolveNextIntent(intent, implementation.venueId);
 };

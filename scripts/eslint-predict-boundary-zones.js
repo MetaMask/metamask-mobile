@@ -123,8 +123,6 @@ const predictImportBurndownFiles = [
   'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.test.ts',
   'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.ts',
   'app/components/Views/confirmations/hooks/transactions/useTransactionCustomAmount.test.ts',
-  'app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts',
-  'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
   'app/core/Engine/controllers/ui-slots-controller/UiSlotsController.test.ts',
   'app/core/Engine/controllers/ui-slots-controller/contracts/v1.test.ts',
   'app/selectors/featureFlagController/mocks.ts',

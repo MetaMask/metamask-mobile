@@ -70,6 +70,10 @@ Empty params are omitted, as callers did before. While the Active Venue is resol
 
 Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` exists for callers that still receive legacy Polymarket data (Browser autocomplete) and goes with PRED-1356.
 
+### Deep links (PRED-1411)
+
+`handlePredictUrl` is a thin parser: it calls `parsePredictLink` and `resolvePredictLinkFromStore` from the entry point and wraps the navigation they return. A link's identifiers belong to the Venue it names with `venue=`, or to Polymarket when it names none. A link for a Venue other than the Active Venue opens the bounded "Market unavailable" sheet and never a fallback. Two intents exist only for links: `linkList` (V1 list parameters) and `feedScreen` (a PredictNext Feed Screen). See [V1 deep links](./v1-deep-links.md), which also records the V1 limitation against PRED-1294's launch goals.
+
 ### Campaign entry points (PRED-1391)
 
 A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaignVenues.ts`; Predict The Pitch runs on Polymarket). Rewards names the campaign, never the Venue:

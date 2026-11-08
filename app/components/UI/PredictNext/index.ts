@@ -35,12 +35,16 @@ export {
   createLegacyPredictEventRef,
   createPredictCampaignEventRef,
   openPredict,
+  parsePredictLink,
+  resolvePredictLinkFromStore,
   usePredictEntryActions,
   type PredictEntryActions,
   type PredictEntryPoint,
   type PredictEventRef,
   type PredictFeedCategory,
   type PredictIntent,
+  type PredictLink,
+  type PredictLinkResolution,
 } from './navigation/entry';
 export type { PredictAppRouteParamList } from './navigation/appRoutes';
 export {
