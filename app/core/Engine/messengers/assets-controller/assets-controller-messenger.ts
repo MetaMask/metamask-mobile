@@ -43,6 +43,9 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountActivityService:statusChanged',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
   'RemoteFeatureFlagController:stateChange',
+  // PriceDataSource opens market-stats channels for assets the Price API marks wssSupport.
+  // Price ticks stay on the root messenger for the UI. This event only reports a chain down.
+  'MarketStatsService:chainStatusChanged',
 ] as const;
 
 /**
@@ -80,6 +83,12 @@ export function getAssetsControllerMessenger(
       'AccountTreeController:isInitialized',
       'ClientController:getState',
       'KeyringController:isUnlocked',
+      // PriceDataSource subscribes the held-asset set. Without these, the stream
+      // reports itself unavailable and every price stays on the poll.
+      'MarketStatsService:subscribe',
+      'MarketStatsService:unsubscribe',
+      'MarketStatsService:getSubscriptions',
+      'MarketStatsService:getChainStatuses',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,

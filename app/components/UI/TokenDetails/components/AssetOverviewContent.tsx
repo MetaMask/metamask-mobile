@@ -23,6 +23,7 @@ import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
+import { createRestingHeaderStore } from '../../AssetOverview/Price/restingHeader';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
@@ -118,6 +119,8 @@ export interface AssetOverviewContentProps {
   balancePriceChangeOverride?: string;
   balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
+  /** Unformatted token amount, repriced from the chart header. */
+  balanceAmount?: number;
   secondaryBalance: string | undefined;
 
   // Price data
@@ -195,6 +198,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   balancePriceChangeOverride,
   balancePriceChangeOverrideColor,
   mainBalance,
+  balanceAmount,
   secondaryBalance,
   currentPrice,
   priceDiff,
@@ -224,6 +228,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   mostRecentOrder,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const restingHeaderStore = useRef(createRestingHeaderStore()).current;
+  const handleRestingHeader = useCallback(
+    (header: { price: number; percent?: number }) => {
+      restingHeaderStore.set(header);
+    },
+    [restingHeaderStore],
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradable } = useRWAToken();
@@ -419,6 +430,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isLoading={isLoading}
             hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
+            onRestingHeader={handleRestingHeader}
             useAmbientColor={useAmbientColor}
             isGlass={isGlass}
           />
@@ -478,6 +490,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 balanceCta={balanceCta}
                 balanceDescription={balanceDescription}
                 mainBalance={mainBalance}
+                balanceAmount={balanceAmount}
+                fiatCurrency={currentCurrency}
+                restingHeaderStore={restingHeaderStore}
                 priceChangeOverride={balancePriceChangeOverride}
                 priceChangeOverrideColor={balancePriceChangeOverrideColor}
                 secondaryBalance={secondaryBalance}

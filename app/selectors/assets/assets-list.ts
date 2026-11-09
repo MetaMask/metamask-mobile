@@ -701,6 +701,8 @@ function assetToToken(
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
+  const balanceAmount = parseFloat(asset.balance);
+
   return {
     address: asset.assetId,
     aggregators: aggregators ?? [],
@@ -708,8 +710,9 @@ function assetToToken(
     image: asset.image,
     name: asset.name,
     symbol: asset.symbol,
+    balanceAmount: Number.isFinite(balanceAmount) ? balanceAmount : undefined,
     balance: formatWithThreshold(
-      parseFloat(asset.balance),
+      balanceAmount,
       oneHundredThousandths,
       I18n.locale,
       {

@@ -108,6 +108,7 @@ describe('useTokenBalance', () => {
 
     mockSelectAsset.mockReturnValue({
       balance: '100',
+      balanceAmount: 100,
       balanceFiat: '$100.00',
       symbol: 'DAI',
     } as TokenI);
@@ -120,6 +121,7 @@ describe('useTokenBalance', () => {
       isStaked: false,
     });
     expect(result.current.balance).toBe('100');
+    expect(result.current.balanceAmount).toBe(100);
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('100 DAI');
     expect(mockSelectTronResources).not.toHaveBeenCalled();

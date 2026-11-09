@@ -8,6 +8,7 @@ import PriceAdvanced from './Price.advanced';
 import { PriceProvider } from './Price.context';
 import { PriceHeader } from './Price.Header';
 import { PriceChartSection } from './Price.Chart';
+import type { RestingHeader } from './restingHeader';
 
 interface PriceSharedProps {
   priceDiff: number;
@@ -30,6 +31,7 @@ export type PriceProps = PriceSharedProps & {
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
+  onRestingHeader?: (header: RestingHeader) => void;
   useAmbientColor?: boolean;
   /** Draws the controls under the chart as glass; the screen passes its flag. */
   isGlass?: boolean;

@@ -109,6 +109,10 @@ import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import {
+  useLiveQuote,
+  useWatchAssetPrice,
+} from '../../../../hooks/assets/market-stats-live-prices';
 import { useElapsedTime } from '../hooks/useElapsedTime';
 import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
@@ -421,17 +425,27 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   );
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
 
+  const quotedPrice = useTokenPrice({ token });
+  const liveQuote = useLiveQuote(caip19AssetId);
+  useWatchAssetPrice(caip19AssetId);
+  const currentPrice = liveQuote?.price ?? quotedPrice.currentPrice;
+  let { priceDiff, comparePrice } = quotedPrice;
+  if (
+    liveQuote?.pricePercentChange1d !== undefined &&
+    quotedPrice.timePeriod === '1d' &&
+    currentPrice > 0
+  ) {
+    comparePrice = currentPrice / (1 + liveQuote.pricePercentChange1d / 100);
+    priceDiff = currentPrice - comparePrice;
+  }
   const {
-    currentPrice,
-    priceDiff,
-    comparePrice,
     prices,
     isLoading: isPriceLoading,
     timePeriod,
     setTimePeriod,
     currentCurrency,
     hasInsufficientCoverage,
-  } = useTokenPrice({ token });
+  } = quotedPrice;
 
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });

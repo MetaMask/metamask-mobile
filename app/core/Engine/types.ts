@@ -237,6 +237,8 @@ import {
   OHLCVService,
   OHLCVServiceActions,
   OHLCVServiceEvents,
+  MarketStatsServiceActions,
+  MarketStatsServiceEvents,
 } from '@metamask/core-backend';
 import {
   AccountsController,
@@ -769,7 +771,8 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
-  | SentinelApiServiceActions;
+  | SentinelApiServiceActions
+  | MarketStatsServiceActions;
 
 export type GlobalEvents =
   | SamplePetnamesControllerEvents
@@ -864,7 +867,8 @@ export type GlobalEvents =
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
-  | SentinelApiServiceEvents;
+  | SentinelApiServiceEvents
+  | MarketStatsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
