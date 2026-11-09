@@ -276,6 +276,15 @@ describe('EmulatorHelpers', () => {
       expect(args[args.indexOf('-skin') + 1]).toBe('1080x2340');
     });
 
+    it('honors a memory override', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-prime',
+        memoryMb: '5120',
+      });
+      expect(args[args.indexOf('-memory') + 1]).toBe('5120');
+    });
+
     it('snapshot-resume quick-boots read-only and never writes back', () => {
       const args = buildAndroidEmulatorArgs({
         ...base,
@@ -342,6 +351,19 @@ describe('EmulatorHelpers', () => {
         expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
           String(boot.port),
         );
+      }
+    });
+
+    it('applies the memory override to every pool boot', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        ...base,
+        poolSize: 2,
+        cores: '4',
+        memoryMb: '5120',
+      });
+
+      for (const boot of boots) {
+        expect(boot.args[boot.args.indexOf('-memory') + 1]).toBe('5120');
       }
     });
 
@@ -562,6 +584,22 @@ describe('EmulatorHelpers', () => {
         ANDROID_EMULATOR_CI_CORES: '16',
       });
       expect(fp8).not.toBe(fp16);
+    });
+
+    it('changes when ANDROID_EMULATOR_CI_MEMORY_MB changes', async () => {
+      const base = {
+        ANDROID_HOME: androidHome,
+        ANDROID_SYSTEM_IMAGE_API_LEVEL: '36',
+        ANDROID_SYSTEM_IMAGE_TAG: 'default',
+        ANDROID_SYSTEM_IMAGE_ABI: 'x86_64',
+        ANDROID_EMULATOR_CI_CORES: '4',
+      };
+      const fpDefault = await computeAndroidSystemImageFingerprint(base);
+      const fp5120 = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_MEMORY_MB: '5120',
+      });
+      expect(fpDefault).not.toBe(fp5120);
     });
 
     it('changes when ANDROID_EMULATOR_CI_SKIN changes', async () => {

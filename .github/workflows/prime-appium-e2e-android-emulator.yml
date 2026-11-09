@@ -34,7 +34,7 @@ jobs:
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
-        'namespace-profile-metamask-android-e2e' ||
+        'namespace-profile-metamask-android-e2e-small' ||
         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]')
       }}
     env:
@@ -42,8 +42,9 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      # Must match shard jobs. Pool mode shares this one 4-core golden.
+      # Must match shard jobs. Pool mode shares this one golden.
       ANDROID_EMULATOR_CI_CORES: '4'
+      ANDROID_EMULATOR_CI_MEMORY_MB: '5120'
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
