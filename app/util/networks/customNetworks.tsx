@@ -459,6 +459,7 @@ export const NETWORK_CHAIN_ID: {
   readonly GNOSIS: '0x64';
   readonly ZERO_G: '0x4115';
   readonly SOMNIA: '0x13a7';
+  readonly BANA_MAINNET: '0x194c90';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -511,6 +512,7 @@ export const NETWORK_CHAIN_ID: {
   ROBINHOOD_CHAIN: '0x1237',
   ZERO_G: '0x4115',
   SOMNIA: '0x13a7',
+  BANA_MAINNET: '0x194c90',
   ...CHAIN_IDS,
 };
 
@@ -571,4 +573,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
   [NETWORK_CHAIN_ID.ZERO_G]: require('../../images/0g-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.SOMNIA]: require('../../images/somnia.png'),
+  [NETWORK_CHAIN_ID.BANA_MAINNET]: require('../../images/bana-mainnet-logo.png'),
 };
