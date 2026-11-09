@@ -4,6 +4,9 @@
 export const WINDOW_DAYS = 14;
 export const MIN_SAMPLES = 400;
 
+/** The SLACK_BOT_TOKEN bot must be a member of this channel. */
+export const SLACK_CHANNEL_ID = 'C0CFMPG4KB9';
+
 const MOBILE = '2299799';
 const EXTENSION = '273505';
 const MOBILE_MID_TIER = 'os.name:Android device.class:medium';
