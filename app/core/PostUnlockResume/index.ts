@@ -1,7 +1,8 @@
 export {
   MAX_CONSECUTIVE_POST_UNLOCK_RESUMES,
   clearPostUnlockResume,
-  consumePostUnlockResume,
   setPostUnlockResume,
+  takePostUnlockResume,
+  type PendingPostUnlockResume,
   type PostUnlockResumeRequest,
 } from './PostUnlockResume';

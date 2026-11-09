@@ -18,7 +18,7 @@ import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
-import { consumePostUnlockResume } from '../../PostUnlockResume';
+import { takePostUnlockResume } from '../../PostUnlockResume';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -125,16 +125,17 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
-  // Read first so time spent resolving a deeplink does not count against the
-  // resume window. A handled deeplink still wins.
-  const resumeState = await consumePostUnlockResume();
+  // Take first so time spent resolving a deeplink does not count against the
+  // resume window. A handled deeplink wins and drops the resume uncommitted.
+  const resume = await takePostUnlockResume();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
   }
 
-  if (resumeState) {
-    resetToHomeNav(resumeState);
+  if (resume) {
+    await resume.commit();
+    resetToHomeNav(resume.state);
   } else {
     NavigationService.navigation?.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],

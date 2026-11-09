@@ -86,9 +86,10 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockConsumePostUnlockResume = jest.fn();
+const mockTakePostUnlockResume = jest.fn();
+const mockCommitPostUnlockResume = jest.fn();
 jest.mock('../../PostUnlockResume', () => ({
-  consumePostUnlockResume: () => mockConsumePostUnlockResume(),
+  takePostUnlockResume: () => mockTakePostUnlockResume(),
 }));
 
 const mockStartDeeplinkNavigatedTrace = jest.fn();
@@ -120,7 +121,8 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
-    mockConsumePostUnlockResume.mockResolvedValue(undefined);
+    mockTakePostUnlockResume.mockResolvedValue(undefined);
+    mockCommitPostUnlockResume.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -284,28 +286,35 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('opens the pending post-unlock resume state instead of home', async () => {
+  it('commits and opens the pending post-unlock resume state instead of home', async () => {
     const resumeState = { index: 1, routes: [{ name: 'Home' }] };
-    mockConsumePostUnlockResume.mockResolvedValueOnce(resumeState);
+    mockTakePostUnlockResume.mockResolvedValueOnce({
+      state: resumeState,
+      commit: mockCommitPostUnlockResume,
+    });
 
     await navigateToPostUnlockHome();
 
     expect(mockReset).toHaveBeenCalledWith({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV, state: resumeState }],
     });
+    expect(mockCommitPostUnlockResume).toHaveBeenCalledTimes(1);
+    expect(mockCommitPostUnlockResume.mock.invocationCallOrder[0]).toBeLessThan(
+      mockReset.mock.invocationCallOrder[0],
+    );
   });
 
-  it('lets a handled startup deeplink win over a post-unlock resume', async () => {
+  it('lets a handled startup deeplink win without committing the post-unlock resume', async () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
-    mockConsumePostUnlockResume.mockResolvedValueOnce({
-      index: 0,
-      routes: [{ name: 'Home' }],
+    mockTakePostUnlockResume.mockResolvedValueOnce({
+      state: { index: 0, routes: [{ name: 'Home' }] },
+      commit: mockCommitPostUnlockResume,
     });
 
     await navigateToPostUnlockHome();
 
-    expect(mockConsumePostUnlockResume).toHaveBeenCalledTimes(1);
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockCommitPostUnlockResume).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
   });
 });

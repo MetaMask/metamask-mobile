@@ -4,8 +4,8 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import {
   MAX_CONSECUTIVE_POST_UNLOCK_RESUMES,
   clearPostUnlockResume,
-  consumePostUnlockResume,
   setPostUnlockResume,
+  takePostUnlockResume,
 } from './PostUnlockResume';
 
 let mockKeyrings: { type: string; metadata?: { id: string } }[];
@@ -59,6 +59,12 @@ const previousRuntimeRequest = (overrides: Record<string, unknown> = {}) =>
 
 const readJson = (key: string) =>
   mockStore[key] === undefined ? undefined : JSON.parse(mockStore[key]);
+
+const takeAndCommit = async () => {
+  const resume = await takePostUnlockResume();
+  await resume?.commit();
+  return resume?.state;
+};
 
 describe('PostUnlockResume', () => {
   beforeEach(() => {
@@ -149,20 +155,49 @@ describe('PostUnlockResume', () => {
     });
   });
 
-  describe('consumePostUnlockResume', () => {
+  describe('takePostUnlockResume', () => {
     it('returns nothing when no request exists', async () => {
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStorage.removeItem).not.toHaveBeenCalled();
     });
 
-    it('returns the state of a recent request from a previous runtime', async () => {
+    it('deletes and returns a recent request from a previous runtime without counting it', async () => {
       mockStore[REQUEST_KEY] = previousRuntimeRequest();
 
-      await expect(consumePostUnlockResume()).resolves.toStrictEqual(STATE);
+      const resume = await takePostUnlockResume();
+
+      expect(resume?.state).toStrictEqual(STATE);
       expect(mockStore[REQUEST_KEY]).toBeUndefined();
+      expect(mockStore[COUNT_KEY]).toBeUndefined();
+    });
+
+    it('counts the resume once committed', async () => {
+      mockStore[REQUEST_KEY] = previousRuntimeRequest();
+
+      await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
       expect(readJson(COUNT_KEY)).toStrictEqual({
         owner: OWNER,
         count: 1,
+        lastAt: NOW,
+      });
+    });
+
+    it('does not count a dropped resume toward the cap', async () => {
+      const count = JSON.stringify({
+        owner: OWNER,
+        count: MAX_CONSECUTIVE_POST_UNLOCK_RESUMES - 1,
+        lastAt: NOW - 10_000,
+      });
+      mockStore[COUNT_KEY] = count;
+
+      mockStore[REQUEST_KEY] = previousRuntimeRequest();
+      await takePostUnlockResume();
+      mockStore[REQUEST_KEY] = previousRuntimeRequest();
+
+      await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
+      expect(readJson(COUNT_KEY)).toStrictEqual({
+        owner: OWNER,
+        count: MAX_CONSECUTIVE_POST_UNLOCK_RESUMES,
         lastAt: NOW,
       });
     });
@@ -172,7 +207,7 @@ describe('PostUnlockResume', () => {
         updatedAt: NOW - MAX_AGE_MS,
       });
 
-      await expect(consumePostUnlockResume()).resolves.toStrictEqual(STATE);
+      await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
     });
 
     it.each([
@@ -183,7 +218,7 @@ describe('PostUnlockResume', () => {
     ])('deletes a request %s without resuming', async (_label, overrides) => {
       mockStore[REQUEST_KEY] = previousRuntimeRequest(overrides);
 
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStore[REQUEST_KEY]).toBeUndefined();
       expect(mockStore[COUNT_KEY]).toBeUndefined();
     });
@@ -191,7 +226,7 @@ describe('PostUnlockResume', () => {
     it('deletes a malformed request without resuming', async () => {
       mockStore[REQUEST_KEY] = 'not-json';
 
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStore[REQUEST_KEY]).toBeUndefined();
     });
 
@@ -202,7 +237,7 @@ describe('PostUnlockResume', () => {
         maxAgeMs: MAX_AGE_MS,
       });
 
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStore[REQUEST_KEY]).toBeDefined();
     });
 
@@ -214,7 +249,7 @@ describe('PostUnlockResume', () => {
         lastAt: NOW - 60_000,
       });
 
-      await expect(consumePostUnlockResume()).resolves.toStrictEqual(STATE);
+      await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
       expect(readJson(COUNT_KEY)).toStrictEqual({
         owner: OWNER,
         count: MAX_CONSECUTIVE_POST_UNLOCK_RESUMES,
@@ -231,7 +266,7 @@ describe('PostUnlockResume', () => {
       mockStore[REQUEST_KEY] = previousRuntimeRequest();
       mockStore[COUNT_KEY] = count;
 
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStore[REQUEST_KEY]).toBeUndefined();
       expect(mockStore[COUNT_KEY]).toBe(count);
     });
@@ -249,7 +284,7 @@ describe('PostUnlockResume', () => {
         count: MAX_CONSECUTIVE_POST_UNLOCK_RESUMES,
       });
 
-      await expect(consumePostUnlockResume()).resolves.toStrictEqual(STATE);
+      await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
       expect(readJson(COUNT_KEY)).toStrictEqual({
         owner: OWNER,
         count: 1,
@@ -260,7 +295,16 @@ describe('PostUnlockResume', () => {
     it('logs and skips the resume when storage fails', async () => {
       mockStorage.getItem.mockRejectedValue(new Error('read failed'));
 
-      await expect(consumePostUnlockResume()).resolves.toBeUndefined();
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('logs instead of throwing when the commit write fails', async () => {
+      mockStore[REQUEST_KEY] = previousRuntimeRequest();
+      const resume = await takePostUnlockResume();
+      mockStorage.setItem.mockRejectedValue(new Error('disk full'));
+
+      await expect(resume?.commit()).resolves.toBeUndefined();
       expect(Logger.error).toHaveBeenCalled();
     });
   });

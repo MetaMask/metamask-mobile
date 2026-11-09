@@ -144,15 +144,25 @@ export const clearPostUnlockResume = async (owner: string): Promise<void> => {
   }
 };
 
+export interface PendingPostUnlockResume {
+  state: NavigationBranchState;
+  /**
+   * Counts this resume toward {@link MAX_CONSECUTIVE_POST_UNLOCK_RESUMES}.
+   * Await it before opening `state`, so a screen that crashes the app counts.
+   */
+  commit: () => Promise<void>;
+}
+
 /**
- * Deletes a request left by a previous runtime and returns its state when it
- * was written for the same SRP within its `maxAgeMs`. A request from the
- * current runtime is left alone. After
- * {@link MAX_CONSECUTIVE_POST_UNLOCK_RESUMES} resumes in a row for one owner,
- * the next relaunch goes home instead.
+ * Deletes a request left by a previous runtime and returns it when it was
+ * written for the same SRP within its `maxAgeMs`. A request from the current
+ * runtime is left alone. After {@link MAX_CONSECUTIVE_POST_UNLOCK_RESUMES}
+ * committed resumes in a row for one owner, the next relaunch goes home
+ * instead. A caller that opens something else skips `commit`, so the dropped
+ * request does not count.
  */
-export const consumePostUnlockResume = async (): Promise<
-  NavigationBranchState | undefined
+export const takePostUnlockResume = async (): Promise<
+  PendingPostUnlockResume | undefined
 > => {
   try {
     const serialized = await StorageWrapper.getItem(POST_UNLOCK_RESUME_KEY);
@@ -186,13 +196,27 @@ export const consumePostUnlockResume = async (): Promise<
     if (count >= MAX_CONSECUTIVE_POST_UNLOCK_RESUMES) {
       return undefined;
     }
-    await StorageWrapper.setItem(
-      POST_UNLOCK_RESUME_COUNT_KEY,
-      JSON.stringify({ owner: request.owner, count: count + 1, lastAt: now }),
-    );
-    return request.state;
+    const { owner, state } = request;
+    return {
+      state,
+      commit: async () => {
+        try {
+          const next: StoredCount = {
+            owner,
+            count: count + 1,
+            lastAt: Date.now(),
+          };
+          await StorageWrapper.setItem(
+            POST_UNLOCK_RESUME_COUNT_KEY,
+            JSON.stringify(next),
+          );
+        } catch (error) {
+          logError(error, 'commit');
+        }
+      },
+    };
   } catch (error) {
-    logError(error, 'consume');
+    logError(error, 'take');
     return undefined;
   }
 };
