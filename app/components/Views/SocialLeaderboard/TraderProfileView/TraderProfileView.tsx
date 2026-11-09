@@ -281,7 +281,6 @@ const TraderProfileView = () => {
         buildSocialProfileOgImageRequest({
           traderId,
           username: profile?.profile.name || traderName,
-          avatarUrl: profile?.profile.imageUrl,
           profile,
           closedPositions,
           nowMs: Date.now(),

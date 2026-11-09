@@ -70,7 +70,6 @@ const tradeInput = (
   traderId: '7a7e08ce-49fe-4c9d-a33e-4447acf0fec6',
   positionId: sndkLong.positionId,
   username: 'wen_silent_gecko',
-  avatarUrl: 'https://cdn.test/avatar.png',
   position: sndkLong,
   market: 'SNDK',
   marketIconUrl: sndkLong.tokenImageUrl,
@@ -104,7 +103,6 @@ describe('buildSocialTradeOgImageRequest', () => {
       positionId: sndkLong.positionId,
       trade: {
         handle: '@wen_silent_gecko',
-        avatarUrl: 'https://cdn.test/avatar.png',
         market: 'SNDK',
         marketIconUrl: sndkLong.tokenImageUrl,
         side: 'Long',
@@ -156,17 +154,21 @@ describe('buildSocialTradeOgImageRequest', () => {
     expect(trade?.exitIndex).toBeUndefined();
   });
 
-  it('leaves out image urls that are not https', () => {
+  it('leaves out a token icon url that is not https', () => {
     const request = buildSocialTradeOgImageRequest(
-      tradeInput({
-        avatarUrl: 'http://cdn.test/avatar.png',
-        marketIconUrl: 'data:image/svg+xml;base64,AAAA',
-      }),
+      tradeInput({ marketIconUrl: 'data:image/svg+xml;base64,AAAA' }),
     );
 
     const trade = request?.kind === 'trade' ? request.trade : undefined;
-    expect(trade?.avatarUrl).toBeUndefined();
     expect(trade?.marketIconUrl).toBeUndefined();
+  });
+
+  it('sends no profile picture or promo code', () => {
+    const request = buildSocialTradeOgImageRequest(tradeInput());
+
+    const trade = request?.kind === 'trade' ? request.trade : undefined;
+    expect(trade).not.toHaveProperty('avatarUrl');
+    expect(trade).not.toHaveProperty('promoCode');
   });
 
   it.each([
@@ -230,11 +232,10 @@ describe('buildSocialProfileOgImageRequest', () => {
       lastTradeAt: nowMs / 1000 - daysAgo * daySeconds,
     }) as Position;
 
-  it('builds a profile card from stats and recent closed positions, without the address', () => {
+  it('builds a profile card from stats and recent closed positions, without the address, avatar or chart', () => {
     const request = buildSocialProfileOgImageRequest({
       traderId: '796a9c22-4831-4813-ba75-4f3277825420',
       username: 'dip_spicy_maxi',
-      avatarUrl: profile.profile.imageUrl,
       profile,
       closedPositions: [closed(2, 300), closed(40, 900), closed(10, -100)],
       nowMs,
@@ -245,18 +246,16 @@ describe('buildSocialProfileOgImageRequest', () => {
       traderId: '796a9c22-4831-4813-ba75-4f3277825420',
       profile: {
         handle: '@dip_spicy_maxi',
-        avatarUrl: 'https://cdn.test/dip.png',
         pnl30dUsd: 1200,
         winRatePct: 64,
         tradeCount: 31,
         bestTradeUsd: 300,
         followers: 12,
-        pnlSeries: [0, -100, 200],
       },
     });
   });
 
-  it('draws a line to the 30-day P&L when nothing closed in the window', () => {
+  it('reports no best trade when nothing closed in the window', () => {
     const request = buildSocialProfileOgImageRequest({
       traderId: 'trader-1',
       username: '@dip_spicy_maxi',
@@ -267,7 +266,6 @@ describe('buildSocialProfileOgImageRequest', () => {
 
     const card = request?.kind === 'profile' ? request.profile : undefined;
     expect(card?.handle).toBe('@dip_spicy_maxi');
-    expect(card?.pnlSeries).toEqual([0, 1200]);
     expect(card?.bestTradeUsd).toBe(0);
   });
 

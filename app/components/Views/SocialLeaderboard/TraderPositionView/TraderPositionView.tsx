@@ -279,7 +279,6 @@ const TraderPositionView = () => {
             traderId,
             positionId: effectivePositionId,
             username: fetchedProfile?.profile?.name || traderName,
-            avatarUrl: traderImageUrl,
             position: sharedPosition,
             market: symbol,
             marketIconUrl:
@@ -325,7 +324,6 @@ const TraderPositionView = () => {
     symbol,
     trackSocialPost,
     traderId,
-    traderImageUrl,
     traderName,
   ]);
 

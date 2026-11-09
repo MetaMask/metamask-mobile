@@ -474,13 +474,11 @@ const MyProfileView: React.FC = () => {
       buildSocialProfileOgImageRequest({
         traderId: shareTraderId,
         username: liveProfile.profile?.profile.name || username,
-        avatarUrl:
-          liveProfile.profile?.profile.imageUrl ?? displayProfile?.imageUrl,
         profile: liveProfile.profile,
         closedPositions,
         nowMs: Date.now(),
       }),
-    [closedPositions, displayProfile?.imageUrl, liveProfile.profile],
+    [closedPositions, liveProfile.profile],
   );
   const trackProfileShared = useCallback(() => {
     trackSocialPost({

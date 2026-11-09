@@ -165,7 +165,6 @@ export interface SocialTradeOgCardInput {
   positionId: string;
   /** Username, with or without a leading `@`. */
   username: string | null | undefined;
-  avatarUrl?: string | null;
   position: Position;
   /** Display symbol, for example `BTC` rather than `xyz:BTC`. */
   market: string;
@@ -219,7 +218,12 @@ export const buildSocialTradeOgImageRequest = (
     });
     return undefined;
   }
-  if (!handle || !entryPrice) {
+  if (
+    !handle ||
+    !entryPrice ||
+    !isFiniteNumber(input.pnlUsd) ||
+    !isFiniteNumber(input.pnlPct)
+  ) {
     return undefined;
   }
 
@@ -245,7 +249,6 @@ export const buildSocialTradeOgImageRequest = (
     positionId: input.positionId,
     trade: {
       handle,
-      avatarUrl: toHttpsUrl(input.avatarUrl),
       market,
       marketIconUrl: toHttpsUrl(input.marketIconUrl),
       side: perpSide === 'short' ? 'Short' : 'Long',
@@ -276,22 +279,16 @@ export const buildSocialTradeOgImageRequest = (
 export interface SocialProfileOgCardInput {
   traderId: string;
   username: string | null | undefined;
-  avatarUrl?: string | null;
   profile: TraderProfileResponse | null | undefined;
   closedPositions: readonly Position[];
   nowMs: number;
 }
 
-interface ClosedPnl {
-  closedAtMs: number;
-  realizedPnl: number;
-}
-
-/** Loaded closed positions with a realized PnL, closed in the last 30 days, oldest first. */
-const closedInLast30Days = (
+/** Realized PnLs from loaded positions closed in the last 30 days. */
+const realizedPnlsInLast30Days = (
   closedPositions: readonly Position[],
   nowMs: number,
-): ClosedPnl[] => {
+): number[] => {
   const windowStart = nowMs - THIRTY_DAYS_MS;
   return closedPositions
     .map((position) => ({
@@ -299,38 +296,19 @@ const closedInLast30Days = (
       realizedPnl: position.realizedPnl,
     }))
     .filter(
-      (entry): entry is ClosedPnl =>
+      (entry): entry is { closedAtMs: number; realizedPnl: number } =>
         isFiniteNumber(entry.realizedPnl) && entry.closedAtMs >= windowStart,
     )
-    .sort((left, right) => left.closedAtMs - right.closedAtMs);
-};
-
-/**
- * Cumulative realized PnL, starting at 0. The profile API has no PnL
- * history, so this stands in for one. With nothing closed in the window it is
- * a straight line from 0 to the 30-day PnL.
- */
-const buildProfilePnlSeries = (
-  recent: readonly ClosedPnl[],
-  pnl30dUsd: number,
-): number[] => {
-  if (!recent.length) {
-    return [0, pnl30dUsd];
-  }
-  let running = 0;
-  const series = [0];
-  for (const entry of recent) {
-    running += entry.realizedPnl;
-    series.push(running);
-  }
-  return downsampleSeries(series);
+    .map((entry) => entry.realizedPnl);
 };
 
 /**
  * Profile A body. Returns `undefined` when there is no handle or no 30-day
  * PnL. The account address is never sent: Social profiles keep it private.
- * `bestTradeUsd` and `pnlSeries` come from loaded positions closed in the
- * last 30 days, to match the card's other 30-day figures.
+ * `bestTradeUsd` comes from loaded positions closed in the last 30 days, to
+ * match the card's other 30-day figures. The card draws no PnL chart: there
+ * is no PnL history for a profile. Profile pictures are not sent for now; the
+ * card shows the `@handle` only.
  */
 export const buildSocialProfileOgImageRequest = (
   input: SocialProfileOgCardInput,
@@ -350,10 +328,13 @@ export const buildSocialProfileOgImageRequest = (
     return undefined;
   }
 
-  const recent = closedInLast30Days(input.closedPositions, input.nowMs);
+  const recentPnls = realizedPnlsInLast30Days(
+    input.closedPositions,
+    input.nowMs,
+  );
   logSocialOgShare('Profile card derived values', {
     closedPositionsLoaded: input.closedPositions.length,
-    closedInLast30Days: recent.length,
+    closedInLast30Days: recentPnls.length,
   });
   const winRate = stats?.winRate30d;
   const tradeCount = stats?.tradeCount30d;
@@ -363,17 +344,13 @@ export const buildSocialProfileOgImageRequest = (
     traderId: input.traderId,
     profile: {
       handle,
-      avatarUrl: toHttpsUrl(input.avatarUrl),
       pnl30dUsd,
       winRatePct: isFiniteNumber(winRate)
         ? Math.min(100, Math.max(0, winRate * 100))
         : 0,
       tradeCount: isFiniteNumber(tradeCount) ? tradeCount : 0,
-      bestTradeUsd: recent.length
-        ? Math.max(...recent.map((entry) => entry.realizedPnl))
-        : 0,
+      bestTradeUsd: recentPnls.length ? Math.max(...recentPnls) : 0,
       followers: input.profile.followerCount,
-      pnlSeries: buildProfilePnlSeries(recent, pnl30dUsd),
     },
   };
 };

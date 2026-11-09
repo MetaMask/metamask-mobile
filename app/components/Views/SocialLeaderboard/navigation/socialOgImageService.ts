@@ -11,7 +11,9 @@ export type SocialOgImageTheme = 'mono' | 'blue' | 'purple' | 'orange';
 
 /** `trade` body for `POST /api/v1/og-images` (Trade A card). */
 export interface SocialOgTradeCard {
+  /** Drawn with a leading `@`. */
   handle: string;
+  /** Accepted by the API but not drawn for now, so the app does not send it. */
   avatarUrl?: string;
   market: string;
   marketIconUrl?: string;
@@ -30,13 +32,16 @@ export interface SocialOgTradeCard {
   entryIndex?: number;
   exitIndex?: number;
   showDollar: boolean;
+  /** Referral code drawn bottom-left of the footer. Not sent yet. */
   promoCode?: string;
   theme?: SocialOgImageTheme;
 }
 
 /** `profile` body for `POST /api/v1/og-images` (Profile A card). */
 export interface SocialOgProfileCard {
+  /** Drawn with a leading `@`. */
   handle: string;
+  /** Accepted by the API but not drawn for now, so the app does not send it. */
   avatarUrl?: string;
   address?: string;
   subtitle?: string;
@@ -46,8 +51,8 @@ export interface SocialOgProfileCard {
   tradeCount: number;
   bestTradeUsd: number;
   followers: number;
-  /** 2–200 values, oldest first. */
-  pnlSeries: number[];
+  /** Referral code drawn bottom-left of the footer. Not sent yet. */
+  promoCode?: string;
   theme?: SocialOgImageTheme;
 }
 
