@@ -54,6 +54,33 @@ import {
 
 const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
+/**
+ * Builds the screen-reader name for the send amount.
+ *
+ * Prefix currency symbols are concatenated as formatted (`$0.00`). Token
+ * symbols get a single space (`0 ETH`). Postfix currency affixes from
+ * {@link getNarrowCurrencyAffix} already include their locale separator, so
+ * a French euro amount keeps that one separator (`0.00 €`).
+ *
+ * @param prefix - Symbol rendered before the amount. Empty in token mode and for postfix currencies.
+ * @param amount - Formatted amount digits currently shown.
+ * @param suffix - Symbol rendered after the amount. Empty when the currency is a prefix.
+ * @returns The accessibility label for the amount row.
+ */
+function getAmountAccessibilityLabel(
+  prefix: string,
+  amount: string,
+  suffix: string,
+): string {
+  if (prefix) {
+    return `${prefix}${amount}${suffix}`;
+  }
+  if (!suffix || /^\s/u.test(suffix)) {
+    return `${amount}${suffix}`;
+  }
+  return `${amount} ${suffix}`;
+}
+
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
@@ -255,13 +282,11 @@ export const Amount = () => {
           <View style={styles.inputWrapper}>
             <AnimatedAmountDisplay
               amountTestID="send_amount"
-              accessibilityLabel={
-                displayPrefix
-                  ? `${displayPrefix}${displayAmount}${displaySuffix}`
-                  : displaySuffix
-                    ? `${displayAmount} ${displaySuffix}`
-                    : displayAmount
-              }
+              accessibilityLabel={getAmountAccessibilityLabel(
+                displayPrefix,
+                displayAmount,
+                displaySuffix,
+              )}
               color={textColor}
               cursor={{
                 animated: true,

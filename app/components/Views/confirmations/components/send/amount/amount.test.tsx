@@ -17,7 +17,11 @@ import {
   solanaSendStateMock,
 } from '../../../__mocks__/send.mock';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
+import {
+  getNarrowCurrencyAffix,
+  useCurrencyConversions,
+} from '../../../hooks/send/useCurrencyConversions';
+import I18n from '../../../../../../../locales/i18n';
 import { useSendContext } from '../../../context/send-context';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
@@ -221,6 +225,29 @@ describe('Amount', () => {
       fontSize: fiatFontSize,
       lineHeight: fiatFontSize,
     });
+  });
+
+  it('announces a postfix currency amount with the affix separator', () => {
+    const originalLocale = I18n.locale;
+    I18n.locale = 'fr';
+    const { suffix } = getNarrowCurrencyAffix('EUR', 'fr');
+    mockUseCurrencyConversion.mockReturnValue({
+      conversionSupportedForAsset: true,
+      fiatCurrencySymbol: 'EUR',
+      getFiatValue: '4500',
+      getFiatDisplayValue: () => '4 500,00 €',
+      getNativeValue: () => '1',
+    } as unknown as ReturnType<typeof useCurrencyConversions>);
+
+    try {
+      const { getByRole, getByTestId } = renderComponent();
+      fireEvent.press(getByTestId('fiat_toggle'));
+
+      expect(suffix).toMatch(/^\s/u);
+      expect(getByRole('text', { name: `0.00${suffix}` })).toBeOnTheScreen();
+    } finally {
+      I18n.locale = originalLocale;
+    }
   });
 
   it('sizes the cursor to the Hero amount', () => {

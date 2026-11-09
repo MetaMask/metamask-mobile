@@ -50,6 +50,10 @@ const BIDI_MARKS = /[\u200e\u200f\u061c]/gu;
  * The keypad keeps the typed digits separate from the symbol, so the symbol
  * and its placement are read from a formatted zero.
  *
+ * A postfix affix keeps its locale separator. French euro is a leading space
+ * or non-breaking space plus `€`. Join that suffix onto the amount as
+ * returned.
+ *
  * Hermes has no reliable `Intl.NumberFormat.formatToParts`, so this relies on
  * `format()` only, which every runtime supports.
  */
