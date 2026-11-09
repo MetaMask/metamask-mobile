@@ -1,5 +1,8 @@
 /* eslint-disable import-x/no-nodejs-modules */
+import fs from 'fs';
 import path from 'path';
+import { bindingCatalog } from './bindingCatalog.ts';
+import { buildLock } from './matchSteps.ts';
 import {
   loadScenario,
   parseScenario,
@@ -10,39 +13,37 @@ import {
 
 const SWAP_SCENARIO_PATH = path.resolve(
   __dirname,
-  '../../performance/login/scenarios/eth-swap-flow.scenario.yaml',
+  '../../performance/login/scenarios/eth-swap-flow.scenario.md',
 );
 
-const VALID_YAML = `
-id: demo
-title: Demo scenario
-tags: ['@PerformanceShadow']
-team: '@qa-team'
-platforms: [android]
-steps:
-  - id: open
-    do: Tap open
-  - id: opened
-    expect: The screen is open
-timers:
-  - name: open timer
-    after: open
-    until: opened
-    threshold: { ios: 1000, android: 1200 }
+const VALID_MARKDOWN = `# Demo scenario
+
+Tags: @PerformanceShadow
+Team: @qa-team
+Platforms: Android
+
+## Steps
+
+1. Tap open
+2. Expect: The screen is open
+
+## Timers
+
+- Measure from step 1 until step 2 (Android 1200 ms, iOS 1000 ms): open timer
 `;
 
 const VALID_LOCK = {
   scenario: 'demo',
   generatedFrom: 'test',
   steps: {
-    open: {
+    '1': {
       text: 'Tap open',
       action: 'tap',
       binding: 'Demo.tapOpen',
       source: 'Demo.ts#tapOpen',
       locators: [{ strategy: 'testID', value: 'open-button', source: 'ids' }],
     },
-    opened: {
+    '2': {
       text: 'The screen is open',
       action: 'assertVisible',
       binding: 'Demo.isOpen',
@@ -67,12 +68,17 @@ function expectIssues(fn: () => unknown, ...fragments: string[]): void {
 }
 
 describe('parseScenario', () => {
-  it('parses do/expect steps, timers and defaults', () => {
-    const scenario = parseScenario(VALID_YAML);
+  it('reads a title, metadata, numbered steps and timers', () => {
+    const scenario = parseScenario(VALID_MARKDOWN, 'demo.scenario.md');
 
+    expect(scenario.id).toBe('demo');
+    expect(scenario.title).toBe('Demo scenario');
+    expect(scenario.tags).toEqual(['@PerformanceShadow']);
+    expect(scenario.team).toBe('@qa-team');
+    expect(scenario.platforms).toEqual(['android']);
     expect(scenario.steps).toEqual([
       {
-        id: 'open',
+        id: '1',
         kind: 'do',
         text: 'Tap open',
         params: {},
@@ -80,7 +86,7 @@ describe('parseScenario', () => {
         allowHeal: true,
       },
       {
-        id: 'opened',
+        id: '2',
         kind: 'expect',
         text: 'The screen is open',
         params: {},
@@ -91,119 +97,180 @@ describe('parseScenario', () => {
     expect(scenario.timers).toEqual([
       {
         name: 'open timer',
-        after: 'open',
-        until: 'opened',
+        after: '1',
+        until: '2',
         threshold: { ios: 1000, android: 1200 },
       },
     ]);
-    expect(scenario.precondition).toBe('logged-in');
-    expect(scenario.profiling).toBe('none');
+  });
+
+  it('accepts bullets, either threshold order, and a Secret step', () => {
+    const scenario = parseScenario(
+      `# Demo
+
+- Tags: @PerformanceShadow
+- Team: @qa-team
+- Platforms: iOS and Android
+
+## Steps
+
+1) Tap open
+2) Expect: the wallet is visible
+3) Secret: Enter the phrase
+
+## Timers
+
+Measure from step 1 until step 2 (iOS 1000 ms, Android 1200 ms): open timer
+`,
+      'demo.scenario.md',
+    );
+
+    expect(scenario.platforms).toEqual(['ios', 'android']);
+    expect(scenario.steps[2]).toEqual(
+      expect.objectContaining({
+        id: '3',
+        kind: 'do',
+        text: 'Enter the phrase',
+        sensitive: true,
+      }),
+    );
+    expect(scenario.timers[0].threshold).toEqual({ ios: 1000, android: 1200 });
   });
 
   it.each(['@Performance', '@System'])(
     'rejects the %s tag so the scenario cannot join scheduled or system runs',
     (tag) => {
       expectIssues(
-        () => parseScenario(VALID_YAML.replace('@PerformanceShadow', tag)),
-        `tag "${tag}" would enrol the scenario`,
+        () => parseScenario(VALID_MARKDOWN.replace('@PerformanceShadow', tag)),
+        `Tag "${tag}" would run this scenario`,
       );
     },
   );
 
-  it('rejects a step with both do and expect', () => {
+  it('explains a missing title, missing metadata and a missing Steps section', () => {
+    expectIssues(
+      () => parseScenario('just some notes'),
+      'Start the file with a title',
+      'Add `Tags: @PerformanceShadow`',
+      'Add `Team: @your-team`',
+      'Add `Platforms: Android`',
+      'Add a "## Steps" section',
+    );
+  });
+
+  it('explains a gap in step numbers', () => {
     expectIssues(
       () =>
         parseScenario(
-          VALID_YAML.replace(
-            '    do: Tap open',
-            '    do: Tap open\n    expect: Also',
+          VALID_MARKDOWN.replace(
+            '2. Expect: The screen is open',
+            '4. Expect: The screen is open',
           ),
         ),
-      'must have exactly one of "do" or "expect"',
+      'Expected step 2, found step 4',
     );
   });
 
-  it('rejects duplicate step ids', () => {
-    expectIssues(
-      () => parseScenario(VALID_YAML.replace('id: opened', 'id: open')),
-      'step id "open" is duplicated',
-    );
-  });
-
-  it('requires timers to start after a do step and end on the next expect step', () => {
-    const yaml = VALID_YAML.replace(
-      '  - id: opened\n    expect: The screen is open',
-      '  - id: other\n    do: Tap something else\n  - id: opened\n    expect: The screen is open',
-    );
-
-    expectIssues(
-      () => parseScenario(yaml),
-      'until step "opened" must directly follow after step "open"',
-    );
-  });
-
-  it('rejects a timer whose after step is an expect step', () => {
-    const yaml = VALID_YAML.replace('after: open', 'after: opened').replace(
-      'until: opened',
-      'until: open',
-    );
-
-    expectIssues(
-      () => parseScenario(yaml),
-      'after step "opened" must be a "do" step',
-      'until step "open" must be an "expect" step',
-    );
-  });
-
-  it('requires per-platform thresholds', () => {
+  it('explains a line that is not a numbered step', () => {
     expectIssues(
       () =>
         parseScenario(
-          VALID_YAML.replace('{ ios: 1000, android: 1200 }', '{ ios: 1000 }'),
+          VALID_MARKDOWN.replace(
+            '2. Expect: The screen is open',
+            'then the screen opens\n2. Expect: The screen is open',
+          ),
         ),
-      'threshold must define positive "ios" and "android"',
+      'Not a numbered step: "then the screen opens"',
+    );
+  });
+
+  it('explains a timer that does not end on the next step', () => {
+    const markdown = VALID_MARKDOWN.replace(
+      '2. Expect: The screen is open',
+      '2. Tap something else\n3. Expect: The screen is open',
+    ).replace('until step 2', 'until step 3');
+
+    expectIssues(
+      () => parseScenario(markdown, 'demo.scenario.md'),
+      'step 3 must be the step right after step 1',
+    );
+  });
+
+  it('explains a timer that starts on an expectation', () => {
+    expectIssues(
+      () =>
+        parseScenario(
+          VALID_MARKDOWN.replace(
+            'from step 1 until step 2',
+            'from step 2 until step 1',
+          ),
+          'demo.scenario.md',
+        ),
+      'step 2 is an expectation',
+      'step 1 ("Tap open") is an action',
+    );
+  });
+
+  it('shows the expected timer shape when a timer line cannot be read', () => {
+    expectIssues(
+      () =>
+        parseScenario(
+          VALID_MARKDOWN.replace(
+            '- Measure from step 1 until step 2 (Android 1200 ms, iOS 1000 ms): open timer',
+            '- this took too long',
+          ),
+        ),
+      'could not be read',
+      'Measure from step 1 until step 2 (Android 2500 ms, iOS 2000 ms)',
+    );
+  });
+
+  it('rejects an unknown section', () => {
+    expectIssues(
+      () => parseScenario(VALID_MARKDOWN.replace('## Timers', '## Notes')),
+      'Unknown section "## Notes"',
     );
   });
 });
 
 describe('parseScenarioLock', () => {
-  const scenario = parseScenario(VALID_YAML);
+  const scenario = parseScenario(VALID_MARKDOWN, 'demo.scenario.md');
 
   it('accepts a lock that binds every step', () => {
     const lock = parseScenarioLock(JSON.stringify(VALID_LOCK), scenario);
 
-    expect(lock.steps.open.binding).toBe('Demo.tapOpen');
-    expect(lock.steps.open.locators).toEqual([
+    expect(lock.steps['1'].binding).toBe('Demo.tapOpen');
+    expect(lock.steps['1'].locators).toEqual([
       { strategy: 'testID', value: 'open-button', source: 'ids' },
     ]);
   });
 
-  it('rejects a lock with a missing step and a stale entry', () => {
-    const { opened: _opened, ...rest } = VALID_LOCK.steps;
+  it('tells the author to regenerate when a step was added or removed', () => {
+    const { '2': _removed, ...rest } = VALID_LOCK.steps;
     const lock = {
       ...VALID_LOCK,
-      steps: { ...rest, removed: VALID_LOCK.steps.open },
+      steps: { ...rest, '9': VALID_LOCK.steps['1'] },
     };
 
     expectIssues(
       () => parseScenarioLock(JSON.stringify(lock), scenario),
-      'step "opened" has no lock entry',
-      'steps.removed is not a step of the scenario',
+      'step 2 ("The screen is open") has no lock entry',
+      'steps.9 is not a step of the scenario',
     );
   });
 
-  it('rejects a lock whose text no longer matches the step', () => {
+  it('tells the author to regenerate when the step text changed', () => {
     const lock = {
       ...VALID_LOCK,
       steps: {
         ...VALID_LOCK.steps,
-        open: { ...VALID_LOCK.steps.open, text: 'Tap open (old wording)' },
+        '1': { ...VALID_LOCK.steps['1'], text: 'Tap open (old wording)' },
       },
     };
 
     expectIssues(
       () => parseScenarioLock(JSON.stringify(lock), scenario),
-      'steps.open.text does not match',
+      'steps.1.text does not match the scenario anymore',
     );
   });
 
@@ -212,37 +279,22 @@ describe('parseScenarioLock', () => {
       ...VALID_LOCK,
       steps: {
         ...VALID_LOCK.steps,
-        opened: { ...VALID_LOCK.steps.opened, action: 'tap' },
+        '2': { ...VALID_LOCK.steps['2'], action: 'tap' },
       },
     };
 
     expectIssues(
       () => parseScenarioLock(JSON.stringify(lock), scenario),
-      'steps.opened.action must be one of assertVisible',
-    );
-  });
-
-  it('rejects locators on macro steps', () => {
-    const lock = {
-      ...VALID_LOCK,
-      steps: {
-        ...VALID_LOCK.steps,
-        open: { ...VALID_LOCK.steps.open, action: 'macro' },
-      },
-    };
-
-    expectIssues(
-      () => parseScenarioLock(JSON.stringify(lock), scenario),
-      'macro steps run only through their binding',
+      'steps.2.action must be one of assertVisible',
     );
   });
 });
 
 describe('loadScenario', () => {
-  it('loads the committed swap scenario and its lockfile', () => {
+  it('loads the committed swap scenario and its generated lockfile', () => {
     const { scenario, lock } = loadScenario(SWAP_SCENARIO_PATH);
 
-    expect(scenario.id).toBe('swap-eth-to-usdc');
+    expect(scenario.id).toBe('eth-swap-flow');
     expect(scenario.timers.map((timer) => timer.name)).toEqual([
       'Time since the user clicks on the "Swap" button until the swap page is loaded',
       'Time since the user enters the amount until the quote is displayed',
@@ -254,6 +306,19 @@ describe('loadScenario', () => {
     expect(Object.keys(lock.steps)).toEqual(
       scenario.steps.map((step) => step.id),
     );
+  });
+
+  it('keeps the committed lock equal to what yarn scenario:lock writes', () => {
+    const markdown = fs.readFileSync(SWAP_SCENARIO_PATH, 'utf8');
+    const scenario = parseScenario(markdown, 'eth-swap-flow.scenario.md');
+    const generated = `${JSON.stringify(buildLock(scenario, bindingCatalog), null, 2)}\n`;
+
+    expect(
+      fs.readFileSync(
+        SWAP_SCENARIO_PATH.replace(/\.md$/, '.lock.json'),
+        'utf8',
+      ),
+    ).toBe(generated);
   });
 });
 

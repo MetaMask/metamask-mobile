@@ -137,6 +137,7 @@
     "test:reassure:branch": "REASSURE=true yarn reassure --branch && node -e \"const r=require('./.reassure/output.json'); if ((r.significant||[]).length>0) { console.error('Reassure: significant regressions detected'); process.exit(1);} else { process.exit(0);} \"",
     "test:e2e:feature-flag:coverage": "tsx tests/feature-flags/feature-flag-coverage-report.ts",
     "test:e2e:ai-test-plan": "node -r esbuild-register tests/tools/e2e-ai-analyzer --mode generate-test-plan --auto-ff",
+    "scenario:lock": "tsx tests/framework/scenario/generateLockfile.ts",
     "run-playwright:android-testmu": "yarn playwright test --project testmu-android --config tests/playwright.testmu.config.ts",
     "run-playwright:android-onboarding-testmu": "yarn playwright test --project testmu-android-onboarding --project testmu-android-onboarding-seedless --config tests/playwright.testmu.config.ts",
     "run-playwright:android": "yarn playwright test --project android --config tests/playwright.config.ts",

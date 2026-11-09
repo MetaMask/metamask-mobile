@@ -3,11 +3,6 @@ import type { PlatformThreshold } from '../TimerHelper.ts';
 
 export type ScenarioPlatform = 'android' | 'ios';
 
-/** Shared flows the thin spec runs before the scenario steps. */
-export type ScenarioPrecondition = 'logged-in';
-
-export type ScenarioProfiling = 'hermes' | 'none';
-
 export type StepParams = Record<string, string>;
 
 interface ScenarioStepBase {
@@ -40,23 +35,14 @@ export interface ScenarioTimer {
   threshold: PlatformThreshold;
 }
 
-export interface ScenarioVisualCheck {
-  baseline: string;
-  config: string;
-  options: Record<string, number | string | boolean>;
-}
-
 export interface Scenario {
   id: string;
   title: string;
   tags: string[];
   team: string;
   platforms: ScenarioPlatform[];
-  precondition: ScenarioPrecondition;
-  profiling: ScenarioProfiling;
   steps: ScenarioStep[];
   timers: ScenarioTimer[];
-  visual: ScenarioVisualCheck[];
 }
 
 /**
@@ -77,7 +63,23 @@ export interface LockedStep {
   binding: string;
   /** Page Object file and method the binding calls. */
   source: string;
+  /**
+   * Phrase with `{name}` placeholders. The executor fills params from the
+   * step text, so authors can change values like "0.01" or "USDC" in the
+   * Markdown without editing this file.
+   */
+  paramTemplate?: string;
   /** Deterministic alternatives tried after the binding fails (in order). */
+  locators: LockedLocator[];
+}
+
+/** One action the lockfile generator can bind a sentence to. Maintainer-owned. */
+export interface BindingCatalogEntry {
+  binding: string;
+  action: LockedStepAction;
+  source: string;
+  /** Author wording and Page Object elemDescription strings. `{name}` captures a value. */
+  phrases: string[];
   locators: LockedLocator[];
 }
 

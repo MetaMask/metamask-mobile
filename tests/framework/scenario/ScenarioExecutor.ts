@@ -15,6 +15,7 @@ import {
   getPerformanceLocatorRecovery,
 } from '../ai-locator/PerformanceLocatorRecovery.ts';
 import { resolveStepParams } from './ScenarioLoader.ts';
+import { matchTemplate } from './matchSteps.ts';
 import { computeRunStatus } from './runStatus.ts';
 import {
   SIMULATED_DRIFT_SUFFIX,
@@ -317,7 +318,18 @@ export class ScenarioExecutor {
         `Simulated drift: binding ${lockedStep.binding} for step "${step.id}" no longer matches the UI`,
       );
     }
-    const params = resolveStepParams(step.params, this.options.env);
+    const captured = lockedStep.paramTemplate
+      ? matchTemplate(lockedStep.paramTemplate, step.text)
+      : {};
+    if (lockedStep.paramTemplate && !captured) {
+      throw new Error(
+        `Step ${step.id} ("${step.text}") no longer matches its action template "${lockedStep.paramTemplate}". Run yarn scenario:lock.`,
+      );
+    }
+    const params = resolveStepParams(
+      { ...step.params, ...captured },
+      this.options.env,
+    );
     await this.options.bindings[lockedStep.binding](params);
   }
 

@@ -8,29 +8,30 @@ let counter = 0;
 
 function buildLoaded(): LoadedScenario {
   counter += 1;
-  const scenario = parseScenario(`
-id: glue
-title: Glue ${counter}
-tags: ['@PerformanceShadow']
-team: '@qa-team'
-platforms: [android]
-steps:
-  - id: open
-    do: Tap open
-  - id: opened
-    expect: The screen is open
-timers:
-  - name: glue timer ${counter}
-    after: open
-    until: opened
-    threshold: { ios: 60000, android: 60000 }
-`);
+  const scenario = parseScenario(
+    `# Glue ${counter}
+
+Tags: @PerformanceShadow
+Team: @qa-team
+Platforms: Android
+
+## Steps
+
+1. Tap open
+2. Expect: The screen is open
+
+## Timers
+
+- Measure from step 1 until step 2 (Android 60000 ms, iOS 60000 ms): glue timer ${counter}
+`,
+    'glue.scenario.md',
+  );
   const lock = parseScenarioLock(
     JSON.stringify({
       scenario: 'glue',
       generatedFrom: 'test',
       steps: {
-        open: {
+        '1': {
           text: 'Tap open',
           action: 'tap',
           binding: 'Glue.tapOpen',
@@ -39,7 +40,7 @@ timers:
             { strategy: 'testID', value: 'open-button', source: 'ids' },
           ],
         },
-        opened: {
+        '2': {
           text: 'The screen is open',
           action: 'assertVisible',
           binding: 'Glue.isOpen',
@@ -55,8 +56,8 @@ timers:
   return {
     scenario,
     lock,
-    scenarioPath: 'glue.yaml',
-    lockPath: 'glue.lock.json',
+    scenarioPath: 'glue.scenario.md',
+    lockPath: 'glue.scenario.lock.json',
   };
 }
 
@@ -121,7 +122,7 @@ describe('runScenarioInTest', () => {
       performanceTracker: { addTimer: jest.fn() },
       driver: {} as Browser,
       testInfo,
-      env: { SCENARIO_SIMULATE_DRIFT: 'open:binding' },
+      env: { SCENARIO_SIMULATE_DRIFT: '1:binding' },
     });
 
     expect(report.status).toBe('PASS_HEALED_TRIGGER');
@@ -130,8 +131,8 @@ describe('runScenarioInTest', () => {
     );
     expect(JSON.parse(healAttachment?.[1].body)).toEqual(
       expect.objectContaining({
-        lockfile: 'glue.lock.json',
-        heals: [expect.objectContaining({ stepId: 'open', role: 'trigger' })],
+        lockfile: 'glue.scenario.lock.json',
+        heals: [expect.objectContaining({ stepId: '1', role: 'trigger' })],
       }),
     );
   });
@@ -151,7 +152,7 @@ describe('runScenarioInTest', () => {
         testInfo: createTestInfo(),
         env: {
           PERF_HEAL_POLICY: 'fail',
-          SCENARIO_SIMULATE_DRIFT: 'open:binding',
+          SCENARIO_SIMULATE_DRIFT: '1:binding',
         },
       }),
     ).rejects.toBeInstanceOf(ScenarioRunError);
@@ -172,7 +173,7 @@ describe('runScenarioInTest', () => {
         performanceTracker: { addTimer: jest.fn() },
         driver: {} as Browser,
         testInfo,
-        env: { SCENARIO_SIMULATE_DRIFT: 'opened:binding' },
+        env: { SCENARIO_SIMULATE_DRIFT: '2:binding' },
       }),
     ).rejects.toThrow('INVALID_MEASUREMENT');
     expect(testInfo.annotations).toEqual([

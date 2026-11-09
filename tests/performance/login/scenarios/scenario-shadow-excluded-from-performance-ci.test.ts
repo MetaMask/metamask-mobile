@@ -58,7 +58,7 @@ describe('scenario shadow specs stay out of performance CI', () => {
   it('use tags and titles that the performance and system greps do not match', () => {
     const scenarioFiles = fs
       .readdirSync(SCENARIO_DIR)
-      .filter((name) => name.endsWith('.scenario.yaml'));
+      .filter((name) => name.endsWith('.scenario.md'));
     expect(scenarioFiles.length).toBeGreaterThan(0);
 
     for (const file of scenarioFiles) {

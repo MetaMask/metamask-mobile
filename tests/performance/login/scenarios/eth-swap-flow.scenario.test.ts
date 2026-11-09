@@ -28,7 +28,7 @@ jest.mock('../../../page-objects/swaps/QuoteView', () => ({
   },
 }));
 
-const SCENARIO_PATH = path.join(__dirname, 'eth-swap-flow.scenario.yaml');
+const SCENARIO_PATH = path.join(__dirname, 'eth-swap-flow.scenario.md');
 
 function createLocatorActions(): jest.Mocked<LocatorActions> {
   return {
@@ -123,7 +123,7 @@ describe('eth-swap-flow scenario', () => {
   });
 
   it('heals a drifted Swap button from the lockfile and reports PASS_HEALED_TRIGGER', async () => {
-    const { executor, locatorActions } = runSwapScenario('open-swap:binding');
+    const { executor, locatorActions } = runSwapScenario('1:binding');
 
     const report = await executor.run();
 
@@ -139,9 +139,7 @@ describe('eth-swap-flow scenario', () => {
   });
 
   it('marks the quote timer INVALID_MEASUREMENT when its end condition drifts', async () => {
-    const { executor, performanceTracker } = runSwapScenario(
-      'quote-visible:binding',
-    );
+    const { executor, performanceTracker } = runSwapScenario('6:binding');
 
     const report = await executor.run();
 

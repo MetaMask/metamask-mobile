@@ -33,37 +33,33 @@ function buildScenario(threshold = { ios: 60_000, android: 60_000 }): {
 } {
   scenarioCounter += 1;
   const timerName = `open timer ${scenarioCounter}`;
-  const scenario = parseScenario(`
-id: demo
-title: Demo ${scenarioCounter}
-tags: ['@PerformanceShadow']
-team: '@qa-team'
-platforms: [android]
-steps:
-  - id: open
-    do: Tap open
-  - id: opened
-    expect: The screen is open
-  - id: pick
-    do: Pick a token
-    params: { token: USDC }
-  - id: menu
-    do: Tap the menu
-  - id: secret
-    do: Enter the secret
-    sensitive: true
-timers:
-  - name: ${timerName}
-    after: open
-    until: opened
-    threshold: { ios: ${threshold.ios}, android: ${threshold.android} }
-`);
+  const scenario = parseScenario(
+    `# Demo
+
+Tags: @PerformanceShadow
+Team: @qa-team
+Platforms: Android
+
+## Steps
+
+1. Tap open
+2. Expect: The screen is open
+3. Pick a token
+4. Tap the menu
+5. Secret: Enter the secret
+
+## Timers
+
+- Measure from step 1 until step 2 (Android ${threshold.android} ms, iOS ${threshold.ios} ms): ${timerName}
+`,
+    'demo.scenario.md',
+  );
   const lock = parseScenarioLock(
     JSON.stringify({
       scenario: 'demo',
       generatedFrom: 'test',
       steps: {
-        open: {
+        '1': {
           text: 'Tap open',
           action: 'tap',
           binding: 'Demo.tapOpen',
@@ -72,7 +68,7 @@ timers:
             { strategy: 'testID', value: 'open-button', source: 'ids' },
           ],
         },
-        opened: {
+        '2': {
           text: 'The screen is open',
           action: 'assertVisible',
           binding: 'Demo.isOpen',
@@ -81,14 +77,14 @@ timers:
             { strategy: 'testID', value: 'open-screen', source: 'ids' },
           ],
         },
-        pick: {
+        '3': {
           text: 'Pick a token',
           action: 'macro',
           binding: 'Demo.pick',
           source: 'Demo.ts#pick',
           locators: [],
         },
-        menu: {
+        '4': {
           text: 'Tap the menu',
           action: 'tap',
           binding: 'Demo.tapMenu',
@@ -97,7 +93,7 @@ timers:
             { strategy: 'testID', value: 'menu-button', source: 'ids' },
           ],
         },
-        secret: {
+        '5': {
           text: 'Enter the secret',
           action: 'tap',
           binding: 'Demo.enterSecret',
@@ -114,8 +110,8 @@ timers:
     loaded: {
       scenario,
       lock,
-      scenarioPath: 'demo.yaml',
-      lockPath: 'demo.lock.json',
+      scenarioPath: 'demo.scenario.md',
+      lockPath: 'demo.scenario.lock.json',
     },
     timerName,
   };
@@ -210,7 +206,7 @@ describe('ScenarioExecutor resolution order', () => {
       'binding:menu',
       'binding:secret',
     ]);
-    expect(bindings['Demo.pick']).toHaveBeenCalledWith({ token: 'USDC' });
+    expect(bindings['Demo.pick']).toHaveBeenCalledWith({});
     expect(locatorActions.tap).not.toHaveBeenCalled();
     expect(aiProvider.recover).not.toHaveBeenCalled();
     expect(performanceTracker.addTimer).toHaveBeenCalledTimes(1);
@@ -244,7 +240,7 @@ describe('ScenarioExecutor resolution order', () => {
     expect(report.status).toBe('PASS_HEALED');
     expect(report.heals).toEqual([
       expect.objectContaining({
-        stepId: 'menu',
+        stepId: '4',
         role: 'untimed',
         tier: 'alternative',
         locator: { strategy: 'testID', value: 'menu-button' },
@@ -359,7 +355,7 @@ describe('ScenarioExecutor timed windows', () => {
     expect(performanceTracker.addTimer).toHaveBeenCalledTimes(1);
     expect(report.status).toBe('PASS_HEALED_TRIGGER');
     expect(report.heals[0]).toEqual(
-      expect.objectContaining({ stepId: 'open', role: 'trigger' }),
+      expect.objectContaining({ stepId: '1', role: 'trigger' }),
     );
   });
 
@@ -394,7 +390,7 @@ describe('ScenarioExecutor timed windows', () => {
     ]);
     expect(report.heals[0]).toEqual(
       expect.objectContaining({
-        stepId: 'opened',
+        stepId: '2',
         role: 'until',
         diagnosisOnly: true,
       }),
@@ -470,7 +466,7 @@ describe('ScenarioExecutor timed windows', () => {
     expect(locatorActions.tap).not.toHaveBeenCalled();
     expect(aiProvider.recover).not.toHaveBeenCalled();
     expect(report.status).toBe('FAIL_FUNCTIONAL');
-    const menu = report.steps.find((step) => step.id === 'menu');
+    const menu = report.steps.find((step) => step.id === '4');
     expect(menu?.skippedTiers).toContain('ai: a performance timer is running');
   });
 
@@ -525,7 +521,7 @@ describe('ScenarioExecutor heal guards', () => {
 
     expect(aiProvider.recover).not.toHaveBeenCalled();
     expect(report.status).toBe('FAIL_FUNCTIONAL');
-    const secret = report.steps.find((step) => step.id === 'secret');
+    const secret = report.steps.find((step) => step.id === '5');
     expect(secret?.skippedTiers.join(' ')).toContain('step is sensitive');
   });
 
@@ -550,7 +546,7 @@ describe('ScenarioExecutor heal guards', () => {
     expect(report.status).toBe('FAIL_FUNCTIONAL');
     expect(
       report.steps.filter((step) => step.status === 'skipped').map((s) => s.id),
-    ).toEqual(['menu', 'secret']);
+    ).toEqual(['4', '5']);
   });
 
   it('runs bindings only under PERF_HEAL_POLICY=off', async () => {
@@ -594,7 +590,7 @@ describe('ScenarioExecutor heal guards', () => {
     const report = await executor.run();
 
     expect(aiProvider.recover).not.toHaveBeenCalled();
-    const menu = report.steps.find((step) => step.id === 'menu');
+    const menu = report.steps.find((step) => step.id === '4');
     expect(menu?.skippedTiers.join(' ')).toContain('budget');
   });
 
@@ -636,7 +632,7 @@ describe('ScenarioExecutor simulated drift', () => {
       loaded,
       bindings,
       locatorActions: createLocatorActions(events),
-      simulatedDrift: parseSimulatedDrift('open:binding'),
+      simulatedDrift: parseSimulatedDrift('1:binding'),
     });
 
     const report = await executor.run();
@@ -667,7 +663,7 @@ describe('ScenarioExecutor simulated drift', () => {
       bindings: createBindings(events),
       locatorActions,
       aiProvider,
-      simulatedDrift: parseSimulatedDrift('menu:locators'),
+      simulatedDrift: parseSimulatedDrift('4:locators'),
     });
 
     const report = await executor.run();
@@ -676,7 +672,7 @@ describe('ScenarioExecutor simulated drift', () => {
       { strategy: 'testID', value: 'menu-button__simulated_drift' },
     ]);
     expect(report.heals[0]).toEqual(
-      expect.objectContaining({ stepId: 'menu', tier: 'ai' }),
+      expect.objectContaining({ stepId: '4', tier: 'ai' }),
     );
     expect(report.status).toBe('PASS_HEALED');
   });
