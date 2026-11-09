@@ -15,7 +15,6 @@ import type { RootMessenger } from '../../types';
 const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:getGeoCountry',
   'KycService:fetchVendorDisclaimers',
-  'KycService:createMoonpaySession',
   'KycService:createVendorCustomer',
   'KycService:submitVendorDisclaimers',
   'KycService:fetchSessionDisclaimersByCountry',
