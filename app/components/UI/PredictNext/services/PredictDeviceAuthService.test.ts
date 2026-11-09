@@ -10,11 +10,25 @@ import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
+import { resetVenueProfile } from '../auth/venueSigningProfiles';
+import { TemplateError } from '../auth/signing/profileTemplates';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { log: jest.fn(), error: jest.fn() },
 }));
+
+jest.mock('../../../../core/SecureKeychain', () => {
+  const mock = {
+    setSecureItem: jest.fn(),
+    getSecureItem: jest.fn(),
+    clearSecureScope: jest.fn(),
+    ACCESSIBLE: {
+      WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+    },
+  };
+  return { __esModule: true, default: mock, ...mock };
+});
 
 const mockGetA2t = jest.fn();
 const mockClearSession = jest.fn();
@@ -46,7 +60,7 @@ jest.mock('../auth/p256DeviceKey', () => ({
     wait: jest.fn(),
     clear: mockClearDeviceKey,
     delete: mockDeleteDeviceKey,
-    sign: jest.fn(),
+    sign: jest.fn().mockResolvedValue(new Uint8Array(64).fill(7)),
     commitment: jest.fn(),
   })),
 }));
@@ -122,8 +136,13 @@ describe('PredictDeviceAuthService', () => {
     expect(registerActionHandler.mock.calls.map(([type]) => type)).toEqual([
       'PredictDeviceAuthService:ensureDeviceKey',
       'PredictDeviceAuthService:getA2t',
+      'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:previewOperation',
+      'PredictDeviceAuthService:signRead',
       'PredictDeviceAuthService:prefetch',
+      'PredictDeviceAuthService:invalidateA2t',
       'PredictDeviceAuthService:clear',
+      'PredictDeviceAuthService:clearApprovals',
       'PredictDeviceAuthService:reset',
     ]);
   });
@@ -371,5 +390,140 @@ describe('PredictDeviceAuthService', () => {
     expect(mockGetA2t).toHaveBeenCalledTimes(1);
     expect(mockClearDeviceKey).not.toHaveBeenCalled();
     expect(mockClearSession).not.toHaveBeenCalled();
+  });
+});
+
+describe('PredictDeviceAuthService.signOperation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetVenueProfile();
+    mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
+    mockGetA2t.mockResolvedValue('opaque-a2t');
+  });
+
+  it('returns the envelope header plus the exact create_order body bytes', async () => {
+    const { service } = createService();
+
+    const signed = await service.signOperation('order.place', {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    });
+
+    expect(signed).toBeDefined();
+    expect(signed?.header.name).toBe('Venue-Authorization');
+    // The header value is the base64 v1 envelope document.
+    expect(signed?.header.value).toEqual(expect.stringContaining('eyJ2Ijox'));
+    expect(signed?.idempotencyKey).toBe(
+      'a1b2c3d4-1111-4222-8333-444455556666',
+    );
+    const body = JSON.parse(signed?.body ?? '{}');
+    expect(body).toEqual({
+      ticker: 'MKT-1',
+      client_order_id: 'a1b2c3d4-1111-4222-8333-444455556666',
+      side: 'bid',
+      count: '10.00',
+      price: '0.5000',
+      time_in_force: 'immediate_or_cancel',
+      self_trade_prevention_type: 'taker_at_cross',
+    });
+  });
+
+  it('merges the bodyOverlay keys AFTER the rendered keys', async () => {
+    const { service } = createService();
+    const idempotencyKey = 'a1b2c3d4-1111-4222-8333-444455556666';
+
+    const signed = await service.signOperation('order.place', {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey,
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+      bodyOverlay: { previewId: 'preview-1' },
+    });
+
+    // JSON key order is the byte order the signature covers: the caller's
+    // overlay follows the template's rendered keys.
+    expect(signed?.body?.endsWith('"previewId":"preview-1"}')).toBe(true);
+  });
+
+  it('refuses an overlay key the template also renders', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.signOperation('order.place', {
+        inputs: {
+          marketId: 'MKT-1',
+          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+          action: 'buy',
+          outcome: 'yes',
+          amountCents: 5000,
+        },
+        values: { count: '10.00', price: '0.5000' },
+        confirmed: true,
+        bodyOverlay: { ticker: 'evil-ticker' },
+      }),
+    ).rejects.toMatchObject({
+      name: 'TemplateError',
+      rule: 'body',
+    });
+  });
+
+  it('returns undefined when signing is not available', async () => {
+    const { service } = createService({ enabled: false });
+
+    await expect(
+      service.signOperation('order.place', {
+        inputs: {
+          marketId: 'MKT-1',
+          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+          action: 'buy',
+          outcome: 'yes',
+          amountCents: 5000,
+        },
+        values: { count: '10.00', price: '0.5000' },
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('refuses intents the profile does not declare', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.signOperation('order.cancel', {}),
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'operation' });
+  });
+
+  it('keeps previewOperation rendering without an overlay', async () => {
+    const { service } = createService();
+
+    const display = await service.previewOperation('order.place', {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    });
+
+    expect(display).toEqual({
+      maxCost: '5.20',
+      minProceeds: '4.80',
+      payout: '10.00',
+      contracts: '10.00',
+    });
   });
 });

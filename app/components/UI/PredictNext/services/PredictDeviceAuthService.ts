@@ -1,9 +1,13 @@
 import type { Messenger } from '@metamask/messenger';
-
+import { v4 as uuidv4 } from 'uuid';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { resolveA2tIssuerUrl } from '../auth/a2tIssuerUrl';
 import { A2tSession } from '../auth/a2tSession';
+import {
+  claimIntentSignature,
+  clearApprovedIntents,
+} from '../auth/signing/approvedIntentLedger';
 import {
   createP256DeviceKey,
   type P256DeviceKey,
@@ -13,6 +17,26 @@ import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
+import { loadVenueProfile, VENUE_AUTHORIZATION_HEADER } from '../auth/venueSigningProfiles';
+import {
+  renderRequest,
+  TemplateError,
+  type InvariantDisplay,
+  type RequestTemplate,
+} from '../auth/signing/profileTemplates';
+import {
+  buildVenueAuthorization,
+} from '../auth/signing/venueAuthorization';
+import {
+  signDeviceRequest,
+  type DeviceSigningContext,
+} from '../auth/signing/deviceRequestSigner';
+import {
+  type DeviceAuthHeader,
+  type SignOperationInput,
+  type SignedOperation,
+} from '../auth/signing/signOperationTypes';
+import type { ProposedRead } from '../adapters/remote/signedVenueCall';
 
 export const PREDICT_DEVICE_AUTH_SERVICE_NAME =
   'PredictDeviceAuthService' as const;
@@ -27,14 +51,45 @@ export interface PredictDeviceAuthServiceGetA2tAction {
   handler: () => Promise<string | undefined>;
 }
 
+export interface PredictDeviceAuthServiceSignOperationAction {
+  type: 'PredictDeviceAuthService:signOperation';
+  handler: (
+    intent: string,
+    input?: SignOperationInput,
+  ) => Promise<DeviceAuthHeader | undefined>;
+}
+
+export interface PredictDeviceAuthServicePreviewOperationAction {
+  type: 'PredictDeviceAuthService:previewOperation';
+  handler: (
+    intent: string,
+    input?: SignOperationInput,
+  ) => Promise<InvariantDisplay | undefined>;
+}
+
+export interface PredictDeviceAuthServiceSignReadAction {
+  type: 'PredictDeviceAuthService:signRead';
+  handler: (proposed: ProposedRead) => Promise<DeviceAuthHeader | undefined>;
+}
+
 export interface PredictDeviceAuthServicePrefetchAction {
   type: 'PredictDeviceAuthService:prefetch';
   handler: (includeA2t?: boolean) => Promise<void>;
 }
 
+export interface PredictDeviceAuthServiceInvalidateA2tAction {
+  type: 'PredictDeviceAuthService:invalidateA2t';
+  handler: () => void;
+}
+
 export interface PredictDeviceAuthServiceClearAction {
   type: 'PredictDeviceAuthService:clear';
   handler: () => void;
+}
+
+export interface PredictDeviceAuthServiceClearApprovalsAction {
+  type: 'PredictDeviceAuthService:clearApprovals';
+  handler: () => Promise<void>;
 }
 
 export interface PredictDeviceAuthServiceResetAction {
@@ -45,8 +100,13 @@ export interface PredictDeviceAuthServiceResetAction {
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
+  | PredictDeviceAuthServiceSignOperationAction
+  | PredictDeviceAuthServicePreviewOperationAction
+  | PredictDeviceAuthServiceSignReadAction
   | PredictDeviceAuthServicePrefetchAction
+  | PredictDeviceAuthServiceInvalidateA2tAction
   | PredictDeviceAuthServiceClearAction
+  | PredictDeviceAuthServiceClearApprovalsAction
   | PredictDeviceAuthServiceResetAction;
 
 export type PredictDeviceAuthServiceMessenger = Messenger<
@@ -89,7 +149,8 @@ interface PredictDeviceAuthBinding {
  * Engine-owned authentication capability for Predict venues.
  *
  * The public surface is deliberately narrow: callers can prepare credentials
- * or obtain an A2T, but cannot ask the service to sign arbitrary bytes.
+ * or obtain an A2T, or sign a request that a bundled, signed venue profile
+ * declares. They cannot ask the service to sign arbitrary bytes.
  */
 export class PredictDeviceAuthService {
   readonly #deps: PredictDeviceAuthServiceDependencies;
@@ -110,12 +171,32 @@ export class PredictDeviceAuthService {
       this.getA2t.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictDeviceAuthService:signOperation',
+      this.signOperation.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:previewOperation',
+      this.previewOperation.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:signRead',
+      this.signRead.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
       this.prefetch.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictDeviceAuthService:invalidateA2t',
+      this.invalidateA2t.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictDeviceAuthService:clear',
       this.clear.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:clearApprovals',
+      this.clearApprovals.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:reset',
@@ -144,6 +225,203 @@ export class PredictDeviceAuthService {
     return binding.session.ensureA2T();
   }
 
+  /**
+   * Renders the intent from the active signing profile exactly as
+   * `signOperation` would, and returns the worst-case figures its invariant
+   * computed, for the confirmation sheet. Nothing is signed and nothing
+   * leaves the phone. Returns undefined when no signing profile is active or
+   * the intent carries no invariant. Throws `TemplateError` when the profile
+   * does not allow the request, which keeps Confirm disabled.
+   */
+  async previewOperation(
+    intent: string,
+    input: SignOperationInput = {},
+  ): Promise<InvariantDisplay | undefined> {
+    const profile = await loadVenueProfile();
+    if (!profile) {
+      return undefined;
+    }
+    const requests = this.#renderIntent(
+      profile,
+      intent,
+      input,
+      input.bodyOverlay,
+    );
+    return requests.find((request) => request.display !== undefined)?.display;
+  }
+
+  /**
+   * Renders the intent's requests from the bundled signing profile, the
+   * caller's inputs and the server values, then signs them and returns the
+   * envelope header plus the EXACT rendered body bytes the signature covers
+   * (ADR-0004): the caller sends these bytes verbatim. The authority,
+   * lifetime and covered components come from the profile and the device,
+   * never from predict-api. Throws `TemplateError` and signs nothing when
+   * the profile does not allow the request. Returns undefined when signing
+   * is not available (disabled, locked, signed out, no signing profile, or
+   * no A2T).
+   */
+  async signOperation(
+    intent: string,
+    input: SignOperationInput = {},
+  ): Promise<SignedOperation | undefined> {
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
+    const binding = this.#resolveBinding();
+    const profile = binding
+      ? await loadVenueProfile()
+      : undefined;
+    if (!binding || !profile) {
+      return undefined;
+    }
+    const nowMs = this.#deps.nowMs();
+    const requests = this.#renderIntent(
+      profile,
+      intent,
+      input,
+      input.bodyOverlay,
+    );
+    const { maxSignatures } = profile.implementation.params;
+    if (requests.length > maxSignatures) {
+      throw new TemplateError('max_signatures', intent);
+    }
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+      return undefined;
+    }
+    if (!this.#deps.isSignedIn()) {
+      binding.session.clear();
+      return undefined;
+    }
+    const a2t = await binding.session.ensureA2T();
+    if (!a2t) {
+      return undefined;
+    }
+    const intentRule = profile.intents.find((rule) => rule.id === intent);
+    const confirmation = intentRule?.confirm;
+    if (confirmation?.kind === 'per-intent') {
+      const mutation = requests.find(
+        (request) => request.idempotencyKey !== undefined,
+      );
+      const fromInput = input.inputs?.idempotencyKey;
+      const idempotencyKey =
+        mutation?.idempotencyKey ??
+        (typeof fromInput === 'string' ? fromInput : undefined);
+      if (!idempotencyKey) {
+        throw new TemplateError('confirmation', intent);
+      }
+      await claimIntentSignature({
+        operation: intent,
+        idempotencyKey,
+        body: mutation?.body,
+        signLimit: confirmation.signLimit,
+        nowMs,
+        confirmed: input.confirmed === true,
+      });
+    }
+    const context: DeviceSigningContext = {
+      a2t,
+      deviceKey: key.publicKey,
+      salt: key.salt,
+    };
+    const signatures =
+      requests.length === 0
+        ? []
+        : await Promise.all(
+            requests.map((request) =>
+              signDeviceRequest(profile, request, context, {
+                sign: binding.deviceKey.sign,
+                requestId: () => uuidv4(),
+                now: this.#deps.now,
+              }),
+            ),
+          );
+    const header: DeviceAuthHeader = {
+      name: VENUE_AUTHORIZATION_HEADER,
+      value: buildVenueAuthorization({
+        profile: { id: profile.id, version: profile.version },
+        context,
+        signatures,
+        maxSignatures,
+      }),
+    };
+    // The overlay may not collide with a rendered key, so a template with a
+    // body has exactly one signed body: the mutation this envelope covers.
+    // Its idempotency key is the signature's own `idempotency-key`
+    // component.
+    const mutation = requests.find(
+      (request) => request.idempotencyKey !== undefined,
+    );
+    return {
+      header,
+      body: mutation?.body ?? '',
+      idempotencyKey: mutation?.idempotencyKey,
+    };
+  }
+
+  /**
+   * Signs one proposed read after the caller checked it against the
+   * profile's `reads.allow` (the client re-checks here as defense in
+   * depth). Returns the `Venue-Authorization` header to re-send the read
+   * with, or undefined when signing is not available.
+   */
+  async signRead(
+    proposed: ProposedRead,
+  ): Promise<DeviceAuthHeader | undefined> {
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
+    const binding = this.#resolveBinding();
+    const profile = binding ? await loadVenueProfile() : undefined;
+    if (!binding || !profile) {
+      return undefined;
+    }
+    const request: RenderedRequest = {
+      name: 'proposal',
+      class: 'read',
+      method: 'GET',
+      path: proposed.path,
+      query: proposed.query,
+      body: '',
+    };
+    const { maxSignatures } = profile.implementation.params;
+    if (1 > maxSignatures) {
+      throw new TemplateError('max_signatures', 'read');
+    }
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+      return undefined;
+    }
+    if (!this.#deps.isSignedIn()) {
+      binding.session.clear();
+      return undefined;
+    }
+    const a2t = await binding.session.ensureA2T();
+    if (!a2t) {
+      return undefined;
+    }
+    const context: DeviceSigningContext = {
+      a2t,
+      deviceKey: key.publicKey,
+      salt: key.salt,
+    };
+    const [signature] = await Promise.all([
+      signDeviceRequest(profile, request, context, {
+        sign: binding.deviceKey.sign,
+        requestId: () => uuidv4(),
+        now: this.#deps.now,
+      }),
+    ]);
+    return {
+      name: VENUE_AUTHORIZATION_HEADER,
+      value: buildVenueAuthorization({
+        profile: { id: profile.id, version: profile.version },
+        context,
+        signatures: [signature],
+        maxSignatures,
+      }),
+    };
+  }
+
   async prefetch(includeA2t = true): Promise<void> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
@@ -159,9 +437,27 @@ export class PredictDeviceAuthService {
     }
   }
 
+  /**
+   * Drops the cached A2T only, after predict-api rejected it. The pinned
+   * intents stay: a stale A2T does not undo what the user confirmed.
+   */
+  invalidateA2t(): void {
+    this.#active?.session.clear();
+  }
+
+  /** Drops the in-memory session and device key. The pinned intents stay. */
   clear(): void {
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
+  }
+
+  /**
+   * Also drops every pinned intent, the confirmation record. Lock and a
+   * change of Predict User call this. Wallet reset drops them in `reset`.
+   */
+  async clearApprovals(): Promise<void> {
+    this.clear();
+    await clearApprovedIntents();
   }
 
   /**
@@ -176,6 +472,7 @@ export class PredictDeviceAuthService {
         'Failed to reset Predict device authentication',
       );
     };
+    await clearApprovedIntents();
     const active = this.#active;
     this.#active = undefined;
     try {
@@ -264,5 +561,47 @@ export class PredictDeviceAuthService {
       sleep: this.#deps.sleep,
     });
     return { profileId: profile.id, deviceKey, session };
+  }
+
+  /**
+   * Renders one intent's payloads from the profile. The api payload declares
+   * the exact bytes; the class is `mutation` for the POST kinds this DSL
+   * version carries.
+   */
+  #renderIntent(
+    profile: SigningProfile,
+    intent: string,
+    input: SignOperationInput,
+    overlay: Readonly<Record<string, unknown>> | undefined,
+  ): RenderedRequest[] {
+    const intentRule = profile.intents.find((rule) => rule.id === intent);
+    if (!intentRule) {
+      throw new TemplateError('operation', intent);
+    }
+    const context = {
+      inputs: input.inputs ?? {},
+      values: input.values ?? {},
+      nowMs: this.#deps.nowMs(),
+    };
+    return intentRule.payloads.map((payloadName) => {
+      const payload = profile.payloads[payloadName];
+      if (!payload) {
+        throw new TemplateError('operation', payloadName);
+      }
+      if (payload.kind !== 'http-rfc9421') {
+        throw new TemplateError('template', payloadName);
+      }
+      const template: RequestTemplate = {
+        class: 'mutation',
+        method: payload.method,
+        path: payload.path,
+        body: payload.body
+          ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+          : undefined,
+        idempotencyKey: payload.idempotencyKey,
+        invariants: payload.invariants,
+      };
+      return renderRequest(payloadName, template, context, overlay ?? {});
+    });
   }
 }
