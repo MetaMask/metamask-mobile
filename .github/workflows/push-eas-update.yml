@@ -41,6 +41,11 @@ on:
           - unofficial
           - nightly
         default: unofficial
+      skip_ci_gate:
+        description: 'Production only. Written reason to publish without a green "Check all jobs pass". Empty keeps the gate. Release approval is still required.'
+        required: false
+        type: string
+        default: ''
 
   workflow_call:
     inputs:
@@ -437,9 +442,24 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
+      checks: read # verify-ci-check-run.sh reads the ci.yml aggregate check run
       id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Require ci.yml "Check all jobs pass" on the shipped SHA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+          SKIP_CI_GATE_REASON: ${{ inputs.skip_ci_gate }}
+        run: .github/scripts/verify-ci-check-run.sh
+
       - name: Get token
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
