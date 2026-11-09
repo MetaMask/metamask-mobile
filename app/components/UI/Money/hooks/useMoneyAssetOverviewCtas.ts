@@ -64,14 +64,18 @@ export const useMoneyAssetOverviewCtas = ({
     isFooterCtaEligible: isFooterCtaEligibleFromVisibility,
   } = useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
 
-  // Only aTokens with Money deposit fee subsidized are eligible for the footer CTA
-  const isFooterCtaEligible =
+  const isStablecoinFooterCtaEligible =
+    isFooterCtaEligibleFromVisibility && !isAaveOutputToken;
+
+  const isSubsidizedATokenFooterCtaEligible =
     isFooterCtaEligibleFromVisibility &&
     isAaveOutputToken &&
     isMoneyDepositFeeSubsidized(relayFixedSpread, {
       address: asset.address,
       chainId: asset.chainId,
     });
+  const isFooterCtaEligible =
+    isStablecoinFooterCtaEligible || isSubsidizedATokenFooterCtaEligible;
 
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({

@@ -220,22 +220,22 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(result.current.isFooterCtaVisible).toBe(false);
   });
 
-  it('hides the footer CTA when the Earn selector excludes the asset', () => {
-    setupSelectors(RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC, false);
+  it('shows the footer CTA for an allowlisted stablecoin without a subsidized route', () => {
+    setupSelectors(EMPTY_RELAY_CONFIG, false);
 
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset: {
           ...asset,
           address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          symbol: 'aUSDC',
+          symbol: 'USDC',
         },
         balanceFiatUsd: 100,
         hasBalance: true,
       }),
     );
 
-    expect(result.current.isFooterCtaVisible).toBe(false);
+    expect(result.current.isFooterCtaVisible).toBe(true);
   });
 
   it('keeps the balance CTA visible when the footer route is not subsidized', () => {
@@ -278,7 +278,7 @@ describe('useMoneyAssetOverviewCtas', () => {
       isBalanceCtaEligible: false,
       isFooterCtaEligible: true,
     });
-    setupSelectors(RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC, false);
+    setupSelectors(RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC, true);
 
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
