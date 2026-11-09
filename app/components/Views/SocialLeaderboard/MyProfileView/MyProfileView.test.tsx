@@ -1323,6 +1323,120 @@ describe('MyProfileView', () => {
     expect(mockUnblock).toHaveBeenCalledTimes(1);
   });
 
+  describe('private profile', () => {
+    const privateTraderProfileResult = (
+      isFollowing = false,
+    ): UseTraderProfileResult => ({
+      ...foreignTraderProfileResult(isFollowing),
+      profile: {
+        ...foreignTraderProfile,
+        profile: { ...foreignTraderProfile.profile, tradingPrivacy: 'private' },
+      },
+    });
+
+    beforeEach(() => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+        traderAddress: '0xabc',
+      };
+    });
+
+    it('hides performance, positions, posts and follow on a private trader', () => {
+      mockUseTraderProfile.mockReturnValue(privateTraderProfileResult());
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('This profile is private')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          '@alpha.eth keeps their performance, positions and posts hidden.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.MUTE_CHIP),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps Following on a private trader the visitor follows, without the bell', () => {
+      mockUseTraderProfile.mockReturnValue(privateTraderProfileResult(true));
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      ).toHaveTextContent('Following');
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.MUTE_CHIP),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a trader that sent no trading privacy as public', () => {
+      mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.PRIVATE_STATE),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the owner their private state with Privacy settings and no Create post', () => {
+      mockProfileRouteParams = undefined;
+      mockUseMyProfile.mockReturnValue({
+        profile: { ...profile, shareTradingActivity: false },
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON),
+      );
+
+      expect(screen.getByText('Your profile is private')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Your performance, positions and posts are hidden from everyone.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+      );
+    });
+  });
+
   it('blocks and unfollows a followed trader from profile options', async () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',

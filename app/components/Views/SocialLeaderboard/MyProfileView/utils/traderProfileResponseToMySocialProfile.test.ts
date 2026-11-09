@@ -46,6 +46,7 @@ describe('traderProfileResponseToMySocialProfile', () => {
       winRatePercent: 50,
       pnlUsd: 100,
       linkedAccountAddress: '0xabc',
+      shareTradingActivity: null,
       joinedAt: null,
     });
   });
@@ -91,6 +92,23 @@ describe('traderProfileResponseToMySocialProfile', () => {
       });
 
       expect(result.displayName).toBe('alpha.eth');
+    },
+  );
+
+  it.each([
+    ['public', true],
+    ['private', false],
+  ] as const)(
+    'maps a %s trading privacy to shareTradingActivity %s',
+    (tradingPrivacy, expected) => {
+      const profile = { ...live.profile, tradingPrivacy };
+
+      const result = traderProfileResponseToMySocialProfile({
+        ...live,
+        profile,
+      });
+
+      expect(result.shareTradingActivity).toBe(expected);
     },
   );
 

@@ -1719,6 +1719,11 @@
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",

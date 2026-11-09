@@ -345,6 +345,8 @@ const MyProfileView: React.FC = () => {
     ? undefined
     : liveProfile.profile?.profile.profileId;
   const { isBlocked, block, unblock } = useTraderBlock(blockProfileId);
+  const isPrivate = displayProfile?.shareTradingActivity === false;
+  const isContentHidden = isBlocked || isPrivate;
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
     state: [isLoading, Boolean(error), Boolean(displayProfile)],
@@ -406,7 +408,7 @@ const MyProfileView: React.FC = () => {
     refresh: refreshPosts,
   } = useMyProfilePosts(addressOrId, {
     ownerProfileId: isOwner ? myProfile?.profileId : undefined,
-    isActive: activeTab === 'posts' && !isBlocked,
+    isActive: activeTab === 'posts' && !isContentHidden,
   });
   const {
     openPositions,
@@ -417,7 +419,7 @@ const MyProfileView: React.FC = () => {
     closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '', {
-    refetchInterval: isBlocked ? undefined : 30_000,
+    refetchInterval: isContentHidden ? undefined : 30_000,
   });
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
@@ -450,6 +452,10 @@ const MyProfileView: React.FC = () => {
   const handleEditProfile = useCallback(() => {
     playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
+  }, [navigation]);
+  const handleOpenPrivacySettings = useCallback(() => {
+    playSelection().catch(() => undefined);
+    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY);
   }, [navigation]);
   const handleEditAvatar = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
@@ -912,19 +918,21 @@ const MyProfileView: React.FC = () => {
             >
               {isOwner ? (
                 <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleOpenComposer}
-                      accessibilityLabel={strings(
-                        'social_leaderboard.my_profile.create_post',
-                      )}
-                      testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.create_post')}
-                    </Button>
-                  </Box>
+                  {isPrivate ? null : (
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleOpenComposer}
+                        accessibilityLabel={strings(
+                          'social_leaderboard.my_profile.create_post',
+                        )}
+                        testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.create_post')}
+                      </Button>
+                    </Box>
+                  )}
                   <Box twClassName="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
@@ -936,7 +944,7 @@ const MyProfileView: React.FC = () => {
                     </Button>
                   </Box>
                 </Box>
-              ) : (
+              ) : isPrivate && !isBlocked && !isFollowing ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
@@ -968,7 +976,7 @@ const MyProfileView: React.FC = () => {
                       </Button>
                     )}
                   </Box>
-                  {showMuteChip && muteProfileId ? (
+                  {showMuteChip && muteProfileId && !isPrivate ? (
                     <TraderMuteChip
                       isMuted={isChipMuted(muteProfileId)}
                       visible={isFollowing}
@@ -1007,6 +1015,63 @@ const MyProfileView: React.FC = () => {
                   )}
                   twClassName="max-w-80"
                   testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
+                />
+              </Box>
+            ) : isPrivate ? (
+              <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+                <TabEmptyState
+                  icon={
+                    <Box alignItems={BoxAlignItems.Center} gap={4}>
+                      <Box
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                      >
+                        <Icon
+                          name={IconName.EyeSlash}
+                          size={IconSize.Xl}
+                          color={IconColor.IconDefault}
+                        />
+                      </Box>
+                      <Text
+                        variant={TextVariant.HeadingSm}
+                        twClassName="text-center"
+                      >
+                        {strings(
+                          isOwner
+                            ? 'social_leaderboard.trader_profile.private_title_own'
+                            : 'social_leaderboard.trader_profile.private_title',
+                        )}
+                      </Text>
+                    </Box>
+                  }
+                  description={
+                    isOwner
+                      ? strings(
+                          'social_leaderboard.trader_profile.private_description_own',
+                        )
+                      : strings(
+                          'social_leaderboard.trader_profile.private_description',
+                          { name: displayProfile.handle },
+                        )
+                  }
+                  descriptionProps={{
+                    numberOfLines: 3,
+                    ellipsizeMode: 'tail',
+                    twClassName: 'text-center -mt-2',
+                  }}
+                  actionButtonText={
+                    isOwner
+                      ? strings(
+                          'social_leaderboard.trader_profile.privacy_settings',
+                        )
+                      : undefined
+                  }
+                  onAction={isOwner ? handleOpenPrivacySettings : undefined}
+                  actionButtonProps={{
+                    testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
+                  }}
+                  twClassName="max-w-80"
+                  testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
                 />
               </Box>
             ) : (

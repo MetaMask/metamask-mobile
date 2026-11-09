@@ -19,5 +19,8 @@ export const traderProfileResponseToMySocialProfile = (
     live.stats.winRate30d != null ? live.stats.winRate30d * 100 : null,
   pnlUsd: live.stats.pnl30d ?? null,
   linkedAccountAddress: live.profile.address,
+  shareTradingActivity: live.profile.tradingPrivacy
+    ? live.profile.tradingPrivacy === 'public'
+    : null,
   joinedAt: live.profile.createdAt ?? null,
 });
