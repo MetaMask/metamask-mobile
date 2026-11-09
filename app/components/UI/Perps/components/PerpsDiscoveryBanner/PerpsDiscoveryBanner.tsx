@@ -1,20 +1,25 @@
 import React from 'react';
-import { strings } from '../../../../../../locales/i18n';
+import { Pressable, StyleSheet } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
   BoxBackgroundColor,
+  BoxFlexDirection,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsDiscoveryBannerProps } from './PerpsDiscoveryBanner.types';
-
-// eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-const perpsLogo = require('../../../../../images/perps-home-empty-state.png');
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -23,17 +28,9 @@ const styleSheet = () =>
       paddingHorizontal: 16,
     },
     banner: {
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-    },
-    textContainer: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    perpsLogo: {
-      width: 32,
-      height: 32,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
     },
   });
 
@@ -69,18 +66,23 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          gap={3}
         >
-          <Image
-            source={perpsLogo}
-            style={styles.perpsLogo}
+          <AvatarIcon
+            iconName={IconName.Infinity}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            iconProps={{ color: IconColor.IconDefault }}
+            twClassName="shrink-0"
             testID={`${testID}-logo`}
           />
-          <Box style={styles.textContainer}>
-            <Text variant={TextVariant.BodyMd}>
+          <Box twClassName="min-w-0 flex-1 gap-0.5">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('perps.discovery_banner.title', { symbol })}
             </Text>
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('perps.discovery_banner.subtitle', {
@@ -88,6 +90,11 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
               })}
             </Text>
           </Box>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
         </Box>
       </Box>
     </Pressable>

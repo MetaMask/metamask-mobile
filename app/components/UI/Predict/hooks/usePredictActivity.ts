@@ -1,12 +1,13 @@
 import { useEffect, useMemo } from 'react';
 import {
   useInfiniteQuery,
+  type InfiniteData,
   type UseInfiniteQueryResult,
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import type { PredictActivity } from '../types';
+import type { PredictActivity, PredictActivityPage } from '../types';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -16,16 +17,26 @@ import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UsePredictActivityOptions {
   limit?: number;
+  /**
+   * When false, skip the activity fetch. Used to keep hidden history tabs
+   * from hitting `getActivity` on mount (PredictPositionsView keeps both
+   * tab contents mounted).
+   */
+  enabled?: boolean;
 }
 
 export interface UsePredictActivityResult
-  extends Omit<UseInfiniteQueryResult<PredictActivity[], Error>, 'data'> {
+  extends Omit<
+    UseInfiniteQueryResult<InfiniteData<PredictActivityPage>, Error>,
+    'data'
+  > {
   activity: PredictActivity[];
   data: PredictActivity[];
 }
 
 export function usePredictActivity({
   limit = PREDICT_ACTIVITY_PAGE_SIZE,
+  enabled = true,
 }: UsePredictActivityOptions = {}): UsePredictActivityResult {
   type PredictActivityQueryKey = ReturnType<
     typeof predictQueries.activity.keys.byAddress
@@ -38,17 +49,15 @@ export function usePredictActivity({
   const address = evmAccount?.address;
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     ensurePolygonNetworkExists().catch(() => undefined);
-  }, [ensurePolygonNetworkExists]);
+  }, [enabled, ensurePolygonNetworkExists]);
 
-  const queryResult = useInfiniteQuery<
-    PredictActivity[],
-    Error,
-    PredictActivity[],
-    PredictActivityQueryKey
-  >({
+  const queryResult = useInfiniteQuery({
     ...predictQueries.activity.options({ address: address ?? '', limit }),
-    enabled: Boolean(address),
+    enabled: enabled && Boolean(address),
   });
 
   const activity = useMemo(() => {
@@ -56,7 +65,7 @@ export function usePredictActivity({
 
     return (
       queryResult.data?.pages.flatMap((page) =>
-        page.filter((activityItem) => {
+        page.activities.filter((activityItem) => {
           if (seenActivityIds.has(activityItem.id)) {
             return false;
           }

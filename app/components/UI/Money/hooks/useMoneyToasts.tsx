@@ -87,6 +87,11 @@ export type SendInProgressParams = ToastPressParams;
 
 export type SendFailedParams = ToastPressParams;
 
+export interface RescueSuccessParams {
+  amountFiat?: string;
+  destination: string;
+}
+
 export interface MoneyToastOptionsConfig {
   deposit: {
     inProgress: (params?: DepositInProgressParams) => MoneyToastOptions;
@@ -102,6 +107,11 @@ export interface MoneyToastOptionsConfig {
     inProgress: (params?: SendInProgressParams) => MoneyToastOptions;
     success: (params: SendSuccessParams) => MoneyToastOptions;
     failed: (params?: SendFailedParams) => MoneyToastOptions;
+  };
+  rescue: {
+    inProgress: () => MoneyToastOptions;
+    success: (params: RescueSuccessParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
   };
 }
 
@@ -267,6 +277,30 @@ const useMoneyToasts = (): {
             'money.toasts.send_failed_body',
             undefined,
             params?.onPress,
+          ),
+      },
+      rescue: {
+        // The rescue send shows its pending toast immediately (before the
+        // controller reports `approved`), so it cannot reuse `send`, whose
+        // pending toast is scheduled by the monitor on that event.
+        inProgress: () =>
+          buildSendToast(
+            moneyBaseToastOptions.inProgress,
+            'money.toasts.send_in_progress_title',
+            'money.toasts.in_progress_body',
+          ),
+        success: ({ amountFiat, destination }: RescueSuccessParams) =>
+          buildSendToast(
+            moneyBaseToastOptions.success,
+            'money.toasts.send_success_title',
+            'money.musd_rescue_send.rescue_success_body',
+            { amount: amountFiat ?? '', destination },
+          ),
+        failed: () =>
+          buildSendToast(
+            moneyBaseToastOptions.error,
+            'money.toasts.send_failed_title',
+            'money.toasts.send_failed_body',
           ),
       },
     };

@@ -1,5 +1,4 @@
 import { useDispatch, useSelector } from 'react-redux';
-import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
@@ -22,6 +21,7 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
 import { buildStartPayload } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { isSameChainSwap } from '../../../HardwareWallet/Swaps/flowStrategy';
 import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
@@ -60,7 +60,12 @@ export const useBridgeConfirm = ({
       dispatch(setIsSubmittingTx(true));
       try {
         dispatch(resetHardwareWalletsSwaps());
-        dispatch(updateHardwareWalletsSwaps(buildStartPayload(activeQuote)));
+        const isSwap = isSameChainSwap(sourceToken, destToken);
+        dispatch(
+          updateHardwareWalletsSwaps(
+            buildStartPayload(activeQuote, { isSwap }),
+          ),
+        );
         navigation.navigate(Routes.BRIDGE.ROOT, {
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
           params: {

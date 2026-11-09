@@ -13,7 +13,8 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
-import { roundUpToCents } from '../../utils/orders';
+import type { PredictFeePolicy } from '../../types';
+import PredictFeeTotal from '../PredictFeeTotal/PredictFeeTotal';
 
 interface FeeRowProps {
   title: string;
@@ -43,6 +44,8 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
+  originalTotal?: number;
+  feePolicy?: PredictFeePolicy;
   depositFee?: number;
   sharePrice: number;
   contractCount: number;
@@ -61,6 +64,8 @@ const PredictFeeBreakdownSheet = forwardRef<
     {
       providerFee,
       metamaskFee,
+      originalTotal,
+      feePolicy,
       sharePrice,
       depositFee,
       contractCount,
@@ -97,7 +102,7 @@ const PredictFeeBreakdownSheet = forwardRef<
         <FeeRow
           title={strings('predict.fee_summary.exchange_fee')}
           description={strings('predict.fee_summary.exchange_fee_description')}
-          amount={formatPrice(roundUpToCents(providerFee), {
+          amount={formatPrice(providerFee, {
             maximumDecimals: 2,
           })}
         />
@@ -136,13 +141,12 @@ const PredictFeeBreakdownSheet = forwardRef<
           >
             {strings('predict.fee_summary.total')}
           </Text>
-          <Text
-            color={TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
+          <PredictFeeTotal
+            total={total}
+            originalTotal={originalTotal}
+            feePolicy={feePolicy}
             fontWeight={FontWeight.Bold}
-          >
-            {formatPrice(total, { maximumDecimals: 2 })}
-          </Text>
+          />
         </Box>
 
         {fakOrdersEnabled && (

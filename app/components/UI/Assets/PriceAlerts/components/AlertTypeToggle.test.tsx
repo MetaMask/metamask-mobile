@@ -1,6 +1,8 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import AlertTypeToggle from './AlertTypeToggle';
+import AlertPeriodToggle from './AlertPeriodToggle';
 import { CreatePriceAlertTestIds } from '../constants';
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -30,6 +32,22 @@ describe('AlertTypeToggle', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
     ).toBeOnTheScreen();
+  });
+
+  it('rounds the container as fully as the period toggle below it', () => {
+    const typeToggle = render(
+      <AlertTypeToggle value="absolute_price" onChange={mockOnChange} />,
+    );
+    const periodToggle = render(
+      <AlertPeriodToggle value="24h" onChange={mockOnChange} />,
+    );
+
+    const radiusOf = (testID: string, screen: ReturnType<typeof render>) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style).borderRadius;
+
+    expect(radiusOf(CreatePriceAlertTestIds.TYPE_SEGMENT, typeToggle)).toBe(
+      radiusOf(CreatePriceAlertTestIds.PERIOD_SEGMENT, periodToggle),
+    );
   });
 
   it('marks the active tab as selected via accessibilityState', () => {

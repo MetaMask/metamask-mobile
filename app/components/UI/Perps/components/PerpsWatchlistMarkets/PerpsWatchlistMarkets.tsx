@@ -28,6 +28,7 @@ import {
   type PerpsMarketData,
   type Position,
   type Order,
+  type SortField,
 } from '@metamask/perps-controller';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
@@ -83,6 +84,13 @@ interface PerpsWatchlistMarketsProps {
   showLeadingDivider?: boolean;
   /** Whether to render the collapsible "Show more"/"Show less" toggle. Defaults to true. */
   enableShowMore?: boolean;
+  /**
+   * Metric shown on each market row. Matches the active markets-list sort
+   * so watchlist rows display the same field the user sorted by.
+   */
+  displayMetric?: SortField;
+  /** Section container test ID. Defaults to the home watchlist section. */
+  testID?: string;
 }
 
 // ─── Legacy (flag OFF) ──────────────────────────────────────────────────────
@@ -103,6 +111,8 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   contentContainerStyle,
   onMarketPress,
   showLeadingDivider = true,
+  displayMetric,
+  testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -153,10 +163,11 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
       <PerpsMarketRowItem
         market={item}
         showBadge={false}
+        displayMetric={displayMetric}
         onPress={() => handleMarketPress(item)}
       />
     ),
-    [handleMarketPress],
+    [handleMarketPress, displayMetric],
   );
 
   if (!isLoading && markets.length === 0) {
@@ -164,7 +175,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   }
 
   return (
-    <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+    <Box style={sectionStyle} testID={testID}>
       {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader title={strings('perps.home.watchlist')} />
       <Box style={contentContainerStyle}>
@@ -205,6 +216,8 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   showHeader = true,
   enableShowMore = true,
   showLeadingDivider = true,
+  displayMetric,
+  testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -284,7 +297,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
 
   if (isLoading) {
     return (
-      <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+      <Box style={sectionStyle} testID={testID}>
         {watchlistHeader}
         <Box style={[styles.skeletonContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={3} />
@@ -319,13 +332,18 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       <PerpsMarketRowItem
         market={item}
         showBadge={false}
+        displayMetric={displayMetric}
         onPress={() => handleMarketPress(item)}
       />
     </Animated.View>
   );
 
   return (
-    <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+    // testID keeps this view, but without collapsable={false} its children
+    // still attach to a higher native parent (the page). The LinearTransition
+    // wrapper below then animates whenever content above this section changes
+    // height, and can be left drawn over that content (TAT-4456).
+    <Box style={sectionStyle} testID={testID} collapsable={false}>
       {watchlistHeader}
       <Box style={contentContainerStyle}>
         <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
@@ -371,20 +389,16 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
               layout={LinearTransition.duration(ANIMATION_DURATION)}
               testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  hasWatchlist
-                    ? TextColor.TextAlternative
-                    : TextColor.TextDefault
-                }
-                style={styles.suggestedSubtitle}
-                testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
-              >
-                {hasWatchlist
-                  ? strings('perps.watchlist.suggested')
-                  : strings('perps.watchlist.empty_subtitle')}
-              </Text>
+              {hasWatchlist ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  style={styles.suggestedSubtitle}
+                  testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
+                >
+                  {strings('perps.watchlist.suggested')}
+                </Text>
+              ) : null}
               {suggestedMarkets?.map((market) => (
                 <Animated.View
                   key={market.symbol}
@@ -395,6 +409,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
                   <PerpsMarketRowItem
                     market={market}
                     showBadge={false}
+                    displayMetric={displayMetric}
                     onPress={() => handleMarketPress(market)}
                     onAddPress={() => addToWatchlist(market.symbol)}
                   />

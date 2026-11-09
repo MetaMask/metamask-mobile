@@ -11,15 +11,15 @@ import {
 } from '@metamask/perps-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../../../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../../../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { PERPS_SECTION_HEADER_BUTTON_LOCATION } from '../../../../../UI/Perps/utils/perpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import type {
   PerpsNavigationParamList,
   PerpsStackParamList,
 } from '../../../../../UI/Perps/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { NavigationAnalyticsContext } from '../../../../../../util/analytics/navigationAnalyticsAttribution';
 
 interface UsePerpsNavigationHandlersArgs {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -32,7 +32,7 @@ export const usePerpsNavigationHandlers = ({
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const marketDetailsTransactionActiveAbTests = transactionActiveAbTests?.length
     ? transactionActiveAbTests
@@ -59,41 +59,56 @@ export const usePerpsNavigationHandlers = ({
     [isFirstTimePerpsUser, navigation],
   );
 
-  const handleViewAllPerps = useCallback(() => {
-    const homeParams = {
+  const navigateToPerpsHome = useCallback(
+    (
+      analyticsContext?: NavigationAnalyticsContext,
+      extraParams?: Record<string, unknown>,
+    ) => {
+      const homeParams = {
+        ...(analyticsContext ? { analyticsContext } : { source }),
+        ...extraParams,
+        ...(marketDetailsTransactionActiveAbTests?.length
+          ? {
+              transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+            }
+          : {}),
+      };
+
+      // Resolve the Pro-aware target up front (Home vs. default Pro market
+      // vs. market list) so first-time users are redirected consistently
+      // with returning users once they complete the tutorial (TAT-3612).
+      const target = getTarget(homeParams);
+
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL, {
+          source: analyticsContext?.attribution ?? source,
+          redirectScreen: target.screen,
+          redirectParams: target.params,
+        });
+        return;
+      }
+
+      navigation.navigate(
+        Routes.PERPS.ROOT,
+        toPerpsNavigatorScreenParams(target),
+      );
+    },
+    [
+      isFirstTimePerpsUser,
+      navigation,
+      marketDetailsTransactionActiveAbTests,
+      getTarget,
       source,
-      ...(marketDetailsTransactionActiveAbTests?.length
-        ? {
-            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
-          }
-        : {}),
-    };
+    ],
+  );
 
-    // Resolve the Pro-aware target up front (Home vs. default Pro market)
-    // so first-time users are redirected consistently with returning users
-    // once they complete the tutorial (TAT-3612).
-    const target = getPerpsHomeNavigationTarget(homeParams);
-
-    if (isFirstTimePerpsUser) {
-      navigation.navigate(Routes.PERPS.TUTORIAL, {
-        source,
-        redirectScreen: target.screen,
-        redirectParams: target.params,
-      });
-      return;
-    }
-
-    navigation.navigate(
-      Routes.PERPS.ROOT,
-      toPerpsNavigatorScreenParams(target),
-    );
-  }, [
-    isFirstTimePerpsUser,
-    navigation,
-    marketDetailsTransactionActiveAbTests,
-    getPerpsHomeNavigationTarget,
-    source,
-  ]);
+  const handleViewAllPerps = useCallback(
+    () =>
+      navigateToPerpsHome(undefined, {
+        button_location: PERPS_SECTION_HEADER_BUTTON_LOCATION,
+      }),
+    [navigateToPerpsHome],
+  );
 
   const handleViewMorePerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
@@ -124,6 +139,7 @@ export const usePerpsNavigationHandlers = ({
   return {
     marketDetailsTransactionActiveAbTests,
     navigateToTutorialOrScreen,
+    navigateToPerpsHome,
     handleViewAllPerps,
     handleViewMorePerps,
     handleTilePress,

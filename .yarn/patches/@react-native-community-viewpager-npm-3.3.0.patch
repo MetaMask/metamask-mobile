@@ -7,3 +7,25 @@ index 0000000000000000000000000000000000000000..00000000000000000000000000000000
 +#import <React/RCTEventDispatcher.h>
  #import <React/UIView+React.h>
  #import <UIKit/UIKit.h>
+diff --git a/android/build.gradle b/android/build.gradle
+index 5ab9872b25abb7518589716a5abcbc2338b28005..20e755e2918c8b171e661935c035496b3348c9c9 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -1,7 +1,7 @@
+ buildscript {
+     repositories {
+         google()
+-        jcenter()
++        mavenCentral()
+     }
+ 
+     dependencies {
+@@ -31,7 +31,7 @@ android {
+ 
+ repositories {
+     google()
+-    jcenter()
++    mavenCentral()
+     mavenCentral()
+ }
+ 

@@ -3,11 +3,15 @@
  */
 export const REWARDS_VIEW_SELECTORS = {
   SAFE_AREA_VIEW: 'rewards-view-safe-area',
+  BOTTOM_SHEET_CLOSE_BUTTON: 'rewards-bottom-sheet-modal-close-button',
   TITLE: 'rewards-view-title',
-  REFERRAL_BUTTON: 'rewards-view-referral-button',
+  BACK_BUTTON: 'rewards-view-back-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   VIP_BUTTON: 'rewards-view-vip-button',
   VIP_REFEREE_BUTTON: 'rewards-view-vip-referee-button',
+  COPY_TRADING_SECTION: 'rewards-view-copy-trading-section',
+  COPY_TRADING_EMPTY: 'rewards-view-copy-trading-empty',
+  COPY_TRADING_ACTION: 'rewards-view-copy-trading-action',
   VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
   TAB_CONTENT_PREVIOUS_SEASON: 'rewards-view-tab-content-previous-season',
@@ -49,12 +53,11 @@ export const REWARDS_VIEW_SELECTORS = {
   PREVIOUS_SEASON_SUMMARY: 'rewards-view-previous-season-summary',
   PREVIOUS_SEASON_BALANCE: 'rewards-view-previous-season-balance',
   PREVIOUS_SEASON_LEVEL: 'rewards-view-previous-season-level',
-  PREVIOUS_SEASON_REFERRAL_DETAILS:
-    'rewards-view-previous-season-referral-details',
   // Benefits
   TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
   TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',
   TOP_BENEFIT_DETAILS_IMAGE: 'rewards-view-top-benefit-details-image',
+  TOP_BENEFIT_SKELETON: 'rewards-view-top-benefit-skeleton',
   BENEFIT_CARD_FOOTER: 'rewards-view-benefit-card-footer',
   LIST_BENEFIT_VIEW: 'rewards-view-list-benefit-view',
   DETAIL_BENEFIT_VIEW: 'rewards-view-detail-benefit-view',

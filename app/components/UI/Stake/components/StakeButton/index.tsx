@@ -43,6 +43,7 @@ import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
 import { EarnTokenDetails } from '../../../Earn/types/lending.types';
+import { formatEarnRatePercentage } from '../../../Earn/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './StakeButton.styles';
 interface StakeButtonContentProps {
@@ -181,7 +182,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     const aprNumber = Number(earnToken?.experience?.apr);
     const aprText =
       Number.isFinite(aprNumber) && aprNumber > 0
-        ? ` ${aprNumber.toFixed(1)}%`
+        ? ` ${formatEarnRatePercentage(aprNumber)}%`
         : '';
     return `${ctaLabel}${aprText}`;
   };

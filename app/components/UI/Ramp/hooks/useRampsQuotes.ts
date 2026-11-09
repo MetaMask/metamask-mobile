@@ -1,10 +1,24 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
+import type {
+  BuyWidget,
+  BuyWidgetFallback,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
+import {
+  buildRampsBuyQuoteFetchCufCompletion,
+  buildRampsBuyQuoteFetchStartTags,
+  endRampsBuyQuoteFetchTrace,
+  startRampsBuyQuoteFetchTrace,
+} from '../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
 
 export interface GetQuotesOptions {
   region?: string;
@@ -22,6 +36,10 @@ export interface GetQuotesOptions {
 export interface UseRampsQuotesResult {
   getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
   getBuyWidgetData: (quote: Quote) => Promise<BuyWidget | null>;
+  getFallbackBuyWidgetData: (
+    fallback: BuyWidgetFallback,
+    options?: { redirectUrl?: string },
+  ) => Promise<BuyWidget | null>;
   data: QuotesResponse | null;
   loading: boolean;
   status: RampsQueryStatus;
@@ -45,12 +63,18 @@ export function useRampsQuotes(
     return ramps.getBuyWidgetData(quote);
   }, []);
 
+  const getFallbackBuyWidgetData = useCallback(
+    (fallback: BuyWidgetFallback, opts?: { redirectUrl?: string }) =>
+      Engine.context.RampsController.getFallbackBuyWidgetData(fallback, opts),
+    [],
+  );
+
   const queryEnabled = Boolean(
     options?.assetId && options.walletAddress && options.amount > 0,
   );
 
-  const quotesQuery = useQuery({
-    ...rampsQueries.quotes.options({
+  const quoteFetchParams = useMemo(
+    () => ({
       assetId: options?.assetId,
       amount: options?.amount ?? 0,
       walletAddress: options?.walletAddress ?? '',
@@ -60,8 +84,144 @@ export function useRampsQuotes(
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
     }),
+    [
+      options?.assetId,
+      options?.amount,
+      options?.walletAddress,
+      options?.redirectUrl,
+      options?.paymentMethods,
+      options?.providers,
+      options?.forceRefresh,
+      options?.ttl,
+    ],
+  );
+
+  // Quote identity for CUF supersede (amount / payment / provider).
+  const quoteFetchKey = useMemo(() => {
+    if (!queryEnabled) {
+      return null;
+    }
+    return [
+      quoteFetchParams.assetId ?? '',
+      quoteFetchParams.amount,
+      quoteFetchParams.walletAddress,
+      (quoteFetchParams.paymentMethods ?? []).join(','),
+      (quoteFetchParams.providers ?? []).join(','),
+    ].join('|');
+  }, [queryEnabled, quoteFetchParams]);
+
+  const quotesQuery = useQuery({
+    ...rampsQueries.quotes.options(quoteFetchParams),
     enabled: queryEnabled,
   });
+
+  const quoteCufOpIdRef = useRef<string | null>(null);
+  const quoteCufKeyRef = useRef<string | null>(null);
+  const quoteCufProvidersRef = useRef<string[] | undefined>(undefined);
+
+  const endOpenQuoteCuf = useCallback(
+    (
+      reason: (typeof RAMPS_BUY_CUF_END_REASON)[keyof typeof RAMPS_BUY_CUF_END_REASON],
+    ) => {
+      if (!quoteCufOpIdRef.current) {
+        return;
+      }
+      endRampsBuyQuoteFetchTrace({
+        id: quoteCufOpIdRef.current,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: reason,
+        },
+      });
+      quoteCufOpIdRef.current = null;
+      quoteCufKeyRef.current = null;
+      quoteCufProvidersRef.current = undefined;
+    },
+    [],
+  );
+
+  // Buy Quote Fetch CUF: start on fetch, end on settle; key change supersedes.
+  useEffect(() => {
+    if (!queryEnabled || !quoteFetchKey) {
+      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.CANCELLED);
+      return;
+    }
+
+    if (quotesQuery.isFetching) {
+      if (quoteCufKeyRef.current !== quoteFetchKey) {
+        const providersAtStart = quoteFetchParams.providers
+          ? [...quoteFetchParams.providers]
+          : undefined;
+        quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace({
+          tags: buildRampsBuyQuoteFetchStartTags(providersAtStart),
+        });
+        quoteCufKeyRef.current = quoteFetchKey;
+        quoteCufProvidersRef.current = providersAtStart;
+      }
+      return;
+    }
+
+    if (quoteCufOpIdRef.current && quoteCufKeyRef.current !== quoteFetchKey) {
+      const opId = quoteCufOpIdRef.current;
+      quoteCufOpIdRef.current = null;
+      quoteCufProvidersRef.current = undefined;
+      endRampsBuyQuoteFetchTrace({
+        id: opId,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+        },
+      });
+      // Settled cache: keep key. Pending/paused: clear so resume can start.
+      quoteCufKeyRef.current =
+        quotesQuery.isSuccess || quotesQuery.isError ? quoteFetchKey : null;
+      return;
+    }
+
+    if (!quoteCufOpIdRef.current) {
+      if (
+        quoteCufKeyRef.current !== quoteFetchKey &&
+        (quotesQuery.isSuccess || quotesQuery.isError)
+      ) {
+        quoteCufKeyRef.current = quoteFetchKey;
+      }
+      return;
+    }
+
+    // Ignore offline pause (!isFetching while still pending).
+    if (!quotesQuery.isSuccess && !quotesQuery.isError) {
+      return;
+    }
+
+    const opId = quoteCufOpIdRef.current;
+    const requestedProviders = quoteCufProvidersRef.current;
+    quoteCufOpIdRef.current = null;
+    quoteCufProvidersRef.current = undefined;
+    endRampsBuyQuoteFetchTrace({
+      id: opId,
+      data: buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: quotesQuery.isError,
+        response: quotesQuery.data,
+        requestedProviders,
+      }),
+    });
+  }, [
+    queryEnabled,
+    quoteFetchKey,
+    quoteFetchParams.providers,
+    quotesQuery.data,
+    quotesQuery.isFetching,
+    quotesQuery.isSuccess,
+    quotesQuery.isError,
+    endOpenQuoteCuf,
+  ]);
+
+  useEffect(
+    () => () => {
+      endOpenQuoteCuf(RAMPS_BUY_CUF_END_REASON.CANCELLED);
+    },
+    [endOpenQuoteCuf],
+  );
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
@@ -79,6 +239,7 @@ export function useRampsQuotes(
   return {
     getQuotes,
     getBuyWidgetData,
+    getFallbackBuyWidgetData,
     data: quotesQuery.data ?? null,
     loading: status === 'loading',
     status,

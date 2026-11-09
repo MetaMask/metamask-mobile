@@ -20,7 +20,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
-import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import {
   NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE,
   TRANSFER_FROM_FUNCTION_SIGNATURE,
@@ -49,6 +48,7 @@ export interface SendNavigationParams {
   location: string;
   asset?: AssetType | Nft;
   predefinedRecipient?: PredefinedRecipient;
+  predefinedAmount?: string;
 }
 
 const captureSendStartedEvent = (location: string) => {
@@ -109,7 +109,7 @@ export const handleSendPageNavigation = (
   ) => void,
   params: SendNavigationParams,
 ) => {
-  const { location, asset, predefinedRecipient } = params;
+  const { location, asset, predefinedRecipient, predefinedAmount } = params;
   captureSendStartedEvent(location);
   let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
@@ -126,6 +126,7 @@ export const handleSendPageNavigation = (
       asset,
       location,
       predefinedRecipient,
+      ...(predefinedAmount ? { predefinedAmount } : {}),
     },
   });
 };
@@ -405,37 +406,6 @@ export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
 export const fromHexWithDecimals = (value: Hex, decimals: number) => {
   const bnValue = hexToBN(value);
   return fromBNWithDecimals(bnValue, decimals);
-};
-
-export const fromTokenMinUnits = (
-  value: string,
-  decimals?: number | string,
-) => {
-  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
-  const multiplier = new BN(10).pow(new BN(decimalValue));
-  return addHexPrefix(new BN(value).mul(multiplier).toString(16));
-};
-
-export const getLayer1GasFeeForSend = async ({
-  asset,
-  chainId,
-  from,
-  value,
-}: {
-  asset: AssetType;
-  chainId: Hex;
-  from: Hex;
-  value: string;
-}) => {
-  const txParams = {
-    chainId,
-    from,
-    value: fromTokenMinUnits(value, asset.decimals),
-  };
-  return await fetchEstimatedMultiLayerL1Fee(undefined, {
-    txParams,
-    chainId,
-  });
 };
 
 export const convertCurrency = (

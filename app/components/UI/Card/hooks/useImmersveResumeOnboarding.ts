@@ -11,6 +11,7 @@ import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
+import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 
 interface ResumeParams {
@@ -22,11 +23,13 @@ interface ResumeParams {
   navigateFromRoot?: boolean;
   /** Analytics entrypoint for the resume funnel (SIGN_UP | AUTHENTICATION). */
   entrypoint?: CardEntryPoint.SIGN_UP | CardEntryPoint.AUTHENTICATION;
+  alreadyAuthenticated?: boolean;
 }
 
 export const useImmersveResumeOnboarding = () => {
   const dispatch = useDispatch();
   const { signIn } = useImmersveSiweAuth();
+  const handoffMfa = useImmersveMfaHandoff();
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -40,6 +43,7 @@ export const useImmersveResumeOnboarding = () => {
       showAccountExistsToast,
       navigateFromRoot,
       entrypoint = CardEntryPoint.SIGN_UP,
+      alreadyAuthenticated = false,
     }: ResumeParams): Promise<void> => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -57,9 +61,41 @@ export const useImmersveResumeOnboarding = () => {
 
         controller.setSelectedCountry(country);
 
-        await signIn({ country, address });
+        if (!alreadyAuthenticated) {
+          const authResult = await signIn({ country, address });
+          if (
+            handoffMfa(authResult, {
+              country,
+              address,
+              continuation: {
+                entrypoint,
+                email,
+                phone,
+                showAccountExistsToast,
+                navigateFromRoot,
+              },
+            })
+          ) {
+            return;
+          }
+        }
 
         const resume = await controller.getResumeCardInfo();
+        if (resume) {
+          controller
+            .recordCardActivated({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        } else {
+          controller
+            .recordProviderOnboardingStarted({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        }
 
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId: immersveConfig.fundingChannelId,
@@ -92,6 +128,8 @@ export const useImmersveResumeOnboarding = () => {
           countryKey: country,
           showAccountExistsToast,
           navigateFromRoot,
+          hasExistingCard: Boolean(resume),
+          fundingAddress: address,
         });
       } catch (error) {
         // SIWE already emits CARD_SIWE_AUTH_FAILED (incl. user_cancelled).
@@ -112,6 +150,14 @@ export const useImmersveResumeOnboarding = () => {
         throw error;
       }
     },
-    [dispatch, signIn, route, immersveConfig, trackEvent, createEventBuilder],
+    [
+      dispatch,
+      signIn,
+      handoffMfa,
+      route,
+      immersveConfig,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 };

@@ -29,7 +29,7 @@ import {
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
+import { buildBaanxCardholderName } from './utils/cardholderName';
 import {
   generatePKCEPair,
   generateState,
@@ -49,6 +49,8 @@ import {
   CardFundingAsset,
   CardHomeData,
   CardProviderCapabilities,
+  ApplePayProvisioningParams,
+  CardWalletProvisioningInfo,
   CardSecureView,
   CardSecureViewParams,
   AuthTokenValidity,
@@ -70,6 +72,9 @@ import {
   CreditWithdrawParams,
   CreditWithdrawResponse,
   type DelegationChallengeResponse,
+  type CompleteMoneyAccountLinkParams,
+  type MoneyAccountLinkPreparation,
+  type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
   CardProviderIds,
@@ -82,6 +87,12 @@ import {
   type CardTransactionPage,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { resolveMoneyAccountCardToken } from '../utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../../components/UI/Card/util/vedaToken';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -360,6 +371,20 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
+function baanxProvisioningCountryCode(
+  location: string,
+  countryOfResidence: string | null | undefined,
+): string | undefined {
+  if (location === 'us') {
+    return 'US';
+  }
+  const residence = countryOfResidence?.trim();
+  if (!residence) {
+    return undefined;
+  }
+  return residence.toUpperCase();
+}
+
 export class BaanxProvider implements ICardProvider {
   readonly id = CardProviderIds.Baanx;
 
@@ -370,7 +395,7 @@ export class BaanxProvider implements ICardProvider {
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144', 'eip155:8453'],
     supportsFreeze: true,
-    supportsPushProvisioning: true,
+    pushProvisioning: { applePay: true, googlePay: true },
     onboarding: {
       type: 'steps',
       steps: [
@@ -390,7 +415,10 @@ export class BaanxProvider implements ICardProvider {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -541,6 +569,36 @@ export class BaanxProvider implements ICardProvider {
     await this.service.post('/v1/auth/logout', {}, tokens);
   }
 
+  /**
+   * Full authenticated Baanx profile (`GET /v1/user`), including contact fields
+   * used for UK migration SignUp prefill.
+   */
+  async getUserDetails(tokens: CardAuthTokens): Promise<UserResponse> {
+    try {
+      return await this.service.get<UserResponse>('/v1/user', tokens);
+    } catch (error) {
+      throw mapApiError(error, 'getUserDetails');
+    }
+  }
+
+  /**
+   * Signals Exodus that this Baanx user started Immersve onboarding and wants
+   * their Exodus account closed (`POST /v1/user/closure`). A 400 means the
+   * closure was already requested and is treated as success.
+   */
+  async requestAccountClosure(tokens: CardAuthTokens): Promise<void> {
+    try {
+      const userId =
+        tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
+      await this.service.post('/v1/user/closure', { userId }, tokens);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 400) {
+        return;
+      }
+      throw mapApiError(error, 'requestAccountClosure');
+    }
+  }
+
   // -- Card Home Data --
 
   async getCardHomeData(
@@ -553,7 +611,12 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        if (err instanceof CardApiError && err.statusCode === 429) {
+        // getUserDetails maps CardApiError → CardProviderError before this
+        // catch runs, so check statusCode on both shapes.
+        if (
+          (err instanceof CardApiError || err instanceof CardProviderError) &&
+          err.statusCode === 429
+        ) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
@@ -574,9 +637,9 @@ export class BaanxProvider implements ICardProvider {
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
             .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
-          this.service
-            .get<UserResponse>('/v1/user', tokens)
-            .catch(swallowUnlessAuthError('getCardHomeData.user')),
+          this.getUserDetails(tokens).catch(
+            swallowUnlessAuthError('getCardHomeData.user'),
+          ),
         ],
       );
 
@@ -629,9 +692,12 @@ export class BaanxProvider implements ICardProvider {
             tokens.location as CardLocation,
           )
         : null;
-      const account = user
-        ? this.mapAccountStatus(user, cardDetailsResponse)
-        : null;
+      const account = user ? this.mapAccountStatus(user) : null;
+      const walletProvisioning = this.mapWalletProvisioning(
+        user,
+        card,
+        tokens.location,
+      );
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -646,6 +712,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets,
         card,
         account,
+        walletProvisioning,
         alerts,
         actions,
         delegationSettings,
@@ -908,6 +975,90 @@ export class BaanxProvider implements ICardProvider {
     );
   }
 
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const cardToken = resolveMoneyAccountCardToken(params.delegationSettings);
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge(
+      {
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        address: params.moneyAccountAddress,
+      },
+      tokens,
+    );
+    const caipChainId =
+      cardToken.caipChainId ?? MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID;
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      address: params.moneyAccountAddress,
+      nonce,
+      caipChainId,
+    });
+
+    return {
+      tokenAddress,
+      spender: cardToken.delegationContract,
+      decimals: cardToken.decimals ?? 6,
+      caipChainId,
+      context: {
+        signatureMessage,
+        delegationToken,
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const { signatureMessage, delegationToken, network, currency } =
+      params.context;
+    if (!params.sigHash || !signatureMessage || !delegationToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account link completion is missing the delegation signature',
+      );
+    }
+
+    await this.approveFunding(
+      {
+        address: params.moneyAccountAddress,
+        network: network ?? MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: currency ?? MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        amount: params.amountHuman,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
+      },
+      tokens,
+    );
+  }
+
   // -- Onboarding --
 
   async getRegistrationSettings(
@@ -980,12 +1131,7 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async createApplePayProvisioningRequest(
-    params: {
-      leafCertificate: string;
-      intermediateCertificate: string;
-      nonce: string;
-      nonceSignature: string;
-    },
+    params: ApplePayProvisioningParams,
     tokens: CardAuthTokens,
   ): Promise<{
     encryptedPassData: string;
@@ -1002,7 +1148,11 @@ export class BaanxProvider implements ICardProvider {
       encryptedPassData?: string;
       activationData?: string;
       ephemeralPublicKey?: string;
-    }>('/v1/card/wallet/provision/apple', params, tokens);
+    }>(
+      '/v1/card/wallet/provision/apple',
+      this.toBaanxApplePayWire(params),
+      tokens,
+    );
 
     const data = response.data || response;
     if (
@@ -1028,56 +1178,107 @@ export class BaanxProvider implements ICardProvider {
   async getCashbackWallet(
     tokens: CardAuthTokens,
   ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWalletResponse>(
+        '/v1/wallet/reward',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
+      }
+      throw mapApiError(error, 'getCashbackWallet');
+    }
   }
 
   async getCashbackWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWithdrawEstimationResponse>(
+        '/v1/wallet/reward/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCashbackWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+    }
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CashbackWithdrawResponse>(
+        '/v1/wallet/reward/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCashback'));
+      }
+      throw mapApiError(error, 'withdrawCashback');
+    }
   }
 
   // -- Credit --
 
   async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+    try {
+      return await this.service.get<CreditWalletResponse>(
+        '/v1/wallet/credit',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCreditWallet'));
+      }
+      throw mapApiError(error, 'getCreditWallet');
+    }
   }
 
   async getCreditWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CreditWithdrawEstimationResponse>(
+        '/v1/wallet/credit/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCreditWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCreditWithdrawEstimation');
+    }
   }
 
   async withdrawCredit(
     params: CreditWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CreditWithdrawResponse>(
+        '/v1/wallet/credit/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCredit'));
+      }
+      throw mapApiError(error, 'withdrawCredit');
+    }
   }
 
   // -- On-Chain (unauthenticated) --
@@ -1162,6 +1363,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets: fundingAssets,
         card: null,
         account: null,
+        walletProvisioning: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
@@ -1213,6 +1415,7 @@ export class BaanxProvider implements ICardProvider {
       availableFundingAssets: fundingAssets,
       card: null,
       account: null,
+      walletProvisioning: null,
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
       delegationSettings: null,
@@ -1923,16 +2126,61 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
-  private mapAccountStatus(
-    user: UserResponse,
-    card: CardDetailsResponse | null,
-  ): CardAccountStatus {
+  private mapWalletProvisioning(
+    user: UserResponse | null,
+    card: CardDetails | null,
+    location: string,
+  ): CardWalletProvisioningInfo | null {
+    if (!user || !card) {
+      return null;
+    }
+
+    const countryCode = baanxProvisioningCountryCode(
+      location,
+      user.countryOfResidence,
+    );
+    const cardProcessor =
+      typeof user.cardProvider === 'string' && user.cardProvider.length > 0
+        ? user.cardProvider
+        : undefined;
+
+    return {
+      eligible: card.status === CardStatus.ACTIVE,
+      cardholderName: buildBaanxCardholderName(user),
+      lastFour: card.lastFour,
+      network: 'MASTERCARD',
+      ...(countryCode ? { countryCode } : {}),
+      ...(cardProcessor ? { cardProcessor } : {}),
+    };
+  }
+
+  private toBaanxApplePayWire(params: ApplePayProvisioningParams): {
+    leafCertificate: string;
+    intermediateCertificate: string;
+    nonce: string;
+    nonceSignature: string;
+  } {
+    if (params.certificates.length < 2) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        'Apple Pay certificate chain must include a leaf and intermediate',
+      );
+    }
+
+    const toHex = (value: string) =>
+      Buffer.from(value, 'base64').toString('hex');
+
+    return {
+      leafCertificate: toHex(params.certificates[0]),
+      intermediateCertificate: toHex(params.certificates[1]),
+      nonce: toHex(params.nonce),
+      nonceSignature: toHex(params.nonceSignature),
+    };
+  }
+
+  private mapAccountStatus(user: UserResponse): CardAccountStatus {
     return {
       verificationStatus: user.verificationState ?? null,
-      provisioningEligible:
-        !!card &&
-        card.status === CardStatus.ACTIVE &&
-        isAccountEligibleForProvisioning(user.createdAt),
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,

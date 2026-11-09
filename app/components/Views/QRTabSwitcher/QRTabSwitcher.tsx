@@ -12,17 +12,19 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
-import {
-  HeaderBase,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
-import Engine from '../../../core/Engine';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import { useMessenger } from '../../../hooks/useMessenger';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { RouteMessengerInstance } from './messenger';
 import {
   selectQrSyncError,
   selectQrSyncIsSessionActive,
@@ -30,8 +32,10 @@ import {
   selectQrSyncPresentation,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
 
 const DEVICE_LINKED_WAIT_PHASES: ReadonlySet<QrSyncPhase> = new Set([
   QrSyncPhases.AWAITING_SYNC_READY,
@@ -64,7 +68,12 @@ export interface StartScan {
 const USER_CANCELLED = 'USER_CANCELLED';
 
 export interface QRTabSwitcherParams {
-  onScanSuccess: (data: ScanSuccess, content?: string) => void;
+  /**
+   * Required for non-add-device origins. For add-device (`origin` =
+   * `ADD_DEVICE_TO_WALLET`), omit this — QRTabSwitcher submits via its own
+   * route messenger so it does not depend on a stale parent-screen callback.
+   */
+  onScanSuccess?: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   initialScreen?: QRTabSwitcherScreens;
@@ -79,6 +88,8 @@ export const createQRScannerNavDetails =
 const QRTabSwitcher = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const messenger = useMessenger<RouteMessengerInstance>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
 
@@ -204,9 +215,40 @@ const QRTabSwitcher = () => {
     endTrace({ name: TraceName.QRTabSwitcher });
   }, []);
 
+  /**
+   * Submit on this screen's live route messenger. Do not call through a
+   * nav-param callback from AddDeviceToWallet — that screen can unmount in
+   * post-onboarding AppFlow and revoke its messenger handlers.
+   */
+  const handleAddDeviceScanSuccess = useCallback(
+    (data: ScanSuccess, content?: string) => {
+      const scannedQrPayload = content ?? data.content ?? '';
+
+      Promise.resolve(
+        messenger.call(
+          'QrSyncController:handleScannedQrPayload',
+          scannedQrPayload,
+        ),
+      ).catch((err: unknown) => {
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.QR_TAB_SWITCHER_ADD_DEVICE_SCAN,
+        });
+      });
+    },
+    [messenger],
+  );
+
+  const resolvedOnScanSuccess = isAddDeviceOrigin
+    ? handleAddDeviceScanSuccess
+    : onScanSuccess;
+
   const goBack = () => {
     if (isAddDeviceOrigin && isSessionActive) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
     navigation.goBack();
@@ -233,7 +275,7 @@ const QRTabSwitcher = () => {
       {selectedIndex === QRTabSwitcherScreens.Scanner ? (
         <QRScanner
           onScanError={onScanError}
-          onScanSuccess={onScanSuccess}
+          onScanSuccess={resolvedOnScanSuccess ?? (() => undefined)}
           onStartScan={onStartScan}
           origin={origin}
           shouldDismissOnScan={
@@ -242,15 +284,19 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <HeaderBase
-        style={[styles.overlay, styles.header]}
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={goBack}
-          />
-        }
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating
+        backdrop="none"
+        containerStyle={isGlassHeader ? styles.overlay : undefined}
+        style={isGlassHeader ? styles.header : [styles.overlay, styles.header]}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Close,
+            size: ButtonIconSize.Md,
+            onPress: goBack,
+          },
+        ]}
       />
 
       {/* QR scanner interface - camera view only */}

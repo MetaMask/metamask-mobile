@@ -1,11 +1,16 @@
 export const EARN_TEST_IDS = {
   MUSD: {
     ASSET_LIST_CONVERSION_CTA: 'musd-conversion-asset-list-conversion-cta',
+    ASSET_LIST_CONVERSION_CTA_BADGE:
+      'musd-conversion-asset-list-conversion-cta-badge',
     ASSET_OVERVIEW_CONVERSION_CTA: 'musd-conversion-asset-overview-cta',
     ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON:
       'musd-conversion-asset-overview-cta-close-button',
     CONVERSION_EDUCATION_VIEW: {
       CONTAINER: 'musd-conversion-education-view-container',
+      TITLE: 'musd-conversion-education-view-title',
+      DESCRIPTION: 'musd-conversion-education-view-description',
+      CHECKLIST: 'musd-conversion-education-view-checklist',
       BACKGROUND_IMAGE: 'musd-conversion-education-view-background-image',
       PRIMARY_BUTTON: 'musd-conversion-education-view-primary-button',
       SECONDARY_BUTTON: 'musd-conversion-education-view-secondary-button',

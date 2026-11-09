@@ -1,39 +1,39 @@
 import { TermsOfUseModalSelectorsIDs } from '../../../app/util/termsOfUse/TermsOfUseModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class TermsOfUseModal {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
 
-  get checkbox(): EncapsulatedElementType {
+  get checkbox(): Promise<AppiumElement> {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CHECKBOX);
   }
 
-  get scrollArrowButton(): EncapsulatedElementType {
+  get scrollArrowButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
     );
   }
 
-  get acceptButton(): EncapsulatedElementType {
+  get acceptButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
-  get webview(): EncapsulatedElementType {
+  get webview(): Promise<AppiumElement> {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.WEBVIEW);
   }
 
-  get lastUpdatedText(): EncapsulatedElementType {
+  get lastUpdatedText(): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       this.getCatchAllXPath('Last Updated'),
     );
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CLOSE_BUTTON);
   }
 

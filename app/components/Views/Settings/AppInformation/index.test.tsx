@@ -169,6 +169,19 @@ describe('AppInformation', () => {
       expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
     });
 
+    it('renders the header title on a single line', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText(strings('app_settings.info_title'))).toHaveProp(
+        'numberOfLines',
+        1,
+      );
+    });
+
     it('calls navigation.goBack when back button is pressed', () => {
       const mockGoBack = jest.fn();
       const mockNavigation = {

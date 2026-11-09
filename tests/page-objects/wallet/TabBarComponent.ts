@@ -5,7 +5,7 @@ import {
   Assertions,
   PlatformDetector,
   Utilities,
-  EncapsulatedElementType,
+  type AppiumElement,
   sleep,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
@@ -15,57 +15,93 @@ import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
 import WalletActionsBottomSheet from './WalletActionsBottomSheet';
-import TrendingView from '../Trending/TrendingView';
+import { TrendingViewSelectorsIDs } from '../../locators/Trending/TrendingView.selectors';
+
+/** Native iOS 26 tab items have no testID; UIKit exposes them by title. */
+const NATIVE_TAB_LABELS = {
+  WALLET: 'Home',
+  EXPLORE: 'Explore',
+  ACTIVITY: 'Activity',
+  MONEY: 'Money',
+  REWARDS: 'Rewards',
+} as const;
+
+const NATIVE_TAB_BAR_MIN_IOS_VERSION = 26;
 
 class TabBarComponent {
-  get tabBarExploreButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
+  private tabItem(
+    testId: string,
+    nativeLabel: (typeof NATIVE_TAB_LABELS)[keyof typeof NATIVE_TAB_LABELS],
+  ): Promise<AppiumElement> {
+    if (PlatformDetector.isIOSAtLeast(NATIVE_TAB_BAR_MIN_IOS_VERSION)) {
+      return Matchers.getElementByLabel(nativeLabel);
+    }
+    return Matchers.getElementByID(testId);
   }
 
-  get tabBarBrowserButton(): EncapsulatedElementType {
+  get tabBarExploreButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.EXPLORE, NATIVE_TAB_LABELS.EXPLORE);
+  }
+
+  get tabBarBrowserButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
-  get tabBarWalletButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+  get tabBarWalletButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
   }
 
-  get tabBarActionButton(): EncapsulatedElementType {
+  get tabBarActionButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
-  get tabBarTradeButton(): EncapsulatedElementType {
+  get tabBarTradeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
-  get tabBarSettingButton(): EncapsulatedElementType {
+  get tabBarSettingButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  get tabBarActivityButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  get tabBarActivityButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.ACTIVITY, NATIVE_TAB_LABELS.ACTIVITY);
   }
 
-  get tabBarRewardsButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
+  get tabBarRewardsButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.REWARDS, NATIVE_TAB_LABELS.REWARDS);
   }
 
-  get tabBarMoneyButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
+  get tabBarMoneyButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.MONEY, NATIVE_TAB_LABELS.MONEY);
   }
 
-  get homeButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+  get homeButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
+  }
+
+  private async dismissStackedActivity(): Promise<void> {
+    const isActivityVisible = await Utilities.isElementVisible(
+      ActivitiesView.redesignedScreen,
+      500,
+    );
+    if (isActivityVisible) {
+      await ActivitiesView.tapBackButton();
+    }
   }
 
   async tapHome(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
+        await this.dismissStackedActivity();
+        await Gestures.waitAndTap(this.homeButton, {
+          elemDescription: 'Tab Bar - Home Button',
+          timeout: 2000,
+        });
         if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 500,
           });
         }
@@ -90,6 +126,7 @@ class TabBarComponent {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 5_000,
           });
         }
@@ -166,17 +203,32 @@ class TabBarComponent {
     await AccountMenu.tapSettings();
     await Assertions.expectElementToBeVisible(SettingsView.title);
   }
+
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarExploreButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
-          description: 'Trending view search button should be visible',
-          timeout: 500,
+        // `explore-view-search-button` is also the wallet homepage search id.
+        // Inner-tab scroll views stay mounted and hidden off the selected tab.
+        // The browser button is on every Explore tab and is absent from wallet home.
+        const exploreBrowserButton = () =>
+          Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
+        const alreadyOpen = await Utilities.isElementVisible(
+          exploreBrowserButton(),
+          500,
+        );
+        if (!alreadyOpen) {
+          await Gestures.waitAndTap(this.tabBarExploreButton, {
+            elemDescription: 'Tab Bar - Explore Button',
+            timeout: 5_000,
+          });
+        }
+        await Assertions.expectElementToBeVisible(exploreBrowserButton(), {
+          description: 'Explore tab content should be visible',
+          timeout: 8_000,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        // Each attempt: tab tap plus the Explore browser button. Outer budget stays 45s.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Explore Button with Validation',
@@ -184,46 +236,74 @@ class TabBarComponent {
     );
   }
 
+  /**
+   * Money builds replace the Activity tab with a header clock button. Re-query
+   * that button after wallet chrome is showing so the tap is not a stale node.
+   */
+  private async openActivityFromWalletHeader(): Promise<void> {
+    const isWalletActivityButtonVisible = await Utilities.isElementVisible(
+      WalletView.activityButton,
+      500,
+    );
+    if (!isWalletActivityButtonVisible) {
+      await Gestures.waitAndTap(this.tabBarWalletButton, {
+        timeout: 2_000,
+        elemDescription: 'Tab Bar - Wallet Button',
+        waitForInteractive: true,
+      });
+    }
+    await Gestures.waitAndTap(WalletView.activityButton, {
+      timeout: 5_000,
+      elemDescription: 'Wallet Activity button',
+      waitForInteractive: true,
+    });
+  }
+
   async tapActivity(): Promise<void> {
+    // Set only after the Money tab is actually shown. Standard builds keep
+    // waiting on the Activity tab; a slow 500ms probe must not switch them
+    // onto the header button, which those builds do not render.
+    let moneyTabWasVisible = false;
     await Utilities.executeWithRetry(
       async () => {
-        // Money account replaces the Activity tab with Money; Activity is then
-        // opened from the wallet-header clock button (`wallet-activity-button`).
-        // When Money is off, that header button is hidden and the Activity tab
-        // is the only entry point. Prefer whichever control is present.
-        //
-        // If a prior attempt already navigated but the title was not ready yet,
-        // neither entry point is on screen — skip / swallow taps and wait for
-        // the title so executeWithRetry can succeed once Activity is visible.
         const alreadyOnActivity = await Utilities.isElementVisible(
-          ActivitiesView.title,
+          ActivitiesView.redesignedScreen,
           500,
         );
         if (!alreadyOnActivity) {
-          try {
+          const isMoneyTabVisible = await Utilities.isElementVisible(
+            this.tabBarMoneyButton,
+            500,
+          );
+          if (isMoneyTabVisible) {
+            moneyTabWasVisible = true;
+          }
+          if (moneyTabWasVisible) {
+            // A header tap can cover the tab bar before Activity mounts. Money
+            // builds have no Activity tab, so return home and use the header.
+            await this.openActivityFromWalletHeader();
+          } else {
             await Gestures.waitAndTap(this.tabBarActivityButton, {
-              timeout: 2000,
+              timeout: 2_000,
               elemDescription: 'Tab Bar - Activity Button',
+              waitForInteractive: true,
             });
-          } catch {
-            try {
-              await Gestures.waitAndTap(WalletView.activityButton, {
-                timeout: 2000,
-                elemDescription: 'Wallet Activity button',
-              });
-            } catch {
-              // Both entry points missing — likely already on Activity from a
-              // prior attempt; fall through to the title assertion below.
-            }
           }
         }
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
-          timeout: 500,
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.redesignedScreen,
+          {
+            description: 'Activity View Screen',
+            timeout: 5_000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(ActivitiesView.container, {
+          description: 'Activity List',
+          timeout: 5_000,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        // Header tap plus activity-screen postcondition. Outer budget stays 45s.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Activity Button',

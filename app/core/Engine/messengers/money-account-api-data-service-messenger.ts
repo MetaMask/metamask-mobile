@@ -24,7 +24,10 @@ export function getMoneyAccountApiDataServiceMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'KeyringController:signPersonalMessage',
+    ],
     events: [],
     messenger,
   });

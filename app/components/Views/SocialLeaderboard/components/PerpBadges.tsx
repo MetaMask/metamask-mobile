@@ -8,8 +8,8 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import type { PerpDirection } from '../utils/perp';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
+
 import PerpsLeverage from '../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 
 export interface PerpBadgesProps {

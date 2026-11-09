@@ -1,10 +1,10 @@
 import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../app/components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction/FiatOnTestnetsBottomSheet.testIds';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class FiatOnTestnetsBottomSheet {
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON,
     );

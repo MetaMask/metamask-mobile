@@ -9,6 +9,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   usePerpsTrading,
   usePerpsTPSLUpdate,
@@ -206,6 +207,9 @@ describe('PerpsPositionsView', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return true;
+      }
       if (selector === selectPrivacyMode) {
         return false;
       }
@@ -235,6 +239,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        expect(screen.getByText('Position margin used')).toBeOnTheScreen();
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -583,6 +588,7 @@ describe('PerpsPositionsView', () => {
       ).selectPerpsEligibility;
       useSelector.mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === selectPerpsCrossMarginEnabledFlag) return true;
         if (selector === selectPrivacyMode) return true;
         return undefined;
       });
@@ -632,6 +638,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        expect(screen.getByText('Position margin used')).toBeOnTheScreen();
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
       });
     });

@@ -412,6 +412,14 @@ export const BrowserPure = (props) => {
   const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
 
+    // Search pushes Browser onto the root stack (Globe from ExploreSearch).
+    // Back must return to Search — do not just hide the tabs overlay, which
+    // would reveal the active WebView (often portfolio.metamask.io).
+    if (route.params?.fromExploreSearch) {
+      navigation.goBack();
+      return;
+    }
+
     // Check if the active tab still exists in the tabs list
     const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
 
@@ -419,11 +427,15 @@ export const BrowserPure = (props) => {
     // 1. No tabs exist, OR
     // 2. Active tab was closed (activeTabId not in tabs)
     if (tabs.length === 0 || !activeTabExists) {
-      navigation.navigate(Routes.TRENDING_VIEW, {
-        screen: Routes.TRENDING_FEED,
-      });
+      navigation.navigate(Routes.TRENDING_VIEW);
     }
-  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
+  }, [
+    tabs,
+    activeTabId,
+    setShouldShowTabs,
+    navigation,
+    route.params?.fromExploreSearch,
+  ]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
@@ -466,12 +478,16 @@ export const BrowserPure = (props) => {
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
+              fromExploreSearch={route.params?.fromExploreSearch}
               fromPerps={route.params?.fromPerps}
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
               fromWhatsHappening={route.params?.fromWhatsHappening}
               fromMarketInsights={route.params?.fromMarketInsights}
               fromMoney={route.params?.fromMoney}
+              fromEarnStrategySelection={
+                route.params?.fromEarnStrategySelection
+              }
             />
           ) : (
             <DiscoveryTab
@@ -492,12 +508,14 @@ export const BrowserPure = (props) => {
       updateTabInfo,
       showTabsView,
       route.params?.fromTrending,
+      route.params?.fromExploreSearch,
       route.params?.fromPerps,
       route.params?.fromBenefit,
       route.params?.fromCard,
       route.params?.fromWhatsHappening,
       route.params?.fromMarketInsights,
       route.params?.fromMoney,
+      route.params?.fromEarnStrategySelection,
     ],
   );
 

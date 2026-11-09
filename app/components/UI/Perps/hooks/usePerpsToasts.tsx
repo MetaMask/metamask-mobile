@@ -16,6 +16,7 @@ import {
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import { formatTwapDuration } from '../utils/twapFormat';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import {
   IconColor,
@@ -29,7 +30,6 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
-import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
@@ -46,7 +46,11 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { handlePerpsError } from '../utils/translatePerpsError';
+import {
+  handlePerpsError,
+  type OrderEditRejection,
+  type PerpsErrorInput,
+} from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
@@ -58,16 +62,21 @@ export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   }[];
 };
 
+type PerpsErrorValue = PerpsErrorInput | string;
+
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
-      success: (amount: string) => PerpsToastOptions;
+      /** @param amountAdded - Amount credited to the Perps account, not the resulting balance. */
+      success: (amountAdded: string) => PerpsToastOptions;
       inProgress: (
         processingTimeInSeconds: number | undefined,
         transactionId: string,
       ) => PerpsToastOptions;
       takingLonger: PerpsToastOptions;
       tradeCanceled: PerpsToastOptions;
+      /** Deposit credited to Perps but the pay-with-token order was not sent. */
+      orderNotPlaced: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     oneClickTrade: {
@@ -95,7 +104,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (error?: string) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
     };
     shared: {
       submitting: () => PerpsToastOptions;
@@ -131,18 +140,51 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (error?: string) => PerpsToastOptions;
+      creationFailed: (
+        error?: PerpsErrorValue,
+        fallbackMessage?: string,
+      ) => PerpsToastOptions;
       editSubmitting: () => PerpsToastOptions;
       editConfirmed: (
         direction: OrderDirection,
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      editFailed: (error?: string) => PerpsToastOptions;
+      editFailed: (rejection?: OrderEditRejection) => PerpsToastOptions;
+    };
+    chase: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
+    };
+    twap: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes: number,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes: number,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
     };
   };
   positionManagement: {
     closePosition: {
+      positionAlreadyClosed: PerpsToastOptions;
+      closeAlreadyInProgress: PerpsToastOptions;
       marketClose: {
         full: {
           closeFullPositionInProgress: (
@@ -190,12 +232,14 @@ export interface PerpsToastOptionsConfig {
       };
     };
     tpsl: {
+      updateTPSLInProgress: PerpsToastOptions;
       updateTPSLSuccess: PerpsToastOptions;
       updateTPSLError: (error?: string) => PerpsToastOptions;
     };
     margin: {
       addSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
       removeSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
+      removeAmountChanged: (maxAmount: string) => PerpsToastOptions;
       adjustmentFailed: (error?: string) => PerpsToastOptions;
     };
   };
@@ -222,11 +266,12 @@ export interface PerpsToastOptionsConfig {
     added: (symbol: string) => PerpsToastOptions;
     removed: (symbol: string) => PerpsToastOptions;
     addError: PerpsToastOptions;
+    removeError: PerpsToastOptions;
     limitReached: PerpsToastOptions;
   };
 }
 
-const getPerpsToastLabels = (
+export const getPerpsToastLabels = (
   primary: string | React.ReactNode,
   secondary?: string | React.ReactNode,
 ) => {
@@ -252,6 +297,19 @@ const getPerpsToastLabels = (
 
   return labels;
 };
+
+const getTwapPlacementSubtitle = (
+  direction: OrderDirection,
+  amount: string,
+  assetSymbol: string,
+  durationMinutes: number,
+) =>
+  strings('perps.order.twap_placement_subtitle', {
+    direction: capitalize(direction),
+    amount,
+    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+    duration: formatTwapDuration(durationMinutes),
+  });
 
 const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
@@ -309,6 +367,22 @@ const usePerpsToasts = (): {
     [],
   );
 
+  const createOrderFailureToast = useCallback(
+    (error?: PerpsErrorValue): PerpsToastOptions => ({
+      ...perpsBaseToastOptions.error,
+      labelOptions: getPerpsToastLabels(
+        strings('perps.order.order_failed'),
+        handlePerpsError({
+          error,
+          fallbackMessage: strings(
+            'perps.order.your_funds_have_been_returned_to_you',
+          ),
+        }),
+      ),
+    }),
+    [perpsBaseToastOptions.error],
+  );
+
   const navigationHandlers = useMemo(
     () => ({
       goToPerpsTab: () => {
@@ -326,8 +400,6 @@ const usePerpsToasts = (): {
           transactionId,
           initialTypeFilter: ActivityTypeFilter.Perps,
           ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
-          isTransactionsRedesignEnabled:
-            selectIsTransactionsRedesignEnabled(state),
           ...(depositMeta?.chainId
             ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
             : {}),
@@ -379,18 +451,18 @@ const usePerpsToasts = (): {
     },
     [toastRef],
   );
-
   // Centralized toast options for Perp
   const PerpsToastOptions: PerpsToastOptionsConfig = useMemo(
     () => ({
       accountManagement: {
         deposit: {
-          success: (amount: string) => {
+          success: (amountAdded: string) => {
+            const numericAmountAdded = Number.parseFloat(amountAdded);
             let subtext = strings('perps.deposit.funds_are_ready_to_trade');
 
-            if (amount && amount !== '0') {
-              subtext = strings('perps.deposit.success_message', {
-                amount: formatPerpsFiat(amount),
+            if (Number.isFinite(numericAmountAdded) && numericAmountAdded > 0) {
+              subtext = strings('perps.deposit.success_amount_added', {
+                amount: formatPerpsFiat(amountAdded),
               });
             }
 
@@ -472,6 +544,13 @@ const usePerpsToasts = (): {
             descriptionOptions: {
               description: strings('perps.deposit.funds_returned_to_account'),
             },
+          },
+          orderNotPlaced: {
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.order_not_placed'),
+              strings('perps.deposit.order_not_placed_description'),
+            ),
           },
           error: {
             ...perpsBaseToastOptions.error,
@@ -569,18 +648,7 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error?: string) => ({
-            ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.order.order_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
-              }),
-            ),
-          }),
+          creationFailed: createOrderFailureToast,
         },
         limit: {
           submitted: (
@@ -614,15 +682,18 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error?: string) => ({
+          creationFailed: (
+            error?: PerpsErrorValue,
+            fallbackMessage?: string,
+          ) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
+                fallbackMessage:
+                  fallbackMessage ??
+                  strings('perps.order.your_funds_have_been_returned_to_you'),
               }),
             ),
           }),
@@ -648,18 +719,91 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          editFailed: (error?: string) => ({
+          editFailed: (rejection?: OrderEditRejection) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_update_failed'),
-              handlePerpsError({
-                error,
-                fallbackMessage: strings(
-                  'perps.order.order_update_failed_subtitle',
-                ),
+              rejection?.reason === 'post_only_would_cross' &&
+                rejection.originalOrder === 'cancelled'
+                ? strings('perps.order.order_update_post_only_would_cross')
+                : handlePerpsError({
+                    error: rejection?.error,
+                    fallbackMessage: strings(
+                      'perps.order.order_update_failed_subtitle',
+                    ),
+                  }),
+            ),
+          }),
+        },
+        chase: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_submitted'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
               }),
             ),
           }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_started'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          creationFailed: createOrderFailureToast,
+        },
+        twap: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes: number,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_submitted'),
+              getTwapPlacementSubtitle(
+                direction,
+                amount,
+                assetSymbol,
+                durationMinutes,
+              ),
+            ),
+          }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.twap_started'),
+              getTwapPlacementSubtitle(
+                direction,
+                amount,
+                assetSymbol,
+                durationMinutes,
+              ),
+            ),
+          }),
+          creationFailed: createOrderFailureToast,
         },
         // Used for both market and limit orders.
         shared: {
@@ -792,6 +936,20 @@ const usePerpsToasts = (): {
       },
       positionManagement: {
         closePosition: {
+          positionAlreadyClosed: {
+            ...perpsBaseToastOptions.info,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.close_position.already_closed'),
+              strings('perps.close_position.already_closed_subtitle'),
+            ),
+          },
+          closeAlreadyInProgress: {
+            ...perpsBaseToastOptions.info,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.close_position.already_in_progress'),
+              strings('perps.close_position.already_in_progress_subtitle'),
+            ),
+          },
           marketClose: {
             full: {
               closeFullPositionInProgress: (
@@ -1007,6 +1165,12 @@ const usePerpsToasts = (): {
           },
         },
         tpsl: {
+          updateTPSLInProgress: {
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_in_progress'),
+            ),
+          },
           updateTPSLSuccess: {
             ...perpsBaseToastOptions.success,
             labelOptions: getPerpsToastLabels(
@@ -1038,6 +1202,17 @@ const usePerpsToasts = (): {
                 amount,
                 asset: assetSymbol,
               }),
+            ),
+          }),
+          removeAmountChanged: (maxAmount: string) => ({
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.remove_amount_changed_title'),
+              Number(maxAmount) > 0
+                ? strings('perps.position.margin.remove_amount_changed', {
+                    amount: maxAmount,
+                  })
+                : strings('perps.adjust_margin.no_removable_margin'),
             ),
           }),
           adjustmentFailed: (error?: string) => ({
@@ -1130,6 +1305,12 @@ const usePerpsToasts = (): {
             strings('perps.watchlist.add_error'),
           ),
         },
+        removeError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.remove_error'),
+          ),
+        },
         limitReached: {
           ...perpsBaseToastOptions.info,
           labelOptions: getPerpsToastLabels(
@@ -1139,6 +1320,7 @@ const usePerpsToasts = (): {
       },
     }),
     [
+      createOrderFailureToast,
       navigationHandlers,
       perpsBaseToastOptions.error,
       perpsBaseToastOptions.inProgress,

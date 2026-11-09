@@ -26,8 +26,16 @@ jest.mock('../../../../../util/intl', () => ({
   getIntlDateTimeFormatter: () => ({
     format: () => '15 Jan',
   }),
-  getIntlNumberFormatter: () => ({
-    format: (value: number) => `$${value.toFixed(2)}`,
+  getIntlNumberFormatter: (
+    _locale: string,
+    options?: Intl.NumberFormatOptions,
+  ) => ({
+    format: (value: number) => {
+      if (options?.currency === 'BRL') {
+        return `R$${value.toFixed(2)}`;
+      }
+      return `$${value.toFixed(2)}`;
+    },
   }),
 }));
 
@@ -57,6 +65,8 @@ interface CapturedRowProps {
     description?: string;
     icon: IconName;
     primaryAmount: string;
+    fiatAmount: string;
+    showPrimaryAmount?: boolean;
   };
 }
 
@@ -77,8 +87,26 @@ describe('CardTransactionRow', () => {
     expect(props.display.description).toBe('Coffee Shop');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.primaryAmount).toBe('-$10.00');
+    expect(props.display.fiatAmount).toBe('');
+    expect(props.display.showPrimaryAmount).toBe(true);
     expect(props.onPress).toBeUndefined();
     expect(props.privacyMode).toBeUndefined();
+  });
+
+  it('passes the merchant amount and billing amount when currencies differ', () => {
+    render(
+      <CardTransactionRow
+        transaction={createTransaction({
+          billingAmount: { value: '11.95', currency: 'USD' },
+          originalAmount: { value: '61.35', currency: 'BRL' },
+        })}
+      />,
+    );
+
+    const props = lastRowProps();
+    expect(props.display.primaryAmount).toBe('-R$61.35');
+    expect(props.display.fiatAmount).toBe('-$11.95');
+    expect(props.display.showPrimaryAmount).toBe(true);
   });
 
   it('forwards privacyMode to ActivityRowView', () => {

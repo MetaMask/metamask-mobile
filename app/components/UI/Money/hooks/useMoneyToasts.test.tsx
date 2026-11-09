@@ -89,7 +89,7 @@ describe('useMoneyToasts', () => {
   });
 
   describe('MoneyToastOptions structure', () => {
-    it('exposes deposit, withdraw, and send namespaces with all three builders', () => {
+    it('exposes deposit, withdraw, send, and rescue namespaces with all three builders', () => {
       const { result } = renderHook(() => useMoneyToasts());
 
       expect(result.current.MoneyToastOptions.deposit).toBeDefined();
@@ -108,6 +108,11 @@ describe('useMoneyToasts', () => {
       expect(result.current.MoneyToastOptions.send.inProgress).toBeDefined();
       expect(result.current.MoneyToastOptions.send.success).toBeDefined();
       expect(result.current.MoneyToastOptions.send.failed).toBeDefined();
+
+      expect(result.current.MoneyToastOptions.rescue).toBeDefined();
+      expect(result.current.MoneyToastOptions.rescue.inProgress).toBeDefined();
+      expect(result.current.MoneyToastOptions.rescue.success).toBeDefined();
+      expect(result.current.MoneyToastOptions.rescue.failed).toBeDefined();
     });
   });
 
@@ -315,6 +320,56 @@ describe('useMoneyToasts', () => {
     });
   });
 
+  describe('rescue toasts', () => {
+    it('inProgress reuses the send pending copy and persists until dismissed', () => {
+      const { result } = renderHook(() => useMoneyToasts());
+
+      const toastOptions = result.current.MoneyToastOptions.rescue.inProgress();
+
+      expect(toastOptions.hapticsType).toBe(NotificationMoment.Warning);
+      expect(toastOptions.hasNoTimeout).toBe(true);
+      expect(toastOptions.startAccessory).toBeDefined();
+      expect(toastOptions.title).toBe('Sending funds');
+      expect(toastOptions.description).toBe('This may take a few minutes.');
+      expect(toastOptions.onPress).toBeUndefined();
+    });
+
+    it('success interpolates the rescued amount and destination', () => {
+      const { result } = renderHook(() => useMoneyToasts());
+
+      const toastOptions = result.current.MoneyToastOptions.rescue.success({
+        amountFiat: '$12.00',
+        destination: 'Account 1',
+      });
+
+      expect(toastOptions.severity).toBe(ToastSeverity.Success);
+      expect(toastOptions.hapticsType).toBe(NotificationMoment.Success);
+      expect(toastOptions.title).toBe('Funds sent');
+      expect(toastOptions.description).toBe('$12.00 added to Account 1.');
+    });
+
+    it('success still uses the rescue body when the amount is missing', () => {
+      const { result } = renderHook(() => useMoneyToasts());
+
+      const toastOptions = result.current.MoneyToastOptions.rescue.success({
+        destination: 'Account 1',
+      });
+
+      expect(toastOptions.description).toBe(' added to Account 1.');
+    });
+
+    it('failed reuses the send failure copy', () => {
+      const { result } = renderHook(() => useMoneyToasts());
+
+      const toastOptions = result.current.MoneyToastOptions.rescue.failed();
+
+      expect(toastOptions.severity).toBe(ToastSeverity.Danger);
+      expect(toastOptions.hapticsType).toBe(NotificationMoment.Error);
+      expect(toastOptions.title).toBe('Send failed');
+      expect(toastOptions.description).toBe('Unable to send funds. Try again.');
+    });
+  });
+
   describe('onPress', () => {
     it.each([
       ['deposit.inProgress', (onPress: () => void) => ({ onPress })],
@@ -398,14 +453,20 @@ describe('useMoneyToasts', () => {
         () => ({ amountFiat: '$1.00', destination: 'Account 1' }),
       ],
       ['withdraw.failed', () => undefined],
+      ['rescue.inProgress', () => undefined],
+      [
+        'rescue.success',
+        () => ({ amountFiat: '$1.00', destination: 'Account 1' }),
+      ],
+      ['rescue.failed', () => undefined],
     ])('never sets onPress on %s', (key, paramsFactory) => {
       const { result } = renderHook(() => useMoneyToasts());
-      const [, builder] = key.split('.') as [
-        'withdraw',
+      const [namespace, builder] = key.split('.') as [
+        'withdraw' | 'rescue',
         'inProgress' | 'success' | 'failed',
       ];
 
-      const toastOptions = result.current.MoneyToastOptions.withdraw[builder](
+      const toastOptions = result.current.MoneyToastOptions[namespace][builder](
         paramsFactory() as never,
       );
 

@@ -5,8 +5,8 @@ import { Theme } from '@metamask/design-tokens';
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
-      padding: 15,
-      borderRadius: 12,
+      padding: 16,
+      borderRadius: 9999,
       justifyContent: 'center',
     },
     text: {

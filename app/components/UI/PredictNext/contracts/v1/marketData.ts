@@ -1,6 +1,8 @@
 import {
   array,
+  coerce,
   enums,
+  literal,
   mask,
   number,
   object,
@@ -9,23 +11,21 @@ import {
   string,
   tuple,
   type Struct,
+  type as structType,
+  unknown,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
+import { amount, decimal, httpsUrl, timestamp } from './primitives';
 import type {
   FetchFeedParams,
   PredictEvent,
   PredictFeed,
   PredictMarket,
+  PredictMarketHistory,
+  PredictSearchResults,
   PredictVenueStatus,
 } from '../../types';
-
-const timestamp = refine(
-  string(),
-  'PredictTimestamp',
-  (value) =>
-    !Number.isNaN(Date.parse(value)) &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value),
-);
 
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(
@@ -33,29 +33,14 @@ const entityId = refine(
   'PredictEntityId',
   (value) => value.length > 0,
 );
-const decimal = refine(
-  string(),
-  'PredictDecimal',
-  (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
-);
-const amount = refine(string(), 'PredictAmount', (value) =>
-  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
-);
 const hexColor = refine(string(), 'PredictHexColor', (value) =>
   /^#[0-9a-f]{6}$/i.test(value),
 );
-const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
-  if (!/^https:\/\//i.test(value)) {
-    return false;
-  }
-
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname.length > 0;
-  } catch {
-    return false;
-  }
-});
+const settlementSourceName = refine(
+  string(),
+  'PredictSettlementSourceName',
+  (value) => value.trim().length > 0,
+);
 const status = enums([
   'initialized',
   'active',
@@ -68,6 +53,14 @@ const status = enums([
 ] as const);
 const venueStatus = enums(['available', 'degraded', 'unavailable'] as const);
 const side = enums(['yes', 'no'] as const);
+const marketHistoryRange = enums([
+  'LIVE',
+  '1D',
+  '1W',
+  '1M',
+  '1Y',
+  'ALL',
+] as const);
 const gameSelection = enums(['home', 'away', 'draw'] as const);
 const gameStatus = enums([
   'scheduled',
@@ -84,10 +77,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(
@@ -107,6 +102,11 @@ const sportsContextSchema = object({
   game: optional(gameSchema),
 });
 
+const settlementSourceSchema = object({
+  name: settlementSourceName,
+  url: httpsUrl,
+});
+
 const outcomeSchema = object({
   id: entityId,
   side,
@@ -115,6 +115,120 @@ const outcomeSchema = object({
   bidPrice: optional(decimal),
   gameSelection: optional(gameSelection),
 });
+
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+const nonEmptyGroupString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
+
+const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    keys.filter((key) => key in record).map((key) => [key, record[key]]),
+  );
+};
+
+/** A group's card title, such as a Player's name; never blank when sent. */
+const groupLabel = optional(nonEmptyGroupString('PredictMarketGroupLabel'));
+
+const displayOrder = optional(
+  refine(
+    number(),
+    'PredictMarketDisplayOrder',
+    (value) => Number.isInteger(value) && value >= 0,
+  ),
+);
+
+const marketSelectorGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('marketSelector'),
+    marketType: nonEmptyGroupString('PredictMarketType'),
+    option: PredictMarketOptionSchema,
+    displayOrder,
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, [
+      'key',
+      'groupType',
+      'marketType',
+      'option',
+      'displayOrder',
+      'label',
+    ]),
+);
+
+/**
+ * A card of rows, one Market per row priced by its yes side, such as a
+ * moneyline's options. Titled with `label` when the backend sends one.
+ */
+const choiceGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('choice'),
+    displayOrder,
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, ['key', 'groupType', 'displayOrder', 'label']),
+);
+
+const unsupportedMarketGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.trim().length > 0 && value !== 'marketSelector',
+    ),
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType', 'label']),
+);
+
+export const PredictMarketGroupSchema = union([
+  marketSelectorGroupSchema,
+  choiceGroupSchema,
+  unsupportedMarketGroupSchema,
+]);
+
+const layoutLevelSchema = object({
+  key: nonEmptyGroupString('PredictMarketLayoutKey'),
+  order: refine(number(), 'PredictMarketLayoutOrder', Number.isInteger),
+});
+
+const marketLayoutStruct = object({
+  tab: layoutLevelSchema,
+  section: layoutLevelSchema,
+  subgroup: optional(layoutLevelSchema),
+});
+
+/**
+ * Event screen placement. Presentation only, so a malformed layout is dropped
+ * rather than rejecting the response; unknown keys are valid.
+ */
+const marketLayoutSchema = coerce(
+  optional(marketLayoutStruct),
+  unknown(),
+  (value) => {
+    try {
+      return mask(value, marketLayoutStruct);
+    } catch {
+      return undefined;
+    }
+  },
+);
 
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
@@ -125,8 +239,11 @@ const binaryOutcomes = refine(
 const marketSchema = object({
   id: entityId,
   question: string(),
+  rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: optional(PredictMarketGroupSchema),
+  layout: marketLayoutSchema,
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
@@ -147,6 +264,7 @@ const eventSchema = object({
   id: entityId,
   title: string(),
   subtitle: optional(string()),
+  rules: optional(string()),
   startsAt: optional(timestamp),
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),
@@ -156,6 +274,7 @@ const eventSchema = object({
   volume24h: optional(amount),
   imageUrl: optional(httpsUrl),
   sports: optional(sportsContextSchema),
+  settlementSources: optional(array(settlementSourceSchema)),
   markets: nonEmptyMarkets,
 });
 
@@ -167,11 +286,58 @@ const feedSchema = object({
   nextCursor: optional(string()),
 });
 
+const searchResultsSchema = object({
+  venueId,
+  events: array(eventSchema),
+});
+
 const venueStatusSchema = object({
   venueId,
   status: venueStatus,
   checkedAt: timestamp,
+  // Backend-owned venue metadata; absent when the venue has no agreement.
+  termsUrl: optional(httpsUrl),
 });
+
+const marketHistoryPointSchema = refine(
+  object({
+    timestamp,
+    yesPrice: decimal,
+    noPrice: decimal,
+  }),
+  'ComplementaryMarketHistoryPrices',
+  ({ yesPrice, noPrice }) => {
+    const [yesWhole, yesFraction = ''] = yesPrice.split('.');
+    const [noWhole, noFraction = ''] = noPrice.split('.');
+    const scale = Math.max(yesFraction.length, noFraction.length);
+    const yesUnits = BigInt(`${yesWhole}${yesFraction.padEnd(scale, '0')}`);
+    const noUnits = BigInt(`${noWhole}${noFraction.padEnd(scale, '0')}`);
+
+    return yesUnits + noUnits === 10n ** BigInt(scale);
+  },
+);
+
+const marketHistorySchema = refine(
+  object({
+    venueId,
+    marketId: entityId,
+    range: marketHistoryRange,
+    observedAt: timestamp,
+    points: array(marketHistoryPointSchema),
+  }),
+  'OrderedMarketHistory',
+  ({ observedAt, points }) => {
+    const observedAtMs = Date.parse(observedAt);
+    let previousTimestampMs = -Infinity;
+
+    return points.every((point) => {
+      const pointTimestampMs = Date.parse(point.timestamp);
+      const isOrdered = pointTimestampMs > previousTimestampMs;
+      previousTimestampMs = pointTimestampMs;
+      return isOrdered && pointTimestampMs <= observedAtMs;
+    });
+  },
+);
 
 const eventsParamsSchema = object({
   cursor: optional(string()),
@@ -194,8 +360,18 @@ export const parsePredictEvent = (value: unknown): PredictEvent =>
 export const parsePredictFeed = (value: unknown): PredictFeed =>
   parse(value, feedSchema) as unknown as PredictFeed;
 
+export const parsePredictSearchResults = (
+  value: unknown,
+): PredictSearchResults =>
+  parse(value, searchResultsSchema) as unknown as PredictSearchResults;
+
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;
+
+export const parsePredictMarketHistory = (
+  value: unknown,
+): PredictMarketHistory =>
+  parse(value, marketHistorySchema) as unknown as PredictMarketHistory;
 
 export const parsePredictVenueStatus = (value: unknown): PredictVenueStatus =>
   parse(value, venueStatusSchema) as unknown as PredictVenueStatus;

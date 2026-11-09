@@ -4,7 +4,11 @@ import {
   type HermesTarget,
 } from '@metamask/device-mcp';
 
-import { probeHermesHealthy, verifyJsLiveness } from '../ios/hermes-health';
+import {
+  debuggerOrigin,
+  probeHermesHealthy,
+  verifyJsLiveness,
+} from '../ios/hermes-health';
 
 jest.mock('@metamask/device-mcp', () => ({
   fetchDiscoveryTargets: jest.fn(),
@@ -199,6 +203,47 @@ describe('hermes-health', () => {
       await expect(promise).resolves.toBe(true);
     });
 
+    it('sends the Origin header Metro expects', async () => {
+      const mockWs = createMockWebSocket();
+      globalThis.WebSocket = mockWs.constructor as unknown as typeof WebSocket;
+
+      const promise = verifyJsLiveness(
+        'ws://localhost:8085/inspector/debug?device=abc&page=1',
+        2_000,
+      );
+
+      expect(mockWs.lastOptions()).toEqual({
+        headers: { origin: 'http://127.0.0.1:8085' },
+      });
+      mockWs.simulateOpen();
+      mockWs.simulateMessage(JSON.stringify({ id: 1, result: { value: 2 } }));
+      await expect(promise).resolves.toBe(true);
+    });
+
+    it('uses HERMES_CDP_ORIGIN when set, like device-mcp', async () => {
+      const mockWs = createMockWebSocket();
+      globalThis.WebSocket = mockWs.constructor as unknown as typeof WebSocket;
+      const previous = process.env.HERMES_CDP_ORIGIN;
+      process.env.HERMES_CDP_ORIGIN = 'http://metro.internal:9000';
+
+      try {
+        const promise = verifyJsLiveness(
+          'ws://localhost:8085/inspector/debug?device=abc&page=1',
+          2_000,
+        );
+
+        expect(mockWs.lastOptions()).toEqual({
+          headers: { origin: 'http://metro.internal:9000' },
+        });
+        mockWs.simulateOpen();
+        mockWs.simulateMessage(JSON.stringify({ id: 1, result: { value: 2 } }));
+        await expect(promise).resolves.toBe(true);
+      } finally {
+        if (previous === undefined) delete process.env.HERMES_CDP_ORIGIN;
+        else process.env.HERMES_CDP_ORIGIN = previous;
+      }
+    });
+
     it('returns false on timeout when no CDP response arrives', async () => {
       jest.useFakeTimers();
       const mockWs = createMockWebSocket();
@@ -264,6 +309,18 @@ describe('hermes-health', () => {
       await expect(promise).resolves.toBe(true);
     });
   });
+
+  describe('debuggerOrigin', () => {
+    it.each([
+      ['ws://localhost:8081/inspector/debug?page=1', 'http://127.0.0.1:8081'],
+      ['ws://127.0.0.1:8085/inspector/debug', 'http://127.0.0.1:8085'],
+      ['ws://[::1]:8085/inspector/debug', 'http://127.0.0.1:8085'],
+      ['wss://metro.example.com/inspector/debug', 'https://metro.example.com'],
+      ['ws://192.168.1.5:8081/inspector/debug', 'http://192.168.1.5:8081'],
+    ])('maps %s to %s', (wsUrl, origin) => {
+      expect(debuggerOrigin(wsUrl)).toBe(origin);
+    });
+  });
 });
 
 interface MockWebSocketHandler {
@@ -277,7 +334,8 @@ interface MockWebSocketHandler {
 }
 
 interface MockWebSocketInstance {
-  constructor: new (url: string) => unknown;
+  constructor: new (url: string, options?: unknown) => unknown;
+  lastOptions(): unknown;
   simulateOpen(): void;
   simulateMessage(data: string): void;
   simulateError(): void;
@@ -286,6 +344,7 @@ interface MockWebSocketInstance {
 
 function createMockWebSocket(): MockWebSocketInstance {
   const instances: MockWebSocketHandler[] = [];
+  const options: unknown[] = [];
 
   class MockWebSocket {
     onopen: (() => void) | null = null;
@@ -296,15 +355,20 @@ function createMockWebSocket(): MockWebSocketInstance {
     close = jest.fn() as jest.MockedFunction<() => void>;
     readyState = 0;
 
-    constructor(_url: string) {
+    constructor(_url: string, opts?: unknown) {
       instances.push(this);
+      options.push(opts);
     }
   }
 
   const last = (): MockWebSocketHandler => instances[instances.length - 1];
 
   return {
-    constructor: MockWebSocket as unknown as new (url: string) => unknown,
+    constructor: MockWebSocket as unknown as new (
+      url: string,
+      options?: unknown,
+    ) => unknown,
+    lastOptions: () => options[options.length - 1],
     simulateOpen() {
       const inst = last();
       inst.readyState = 1;

@@ -184,6 +184,91 @@ describe('appInstallEvent', () => {
       });
     });
 
+    it('stores UTM values from Branch Analytics Tags when present', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+        '~channel': 'twitter',
+        '~feature': 'social',
+        '~campaign': 'summer_sale',
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+            branchAttribution: {
+              clickedBranchLink: true,
+              deeplinkPath: 'buy',
+              utmSource: 'twitter',
+              utmMedium: 'social',
+              utmCampaign: 'summer_sale',
+            },
+          },
+        },
+      });
+    });
+
+    it('omits optional fields that are empty, blank, null or not strings', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        $deeplink_path: '  buy  ',
+        '~referring_link': '',
+        '~channel': '   ',
+        '~feature': null,
+        '~campaign': 42,
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+            branchAttribution: { clickedBranchLink: true, deeplinkPath: 'buy' },
+          },
+        },
+      });
+    });
+
+    it('stores no branchAttribution when only UTM tags are present without a link', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': false,
+        $deeplink_path: '',
+        '~channel': 'twitter',
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+          },
+        },
+      });
+    });
+
+    it('stores no branchAttribution when Branch returns no params', async () => {
+      mockGetLatestReferringParams.mockResolvedValue(null);
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+          },
+        },
+      });
+    });
+
     it('stores no branchAttribution for an organic install', async () => {
       mockGetLatestReferringParams.mockResolvedValue({
         '+clicked_branch_link': false,
@@ -391,6 +476,49 @@ describe('appInstallEvent', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         install_source: 'deeplink',
         deeplink_path: 'https://metamask.app.link/buy',
+      });
+    });
+
+    it('emits every captured attribution field including UTM values', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: {
+          clickedBranchLink: true,
+          deeplinkPath: 'buy',
+          referringLink: 'https://metamask.app.link/buy',
+          utmSource: 'twitter',
+          utmMedium: 'social',
+          utmCampaign: 'summer_sale',
+        },
+      };
+
+      await replayPendingAppInstall();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'https://metamask.app.link/buy',
+        utm_source: 'twitter',
+        utm_medium: 'social',
+        utm_campaign: 'summer_sale',
+      });
+    });
+
+    it('emits only the UTM values that were captured', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: {
+          clickedBranchLink: true,
+          deeplinkPath: 'buy',
+          utmCampaign: 'summer_sale',
+        },
+      };
+
+      await replayPendingAppInstall();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'buy',
+        utm_campaign: 'summer_sale',
       });
     });
 

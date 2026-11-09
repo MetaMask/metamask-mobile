@@ -1,20 +1,10 @@
 import React from 'react';
 import {
-  Box,
-  ButtonSize as ButtonSizeHero,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { ActivityIndicator } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import ButtonHero from '../../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatCents } from '../../../../utils/format';
 
@@ -49,87 +39,53 @@ const PredictBuyActionButton = ({
 
   if (isChangePaymentMode) {
     return (
-      <ButtonHero
+      <Button
         testID={testID}
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
         onPress={onPress}
-        size={ButtonSizeHero.Lg}
-        twClassName="w-full"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.PrimaryInverse}
-        >
-          {strings('predict.payment.change_payment_method')}
-        </Text>
-      </ButtonHero>
+        {strings('predict.payment.change_payment_method')}
+      </Button>
     );
   }
 
   if (isAddFundsMode) {
     return (
-      <ButtonHero
+      <Button
         testID={testID}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        isDanger
         onPress={onPress}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full bg-muted')}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.ErrorDefault}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('predict.payment.add_funds')}
-        </Text>
-      </ButtonHero>
+        {strings('predict.payment.add_funds')}
+      </Button>
     );
   }
 
-  if (isLoading) {
-    return (
-      <Button
-        label={
-          <Box twClassName="flex-row items-center gap-1">
-            <ActivityIndicator size="small" />
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="font-medium"
-              color={TextColor.PrimaryInverse}
-            >
-              {`${strings('predict.order.placing_prediction')}...`}
-            </Text>
-          </Box>
-        }
-        variant={ButtonVariants.Primary}
-        onPress={onPress}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        style={tw.style('opacity-50')}
-        disabled
-      />
-    );
-  }
+  const actionLabel = isRetry
+    ? strings('predict.order.retry')
+    : isSheetMode
+      ? strings('predict.order.confirm')
+      : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`;
 
   return (
-    <ButtonHero
+    <Button
       testID={testID}
-      onPress={onPress}
-      disabled={disabled}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={disabled}
       isLoading={isLoading}
-      size={ButtonSizeHero.Lg}
-      style={tw.style('w-full', showReducedOpacity && 'opacity-50')}
+      loadingText={`${strings('predict.order.placing_prediction')}...`}
+      onPress={onPress}
+      style={showReducedOpacity ? tw.style('opacity-50') : undefined}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        style={tw.style('text-white font-medium')}
-      >
-        {isRetry
-          ? strings('predict.order.retry')
-          : isSheetMode
-            ? strings('predict.order.confirm')
-            : `${outcomeTokenTitle} · ${formatCents(sharePrice)}`}
-      </Text>
-    </ButtonHero>
+      {actionLabel}
+    </Button>
   );
 };
 

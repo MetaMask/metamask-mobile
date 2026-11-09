@@ -109,7 +109,10 @@ const mockPredictData = ({
   positions?: PredictPosition[];
 }) => {
   (Engine.context.PredictController.getActivity as jest.Mock).mockResolvedValue(
-    activity,
+    {
+      activities: activity,
+      nextCursor: undefined,
+    },
   );
   (Engine.context.PredictController.getBalance as jest.Mock).mockResolvedValue(
     balance,

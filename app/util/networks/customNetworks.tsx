@@ -219,9 +219,22 @@ export const PopularList = [
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://robinhoodchain.blockscout.com',
+      blockExplorerUrl: 'https://robin.etherscan.io/',
       imageUrl: 'ROBINHOOD',
       imageSource: require('../../images/robinhood.png'),
+    },
+  },
+  {
+    chainId: toHex('50'),
+    nickname: 'XDC Network',
+    rpcUrl: `https://xdc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'XDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://xdcscan.com',
+      imageUrl: 'XDC',
+      imageSource: require('../../images/xdc.png'),
     },
   },
 ];

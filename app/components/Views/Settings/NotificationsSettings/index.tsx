@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -7,7 +7,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
 import { useStyles } from '../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -21,6 +22,12 @@ import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
+import {
+  getNotificationSettingsSectionRouteParams,
+  NOTIFICATION_SETTINGS_SECTIONS,
+  resolveNotificationSettingsSection,
+  type NotificationSettingsSectionConfig,
+} from './notificationSettingsSections';
 
 import {
   Box,
@@ -38,7 +45,9 @@ import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
-  status: string;
+  /** Channels summary shown under the title. Omitted for wallet activity,
+   * whose per-account settings have no channel toggles to summarize. */
+  status?: string;
   iconName: IconName;
   onPress: () => void;
 }
@@ -53,7 +62,10 @@ const NotificationRow = ({
   const { styles } = useStyles(styleSheet, { theme });
 
   return (
-    <TouchableOpacity style={styles.switchElement} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.switchElement, styles.notificationRow]}
+      onPress={onPress}
+    >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -67,9 +79,11 @@ const NotificationRow = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {status}
-          </Text>
+          {status ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {status}
+            </Text>
+          ) : null}
         </Box>
       </Box>
       <Icon name={IconName.ArrowRight} color={IconColor.IconAlternative} />
@@ -93,10 +107,11 @@ const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
     : strings('app_settings.notifications_opts.status_off');
 };
 
-const NotificationsSettings = ({ navigation }: Props) => {
+const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -105,123 +120,84 @@ const NotificationsSettings = ({ navigation }: Props) => {
   );
 
   const { preferences } = useNotificationStoragePreferences();
+  const sectionParam = route.params?.section;
 
-  const navigateToSection = (
-    type: NotificationPreferenceSection,
-    title: string,
-    description: string,
-  ) => {
-    navigation.navigate(Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION, {
-      type,
-      title,
-      description,
-    });
-  };
+  const navigateToSection = useCallback(
+    (section: NotificationSettingsSectionConfig) => {
+      navigation.navigate(
+        Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+        getNotificationSettingsSectionRouteParams(section),
+      );
+    },
+    [navigation],
+  );
+
+  useEffect(() => {
+    if (!sectionParam) {
+      return;
+    }
+
+    const section = resolveNotificationSettingsSection(sectionParam);
+    if (!section) {
+      navigation.setParams({ section: undefined });
+      return;
+    }
+
+    if (!isMetamaskNotificationsEnabled) {
+      return;
+    }
+
+    navigation.setParams({ section: undefined });
+    navigateToSection(section);
+  }, [
+    isMetamaskNotificationsEnabled,
+    navigateToSection,
+    navigation,
+    sectionParam,
+  ]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard onBack={navigation.goBack} />
-      <ScrollView style={styles.container}>
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={navigation.goBack}
+      />
+      <ScrollView
+        style={
+          isGlassHeader
+            ? [styles.container, styles.notificationsList]
+            : styles.container
+        }
+      >
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_title')}
         </Text>
         <MainNotificationToggle />
 
-        {isMetamaskNotificationsEnabled && (
-          <>
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.wallet_activity_title',
-              )}
-              status={getStatusText(preferences?.walletActivity)}
-              iconName={IconName.Clock}
-              onPress={() =>
-                navigateToSection(
-                  'walletActivity',
-                  strings(
-                    'app_settings.notifications_opts.wallet_activity_title',
-                  ),
-                  strings(
-                    'app_settings.notifications_opts.wallet_activity_desc',
-                  ),
-                )
-              }
-            />
+        {isMetamaskNotificationsEnabled &&
+          NOTIFICATION_SETTINGS_SECTIONS.map((section) => {
+            if (
+              section.requiresSocialLeaderboard &&
+              !isSocialLeaderboardEnabled
+            ) {
+              return null;
+            }
 
-            <NotificationRow
-              title={strings('app_settings.notifications_opts.perps_title')}
-              status={getStatusText(preferences?.perps)}
-              iconName={IconName.Candlestick}
-              onPress={() =>
-                navigateToSection(
-                  'perps',
-                  strings('app_settings.notifications_opts.perps_title'),
-                  strings('app_settings.notifications_opts.perps_desc'),
-                )
-              }
-            />
-
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.agentic_cli_title',
-              )}
-              status={getStatusText(preferences?.agenticCli)}
-              iconName={IconName.Code}
-              onPress={() =>
-                navigateToSection(
-                  'agenticCli',
-                  strings('app_settings.notifications_opts.agentic_cli_title'),
-                  strings('app_settings.notifications_opts.agentic_cli_desc'),
-                )
-              }
-            />
-
-            {isSocialLeaderboardEnabled && (
+            return (
               <NotificationRow
-                title={strings(
-                  'app_settings.notifications_opts.social_ai_title',
-                )}
-                status={getStatusText(preferences?.socialAI)}
-                iconName={IconName.Flash}
-                onPress={() =>
-                  navigateToSection(
-                    'socialAI',
-                    strings('app_settings.notifications_opts.social_ai_title'),
-                    strings('app_settings.notifications_opts.social_ai_desc'),
-                  )
+                key={section.type}
+                title={strings(section.titleKey)}
+                status={
+                  section.showStatus
+                    ? getStatusText(preferences?.[section.type])
+                    : undefined
                 }
+                iconName={section.iconName}
+                onPress={() => navigateToSection(section)}
               />
-            )}
-
-            <NotificationRow
-              title={strings('app_settings.notifications_opts.marketing_title')}
-              status={getStatusText(preferences?.marketing)}
-              iconName={IconName.Campaign}
-              onPress={() =>
-                navigateToSection(
-                  'marketing',
-                  strings('app_settings.notifications_opts.marketing_title'),
-                  strings('app_settings.notifications_opts.marketing_desc'),
-                )
-              }
-            />
-
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.price_alerts_title',
-              )}
-              status={getStatusText(preferences?.priceAlerts)}
-              iconName={IconName.Notification}
-              onPress={() =>
-                navigateToSection(
-                  'priceAlerts',
-                  strings('app_settings.notifications_opts.price_alerts_title'),
-                  strings('app_settings.notifications_opts.price_alerts_desc'),
-                )
-              }
-            />
-          </>
-        )}
+            );
+          })}
       </ScrollView>
     </SafeAreaView>
   );

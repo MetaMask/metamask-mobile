@@ -11,49 +11,48 @@ import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import {
   InteractionManager,
   ScrollView,
-  View,
   type RefreshControlProps,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { refreshTokens, goToAddEvmToken } from './util';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
-import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  TabEmptyState,
+  TextFieldSearch,
+} from '@metamask/design-system-react-native';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
+import { useRefreshTokens } from './hooks/useRefreshTokens';
+import { useTokenListFilteringEvent } from './hooks/useTokenListFilteringEvent';
+import { useFilteredTokenKeys } from './hooks/useFilteredTokenKeys';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
-import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
-import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
+
+// Same delay as the Explore search, so typing does not re-filter on every key.
+const SEARCH_DEBOUNCE_MS = 200;
 
 interface TokensProps {
   /**
    * Whether this is the full view (with header and safe area) or tab view
    */
   isFullView?: boolean;
-  /** Source used to attribute full-view analytics events. */
-  analyticsSource?: string;
   /**
    * When true, show only mUSD token positions (for Cash full view).
    * Hides add-token bar and uses cash-specific empty state when empty.
@@ -86,11 +85,68 @@ interface TokensProps {
   hideSecondaryPriceRow?: boolean;
 }
 
+type TokensEmptyContentProps = Pick<
+  TokensProps,
+  | 'isFullView'
+  | 'showOnlyMusd'
+  | 'hasMusdBalanceOnAnyChain'
+  | 'listHeaderComponent'
+  | 'listFooterComponent'
+  | 'refreshControl'
+> & { bottomInset: number };
+
+const TokensEmptyContent = ({
+  isFullView,
+  showOnlyMusd,
+  hasMusdBalanceOnAnyChain,
+  listHeaderComponent,
+  listFooterComponent,
+  refreshControl,
+  bottomInset,
+}: TokensEmptyContentProps) => {
+  const tw = useTailwind();
+
+  const cashEmptyDescription =
+    showOnlyMusd && hasMusdBalanceOnAnyChain
+      ? strings('homepage.sections.money_empty_description_network_filter')
+      : showOnlyMusd
+        ? strings('homepage.sections.money_empty_description')
+        : undefined;
+
+  const emptyState = (
+    <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+      {cashEmptyDescription !== undefined ? (
+        <TokensEmptyState description={cashEmptyDescription} />
+      ) : (
+        <TokensEmptyState />
+      )}
+    </Box>
+  );
+
+  if (listHeaderComponent || listFooterComponent || refreshControl) {
+    return (
+      <ScrollView
+        style={tw`flex-1`}
+        contentContainerStyle={
+          isFullView ? { paddingBottom: bottomInset } : undefined
+        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {listHeaderComponent}
+        {emptyState}
+        {listFooterComponent}
+      </ScrollView>
+    );
+  }
+
+  return emptyState;
+};
+
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   (
     {
       isFullView = false,
-      analyticsSource,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listHeaderComponent,
@@ -101,32 +157,16 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation<AppNavigationProp>();
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
-    // evm
-    const evmNetworkConfigurationsByChainId = useSelector(
-      selectEvmNetworkConfigurationsByChainId,
-    );
-    const currentChainId = useSelector(selectChainId);
-
     const [refreshing, setRefreshing] = useState(false);
-    const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+    const { refresh: refreshTokensForGroup } = useRefreshTokens();
 
-    const selectedSolanaAccount =
-      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
-      null;
-    const isSolanaSelected = selectedSolanaAccount !== null;
-
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
+    const shouldExcludeMusdFromMainList = useSelector(
+      selectMoneyHubEnabledFlag,
     );
-    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const shouldExcludeMusdFromMainList =
-      isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -147,6 +187,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             : sortedTokenKeys,
       [sortedTokenKeys, showOnlyMusd, shouldExcludeMusdFromMainList],
     );
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
+    const isDebouncing = searchQuery.trim() !== debouncedQuery.trim();
+    const searchedTokenKeys = useFilteredTokenKeys(
+      tokenKeysForList,
+      debouncedQuery,
+    );
+    const clearSearch = useCallback(() => setSearchQuery(''), []);
 
     const [, forceUpdate] = useState(0);
 
@@ -179,7 +228,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             location: 'homepage',
             is_empty: tokenKeysForList.length === 0,
             screen_type: showOnlyMusd ? 'cash' : 'tokens',
-            ...(analyticsSource ? { source: analyticsSource } : {}),
           })
           .build(),
       );
@@ -188,7 +236,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       hasInitialLoad,
       tokenKeysForList.length,
       showOnlyMusd,
-      analyticsSource,
       trackEvent,
       createEventBuilder,
     ]);
@@ -214,33 +261,39 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         });
 
         // Then await the actual refresh
-        await refreshTokens({
-          isSolanaSelected,
-          evmNetworkConfigurationsByChainId,
-          selectedAccountId,
-        });
+        await refreshTokensForGroup();
       } finally {
         setRefreshing(false);
       }
+    }, [refreshTokensForGroup]);
+
+    // One event per settled, non-empty query (never per keystroke).
+    const lastTrackedQueryRef = useRef('');
+    const trackFiltering = useTokenListFilteringEvent();
+    const resultCount = searchedTokenKeys.length;
+    useEffect(() => {
+      const query = debouncedQuery.trim().toLowerCase();
+      if (!isFullView || !hasInitialLoad || !query) {
+        lastTrackedQueryRef.current = '';
+        return;
+      }
+      if (query === lastTrackedQueryRef.current) return;
+      lastTrackedQueryRef.current = query;
+      trackFiltering('searched', {
+        searchQuery: query,
+        extra: { query_length: query.length, result_count: resultCount },
+      });
     }, [
-      isSolanaSelected,
-      evmNetworkConfigurationsByChainId,
-      selectedAccountId,
+      debouncedQuery,
+      isFullView,
+      hasInitialLoad,
+      resultCount,
+      trackFiltering,
     ]);
 
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
     }));
-
-    const goToAddToken = useCallback(() => {
-      goToAddEvmToken({
-        navigation,
-        trackEvent,
-        createEventBuilder,
-        getDecimalChainId,
-        currentChainId,
-      });
-    }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
     const handleScamWarningModal = useCallback(
       (chainId: string | null) => {
@@ -258,7 +311,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!hasInitialLoad) {
+      if (!hasInitialLoad || isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -269,81 +322,69 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
+      if (tokenKeysForList.length > 0 && searchedTokenKeys.length === 0) {
+        return (
+          <Box twClassName="flex-1 items-center justify-center px-6 py-12">
+            <TabEmptyState
+              icon={
+                <Icon
+                  name={IconName.Search}
+                  size={IconSize.Xl}
+                  color={IconColor.IconMuted}
+                />
+              }
+              description={strings('wallet.no_tokens_match_search')}
+              actionButtonText={strings('wallet.clear_search')}
+              onAction={clearSearch}
+            />
+          </Box>
+        );
+      }
+
       if (tokenKeysForList.length > 0) {
         return (
-          <>
-            {!showOnlyMusd && isMusdConversionFlowEnabled && isGeoEligible && (
-              <View style={isFullView ? tw`px-4` : undefined}>
-                <MusdConversionAssetListCta />
-              </View>
-            )}
-            <TokenList
-              tokenKeys={tokenKeysForList}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-              maxItems={maxItems}
-              isFullView={isFullView}
-              listHeaderComponent={listHeaderComponent}
-              listFooterComponent={listFooterComponent}
-              refreshControl={refreshControl}
-              hideSecondaryPriceRow={hideSecondaryPriceRow}
-            />
-          </>
-        );
-      }
-
-      const cashEmptyDescription =
-        showOnlyMusd && hasMusdBalanceOnAnyChainProp
-          ? strings('homepage.sections.money_empty_description_network_filter')
-          : showOnlyMusd
-            ? strings('homepage.sections.money_empty_description')
-            : undefined;
-
-      const emptyState = (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          {cashEmptyDescription !== undefined ? (
-            <TokensEmptyState description={cashEmptyDescription} />
-          ) : (
-            <TokensEmptyState />
-          )}
-        </Box>
-      );
-
-      if (listHeaderComponent || listFooterComponent || refreshControl) {
-        return (
-          <ScrollView
-            style={tw`flex-1`}
-            contentContainerStyle={
-              isFullView ? { paddingBottom: bottomInset } : undefined
-            }
-            showsVerticalScrollIndicator={false}
+          <TokenList
+            tokenKeys={searchedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+            listHeaderComponent={listHeaderComponent}
+            listFooterComponent={listFooterComponent}
             refreshControl={refreshControl}
-          >
-            {listHeaderComponent}
-            {emptyState}
-            {listFooterComponent}
-          </ScrollView>
+            hideSecondaryPriceRow={hideSecondaryPriceRow}
+          />
         );
       }
 
-      return emptyState;
+      return (
+        <TokensEmptyContent
+          isFullView={isFullView}
+          showOnlyMusd={showOnlyMusd}
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChainProp}
+          listHeaderComponent={listHeaderComponent}
+          listFooterComponent={listFooterComponent}
+          refreshControl={refreshControl}
+          bottomInset={bottomInset}
+        />
+      );
     }, [
       hasInitialLoad,
+      isDebouncing,
       hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
+      searchedTokenKeys,
+      clearSearch,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
-      isMusdConversionFlowEnabled,
-      tw,
       refreshing,
       onRefresh,
       showRemoveMenu,
       handleScamWarningModal,
       maxItems,
-      isGeoEligible,
       listHeaderComponent,
       listFooterComponent,
       refreshControl,
@@ -356,12 +397,28 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
+        {isFullView && !showOnlyMusd && (
+          <Box twClassName="px-4 pb-2">
+            <TextFieldSearch
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={clearSearch}
+              placeholder={strings('wallet.search_tokens')}
+              inputAccessibilityLabel={strings('wallet.search_tokens')}
+              inputProps={{
+                autoComplete: 'off',
+                autoCorrect: false,
+                autoCapitalize: 'none',
+                testID: WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT,
+              }}
+            />
+          </Box>
+        )}
         {!showOnlyMusd && (
-          <TokenListControlBar
-            goToAddToken={goToAddToken}
-            showAddToken={!showOnlyMusd}
-            hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-3` : undefined}
+          <BaseControlBar
+            networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            searchQuery={searchQuery}
+            style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}
         {tokenContent}

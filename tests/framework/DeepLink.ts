@@ -4,7 +4,7 @@
 import { createLogger } from './logger.ts';
 import { E2EDeeplinkSchemes } from './Constants.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
-import { executeMobileDeepLink, getDriver } from './PlaywrightUtilities.ts';
+import { executeMobileDeepLink, getDriver } from './AppiumUtilities.ts';
 import { sleep } from './Utilities.ts';
 
 const logger = createLogger({

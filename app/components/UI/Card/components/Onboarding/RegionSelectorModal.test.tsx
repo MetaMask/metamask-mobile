@@ -52,15 +52,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   ),
 }));
 
-// Mock BottomSheet component
+// Mock BottomSheet while keeping the rest of the design system real.
 const mockOnCloseBottomSheet = jest.fn();
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-    return React.forwardRef(
+  return {
+    ...actual,
+    BottomSheet: React.forwardRef(
       (
         {
           children,
@@ -69,8 +70,6 @@ jest.mock(
         }: {
           children: React.ReactNode;
           onClose?: () => void;
-          shouldNavigateBack?: boolean;
-          keyboardAvoidingViewEnabled?: boolean;
           testID?: string;
         },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
@@ -87,52 +86,9 @@ jest.mock(
           children,
         );
       },
-    );
-  },
-);
-
-// Mock TextFieldSearch - needed because component has internal elements (clear button) that need testIDs
-jest.mock(
-  '../../../../../component-library/components/Form/TextFieldSearch',
-  () => {
-    const React = jest.requireActual('react');
-    const { TextInput, TouchableOpacity, View } =
-      jest.requireActual('react-native');
-
-    return ({
-      value,
-      onChangeText,
-      onPressClearButton,
-      onFocus,
-      testID,
-    }: {
-      value: string;
-      onChangeText: (text: string) => void;
-      onPressClearButton?: () => void;
-      onFocus?: () => void;
-      testID?: string;
-    }) =>
-      React.createElement(
-        View,
-        { testID: 'search-field-container' },
-        React.createElement(TextInput, {
-          testID: testID || 'search-input',
-          value,
-          onChangeText,
-          onFocus,
-        }),
-        !!value &&
-          React.createElement(
-            TouchableOpacity,
-            {
-              testID: 'search-clear-button',
-              onPress: onPressClearButton,
-            },
-            'Clear',
-          ),
-      );
-  },
-);
+    ),
+  };
+});
 
 // Mock FlatList from react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {

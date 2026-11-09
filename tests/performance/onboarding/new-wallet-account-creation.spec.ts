@@ -8,11 +8,7 @@ import {
   PerformanceAccountList,
 } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView.js';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../framework/index.js';
+import { AppiumAssertions, AppiumGestures } from '../../framework/index.js';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
@@ -24,10 +20,11 @@ import {
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
-import { withImplicitWait } from '../../framework/PlaywrightUtilities.js';
+import { withImplicitWait } from '../../framework/AppiumUtilities.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const dismissProtectWalletModalIfPresent = async (
   timeoutMs = 1_000,
@@ -35,9 +32,7 @@ const dismissProtectWalletModalIfPresent = async (
   let backupAlertVisible = false;
   try {
     backupAlertVisible = await withImplicitWait(0, async () => {
-      const backupAlert = await asPlaywrightElement(
-        ProtectYourWalletModal.collapseWalletModal,
-      );
+      const backupAlert = await ProtectYourWalletModal.collapseWalletModal;
       await backupAlert.unwrap().waitForDisplayed({ timeout: timeoutMs });
       return true;
     });
@@ -54,9 +49,7 @@ const dismissProtectWalletModalIfPresent = async (
   let skipAccountSecurityVisible = false;
   try {
     skipAccountSecurityVisible = await withImplicitWait(0, async () => {
-      const skipAccountSecurity = await asPlaywrightElement(
-        SkipAccountSecurityModal.container,
-      );
+      const skipAccountSecurity = await SkipAccountSecurityModal.container;
       await skipAccountSecurity.unwrap().waitForDisplayed({
         timeout: timeoutMs,
       });
@@ -78,13 +71,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
     { tag: '@metamask-onboarding-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await OnboardingView.tapCreateNewWalletButton();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(OnboardingSheet.importSeedButton),
+      await AppiumAssertions.expectElementToBeVisible(
+        await OnboardingSheet.importSeedButton,
       );
       test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(CreatePasswordView.newPasswordInput),
+      await AppiumAssertions.expectElementToBeVisible(
+        await CreatePasswordView.newPasswordInput,
       );
       await CreatePasswordView.enterPassword(
         getPasswordForScenario('onboarding') ?? '',
@@ -92,13 +85,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await CreatePasswordView.reEnterPassword(
         getPasswordForScenario('onboarding') ?? '',
       );
-      await PlaywrightGestures.hideKeyboard();
+      await AppiumGestures.hideKeyboard();
 
-      await CreatePasswordView.tapIUnderstandCheckBox();
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await ProtectYourWalletView.tapRemindMeLater();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+      await AppiumAssertions.expectElementToBeVisible(
+        MetaMetricsOptInView.screenTitle,
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
@@ -122,19 +115,20 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         currentDeviceDetails.platform,
       );
 
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+      await AppiumAssertions.expectElementToBeVisible(
+        TabBarComponent.tabBarWalletButton,
         {
           description:
             'token list should be visible after selecting the new account',
         },
       );
 
+      await enableHermesAppProfiling();
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(AccountListBottomSheet.addWalletButton),
+          await AppiumAssertions.expectElementToBeVisible(
+            AccountListBottomSheet.addWalletButton,
           ),
       );
 
@@ -142,17 +136,15 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await dismissProtectWalletModalIfPresent(1_500);
       await screen2Timer.measure(
         async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(
-              AccountListBottomSheet.accountNameInList('Account 2'),
-            ),
+          await AppiumAssertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountNameInList('Account 2'),
           ),
       );
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.headerRoot),
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.accountIcon,
           {
             description:
               'token list should be visible after selecting the new account',

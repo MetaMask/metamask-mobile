@@ -5,6 +5,9 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
+import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
 // Import types from their source files
@@ -14,20 +17,27 @@ import type { Position } from '@metamask/social-controllers';
 import type { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal';
 import type { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal';
 
+// MFA params
+import type { MfaMethodDetailsParams } from '../../components/Views/Mfa/MfaMethodDetails/MfaMethodDetails';
+
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
-import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationParams,
+  FullScreenConfirmationParams,
+} from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
-  MainFlowParamList,
+  MainStackParamList,
+  SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
-  TrendingViewStackParamList,
   WalletTabHomeParamList,
   WalletTabStackParamList,
   WebviewStackParamList,
@@ -56,13 +66,12 @@ import type {
 import type { TooltipModalRouteParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
+import type { ManageAccountsParams } from '../../components/Views/ManageAccounts/ManageAccounts.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/MultichainAccounts/shared/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
-import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
-
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
@@ -70,6 +79,10 @@ import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/O
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
+import type {
+  ManageProfileFieldParams,
+  ManageProfileParams,
+} from '../../components/Views/SocialProfile/ManageProfile/ManageProfileField.types';
 
 // Perps navigation params
 import type {
@@ -83,6 +96,7 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
+import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -99,7 +113,9 @@ import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCli
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
+import type { PositionDetailsSheetParams } from '../../components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.types';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
+import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -154,11 +170,7 @@ import type {
 import type { SendStackParamList } from '../../components/Views/confirmations/components/send/types/navigation';
 
 // Predict params
-import type {
-  PredictStackParamList,
-  PredictModalsNavigationParamList,
-  PredictNavigationParamList,
-} from '../../components/UI/Predict/types/navigation';
+import type { PredictAppRouteParamList } from '../../components/UI/PredictNext';
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
@@ -233,6 +245,7 @@ import type {
   ShareAddressParams,
   ShareAddressQRParams,
   DeleteAccountParams,
+  RemoveAccountParams,
   SmartAccountParams,
   MultichainAccountDetailsParams,
   MultichainAccountGroupDetailsParams,
@@ -293,15 +306,11 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-/** Add bookmark screen params (nested under AddBookmarkView). */
+/** Add bookmark screen params. */
 interface AddBookmarkParams {
   title: string;
   url: string;
   onAddBookmark: (params: { name: string; url: string }) => Promise<void>;
-}
-
-interface AddBookmarkViewParamList {
-  AddBookmark: AddBookmarkParams;
 }
 
 interface OnboardingSuccessFlowParamList {
@@ -311,11 +320,6 @@ interface OnboardingSuccessFlowParamList {
   AssetsSettings: undefined;
   SecuritySettings: undefined;
 }
-
-/** Onboarding social-login screens share AccountStatus params plus trace context. */
-type SocialLoginRouteParams = AccountStatusParams & {
-  previous_screen?: string;
-};
 
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
@@ -356,6 +360,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -378,6 +384,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     };
 
 /**
@@ -396,7 +404,6 @@ export type RootModalFlowParamList = {
   DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -426,6 +433,7 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -466,6 +474,20 @@ export type RootModalFlowParamList = {
  * Maps actual route name strings to their parameter types.
  * This provides TypeScript autocomplete and error checking for navigation.
  */
+/**
+ * Social V1 profile screen. Empty / omitted params open the signed-in owner.
+ * `traderId` opens another user when it is not the owner.
+ */
+export interface SocialV1ProfileViewParams {
+  traderId?: string;
+  traderName?: string;
+  traderAddress?: string;
+  /** List/feed snapshot; live `profile.imageUrl` wins once the profile loads. */
+  traderAvatarUri?: string;
+  source?: string;
+  traderRank?: number;
+}
+
 // Declared as a `type` (not `interface`) so it gains an *implicit* index
 // signature and therefore satisfies React Navigation's `ParamListBase`
 // constraint (used by `RouteProp`/`StackNavigationProp`), while `keyof`
@@ -476,12 +498,14 @@ export type RootModalFlowParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
-  Main: NavigatorScreenParams<MainFlowParamList> | undefined;
+  ReviewModal: undefined;
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
-  AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
+  AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
+  AccountHubView: undefined;
+  ManageAccountsView: ManageAccountsParams | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -554,6 +578,10 @@ export type RootStackParamList = {
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
   RampsServiceDisruptionModal: undefined;
 
+  // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaDetails: undefined;
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -602,13 +630,11 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
-  TrendingFeed: TrendingViewStackParamList['TrendingFeed'];
+  TrendingView: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
@@ -674,6 +700,9 @@ export type RootStackParamList = {
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsNavigationParamList['RewardsMoneyClaimsPausedModal']
+    | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
     | undefined;
@@ -685,25 +714,21 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
-  FirstPredictOnUsSplash:
-    | {
-        content: unknown;
-        markets: unknown;
-      }
+  RewardsMoneyInviteSheet:
+    | RewardsNavigationParamList['RewardsMoneyInviteSheet']
     | undefined;
-  FirstPredictOnUsOrderSheet:
-    | {
-        confirmLabel: string;
-        selectedOrder: {
-          market: unknown;
-          outcome: unknown;
-          outcomeToken: unknown;
-        };
-        tradeDescriptionTemplate: string;
-        tradePlacedLabel: string;
-        usdAmount: number;
-      }
+  RewardsMoneyTermsSheet:
+    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
+  RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
+  RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
+  RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
+  RewardsTaxFormView: RewardsNavigationParamList['RewardsTaxFormView'];
+  /**
+   * Post-accept confirmation. Registered on the root stack so it can fade
+   * over the Money dashboard after the invite sheet dismisses.
+   */
+  RewardsMoneyReferralAcceptedSplashView: undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -715,12 +740,20 @@ export type RootStackParamList = {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-  HomeNav: undefined;
+  HomeNav: NavigatorScreenParams<MainStackParamList> | undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
-  Login: undefined;
+  Login:
+    | {
+        locked?: boolean;
+        /**
+         * Resume authentication failed. Login covers the screen the user left.
+         * Unlock dismisses it instead of navigating Home.
+         */
+        resumeOverlay?: boolean;
+      }
+    | undefined;
   OnboardingNav: undefined;
-  SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
@@ -731,7 +764,6 @@ export type RootStackParamList = {
   OptinMetrics: OptinMetricsRouteParams | undefined;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
-  SocialLoginSuccessExistingUser: SocialLoginRouteParams | undefined;
   AccountAlreadyExists: AccountStatusParams | undefined;
   AccountNotFound: AccountStatusParams | undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
@@ -769,7 +801,7 @@ export type RootStackParamList = {
         onCancel?: () => void;
       }
     | undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: SDKSessionsManagerParams | undefined;
@@ -777,6 +809,11 @@ export type RootStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
+  ProfileDrawer: undefined;
+  ManageProfile: ManageProfileParams | undefined;
+  ManageProfileField: ManageProfileFieldParams;
+  ManageProfileXAccount: undefined;
+  LinkedSocialAccount: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
@@ -785,6 +822,7 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -816,7 +854,6 @@ export type RootStackParamList = {
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   ImportWalletTipSheet: undefined;
   MAPicker: MAPickerSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
@@ -835,6 +872,7 @@ export type RootStackParamList = {
   ShareAddress: ShareAddressParams | undefined;
   ShareAddressQR: ShareAddressQRParams | undefined;
   DeleteAccount: DeleteAccountParams | undefined;
+  RemoveAccount: RemoveAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
   SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
@@ -854,9 +892,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: { source?: string } | undefined;
+  DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
-  TokensFullView: { source?: string } | undefined;
+  TokensFullView: NavigationAnalyticsRouteParams | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -877,9 +915,12 @@ export type RootStackParamList = {
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
+  MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
+  MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
+  MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
@@ -906,6 +947,9 @@ export type RootStackParamList = {
   BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
+  RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
+  RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
+  SwapsLimitOrderActivity: BridgeScreensStackParamList['SwapsLimitOrderActivity'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -931,6 +975,7 @@ export type RootStackParamList = {
   BatchSellFinalReviewModal: BridgeModalsNavigationParamList['BatchSellFinalReviewModal'];
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
+  SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
@@ -942,6 +987,7 @@ export type RootStackParamList = {
   Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
+  PerpsBalanceOrder: PerpsNavigationParamList['PerpsBalanceOrder'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -971,24 +1017,25 @@ export type RootStackParamList = {
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
+  PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
+  PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
-  // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
-  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
-  PredictFeed: PredictNavigationParamList['PredictFeed'];
-  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
-  PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
-  PredictModals:
-    | NavigatorScreenParams<PredictModalsNavigationParamList>
-    | undefined;
-  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
-  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
-  PredictUnavailable: undefined;
-  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
+  // Predict routes, owned by PredictNext — `Predict` is a nested stack navigator.
+  Predict: PredictAppRouteParamList['Predict'];
+  PredictMarketList: PredictAppRouteParamList['PredictMarketList'];
+  PredictFeed: PredictAppRouteParamList['PredictFeed'];
+  PredictMarketDetails: PredictAppRouteParamList['PredictMarketDetails'];
+  PredictPositions: PredictAppRouteParamList['PredictPositions'];
+  PredictActivityDetail: PredictAppRouteParamList['PredictActivityDetail'];
+  PredictModals: PredictAppRouteParamList['PredictModals'];
+  PredictBuyPreview: PredictAppRouteParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictAppRouteParamList['PredictSellPreview'];
+  PredictUnavailable: PredictAppRouteParamList['PredictUnavailable'];
+  PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
+  PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
-  TopTradersView:
+  SocialV0View:
     | {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
@@ -997,8 +1044,50 @@ export type RootStackParamList = {
          * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
          * on the leaderboard with a CTA to open device settings. */
         showNotificationsBanner?: boolean;
+        /** Tab the Follow Trading surface should open on. Set by the homepage
+         * Top Traders entry points from the TSA-1042 landing A/B test; absent
+         * for every other entry point, which keeps the leaderboard landing. */
+        landingTab?: 'leaderboard' | 'feed';
+        /** Audience preselected on the Feed tab when `landingTab` is `feed`. */
+        landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
+   * `initialTab`.
+   */
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
+  SocialV1View:
+    | {
+        source?: string;
+        showNotificationsBanner?: boolean;
+        initialTab?: SocialShellTab;
+      }
+    | undefined;
+  SocialPostComposerView: SocialPostComposerViewParams | undefined;
+  SocialProfileOnboardingView:
+    | {
+        /** Opens only the terms sheet for users with an existing profile. */
+        termsOnly?: boolean;
+      }
+    | undefined;
+  MyProfileView: SocialV1ProfileViewParams | undefined;
+  SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
+  FollowConnectionsView: {
+    initialTab: 'followers' | 'following' | 'mutuals';
+    /** When set, load that trader's lists instead of `/users/me`. */
+    addressOrId?: string;
+  };
+  ProfilesToFollowView: undefined;
+  ManageProfileView: undefined;
+  ManageProfileTextEditorView: {
+    field: 'displayName' | 'handle' | 'bio' | 'socials';
+  };
+  ManageProfileTradingActivityView: undefined;
+  ManageProfileLinkedAccountView: undefined;
+  EditProfileAvatarView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
@@ -1011,16 +1100,16 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
-  SocialLeaderboardOnboarding: undefined;
+  SocialPositionDetailsSheet: PositionDetailsSheetParams;
+  SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
-  LockScreen: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
-  ConfirmationRequestModal: undefined;
+  ConfirmationRequestModal: ConfirmationParams | undefined;
   ConfirmationSwitchAccountType:
     | NavigatorScreenParams<{
         ConfirmationSwitchAccountType: { address?: string } | undefined;
@@ -1032,6 +1121,10 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  MfaFlow: undefined;
+  MfaSettings: undefined;
+  MfaPasskeys: undefined;
+  MfaMethodDetails: MfaMethodDetailsParams;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;
@@ -1061,9 +1154,11 @@ export type RootStackParamList = {
 
   // Earn routes
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnSearchList: EarnScreensStackParamList['EarnSearchList'];
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
+  EarnStrategySelectionModal: EarnModalsNavigationParamList['EarnStrategySelectionModal'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
@@ -1091,6 +1186,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  MultichainAccountsExplorerWebview: WebviewStackParamList['SimpleWebview'];
   SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1104,20 +1200,26 @@ export type RootStackParamList = {
   SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SampleFeature: undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
+  CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
+  CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
+  CardMfaCode: CardScreensStackParamList['CardMfaCode'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
+  CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
+  CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
+  CardContactDetails: CardScreensStackParamList['CardContactDetails'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
@@ -1152,6 +1254,9 @@ export type RootStackParamList = {
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
+  CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
+  CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes
   Recipient: SendStackParamList['Recipient'];
@@ -1162,9 +1267,9 @@ export type RootStackParamList = {
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
-  // Asset detail stack routes (nested under the `Asset` navigator)
-  AssetStackFlow: NavigatorScreenParams<AssetStackParamList> | undefined;
+  // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)
   SecurityTrust: AssetStackParamList['SecurityTrust'];
+  ContractSecurity: AssetStackParamList['ContractSecurity'];
   CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
   ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];
 

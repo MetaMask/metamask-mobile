@@ -1,19 +1,19 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
+import { PasswordResetWarningSheetSelectorsIDs } from '../../../app/components/Views/shared/PasswordResetWarningSheet/PasswordResetWarningSheet.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import enContent from '../../../locales/languages/en.json';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
-import type { PlaywrightElement } from '../../framework';
 
 class CreatePasswordView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  get newPasswordInput(): EncapsulatedElementType {
+  get newPasswordInput(): Promise<AppiumElement> {
     // Android: match the inner EditText via content-desc (UiAutomator).
     // iOS: catch-all XPath (testID may land on a wrapper).
     if (PlatformDetector.isAndroid()) {
@@ -26,7 +26,7 @@ class CreatePasswordView {
     );
   }
 
-  get passwordVisibilityIcon(): EncapsulatedElementType {
+  get passwordVisibilityIcon(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
@@ -39,13 +39,13 @@ class CreatePasswordView {
     );
   }
 
-  get confirmPasswordVisibilityIcon(): EncapsulatedElementType {
+  get confirmPasswordVisibilityIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
     );
   }
 
-  get confirmPasswordInput(): EncapsulatedElementType {
+  get confirmPasswordInput(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByAndroidUIAutomator(
         `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
@@ -58,7 +58,7 @@ class CreatePasswordView {
     );
   }
 
-  get newWalletConfirmPasswordInput(): EncapsulatedElementType {
+  get newWalletConfirmPasswordInput(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -71,23 +71,29 @@ class CreatePasswordView {
     );
   }
 
-  get iUnderstandCheckbox(): EncapsulatedElementType {
+  get iUnderstandCheckbox(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
+  get iUnderstandCheckboxNewWallet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get submitButton(): EncapsulatedElementType {
+  get submitButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
-  get passwordError(): EncapsulatedElementType {
+  get passwordWarningConfirmButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+  }
+
+  get passwordError(): Promise<AppiumElement> {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
@@ -130,6 +136,12 @@ class CreatePasswordView {
   async tapIUnderstandCheckBox(): Promise<void> {
     await Gestures.waitAndTap(this.iUnderstandCheckbox, {
       elemDescription: 'Create Password - I Understand Checkbox',
+    });
+  }
+
+  async tapPasswordWarningConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.passwordWarningConfirmButton, {
+      elemDescription: 'Create Password - Password Warning I Understand Button',
     });
   }
 
@@ -180,7 +192,7 @@ class CreatePasswordView {
   }
 
   private async readMarketingCheckboxChecked(
-    checkbox: PlaywrightElement,
+    checkbox: AppiumElement,
   ): Promise<boolean | undefined> {
     // Fetch attributes independently. Android UiAutomator2 does not support
     // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
@@ -209,7 +221,7 @@ class CreatePasswordView {
   async ensureMarketingOptInChecked(): Promise<void> {
     const checkbox = (await Promise.resolve(
       this.iUnderstandCheckbox,
-    )) as PlaywrightElement;
+    )) as AppiumElement;
     const isChecked = await this.readMarketingCheckboxChecked(checkbox);
 
     if (isChecked === false) {
