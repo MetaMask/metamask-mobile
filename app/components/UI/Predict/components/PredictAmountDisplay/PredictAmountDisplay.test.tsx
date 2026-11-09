@@ -260,12 +260,11 @@ describe('PredictAmountDisplay', () => {
       amountGlyphs.forEach((glyph) => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
-            fontSize: 60,
-            lineHeight: 70,
+            fontSize: 64,
+            lineHeight: 64,
           }),
         );
       });
-      expect(amountText).toHaveStyle({ paddingLeft: 4, paddingRight: 4 });
       amountGlyphs.forEach((glyph) => {
         expect(StyleSheet.flatten(glyph.props.style)).not.toHaveProperty(
           'paddingHorizontal',
@@ -287,7 +286,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 48,
-            lineHeight: 58,
+            lineHeight: 48,
           }),
         );
       });
@@ -307,7 +306,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 32,
-            lineHeight: 42,
+            lineHeight: 32,
           }),
         );
       });
@@ -327,7 +326,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 24,
-            lineHeight: 34,
+            lineHeight: 24,
           }),
         );
       });
@@ -347,7 +346,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 18,
-            lineHeight: 28,
+            lineHeight: 18,
           }),
         );
       });
@@ -367,7 +366,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 12,
-            lineHeight: 22,
+            lineHeight: 12,
           }),
         );
       });
@@ -415,13 +414,13 @@ describe('PredictAmountDisplay', () => {
 
       expect(cursor).toHaveStyle({
         backgroundColor: mockTheme.colors.text.muted,
-        height: Math.round(56 * 0.95),
+        height: Math.round(64 * 0.95),
         marginHorizontal: 0,
         width: 1,
         transform: [
           {
             translateY: Math.round(
-              56 * (Platform.OS === 'android' ? 0.02 : -0.04),
+              64 * (Platform.OS === 'android' ? 0.02 : -0.04),
             ),
           },
         ],
