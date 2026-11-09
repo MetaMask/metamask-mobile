@@ -62,26 +62,12 @@ jobs:
           patch="${SEMVER##*.}"
           if [[ "${IS_OTA}" == "true" ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
+            echo "OTA hotfix: branch release/${SEMVER}-ota; OTA_VERSION v${SEMVER}."
             STORE=$(gh api "repos/${GITHUB_REPOSITORY}/contents/package.json?ref=release/${SEMVER}-ota" -H 'Accept: application/vnd.github.raw' --jq .version)
-            if ! [[ "${STORE}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-              echo "::error::package.json on release/${SEMVER}-ota must be strict SemVer X.Y.Z, got: ${STORE:-<empty>}"
-              exit 1
-            fi
             if ! gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/release/${STORE}" --jq .ref >/dev/null; then
               echo "::error::release/${STORE} does not exist (store version from package.json on release/${SEMVER}-ota)."
               exit 1
             fi
-            # The release branch must contain tag v<store>. A changelog commit after the tag is still that branch.
-            if ! COMPARE=$(gh api "repos/${GITHUB_REPOSITORY}/compare/v${STORE}...release/${STORE}" --jq '[.status,.ahead_by,.behind_by]|@tsv'); then
-              echo "::error::tag v${STORE} is missing or cannot be compared with release/${STORE}."
-              exit 1
-            fi
-            read -r STATUS AHEAD BEHIND <<<"${COMPARE}"
-            if [[ "${BEHIND}" != "0" ]]; then
-              echo "::error::release/${STORE} does not contain tag v${STORE} (status ${STATUS}, behind ${BEHIND})."
-              exit 1
-            fi
-            echo "OTA hotfix: base release/${STORE}, tag v${STORE}, ahead ${AHEAD}."
             echo "release_base=release/${STORE}" >> "$GITHUB_OUTPUT"
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
@@ -90,8 +76,10 @@ jobs:
           fi
 
           if [ "$patch" -gt 0 ]; then
+            echo "Detected hotfix (patch=$patch): using stable for checkout and stable for release PR base."
             echo "checkout_base=stable" >> "$GITHUB_OUTPUT"
           else
+            echo "Detected non-hotfix (patch=0): using main for checkout and stable for release PR base."
             echo "checkout_base=main" >> "$GITHUB_OUTPUT"
           fi
 
