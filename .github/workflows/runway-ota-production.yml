@@ -19,6 +19,11 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
+      skip_ci_gate:
+        description: 'Written reason to skip the CI gate. Release approval is still required.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -62,4 +67,5 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: production
       platform: all
+      skip_ci_gate: ${{ inputs.skip_ci_gate }}
     secrets: inherit

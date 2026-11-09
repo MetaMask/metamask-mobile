@@ -79,6 +79,11 @@ on:
         type: string
         required: false
         default: ''
+      skip_ci_gate:
+        description: 'Written reason to skip the CI gate. Release approval is still required.'
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
