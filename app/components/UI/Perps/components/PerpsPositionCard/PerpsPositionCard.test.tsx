@@ -396,6 +396,26 @@ describe('PerpsPositionCard', () => {
   );
 
   describe('Component Rendering', () => {
+    it('exposes P&L and Return as single accessible label/value groups', () => {
+      render(<PerpsPositionCard position={mockPosition} currentPrice={2000} />);
+
+      const pnlCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.PNL_CARD,
+      );
+      const returnCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_CARD,
+      );
+
+      expect(pnlCard).toHaveProp('accessible', true);
+      expect(pnlCard).toHaveTextContent(
+        'perps.position.card.pnl_label+$250.00',
+      );
+      expect(returnCard).toHaveProp('accessible', true);
+      expect(returnCard).toHaveTextContent(
+        'perps.position.card.return_label+1250.00%',
+      );
+    });
+
     it('renders position card with all sections', () => {
       // Arrange
       const currentPrice = 2000;
@@ -908,6 +928,20 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
       ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('keeps the Return accessibility group masked when privacy mode is enabled', () => {
+      enablePrivacyMode();
+
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      const returnCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_CARD,
+      );
+      expect(returnCard).toHaveTextContent(
+        `perps.position.card.return_label${DOTS_SHORT}`,
+      );
+      expect(returnCard).not.toHaveTextContent(/1250\.00%/);
     });
 
     it('hides margin value when privacy mode is enabled', () => {

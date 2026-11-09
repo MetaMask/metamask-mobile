@@ -125,6 +125,11 @@ Sections with **no** directive are checked for structural presence only (heading
 must exist in the PR body) but receive no semantic validator. The reviewer
 checklist uses this mode intentionally.
 
+Sections marked `required=false` are also left out of the structural heading
+check in `template.ts` (`PR_TEMPLATE_SECTIONS`). A PR body may omit them without
+being flagged as the wrong template. `runAllChecks` skips them, so their content
+is not validated either.
+
 ### Safety at startup
 
 At module load, every directive `type` in the plan is validated against the
