@@ -42,7 +42,9 @@ export const mapPerpsOrderInFlightToFeedItem = (
         chain: HYPERLIQUID_CHAIN_NAME,
         tokenAddress: preview.tokenAddress,
         tokenImageUrl: null,
-        tokenSymbol: preview.tokenSymbol,
+        // Perps icons resolve from the namespaced market id (`xyz:ANTHROPIC`),
+        // not the display symbol, so HIP-3 markets would otherwise get no icon.
+        tokenSymbol: preview.tradeSymbol,
       },
     },
     costLabel: preview.costLabel,

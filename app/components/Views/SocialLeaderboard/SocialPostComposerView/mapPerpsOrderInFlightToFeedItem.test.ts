@@ -34,6 +34,24 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
     expect(item.holdTimeLabel).toBeUndefined();
   });
 
+  it('keys the avatar on the namespaced market id so HIP-3 icons resolve', () => {
+    const item = mapPerpsOrderInFlightToFeedItem(
+      {
+        ...preview,
+        tokenSymbol: 'ANTHROPIC',
+        tradeSymbol: 'xyz:ANTHROPIC',
+        tokenAddress: 'xyz:ANTHROPIC',
+      },
+      '',
+    );
+
+    if (item.variant !== 'perpsOpen') {
+      throw new Error('expected perpsOpen');
+    }
+    expect(item.asset.symbol).toBe('ANTHROPIC');
+    expect(item.asset.avatar.tokenSymbol).toBe('xyz:ANTHROPIC');
+  });
+
   it('carries the KLIPY GIF URL as commentGifUrl for a GIF-only perps post', () => {
     const item = mapPerpsOrderInFlightToFeedItem(preview, '', {
       commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
