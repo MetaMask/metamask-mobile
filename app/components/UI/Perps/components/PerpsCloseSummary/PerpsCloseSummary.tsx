@@ -7,9 +7,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import { strings } from '../../../../../../locales/i18n';
 import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+  formatCloseSummaryFiat,
+  formatSignedCloseSummaryFiat,
+  getCloseSummaryPnlColor,
+} from './closeSummaryFormat';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import { type PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import RewardsAnimations, {
@@ -32,25 +33,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 const UNAVAILABLE_VALUE = PERPS_CONSTANTS.FallbackDataDisplay;
-
-/** Formats a summary amount, or the unavailable state while it is unknown. */
-const formatSummaryFiat = (value: number | undefined): string =>
-  value === undefined
-    ? UNAVAILABLE_VALUE
-    : formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
-
-/** Formats a P&L with its sign, or the unavailable state while it is unknown. */
-const formatSignedSummaryFiat = (value: number | undefined): string =>
-  value === undefined
-    ? UNAVAILABLE_VALUE
-    : `${value < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(value))}`;
-
-const getPnlColor = (value: number | undefined): TextColor => {
-  if (value === undefined) {
-    return TextColor.TextDefault;
-  }
-  return value < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault;
-};
 
 export interface PerpsCloseSummaryProps {
   /** Total margin including P&L (undefined when unavailable) */
@@ -223,14 +205,17 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
           >
-            {formatSummaryFiat(totalMargin)}
+            {formatCloseSummaryFiat(totalMargin)}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {strings('perps.close_position.includes_pnl')}
             </Text>
-            <Text variant={TextVariant.BodySm} color={getPnlColor(totalPnl)}>
-              {formatSignedSummaryFiat(totalPnl)}
+            <Text
+              variant={TextVariant.BodySm}
+              color={getCloseSummaryPnlColor(totalPnl)}
+            >
+              {formatSignedCloseSummaryFiat(totalPnl)}
             </Text>
           </View>
         </View>
@@ -270,7 +255,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             testID: testIDs?.receiveTooltip,
           },
         })}
-        value={formatSummaryFiat(receiveAmount)}
+        value={formatCloseSummaryFiat(receiveAmount)}
         valueTextProps={{
           testID: testIDs?.receiveValue,
         }}

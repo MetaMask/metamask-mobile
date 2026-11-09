@@ -5,7 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { Position } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -249,27 +249,30 @@ describe('PerpsClosePositionRouter', () => {
     });
 
     it('shows the position RoE in the P&L row for a market close', async () => {
-      // Fixture: unrealizedPnl 100, returnOnEquity 0.10 (i.e. +10.00%),
-      // deliberately different from PnL over margin (100 / 833.33 = +12.00%).
-      renderTreatmentSheet(createLongPositionForViews());
+      // Fixture: 1 ETH from 2500 closed at 2600 realizes +$100; returnOnEquity
+      // 0.10 (i.e. +10.00%), deliberately different from PnL over margin
+      // (100 / 833.33 = +12.00%).
+      renderTreatmentSheet(createLongPositionForViews(), { price: '2600' });
 
       expect(await findPnlRow()).toHaveTextContent('+$100 (+10.00%)');
     });
 
     it('shows a loss and the position RoE in the P&L row for a market close', async () => {
-      // Fixture: unrealizedPnl -100 with returnOnEquity -0.10 (i.e. -10.00%).
+      // Fixture: closed at 2400, 1 ETH from 2500 realizes -$100, with
+      // returnOnEquity -0.10 (i.e. -10.00%).
       renderTreatmentSheet(
         createLongPositionForViews({
           unrealizedPnl: '-100',
           returnOnEquity: '-0.10',
         }),
+        { price: '2400' },
       );
 
       expect(await findPnlRow()).toHaveTextContent('-$100 (-10.00%)');
     });
 
     it('keeps the position RoE on a partial market close', async () => {
-      renderTreatmentSheet(createLongPositionForViews());
+      renderTreatmentSheet(createLongPositionForViews(), { price: '2600' });
 
       fireEvent.press(
         await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
@@ -417,13 +420,16 @@ describe('PerpsClosePositionRouter', () => {
       }
       fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
 
+      // Core has no estimate for a zero-size close, so the row is unavailable.
       const pnlRow = await findPnlRow();
-      expect(pnlRow).toHaveTextContent('+$0');
+      expect(pnlRow).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
       expect(pnlRow).not.toHaveTextContent(/%/);
     });
 
     it('omits the percentage when the position RoE is unavailable', async () => {
-      renderTreatmentSheet(createLongPositionForViews({ returnOnEquity: '' }));
+      renderTreatmentSheet(createLongPositionForViews({ returnOnEquity: '' }), {
+        price: '2600',
+      });
 
       const pnlRow = await findPnlRow();
       expect(pnlRow).toHaveTextContent('+$100');

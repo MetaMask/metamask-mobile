@@ -104,8 +104,14 @@ jest.mock('@metamask/perps-controller', () => {
     '@metamask/perps-controller/constants',
   );
 
+  const { calculateNetClosedPnl } = jest.requireActual(
+    '@metamask/perps-controller',
+  );
+
   return {
     getPerpsDisplaySymbol: (symbol: string) => symbol,
+    // History nets closed PnL with Core's formula.
+    calculateNetClosedPnl,
     PERPS_CONSTANTS: {
       RecentActivityLimit: 3,
     },

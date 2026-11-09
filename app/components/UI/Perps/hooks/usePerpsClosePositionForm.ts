@@ -742,7 +742,10 @@ export function usePerpsClosePositionForm(
       hasConfirmedCloseRef.current ||
       isClosing ||
       isCloseInFlight ||
-      isPositionGone
+      isPositionGone ||
+      // Core tracking takes a numeric fee, so wait for the quote instead of
+      // reporting an unknown fee as 0. A quoted 0 rate still submits.
+      feeResults.totalFeeRate === undefined
     ) {
       return;
     }
@@ -826,6 +829,7 @@ export function usePerpsClosePositionForm(
     handleClosePosition,
     livePosition,
     feeResults.totalFee,
+    feeResults.totalFeeRate,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.metamaskFee,
@@ -1040,6 +1044,7 @@ export function usePerpsClosePositionForm(
     isClosing ||
     isCloseInFlight ||
     isPositionGone ||
+    feeResults.totalFeeRate === undefined ||
     (effectiveOrderType === 'limit' &&
       (!limitPrice || Number.parseFloat(limitPrice) <= 0)) ||
     (effectiveOrderType === 'market' && closePercentage === 0) ||

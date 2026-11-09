@@ -241,7 +241,11 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
-    usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
+    // A quoted fee: the close waits for one before it can be confirmed.
+    usePerpsOrderFeesMock.mockReturnValue({
+      ...defaultPerpsOrderFeesMock,
+      totalFeeRate: 0.00045,
+    });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );
@@ -925,6 +929,46 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
       ).toBeEnabled();
+    });
+
+    it('holds the close until the fee is quoted, so tracking never reports an unknown fee as 0', () => {
+      usePerpsOrderFeesMock.mockReturnValue({
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: undefined,
+      });
+      const { getByTestId } = renderSheet();
+
+      const confirmButton = getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+      fireEvent.press(confirmButton);
+      expect(
+        defaultPerpsClosePositionMock.handleClosePosition,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('submits a quoted zero fee as 0', async () => {
+      usePerpsOrderFeesMock.mockReturnValue({
+        ...defaultPerpsOrderFeesMock,
+        totalFee: 0,
+        totalFeeRate: 0,
+      });
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await waitFor(() =>
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trackingData: expect.objectContaining({ totalFee: 0 }),
+          }),
+        ),
+      );
     });
 
     it('is disabled while the limit price is empty', () => {

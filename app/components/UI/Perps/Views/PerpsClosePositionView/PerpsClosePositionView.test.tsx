@@ -740,7 +740,7 @@ describe('PerpsClosePositionView', () => {
       usePerpsOrderFeesMock.mockReturnValue(mockFees);
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -749,7 +749,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Core fee: 1.5 ETH × 3,000 × 0.7% = 31.5
-      expect(getByText(/31\.5/)).toBeDefined();
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.FEES_VALUE),
+      ).toHaveTextContent('$31.50');
     });
 
     it('updates fees when close percentage changes', async () => {
@@ -800,7 +802,7 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -811,12 +813,10 @@ describe('PerpsClosePositionView', () => {
       // Assert - Core estimateCloseReceive for an isolated position: margin
       // without its unrealized PnL (1200 - 200) plus the PnL at the close
       // price ((150 - 100) × 1 = 50), less the fee: 1050 - 30 = 1020
-      const receiveText = getByText(
-        strings('perps.close_position.you_receive'),
-      );
-      expect(receiveText).toBeDefined();
       // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
-      expect(getByText('$1,020')).toBeDefined();
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$1,020');
     });
 
     it('calculates receive amount for a losing isolated close', () => {
@@ -848,7 +848,7 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Act
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -859,11 +859,9 @@ describe('PerpsClosePositionView', () => {
       // For 100% close (default): margin without its unrealized loss
       // (1700 + 300) plus the PnL at the close price ((75 - 100) × 2 = -50),
       // less the fee: 1950 - 15 = 1935
-      const receiveText = getByText(
-        strings('perps.close_position.you_receive'),
-      );
-      expect(receiveText).toBeDefined();
-      expect(getByText(/1,935/)).toBeDefined();
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE),
+      ).toHaveTextContent('$1,935');
     });
   });
 
@@ -992,8 +990,7 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - PnL realized at the close price: (100 - 150) × 1 = -50
-      const pnlElement = getByText(/-\$50/);
-      expect(pnlElement).toBeDefined();
+      expect(getByText('-$50')).toBeOnTheScreen();
     });
   });
 

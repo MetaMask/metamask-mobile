@@ -314,6 +314,11 @@ describe('usePerpsCloseAllCalculations', () => {
       BTC: { price: '51000' },
       ETH: { price: '3100' },
     };
+    // Stable references: the hook recalculates whenever its inputs change, so
+    // arrays built inside the render callback would retrigger it every render.
+    const crossLongOnly = [crossLong];
+    const crossAndIsolated = [crossLong, isolatedShort];
+    const btcPriceOnly = { BTC: { price: '51000' } };
 
     beforeEach(() => {
       mockCalculateFees.mockResolvedValue(
@@ -324,7 +329,7 @@ describe('usePerpsCloseAllCalculations', () => {
     it('keeps a winning cross position margin and adds its PnL', async () => {
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: [crossLong],
+          positions: crossLongOnly,
           priceData: livePrices,
         }),
       );
@@ -339,7 +344,7 @@ describe('usePerpsCloseAllCalculations', () => {
     it('sums isolated and cross positions to the cent', async () => {
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: [crossLong, isolatedShort],
+          positions: crossAndIsolated,
           priceData: livePrices,
         }),
       );
@@ -354,8 +359,8 @@ describe('usePerpsCloseAllCalculations', () => {
     it('leaves every total unknown while a position has no live price', async () => {
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: [crossLong, isolatedShort],
-          priceData: { BTC: { price: '51000' } },
+          positions: crossAndIsolated,
+          priceData: btcPriceOnly,
         }),
       );
 
@@ -369,9 +374,9 @@ describe('usePerpsCloseAllCalculations', () => {
     it('leaves the fee and receive unknown until the fee rate is quoted', () => {
       mockCalculateFees.mockReturnValue(new Promise(() => undefined));
 
-      const { result } = renderHook(() =>
+      const { result, unmount } = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: [crossLong],
+          positions: crossLongOnly,
           priceData: livePrices,
         }),
       );
@@ -379,6 +384,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.totalMargin).toBe(1500);
       expect(result.current.totalFees).toBeUndefined();
       expect(result.current.receiveAmount).toBeUndefined();
+      unmount();
     });
   });
 

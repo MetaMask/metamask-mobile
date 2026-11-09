@@ -64,7 +64,7 @@ describe('PerpsTPSLView', () => {
     renderPerpsTPSLView({
       initialParams: {
         asset: 'ETH',
-        currentPrice: '2500',
+        currentPrice: 2500,
         direction: 'long',
         position,
         initialTakeProfitPrice: '',
@@ -146,7 +146,7 @@ describe('PerpsTPSLView', () => {
     renderPerpsTPSLView({
       initialParams: {
         asset: 'ETH',
-        currentPrice: '2500',
+        currentPrice: 2500,
         direction: 'long',
         position,
         initialTakeProfitPrice: '',
@@ -237,7 +237,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             onBeforeConfirm,
             onConfirm,
           },
@@ -280,7 +280,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             onBeforeConfirm,
             onConfirm,
           },
@@ -329,7 +329,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             isPositionReviewCurrent,
             onConfirm,
           },
@@ -370,7 +370,7 @@ describe('PerpsTPSLView', () => {
           variant,
           initialParams: {
             position,
-            currentPrice: '2500',
+            currentPrice: 2500,
             isPositionReviewCurrent,
             onConfirm,
           },
@@ -408,7 +408,7 @@ describe('PerpsTPSLView', () => {
         variant: 'sheet',
         initialParams: {
           asset: 'ETH',
-          currentPrice: '2500',
+          currentPrice: 2500,
           direction: 'long',
           position,
           initialTakeProfitPrice: '',

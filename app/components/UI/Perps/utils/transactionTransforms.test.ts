@@ -118,6 +118,10 @@ describe('transactionTransforms', () => {
       const [transaction] = transformFillsToTransactions(fills);
 
       // A missing fee is not read as 0, so 200 is never shown as the net PnL.
+      // A missing key would make both sides the same fallback, so reject it.
+      expect(transaction.fill?.amount).not.toMatch(
+        /\[missing ".*" translation\]/,
+      );
       expect(transaction.fill?.amount).toBe(
         strings('perps.transactions.unknown_pnl'),
       );

@@ -403,7 +403,11 @@ describe('PerpsPositionTransactionView', () => {
       { state: mockInitialState },
     );
 
-    expect(queryByText('Total fees')).not.toBeOnTheScreen();
+    const feesLabel = strings('perps.transactions.position.fees');
+    // A missing key would make the label a fallback that is never on screen.
+    expect(feesLabel).not.toMatch(/\[missing ".*" translation\]/);
+    expect(queryByText(feesLabel)).not.toBeOnTheScreen();
+    expect(queryByText(/\[missing ".*" translation\]/)).not.toBeOnTheScreen();
     expect(queryByText('$0')).not.toBeOnTheScreen();
   });
 

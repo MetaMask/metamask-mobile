@@ -103,6 +103,8 @@ describe('PerpsClosePositionView', () => {
     resetPerpsCloseLocksForTests();
     // The form reopens on the last Market/Limit choice for the session.
     resetLastCloseOrderType();
+    // The close waits for a fee quote, so every test starts with one.
+    quoteCloseFee();
   });
 
   it('submits a market close for a long position with custom take profit', async () => {
@@ -333,7 +335,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   it('forwards the analytics tracking data to closePosition on a full market close', async () => {
-    quoteCloseFee();
     const closePosition = Engine.context.PerpsController
       .closePosition as jest.Mock;
     const position = createLongPositionForViews({ unrealizedPnl: '150' });
@@ -396,7 +397,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   it('forwards the analytics tracking data to closePosition on a partial market close', async () => {
-    quoteCloseFee();
     const closePosition = Engine.context.PerpsController
       .closePosition as jest.Mock;
     const position = createLongPositionForViews({ unrealizedPnl: '150' });
@@ -456,7 +456,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   it('shows Core receive for a winning cross position, keeping its margin', async () => {
-    quoteCloseFee();
     const position = createLongPositionForViews({
       unrealizedPnl: '150',
       leverage: { value: 3, type: 'cross' },
@@ -486,7 +485,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   it('estimates a partial close on the size the order sends, rounded to the market decimals', async () => {
-    quoteCloseFee();
     const position = createLongPositionForViews({
       size: '0.33',
       marginUsed: '275',
@@ -521,10 +519,12 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  it('shows the receive amount as unavailable until the close fee is quoted', async () => {
+  it('shows the receive amount as unavailable and holds the close until the fee is quoted', async () => {
     (Engine.context.PerpsController.calculateFees as jest.Mock).mockReturnValue(
       new Promise(() => undefined),
     );
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
     const position = createLongPositionForViews({ unrealizedPnl: '150' });
 
     const { stream } = renderPerpsClosePositionView({
@@ -544,6 +544,14 @@ describe('PerpsClosePositionView', () => {
         { timeout: TIMEOUT_MS },
       ),
     ).toHaveTextContent('--');
+
+    // An unquoted fee would be tracked as 0, so the close waits for the quote.
+    const confirmButton = screen.getByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+    expect(confirmButton).toBeDisabled();
+    fireEvent.press(confirmButton);
+    expect(closePosition).not.toHaveBeenCalled();
   });
 
   it('forwards the limit order type to closePosition when a limit close is submitted', async () => {
