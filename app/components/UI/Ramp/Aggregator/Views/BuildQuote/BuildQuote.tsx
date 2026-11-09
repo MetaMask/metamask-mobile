@@ -37,6 +37,12 @@ import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
+import { getMaxSendableTronAmount } from '../../../../../core/Multichain/tron';
+import { CaipAssetType } from '@metamask/snaps-sdk';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { RootState } from '../../../../../../reducers';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -173,6 +179,9 @@ const BuildQuote = () => {
     selectedAsset?.network?.chainId &&
       isNonEvmChainId(selectedAsset.network.chainId),
   );
+
+  const isTron =
+    selectedAsset?.network?.chainId?.startsWith('tron:') ?? false;
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -394,6 +403,12 @@ const BuildQuote = () => {
         },
   );
 
+  const fromAccount = useSelector((state: RootState) =>
+    selectedAddress
+      ? getMemoizedInternalAccountByAddress(state, selectedAddress)
+      : undefined,
+  );
+
   let maxSellAmount: bigint | null = null;
   if (selectedAsset && isNonEvmAsset) {
     maxSellAmount = balanceBN ?? null;
@@ -470,6 +485,17 @@ const BuildQuote = () => {
     nativeTokenBalanceBN,
     selectedAsset,
   ]);
+
+  const {
+    isValidating: isTronValidating,
+    validationError: tronValidationError,
+  } = useTronAmountValidation({
+    enabled: isSell && isTron && isOffRampNonEvmEnabled,
+    amount,
+    assetChainId: selectedAsset?.network?.chainId,
+    assetReference: selectedAsset?.assetId,
+    walletAddress: selectedAddress,
+  });
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -593,7 +619,7 @@ const BuildQuote = () => {
   );
 
   const handleQuickAmountPress = useCallback(
-    ({ value }: QuickAmount) => {
+    async ({ value }: QuickAmount) => {
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
@@ -610,7 +636,28 @@ const BuildQuote = () => {
 
         let amountToSet = amountPercentage;
 
-        if (
+        if (value === 1 && isTron && isOffRampNonEvmEnabled && fromAccount) {
+          const assetChainId = selectedAsset?.network?.chainId;
+          const assetReference = selectedAsset?.assetId;
+
+          if (assetChainId && assetReference) {
+            try {
+              const maxResult = await getMaxSendableTronAmount(fromAccount, {
+                accountId: fromAccount.id,
+                assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
+              });
+
+              if (maxResult?.valid && maxResult.maxAmount) {
+                amountToSet = toTokenMinimalUnit(
+                  maxResult.maxAmount,
+                  selectedAsset?.decimals ?? 0,
+                );
+              }
+            } catch {
+              // Fall back to the balance-based calculation
+            }
+          }
+        } else if (
           selectedAsset?.address === NATIVE_ADDRESS &&
           maxSellAmount !== null &&
           maxSellAmount < amountPercentage
@@ -630,9 +677,14 @@ const BuildQuote = () => {
     [
       balanceBN,
       isBuy,
+      isTron,
+      isOffRampNonEvmEnabled,
+      fromAccount,
       maxSellAmount,
       selectedAsset?.address,
       selectedAsset?.decimals,
+      selectedAsset?.network?.chainId,
+      selectedAsset?.assetId,
     ],
   );
 
@@ -1145,6 +1197,17 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {tronValidationError && (
+              <Row>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={BuildQuoteSelectors.TRON_VALIDATION_ERROR}
+                >
+                  {tronValidationError}
+                </Text>
+              </Row>
+            )}
             <Row>
               <PaymentMethodSelector
                 loading={
@@ -1183,7 +1246,12 @@ const BuildQuote = () => {
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
               isFullWidth
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 ||
+                isFetching ||
+                isTronValidating ||
+                Boolean(tronValidationError)
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </Button>
