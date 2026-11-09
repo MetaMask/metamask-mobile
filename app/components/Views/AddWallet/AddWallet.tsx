@@ -11,7 +11,10 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   Box,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   ListItem,
   ListItemVariant,
   TitleStandard,
@@ -158,6 +161,16 @@ const AddWallet = () => {
             }
             title={config.title}
             description={config.description}
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+                accessible={false}
+                importantForAccessibility="no"
+                testID={AddWalletTestIds.ROW_ARROW}
+              />
+            }
           />
         ))}
       </Box>
