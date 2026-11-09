@@ -25,10 +25,12 @@ import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import { useSocialTermsGate } from '../../../Views/SocialLeaderboard/terms/useSocialTermsGate';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
+import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
 import { visibleReactions, type FeedReaction } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import ReactionChip, {
@@ -249,6 +251,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { profileId } = useSocialProfileId();
   const ensureSocialTermsForInteraction = useCallback(
     () => !requireSocialTerms || ensureSocialTermsAccepted(),
     [ensureSocialTermsAccepted, requireSocialTerms],
@@ -334,6 +337,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     notifyCopy,
     ensureCopyTradeAllowed,
   );
+  const canShowCopyTrade =
+    showCopyTrade &&
+    (!profileId || !isViewerSocialAuthor(post.item.author.id, profileId));
 
   const chips = visibleReactions(reactions);
   const canReact = Boolean(post.commentId);
@@ -470,14 +476,14 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               <PositionCardBody
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
-                showCopyTrade={showCopyTrade}
+                showCopyTrade={canShowCopyTrade}
               />
             </Pressable>
           ) : (
             <PositionCardBody
               item={post.item}
               onCopyTrade={copyTradeHandler}
-              showCopyTrade={showCopyTrade}
+              showCopyTrade={canShowCopyTrade}
             />
           )}
 

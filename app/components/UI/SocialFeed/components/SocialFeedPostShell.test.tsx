@@ -19,6 +19,7 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 import { playSelection } from '../../../../util/haptics';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import {
   REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
   REACTION_EMOJI_BURST_TEST_ID,
@@ -55,11 +56,13 @@ jest.mock(
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
-  useSocialProfileId: () => ({
+  useSocialProfileId: jest.fn(() => ({
     profileId: 'viewer-profile-id',
     isLoading: false,
-  }),
+  })),
 }));
+
+const mockUseSocialProfileId = jest.mocked(useSocialProfileId);
 
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
@@ -191,6 +194,23 @@ const basePost = (
   ...overrides,
 });
 
+const postByAuthor = (
+  authorId: string,
+  item: SocialV1FeedPost['item'] = mockOpenPerpsFeedItem({
+    id: 'item-1',
+    comment: 'Amazing position',
+  }),
+): SocialV1FeedPost =>
+  basePost({
+    item: {
+      ...item,
+      author: {
+        ...item.author,
+        id: authorId,
+      },
+    },
+  });
+
 const renderShell = (
   post: SocialV1FeedPost,
   options?: {
@@ -284,6 +304,10 @@ const itemWithoutStats = (id: string, comment: string) => {
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: 'viewer-profile-id',
+      isLoading: false,
+    });
     mockGetHardwareTier.mockReturnValue('HIGH');
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
@@ -885,6 +909,47 @@ describe('SocialFeedPostShell', () => {
 
       expect(onCopyTrade).toHaveBeenCalledWith(item, 'comment-1');
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('hides copy trade for the viewer’s own open perps post', () => {
+      renderShell(postByAuthor('viewer-profile-id'));
+
+      expect(
+        screen.queryByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides copy trade for the viewer’s own open spot post', () => {
+      const item = mockOpenSpotFeedItem({ id: 'item-spot' });
+
+      renderShell(postByAuthor('viewer-profile-id', item), {
+        onCopyTrade: jest.fn(),
+      });
+
+      expect(
+        screen.queryByTestId('social-feed-position-card-copy-trade-item-spot'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows copy trade for another author’s open post', () => {
+      renderShell(postByAuthor('another-profile-id'));
+
+      expect(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows copy trade while the viewer profile id is resolving', () => {
+      mockUseSocialProfileId.mockReturnValue({
+        profileId: undefined,
+        isLoading: true,
+      });
+
+      renderShell(postByAuthor('viewer-profile-id'));
+
+      expect(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).toBeOnTheScreen();
     });
 
     it('opens the perps order instead of the spot handler for an open perp', async () => {
