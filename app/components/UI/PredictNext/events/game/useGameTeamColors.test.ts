@@ -10,6 +10,8 @@ import type {
 } from '../../types';
 import {
   getContrastRatio,
+  getReadableQuoteColors,
+  MIN_LABEL_CONTRAST,
   MIN_TEAM_COLOR_CONTRAST,
   useGameTeamColors,
 } from './useGameTeamColors';
@@ -22,6 +24,10 @@ const GIANTS = `#${'0B2265'}`;
 const DOLPHINS = `#${'008E97'}`;
 const WHITE = `#${'FFFFFF'}`;
 const BLACK = `#${'000000'}`;
+const PALE_YELLOW = `#${'FFF7CC'}`;
+// Mid tone: below 4.5:1 with both white and the dark ink.
+const MID_ORANGE = `#${'D2492A'}`;
+const INKS = { light: WHITE, dark: brandColor.grey1000 };
 
 const darkThemeWrapper = ({ children }: { children: React.ReactNode }) =>
   React.createElement(
@@ -142,5 +148,61 @@ describe('getContrastRatio', () => {
 
   it('returns undefined for a color that is not hex', () => {
     expect(getContrastRatio('navy', WHITE)).toBeUndefined();
+  });
+});
+
+describe('getReadableQuoteColors', () => {
+  it('keeps a dark Team fill with the light label', () => {
+    expect(getReadableQuoteColors(GIANTS, INKS)).toEqual({
+      fill: GIANTS,
+      label: WHITE,
+    });
+  });
+
+  it('keeps a pale Team fill with the dark label', () => {
+    expect(getContrastRatio(WHITE, PALE_YELLOW)).toBeLessThan(
+      MIN_LABEL_CONTRAST,
+    );
+
+    const colors = getReadableQuoteColors(PALE_YELLOW, INKS);
+
+    expect(colors).toEqual({ fill: PALE_YELLOW, label: brandColor.grey1000 });
+    expect(getContrastRatio(colors.label, colors.fill)).toBeGreaterThanOrEqual(
+      MIN_LABEL_CONTRAST,
+    );
+  });
+
+  it('darkens a mid-tone fill just enough for the light label', () => {
+    expect(getContrastRatio(WHITE, MID_ORANGE)).toBeLessThan(
+      MIN_LABEL_CONTRAST,
+    );
+    expect(getContrastRatio(brandColor.grey1000, MID_ORANGE)).toBeLessThan(
+      MIN_LABEL_CONTRAST,
+    );
+
+    const { fill, label } = getReadableQuoteColors(MID_ORANGE, INKS);
+    const ratio = getContrastRatio(label, fill) as number;
+
+    expect(label).toBe(WHITE);
+    expect(fill).not.toBe(MID_ORANGE);
+    expect(ratio).toBeGreaterThanOrEqual(MIN_LABEL_CONTRAST);
+    expect(ratio).toBeLessThan(MIN_LABEL_CONTRAST + 0.1);
+  });
+
+  it('keeps the hue of a darkened fill', () => {
+    const { fill } = getReadableQuoteColors(MID_ORANGE, INKS);
+    const [red, green, blue] = [1, 3, 5].map((start) =>
+      parseInt(fill.slice(start, start + 2), 16),
+    );
+
+    expect(green / red).toBeCloseTo(0x49 / 0xd2, 1);
+    expect(blue / red).toBeCloseTo(0x2a / 0xd2, 1);
+  });
+
+  it('passes a color that is not hex through with the light label', () => {
+    expect(getReadableQuoteColors('navy', INKS)).toEqual({
+      fill: 'navy',
+      label: WHITE,
+    });
   });
 });

@@ -19,6 +19,7 @@ import type {
 } from '../../../types';
 import {
   getMatchupSlot,
+  getReadableQuoteColors,
   shouldMirrorTeamLogo,
   useGameTeamColors,
 } from '../../game';
@@ -302,7 +303,7 @@ const ProbabilityBar = () => {
 };
 
 const Quote = ({ selection }: { selection: GameSelection }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, brandColors } = useTheme();
   const {
     event,
     game,
@@ -319,11 +320,17 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
     return null;
   }
 
-  // The label on this button is white, so the fill keeps the Team's own color.
-  // `teamColor` is the contrast-checked color for text on the card, and it can
-  // be a light theme color that white text cannot sit on.
+  // The fill keeps the Team's own color. `teamColor` is the contrast-checked
+  // color for text on the card, which can be a light theme color.
   const fillTeam = selection === 'home' ? game.homeTeam : game.awayTeam;
-  const fillColor = fillTeam.primaryColor ?? teamColor;
+  // The label is white when it reaches 4.5:1 on the fill, otherwise near-black.
+  // The dark ink is the fixed brand grey, not a themed text token, because the
+  // fill is the Team color in both themes and a themed token flips to white in
+  // dark mode.
+  const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
+    fillTeam.primaryColor ?? teamColor,
+    { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
+  );
 
   const label = formattedPrice
     ? `${abbreviation} · ${formattedPrice}`
@@ -376,7 +383,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         numberOfLines={1}
-        style={{ color: themeColors.overlay.inverse }}
+        style={{ color: labelColor }}
       >
         {label}
       </Text>

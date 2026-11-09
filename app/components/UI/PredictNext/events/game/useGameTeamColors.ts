@@ -17,8 +17,7 @@ const channel = (value: number) => {
   return srgb <= 0.03928 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4;
 };
 
-/** WCAG relative luminance of a `#RGB` or `#RRGGBB[AA]` color, or undefined. */
-const relativeLuminance = (color: string): number | undefined => {
+const parseHex = (color: string): [number, number, number] | undefined => {
   const match = HEX_COLOR.exec(color);
   if (!match) {
     return undefined;
@@ -30,9 +29,18 @@ const relativeLuminance = (color: string): number | undefined => {
           .map((digit) => digit + digit)
           .join('')
       : match[1];
-  const [red, green, blue] = [0, 2, 4].map((start) =>
-    channel(parseInt(hex.slice(start, start + 2), 16)),
-  );
+  return [0, 2, 4].map((start) =>
+    parseInt(hex.slice(start, start + 2), 16),
+  ) as [number, number, number];
+};
+
+/** WCAG relative luminance of a `#RGB` or `#RRGGBB[AA]` color, or undefined. */
+const relativeLuminance = (color: string): number | undefined => {
+  const rgb = parseHex(color);
+  if (!rgb) {
+    return undefined;
+  }
+  const [red, green, blue] = rgb.map(channel);
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 };
 
@@ -52,6 +60,62 @@ export const getContrastRatio = (
   const lighter = Math.max(first, second);
   const darker = Math.min(first, second);
   return (lighter + 0.05) / (darker + 0.05);
+};
+
+/**
+ * Lowest contrast the quote label may have against its fill. The label is
+ * normal-size text, so it needs WCAG 2.x AA's 4.5:1 (1.4.3), not 3:1.
+ */
+export const MIN_LABEL_CONTRAST = 4.5;
+
+const toHex = (value: number) =>
+  Math.round(value).toString(16).padStart(2, '0').toUpperCase();
+
+/**
+ * The fill darkened toward black, keeping its hue, just enough for `label` to
+ * reach {@link MIN_LABEL_CONTRAST} on it.
+ */
+const darkenUntilReadable = (
+  rgb: [number, number, number],
+  label: string,
+): string => {
+  const scaled = (factor: number) =>
+    `#${rgb.map((value) => toHex(value * factor)).join('')}`;
+  const passes = (factor: number) =>
+    (getContrastRatio(label, scaled(factor)) ?? 0) >= MIN_LABEL_CONTRAST;
+  let low = 0;
+  let high = 1;
+  for (let step = 0; step < 16; step++) {
+    const middle = (low + high) / 2;
+    if (passes(middle)) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+  return scaled(low);
+};
+
+/**
+ * The fill and label colors of a Team-filled quote button. The Team color stays
+ * the fill when a label can sit on it: the light label when it reaches 4.5:1,
+ * otherwise the dark one. When neither does (a narrow band of mid tones), the
+ * fill is darkened just enough for the light label. A fill whose contrast
+ * cannot be measured keeps the light label.
+ */
+export const getReadableQuoteColors = (
+  fill: string,
+  { light, dark }: { light: string; dark: string },
+): { fill: string; label: string } => {
+  const rgb = parseHex(fill);
+  const lightRatio = getContrastRatio(light, fill);
+  if (!rgb || lightRatio === undefined || lightRatio >= MIN_LABEL_CONTRAST) {
+    return { fill, label: light };
+  }
+  if ((getContrastRatio(dark, fill) ?? 0) >= MIN_LABEL_CONTRAST) {
+    return { fill, label: dark };
+  }
+  return { fill: darkenUntilReadable(rgb, light), label: light };
 };
 
 /**
