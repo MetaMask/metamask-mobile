@@ -10070,6 +10070,7 @@
       "no_account": "No Money account found for this wallet.",
       "address_title": "Money account address",
       "copy": "Copy {{label}}",
+      "copied": "{{label}} copied",
       "not_available": "Not available",
       "flag_not_set": "Not set in remote flags",
       "debug_title": "Debug info",

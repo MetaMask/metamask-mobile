@@ -4,7 +4,9 @@ import { renderMoneyAccountStatusView } from '../../../../../../tests/component-
 import { MONEY_ACCOUNT_ADDRESS } from '../../../../../../tests/component-view/presets/money';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { MoneyAccountStatusViewTestIds } from './MoneyAccountStatusView.testIds';
-import { act, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
+import ClipboardManager from '../../../../../core/ClipboardManager';
 import Engine from '../../../../../core/Engine';
 
 const mockMessengerCall = Engine.controllerMessenger.call as jest.Mock;
@@ -184,6 +186,30 @@ describeForPlatforms('MoneyAccountStatusView', () => {
         getByTestId(MoneyAccountStatusViewTestIds.LOCAL_RECORD_ROW),
       ).getByText('Missing'),
     ).toBeOnTheScreen();
+  });
+
+  it('announces a copy and relabels the copy button as copied', async () => {
+    mockChompResponses();
+    const clipboardSpy = jest
+      .spyOn(ClipboardManager, 'setString')
+      .mockResolvedValue(undefined);
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const { findByTestId, getByLabelText } = renderMoneyAccountStatusView();
+    const copyButton = await findByTestId(
+      MoneyAccountStatusViewTestIds.COPY_ADDRESS_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(copyButton);
+    });
+
+    expect(clipboardSpy).toHaveBeenCalledWith(MONEY_ACCOUNT_ADDRESS);
+    expect(announceSpy).toHaveBeenCalledWith('Money account address copied');
+    expect(getByLabelText('Money account address copied')).toBeOnTheScreen();
+    clipboardSpy.mockRestore();
+    announceSpy.mockRestore();
   });
 
   it('shows placeholders without copy buttons when the profile lookup fails and the CHOMP flag is unset', async () => {

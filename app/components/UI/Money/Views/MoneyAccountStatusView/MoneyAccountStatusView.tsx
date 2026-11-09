@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -96,6 +96,8 @@ const SignalRow = ({
   />
 );
 
+const COPIED_FEEDBACK_DURATION_MS = 2000;
+
 const CopyableValueRow = ({
   label,
   value,
@@ -109,11 +111,26 @@ const CopyableValueRow = ({
   testID: string;
   copyButtonTestID: string;
 }) => {
+  const [copied, setCopied] = useState(false);
+  const resetTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => () => clearTimeout(resetTimeout.current), []);
+
   const handleCopy = useCallback(async () => {
-    if (value) {
-      await ClipboardManager.setString(value);
+    if (!value) {
+      return;
     }
-  }, [value]);
+    await ClipboardManager.setString(value);
+    AccessibilityInfo.announceForAccessibility(
+      strings('money.account_status.copied', { label }),
+    );
+    setCopied(true);
+    clearTimeout(resetTimeout.current);
+    resetTimeout.current = setTimeout(
+      () => setCopied(false),
+      COPIED_FEEDBACK_DURATION_MS,
+    );
+  }, [label, value]);
 
   return (
     <Box gap={1}>
@@ -138,12 +155,15 @@ const CopyableValueRow = ({
         {value && (
           <ButtonIcon
             testID={copyButtonTestID}
-            iconName={IconName.Copy}
+            iconName={copied ? IconName.Check : IconName.Copy}
             size={ButtonIconSize.Md}
             onPress={handleCopy}
-            accessibilityLabel={strings('money.account_status.copy', {
-              label,
-            })}
+            accessibilityLabel={strings(
+              copied
+                ? 'money.account_status.copied'
+                : 'money.account_status.copy',
+              { label },
+            )}
           />
         )}
       </Box>
