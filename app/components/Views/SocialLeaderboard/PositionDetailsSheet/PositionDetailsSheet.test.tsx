@@ -974,6 +974,44 @@ describe('PositionDetailsSheet', () => {
   });
 
   describe('footer', () => {
+    it.each([
+      ['profile id', { profileId: 'trader-1' }],
+      [
+        'linked address',
+        { profileId: 'other', linkedAccountAddress: '0xtrader' },
+      ],
+    ])(
+      'hides copy trade on the viewer’s own open position (by %s)',
+      (_label, profile) => {
+        mockProfile = profile;
+
+        render(<PositionDetailsSheet />);
+
+        expect(
+          screen.queryByTestId(
+            PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+          ),
+        ).toBeNull();
+      },
+    );
+
+    it('keeps Long and Short on the viewer’s own closed perp', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
     it('copies an open perp with the trader’s side and leverage', () => {
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData();
