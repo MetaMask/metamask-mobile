@@ -32,6 +32,8 @@ export function exploreUrl(rule, { start, end }) {
   const params = new URLSearchParams({
     query: rule.query,
     project: rule.projectId,
+    // The page's environment filter, separate from the query's `environment:production`.
+    environment: 'production',
     aggregateField: JSON.stringify({ yAxes: [COUNT_FIELD, P90_FIELD] }),
     mode: 'aggregate',
     start: start.toISOString().slice(0, 19),
