@@ -26,7 +26,9 @@ type SocialShareLinkMode = 'long' | 'branch-short';
  * Use long links while Branch short links keep the account's default image.
  * Change this to `branch-short` once per-link images work through the SDK.
  */
-export const SOCIAL_SHARE_LINK_MODE: SocialShareLinkMode = 'long';
+// Asserted, not annotated: an annotated `const` narrows to `'long'`, and tsc
+// then rejects the `'branch-short'` comparison as having no overlap.
+export const SOCIAL_SHARE_LINK_MODE = 'long' as SocialShareLinkMode;
 
 /**
  * A later share replaces an in-flight one. An older card or link result must
