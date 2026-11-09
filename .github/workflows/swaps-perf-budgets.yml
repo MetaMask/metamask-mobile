@@ -6,6 +6,8 @@
 name: Swaps Performance Budgets
 
 on:
+  push:
+    branches: [swaps-perf-budgets-daily-check]
   schedule:
     - cron: '0 5 * * *'
   workflow_dispatch:
