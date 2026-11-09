@@ -1,19 +1,9 @@
 #!/usr/bin/env bash
 # Verifies ci.yml's "Check all jobs pass" check run succeeded on RELEASE_SHA.
 # Counterpart of metamask-extension/.github/scripts/verify-ci-checks.sh.
-# Re-runs leave earlier check runs on the SHA, and filter=latest drops cancelled
-# runs, so the latest started_at must have succeeded.
-# Required env: GITHUB_TOKEN, GITHUB_REPOSITORY, RELEASE_SHA
-# Optional env: SKIP_CI_GATE_REASON — written reason; skips the gate when set.
+# Latest started_at wins: re-runs leave earlier runs, and filter=latest drops cancelled ones.
 
 set -euo pipefail
-
-for var in GITHUB_TOKEN GITHUB_REPOSITORY RELEASE_SHA; do
-  if [[ -z "${!var:-}" ]]; then
-    echo "::error::${var} not provided."
-    exit 1
-  fi
-done
 
 if [[ -n "${SKIP_CI_GATE_REASON:-}" ]]; then
   if [[ ! "${SKIP_CI_GATE_REASON}" =~ [^[:space:]] ]]; then
