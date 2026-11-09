@@ -41,11 +41,6 @@ on:
           - unofficial
           - nightly
         default: unofficial
-      skip_ci_gate:
-        description: 'Production only. Written reason to publish without a green "Check all jobs pass". Empty keeps the gate. Release approval is still required.'
-        required: false
-        type: string
-        default: ''
 
   workflow_call:
     inputs:
@@ -79,11 +74,6 @@ on:
         type: string
         required: false
         default: ''
-      skip_ci_gate:
-        description: 'Written reason to skip the CI gate. Release approval is still required.'
-        type: string
-        required: false
-        default: ''
 
 permissions:
   contents: read
@@ -102,6 +92,7 @@ jobs:
     outputs:
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
       commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
+      skip_ci_gate: ${{ steps.resolve-pr.outputs.skip_ci_gate }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -448,6 +439,7 @@ jobs:
     permissions:
       contents: read
       checks: read # verify-ci-check-run.sh reads the ci.yml aggregate check run
+      issues: read # who added the skip-ci-gate label
       id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
@@ -462,7 +454,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
-          SKIP_CI_GATE_REASON: ${{ inputs.skip_ci_gate }}
+          PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+          SKIP_CI_GATE: ${{ needs.validate-pr.outputs.skip_ci_gate }}
         run: .github/scripts/verify-ci-check-run.sh
 
       - name: Get token

@@ -19,11 +19,6 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
-      skip_ci_gate:
-        description: 'Written reason to skip the CI gate. Release approval is still required.'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -59,6 +54,7 @@ jobs:
     permissions:
       contents: read
       checks: read # push-eas-update.yml approval job reads the CI check run
+      issues: read # approval job reads who added skip-ci-gate
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
@@ -67,5 +63,4 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: production
       platform: all
-      skip_ci_gate: ${{ inputs.skip_ci_gate }}
     secrets: inherit

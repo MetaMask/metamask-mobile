@@ -49,6 +49,7 @@ pr_details=$(api_call "/pulls/${PR_NUMBER}")
 if echo "$pr_details" | jq -e '.id' > /dev/null 2>&1; then
   pr_head_sha=$(echo "$pr_details" | jq -r '.head.sha')
   pr_state=$(echo "$pr_details" | jq -r '.state')
+  skip_ci_gate=$(echo "$pr_details" | jq -r 'if any(.labels[]?; .name == "skip-ci-gate") then "true" else "false" end')
 
   echo "  PR head SHA: ${pr_head_sha}" >&2
   echo "  PR state: ${pr_state}" >&2
@@ -61,5 +62,6 @@ echo "✅ Resolved PR #${PR_NUMBER} HEAD commit: ${pr_head_sha}" >&2
 {
   echo "pr_number=${PR_NUMBER}"
   echo "commit_sha=${pr_head_sha}"
+  echo "skip_ci_gate=${skip_ci_gate}"
 } >> "$GITHUB_OUTPUT"
 exit 0

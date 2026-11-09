@@ -5,16 +5,15 @@
 
 set -euo pipefail
 
-if [[ -n "${SKIP_CI_GATE_REASON:-}" ]]; then
-  if [[ ! "${SKIP_CI_GATE_REASON}" =~ [^[:space:]] ]]; then
-    echo "::error::skip_ci_gate requires a written reason."
-    exit 1
-  fi
+if [[ "${SKIP_CI_GATE:-}" == "true" ]]; then
+  actor=$(gh api "/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/events?per_page=100" \
+    --jq '[.[] | select(.event == "labeled" and .label.name == "skip-ci-gate")] | last | .actor.login // "unknown"' \
+    || true)
   {
     echo "### CI gate skipped"
     echo ""
-    printf 'SHA: %s\n\n' "${RELEASE_SHA}"
-    printf 'Reason: %s\n' "${SKIP_CI_GATE_REASON}"
+    printf 'PR: https://github.com/%s/pull/%s\n\n' "${GITHUB_REPOSITORY}" "${PR_NUMBER}"
+    printf 'Label skip-ci-gate added by %s\n' "${actor:-unknown}"
   } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
   exit 0
 fi

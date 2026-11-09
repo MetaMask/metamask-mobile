@@ -55,6 +55,7 @@ jobs:
     permissions:
       contents: read
       checks: read # push-eas-update.yml approval job reads the CI check run
+      issues: read # called workflow approval job reads issue events
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
