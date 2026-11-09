@@ -326,7 +326,7 @@ describe('Predict boundary fence', () => {
     ],
     [
       'burn-down non-Views file',
-      'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
+      'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
     ],
     ['burn-down test support', 'app/selectors/featureFlagController/mocks.ts'],
     ['composition file', 'app/core/Engine/types.ts'],

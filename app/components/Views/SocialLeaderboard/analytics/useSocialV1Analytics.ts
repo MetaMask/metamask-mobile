@@ -3,6 +3,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { SOCIAL_TERMS_VERSION } from '../terms/socialTermsAcceptance';
 import {
   getSocialReactionType,
   SocialEvent,
@@ -71,13 +72,28 @@ const useBoundSocialInteraction = (
       if (!enabled) {
         return;
       }
+      const detailProperties: SocialInteractionDetails =
+        typeof details === 'string'
+          ? { outcome: details }
+          : { ...(details ?? {}) };
+      const shareDestination =
+        interaction_type === Interaction.POST_SHARED
+          ? detailProperties.share_destination
+          : undefined;
+      delete detailProperties.share_destination;
+      delete detailProperties.terms_version;
+      const resolvedStep = detailProperties.step ?? step;
       trackInteraction({
         interaction_type,
         screen_name,
         ...(tab_name ? { tab_name } : {}),
         ...(source ? { source } : {}),
-        ...(step ? { step } : {}),
-        ...(typeof details === 'string' ? { outcome: details } : details),
+        ...(resolvedStep ? { step: resolvedStep } : {}),
+        ...detailProperties,
+        ...(resolvedStep === SocialEvent.Step.TERMS
+          ? { terms_version: SOCIAL_TERMS_VERSION }
+          : {}),
+        ...(shareDestination ? { share_destination: shareDestination } : {}),
       });
     },
     [enabled, screen_name, source, step, tab_name, trackInteraction],
