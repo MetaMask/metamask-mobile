@@ -3816,7 +3816,9 @@
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
       "market_layout": {
+        "markets": "Markets",
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Total points",
@@ -10618,7 +10620,7 @@
       "date_created": "Date created",
       "order_type": "Order type",
       "order_type_limit": "Limit",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
