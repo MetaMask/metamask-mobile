@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
-///: END:ONLY_INCLUDE_IF
 import {
   AppState,
   AppStateStatus,
@@ -102,6 +99,7 @@ import {
   EngineState,
   EngineContext,
   getRootExtendedMessenger,
+  MessengerClientInitFunctionsByMessengerClientName,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -169,7 +167,6 @@ import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-se
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -205,6 +202,19 @@ import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
+
+/**
+ * Initializes the `SamplePetnamesController`. Only enabled when bundled with
+ * `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in; no build in builds.yml sets it); otherwise this is a no-op so
+ * `@metamask/sample-controllers` and `app/features/SampleFeature/` are
+ * dead-code-eliminated out of production bundles.
+ */
+const samplePetnamesControllerInit: MessengerClientInitFunctionsByMessengerClientName['SamplePetnamesController'] =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps sample feature dev tooling out of prod bundles
+      require('../../features/SampleFeature/controllers/sample-petnames-controller-init')
+        .samplePetnamesControllerInit
+    : () => ({ controller: undefined });
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -295,6 +305,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -363,9 +374,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
@@ -388,7 +397,6 @@ export class Engine {
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
-        AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         NeoBankService: neoBankServiceInit,
@@ -416,7 +424,7 @@ export class Engine {
       ...initRequest,
     });
 
-    const analyticsController = messengerClientsByName.AnalyticsController;
+    const analyticsController = this.#wallet.getInstance('AnalyticsController');
     const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
@@ -664,9 +672,12 @@ export class Engine {
       DeFiPositionsControllerV2:
         messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely unless INCLUDE_SAMPLE_FEATURE=true, so code iterating
+      // the context never sees an `undefined` controller.
+      ...(messengerClientsByName.SamplePetnamesController && {
+        SamplePetnamesController:
+          messengerClientsByName.SamplePetnamesController,
+      }),
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -1565,9 +1576,7 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTreeController,
       AddressBookController,
@@ -1642,9 +1651,12 @@ export default {
     } = instance.context;
 
     return {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: SamplePetnamesController.state,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely (rather than set to `undefined`) unless
+      // INCLUDE_SAMPLE_FEATURE=true, so consumers can rely on `in`/property
+      // presence checks matching production, where the controller never exists.
+      ...(SamplePetnamesController && {
+        SamplePetnamesController: SamplePetnamesController.state,
+      }),
       AccountsController: AccountsController.state,
       AccountTreeController: AccountTreeController.state,
       AddressBookController: AddressBookController.state,

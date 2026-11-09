@@ -200,6 +200,31 @@ describe('createGameCardProjection', () => {
 
     const result = createGameCardProjection(event, game);
 
-    expect(result.awayProbabilityPercent).toBeUndefined();
+    expect(result.firstTeamProbabilityPercent).toBeUndefined();
+  });
+
+  it('projects the away Team first when the Game sends no Team order', () => {
+    const event = createEvent([
+      createMarket('away', 'away', '0.25'),
+      createMarket('home', 'home', '0.75'),
+    ]);
+
+    const result = createGameCardProjection(event, game);
+
+    expect(result.teamOrder).toEqual(['away', 'home']);
+    expect(result.firstTeamProbabilityPercent).toBe(25);
+  });
+
+  it('projects the home Team first for a home_first Game', () => {
+    const homeFirstGame: PredictGame = { ...game, teamOrder: 'home_first' };
+    const event = createEvent([
+      createMarket('away', 'away', '0.25'),
+      createMarket('home', 'home', '0.75'),
+    ]);
+
+    const result = createGameCardProjection(event, homeFirstGame);
+
+    expect(result.teamOrder).toEqual(['home', 'away']);
+    expect(result.firstTeamProbabilityPercent).toBe(75);
   });
 });

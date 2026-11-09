@@ -14,6 +14,10 @@ import type {
 import { initialState as pointsRewardsInitialState } from '../../../app/reducers/rewards';
 import { initialState as rewardsMoneyInitialState } from '../../../app/reducers/rewardsMoney';
 import type { MoneyDashboardPersona } from '../../../app/reducers/rewardsMoney/selectors';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/constants/socialV1';
 import { createStateFixture } from '../stateFixture';
 
 export const REWARDS_MONEY_PROFILE_ID = 'profile-a';
@@ -94,6 +98,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   funnelFeeGenerating: 'Fee-generating referrals',
   funnelFeeGeneratingDescription: 'Referrals that generated fees',
   tradingCommissionsSection: 'Trading commissions',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
+  copyTradingInfoDescription:
+    'Earn 15% from fees when someone copies your trade.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -146,6 +155,49 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
     'Have a referral code? Enter it below and you will be linked.',
   settingsReferralPlaceholder: 'Enter referral code',
   settingsReferralApply: 'Apply',
+  taxAttestationTitle: 'Confirm your tax status',
+  taxAttestationDescription:
+    'Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxRenewalAttestationDescription:
+    'Your answer is about to expire. Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxAttestationExpiredDescription:
+    'Your answer has expired. Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxUsActivityTitle: 'Confirm your US activity',
+  taxUsActivityDescription: 'Did you perform any of this activity in the US?',
+  taxAnswerYes: 'Yes',
+  taxAnswerNo: 'No',
+  taxOpenFormTitle: 'Tax form required to claim',
+  taxFormRequiredDescription:
+    'US law requires a tax form before you can claim these rewards. Complete it through our partner to continue.',
+  taxFormFixDescription:
+    'Your tax form needs attention before you can claim these rewards. Refile it through our partner to continue.',
+  taxFormUnsupportedDescription:
+    "The tax form on file can't be used to claim these rewards. Complete a new one through our partner to continue.",
+  taxTinMismatchDescription:
+    "The tax number on your form didn't match our records. Correct it through our partner to continue.",
+  taxFormExpiredDescription:
+    'Your tax form has expired. US law requires a current one before you can claim these rewards. Renew it through our partner to continue.',
+  taxRenewalFormDescription:
+    'Your tax form is about to expire. Renew it through our partner to keep claiming without interruption.',
+  taxOpenFormButton: 'Continue',
+  taxNotNowButton: 'Not now',
+  taxChangeAnswerButton: 'Change my answer',
+  taxContactUsTitle: 'Contact us',
+  taxUsActivityBlockedDescription:
+    'We need to review your account before you can claim these rewards. Contact us to get started.',
+  taxContactSupportButton: 'Contact support',
+  taxFormPendingTitle: 'Pending review',
+  taxFormPendingDescription:
+    'Your tax information is being reviewed. You can claim your mUSD once the review is complete.',
+  taxDeterminationTitle: 'Tax determination needed',
+  taxDeterminationDescription:
+    "We can't determine your tax status right now. Your earnings stay in your balance.",
+  taxAnswerSavedToast: 'Your answer was saved.',
+  taxNotNeededToast: 'No tax information is needed right now.',
+  taxFormRateLimitedToast:
+    'You can open the tax form again in {minutes} minutes.',
+  taxErrorToast: 'Something went wrong. Your earnings stay in your balance.',
+  taxFormUrl: 'https://tax-form.test/form',
 };
 
 /**
@@ -183,6 +235,8 @@ export interface EarningsSummaryFixtureOptions {
   cashbackBlocked?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
+  /** Follow-trade claimable base units. Omitted leaves that family out. */
+  followTradeClaimable?: string;
 }
 
 /** Unwindowed summary. Cashback claimable is what `canClaimEarnings` reads. */
@@ -192,6 +246,7 @@ export function earningsSummaryFixture(
   const claimable = options.claimable ?? '0';
   const cashbackClaimable = options.cashbackClaimable ?? claimable;
   const revShareLifetime = options.revShareLifetime ?? '0';
+  const followTradeClaimable = options.followTradeClaimable;
 
   return {
     lifetime_total: options.lifetimeTotal ?? '58500000',
@@ -225,6 +280,13 @@ export function earningsSummaryFixture(
       ...totals(revShareLifetime),
       by_claim_family: {
         REFERRAL_REV_SHARE: totals(revShareLifetime),
+        ...(followTradeClaimable === undefined
+          ? {}
+          : {
+              SOCIAL_FOLLOW_TRADE: totals(followTradeClaimable, {
+                claimable: followTradeClaimable,
+              }),
+            }),
       },
     },
   };
@@ -455,6 +517,23 @@ export interface RewardsMoneyViewStateOptions {
   geoLocation?: string | null;
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
+  /** Session-only deeplink state for the invite-sheet lifecycle. */
+  pendingReferralCode?: string | null;
+  answeredReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
+  /** Remote `glassHeaders`: the header floats over the content on glass. */
+  glassHeaders?: boolean;
+  /**
+   * Social V1 on: the leaderboard flag and the A/B treatment that gate trading
+   * commissions on the hero cards, the Earnings breakdown and the Performance
+   * tab. Defaults on, so the Money screens show commissions as they always did.
+   */
+  socialV1?: boolean;
+  /**
+   * A saved support preference, so Contact support opens the WebView without
+   * the consent sheet.
+   */
+  supportPreferenceSaved?: boolean;
   /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
@@ -480,6 +559,12 @@ export function rewardsMoneyViewState({
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
+  pendingReferralCode = null,
+  answeredReferralCode = null,
+  isReferralLinkPending = false,
+  glassHeaders = false,
+  socialV1 = true,
+  supportPreferenceSaved = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeOverride ?? referralMeFixture(persona);
@@ -502,6 +587,19 @@ export function rewardsMoneyViewState({
       minimumVersion: '1.0.0',
     };
   }
+  if (glassHeaders) {
+    remoteFeatureFlags.glassHeaders = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+  }
+  if (socialV1) {
+    remoteFeatureFlags.aiSocialLeaderboardEnabled = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+    remoteFeatureFlags[SOCIAL_V1_AB_KEY] = SocialV1Variant.Treatment;
+  }
 
   return createStateFixture()
     .withMinimalAccounts()
@@ -516,6 +614,14 @@ export function rewardsMoneyViewState({
         candidateSubscriptionId: subscriptionId,
         geoLocation,
       },
+      ...(supportPreferenceSaved
+        ? {
+            security: {
+              shouldShowConsentSheet: false,
+              dataSharingPreference: false,
+            },
+          }
+        : {}),
       rewardsMoney: {
         ...rewardsMoneyInitialState,
         referralMe: {
@@ -528,6 +634,9 @@ export function rewardsMoneyViewState({
             data: summary,
           },
         },
+        pendingReferralCode,
+        answeredReferralCode,
+        isReferralLinkPending,
       },
       engine: {
         backgroundState: {

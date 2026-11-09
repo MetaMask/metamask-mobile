@@ -3,30 +3,9 @@ import { InteractionManager } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import NotificationService, {
-  isPushPermissionGranted,
-  isPushPermissionPromptable,
-  requestPushPermissions,
-} from '../../../../util/notifications/services/NotificationService';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
 import type { FeatureNotificationsGateFeature } from './featureNotificationsGateConfig';
-
-/**
- * When the feature push channel is on but the OS has not granted push, prompt
- * the user: OS dialog if still promptable, otherwise the Settings alert.
- */
-async function promptOsPushPermissionIfNeeded(): Promise<void> {
-  if (await isPushPermissionGranted()) {
-    return;
-  }
-
-  if (await isPushPermissionPromptable()) {
-    await requestPushPermissions();
-    return;
-  }
-
-  await NotificationService.requestPushNotificationsPermission();
-}
+import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
 
 interface FeatureNotificationsGateStatus {
   isFeatureBlocked: boolean;
