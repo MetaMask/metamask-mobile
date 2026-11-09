@@ -6,10 +6,12 @@
 import {
   mapApiTransaction,
   mapKeyringTransaction,
+  mapV5ApiTransaction,
 } from '@metamask/client-utils';
 import {
   type V1TransactionByHashResponse,
-  type V4MultiAccountTransactionsResponse,
+  type V5MultiAccountTransactionsResponse,
+  type V5TransactionRecord,
 } from '@metamask/core-backend';
 import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
@@ -23,6 +25,10 @@ import {
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
+import {
+  getPooledStakingFieldsFromV5Transaction,
+  shouldSkipV5Transaction,
+} from './v5-transaction-filters';
 
 export type { ActivityListItem };
 
@@ -95,23 +101,27 @@ export function shouldSkipTransaction(
   return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
 }
 
-function transformApiTransactions(
+function transformV5ApiTransactions(
   address: string,
-  transactions: V1TransactionByHashResponse[],
+  transactions: V5TransactionRecord[],
   excludedTxHashes?: Set<string>,
 ): ActivityListItem[] {
   const items: ActivityListItem[] = [];
   const subjectAddress = address.toLowerCase();
 
-  for (const tx of transactions) {
-    if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
+  for (const transaction of transactions) {
+    if (shouldSkipV5Transaction(subjectAddress, transaction, excludedTxHashes)) {
       continue;
     }
-    const activity = mapApiTransaction({
-      subjectAddress,
-      transaction: tx,
+    const activity = mapV5ApiTransaction({
+      transaction,
     }) as ActivityListItem;
-    items.push(classifyPooledStakingActivity(tx, activity));
+    items.push(
+      classifyPooledStakingActivity(
+        getPooledStakingFieldsFromV5Transaction(transaction),
+        activity,
+      ),
+    );
   }
 
   return items;
@@ -124,11 +134,11 @@ export function selectApiEvmTransactions({
   address: string;
   excludedTxHashes?: Set<string>;
 }) {
-  return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
+  return (data: InfiniteData<V5MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformApiTransactions(address, page.data, excludedTxHashes),
+      data: transformV5ApiTransactions(address, page.data, excludedTxHashes),
     })),
   });
 }

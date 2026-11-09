@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { mapApiTransaction } from '@metamask/client-utils';
+import { mapApiTransaction, mapV5ApiTransaction } from '@metamask/client-utils';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
@@ -26,6 +26,10 @@ import {
   mapNonEvmTransactions,
   shouldSkipUnrelatedTransaction,
 } from '../../ActivityList/helpers/transformations';
+import {
+  getPooledStakingFieldsFromV5Transaction,
+  shouldSkipUnrelatedV5Transaction,
+} from '../../ActivityList/helpers/v5-transaction-filters';
 /* eslint-enable import-x/no-restricted-paths */
 import {
   findBridgeHistoryItemBySrcTxHash,
@@ -200,6 +204,33 @@ export function useActivityDetailsItem(
     // inbound-transfer filtering is deliberately not applied here: this request
     // always includes value transfers, so it would drop genuine receives.
     const subjectAddress = evmAddress.toLowerCase();
+
+    if ('tx' in apiTransaction) {
+      if (
+        shouldSkipUnrelatedV5Transaction(
+          subjectAddress,
+          apiTransaction,
+          excludedTxHashes,
+        )
+      ) {
+        return undefined;
+      }
+
+      const activity = mapV5ApiTransaction({
+        transaction: apiTransaction,
+      }) as ActivityListItem;
+      const classified = classifyPooledStakingActivity(
+        getPooledStakingFieldsFromV5Transaction(apiTransaction),
+        activity,
+      );
+
+      if (chainId && classified.chainId !== chainId) {
+        return undefined;
+      }
+
+      return classified;
+    }
+
     if (
       shouldSkipUnrelatedTransaction(
         subjectAddress,

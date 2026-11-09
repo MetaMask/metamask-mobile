@@ -1,6 +1,7 @@
 import type {
   V1TransactionByHashResponse,
-  V4MultiAccountTransactionsResponse,
+  V5MultiAccountTransactionsResponse,
+  V5TransactionRecord,
 } from '@metamask/core-backend';
 import {
   TransactionStatus as KeyringTransactionStatus,
@@ -42,9 +43,38 @@ const buildTransaction = (
     ...overrides,
   }) as unknown as V1TransactionByHashResponse;
 
-const buildData = (
-  transactions: V1TransactionByHashResponse[],
-): InfiniteData<V4MultiAccountTransactionsResponse> =>
+const buildV5Transaction = (
+  overrides: {
+    id?: string;
+    from?: string;
+    to?: string | null;
+    value?: string;
+    methodId?: string | null;
+    valueTransfers?: V5TransactionRecord['valueTransfers'];
+  } = {},
+): V5TransactionRecord => ({
+  accountId: `eip155:59144:${address}`,
+  tx: {
+    id: overrides.id ?? '0xhash',
+    chainId: 'eip155:59144',
+    status: 'confirmed',
+    timestamp: 1778593067000,
+    date: '2026-05-12T13:37:47.000Z',
+    from: overrides.from ?? address,
+    to: overrides.to ?? otherAddress,
+    blockNumber: '1',
+    blockHash: '0xblock',
+    value: overrides.value ?? '0',
+    methodId: overrides.methodId,
+    transactionCategory: 'TRANSFER',
+  },
+  valueTransfers: overrides.valueTransfers ?? [],
+  fee: null,
+});
+
+const buildV5Data = (
+  transactions: V5TransactionRecord[],
+): InfiniteData<V5MultiAccountTransactionsResponse> =>
   ({
     pages: [
       {
@@ -54,11 +84,11 @@ const buildData = (
           endCursor: 'next',
           hasNextPage: true,
         },
-        unprocessedNetworks: [],
-      } as V4MultiAccountTransactionsResponse,
+        unprocessedAccounts: [],
+      } as V5MultiAccountTransactionsResponse,
     ],
     pageParams: [undefined],
-  }) as InfiniteData<V4MultiAccountTransactionsResponse>;
+  }) as InfiniteData<V5MultiAccountTransactionsResponse>;
 
 describe('ActivityList transformations', () => {
   describe('shouldSkipTransaction', () => {
@@ -214,14 +244,14 @@ describe('ActivityList transformations', () => {
   });
 
   it('selects API EVM transactions while preserving the infinite-query shape', () => {
-    const tx = buildTransaction({ hash: '0xkept' });
-    const skipped = buildTransaction({ hash: '0xskipped' });
+    const tx = buildV5Transaction({ id: '0xkept', value: '1' });
+    const skipped = buildV5Transaction({ id: '0xskipped', value: '1' });
     const select = selectApiEvmTransactions({
       address,
       excludedTxHashes: new Set(['0xskipped']),
     });
 
-    const result = select(buildData([tx, skipped]));
+    const result = select(buildV5Data([tx, skipped]));
 
     expect(result.pages[0].pageInfo.endCursor).toBe('next');
     expect(result.pages[0].data).toHaveLength(1);
@@ -321,54 +351,54 @@ describe('ActivityList transformations', () => {
 
   describe('selectApiEvmTransactions', () => {
     it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
-      const outgoingTokenTransfer = buildTransaction({
-        hash: '0xoutgoing-token',
+      const outgoingTokenTransfer = buildV5Transaction({
+        id: '0xoutgoing-token',
         from: otherAddress,
         to: otherAddress,
         valueTransfers: [
           {
-            amount: '1',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 18,
+            assetClass: 'ft',
             from: address,
-            symbol: 'aUSDC',
             to: otherAddress,
-            transferType: 'ERC20',
+            assetId: 'eip155:59144/erc20:0x3333333333333333333333333333333333333333',
+            amount: '1',
+            decimal: 18,
+            symbol: 'aUSDC',
           },
         ],
-      } as Partial<V1TransactionByHashResponse>);
+      });
 
       const result = selectApiEvmTransactions({ address })(
-        buildData([outgoingTokenTransfer]),
+        buildV5Data([outgoingTokenTransfer]),
       );
 
       expect(result.pages[0].data).toHaveLength(0);
     });
 
     it('classifies pooled-staking calls instead of leaving them as contract interactions', () => {
-      const stakeDeposit = buildTransaction({
-        hash: '0xstake',
-        to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-        chainId: 1,
+      const pool = '0x4fef9d741011476750a243ac70b9789a63dd47df';
+      const stakeDeposit = buildV5Transaction({
+        id: '0xstake',
+        to: pool,
         methodId: '0xf9609f08',
-        transactionCategory: 'CONTRACT_CALL',
         value: '1000000000000000000',
         valueTransfers: [
           {
-            amount: '1000000000000000000',
-            contractAddress: '',
-            decimal: 18,
+            assetClass: 'ft',
             from: address,
-            name: 'Ether',
+            to: pool,
+            assetId: 'eip155:1/slip44:60',
+            amount: '1000000000000000000',
+            decimal: 18,
             symbol: 'ETH',
-            to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
-            transferType: 'normal',
           },
         ],
       });
+      stakeDeposit.tx.chainId = 'eip155:1';
+      stakeDeposit.accountId = `eip155:1:${address}`;
 
       const result = selectApiEvmTransactions({ address })(
-        buildData([stakeDeposit]),
+        buildV5Data([stakeDeposit]),
       );
 
       expect(result.pages[0].data[0]).toMatchObject({

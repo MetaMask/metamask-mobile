@@ -22,13 +22,17 @@ export const useTransactionsQuery = () => {
   // Predict enabling Polygon) never collapses the Activity feed to one network.
   const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
-  const accountAddresses = evmAddress
-    ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
-    : [];
+  const accountIds = useMemo(
+    () =>
+      evmAddress
+        ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
+        : [],
+    [evmAddress],
+  );
 
   const queryOptions =
-    apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions({
-      accountAddresses,
+    apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions({
+      accountIds,
       networks,
       includeTxMetadata: true,
     });
@@ -38,11 +42,10 @@ export const useTransactionsQuery = () => {
     [evmAddress, excludedTxHashes],
   );
 
-  // @ts-expect-error apiClient returns v5 types, repo still in v4
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
-    enabled: accountAddresses.length > 0 && networks.length > 0,
+    enabled: accountIds.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });

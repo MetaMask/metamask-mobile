@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { InfiniteData } from '@tanstack/react-query';
-import type { V4MultiAccountTransactionsResponse } from '@metamask/core-backend';
+import type { V5MultiAccountTransactionsResponse } from '@metamask/core-backend';
 import {
   activityQueryKey,
   useCachedEvmTransaction,
@@ -34,15 +34,17 @@ describe('useCachedEvmTransaction', () => {
 
   it('returns a cached transaction from the activity list query cache', () => {
     const transaction = {
-      chainId: 1,
-      hash: '0xABC',
+      tx: {
+        chainId: 'eip155:1',
+        id: '0xABC',
+      },
     };
     mockGetQueriesData.mockReturnValue([
       [
-        ['accounts', 'transactions', 'v4MultiAccount'],
+        ['accounts', 'transactions', 'v5MultiAccount'],
         {
           pages: [{ data: [transaction] }],
-        } as InfiniteData<V4MultiAccountTransactionsResponse>,
+        } as InfiniteData<V5MultiAccountTransactionsResponse>,
       ],
     ]);
 
