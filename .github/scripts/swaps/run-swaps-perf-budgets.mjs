@@ -1,15 +1,8 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * GitHub Actions entrypoint for swaps-perf-budgets.mjs.
- *
- * Environment:
- *   SWAPS_SENTRY_TOKEN           required; read-only (org:read) Sentry token
- *   SWAPS_PERF_SLACK_WEBHOOK     required unless DRY_RUN=true
- *   DRY_RUN                      `true` logs the Slack message instead
- *   SENTRY_API_BASE, GITHUB_RUN_URL  optional
- *
- * Exits 1 when any Sentry query failed, after posting the other results.
+ * GitHub Actions entrypoint for swaps-perf-budgets.mjs. Exits 1 when any
+ * Sentry query failed, after posting the other results.
  */
 
 import { MIN_SAMPLES } from './swaps-perf-budgets.config.mjs';
@@ -33,7 +26,7 @@ async function main() {
 
   const { window, results, errors } = await runBudgetCheck({
     todayEnd: startOfTodayUtc(),
-    sentry: { token, apiBase: env.SENTRY_API_BASE || undefined },
+    token,
   });
   console.log(`Swaps performance budgets, ${window.label}, minimum n ${MIN_SAMPLES.toLocaleString('en-US')}`);
   for (const result of results) {

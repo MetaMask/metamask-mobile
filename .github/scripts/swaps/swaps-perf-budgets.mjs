@@ -1,21 +1,9 @@
 /**
- * Swaps performance budgets: daily check.
- *
- * For each rule in `swaps-perf-budgets.config.mjs`: p90 and sample count over
- * the last 14 complete UTC days. A rule breaches when p90 > guardrail with at
- * least MIN_SAMPLES samples and a full (not downsampled) scan. One Slack
- * message lists every breaching and every not-evaluable rule; nothing posts
- * when all rules are within their guardrail. Every rule's result is printed
- * to the console by `run-swaps-perf-budgets.mjs`.
+ * Swaps performance budgets: 14-day p90 per rule from Sentry, compared with the
+ * guardrail when n >= MIN_SAMPLES and the scan wasn't downsampled.
  */
 
-import {
-  BUDGET_RULES,
-  EXCLUDE_TIMEOUTS,
-  MIN_SAMPLES,
-  TIMEOUT_MS,
-  WINDOW_DAYS,
-} from './swaps-perf-budgets.config.mjs';
+import { BUDGET_RULES, MIN_SAMPLES, WINDOW_DAYS } from './swaps-perf-budgets.config.mjs';
 
 const SENTRY_ORG = 'metamask';
 const P90_FIELD = 'p90(span.duration)';
@@ -37,14 +25,12 @@ export function windowEndingAt(end) {
   return { start, end, label };
 }
 
-const ruleQuery = (rule) =>
-  EXCLUDE_TIMEOUTS ? `${rule.query} span.duration:<${TIMEOUT_MS}` : rule.query;
 const isoSeconds = (instant) => instant.toISOString().replace(/\.\d{3}Z$/, 'Z');
 
 /** The Explore view of the rule over the window, for Slack links. */
 export function exploreUrl(rule, { start, end }) {
   const params = new URLSearchParams({
-    query: ruleQuery(rule),
+    query: rule.query,
     project: rule.projectId,
     aggregateField: JSON.stringify({ yAxes: [COUNT_FIELD, P90_FIELD] }),
     mode: 'aggregate',
@@ -61,16 +47,16 @@ export function exploreUrl(rule, { start, end }) {
  * spans dataset. `sampling=HIGHEST_ACCURACY` asks for a full scan;
  * `meta.dataScanned` says whether it got one.
  */
-export async function measure(rule, window, { token, apiBase = 'https://sentry.io', fetchFn = fetch }) {
+export async function measure(rule, window, token) {
   const params = new URLSearchParams({ dataset: 'spans', project: rule.projectId });
   params.append('field', COUNT_FIELD);
   params.append('field', P90_FIELD);
-  params.set('query', ruleQuery(rule));
+  params.set('query', rule.query);
   params.set('start', isoSeconds(window.start));
   params.set('end', isoSeconds(window.end));
   params.set('sampling', 'HIGHEST_ACCURACY');
   params.set('per_page', '1');
-  const response = await fetchFn(`${apiBase}/api/0/organizations/${SENTRY_ORG}/events/?${params}`, {
+  const response = await fetch(`https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) {
@@ -134,13 +120,13 @@ export function buildSlackMessage(results, { runUrl = '' } = {}) {
   return lines.join('\n');
 }
 
-export async function runBudgetCheck({ todayEnd, sentry, rules = BUDGET_RULES }) {
+export async function runBudgetCheck({ todayEnd, token, rules = BUDGET_RULES }) {
   const window = windowEndingAt(todayEnd);
   const results = [];
   const errors = [];
   for (const rule of rules) {
     try {
-      const measured = await measure(rule, window, sentry);
+      const measured = await measure(rule, window, token);
       const status = budgetStatus(measured, rule.guardrailMs);
       results.push({ rule, measured, status, url: exploreUrl(rule, window) });
     } catch (error) {
