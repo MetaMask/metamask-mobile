@@ -25,7 +25,7 @@ interface UseCampaignLeaderboardEntriesParams<
   /**
    * Full-leaderboard depth. A smaller `maxEntries` still previews that many
    * rows. Defaults to 20 so campaigns that do not pass it keep the historical
-   * cap. Perps passes the backend winner count.
+   * cap. Perps passes the returned row count, floored at 20.
    */
   boardSize?: number;
 }

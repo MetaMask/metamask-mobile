@@ -327,6 +327,37 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(5);
     });
 
+    it('shows the neighbor strip when numberOfWinners is larger than the returned rows', () => {
+      const fifteenEntries = Array.from({ length: 15 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 1500 - i,
+        }),
+      );
+      const { getByTestId, queryByTestId } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={fifteenEntries}
+          numberOfWinners={30}
+          currentUserReferralCode="USER"
+          userPosition={{
+            rank: 22,
+            neighbors: [
+              createPerpsEntry({ rank: 21, referralCode: 'N021' }),
+              createPerpsEntry({ rank: 22, referralCode: 'USER' }),
+              createPerpsEntry({ rank: 23, referralCode: 'N023' }),
+            ],
+          }}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-15`)).toBeDefined();
+      expect(queryByTestId(`${TEST_IDS.ENTRY_ROW}-16`)).toBeNull();
+      expect(getByTestId(TEST_IDS.NEIGHBOR_SEPARATOR)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-22`)).toBeDefined();
+    });
+
     it('full mode shows 20 top rows when user rank is 23 (standard strip)', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsTradingCampaignLeaderboard
