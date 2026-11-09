@@ -1,4 +1,5 @@
 import '../../../../../tests/component-view/mocks';
+import type { QueryClient } from '@tanstack/react-query';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
@@ -8,6 +9,7 @@ import {
   URL_AUTOCOMPLETE_QUERY_INPUT,
 } from '../../../../../tests/component-view/renderers/urlAutocomplete';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
+import { createComponentViewQueryClient } from '../../../../../tests/component-view/render';
 import {
   clearTrendingApiMocks,
   mockTrendingTokensData,
@@ -28,8 +30,10 @@ import Engine from '../../../../core/Engine';
 import { updateBgState } from '../../../../core/redux/slices/engine';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
+import { SEARCH_RESULT_LIMIT } from '../hooks/useSearchEvents';
 import { PredictNextRoutes } from '../navigation/routes';
-import type { PredictEvent } from '../types';
+import { marketDataQueries } from '../queries/marketDataQueries';
+import type { PredictEvent, PredictVenueId } from '../types';
 import { UrlAutocompleteCategory } from '../../UrlAutocomplete/types';
 import {
   SECTION_LOADING_INDICATOR_TEST_ID,
@@ -76,8 +80,10 @@ const searchMarkets = Engine.context.PredictController
 const renderAutocomplete = (
   predictConfig: PredictConfig,
   venueSelectionPreference: PredictVenueControllerState['venueSelectionPreference'] = null,
+  queryClient?: QueryClient,
 ) =>
   renderUrlAutocompleteWithRoutes({
+    queryClient,
     overrides: {
       engine: {
         backgroundState: {
@@ -455,7 +461,8 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   });
 
   it('never shows a Kalshi answer that arrives after the Venue changed to Polymarket', async () => {
-    const view = renderAutocomplete(BOTH_VENUES, 'kalshi');
+    const queryClient = createComponentViewQueryClient();
+    const view = renderAutocomplete(BOTH_VENUES, 'kalshi', queryClient);
     // Warm the catalog and the search: Kalshi answers a first query.
     typeQuery(view, 'packers');
     await view.findByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN);
@@ -474,16 +481,30 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
       HIDDEN,
     );
 
-    // Let the late answer travel the data service and the query cache.
-    await act(async () => {
+    // The late answer reaches the query cache under Kalshi's key...
+    const lateQueryKey = marketDataQueries.searchEvents(
+      'kalshi' as PredictVenueId,
+      {
+        q: 'bitcoin',
+        limit: SEARCH_RESULT_LIMIT,
+      },
+    ).queryKey;
+    act(() => {
       answerLate({ venueId: 'kalshi', events: [IMAGED_NFL_1] });
-      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    await waitFor(() =>
+      expect(queryClient.getQueryState(lateQueryKey)?.status).toBe('success'),
+    );
+    // ...and one zero-delay flush lets any observer of that key re-render.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(polymarketRow).toBeOnTheScreen();
     expect(
       view.queryByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
     ).not.toBeOnTheScreen();
+    queryClient.clear();
   });
 
   it('drops the Kalshi results on the render the Venue changes, without searching Kalshi again', async () => {
