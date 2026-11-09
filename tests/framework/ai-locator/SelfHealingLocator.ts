@@ -12,11 +12,6 @@ export interface LocatorRecoveryContext {
   driver: Browser;
   intent: string;
   primaryError: string;
-  /**
-   * Locators that worked before the drift (e.g. from a scenario lockfile).
-   * Helps the provider recognise renamed or moved controls.
-   */
-  knownLocators?: RecoveredLocator[];
 }
 
 export interface LocatorRecoveryProvider {

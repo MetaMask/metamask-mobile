@@ -2,7 +2,7 @@
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { loadScenario } from '../../../framework/scenario';
+import { parseScenario } from '../../../framework/scenario-agent/scenario';
 
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const SCENARIO_DIR = __dirname;
@@ -62,7 +62,9 @@ describe('scenario shadow specs stay out of performance CI', () => {
     expect(scenarioFiles.length).toBeGreaterThan(0);
 
     for (const file of scenarioFiles) {
-      const { scenario } = loadScenario(path.join(SCENARIO_DIR, file));
+      const scenario = parseScenario(
+        fs.readFileSync(path.join(SCENARIO_DIR, file), 'utf8'),
+      );
       const grepTarget = `${scenario.tags.join(' ')} ${scenario.title} ${scenario.team}`;
       expect(PERFORMANCE_CONFIG_GREP.test(grepTarget)).toBe(false);
       expect(/@System/.test(grepTarget)).toBe(false);
