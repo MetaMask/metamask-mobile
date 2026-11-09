@@ -201,6 +201,14 @@ const feedReads = () =>
     .filter(([action]) => action === 'PredictMarketDataService:getFeed')
     .map(([, venueId, feedId, params]) => ({ venueId, feedId, params }));
 
+/** The section prefetches discovery's Feeds while Positions load. When that
+ * read settles before discovery mounts, the mounted slots call the service
+ * again (data-service queries are always stale) and the service answers from
+ * its own cache, so claims about what is read count distinct reads. */
+const distinctFeedReads = () => [
+  ...new Map(feedReads().map((read) => [JSON.stringify(read), read])).values(),
+];
+
 const actionCalls = (name: string) =>
   messengerCall.mock.calls.filter(([action]) => action === name);
 
@@ -219,7 +227,7 @@ const waitForDiscoveryReads = async (view: View, feedCount: number) => {
     expect(
       actionCalls('PredictMarketDataService:getVenueCatalog').length,
     ).toBeGreaterThan(0);
-    expect(feedReads()).toHaveLength(feedCount);
+    expect(distinctFeedReads()).toHaveLength(feedCount);
   });
   await act(async () => undefined);
 };
@@ -331,8 +339,8 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
 
       // Each slot's read is its own component; the order they fire in is
       // not part of the contract.
-      expect(feedReads()).toHaveLength(2);
-      expect(feedReads()).toEqual(
+      expect(distinctFeedReads()).toHaveLength(2);
+      expect(distinctFeedReads()).toEqual(
         expect.arrayContaining([
           {
             venueId: KALSHI_VENUE_ID,
@@ -407,7 +415,7 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
       ).not.toBeOnTheScreen();
-      expect(feedReads().map(({ feedId }) => feedId)).toEqual([
+      expect(distinctFeedReads().map(({ feedId }) => feedId)).toEqual([
         PREDICT_NEXT_FEED_IDS.nflGames,
       ]);
     });
