@@ -53,6 +53,7 @@ import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
+  type QuickBuyTradeMode,
 } from '../../QuickBuy';
 import {
   PostTradeShareOwner,
@@ -522,6 +523,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const [copyTrade, setCopyTrade] = useState<{
     target: QuickBuyTarget;
     copyTradeOrigin?: CopyTradeOrigin;
+    tradeMode?: QuickBuyTradeMode;
   } | null>(null);
   const handleFeedCopyTrade = useCallback(
     (item: SocialV1FeedItem, commentId?: string) => {
@@ -547,8 +549,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   );
   const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
   const handlePostTradeShareReopen = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      setCopyTrade({ target, copyTradeOrigin });
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode?: QuickBuyTradeMode,
+    ) => {
+      setCopyTrade({ target, copyTradeOrigin, tradeMode });
     },
     [],
   );
@@ -1039,7 +1045,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           target={copyTrade?.target ?? null}
           onClose={closeCopyTrade}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          initialTradeMode="buy"
+          initialTradeMode={copyTrade?.tradeMode ?? 'buy'}
           analyticsContext={{ source: 'trader_feed' }}
           copyTradeOrigin={copyTrade?.copyTradeOrigin}
           postTradeShare

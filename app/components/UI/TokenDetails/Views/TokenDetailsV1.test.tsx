@@ -1598,7 +1598,7 @@ describe('TokenDetailsV1', () => {
     act(() => {
       beginPostTradeShareSession({
         target,
-        tradeMode: 'buy',
+        tradeMode: 'sell',
         copyTradeOrigin,
         owner: PostTradeShareOwner.tokenDetails,
         preview: {
@@ -1616,7 +1616,7 @@ describe('TokenDetailsV1', () => {
         isVisible: true,
         target,
         copyTradeOrigin,
-        initialTradeMode: 'buy',
+        initialTradeMode: 'sell',
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
