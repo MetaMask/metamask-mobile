@@ -1806,11 +1806,9 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      // The price re-runs order validation behind its real 300ms debounce, so
+      // the CTA needs the file's async budget rather than waitFor's 1s default.
+      await waitForEnabledPlaceOrderButton();
       expect(
         Engine.context.PerpsController.subscribeToOrderBook,
       ).toHaveBeenCalled();
