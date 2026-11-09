@@ -15,6 +15,7 @@ import {
   isMatchingPayToken,
   isTokenBlocked,
   replaceAccountInNestedTransactions,
+  resolveMoneyAccountDepositAtomic,
   resolvePreferredPayToken,
 } from './transaction-pay';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
@@ -1073,6 +1074,58 @@ describe('Transaction Pay Utils', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
+    });
+  });
+
+  describe('resolveMoneyAccountDepositAtomic', () => {
+    it('forces non-atomic for an MFA keyring at a partial amount', () => {
+      const result = resolveMoneyAccountDepositAtomic({
+        isMaxAmount: false,
+        isMfaKeyring: true,
+        shouldHintAtomicMax: false,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('forces non-atomic for an MFA keyring even on a subsidised max route', () => {
+      const result = resolveMoneyAccountDepositAtomic({
+        isMaxAmount: true,
+        isMfaKeyring: true,
+        shouldHintAtomicMax: true,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('defers to Core for a non-MFA keyring at a partial amount', () => {
+      const result = resolveMoneyAccountDepositAtomic({
+        isMaxAmount: false,
+        isMfaKeyring: false,
+        shouldHintAtomicMax: false,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('forces non-atomic for a non-MFA max amount off a subsidised route', () => {
+      const result = resolveMoneyAccountDepositAtomic({
+        isMaxAmount: true,
+        isMfaKeyring: false,
+        shouldHintAtomicMax: false,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('hints atomic for a non-MFA max amount on a subsidised route', () => {
+      const result = resolveMoneyAccountDepositAtomic({
+        isMaxAmount: true,
+        isMfaKeyring: false,
+        shouldHintAtomicMax: true,
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 

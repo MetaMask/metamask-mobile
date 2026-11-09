@@ -18,7 +18,11 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getTokenAddress,
+  resolveMoneyAccountDepositAtomic,
+} from '../../utils/transaction-pay';
+import { selectIsMfaMoneyKeyringAddress } from '../../../../../selectors/keyringController';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
@@ -123,6 +127,11 @@ export function useTransactionCustomAmount({
   const relayFixedSpreadConfig = useSelector(selectRelayFixedSpread);
   const isAtomicMaxEnabled = useSelector((state: RootState) =>
     selectRelayAtomicMaxEnabled(state, transactionMeta),
+  );
+  // `txParams.from` is the Money Account itself on a deposit: the batch is
+  // built from its perspective and MM Pay funds it from the user's EOA.
+  const isMfaMoneyKeyring = useSelector((state: RootState) =>
+    selectIsMfaMoneyKeyringAddress(state, transactionMeta?.txParams?.from),
   );
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
@@ -307,25 +316,49 @@ export function useTransactionCustomAmount({
         if (isMoneyAccountDeposit) {
           // Only hint atomic when Core enables it. Route configuration is
           // predictive; Core verifies the subsidy and re-quotes if needed.
-          config.atomic = value && !shouldHintAtomicMax ? false : undefined;
+          config.atomic = resolveMoneyAccountDepositAtomic({
+            isMaxAmount: value,
+            isMfaKeyring: isMfaMoneyKeyring,
+            shouldHintAtomicMax,
+          });
         }
       });
     },
-    [isMoneyAccountDeposit, transactionId, shouldHintAtomicMax],
+    [
+      isMfaMoneyKeyring,
+      isMoneyAccountDeposit,
+      transactionId,
+      shouldHintAtomicMax,
+    ],
   );
 
+  // Unlike `setIsMax`, this also runs for non-max deposits, because an MFA
+  // keyring forces the non-atomic path at any amount and is only known once
+  // `txParams.from` is populated. Deposits with neither condition have no
+  // opinion on `atomic`, so they skip the write entirely rather than churn
+  // the controller with a redundant `undefined`.
   useEffect(() => {
-    if (!isMoneyAccountDeposit || !isMaxAmount) {
+    if (!isMoneyAccountDeposit || (!isMfaMoneyKeyring && !isMaxAmount)) {
       return;
     }
 
     Engine.context.TransactionPayController.setTransactionConfig(
       transactionId,
       (config) => {
-        config.atomic = shouldHintAtomicMax ? undefined : false;
+        config.atomic = resolveMoneyAccountDepositAtomic({
+          isMaxAmount,
+          isMfaKeyring: isMfaMoneyKeyring,
+          shouldHintAtomicMax,
+        });
       },
     );
-  }, [shouldHintAtomicMax, isMaxAmount, isMoneyAccountDeposit, transactionId]);
+  }, [
+    isMfaMoneyKeyring,
+    shouldHintAtomicMax,
+    isMaxAmount,
+    isMoneyAccountDeposit,
+    transactionId,
+  ]);
 
   const updatePendingAmount = useCallback(
     (value: string) => {

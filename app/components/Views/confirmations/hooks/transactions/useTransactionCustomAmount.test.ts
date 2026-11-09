@@ -2146,6 +2146,129 @@ describe('useTransactionCustomAmount', () => {
       });
       expect(atomicCall).toBeUndefined();
     });
+
+    describe('MFA money keyring', () => {
+      // The deposit batch is built from the money account's perspective, so
+      // `txParams.from` is the money account address.
+      const mfaKeyringOverrides = (
+        type: string,
+        address = depositTransactionMeta.txParams.from,
+      ) => ({
+        engine: {
+          backgroundState: {
+            KeyringController: {
+              keyrings: [
+                {
+                  type,
+                  accounts: [address],
+                  metadata: { id: 'mpc-money-keyring-id', name: '' },
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      function readAtomic(): Record<string, unknown> {
+        const config: Record<string, unknown> = {};
+        setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+        return config;
+      }
+
+      it('forces non-atomic at a partial amount', async () => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: mfaKeyringOverrides('MPC Money Keyring'),
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(50);
+        });
+
+        expect(readAtomic().atomic).toBe(false);
+      });
+
+      it('forces non-atomic without any amount interaction', async () => {
+        runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: mfaKeyringOverrides('MPC Money Keyring'),
+        });
+
+        expect(setTransactionConfigMock).toHaveBeenCalled();
+        expect(readAtomic().atomic).toBe(false);
+      });
+
+      it('forces non-atomic on Max even when the route is subsidised', async () => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: merge({}, mfaKeyringOverrides('MPC Money Keyring'), {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    ...fixedSpreadOverrides,
+                    confirmations_pay_extended: {
+                      payStrategies: {
+                        relay: { atomicMaxEnabled: { default: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }),
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(100);
+        });
+
+        expect(readAtomic().atomic).toBe(false);
+      });
+
+      it('keeps non-atomic when Max is unset, rather than clearing to undefined', async () => {
+        useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: mfaKeyringOverrides('MPC Money Keyring'),
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmount('5');
+        });
+
+        expect(readAtomic().atomic).toBe(false);
+      });
+
+      it('defers to Core for the SRP-derived money keyring, which signs locally', async () => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: mfaKeyringOverrides('Money Keyring'),
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(50);
+        });
+
+        expect(readAtomic().atomic).toBeUndefined();
+      });
+
+      it('defers to Core when the MFA keyring holds a different account', async () => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: mfaKeyringOverrides(
+            'MPC Money Keyring',
+            '0x9999999999999999999999999999999999999999',
+          ),
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(50);
+        });
+
+        expect(readAtomic().atomic).toBeUndefined();
+      });
+    });
   });
 
   it('resets isMax to false when updating amount while isMaxAmount is true', async () => {

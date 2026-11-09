@@ -1,4 +1,5 @@
 import ExtendedKeyringTypes, {
+  MFA_MONEY_KEYRING_TYPES,
   MONEY_KEYRING_TYPES,
 } from '../../constants/keyringTypes';
 import {
@@ -89,6 +90,42 @@ export const selectIsMoneyKeyringAddress = (
 ): boolean =>
   address !== undefined &&
   selectMoneyKeyringAddresses(state).includes(address.toLowerCase());
+
+/**
+ * A memoized selector that returns the lowercased addresses of every account
+ * held by a Money keyring that requires MFA to sign.
+ *
+ * Like `selectMoneyKeyringAddresses`, the keyring list is the source of truth:
+ * Money Accounts are not internal accounts.
+ */
+export const selectMfaMoneyKeyringAddresses = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings): string[] =>
+    keyrings
+      .filter((keyring) => MFA_MONEY_KEYRING_TYPES.includes(keyring.type))
+      .flatMap((keyring) =>
+        keyring.accounts.map((account) => account.toLowerCase()),
+      ),
+);
+
+/**
+ * Whether the given address belongs to a Money keyring that requires MFA to
+ * sign.
+ *
+ * Each signature from such a keyring costs the user an MFA confirmation, so
+ * deposits from these accounts take the non-atomic path to avoid signing a
+ * fresh delegation for every quote.
+ *
+ * @param state - The Redux state.
+ * @param address - The account address to check.
+ * @returns True when the address is held by an MFA Money keyring.
+ */
+export const selectIsMfaMoneyKeyringAddress = (
+  state: RootState,
+  address: string | undefined,
+): boolean =>
+  address !== undefined &&
+  selectMfaMoneyKeyringAddresses(state).includes(address.toLowerCase());
 
 /**
  * A memoized selector that returns the list of accounts from all keyrings in the form of a flattened array of strings.

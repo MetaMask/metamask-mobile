@@ -1,8 +1,10 @@
 import {
   selectKeyrings,
   selectFlattenedKeyringAccounts,
+  selectIsMfaMoneyKeyringAddress,
   selectIsMoneyKeyringAddress,
   selectIsUnlocked,
+  selectMfaMoneyKeyringAddresses,
   selectMoneyKeyringAddresses,
   selectPrimaryHDKeyring,
 } from './index';
@@ -177,6 +179,67 @@ describe('KeyringController Selectors', () => {
       it('returns false when no address is given', () => {
         expect(
           selectIsMoneyKeyringAddress(buildState(moneyKeyrings()), undefined),
+        ).toBe(false);
+      });
+    });
+
+    describe('selectMfaMoneyKeyringAddresses', () => {
+      it('returns only the MPC money keyring addresses', () => {
+        expect(
+          selectMfaMoneyKeyringAddresses(buildState(moneyKeyrings())),
+        ).toEqual([MPC_MONEY_ADDRESS.toLowerCase()]);
+      });
+
+      it('returns an empty array when no money keyring exists', () => {
+        expect(
+          selectMfaMoneyKeyringAddresses(buildState(MOCK_KEYRINGS)),
+        ).toEqual([]);
+      });
+    });
+
+    describe('selectIsMfaMoneyKeyringAddress', () => {
+      it('returns true for an address held by an MPC money keyring', () => {
+        expect(
+          selectIsMfaMoneyKeyringAddress(
+            buildState(moneyKeyrings()),
+            MPC_MONEY_ADDRESS,
+          ),
+        ).toBe(true);
+      });
+
+      it('matches addresses case-insensitively', () => {
+        expect(
+          selectIsMfaMoneyKeyringAddress(
+            buildState(moneyKeyrings()),
+            MPC_MONEY_ADDRESS.toUpperCase(),
+          ),
+        ).toBe(true);
+      });
+
+      it('returns false for the SRP-derived money keyring, which signs locally', () => {
+        expect(
+          selectIsMfaMoneyKeyringAddress(
+            buildState(moneyKeyrings()),
+            MONEY_ADDRESS,
+          ),
+        ).toBe(false);
+      });
+
+      it('returns false for an address held by a non-money keyring', () => {
+        expect(
+          selectIsMfaMoneyKeyringAddress(
+            buildState(moneyKeyrings()),
+            MOCK_HD_ACCOUNTS[0],
+          ),
+        ).toBe(false);
+      });
+
+      it('returns false when no address is given', () => {
+        expect(
+          selectIsMfaMoneyKeyringAddress(
+            buildState(moneyKeyrings()),
+            undefined,
+          ),
         ).toBe(false);
       });
     });

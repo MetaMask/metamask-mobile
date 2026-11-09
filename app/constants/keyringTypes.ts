@@ -23,6 +23,20 @@ export const MONEY_KEYRING_TYPES: string[] = [
   ExtendedKeyringTypes.mpcMoney,
 ];
 
+/**
+ * Money keyring types whose signing requires multi-factor authentication.
+ *
+ * The MPC keyring splits its key across factors, so every signature it
+ * produces costs the user an MFA confirmation. Deposits therefore avoid the
+ * per-quote delegation signature that the atomic path needs — see
+ * `resolveMoneyAccountDepositAtomic`.
+ *
+ * The SRP-derived `Money Keyring` signs locally and is deliberately absent.
+ */
+export const MFA_MONEY_KEYRING_TYPES: string[] = [
+  ExtendedKeyringTypes.mpcMoney,
+];
+
 export enum HardwareDeviceTypes {
   LEDGER = 'Ledger',
   QR = 'QR Hardware',

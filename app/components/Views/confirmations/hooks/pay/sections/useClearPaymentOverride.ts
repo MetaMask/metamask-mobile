@@ -11,6 +11,8 @@ import {
   selectPaymentOverrideByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
 } from '../../../../../../selectors/transactionPayController';
+import { selectIsMfaMoneyKeyringAddress } from '../../../../../../selectors/keyringController';
+import { resolveMoneyAccountDepositAtomic } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 /**
@@ -18,10 +20,11 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
  * Call from every non-money-account section's press handler so that
  * switching away from money account correctly resets the override.
  *
- * `atomic` is re-derived rather than blindly cleared: a max-amount Money
- * Account deposit sets `atomic: false` independently of the pay-with
- * selection (via `useTransactionCustomAmount`'s `setIsMax`), so it must survive
- * a payment-method switch while `isMaxAmount` remains on.
+ * `atomic` is re-derived rather than blindly cleared: a Money Account deposit
+ * can require `atomic: false` independently of the pay-with selection — on a
+ * max amount, or on an MFA keyring — so that must survive a payment-method
+ * switch. The signing account is the Money Account whichever token funds it,
+ * so switching payment method never changes the MFA cost.
  */
 export function useClearPaymentOverride() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -35,6 +38,9 @@ export function useClearPaymentOverride() {
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
+  const isMfaMoneyKeyring = useSelector((state: RootState) =>
+    selectIsMfaMoneyKeyringAddress(state, transactionMeta?.txParams?.from),
+  );
 
   return useCallback(() => {
     if (transactionId && paymentOverride) {
@@ -43,10 +49,23 @@ export function useClearPaymentOverride() {
         (config) => {
           config.paymentOverride = undefined;
           config.refundTo = undefined;
-          config.atomic =
-            isMoneyAccountDeposit && isMaxAmount ? false : undefined;
+          config.atomic = isMoneyAccountDeposit
+            ? resolveMoneyAccountDepositAtomic({
+                isMaxAmount: Boolean(isMaxAmount),
+                isMfaKeyring: isMfaMoneyKeyring,
+                // Clearing the override drops the Money Account pay token, so
+                // no subsidised fixed-spread route survives the switch.
+                shouldHintAtomicMax: false,
+              })
+            : undefined;
         },
       );
     }
-  }, [isMaxAmount, isMoneyAccountDeposit, paymentOverride, transactionId]);
+  }, [
+    isMaxAmount,
+    isMfaMoneyKeyring,
+    isMoneyAccountDeposit,
+    paymentOverride,
+    transactionId,
+  ]);
 }

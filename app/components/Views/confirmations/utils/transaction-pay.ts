@@ -365,6 +365,58 @@ export function applyMoneyAccountOverride(
   });
 }
 
+/**
+ * Resolves the `atomic` value for a Money Account deposit.
+ *
+ * Returns the value to assign to `TransactionConfig.atomic`, where
+ * `undefined` means "let Core decide" (the default atomic path) and `false`
+ * forces the non-atomic path.
+ *
+ * Two independent reasons force non-atomic, and either one is sufficient.
+ *
+ * MFA keyring: the atomic path signs a fresh delegation per quote (see
+ * `getMoneyAccountDepositPaymentOverrideData`), and quotes refresh while the
+ * Funding screen is open. On an MFA keyring every one of those signatures is
+ * an MFA confirmation, which makes the screen unusable. The non-atomic path
+ * signs no delegation at all: Core submits the vault leg after Relay settles
+ * as a sponsored, gasless EIP-7702 batch from the already-delegated Money
+ * Account (`submitSecondLeg`).
+ *
+ * Max amount without a subsidised route: pre-existing behaviour, since the
+ * exact deposit amount is only known once Relay settles.
+ *
+ * Centralising both reasons here keeps a single writer for `config.atomic` on
+ * this flow. Previously `setIsMax(false)` wrote `undefined` unconditionally,
+ * which would have silently cleared an MFA-driven `false`.
+ *
+ * @param options - Resolution inputs.
+ * @param options.isMaxAmount - Whether the user has selected the max amount.
+ * @param options.isMfaKeyring - Whether the Money Account's keyring requires
+ * MFA to sign.
+ * @param options.shouldHintAtomicMax - Whether Core's atomic-max gate is on
+ * and the route is subsidised, making an atomic max quote viable.
+ * @returns `false` to force the non-atomic path, otherwise `undefined`.
+ */
+export function resolveMoneyAccountDepositAtomic({
+  isMaxAmount,
+  isMfaKeyring,
+  shouldHintAtomicMax,
+}: {
+  isMaxAmount: boolean;
+  isMfaKeyring: boolean;
+  shouldHintAtomicMax: boolean;
+}): false | undefined {
+  if (isMfaKeyring) {
+    return false;
+  }
+
+  if (isMaxAmount && !shouldHintAtomicMax) {
+    return false;
+  }
+
+  return undefined;
+}
+
 export function getTotalPayFeesUsd(
   fees: TransactionPayTotals['fees'],
 ): BigNumber {

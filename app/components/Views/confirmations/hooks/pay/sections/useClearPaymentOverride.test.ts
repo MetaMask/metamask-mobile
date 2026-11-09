@@ -34,13 +34,16 @@ describe('useClearPaymentOverride', () => {
   function mockSelectors({
     paymentOverride,
     isMaxAmount = false,
+    keyrings = [],
   }: {
     paymentOverride?: PaymentOverride;
     isMaxAmount?: boolean;
+    keyrings?: { type: string; accounts: string[] }[];
   }) {
     const state = {
       engine: {
         backgroundState: {
+          KeyringController: { keyrings },
           TransactionPayController: {
             transactionData: {
               [TRANSACTION_ID]: {
@@ -161,6 +164,33 @@ describe('useClearPaymentOverride', () => {
     setTransactionConfigMock.mock.calls[0][1](config as never);
 
     expect(config.atomic).toBeUndefined();
+  });
+
+  it('keeps atomic false for a non-max deposit from an MFA money keyring', () => {
+    const MONEY_ACCOUNT_ADDRESS = '0xdef0000000000000000000000000000000000002';
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: MONEY_ACCOUNT_ADDRESS },
+    } as never);
+    mockSelectors({
+      paymentOverride: PaymentOverride.MoneyAccount,
+      isMaxAmount: false,
+      keyrings: [
+        { type: 'MPC Money Keyring', accounts: [MONEY_ACCOUNT_ADDRESS] },
+      ],
+    });
+
+    const { result } = renderHook(() => useClearPaymentOverride());
+
+    act(() => {
+      result.current();
+    });
+
+    const config = { atomic: false } as Record<string, unknown>;
+    setTransactionConfigMock.mock.calls[0][1](config as never);
+
+    expect(config.atomic).toBe(false);
   });
 
   it('does not call setTransactionConfig when no override is active', () => {
