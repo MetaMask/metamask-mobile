@@ -137,6 +137,24 @@ export const buildSocialLongShareUrl = (
   return url.toString();
 };
 
+/** Query parameter marking a link as one the user shared from the app. */
+export const SOCIAL_SHARE_MARKER_PARAM = 'share';
+
+/**
+ * Adds `share=1` to the link handed to the share sheet: the Branch short link
+ * it got back, or the long / canonical link. It is never part of what is sent
+ * to Branch, so the short link itself stays the same.
+ */
+export const withSocialShareMarker = (sharedUrl: string): string => {
+  try {
+    const url = new URL(sharedUrl);
+    url.searchParams.set(SOCIAL_SHARE_MARKER_PARAM, '1');
+    return url.toString();
+  } catch {
+    return sharedUrl;
+  }
+};
+
 const isHttpsUrl = (value: unknown): value is string => {
   if (typeof value !== 'string' || value.length === 0) {
     return false;
@@ -424,10 +442,11 @@ const shareLink = (
       linkMode: SOCIAL_SHARE_LINK_MODE,
       preview,
     });
-    const sharedUrl =
+    const sharedUrl = withSocialShareMarker(
       SOCIAL_SHARE_LINK_MODE === 'branch-short'
         ? await createSocialBranchShortUrl(canonicalUrl, deeplinkPath, preview)
-        : buildSocialLongShareUrl(canonicalUrl, preview);
+        : buildSocialLongShareUrl(canonicalUrl, preview),
+    );
     logSocialOgShare('Share link generated', {
       generation,
       linkMode: SOCIAL_SHARE_LINK_MODE,

@@ -12,6 +12,7 @@ import {
   shareSocialProfile,
   shareSocialTraderPosition,
   toSocialBranchDeeplinkPath,
+  withSocialShareMarker,
 } from './socialTraderDeeplink';
 import type { SocialOgImageRequest } from './socialOgImageService';
 import { rewriteBranchUri } from '../../../../core/DeeplinkManager/DeeplinkManager';
@@ -141,6 +142,8 @@ describe('buildSocialLongShareUrl', () => {
 });
 
 const shortUrl = 'https://metamask.app.link/social-profile';
+/** What the share sheet gets: Branch's short link plus the share marker. */
+const sharedShortUrl = `${shortUrl}?share=1`;
 
 const mockShortLink = (url: string | Promise<{ url: string }>) => {
   const generateShortUrl = jest.fn(() =>
@@ -174,6 +177,26 @@ describe('toSocialBranchDeeplinkPath', () => {
         $deeplink_path: toSocialBranchDeeplinkPath(canonicalUrl),
       }),
     ).toBe(canonicalUrl);
+  });
+});
+
+describe('withSocialShareMarker', () => {
+  it('adds share=1 to a short link', () => {
+    expect(withSocialShareMarker('https://link.metamask.io/5Hx1mqKPV7b')).toBe(
+      'https://link.metamask.io/5Hx1mqKPV7b?share=1',
+    );
+  });
+
+  it('keeps an existing query and sets share only once', () => {
+    expect(
+      withSocialShareMarker(
+        'https://link.metamask.io/social/profile?traderId=trader-1&share=0',
+      ),
+    ).toBe('https://link.metamask.io/social/profile?traderId=trader-1&share=1');
+  });
+
+  it('returns a value that is not a URL unchanged', () => {
+    expect(withSocialShareMarker('not a url')).toBe('not a url');
   });
 });
 
@@ -284,8 +307,8 @@ describe('OS share completion', () => {
     await flush();
 
     expect(openShare).toHaveBeenCalledWith({
-      message: shortUrl,
-      url: shortUrl,
+      message: sharedShortUrl,
+      url: sharedShortUrl,
       failOnCancel: false,
     });
     expect(onShared).toHaveBeenCalledTimes(1);
@@ -312,7 +335,7 @@ describe('OS share completion', () => {
     await flush();
 
     expect(openShare).toHaveBeenCalledWith({
-      message: positionUrl,
+      message: `${positionUrl}&share=1`,
       failOnCancel: false,
     });
     expect(onShared).toHaveBeenCalledTimes(1);
@@ -476,7 +499,7 @@ describe('share with a generated card', () => {
       }),
     );
     expect(openShare).toHaveBeenCalledWith({
-      message: shortUrl,
+      message: sharedShortUrl,
       failOnCancel: false,
     });
   });
@@ -494,7 +517,7 @@ describe('share with a generated card', () => {
       expect.objectContaining({ contentImageUrl: profilePreview.imageUrl }),
     );
     expect(openShare).toHaveBeenCalledWith({
-      message: shortUrl,
+      message: sharedShortUrl,
       failOnCancel: false,
     });
   });
@@ -529,7 +552,7 @@ describe('share with a generated card', () => {
       expect.objectContaining({ contentImageUrl: GENERATED_CARD_URL }),
     );
     expect(openShare).toHaveBeenCalledWith({
-      message: shortUrl,
+      message: sharedShortUrl,
       failOnCancel: false,
     });
   });

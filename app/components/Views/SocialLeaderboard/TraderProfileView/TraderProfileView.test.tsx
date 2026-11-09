@@ -517,8 +517,9 @@ describe('TraderProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message: 'https://link.metamask.io/social/profile?traderId=trader-1',
-        url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+        message:
+          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
     });

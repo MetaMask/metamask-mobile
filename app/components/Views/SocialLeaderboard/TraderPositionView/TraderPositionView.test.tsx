@@ -440,8 +440,8 @@ describe('TraderPositionView', () => {
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
         message:
-          'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-        url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+          'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
         failOnCancel: false,
       });
     });
