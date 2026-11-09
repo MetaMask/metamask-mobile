@@ -1,6 +1,12 @@
 import React from 'react';
-import { ActivityIndicator, Linking, TouchableOpacity } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Linking } from 'react-native';
+import {
+  Box,
+  Spinner,
+  Text,
+  TextButton,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { ImmersveLegalDocumentLink } from '../../util/immersveLegalDocuments';
 
@@ -50,14 +56,14 @@ function LegalDocsError({ onRetry }: { onRetry: () => void }) {
       >
         {strings('card.card_onboarding.sign_up.legal_docs_error')}
       </Text>
-      <TouchableOpacity onPress={onRetry} testID="signup-immersve-legal-retry">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-primary-default text-center"
-        >
-          {strings('card.card_onboarding.retry_button')}
-        </Text>
-      </TouchableOpacity>
+      <TextButton
+        variant={TextVariant.BodySm}
+        onPress={onRetry}
+        twClassName="text-center py-2"
+        testID="signup-immersve-legal-retry"
+      >
+        {strings('card.card_onboarding.retry_button')}
+      </TextButton>
     </Box>
   );
 }
@@ -80,7 +86,7 @@ const ImmersveLegalClickwrap = ({
         twClassName="items-center py-2"
         testID="signup-immersve-legal-loading"
       >
-        <ActivityIndicator />
+        <Spinner />
       </Box>
     );
   }
@@ -103,14 +109,13 @@ const ImmersveLegalClickwrap = ({
       {documents.map((legalDocument, index) => (
         <React.Fragment key={legalDocument.id}>
           {getSeparator(index, documents.length)}
-          <Text
+          <TextButton
             variant={TextVariant.BodySm}
-            twClassName="text-text-alternative underline"
             onPress={() => openDocument(legalDocument.url)}
             testID={`signup-immersve-legal-link-${legalDocument.id}`}
           >
             {legalDocument.title}
-          </Text>
+          </TextButton>
         </React.Fragment>
       ))}
       {suffix}

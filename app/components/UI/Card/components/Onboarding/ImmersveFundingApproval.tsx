@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,11 +22,11 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeNetwork,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -162,7 +161,6 @@ const ReadOnlyTokenRow = () => (
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const theme = useTheme();
   const {
     countryKey,
     mode = 'onboarding',
@@ -419,10 +417,9 @@ const ImmersveFundingApproval = () => {
           {...headerHandlers}
         />
         <Box twClassName="flex-1 justify-center items-center px-4">
-          <ActivityIndicator
+          <Spinner
             testID="immersve-funding-approval-spinner"
-            size="large"
-            color={theme.colors.primary.default}
+            spinnerIconProps={{ size: IconSize.Xl }}
           />
           <Text
             variant={TextVariant.BodyMd}

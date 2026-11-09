@@ -189,6 +189,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     BadgeNetwork: () => null,
     HeaderStandard: () => null,
     Icon: () => null,
+    Spinner: (p: object) => ReactActual.createElement(View, p),
     AvatarAccountVariant: {
       Jazzicon: 'Jazzicon',
       Blockies: 'Blockies',

@@ -14,11 +14,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
-  FontWeight,
+  ButtonIcon,
+  ButtonIconSize,
   Text,
   TextVariant,
-  Icon,
-  IconSize,
   IconName,
   Label,
   Button,
@@ -56,7 +55,7 @@ import {
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { Keyboard, TouchableOpacity } from 'react-native';
+import { Keyboard } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -772,15 +771,17 @@ const SignUp = () => {
             value={password}
             isError={debouncedPassword.length > 0 && isPasswordError}
             endAccessory={
-              <TouchableOpacity
+              <ButtonIcon
+                iconName={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+                size={ButtonIconSize.Md}
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                accessibilityLabel={strings(
+                  isPasswordVisible
+                    ? 'choose_password.hide'
+                    : 'choose_password.show',
+                )}
                 testID="signup-password-visibility-toggle"
-              >
-                <Icon
-                  name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
-                  size={IconSize.Md}
-                />
-              </TouchableOpacity>
+              />
             }
             inputProps={{
               autoCapitalize: 'none',
@@ -861,20 +862,20 @@ const SignUp = () => {
           : strings('card.card_onboarding.continue_button')}
       </Button>
       {!fromMigration ? (
-        <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
-          <Text
-            testID="signup-i-already-have-an-account-text"
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-default text-center p-4"
-          >
-            {strings(
-              isImmersveCountry
-                ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
-                : 'card.card_onboarding.sign_up.i_already_have_an_account',
-            )}
-          </Text>
-        </TouchableOpacity>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleAlreadyHaveAccountPress}
+          twClassName="mt-2"
+          testID="signup-i-already-have-an-account-text"
+        >
+          {strings(
+            isImmersveCountry
+              ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
+              : 'card.card_onboarding.sign_up.i_already_have_an_account',
+          )}
+        </Button>
       ) : null}
     </>
   );

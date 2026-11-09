@@ -129,6 +129,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: React.PropsWithChildren<Record<string, unknown>>) => (
       <View {...props}>{children}</View>
     ),
+    Spinner: (props: Record<string, unknown>) => <View {...props} />,
+    IconSize: { Xl: 'Xl' },
   };
 });
 
