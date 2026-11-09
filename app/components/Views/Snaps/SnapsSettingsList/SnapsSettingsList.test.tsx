@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Snap, Status } from '@metamask/snaps-utils';
@@ -128,4 +127,3 @@ describe('SnapsSettingsList', () => {
     expect(getByText(exampleSnap.manifest.proposedName)).toBeOnTheScreen();
   });
 });
-///: END:ONLY_INCLUDE_IF

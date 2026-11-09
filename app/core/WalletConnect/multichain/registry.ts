@@ -10,9 +10,7 @@ import type { KnownCaipNamespace } from '@metamask/utils';
 
 import type { AnyChainAdapter } from './types';
 
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { tronAdapter } from './tron';
-///: END:ONLY_INCLUDE_IF
 
 // Keyed by raw namespace string so lookups accept whatever a dapp proposal
 // sent, which we don't trust upfront.
@@ -46,6 +44,4 @@ export function getAllRegisteredNamespaces(): KnownCaipNamespace[] {
   return Array.from(adapters.keys()) as KnownCaipNamespace[];
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 registerAdapter(tronAdapter);
-///: END:ONLY_INCLUDE_IF

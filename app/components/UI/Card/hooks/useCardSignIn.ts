@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectInternalEvmAccounts } from '../../../../selectors/accountsController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { useIsImmersveMoneyAccountCountry } from './useImmersveFundingChannel';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectInternalAccountsByGroupId,
@@ -84,7 +86,25 @@ export interface UseCardSignInResult {
 }
 
 export function useCardSignIn(country: string | null): UseCardSignInResult {
-  const { candidateAddresses, deviceAddresses } = useCandidateAddresses();
+  const discovered = useCandidateAddresses();
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
+  const lockToMoneyAccount = useIsImmersveMoneyAccountCountry(country);
+  const lockedAddresses = useMemo(
+    () => (moneyAccountAddress ? [moneyAccountAddress] : []),
+    [moneyAccountAddress],
+  );
+  const candidateAddresses = useMemo(
+    () =>
+      lockToMoneyAccount ? lockedAddresses : discovered.candidateAddresses,
+    [lockToMoneyAccount, lockedAddresses, discovered.candidateAddresses],
+  );
+  const deviceAddresses = useMemo(
+    () => (lockToMoneyAccount ? lockedAddresses : discovered.deviceAddresses),
+    [lockToMoneyAccount, lockedAddresses, discovered.deviceAddresses],
+  );
   const candidateAddressesRef = useRef(candidateAddresses);
   const deviceAddressesRef = useRef(deviceAddresses);
   candidateAddressesRef.current = candidateAddresses;
