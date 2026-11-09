@@ -14,6 +14,10 @@ import type {
 } from '../types';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import type { VenueTradingAdapter } from '../adapters/types';
+import type {
+  TemplateInputs,
+  TemplateValues,
+} from '../auth/signing/profileTemplates';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_ORDER_SERVICE_NAME = 'PredictOrderService' as const;
@@ -31,6 +35,7 @@ const TERMINAL_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'partially_filled',
   'not_filled',
   'rejected',
+  'needs_manual_review',
 ];
 
 /** How many re-POSTs observe one in-flight Commit before handing control
@@ -51,6 +56,10 @@ const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
  * Positions and Activity reads. */
 const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
 
+/** Most background observations of one operation. Each one is a signed
+ * Commit call, so this bounds re-signing even if the window is never hit. */
+const MAX_BACKGROUND_OBSERVATIONS = 12;
+
 /**
  * How long after a Preview's expiry the background waits before it re-POSTs
  * a Commit that never returned a Receipt. The backend looks up an existing
@@ -60,6 +69,13 @@ const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
  * clock skew.
  */
 const AMBIGUOUS_COMMIT_GRACE_MS = 15_000;
+
+/** What the phone signs for one commit call. */
+export interface PredictOrderCommitSigning {
+  inputs: TemplateInputs;
+  values: TemplateValues;
+  confirmed?: boolean;
+}
 
 /**
  * Where one Order Preview stands relative to the submission boundary.
@@ -103,6 +119,8 @@ interface OrderOperation {
   readonly expiresAt: number;
   /** The context the Preview was quoted under. */
   readonly contextEpoch: number;
+  /** What the next commit of this Preview signs. */
+  signing?: PredictOrderCommitSigning;
   state: OrderOperationState;
   /** When the first Commit was dispatched. */
   dispatchedAt?: number;
@@ -167,7 +185,9 @@ const isCanonicalCommitFailure = (error: PredictError): boolean => {
  */
 const isPreOperationFailure = (error: unknown): error is PredictError =>
   error instanceof PredictError &&
-  (error.metadata?.status === 401 || isCanonicalCommitFailure(error));
+  (error.metadata?.requestSent === false ||
+    error.metadata?.status === 401 ||
+    isCanonicalCommitFailure(error));
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -186,6 +206,7 @@ export interface PredictOrderServiceCommitPreviewAction {
   handler: (
     venueId: PredictVenueId,
     previewId: string,
+    signing?: PredictOrderCommitSigning,
   ) => Promise<PredictOrderReceipt>;
 }
 
@@ -226,6 +247,8 @@ export interface PredictOrderServiceOptions {
   backgroundObservationDelaysMs?: readonly number[];
   /** Injectable background observation window for tests. */
   backgroundObservationWindowMs?: number;
+  /** Injectable background observation cap for tests. */
+  maxBackgroundObservations?: number;
   /** Injectable post-expiry grace for tests. */
   ambiguousCommitGraceMs?: number;
 }
@@ -271,6 +294,7 @@ export class PredictOrderService {
   readonly #observationDelayMs: number;
   readonly #backgroundObservationDelaysMs: readonly number[];
   readonly #backgroundObservationWindowMs: number;
+  readonly #maxBackgroundObservations: number;
   readonly #ambiguousCommitGraceMs: number;
   readonly #operations = new Map<string, OrderOperation>();
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
@@ -287,6 +311,7 @@ export class PredictOrderService {
     observationDelayMs = COMMIT_OBSERVATION_DELAY_MS,
     backgroundObservationDelaysMs = BACKGROUND_OBSERVATION_DELAYS_MS,
     backgroundObservationWindowMs = BACKGROUND_OBSERVATION_WINDOW_MS,
+    maxBackgroundObservations = MAX_BACKGROUND_OBSERVATIONS,
     ambiguousCommitGraceMs = AMBIGUOUS_COMMIT_GRACE_MS,
   }: PredictOrderServiceOptions) {
     this.#messenger = messenger;
@@ -295,6 +320,7 @@ export class PredictOrderService {
     this.#observationDelayMs = observationDelayMs;
     this.#backgroundObservationDelaysMs = backgroundObservationDelaysMs;
     this.#backgroundObservationWindowMs = backgroundObservationWindowMs;
+    this.#maxBackgroundObservations = maxBackgroundObservations;
     this.#ambiguousCommitGraceMs = ambiguousCommitGraceMs;
 
     messenger.registerActionHandler(
@@ -369,10 +395,14 @@ export class PredictOrderService {
    * Deliberately not `async`: the cancellation check and the move across
    * the submission boundary run synchronously with the caller's approval,
    * so no context change can land between them.
+   *
+   * `signing` is the intent the phone signs. A later call for the same
+   * Preview reuses the signing the caller last passed when he omits it.
    */
   commitPreview(
     venueId: PredictVenueId,
     previewId: string,
+    signing?: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     if (venueId !== this.#venueId) {
       return Promise.reject(
@@ -396,6 +426,14 @@ export class PredictOrderService {
       // gone: a fresh quote is the only next step.
       return Promise.reject(
         PredictError.from(PredictErrorCode.PREVIEW_EXPIRED),
+      );
+    }
+    if (signing) {
+      operation.signing = signing;
+    }
+    if (!operation.signing) {
+      return Promise.reject(
+        PredictError.from(PredictErrorCode.INVALID_RESPONSE),
       );
     }
     return this.#dispatch(operation);
@@ -576,15 +614,25 @@ export class PredictOrderService {
   }
 
   /** Commits once, then observes an in-progress operation with bounded
-   * re-POSTs. The Commit is idempotent by Preview reference, so each re-POST
-   * observes the same operation instead of placing another Order. */
+   * re-POSTs. Each POST signs the same intent the user confirmed. The
+   * Commit is idempotent by Preview reference, so each re-POST observes
+   * the same operation instead of placing another Order. */
   async #observe(
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
     maxObservations: number,
   ): Promise<PredictOrderReceipt> {
-    const receipt = await this.#commitOnce(operation, generation, signal);
+    const signing = operation.signing;
+    if (!signing) {
+      throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+    }
+    const receipt = await this.#commitOnce(
+      operation,
+      generation,
+      signal,
+      signing,
+    );
     if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
       return receipt;
     }
@@ -599,11 +647,17 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     this.#assertNotAbandoned(generation);
-    const receipt = await this.#trading.commitOrder(operation.previewId, {
-      signal,
-    });
+    // Only the Predict User's approval confirms. Every later POST of this
+    // operation, re-POST or background, signs the intent he pinned.
+    operation.signing = { ...signing, confirmed: false };
+    const receipt = await this.#trading.commitOrder(
+      operation.previewId,
+      signing,
+      { signal },
+    );
     this.#assertNotAbandoned(generation);
     operation.receiptSeen = true;
     return receipt;
@@ -680,11 +734,13 @@ export class PredictOrderService {
     });
   }
 
-  /** Keeps observing a dispatched, unresolved operation, bounded in time. */
+  /** Keeps observing a dispatched, unresolved operation, bounded in time and
+   * in the number of calls. */
   #scheduleBackgroundObservation(operation: OrderOperation): void {
     if (
       operation.state !== 'dispatched' ||
       operation.backgroundTimer !== undefined ||
+      operation.backgroundObservations >= this.#maxBackgroundObservations ||
       this.#operations.get(operation.previewId) !== operation
     ) {
       return;

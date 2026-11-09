@@ -13,6 +13,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
   Box,
@@ -49,6 +50,7 @@ import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 import {
   isPreviewExpired,
+  type PredictOrderCommitSigning,
   type PredictOrderResolution,
   type PredictOrderService,
 } from '../../../services/PredictOrderService';
@@ -62,6 +64,8 @@ import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
+import { amountToCents } from '../../../auth/signing/orderCommit';
+import type { TemplateInputs } from '../../../auth/signing/profileTemplates';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUOTE_DEBOUNCE_MS = 500;
@@ -134,6 +138,15 @@ export const PredictOrderFlowSheet = ({
   const [quoteNonce, setQuoteNonce] = useState(0);
   const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const [preview, setPreview] = useState<PredictOrderPreview | null>(null);
+  /** The signing snapshot pinned when this Preview was quoted: the
+   * idempotency key the preview stored plus the amount/contracts the User
+   * entered then. Amount/contracts state can drift after the quote, so the
+   * commit signs what was quoted, never what is typed now. */
+  const [quoteSigning, setQuoteSigning] = useState<{
+    idempotencyKey: string;
+    amount?: string;
+    contracts?: string;
+  } | null>(null);
   const [quoteError, setQuoteError] = useState<PredictError | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
   const [isBreakdownVisible, setIsBreakdownVisible] = useState(false);
@@ -238,6 +251,7 @@ export const PredictOrderFlowSheet = ({
     }
     requestIdRef.current += 1;
     setPreview(null);
+    setQuoteSigning(null);
     setQuoteError(null);
     setIsQuoting(false);
     setIsKeypadOpen(false);
@@ -294,6 +308,7 @@ export const PredictOrderFlowSheet = ({
     if (!isQuotable) {
       setIsQuoting(false);
       setPreview(null);
+      setQuoteSigning(null);
       setQuoteError(null);
       return;
     }
@@ -303,6 +318,7 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      const idempotencyKey = uuidv4();
       const params: PredictOrderPreviewParams =
         intent.action === 'buy'
           ? {
@@ -310,13 +326,22 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
+              idempotencyKey,
             }
           : {
               marketId: intent.marketId,
               side: intent.side,
               action: 'sell',
               contracts: contracts as PredictAmount,
+              idempotencyKey,
             };
+      // Pin the signing snapshot at quote time: the commit signs the
+      // amount the User saw quoted, even if the inputs drift afterwards.
+      setQuoteSigning(
+        intent.action === 'buy'
+          ? { idempotencyKey, amount }
+          : { idempotencyKey, contracts },
+      );
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
         .then((quote) => {
@@ -426,6 +451,51 @@ export const PredictOrderFlowSheet = ({
     if (phase !== 'approval' || !preview || isStale) {
       return;
     }
+    if (!quoteSigning) {
+      // The quote that produced this Preview pinned a signing snapshot;
+      // without it there is nothing the phone can sign.
+      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
+      setPhase('approval');
+      return;
+    }
+    const signingInputs: TemplateInputs | undefined =
+      intent.action === 'buy'
+        ? (() => {
+            const cents = amountToCents(quoteSigning.amount ?? '');
+            if (cents === undefined) {
+              // The pinned amount no longer parses: nothing safe to sign.
+              return undefined;
+            }
+            return {
+              marketId: intent.marketId,
+              idempotencyKey: quoteSigning.idempotencyKey,
+              action: intent.action,
+              outcome: intent.side,
+              amountCents: cents,
+            };
+          })()
+        : {
+            marketId: intent.marketId,
+            idempotencyKey: quoteSigning.idempotencyKey,
+            action: intent.action,
+            outcome: intent.side,
+            contracts: quoteSigning.contracts ?? '',
+          };
+    if (!signingInputs) {
+      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
+      setPhase('approval');
+      return;
+    }
+    const signing: PredictOrderCommitSigning = {
+      inputs: signingInputs,
+      // The template's `value` sources validate but do not normalize: the
+      // wire contract is count at 2 and price at 4 decimal places.
+      values: {
+        count: Number(preview.count).toFixed(2),
+        price: Number(preview.price).toFixed(4),
+      },
+      confirmed: true,
+    };
     setCommitError(null);
     setPhase('submitting');
     if (!releasePresentationRef.current) {
@@ -441,6 +511,7 @@ export const PredictOrderFlowSheet = ({
       const committed = await service.commitPreview(
         intent.venueId,
         preview.previewId,
+        signing,
       );
       setReceipt(committed);
       setPhase('receipt');
@@ -465,7 +536,15 @@ export const PredictOrderFlowSheet = ({
         );
       }
     }
-  }, [handleResolution, intent.venueId, isStale, phase, preview, service]);
+  }, [
+    handleResolution,
+    intent,
+    isStale,
+    phase,
+    preview,
+    quoteSigning,
+    service,
+  ]);
 
   /** Observes an unresolved receipt by committing the same Preview again —
    * idempotent by Preview reference, so it never places a second Order. */

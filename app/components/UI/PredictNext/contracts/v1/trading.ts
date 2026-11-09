@@ -2,14 +2,18 @@ import {
   type AnyStruct,
   array,
   enums,
+  boolean,
   literal,
   mask,
   nullable,
   number,
   object,
+  optional,
+  record,
   refine,
   size,
   string,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -56,6 +60,8 @@ const previewHeader = {
   fee: amount,
   feeBreakdown: size(array(feeComponentSchema), 1, Infinity),
   expiresAt: timestamp,
+  price: optional(decimal),
+  count: optional(amount),
 };
 
 const buyPreviewSchema = object({
@@ -80,7 +86,8 @@ const sellPreviewSchema = object({
 /** Receipt statuses of a committed Order operation, as defined in CONTEXT.md.
  * `pending` and `submitted` are in-progress projections;
  * `reconciliation_required` is projected while the backend keeps resolving
- * the true outcome. */
+ * the true outcome. `needs_manual_review` means the scan is too old to sign
+ * and the outcome is unknown. */
 const receiptStatus = enums([
   'pending',
   'submitted',
@@ -89,6 +96,7 @@ const receiptStatus = enums([
   'not_filled',
   'rejected',
   'reconciliation_required',
+  'needs_manual_review',
 ] as const);
 
 /** Shared Receipt header reported for either action. */

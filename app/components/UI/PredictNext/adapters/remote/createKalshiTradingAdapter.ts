@@ -17,5 +17,14 @@ export const createKalshiTradingAdapter = (): KalshiRemoteAdapter =>
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signOperation: (operation, input) =>
+        Engine.context.PredictDeviceAuthService.signOperation(
+          operation,
+          input,
+        ),
+      signRead: (proposed) =>
+        Engine.context.PredictDeviceAuthService.signRead(proposed),
+      invalidateSigningSession: () =>
+        Engine.context.PredictDeviceAuthService.invalidateA2t(),
     }),
   );

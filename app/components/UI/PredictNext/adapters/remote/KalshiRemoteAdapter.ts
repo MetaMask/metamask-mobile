@@ -27,6 +27,7 @@ import type {
 import {
   type PredictApiReadTransport,
   PredictHttpError,
+  PredictRequestNotSentError,
 } from './PredictApiReadClient';
 
 /** Backend canonical trading error codes (preview and commit) → client
@@ -59,11 +60,15 @@ const isSameAmount = (left: string, right: string): boolean =>
  * Keeps the HTTP status and the backend's canonical code for diagnosis.
  * Never the response body.
  */
-const toHttpErrorMetadata = ({
-  status,
-  bodyCode,
-}: PredictHttpError): Record<string, unknown> =>
-  bodyCode === undefined ? { status } : { status, bodyCode };
+const toHttpErrorMetadata = (
+  error: PredictHttpError,
+): Record<string, unknown> => ({
+  status: error.status,
+  ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
+  ...(error instanceof PredictRequestNotSentError
+    ? { requestSent: false }
+    : {}),
+});
 
 const mapError = (error: unknown): never => {
   if (isAbortError(error) || error instanceof PredictError) {
@@ -78,6 +83,18 @@ const mapError = (error: unknown): never => {
     const metadata = toHttpErrorMetadata(error);
     if (error.status === 401) {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
+    }
+    // Venue authentication failures are 403s too, but they are about the
+    // user's Kalshi account or device signature, not their region.
+    if (error.bodyCode === 'venue_authorization_invalid') {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
+    }
+    // The onboarding gate watches for this code and reopens the temporary
+    // demo onboarding.
+    if (error.bodyCode === 'venue_account_not_enabled') {
+      throw PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED, {
+        metadata,
+      });
     }
     // A 451, or a 403 from the backend or its edge, refuses the user's
     // region. Retrying cannot change that.
@@ -140,12 +157,14 @@ export class KalshiRemoteAdapter {
                   marketId: params.marketId,
                   side: params.side,
                   amount: params.amount,
+                  idempotencyKey: params.idempotencyKey,
                 }
               : {
                   marketId: params.marketId,
                   side: params.side,
                   action: 'sell',
                   contracts: params.contracts,
+                  idempotencyKey: params.idempotencyKey,
                 };
           const value = await client.fetchOrderPreview(
             this.venueId,
@@ -185,12 +204,13 @@ export class KalshiRemoteAdapter {
       },
       // One network attempt per invocation; observation and reconciliation
       // re-commit deliberately, never automatically.
-      commitOrder: async (previewId, options) => {
+      commitOrder: async (previewId, signing, options) => {
         try {
           const value = await client.commitOrder(
             this.venueId,
             { previewId },
             options,
+            signing,
           );
           const result = parsePredictOrderReceipt(value);
           if (
@@ -207,6 +227,7 @@ export class KalshiRemoteAdapter {
     };
 
     this.portfolio = {
+      clearAccountState: () => client.clearAccountState?.(),
       fetchBalance: async (options) => {
         try {
           const value = await client.fetchBalance(this.venueId, options);

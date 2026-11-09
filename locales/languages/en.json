@@ -3924,6 +3924,8 @@
       "exchange_fee": "Exchange fee",
       "metamask_fee": "MetaMask fee",
       "total_debit": "Total debit",
+      "max_cost": "Maximum cost (signed)",
+      "min_proceeds": "Minimum proceeds (signed)",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
       "predict_balance": "Predict balance",

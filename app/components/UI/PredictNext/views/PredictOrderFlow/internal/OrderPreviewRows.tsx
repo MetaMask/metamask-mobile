@@ -11,6 +11,7 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewFeeSource,
 } from '../../../types';
+import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
@@ -51,8 +52,15 @@ const EmphasizedTotalRow = ({
   </Box>
 );
 
-/** Server-quoted buy Preview rows: distinct canonical values, verbatim. */
-const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+/** Server-quoted buy Preview rows without the Total: a signed view swaps
+ * the Total for the invariant bound, so the quoted row must be omittable. */
+const BuyPreviewRows = ({
+  preview,
+  withTotal = true,
+}: {
+  preview: PredictOrderPreview;
+  withTotal?: boolean;
+}) => {
   if (preview.action !== 'buy') {
     return null;
   }
@@ -74,16 +82,18 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
         testID={PredictOrderFlowTestIds.POTENTIAL_PAYOUT}
         valueColor={TextColor.SuccessDefault}
       />
-      <QuoteRow
-        label={strings('predict_next.order_preview.potential_profit')}
-        value={formatUsd(preview.potentialProfit)}
-        testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
-        valueColor={
-          preview.potentialProfit.startsWith('-')
-            ? TextColor.ErrorDefault
-            : TextColor.SuccessDefault
-        }
-      />
+      {withTotal ? (
+        <QuoteRow
+          label={strings('predict_next.order_preview.potential_profit')}
+          value={formatUsd(preview.potentialProfit)}
+          testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
+          valueColor={
+            preview.potentialProfit.startsWith('-')
+              ? TextColor.ErrorDefault
+              : TextColor.SuccessDefault
+          }
+        />
+      ) : null}
       <Box twClassName="gap-1">
         <QuoteRow
           label={strings('predict_next.order_preview.fee')}
@@ -101,18 +111,26 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
           />
         ))}
       </Box>
-      <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.total_debit')}
-        value={formatUsd(preview.totalDebit)}
-        testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
-      />
+      {withTotal ? (
+        <EmphasizedTotalRow
+          label={strings('predict_next.order_preview.total_debit')}
+          value={formatUsd(preview.totalDebit)}
+          testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
+        />
+      ) : null}
     </>
   );
 };
 
 /** Server-quoted sell Preview rows: the Cash Out mirror of the buy rows,
  * with Net Proceeds — the sell counterpart of Total Debit — emphasized. */
-const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+const SellPreviewRows = ({
+  preview,
+  withTotal = true,
+}: {
+  preview: PredictOrderPreview;
+  withTotal?: boolean;
+}) => {
   if (preview.action !== 'sell') {
     return null;
   }
@@ -156,24 +174,81 @@ const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
           />
         ))}
       </Box>
-      <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.net_proceeds')}
-        value={formatUsd(preview.estimatedNetProceeds)}
-        testID={PredictOrderFlowTestIds.NET_PROCEEDS}
-      />
+      {withTotal ? (
+        <EmphasizedTotalRow
+          label={strings('predict_next.order_preview.net_proceeds')}
+          value={formatUsd(preview.estimatedNetProceeds)}
+          testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+        />
+      ) : null}
     </>
   );
 };
 
 /** Server-quoted preview rows: distinct canonical values, verbatim, for the
- * quoted Order Action. */
+ * quoted Order Action. When the profile's invariant produced a signed bound
+ * (`display`), the emphasized Total shows that bound — the worst case the
+ * phone actually signs — and profit is measured against it. */
 export const OrderPreviewRows = ({
   preview,
+  display,
 }: {
   preview: PredictOrderPreview;
-}) => (
-  <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
-    <BuyPreviewRows preview={preview} />
-    <SellPreviewRows preview={preview} />
-  </Box>
+  display?: InvariantDisplay;
+}) => {
+  if (preview.action === 'buy') {
+    return (
+      <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+        <BuyPreviewRows preview={preview} withTotal={display === undefined} />
+        {display ? <BuySignedTail display={display} /> : null}
+      </Box>
+    );
+  }
+  return (
+    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+      <SellPreviewRows preview={preview} withTotal={display === undefined} />
+      {display ? <SellSignedTail display={display} /> : null}
+    </Box>
+  );
+};
+
+/** The signed buy tail: the invariant's worst-case cost the phone signs,
+ * replacing the quoted Total; profit is measured against it. */
+const BuySignedTail = ({
+  display,
+}: {
+  display: InvariantDisplay;
+}) => {
+  const profit = (
+    Number(display.payout) - Number(display.maxCost)
+  ).toFixed(2);
+  return (
+    <>
+      <EmphasizedTotalRow
+        label={strings('predict_next.order_preview.max_cost')}
+        value={formatUsd(display.maxCost)}
+        testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
+      />
+      <QuoteRow
+        label={strings('predict_next.order_preview.potential_profit')}
+        value={formatUsd(profit)}
+        testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
+        valueColor={
+          profit.startsWith('-')
+            ? TextColor.ErrorDefault
+            : TextColor.SuccessDefault
+        }
+      />
+    </>
+  );
+};
+
+/** The signed sell tail: the invariant's worst-case proceeds the phone
+ * signs, replacing the quoted Net Proceeds. */
+const SellSignedTail = ({ display }: { display: InvariantDisplay }) => (
+  <EmphasizedTotalRow
+    label={strings('predict_next.order_preview.min_proceeds')}
+    value={formatUsd(display.minProceeds)}
+    testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+  />
 );

@@ -27,6 +27,8 @@ import {
 } from '../types';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
+const SIGNING = { inputs: {}, values: { price: '0.50', count: '10' } };
+
 const preview: PredictOrderPreview = {
   previewId: 'preview-1',
   venueId: KALSHI_VENUE_ID,
@@ -294,7 +296,7 @@ describe('PredictOrderService', () => {
 
   it('rejects commits for another venue', async () => {
     await expect(
-      service().commitPreview('polymarket' as PredictVenueId, 'preview-1'),
+      service().commitPreview('polymarket' as PredictVenueId, 'preview-1', SIGNING),
     ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
     expect(trading.commitOrder).toHaveBeenCalledTimes(0);
   });
@@ -323,7 +325,7 @@ describe('PredictOrderService', () => {
 
         const result = await (
           await quotedService()
-        ).commitPreview(KALSHI_VENUE_ID, 'preview-1');
+        ).commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
         expect(result).toEqual(receiptWith({ status }));
         expect(trading.commitOrder).toHaveBeenCalledTimes(1);
@@ -351,7 +353,7 @@ describe('PredictOrderService', () => {
 
         const result = await (
           await quotedService(sellPreview)
-        ).commitPreview(KALSHI_VENUE_ID, 'preview-sell-1');
+        ).commitPreview(KALSHI_VENUE_ID, 'preview-sell-1', SIGNING);
 
         expect(result.status).toBe(status);
         expect(trading.commitOrder).toHaveBeenCalledTimes(1);
@@ -367,13 +369,14 @@ describe('PredictOrderService', () => {
 
       const result = await (
         await quotedService()
-      ).commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      ).commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
       expect(result).toEqual(receiptWith({ status: 'filled' }));
       expect(trading.commitOrder).toHaveBeenCalledTimes(3);
       // Every observation re-POSTs the same Preview reference: one operation.
       expect(trading.commitOrder).toHaveBeenCalledWith(
         'preview-1',
+        SIGNING,
         commitSignal,
       );
     });
@@ -383,7 +386,7 @@ describe('PredictOrderService', () => {
 
       const result = await (
         await quotedService()
-      ).commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      ).commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
       // Initial commit plus the bounded observations, never unbounded.
       expect(trading.commitOrder).toHaveBeenCalledTimes(4);
@@ -402,6 +405,7 @@ describe('PredictOrderService', () => {
       const first = await orderService.commitPreview(
         KALSHI_VENUE_ID,
         'preview-1',
+        SIGNING,
       );
 
       expect(first).toEqual(receiptWith({ status: 'reconciliation_required' }));
@@ -411,6 +415,7 @@ describe('PredictOrderService', () => {
       const second = await orderService.commitPreview(
         KALSHI_VENUE_ID,
         'preview-1',
+        SIGNING,
       );
 
       expect(second).toEqual(receiptWith({ status: 'filled' }));
@@ -423,8 +428,8 @@ describe('PredictOrderService', () => {
 
       const orderService = await quotedService();
       const [first, second] = await Promise.all([
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ]);
 
       expect(first).toBe(second);
@@ -442,8 +447,8 @@ describe('PredictOrderService', () => {
 
       const orderService = await quotedService();
       const settled = await Promise.allSettled([
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ]);
       const failures = settled.filter(
         (result): result is PromiseRejectedResult =>
@@ -455,7 +460,7 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(1);
 
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).resolves.toEqual(receiptWith({ status: 'filled' }));
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
     });
@@ -466,7 +471,7 @@ describe('PredictOrderService', () => {
       );
 
       await expect(
-        (await quotedService()).commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        (await quotedService()).commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
       expect(invalidateQueries).toHaveBeenCalledTimes(0);
     });
@@ -496,7 +501,7 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quote(serviceWith(60_000));
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       await settle();
       orderService.abandonCommits();
 
@@ -521,7 +526,7 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       await settle();
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
 
@@ -547,7 +552,7 @@ describe('PredictOrderService', () => {
       // The previous person's Preview: refused locally, so it can never be
       // POSTed with the next person's bearer token.
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
       expect(trading.commitOrder).toHaveBeenCalledTimes(0);
     });
@@ -560,20 +565,22 @@ describe('PredictOrderService', () => {
       await quote(orderService);
 
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).resolves.toEqual(receiptWith({ status: 'filled' }));
       expect(invalidateQueries).toHaveBeenCalledTimes(4);
     });
 
     it('aborts the transport of a Commit still resolving its bearer token', async () => {
       let signal: AbortSignal | undefined;
-      trading.commitOrder.mockImplementation((_previewId, options) => {
-        signal = options?.signal;
-        return new Promise<PredictOrderReceipt>(() => undefined);
-      });
+      trading.commitOrder.mockImplementation(
+        (_previewId, _signing, options) => {
+          signal = options?.signal;
+          return new Promise<PredictOrderReceipt>(() => undefined);
+        },
+      );
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       expect(signal?.aborted).toBe(false);
       orderService.abandonCommits();
 
@@ -591,7 +598,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       expect(trading.commitOrder).toHaveBeenCalledTimes(4);
       orderService.abandonCommits();
@@ -606,7 +613,7 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       await settle();
       orderService.destroy();
 
@@ -622,7 +629,7 @@ describe('PredictOrderService', () => {
   describe('submission boundary', () => {
     it('refuses a Commit for a Preview it never quoted, without a request', async () => {
       await expect(
-        service().commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        service().commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
       expect(trading.commitOrder).not.toHaveBeenCalled();
     });
@@ -633,7 +640,7 @@ describe('PredictOrderService', () => {
       orderService.cancelUncommittedPreviews();
 
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
       expect(trading.commitOrder).not.toHaveBeenCalled();
     });
@@ -662,7 +669,7 @@ describe('PredictOrderService', () => {
         code: PredictErrorCode.PREVIEW_EXPIRED,
       });
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
       expect(trading.commitOrder).not.toHaveBeenCalled();
     });
@@ -695,10 +702,11 @@ describe('PredictOrderService', () => {
       );
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       // The boundary is crossed synchronously with the approval.
       expect(trading.commitOrder).toHaveBeenCalledWith(
         'preview-1',
+        SIGNING,
         commitSignal,
       );
       orderService.cancelUncommittedPreviews();
@@ -723,14 +731,14 @@ describe('PredictOrderService', () => {
       orderService.presentOperation('preview-1', jest.fn());
 
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.INSUFFICIENT_BALANCE });
       expect(orderResolved).not.toHaveBeenCalled();
 
       // Back before the boundary: a context change cancels it again.
       orderService.cancelUncommittedPreviews();
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
       expect(trading.commitOrder).toHaveBeenCalledTimes(1);
     });
@@ -745,7 +753,7 @@ describe('PredictOrderService', () => {
       const orderService = await quotedService();
 
       await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({ code: PredictErrorCode.INSUFFICIENT_BALANCE });
 
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -766,8 +774,8 @@ describe('PredictOrderService', () => {
       trading.commitOrder.mockResolvedValue(receiptWith({ status: 'filled' }));
       const orderService = await quotedService();
 
-      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
-      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -788,7 +796,7 @@ describe('PredictOrderService', () => {
       const orderService = await quotedService();
       orderService.presentOperation('preview-1', presenter);
 
-      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
       expect(presenter).toHaveBeenCalledWith({
         venueId: KALSHI_VENUE_ID,
@@ -815,7 +823,7 @@ describe('PredictOrderService', () => {
       const orderService = await quotedService();
       const unregister = orderService.presentOperation('preview-1', presenter);
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
       unregister();
       release(receiptWith({ status: 'filled' }));
       await commit;
@@ -830,7 +838,7 @@ describe('PredictOrderService', () => {
       trading.commitOrder.mockResolvedValue(receiptWith({ status: 'filled' }));
       const orderService = await quotedService();
 
-      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
 
       const [payload] = orderResolved.mock.calls[0];
       expect(Object.keys(payload).sort()).toEqual([
@@ -854,7 +862,7 @@ describe('PredictOrderService', () => {
       );
 
       const first = await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       expect(first.status).toBe('pending');
       expect(trading.commitOrder).toHaveBeenCalledTimes(4);
@@ -865,6 +873,7 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(5);
       expect(trading.commitOrder).toHaveBeenLastCalledWith(
         'preview-1',
+        { ...SIGNING, confirmed: false },
         commitSignal,
       );
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -888,7 +897,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       await jest.advanceTimersByTimeAsync(1_000);
 
@@ -911,7 +920,7 @@ describe('PredictOrderService', () => {
 
       await expect(
         settleWithFakeTimers(
-          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
         ),
       ).rejects.toMatchObject({ code: PredictErrorCode.NETWORK_ERROR });
 
@@ -925,6 +934,7 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
       expect(trading.commitOrder).toHaveBeenLastCalledWith(
         'preview-1',
+        { ...SIGNING, confirmed: false },
         commitSignal,
       );
       expect(orderResolved).toHaveBeenCalledTimes(1);
@@ -955,7 +965,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).catch(() => undefined);
       await jest.advanceTimersByTimeAsync(15_000);
 
@@ -992,7 +1002,7 @@ describe('PredictOrderService', () => {
         }),
       );
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).catch(() => undefined);
 
       // The event loop's clock runs ahead of the wall clock, so the timer
@@ -1037,7 +1047,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).catch(() => undefined);
       await jest.advanceTimersByTimeAsync(15_000);
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
@@ -1080,7 +1090,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       expect(trading.commitOrder).toHaveBeenCalledTimes(4);
       await jest.advanceTimersByTimeAsync(20_000);
@@ -1119,10 +1129,10 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).catch(() => undefined);
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).catch(() => undefined);
       expect(orderResolved).not.toHaveBeenCalled();
 
@@ -1141,14 +1151,14 @@ describe('PredictOrderService', () => {
         serviceWith(0, { backgroundObservationDelaysMs: [1_000] }),
       );
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       expect(trading.commitOrder).toHaveBeenCalledTimes(4);
 
       // An explicit observation pre-empts the scheduled background one.
       trading.commitOrder.mockResolvedValue(receiptWith({ status: 'filled' }));
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       await jest.advanceTimersByTimeAsync(60_000);
 
@@ -1166,7 +1176,7 @@ describe('PredictOrderService', () => {
       );
 
       await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       );
       await jest.advanceTimersByTimeAsync(60_000);
 
