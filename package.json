@@ -188,16 +188,10 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/network-controller": {
-      "type": "breaking",
-      "previewVersion": "37.1.1-preview-3a0f39d23"
-    }
-  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
-    "@metamask/network-controller": "npm:@metamask-previews/network-controller@37.1.1-preview-3a0f39d23",
+    "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^3.2.0",
     "@metamask/geolocation-controller": "^2.0.0",
     "@metamask/utils": "^12.0.0",
@@ -436,7 +430,7 @@
     "@metamask/multichain-transactions-controller": "^7.1.2",
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-connection-banner-controller": "^0.2.0",
-    "@metamask/network-controller": "^37.1.1",
+    "@metamask/network-controller": "^38.0.0",
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/notification-services-controller": "^29.0.3",
     "@metamask/permission-controller": "^14.0.0",
