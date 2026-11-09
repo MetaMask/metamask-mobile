@@ -2,8 +2,8 @@ import Routes from '../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../NavigationService/types';
 
 /**
- * Opens the add-device OTP sheet on the current stack so it appears over the
- * scanner flow instead of the wallet home tab (ROOT_MODAL_FLOW is AppFlow-root).
+ * Opens the add-device OTP sheet. AppFlow registers the sheet on the same
+ * stack as the scanner, so the sheet pushes over the scanner.
  */
 export const showAddDeviceVerificationSheet = (
   navigation: AppNavigationProp,

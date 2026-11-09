@@ -21,6 +21,8 @@ import configureMockStore from 'redux-mock-store';
 import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import { createMockUIMessenger } from '../../../util/test/mock-ui-messenger';
 import { View as MockView } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -2171,6 +2173,33 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('registers the QR tab switcher on AppFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.QR_TAB_SWITCHER }],
+      };
+      const store = configureMockStore()(initialState);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <UIMessengerProvider value={createMockUIMessenger()}>
+              <ThemeContext.Provider value={mockTheme}>
+                {children}
+              </ThemeContext.Provider>
+            </UIMessengerProvider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      const { UNSAFE_root } = render(<App />, { wrapper: Providers });
+
+      await waitFor(() => {
+        expect(
+          UNSAFE_root.findByProps({ title: Routes.QR_TAB_SWITCHER }),
+        ).toBeTruthy();
       });
     });
 

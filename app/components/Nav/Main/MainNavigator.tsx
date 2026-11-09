@@ -57,12 +57,8 @@ import CashTokensFullView from '../../Views/CashTokensFullView';
 import WatchlistFullScreenView from '../../UI/Assets/watchlist/Views/WatchlistFullScreenView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
-import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
-import QRTabSwitcher from '../../Views/QRTabSwitcher';
-import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
-import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -153,7 +149,6 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
-  addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
   slideFromLeftNativeOptions,
@@ -263,9 +258,7 @@ import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
-import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
-import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
@@ -278,16 +271,8 @@ const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
-  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
-});
-
 const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
   capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
-});
-
-const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
-  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
 // Shared defaults for every native stack in this file: no native header (each
@@ -370,10 +355,6 @@ const WalletTabStackFlow = () => {
         name="WalletView"
         component={WalletWithMessenger}
         options={{ animation: 'none' }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
       />
     </NativeStack.Navigator>
   );
@@ -666,15 +647,16 @@ const SettingsFlow = () => {
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />
       <NativeStack.Screen name="ContactForm" component={ContactForm} />
       <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-      />
-      <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
       />
       <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
       <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
+      {/*
+        This stack owns goBack for its backup steps. OnboardingNav,
+        SetPasswordFlow, and SettingsFlow are separate stacks, so each one
+        registers the steps that flow pushes.
+      */}
       <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
@@ -1020,6 +1002,11 @@ const NotificationsModeView = () => (
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    {/*
+      This stack owns goBack for ChoosePassword, the backup steps, and
+      OptinMetrics. OnboardingNav, SetPasswordFlow, and SettingsFlow are
+      separate stacks, so each one registers the steps that flow pushes.
+    */}
     <NativeStack.Screen
       name="ChoosePassword"
       component={ChoosePasswordWithMessenger}
@@ -1276,19 +1263,6 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
-      />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcherWithMessenger}
-      />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-        component={VerificationCodeBottomSheet}
-        options={addDeviceVerificationCodeScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWalletWithMessenger}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen name="NftDetails" component={NftDetails} />

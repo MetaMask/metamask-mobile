@@ -359,11 +359,10 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
           node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-      )[0];
+      );
 
-      // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle)
-      // and the hidden header, so pushed screens need no options of their own.
+      // Then the wallet tab stack inherits the themed content background
+      // (native-stack uses contentStyle) and the hidden header.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
           headerShown: false,
@@ -372,7 +371,7 @@ describe('MainNavigator', () => {
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
+      expect(revealPrivateCredentialScreen).toHaveLength(0);
     });
 
     it.each([
@@ -1145,17 +1144,23 @@ describe('MainNavigator', () => {
       expect(settingsScreen).toBeDefined();
     });
 
-    it('includes QRTabSwitcher route', () => {
+    it('leaves QR, add-device, and private-credential reveal to AppFlow', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
-      const screenProps = getScreenProps(container);
-      const qrScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      const screenNames = getScreenProps(container).map(
+        (screen) => screen.name,
       );
 
-      expect(qrScreen).toBeDefined();
+      expect(screenNames).not.toContain(Routes.QR_TAB_SWITCHER);
+      expect(screenNames).not.toContain(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+      expect(screenNames).not.toContain(
+        Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+      );
+      expect(screenNames).not.toContain(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      );
     });
 
     it('includes Notifications view route', () => {
@@ -2893,7 +2898,7 @@ describe('MainNavigator', () => {
         expect(WalletView).toBeTruthy();
       });
 
-      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+      it('keeps RevealPrivateCredential off WalletTabStackFlow and SettingsFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -2905,14 +2910,24 @@ describe('MainNavigator', () => {
           'TabScreen',
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
 
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
-          walletStackRoot,
+        const screenNames = (root: ReactTestInstance) =>
+          root
+            .findAll(
+              (node: ReactTestInstance) =>
+                node.type?.toString?.() === 'Screen' &&
+                typeof node.props?.name === 'string',
+            )
+            .map((node) => node.props.name as string);
+
+        expect(screenNames(walletStackRoot)).not.toContain(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(screenNames(settingsRoot)).not.toContain(
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {
