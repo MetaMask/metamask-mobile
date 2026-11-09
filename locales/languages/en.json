@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Add funds right from your bank",
@@ -1479,6 +1480,8 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_more": "See more",
+      "see_less": "See less",
       "translating": "Translating...",
       "translated_to_english": "Translated to English",
       "failed": "Couldn't translate.",
