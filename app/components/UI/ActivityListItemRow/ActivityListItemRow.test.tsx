@@ -195,9 +195,37 @@ const mockCachedEvmTransactions = new Map<
 jest.mock(
   '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
   () => ({
-    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
-      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
-      undefined,
+    useCachedEvmTransaction: ({
+      txHash,
+      chainId,
+    }: {
+      txHash?: string;
+      chainId?: string;
+    }) => {
+      const cached = txHash && mockCachedEvmTransactions.get(txHash.toLowerCase());
+      if (!cached?.transactionProtocol) {
+        return undefined;
+      }
+
+      return {
+        accountId: 'eip155:0:0x0000000000000000000000000000000000000001',
+        tx: {
+          id: txHash,
+          chainId: chainId ?? 'eip155:1',
+          status: 'confirmed',
+          timestamp: 1,
+          date: new Date(0).toISOString(),
+          from: '0xfrom',
+          to: '0xto',
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '0',
+          transactionProtocol: cached.transactionProtocol,
+        },
+        valueTransfers: [],
+        fee: null,
+      };
+    },
   }),
 );
 

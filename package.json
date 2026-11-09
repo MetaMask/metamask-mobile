@@ -189,7 +189,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/client-utils@npm:^3.2.0": "npm:@metamask-previews/client-utils@3.1.1-preview-04cf473",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^37.1.1",
