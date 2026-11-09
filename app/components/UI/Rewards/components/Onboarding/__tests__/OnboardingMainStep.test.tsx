@@ -473,6 +473,26 @@ describe('OnboardingMainStep', () => {
       expect(mockOptin).toHaveBeenCalledWith({ bulkLink: true });
     });
 
+    it('returns to the wallet tab when the geo retry modal is cancelled', () => {
+      setupSelectors(
+        new Map<unknown, unknown>([
+          [selectOptinAllowedForGeoError, true],
+          [selectOptinAllowedForGeo, false],
+        ]),
+      );
+
+      renderWithProviders(<OnboardingMainStep />);
+      fireEvent.press(screen.getByTestId('next-button'));
+
+      const modalParams = mockNavigate.mock.calls[0][1] as {
+        onCancel: () => void;
+      };
+      modalParams.onCancel();
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
     it('does not call optin when canContinue returns false (geo restricted)', () => {
       setupSelectors(new Map([[selectOptinAllowedForGeo, false]]));
 
