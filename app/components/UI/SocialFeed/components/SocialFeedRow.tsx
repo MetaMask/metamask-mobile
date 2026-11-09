@@ -27,6 +27,8 @@ export interface SocialFeedRowProps {
   onPositionPress?: (post: SocialV1FeedPost) => void;
   requireSocialTerms?: boolean;
   requireSocialProfile?: boolean;
+  /** When false, the card hides Copy trade. Defaults to shown. */
+  showCopyTrade?: boolean;
   /** Clock for relative timestamps; a new value re-renders the row. */
   now?: number;
 }
@@ -59,6 +61,7 @@ export const areSocialFeedRowPropsEqual = (
   previous.onPositionPress === next.onPositionPress &&
   previous.requireSocialTerms === next.requireSocialTerms &&
   previous.requireSocialProfile === next.requireSocialProfile &&
+  previous.showCopyTrade === next.showCopyTrade &&
   previous.now === next.now &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
@@ -93,6 +96,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onPositionPress,
   requireSocialTerms,
   requireSocialProfile,
+  showCopyTrade,
   now,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
@@ -108,6 +112,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           post={post}
           requireSocialTerms={requireSocialTerms}
           requireSocialProfile={requireSocialProfile}
+          showCopyTrade={showCopyTrade}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}

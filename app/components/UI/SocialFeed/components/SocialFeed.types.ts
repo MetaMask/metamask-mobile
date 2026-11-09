@@ -68,6 +68,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   ) => void;
   /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
   requireSocialProfile?: boolean;
+  /** When false, cards hide Copy trade. Defaults to shown. */
+  showCopyTrade?: boolean;
   testID?: string;
 }
 

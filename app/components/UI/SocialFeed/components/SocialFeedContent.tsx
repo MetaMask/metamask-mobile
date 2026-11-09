@@ -105,6 +105,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onCopyTrade,
   onPositionPress,
   requireSocialProfile,
+  showCopyTrade,
   testID,
 }) => {
   const query = useMemo(
@@ -144,12 +145,19 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
         post={post}
         requireSocialTerms
         requireSocialProfile={requireSocialProfile}
+        showCopyTrade={showCopyTrade}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
       />
     ),
-    [onAuthorPress, onCopyTrade, onPositionPress, requireSocialProfile],
+    [
+      onAuthorPress,
+      onCopyTrade,
+      onPositionPress,
+      requireSocialProfile,
+      showCopyTrade,
+    ],
   );
 
   return (

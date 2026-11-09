@@ -36,14 +36,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import {
@@ -69,6 +64,7 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
@@ -77,14 +73,12 @@ import {
   useTraderProfile,
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
-import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeed from '../../../UI/SocialFeed/components/SocialFeed';
+import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import type {
   SocialV1FeedAuthor,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
-import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
-import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
@@ -97,7 +91,8 @@ import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
-import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useMyProfile, useMyProfileAddress } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
@@ -120,10 +115,9 @@ const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
-const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
+const PROFILE_CONTENT_TABS = ['posts', 'open', 'closed'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
-const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 
 const linkedAddressesMatch = (
@@ -187,84 +181,6 @@ const positionSheetAuthor = (
   followerCount: profile.followerCount ?? null,
   xHandle: profile.xHandle ?? null,
 });
-
-interface ProfilePostsContentProps {
-  showInitialPostSkeletons: boolean;
-  showPostsEmptyState: boolean;
-  postsEmptyMessage?: string;
-  postsError: string | null;
-  visiblePosts: SocialV1FeedPost[];
-  onRetry: () => void;
-  showCopyTrade: boolean;
-}
-
-const ProfilePostsContent = ({
-  showInitialPostSkeletons,
-  showPostsEmptyState,
-  postsEmptyMessage,
-  postsError,
-  visiblePosts,
-  onRetry,
-  showCopyTrade,
-}: ProfilePostsContentProps) => {
-  if (showInitialPostSkeletons) {
-    return <ProfilePostsLoadingState />;
-  }
-  if (showPostsEmptyState) {
-    return <ProfilePostsEmptyState message={postsEmptyMessage} />;
-  }
-  if (postsError && visiblePosts.length === 0) {
-    return (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full px-4 py-16 gap-3"
-        testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.feed.error.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.feed.error.description')}
-        </Text>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={onRetry}
-          twClassName="self-center"
-          testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
-        >
-          {strings('social_leaderboard.feed.error.retry')}
-        </Button>
-      </Box>
-    );
-  }
-
-  return (
-    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
-      <SocialV1FeedPostList
-        posts={visiblePosts}
-        dividerKeyPrefix="my-profile"
-        renderPost={(post) => (
-          <SocialFeedPostShell
-            post={post}
-            requireSocialTerms
-            showCopyTrade={showCopyTrade}
-          />
-        )}
-      />
-    </Box>
-  );
-};
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -351,9 +267,17 @@ const MyProfileView: React.FC = () => {
     isActive: isOwner,
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const isFeedEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const [postsRefreshKey, setPostsRefreshKey] = useState(0);
   const profileTabs = useMemo<TabItem[]>(
     () => [
+      {
+        key: 'posts',
+        label: strings('social_leaderboard.my_profile.posts'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
+      },
       {
         key: 'open',
         label: strings('social_leaderboard.trader_profile.open'),
@@ -365,12 +289,6 @@ const MyProfileView: React.FC = () => {
         label: strings('social_leaderboard.trader_profile.closed'),
         content: null,
         testID: MyProfileViewSelectorsIDs.CLOSED_TAB,
-      },
-      {
-        key: 'posts',
-        label: strings('social_leaderboard.my_profile.posts'),
-        content: null,
-        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
       },
     ],
     [],
@@ -387,27 +305,18 @@ const MyProfileView: React.FC = () => {
     [activeTab],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
+  const { onAuthorPress, onPositionPress: onFeedPositionPress } =
+    useSocialFeedPostNavigation(isOwner ? 'my_profile' : 'trader_profile');
   useFocusEffect(
     useCallback(() => {
-      // Every new post lands here, pinned at the top of the Posts tab.
+      // Every new post lands here, at the top of the Posts tab.
       if (isOwner && consumePostsTabFocus()) {
         setActiveTab('posts');
+        setPostsRefreshKey((key) => key + 1);
         scrollRef.current?.scrollTo({ y: 0, animated: true });
       }
     }, [isOwner]),
   );
-  const {
-    posts,
-    isLoading: isPostsLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    loadMore,
-    error: postsError,
-    refresh: refreshPosts,
-  } = useMyProfilePosts(addressOrId, {
-    ownerProfileId: isOwner ? myProfile?.profileId : undefined,
-    isActive: activeTab === 'posts' && !isBlocked,
-  });
   const {
     openPositions,
     closedPositions,
@@ -581,20 +490,22 @@ const MyProfileView: React.FC = () => {
       await Promise.allSettled([
         refresh(),
         refreshLiveProfile(),
-        refreshPosts(),
         refetchPositions(),
         minDuration,
       ]);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    refresh,
-    refreshLiveProfile,
-    refreshPosts,
-    refetchPositions,
-    trackInteraction,
-  ]);
+  }, [refresh, refreshLiveProfile, refetchPositions, trackInteraction]);
+
+  const handlePostsRefresh = useCallback(() => {
+    trackInteraction(Interaction.REFRESH);
+    Promise.allSettled([
+      refresh(),
+      refreshLiveProfile(),
+      refetchPositions(),
+    ]).catch(() => undefined);
+  }, [refresh, refreshLiveProfile, refetchPositions, trackInteraction]);
 
   const handlePositionsRetry = useCallback(() => {
     refetchPositions().catch(() => undefined);
@@ -662,55 +573,23 @@ const MyProfileView: React.FC = () => {
   const handleCloseAssetFilter = useCallback(() => {
     setIsAssetFilterOpen(false);
   }, []);
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter((post) =>
-        matchesProfileAssetFilter(post.position, assetFilter),
-      ),
-    [assetFilter, posts],
+  const filterProfilePost = useCallback(
+    (post: SocialV1FeedPost) =>
+      matchesProfileAssetFilter(post.position, assetFilter),
+    [assetFilter],
   );
-
-  const handleScrollSettled = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (activeTab !== 'posts' || !hasNextPage) {
-        return;
-      }
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const distanceFromEnd =
-        contentSize.height - (contentOffset.y + layoutMeasurement.height);
-      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
-      }
-    },
-    [activeTab, hasNextPage, loadMore],
+  const postsEmptyState = useMemo(
+    () => (
+      <ProfilePostsEmptyState
+        message={
+          assetFilter === 'all'
+            ? undefined
+            : strings(filteredPostsEmptyKey(assetFilter))
+        }
+      />
+    ),
+    [assetFilter],
   );
-
-  // A Tokens or Perps filter only sees posts already loaded. Keep paging
-  // until a match shows up, the feed ends, or the request fails.
-  const showFilteredPostLoading =
-    assetFilter !== 'all' &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    (isPostsLoading || isFetchingNextPage || hasNextPage);
-  const showInitialPostSkeletons =
-    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
-  const showPostsEmptyState =
-    !isPostsLoading &&
-    !isFetchingNextPage &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    !showFilteredPostLoading;
-  useEffect(() => {
-    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
-      return;
-    }
-    loadMore();
-  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
-  const postsEmptyMessage =
-    posts.length > 0 && assetFilter !== 'all'
-      ? strings(filteredPostsEmptyKey(assetFilter))
-      : undefined;
   const positionTab = profilePositionTab({
     activeTab,
     openPositions,
@@ -720,6 +599,171 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
   });
+
+  const profileChrome =
+    displayProfile && overlayedStats ? (
+      <>
+        <Box
+          testID={MyProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+          onLayout={handleTitleSectionLayout}
+        >
+          <MyProfileHeader
+            profile={displayProfile}
+            overlayedStats={overlayedStats}
+            followingCount={
+              isOwner ? following.length : (displayProfile.followingCount ?? 0)
+            }
+            isOwner={isOwner}
+            onEditAvatar={isOwner ? handleEditAvatar : undefined}
+            onFollowersPress={handleFollowersPress}
+            onFollowingPress={handleFollowingPress}
+          />
+        </Box>
+
+        <Box
+          gap={2}
+          paddingHorizontal={4}
+          paddingBottom={
+            overlayedStats.performanceCells.length === 0 ? 8 : undefined
+          }
+        >
+          {isOwner ? (
+            <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  isFullWidth
+                  onPress={handleOpenComposer}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.create_post',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                >
+                  {strings('social_leaderboard.my_profile.create_post')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  isFullWidth
+                  onPress={handleEditProfile}
+                  testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                >
+                  {strings('social_leaderboard.my_profile.edit_profile')}
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Box twClassName="flex-1">
+                {isBlocked ? (
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    isFullWidth
+                    onPress={handleUnblock}
+                    testID={MyProfileViewSelectorsIDs.UNBLOCK_BUTTON}
+                  >
+                    {strings('social_leaderboard.trader_profile.unblock')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant={
+                      isFollowing
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
+                    }
+                    isFullWidth
+                    onPress={handleFollowPress}
+                    testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                  >
+                    {isFollowing
+                      ? strings('social_leaderboard.following')
+                      : strings('social_leaderboard.follow')}
+                  </Button>
+                )}
+              </Box>
+              {showMuteChip && muteProfileId ? (
+                <TraderMuteChip
+                  isMuted={isChipMuted(muteProfileId)}
+                  visible={isFollowing}
+                  onPress={handleMutePress}
+                  traderName={displayProfile?.displayName}
+                  testID={MyProfileViewSelectorsIDs.MUTE_CHIP}
+                />
+              ) : null}
+            </Box>
+          )}
+        </Box>
+
+        {isBlocked ? (
+          <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-12">
+            <TabEmptyState
+              icon={
+                <>
+                  <Icon
+                    name={IconName.Ban}
+                    size={IconSize.Lg}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.HeadingSm}
+                    twClassName="text-center"
+                  >
+                    {strings(
+                      'social_leaderboard.trader_profile.blocked_title',
+                      { name: displayProfile.displayName },
+                    )}
+                  </Text>
+                </>
+              }
+              description={strings(
+                'social_leaderboard.trader_profile.blocked_description',
+              )}
+              twClassName="max-w-80"
+              testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
+            />
+          </Box>
+        ) : (
+          <>
+            <MyProfilePerformanceStats
+              cells={overlayedStats.performanceCells}
+            />
+
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="bg-default mt-5 pr-4"
+            >
+              <Box twClassName="min-w-0 flex-1">
+                <TabsBar
+                  tabs={profileTabs}
+                  activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
+                  onTabPress={handleProfileTabPress}
+                />
+              </Box>
+              <ButtonIcon
+                iconName={IconName.Filter}
+                iconProps={{
+                  size: IconSize.Lg,
+                  color: IconColor.IconDefault,
+                }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenAssetFilter}
+                accessibilityLabel={strings(
+                  'social_leaderboard.shell.filters.title',
+                )}
+                accessibilityState={{ selected: isAssetFilterActive }}
+                testID={MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON}
+                twClassName={isAssetFilterActive ? 'bg-pressed' : undefined}
+              />
+            </Box>
+          </>
+        )}
+      </>
+    ) : null;
 
   return (
     <SocialFeedSurfaceProvider
@@ -866,221 +910,65 @@ const MyProfileView: React.FC = () => {
             </Button>
           </Box>
         ) : displayProfile && overlayedStats ? (
-          <Animated.ScrollView
-            ref={scrollRef}
-            testID={MyProfileViewSelectorsIDs.SCROLL}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-grow pb-6')}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScrollSettled}
-            onScrollEndDrag={handleScrollSettled}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
-            <Box
-              testID={MyProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-              onLayout={handleTitleSectionLayout}
-            >
-              <MyProfileHeader
-                profile={displayProfile}
-                overlayedStats={overlayedStats}
-                followingCount={
-                  isOwner
-                    ? following.length
-                    : (displayProfile.followingCount ?? 0)
-                }
-                isOwner={isOwner}
-                onEditAvatar={isOwner ? handleEditAvatar : undefined}
-                onFollowersPress={handleFollowersPress}
-                onFollowingPress={handleFollowingPress}
+          activeTab === 'posts' && !isBlocked && isFeedEnabled ? (
+            <Box twClassName="flex-1">
+              <SocialFeed
+                key={postsRefreshKey}
+                scope="all"
+                profileId={displayProfile.profileId}
+                commentedOnly
+                location={isOwner ? 'my_profile' : 'trader_profile'}
+                showMockedFields
+                isActive
+                scrollMode="virtualized"
+                realtime
+                filterPost={filterProfilePost}
+                emptyState={postsEmptyState}
+                onRefresh={handlePostsRefresh}
+                onScroll={onScroll}
+                onAuthorPress={onAuthorPress}
+                onPositionPress={onFeedPositionPress}
+                showCopyTrade={!isOwner}
+                requireSocialProfile
+                testID={MyProfileViewSelectorsIDs.POSTS_LIST}
+                scrollTestID={MyProfileViewSelectorsIDs.SCROLL}
+                renderHeader={() => profileChrome}
               />
             </Box>
-
-            <Box
-              gap={2}
-              paddingHorizontal={4}
-              paddingBottom={
-                overlayedStats.performanceCells.length === 0 ? 8 : undefined
+          ) : (
+            <Animated.ScrollView
+              ref={scrollRef}
+              testID={MyProfileViewSelectorsIDs.SCROLL}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={tw.style('flex-grow pb-6')}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
               }
             >
-              {isOwner ? (
-                <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleOpenComposer}
-                      accessibilityLabel={strings(
-                        'social_leaderboard.my_profile.create_post',
-                      )}
-                      testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.create_post')}
-                    </Button>
-                  </Box>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
-                    </Button>
-                  </Box>
-                </Box>
-              ) : (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                >
-                  <Box twClassName="flex-1">
-                    {isBlocked ? (
-                      <Button
-                        variant={ButtonVariant.Secondary}
-                        isFullWidth
-                        onPress={handleUnblock}
-                        testID={MyProfileViewSelectorsIDs.UNBLOCK_BUTTON}
-                      >
-                        {strings('social_leaderboard.trader_profile.unblock')}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant={
-                          isFollowing
-                            ? ButtonVariant.Secondary
-                            : ButtonVariant.Primary
-                        }
-                        isFullWidth
-                        onPress={handleFollowPress}
-                        testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                      >
-                        {isFollowing
-                          ? strings('social_leaderboard.following')
-                          : strings('social_leaderboard.follow')}
-                      </Button>
-                    )}
-                  </Box>
-                  {showMuteChip && muteProfileId ? (
-                    <TraderMuteChip
-                      isMuted={isChipMuted(muteProfileId)}
-                      visible={isFollowing}
-                      onPress={handleMutePress}
-                      traderName={displayProfile?.displayName}
-                      testID={MyProfileViewSelectorsIDs.MUTE_CHIP}
-                    />
-                  ) : null}
-                </Box>
-              )}
-            </Box>
-
-            {isBlocked ? (
-              <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-12">
-                <TabEmptyState
-                  icon={
-                    <>
-                      <Icon
-                        name={IconName.Ban}
-                        size={IconSize.Lg}
-                        color={IconColor.IconAlternative}
-                      />
-                      <Text
-                        variant={TextVariant.HeadingSm}
-                        twClassName="text-center"
-                      >
-                        {strings(
-                          'social_leaderboard.trader_profile.blocked_title',
-                          { name: displayProfile.displayName },
-                        )}
-                      </Text>
-                    </>
-                  }
-                  description={strings(
-                    'social_leaderboard.trader_profile.blocked_description',
-                  )}
-                  twClassName="max-w-80"
-                  testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
+              {profileChrome}
+              {!isBlocked && activeTab === 'posts' ? postsEmptyState : null}
+              {!isBlocked && activeTab !== 'posts' ? (
+                <ProfilePositionsTab
+                  positions={positionTab.positions}
+                  isLoading={positionTab.isLoading}
+                  error={positionTab.error}
+                  isClosed={positionTab.isClosed}
+                  filter={assetFilter}
+                  onPositionPress={handlePositionPress}
+                  onRetry={handlePositionsRetry}
+                  showFlaggedState={!isOwner}
+                  onUncountedHeaderPress={handleOpenUncountedSheet}
                 />
-              </Box>
-            ) : (
-              <>
-                <MyProfilePerformanceStats
-                  cells={overlayedStats.performanceCells}
-                />
-
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="bg-default mt-5 pr-4"
-                >
-                  <Box twClassName="min-w-0 flex-1">
-                    <TabsBar
-                      tabs={profileTabs}
-                      activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
-                      onTabPress={handleProfileTabPress}
-                    />
-                  </Box>
-                  <ButtonIcon
-                    iconName={IconName.Filter}
-                    iconProps={{
-                      size: IconSize.Lg,
-                      color: IconColor.IconDefault,
-                    }}
-                    size={ButtonIconSize.Md}
-                    onPress={handleOpenAssetFilter}
-                    accessibilityLabel={strings(
-                      'social_leaderboard.shell.filters.title',
-                    )}
-                    accessibilityState={{ selected: isAssetFilterActive }}
-                    testID={MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON}
-                    twClassName={isAssetFilterActive ? 'bg-pressed' : undefined}
-                  />
-                </Box>
-
-                {activeTab !== 'posts' ? (
-                  <ProfilePositionsTab
-                    positions={positionTab.positions}
-                    isLoading={positionTab.isLoading}
-                    error={positionTab.error}
-                    isClosed={positionTab.isClosed}
-                    filter={assetFilter}
-                    onPositionPress={handlePositionPress}
-                    onRetry={handlePositionsRetry}
-                    showFlaggedState={!isOwner}
-                    onUncountedHeaderPress={handleOpenUncountedSheet}
-                  />
-                ) : (
-                  <ProfilePostsContent
-                    showInitialPostSkeletons={showInitialPostSkeletons}
-                    showPostsEmptyState={showPostsEmptyState}
-                    postsEmptyMessage={postsEmptyMessage}
-                    postsError={postsError}
-                    visiblePosts={visiblePosts}
-                    onRetry={refreshPosts}
-                    showCopyTrade={!isOwner}
-                  />
-                )}
-                {activeTab === 'posts' &&
-                isFetchingNextPage &&
-                visiblePosts.length > 0 ? (
-                  <Box
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="px-4"
-                    testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
-                  >
-                    <ActivityIndicator size="small" />
-                  </Box>
-                ) : null}
-              </>
-            )}
-          </Animated.ScrollView>
+              ) : null}
+            </Animated.ScrollView>
+          )
         ) : (
           <Box
             twClassName="flex-1"

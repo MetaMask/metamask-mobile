@@ -62,8 +62,8 @@ export interface PendingPostsOverlay {
  * Splits `serverPosts` and the store into what `surface` renders.
  *
  * Only the Posts tab shows a local copy. It stands in until that feed returns
- * the same comment, and then that server row replaces it. An earlier post on
- * the same position stays. Following shows whatever the API returned.
+ * the same comment, and it hides the stale row for its position meanwhile.
+ * Following shows whatever the API returned, in the feed's own order.
  */
 export const overlayPendingPosts = (
   surface: PendingPostSurface,
@@ -90,6 +90,9 @@ export const overlayPendingPosts = (
     return { pinnedPosts: [], posts: serverPosts };
   }
   const pinnedCommentIds = new Set(pinned.map((entry) => entry.commentId));
+  const pinnedPositionIds = new Set(
+    pinned.flatMap((entry) => (entry.positionId ? [entry.positionId] : [])),
+  );
   return {
     // The pending card's id is kept on the confirmed copy so the list does not
     // remount (and re-animate) it when the swap happens.
@@ -99,7 +102,9 @@ export const overlayPendingPosts = (
         : entry.post,
     ),
     posts: serverPosts.filter(
-      (post) => !(post.commentId && pinnedCommentIds.has(post.commentId)),
+      (post) =>
+        !(post.commentId && pinnedCommentIds.has(post.commentId)) &&
+        !(post.position && pinnedPositionIds.has(post.position.positionId)),
     ),
   };
 };

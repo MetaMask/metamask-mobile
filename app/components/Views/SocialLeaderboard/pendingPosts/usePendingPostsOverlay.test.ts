@@ -79,18 +79,18 @@ describe('overlayPendingPosts', () => {
     expect(result.pinnedPosts).toEqual([]);
   });
 
-  it('pins a pending post and keeps an earlier post on the same position', () => {
-    const earlier = serverRow('earlier', 'older-comment', 'position-1');
+  it('pins a pending post and hides the stale row for its position', () => {
+    const staleRow = serverRow('stale', 'older-comment', 'position-1');
 
     const result = overlayPendingPosts('posts', [buildEntry()], OWNER, [
-      earlier,
+      staleRow,
       otherRow,
     ]);
 
     expect(result.pinnedPosts.map((post) => post.id)).toEqual([
       'pending-comment-1',
     ]);
-    expect(result.posts).toEqual([earlier, otherRow]);
+    expect(result.posts).toEqual([otherRow]);
   });
 
   it('lets the Posts feed take over once it returns the comment', () => {
