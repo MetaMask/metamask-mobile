@@ -82,6 +82,8 @@ import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
+  deriveMoneyCardSetupPollIntervalMs,
+  deriveMoneyCardSetupView,
   deriveMoneyMetaMaskCardMode,
   MoneyMetaMaskCardMode,
 } from '../../utils/moneyMetaMaskCardMode';
@@ -107,6 +109,9 @@ import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFla
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import { useCardEnableCard } from '../../../Card/Views/CardHome/hooks/useCardEnableCard';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -313,6 +318,30 @@ const MoneyHomeView = () => {
     reportsVerificationStatus,
   } = useMoneyAccountCardLinkage();
 
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  const cardSetupPollIntervalMs = deriveMoneyCardSetupPollIntervalMs(
+    hardwareTier,
+    networkTier,
+  );
+  const { data: cardHomeData, primaryToken: cardPrimaryToken } =
+    useCardHomeData();
+  const { enableCard, provisioningView, setupStep } = useCardEnableCard(
+    cardHomeData,
+    {
+      pollIntervalMs: cardSetupPollIntervalMs,
+      navigateFromOutsideCard: true,
+      recheckOnFocus: true,
+    },
+  );
+  const cardSetupView = deriveMoneyCardSetupView({
+    hasProvisioningAlert: (cardHomeData?.alerts ?? []).some(
+      (cardAlert) => cardAlert.type === 'card_provisioning',
+    ),
+    provisioningView,
+    setupStep,
+  });
+
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
@@ -352,6 +381,7 @@ const MoneyHomeView = () => {
     hasCardHomeDataFailed: cardHomeDataStatus === 'error',
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
+    cardSetupView,
   });
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -672,7 +702,7 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage') {
+      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -923,7 +953,6 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
   // Money Account entries are already valued in USD. Other Card tokens report
   // their fiat value in the user's selected currency.
@@ -965,6 +994,8 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            setupView={cardSetupView ?? undefined}
+            onSetupContinuePress={enableCard ?? navigateToCardHome}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}

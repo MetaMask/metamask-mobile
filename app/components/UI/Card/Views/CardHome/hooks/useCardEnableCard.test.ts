@@ -32,6 +32,7 @@ function mockImmersveState(
     isKycUnderReview: false,
     hasPendingAction: false,
     provisioningView: 'hidden',
+    setupStep: null,
     ...overrides,
   });
 }
@@ -50,14 +51,21 @@ describe('useCardEnableCard', () => {
     mockActiveProvider(CardProviderIds.Immersve);
     mockImmersveState({
       canEnableCard: true,
-      provisioningView: 'kyc_under_review',
+      provisioningView: 'hidden',
+      setupStep: 'kyc',
     });
 
-    const { result } = renderHook(() => useCardEnableCard(PROVISIONING_DATA));
+    const { result } = renderHook(() =>
+      useCardEnableCard(PROVISIONING_DATA, { pollIntervalMs: 15_000 }),
+    );
 
+    expect(mockUseImmersveEnableCard).toHaveBeenCalledWith(PROVISIONING_DATA, {
+      pollIntervalMs: 15_000,
+    });
     expect(result.current.canEnableCard).toBe(true);
     expect(result.current.enableCard).toBe(mockEnableCard);
-    expect(result.current.provisioningView).toBe('kyc_under_review');
+    expect(result.current.provisioningView).toBe('hidden');
+    expect(result.current.setupStep).toBe('kyc');
   });
 
   it('withholds the Immersve handler when Immersve cannot enable the card', () => {
@@ -79,5 +87,6 @@ describe('useCardEnableCard', () => {
     expect(result.current.provisioningView).toBe('provisioning');
     expect(result.current.canEnableCard).toBe(false);
     expect(result.current.enableCard).toBeNull();
+    expect(result.current.setupStep).toBeNull();
   });
 });

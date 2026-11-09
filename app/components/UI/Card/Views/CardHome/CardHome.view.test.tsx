@@ -590,5 +590,35 @@ describe('CardHome', () => {
         await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
       ).toBeOnTheScreen();
     });
+
+    it('hides the Link card CTA while the card still needs enabling', async () => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsMoneyAccountLinking: true,
+      });
+      const { findByTestId, queryByTestId } = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...linkableCardHomeOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  ...linkableCardHomeOverrides.engine.backgroundState
+                    .CardController.cardHomeData,
+                  actions: [{ type: 'enable_card' }],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

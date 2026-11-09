@@ -167,6 +167,10 @@ export type CardRootParamList = {
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
 };
 
+export type CardRootEntryParams = NavigatorScreenParams<CardRootParamList> & {
+  returnToCaller?: boolean;
+};
+
 /**
  * Feature-level Card navigation params for nested `CardScreens` / `CardModals` entry.
  */
@@ -174,7 +178,7 @@ export type CardRootParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardNavigationParamList = CardScreensStackParamList &
   CardModalsNavigationParamList & {
-    CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+    CardScreens: CardRootEntryParams | undefined;
     CardModals:
       | NavigatorScreenParams<CardModalsNavigationParamList>
       | undefined;

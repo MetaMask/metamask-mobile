@@ -4,6 +4,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { Alert } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { useExitCardFlow } from './useExitCardFlow';
 
 /**
  * Header modes shared across Card onboarding and main routes.
@@ -12,11 +13,13 @@ import { strings } from '../../../../../locales/i18n';
  * the user can step back from.
  *
  * `close-with-confirmation` — close (X) icon that shows a "leave onboarding?"
- * alert before navigating to `WALLET.HOME`. Used in the onboarding flow after
- * email entry.
+ * alert before leaving. The exit goes to wallet home, or back to the caller
+ * when the flow was entered from outside Card. Used in the onboarding flow
+ * after email entry.
  *
- * `close-direct` — close (X) icon that navigates straight to `WALLET.HOME`.
- * Used on KYC status screens.
+ * `close-direct` — close (X) icon that leaves immediately. The exit goes to
+ * wallet home, or back to the caller when the flow was entered from outside
+ * Card. Used on KYC status screens.
  *
  * `close-reset-home` — close (X) icon that resets the navigator to
  * `CARD.HOME`. Used by SpendingLimit's onboarding flow where the user must
@@ -36,14 +39,15 @@ export type CardHeaderMode =
 
 export const useCardHeaderHandlers = (mode: CardHeaderMode = 'none') => {
   const navigation = useNavigation<AppNavigationProp>();
+  const exitCardFlow = useExitCardFlow();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleCloseDirect = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
+    exitCardFlow();
+  }, [exitCardFlow]);
 
   const handleCloseResetHome = useCallback(() => {
     navigation.reset({
@@ -63,12 +67,12 @@ export const useCardHeaderHandlers = (mode: CardHeaderMode = 'none') => {
         },
         {
           text: strings('card.card_onboarding.exit_confirmation.exit_button'),
-          onPress: () => navigation.navigate(Routes.WALLET.HOME),
+          onPress: () => exitCardFlow(),
           style: 'destructive',
         },
       ],
     );
-  }, [navigation]);
+  }, [exitCardFlow]);
 
   switch (mode) {
     case 'back':

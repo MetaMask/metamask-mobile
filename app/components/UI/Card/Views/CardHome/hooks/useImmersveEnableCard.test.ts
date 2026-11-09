@@ -89,6 +89,7 @@ describe('useImmersveEnableCard', () => {
 
     expect(result.current.canEnableCard).toBe(true);
     expect(result.current.provisioningView).toBe('hidden');
+    expect(result.current.setupStep).toBe('funding');
     expect(result.current.isKycUnderReview).toBe(false);
 
     act(() => {
@@ -115,6 +116,19 @@ describe('useImmersveEnableCard', () => {
     expect(result.current.canEnableCard).toBe(false);
     expect(result.current.isKycUnderReview).toBe(true);
     expect(result.current.provisioningView).toBe('kyc_under_review');
+    expect(result.current.setupStep).toBeNull();
+  });
+
+  it('passes the poll interval through to provisioning', () => {
+    const data = {
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    } as never;
+
+    renderHook(() => useImmersveEnableCard(data, { pollIntervalMs: null }));
+
+    expect(mockUseImmersveCardProvisioning).toHaveBeenCalledWith(data, {
+      pollIntervalMs: null,
+    });
   });
 
   it('enables the card for allowance_revoked and navigates to reapprove mode', () => {

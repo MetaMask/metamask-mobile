@@ -37,8 +37,16 @@ import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardin
 
 const POLL_INTERVAL_MS = 5000;
 
+export interface CardProvisioningOptions {
+  /** `null` turns polling off. Omitted keeps the default interval. */
+  pollIntervalMs?: number | null;
+  navigateFromOutsideCard?: boolean;
+  recheckOnFocus?: boolean;
+}
+
 export function useImmersveCardProvisioning(
   data: CardHomeData | null | undefined,
+  options?: CardProvisioningOptions,
 ) {
   const providerId = useSelector(selectCardActiveProviderId);
   const isProvisioning =
@@ -79,6 +87,14 @@ export function useImmersveCardProvisioning(
   const [hasResolvedStatus, setHasResolvedStatus] = useState(false);
   const isReconciling = isProvisioning && !hasResolvedStatus;
   const isFocused = useIsFocused();
+  const pollIntervalMs =
+    options?.pollIntervalMs === undefined
+      ? POLL_INTERVAL_MS
+      : options.pollIntervalMs;
+  const navigateFromOutsideCard = options?.navigateFromOutsideCard === true;
+  const recheckOnFocus = options?.recheckOnFocus === true;
+  const [focusRecheckCount, setFocusRecheckCount] = useState(0);
+  const wasFocusedRef = useRef(isFocused);
 
   useEffect(() => {
     if (!isProvisioning) {
@@ -89,7 +105,13 @@ export function useImmersveCardProvisioning(
   }, [isProvisioning]);
 
   useEffect(() => {
-    if (!isProvisioning || !isFocused || pendingAction || isReconciling) {
+    if (
+      !isProvisioning ||
+      !isFocused ||
+      pendingAction ||
+      isReconciling ||
+      pollIntervalMs === null
+    ) {
       return undefined;
     }
 
@@ -97,10 +119,24 @@ export function useImmersveCardProvisioning(
       Engine.context.CardController.fetchCardHomeData({ force: true }).catch(
         () => undefined,
       );
-    }, POLL_INTERVAL_MS);
+    }, pollIntervalMs);
 
     return () => clearInterval(interval);
-  }, [isProvisioning, isFocused, pendingAction, isReconciling]);
+  }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
+
+  useEffect(() => {
+    const regainedFocus = isFocused && !wasFocusedRef.current;
+    wasFocusedRef.current = isFocused;
+    if (
+      !regainedFocus ||
+      !recheckOnFocus ||
+      !isProvisioning ||
+      !hasResolvedStatus
+    ) {
+      return;
+    }
+    setFocusRecheckCount((count) => count + 1);
+  }, [isFocused, recheckOnFocus, isProvisioning, hasResolvedStatus]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -146,6 +182,7 @@ export function useImmersveCardProvisioning(
         if (cancelled) return;
         const action = deriveNextImmersveAction(prerequisites);
         if (action.type === 'active') {
+          setPendingAction(null);
           // Funding lifecycle only when we actually create the card.
           trackEventRef.current(
             createEventBuilderRef
@@ -233,6 +270,7 @@ export function useImmersveCardProvisioning(
           // Conflict before createCard (e.g. reconcile race) — terminal success.
           // Use BUTTON (not Funding COMPLETED) so we don't orphan a completion
           // without a matching CARD_FUNDING_PROCESS_STARTED.
+          setPendingAction(null);
           trackEventRef.current(
             createEventBuilderRef
               .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -285,6 +323,7 @@ export function useImmersveCardProvisioning(
     isMoneyAccountChannel,
     moneyAccountAddress,
     dispatch,
+    focusRecheckCount,
   ]);
 
   const resumePendingAction = useCallback(() => {
@@ -299,8 +338,19 @@ export function useImmersveCardProvisioning(
         )
         .build(),
     );
-    route(pendingAction, { navigateFromRoot: true, countryKey: kycRegion });
-  }, [pendingAction, route, kycRegion, trackEvent, createEventBuilder]);
+    route(pendingAction, {
+      navigateFromRoot: true,
+      countryKey: kycRegion,
+      ...(navigateFromOutsideCard ? { navigateFromOutsideCard: true } : {}),
+    });
+  }, [
+    pendingAction,
+    route,
+    kycRegion,
+    trackEvent,
+    createEventBuilder,
+    navigateFromOutsideCard,
+  ]);
 
   return {
     isProvisioning,
