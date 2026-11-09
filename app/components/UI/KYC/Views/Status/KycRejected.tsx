@@ -73,7 +73,7 @@ const VbaKycRejected = ({ action, onAction }: VbaKycRejectedProps) => {
         label: strings(
           isRetry
             ? 'virtual_bank_account.kyc_rejected.retry_button'
-            : 'virtual_bank_account.kyc_rejected.button',
+            : 'virtual_bank_account.kyc_rejected.contact_support_button',
         ),
         onPress: onAction,
         testID: isRetry
