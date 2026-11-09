@@ -232,6 +232,20 @@ describe('getVbaDestinationForSnapshot', () => {
     expect(destination).toBe('kycRejected');
   });
 
+  it('routes a reattached provider-pending session to the pending screen after reinstall', () => {
+    const facts = snapshot({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('kycPending');
+  });
+
   it('routes a missing snapshot to the recoverable error screen', () => {
     expect(getVbaDestinationForSnapshot(null)).toBe('error');
     expect(getVbaDestinationForSnapshot(undefined)).toBe('error');

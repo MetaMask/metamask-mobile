@@ -6,7 +6,6 @@ import {
   type CaipChainId,
 } from '@metamask/utils';
 import { RootState } from '../reducers';
-import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
@@ -17,6 +16,7 @@ import {
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   FundingAssetStatus,
   type CardHomeData,
   type CardProviderId,
@@ -50,10 +50,19 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import { selectRemoteFeatureFlags } from './featureFlagController';
 import {
+  isMoneyAccountFundingChannel,
+  resolveImmersveFundingChannel,
   selectCardFeatureFlag,
   selectCardLinkApiEnabled,
+  type CardRemoteFeatureFlags,
 } from './featureFlagController/card';
+import {
+  pickRoutableCardLink,
+  resolveCardEntryRouting,
+  type CardEntryRouting,
+} from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -114,6 +123,29 @@ export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.activeProviderId ?? null,
+);
+
+/**
+ * Funding channel for the selected country. Null when that country is not
+ * claimed by Immersve, or its channel does not resolve.
+ */
+export const selectImmersveFundingChannelForSelectedCountry = createSelector(
+  selectRemoteFeatureFlags,
+  selectCardSelectedCountry,
+  (flags, country) =>
+    resolveImmersveFundingChannel(flags as CardRemoteFeatureFlags, country),
+);
+
+/**
+ * True when the active card provider is Immersve and the selected country's
+ * funding channel spends from the Money account.
+ */
+export const selectImmersveMoneyAccountMode = createSelector(
+  selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  (providerId, channel): boolean =>
+    providerId === CardProviderIds.Immersve &&
+    isMoneyAccountFundingChannel(channel),
 );
 
 export const selectIsCardAuthenticated = createSelector(
@@ -211,9 +243,7 @@ export const selectCardLinks = createSelector(
 /** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
 const selectRoutableCardLink = createSelector(
   selectCardLinks,
-  (links): CardLink | null =>
-    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
-    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
+  (links): CardLink | null => pickRoutableCardLink(links),
 );
 
 export const selectHasLinkedCard = createSelector(
@@ -224,6 +254,26 @@ export const selectHasLinkedCard = createSelector(
 export const selectLinkedCardProvider = createSelector(
   selectRoutableCardLink,
   (link): CardProviderId | null => link?.provider ?? null,
+);
+
+export const selectCardEntryRouting = createSelector(
+  selectCardLinkApiEnabled,
+  selectCardLinks,
+  selectHasCardholderAccounts,
+  (cardLinkApiEnabled, cardLinks, hasLegacyCardholder): CardEntryRouting =>
+    resolveCardEntryRouting({
+      cardLinkApiEnabled,
+      cardLinks,
+      hasLegacyCardholder,
+    }),
+);
+
+/** Stored links decide once Card API returned any; until then the selected account's `card_user` label. */
+export const selectHasCard = createSelector(
+  selectCardEntryRouting,
+  selectIsCardholder,
+  (routing, isCardholder) =>
+    routing.source === 'card_links' ? routing.hasCard : isCardholder,
 );
 
 export const selectCardUserLocation = createSelector(
@@ -271,22 +321,50 @@ export const selectCardHomeDataFetchedThisSession = createSelector(
     cardState?.cardHomeDataFetchedThisSession ?? false,
 );
 
-export const selectIsCardStateResolved = createSelector(
+/**
+ * Card home data has settled, or this user never fetches it. Verification
+ * status is a separate wait: some providers do not report one.
+ */
+export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, cardHomeData, isAuthenticated, isCardholder) =>
+    status === 'success' ||
+    cardHomeData !== null ||
+    (!isAuthenticated && !isCardholder),
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
-  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
-    ((status === 'success' || cardHomeData !== null) &&
-      (!isAuthenticated || verificationStatus !== null)) ||
+  (homeDataResolved, verificationStatus, isAuthenticated, isCardholder) =>
+    (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
     (!isAuthenticated && !isCardholder),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardFeatureFlag,
-  (cardFeatureFlag): VedaTokenConfig | null =>
-    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
+  selectImmersveMoneyAccountMode,
+  selectImmersveFundingChannelForSelectedCountry,
+  (
+    cardFeatureFlag,
+    isImmersveMoneyAccountMode,
+    channel,
+  ): VedaTokenConfig | null => {
+    if (isImmersveMoneyAccountMode && isMoneyAccountFundingChannel(channel)) {
+      return {
+        caipChainId: channel.caipChainId,
+        address: channel.tokenAddress,
+        decimals: channel.decimals,
+        delegationContract: channel.spenderAddress,
+      };
+    }
+    return getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains);
+  },
 );
 
 export const selectCardCountryOfResidence = createSelector(

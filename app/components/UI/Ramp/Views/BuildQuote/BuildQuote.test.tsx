@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor, within } from '@testing-library/react-native';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
@@ -423,6 +423,17 @@ describe('BuildQuote', () => {
   });
 
   describe('updateAmount', () => {
+    it('renders the currency symbol in the hero font', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      const currencySymbol = within(amountInput).getByText('$');
+
+      expect(currencySymbol).toHaveStyle({ fontFamily: 'GrotzecCond-Bold' });
+    });
+
     it('updates amount from string input (empty string maps to "0")', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -577,6 +588,27 @@ describe('BuildQuote', () => {
   });
 
   describe('handleQuickAmountPress', () => {
+    it('keeps the attribution row mounted when the amount is cleared', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-empty'));
+      });
+
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER),
+      ).toBeOnTheScreen();
+      expect(getByTestId('mock-quick-amounts')).toBeOnTheScreen();
+      expect(
+        queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('tracks RAMPS_QUICK_AMOUNT_CLICKED when quick amount pressed', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,

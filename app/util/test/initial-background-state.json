@@ -923,6 +923,8 @@
     "claimHistoryFirstPage": {},
     "commissionsFirstPage": {},
     "claimById": {},
+    "taxMe": {},
+    "taxFormSubmitted": {},
     "rewardsMoneyEnvUrl": null
   },
   "PredictVenueController": {
@@ -962,6 +964,7 @@
     "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
+    "vbaCustomerAbilities": null,
     "userRegion": null,
     "countries": {
       "data": [],

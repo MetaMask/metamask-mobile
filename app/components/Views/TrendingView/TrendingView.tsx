@@ -266,7 +266,7 @@ export const ExploreFeed: React.FC = () => {
 
   const handleSearchPress = useCallback(() => {
     trackExploreSearchOpened('explore');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'explore' });
   }, [navigation]);
 
   // Created once per `tabProps` identity (not on every render) so

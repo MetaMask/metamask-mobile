@@ -3,6 +3,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   formatTradeUnitPrice,
   formatUsd,
@@ -15,6 +16,7 @@ import {
   type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -28,6 +30,22 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
   activeProvider && activeProvider !== PROVIDER_CONFIG.AggregatedProvider
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
+
+/**
+ * Returns whether the Perps order's margin reaches the sharing threshold.
+ * `amountUsd` is position size (notional); margin is notional / leverage.
+ */
+export const isPerpsPostTradeShareEligible = ({
+  amountUsd,
+  leverage,
+}: {
+  amountUsd?: string;
+  leverage?: number;
+}): boolean => {
+  const notional = Number(amountUsd);
+  const margin = leverage && leverage > 0 ? notional / leverage : Number.NaN;
+  return Number.isFinite(margin) && margin >= MIN_POST_TRADE_SHARE_USD;
+};
 
 export const canBeginPerpsPostTradeShare = ({
   copyTradeOrigin,
@@ -101,12 +119,14 @@ export const openPerpsPostTradeShareSession = ({
   leverage,
   amountUsd,
   variant = 'share',
+  analyticsSource,
 }: {
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
   variant?: PostTradeShareVariant;
+  analyticsSource?: SocialEventSource;
 }): string => {
   const preview = buildPerpsPostTradePreview({
     asset,
@@ -124,6 +144,7 @@ export const openPerpsPostTradeShareSession = ({
       : `${directionLabel} ${preview.tokenSymbol}`,
     tradeInFlightChain: 'hyperliquid',
     preview,
+    ...(analyticsSource ? { analyticsSource } : {}),
   });
 };
 
@@ -140,6 +161,7 @@ export const beginPerpsPostTradeShare = ({
   direction,
   leverage,
   amountUsd,
+  analyticsSource,
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
@@ -148,18 +170,21 @@ export const beginPerpsPostTradeShare = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
     !canBeginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType,
       activeProvider,
-    })
+    }) ||
+    !isPerpsPostTradeShareEligible({ amountUsd, leverage })
   ) {
     return undefined;
   }
   return openPerpsPostTradeShareSession({
     asset,
+    analyticsSource,
     direction,
     leverage,
     amountUsd,

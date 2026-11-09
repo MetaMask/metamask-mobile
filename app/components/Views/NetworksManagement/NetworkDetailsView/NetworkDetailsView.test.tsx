@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import NetworkDetailsView from './NetworkDetailsView';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -381,7 +382,12 @@ describe('NetworkDetailsView', () => {
     });
 
     it('shows failover tag when failover RPC URLs exist and flag is enabled', () => {
-      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      // Enable every flag except glass headers, which would swap the header buttons.
+      jest
+        .requireMock('react-redux')
+        .useSelector.mockImplementation(
+          (selector: unknown) => selector !== selectGlassHeadersEnabled,
+        );
 
       mockFormHook.mockReturnValue(
         createMockFormHook({
@@ -640,7 +646,12 @@ describe('NetworkDetailsView', () => {
 
   describe('failover RPC display in edit mode', () => {
     it('renders failover RPC URL as read-only field', () => {
-      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      // Enable every flag except glass headers, which would swap the header buttons.
+      jest
+        .requireMock('react-redux')
+        .useSelector.mockImplementation(
+          (selector: unknown) => selector !== selectGlassHeadersEnabled,
+        );
       const { useRoute } = jest.requireMock('@react-navigation/native');
       useRoute.mockReturnValue({
         params: { network: 'https://rpc.example.com' },

@@ -6,7 +6,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -34,6 +33,9 @@ import KeystoneDarkLogo from '../../../../images/hardware-keystone-dark.svg';
 import KeystoneLightLogo from '../../../../images/hardware-keystone-light.svg';
 import OneKeyDarkLogo from '../../../../images/hardware-onekey-dark.svg';
 import OneKeyLightLogo from '../../../../images/hardware-onekey-light.svg';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface HardwareOption {
   title: string;
@@ -59,6 +61,7 @@ export const getHardwareThemeAssets = (themeAppearance: AppThemeKey) => {
 };
 
 const SelectHardwareWallet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
@@ -206,10 +209,15 @@ const SelectHardwareWallet = () => {
         backgroundColor: colors.background.default,
       })}
     >
-      <HeaderStandard includesTopInset onBack={navigation.goBack} />
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        onBack={navigation.goBack}
+      />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
-        twClassName="px-4 pb-6"
+        twClassName="px-4 pt-3 pb-6"
       />
       <Box twClassName="gap-3 px-4">
         {hardwareOptions.map(renderHardwareButton)}

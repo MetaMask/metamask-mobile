@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView } from 'react-native';
+import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -21,14 +17,12 @@ import {
   ListItem,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -40,12 +34,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  getVbaSourceCurrencyForCountry,
-  isVbaSourceCurrency,
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
-} from '../../../../../util/region/getVbaSourceCurrency';
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -84,11 +77,11 @@ import {
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { AVENIA_URL } from './constants';
+import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
-// Keep the Figma disclosure ready while Product finalizes the copy.
-const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
@@ -102,7 +95,8 @@ export const VbaDetailsSelectorsIDs = {
   ROUTING_NUMBER: 'vba-details-routing-number',
   ACCOUNT_NUMBER: 'vba-details-account-number',
   BANK_NAME: 'vba-details-bank-name',
-  HELPER_TEXT: 'vba-details-helper-text',
+  PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
+  PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
@@ -224,9 +218,9 @@ const buildDetailRows = (
 
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the effective
- * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
- * IP country).
+ * wallet and creates the autoramp, in the currency of the open market flag
+ * listing the effective location (`moneyMovementNeobank.regionOverride` when
+ * set, otherwise the IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -239,33 +233,13 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const {
-    chooseCurrency,
-    regionCurrencies,
-    regions,
-    defaultCurrency,
-    regionOverride,
-  } = useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = regionOverride ?? location;
-  // With chooseCurrency on, only the picked currency may create an account.
-  const regionCurrency = chooseCurrency
-    ? undefined
-    : getVbaSourceCurrencyForCountry(
-        effectiveLocation,
-        regionCurrencies,
-        regions,
-        defaultCurrency,
-      );
-  const requestedCurrency = route.params?.sourceCurrency;
-  // EUR stays out until that deposit layout exists. Ignore anything else too.
-  const pickedCurrency =
-    isVbaSourceCurrency(requestedCurrency) &&
-    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
-      ? requestedCurrency
-      : undefined;
-  const sourceCurrency = pickedCurrency ?? regionCurrency;
+  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
+  const markets = useSelector(selectNeobankMarkets);
+  const sourceCurrency = getVbaMarketForCountry(
+    markets,
+    regionOverride ?? location,
+  )?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -750,6 +724,14 @@ const VbaDetails = () => {
     [],
   );
 
+  const handleOpenProviderInfo = useCallback(() => {
+    Linking.openURL(AVENIA_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the provider link',
+      });
+    });
+  }, []);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -781,9 +763,35 @@ const VbaDetails = () => {
       endVbaCufJourney(true);
     }
   }, [hasCurrentAccountState, rows.length]);
+  // Once deposit details are on screen, Money home stops showing the
+  // account-ready card for this wallet. Every entry point lands here, so this
+  // is the one place that records it. The ref keeps polling re-renders quiet.
+  const detailsMarkedForWalletRef = useRef<string | null>(null);
+  const hasShownDetails =
+    isApproved && hasCurrentAccountState && rows.length > 0;
+  useEffect(() => {
+    if (
+      !hasShownDetails ||
+      !walletAddress ||
+      detailsMarkedForWalletRef.current === walletAddress
+    ) {
+      return;
+    }
+    detailsMarkedForWalletRef.current = walletAddress;
+    markVbaAccountDetailsViewed(walletAddress).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to record that details were viewed',
+      });
+    });
+  }, [hasShownDetails, walletAddress]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
+  // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
+  // the user's country. The US bank transfer layout never shows it.
+  const showProviderDisclosure = instructions
+    ? instructions.type === 'Pix'
+    : sourceCurrency === 'BRL';
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -793,7 +801,7 @@ const VbaDetails = () => {
   if (!isApproved) {
     return (
       <VbaCreatingAccount
-        onBack={handleDone}
+        onBack={handleBack}
         awaitingProviderApproval={awaitingProviderApproval}
       />
     );
@@ -930,14 +938,23 @@ const VbaDetails = () => {
         )}
       </ScrollView>
       <Box gap={4} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
-        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+        {showProviderDisclosure ? (
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="text-center"
-            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+            testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE}
           >
-            {strings('virtual_bank_account.vba_details.helper_text')}
+            {strings('virtual_bank_account.vba_details.provider_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenProviderInfo}
+              testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK}
+            >
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              )}
+            </TextButton>
           </Text>
         ) : null}
         {debugEnabled ? (

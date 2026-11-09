@@ -4,7 +4,9 @@ import {
   getDefaultAssetsControllerState,
   type AssetsControllerState,
 } from '@metamask/assets-controller';
+import type { Hex } from '@metamask/utils';
 import { RootState } from '../../reducers';
+import { buildEvmCaip19AssetId } from '../../util/multichain/buildEvmCaip19AssetId';
 import { selectAccountTreeControllerState } from '../multichainAccounts/accountTreeController';
 
 const defaultState = getDefaultAssetsControllerState();
@@ -80,4 +82,41 @@ export const selectAssetsControllerStateForBalances = createSelector(
     customAssets,
     selectedCurrency,
   }),
+);
+
+export interface Erc20TokenMetadata {
+  symbol?: string;
+  decimals?: number;
+}
+
+/**
+ * Resolves ERC-20 metadata (symbol, decimals) by chain and contract address.
+ *
+ * Reads `assetsInfo` directly rather than `selectAllTokens`: that selector is
+ * derived from `assetsBalance`, so a token drops out of it as soon as its
+ * balance does (e.g. after sending the full amount), while `assetsInfo` keeps
+ * the metadata.
+ */
+export const selectErc20MetadataLookup = createSelector(
+  [getAssetsInfo],
+  (assetsInfo) => {
+    const metadataByAssetId = new Map(
+      Object.entries(assetsInfo).map(([assetId, metadata]) => [
+        assetId.toLowerCase(),
+        metadata,
+      ]),
+    );
+
+    return (
+      chainId: string,
+      contractAddress: string,
+    ): Erc20TokenMetadata | undefined => {
+      const metadata = metadataByAssetId.get(
+        buildEvmCaip19AssetId(contractAddress, chainId as Hex),
+      );
+      return metadata?.type === 'erc20'
+        ? { symbol: metadata.symbol, decimals: metadata.decimals }
+        : undefined;
+    };
+  },
 );
