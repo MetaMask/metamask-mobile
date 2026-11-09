@@ -216,6 +216,7 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow, PerpsPayTokenIcon } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import { useConfirmReject } from '../../../../Views/confirmations/hooks/useConfirmReject';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import {
   consumePerpsPaymentTokenSelection,
@@ -841,7 +842,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
     startTime: openStartTime,
-    conditions: [isDataReady, !!currentPrice, !!account],
+    // endConditions: the simple `conditions` API resets while isDataReady is
+    // false, which would restart the span without the tap startTime.
+    endConditions: [isDataReady, !!currentPrice, !!account],
   });
 
   // Trade page CUF: order form ready with live price + account. Tags at mount.
@@ -3656,7 +3659,7 @@ const PerpsOrderSheet: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const onRejectRef = useRef(onReject);
   const isFormMountedRef = useRef(false);
   const formFrameRef = useRef<number | null>(null);
@@ -3674,6 +3677,7 @@ const PerpsOrderSheet: React.FC = () => {
         cancelAnimationFrame(formFrameRef.current);
       }
       if (!isFormMountedRef.current) {
+        failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
         onRejectRef
           .current(undefined, true)
           .catch(logRejection('rejectConfirmationBeforeFormMount'));

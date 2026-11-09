@@ -54,6 +54,7 @@ import {
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+import { endTrace, TraceName } from '../../../../../util/trace';
 import {
   useBottomSafeAreaInset,
   usePerpsLiveAccount,
@@ -511,6 +512,11 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   })),
 }));
 
+const mockRejectBeforeForm = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../Views/confirmations/hooks/useConfirmReject', () => ({
+  useConfirmReject: () => ({ onReject: mockRejectBeforeForm }),
+}));
+
 jest.mock(
   '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
   () => ({
@@ -774,6 +780,7 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
     PerpsOrderView: 'Perps Order View',
+    PerpsTradeSheetInteractive: 'Perps Trade Sheet Interactive',
   },
   TraceOperation: {
     UIStartup: 'ui.startup',
@@ -1554,6 +1561,38 @@ describe('PerpsOrderView', () => {
         positionSize: '0.0037',
       },
     });
+  });
+
+  it('ends the interactive trace when dismissed before the deferred form mounts', () => {
+    jest.mocked(global.requestAnimationFrame).mockImplementation(() => 1);
+    useTradeSheetRoute();
+
+    const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACEHOLDER),
+    ).toBeOnTheScreen();
+
+    unmount();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PerpsTradeSheetInteractive,
+      data: { success: false, reason: 'dismissed_before_interactive' },
+    });
+    expect(mockRejectBeforeForm).toHaveBeenCalledWith(undefined, true);
+  });
+
+  it('keeps the order view span open across re-renders before data is ready', () => {
+    jest.mocked(global.requestAnimationFrame).mockImplementation(() => 1);
+
+    const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    rerender(<PerpsOrderView />);
+
+    expect(endTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsOrderView,
+        data: expect.objectContaining({ success: false }),
+      }),
+    );
   });
 
   it('renders the order view', async () => {
