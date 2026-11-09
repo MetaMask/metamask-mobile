@@ -8,11 +8,8 @@ type WatchOnlyAccountService =
   WatchOnlyAccountServiceModule.WatchOnlyAccountService;
 
 /**
- * Initialize the watch-only account service.
- *
- * Watch-only accounts are development-only, so the service is only loaded and
- * constructed when the build gate is on. Other builds never load the package
- * at runtime and leave `Engine.context.WatchOnlyAccountService` undefined.
+ * Initialize the watch-only account service. Development-only: without the
+ * build gate the package is never loaded and the service stays undefined.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.

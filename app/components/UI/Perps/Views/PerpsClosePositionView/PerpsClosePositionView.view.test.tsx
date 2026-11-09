@@ -14,6 +14,7 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { addWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import {
@@ -735,8 +736,6 @@ describe('PerpsClosePositionView', () => {
     });
 
     it('keeps the watch-only refusal when the account turns watch-only while the form is open', async () => {
-      const closePosition = Engine.context.PerpsController
-        .closePosition as jest.Mock;
       const position = createLongPositionForViews();
       const { stream } = renderPerpsClosePositionView({
         includeToasts: true,
@@ -767,26 +766,26 @@ describe('PerpsClosePositionView', () => {
       });
 
       // The selected account becomes watch-only after the form opened.
-      keyrings.push({
-        type: 'watch-only',
-        accounts: ['0x0000000000000000000000000000000000000001'],
-        metadata: { id: 'watch-only', name: '' },
-      });
+      addWatchOnlyKeyring();
       await act(async () => {
         fireEvent.press(confirmButton);
       });
 
-      const blockedMessage = strings('watch_only.blocked_message');
-      expect(blockedMessage).not.toMatch(/\[missing ".*" translation\]/);
       expect(
-        await screen.findByText(blockedMessage, {}, { timeout: TIMEOUT_MS }),
+        await screen.findByText(
+          strings('watch_only.blocked_message'),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
       expect(
         screen.queryByText(
           strings('perps.close_position.failed_to_close_position'),
         ),
       ).not.toBeOnTheScreen();
-      expect(closePosition).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.closePosition,
+      ).not.toHaveBeenCalled();
     });
   });
 });

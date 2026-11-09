@@ -61,8 +61,7 @@ const complianceQueryKey = (addressKey: string) =>
  * 4. Shows `AccessRestrictedModal` and returns `undefined` if any address is
  * blocked; otherwise runs the action and returns its result.
  *
- * Before any of this, it refuses the action when the selected account is a
- * development-only watch-only account, which cannot sign.
+ * First refuses the action for a dev-only watch-only account, which cannot sign.
  *
  * @param address - A single wallet address or array of addresses to check.
  *

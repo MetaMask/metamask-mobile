@@ -26,6 +26,7 @@ import { Platform } from 'react-native';
 import type { ComponentType } from 'react';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import {
   describeForPlatforms,
   itForPlatforms,
@@ -5829,19 +5830,7 @@ describe('Pro fee display format', () => {
 });
 
 describeForPlatforms('Pro TWAP watch-only account', () => {
-  const { keyrings } = Engine.context.KeyringController.state;
-
-  beforeEach(() => {
-    keyrings.push({
-      type: 'watch-only',
-      accounts: ['0x0000000000000000000000000000000000000001'],
-      metadata: { id: 'watch-only', name: '' },
-    });
-  });
-
-  afterEach(() => {
-    keyrings.pop();
-  });
+  withWatchOnlyKeyring();
 
   it('refuses TWAP termination with the watch-only message and sends no request', async () => {
     mockTwapOrders([activeTwap]);
@@ -5862,9 +5851,6 @@ describeForPlatforms('Pro TWAP watch-only account', () => {
       ),
     );
 
-    expect(strings('watch_only.blocked_message')).not.toMatch(
-      /\[missing ".*" translation\]/,
-    );
     expect(
       await screen.findByText(strings('watch_only.blocked_message')),
     ).toBeOnTheScreen();

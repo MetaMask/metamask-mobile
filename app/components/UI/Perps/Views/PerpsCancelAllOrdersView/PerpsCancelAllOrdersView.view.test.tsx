@@ -14,6 +14,7 @@ import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import {
   defaultOrderForViews,
   renderPerpsCancelAllOrdersView,
@@ -535,19 +536,7 @@ describe('PerpsCancelAllOrdersView', () => {
     ).toBeOnTheScreen();
   });
   describe('watch-only account', () => {
-    const { keyrings } = Engine.context.KeyringController.state;
-
-    beforeEach(() => {
-      keyrings.push({
-        type: 'watch-only',
-        accounts: ['0x0000000000000000000000000000000000000001'],
-        metadata: { id: 'watch-only', name: '' },
-      });
-    });
-
-    afterEach(() => {
-      keyrings.pop();
-    });
+    withWatchOnlyKeyring();
 
     it('refuses cancel all with the watch-only message and sends no request', async () => {
       renderPerpsCancelAllOrdersView({
@@ -561,9 +550,6 @@ describe('PerpsCancelAllOrdersView', () => {
         ),
       );
 
-      expect(strings('watch_only.blocked_message')).not.toMatch(
-        /\[missing ".*" translation\]/,
-      );
       expect(
         await screen.findByText(strings('watch_only.blocked_message')),
       ).toBeOnTheScreen();

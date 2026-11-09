@@ -164,9 +164,7 @@ export function getKeyringBuilders(
     keyrings.push(buildMpcMoneyKeyringBuilder());
   }
 
-  // Watch-only accounts are development-only. No release build can hold a
-  // watch-only keyring, and the controller keeps an unrecognised keyring in
-  // the vault untouched, so the builder can stay behind the build gate.
+  // Dev-only; the controller keeps an unrecognised keyring in the vault as is.
   if (isWatchOnlyAccountsBuildEnabled()) {
     // @ts-expect-error: `addAccounts` is missing in `WatchOnlyKeyringV1Adapter`.
     keyrings.push(buildWatchOnlyKeyringBuilder());
