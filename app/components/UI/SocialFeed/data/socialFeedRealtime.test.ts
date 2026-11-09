@@ -5,7 +5,13 @@ import type {
 } from '@metamask/social-controllers';
 import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import {
+  buildSocialFeedListItems,
+  getSocialFeedListItemKey,
+} from '../utils/buildSocialFeedListItems';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   applyRealtimeEventToRow,
@@ -98,6 +104,34 @@ describe('socialFeedRealtime', () => {
         revision: 2,
         occurredAt: '2026-01-01T00:00:01.000Z',
       });
+    });
+
+    it('carries the envelope feed item id onto the merged item', () => {
+      const event = buildEvent({
+        feedItemId: 'item-comment',
+        data: { positionId: 'pos-spot-1' },
+      });
+
+      const merged = mergeRealtimeFeedItem(undefined, event);
+
+      expect(getFeedItemId(merged)).toBe('item-comment');
+    });
+
+    it('keys socket-only cards of one position apart in the list', () => {
+      const data = { positionId: 'pos-spot-1' };
+      const posts = [
+        buildEvent({ feedItemId: 'item-trade', eventId: 'event-1', data }),
+        buildEvent({ feedItemId: 'item-comment', eventId: 'event-2', data }),
+      ].map((event) => {
+        const [post] = toSocialFeedPosts([buildSocketRow(event)], 0);
+        return post;
+      });
+
+      const keys = buildSocialFeedListItems(posts, []).map(
+        getSocialFeedListItemKey,
+      );
+
+      expect(keys).toEqual(['item-trade', 'item-comment']);
     });
 
     it('normalizes a full event without an HTTP row', () => {
