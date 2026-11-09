@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Aufheben der Verknüpfung mit X fehlgeschlagen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
     "x_account_disconnect_success": "Verknüpfung mit X-Konto aufgehoben"
   },
-  "profile_drawer": {
-    "close": "Schließen",
-    "scan": "QR-Code scannen",
-    "create_profile": "Profil erstellen",
-    "notifications": "Benachrichtigungen",
-    "activity": "Aktivität",
-    "subscriptions": "Abonnements",
-    "settings": "Einstellungen",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Benachrichtigungen aktivieren ...",
     "updating_notifications": "Aktualisierung der Benachrichtigungen ...",

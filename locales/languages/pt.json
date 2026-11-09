@@ -5288,16 +5288,6 @@
     "x_account_disconnect_error": "Não foi possível desconectar do X. Verifique sua conexão e tente novamente.",
     "x_account_disconnect_success": "A conta do X foi desconectada"
   },
-  "profile_drawer": {
-    "close": "Fechar",
-    "scan": "Ler código QR",
-    "create_profile": "Criar perfil",
-    "notifications": "Notificações",
-    "activity": "Atividade",
-    "subscriptions": "Assinaturas",
-    "settings": "Configurações",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Ativando notificações...",
     "updating_notifications": "Atualizando notificações...",

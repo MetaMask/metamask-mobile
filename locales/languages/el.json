@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Δεν ήταν δυνατή η αποσύνδεση του λογαριασμού σας από το X. Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
     "x_account_disconnect_success": "Ο λογαριασμός σας στο X αποσυνδέθηκε"
   },
-  "profile_drawer": {
-    "close": "Κλείσιμο",
-    "scan": "Σάρωση του κωδικού QR",
-    "create_profile": "Δημιουργία προφίλ",
-    "notifications": "Ειδοποιήσεις",
-    "activity": "Δραστηριότητα",
-    "subscriptions": "Συνδρομές",
-    "settings": "Ρυθμίσεις",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
     "updating_notifications": "Ενημέρωση ειδοποιήσεων...",

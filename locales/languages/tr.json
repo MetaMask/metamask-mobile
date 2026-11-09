@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "X bağlantısı kesilemiyor. Bağlantınızı kontrol edip tekrar deneyin.",
     "x_account_disconnect_success": "X hesabınızın bağlantısı kesildi"
   },
-  "profile_drawer": {
-    "close": "Kapat",
-    "scan": "QR kodunu tara",
-    "create_profile": "Profil oluştur",
-    "notifications": "Bildirimler",
-    "activity": "İşlemler",
-    "subscriptions": "Abonelikler",
-    "settings": "Ayarlar",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Bildirimler etkinleştiriliyor...",
     "updating_notifications": "Bildirimler güncelleniyor...",

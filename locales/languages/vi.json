@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Không thể ngắt kết nối X. Hãy kiểm tra kết nối của bạn và thử lại.",
     "x_account_disconnect_success": "Đã ngắt kết nối tài khoản X"
   },
-  "profile_drawer": {
-    "close": "Đóng",
-    "scan": "Quét mã QR",
-    "create_profile": "Tạo hồ sơ",
-    "notifications": "Thông báo",
-    "activity": "Hoạt động",
-    "subscriptions": "Gói đăng ký",
-    "settings": "Cài đặt",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Đang bật thông báo...",
     "updating_notifications": "Đang cập nhật thông báo...",

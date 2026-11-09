@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "无法断开 X 连接。请检查您的连接并重试。",
     "x_account_disconnect_success": "X 账户已断开连接"
   },
-  "profile_drawer": {
-    "close": "关闭",
-    "scan": "扫描二维码",
-    "create_profile": "创建个人资料",
-    "notifications": "通知",
-    "activity": "活动",
-    "subscriptions": "订阅",
-    "settings": "设置",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "正在启用通知...",
     "updating_notifications": "正在更新通知......",

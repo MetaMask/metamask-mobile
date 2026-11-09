@@ -2511,7 +2511,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the treatment avatar when Social V1 is enabled', () => {
+  it('opens the account hub from the treatment avatar when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2520,7 +2520,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
   it('opens rewards from the treatment gift icon', () => {
@@ -2543,7 +2543,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the account name above the balance when Social V1 is enabled', () => {
+  it('opens the account hub from the account name above the balance when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2552,16 +2552,17 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the Social header profile button', () => {
+  it('does not render a profile button in the Social header', () => {
     enableSocialLayout();
 
-    const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+    const { queryByTestId } = renderWithNavigationProp();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER);
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the account selector from the Social header account name', () => {
@@ -2576,13 +2577,24 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   });
 
-  it('does not render the settings menu in the Social header', () => {
+  it('renders the settings menu in the Social header', () => {
     enableSocialLayout();
 
-    const { queryByTestId } = renderWithNavigationProp();
+    const { getByTestId } = renderWithNavigationProp();
     expect(
-      queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the settings menu from the Social header hamburger', () => {
+    enableSocialLayout();
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
   });
 
   describe('Social V1 account picker row', () => {

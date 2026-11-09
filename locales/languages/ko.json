@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "X 계정 연결을 해제하지 못했습니다. 연결 상태를 확인한 후 다시 시도하세요.",
     "x_account_disconnect_success": "X 계정 연결이 해제되었습니다"
   },
-  "profile_drawer": {
-    "close": "닫기",
-    "scan": "QR 코드 스캔",
-    "create_profile": "프로필 생성",
-    "notifications": "알림",
-    "activity": "활동",
-    "subscriptions": "구독",
-    "settings": "설정",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "알림 활성화 중...",
     "updating_notifications": "알림 업데이트 중...",

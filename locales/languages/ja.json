@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Xとの接続を解除できませんでした。回線を確認してもう一度お試しください。",
     "x_account_disconnect_success": "Xアカウントの接続が解除されました"
   },
-  "profile_drawer": {
-    "close": "閉じる",
-    "scan": "QRコードをスキャン",
-    "create_profile": "プロフィールを作成",
-    "notifications": "通知",
-    "activity": "アクティビティ",
-    "subscriptions": "サブスクリプション",
-    "settings": "設定",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
     "updating_notifications": "通知を更新しています...",

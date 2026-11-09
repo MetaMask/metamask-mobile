@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Tidak dapat memutus koneksi X. Periksa koneksi Anda dan coba lagi.",
     "x_account_disconnect_success": "Koneksi akun X telah terputus"
   },
-  "profile_drawer": {
-    "close": "Tutup",
-    "scan": "Pindai kode QR",
-    "create_profile": "Buat profil",
-    "notifications": "Notifikasi",
-    "activity": "Aktivitas",
-    "subscriptions": "Langganan",
-    "settings": "Pengaturan",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Mengaktifkan notifikasi...",
     "updating_notifications": "Memperbarui notifikasi...",

@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Hindi maidiskonekta ang X. Suriin ang koneksyon mo at subukan ulit.",
     "x_account_disconnect_success": "Naidiskonekta na ang X account"
   },
-  "profile_drawer": {
-    "close": "Isara",
-    "scan": "Mag-scan ng QR Code",
-    "create_profile": "Gumawa ng profile",
-    "notifications": "Mga Abiso",
-    "activity": "Aktibidad",
-    "subscriptions": "Mga subscription",
-    "settings": "Mga Setting",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Pinapagana ang mga notipikasyon...",
     "updating_notifications": "Ina-update ang mga notipikasyon...",

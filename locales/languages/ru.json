@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "Не удалось отключить X. Проверьте соединение и повторите попытку.",
     "x_account_disconnect_success": "Аккаунт X отключён"
   },
-  "profile_drawer": {
-    "close": "Закрыть",
-    "scan": "Сканировать QR-код",
-    "create_profile": "Создать профиль",
-    "notifications": "Уведомления",
-    "activity": "Деятельность",
-    "subscriptions": "Подписки",
-    "settings": "Настройки",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
     "updating_notifications": "Обновление уведомлений...",

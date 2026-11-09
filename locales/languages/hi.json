@@ -5271,16 +5271,6 @@
     "x_account_disconnect_error": "X डिस्कनेक्ट नहीं हो सका। अपना कनेक्शन जांचें और फिर कोशिश करें।",
     "x_account_disconnect_success": "X अकाउंट डिस्कनेक्ट कर दिया गया है"
   },
-  "profile_drawer": {
-    "close": "बंद करें",
-    "scan": "QR कोड स्कैन करें",
-    "create_profile": "प्रोफ़ाइल बनाएं",
-    "notifications": "सूचनाएं",
-    "activity": "गतिविधि",
-    "subscriptions": "सब्सक्रिप्शंस",
-    "settings": "सेटिंग",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "नोटिफिकेशंस चालू किया जा रहा है...",
     "updating_notifications": "नोटिफिकेशंस अपडेट किया जा रहा है...",
