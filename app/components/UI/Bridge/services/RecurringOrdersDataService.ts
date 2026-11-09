@@ -14,10 +14,8 @@ import {
   getRecurringOrders as fetchRecurringOrders,
   getRecurringOrdersByAsset as fetchRecurringOrdersByAsset,
   getRecurringSwaps as fetchRecurringSwaps,
-  cancelRecurringOrder as cancelRecurringOrderRequest,
 } from '../api/recurringOrders';
 import type {
-  CancelRecurringOrderResponse,
   GetRecurringOrdersByAssetResponse,
   ListRecurringOrdersResponse,
   ListRecurringSwapsResponse,
@@ -56,19 +54,10 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersByAssetAction {
   ) => Promise<GetRecurringOrdersByAssetResponse>;
 }
 
-export interface RecurringOrdersDataServiceCancelRecurringOrderAction {
-  type: 'RecurringOrdersDataService:cancelRecurringOrder';
-  handler: (
-    orderId: string,
-    accountAddress: string,
-  ) => Promise<CancelRecurringOrderResponse>;
-}
-
 export type RecurringOrdersDataServiceActions =
   | RecurringOrdersDataServiceGetRecurringOrdersAction
   | RecurringOrdersDataServiceGetRecurringOrdersByAssetAction
   | RecurringOrdersDataServiceGetRecurringSwapsAction
-  | RecurringOrdersDataServiceCancelRecurringOrderAction
   | DataServiceInvalidateQueriesAction<
       typeof RECURRING_ORDERS_DATA_SERVICE_NAME
     >;
@@ -110,10 +99,6 @@ export class RecurringOrdersDataService extends BaseDataService<
     messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringSwaps',
       this.getRecurringSwaps.bind(this),
-    );
-    messenger.registerActionHandler(
-      'RecurringOrdersDataService:cancelRecurringOrder',
-      this.cancelRecurringOrder.bind(this),
     );
   }
 
@@ -189,12 +174,5 @@ export class RecurringOrdersDataService extends BaseDataService<
       },
       cursor,
     );
-  }
-
-  async cancelRecurringOrder(
-    orderId: string,
-    accountAddress: string,
-  ): Promise<CancelRecurringOrderResponse> {
-    return cancelRecurringOrderRequest(orderId, { accountAddress });
   }
 }
