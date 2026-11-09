@@ -186,14 +186,14 @@ function getSwapUrlParams(swapPath: string) {
   return new URLSearchParams(cleanPath);
 }
 
-function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
+function getInitialTab(urlParams: URLSearchParams): BridgeTabKey {
   const tab = urlParams.get('tab');
 
   if (tab === BridgeTabKey.Limit || tab === BridgeTabKey.Recurring) {
     return tab;
   }
 
-  return undefined;
+  return BridgeTabKey.Market;
 }
 
 function parseLimitOrderExpirationMinutes(
@@ -314,7 +314,7 @@ function getInitialRouteParams(
     };
   }
 
-  return {};
+  return { initialTab };
 }
 
 /**

@@ -788,10 +788,16 @@ describe('PositionDetailsSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens on a swipe up and closes on a swipe down over the tab bar', async () => {
+    const scrollBy = (y: number) =>
+      fireEvent.scroll(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
+        { nativeEvent: { contentOffset: { x: 0, y } } },
+      );
+
+    it('opens on a scroll up and closes on a swipe down over the tab bar', async () => {
       render(<PositionDetailsSheet />);
 
-      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -40);
+      scrollBy(40);
       expect(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeOnTheScreen();
@@ -804,24 +810,24 @@ describe('PositionDetailsSheet', () => {
       ).toBeNull();
     });
 
-    it('ignores swipes shorter than the threshold', () => {
+    it('ignores a scroll shorter than the threshold', () => {
       render(<PositionDetailsSheet />);
 
-      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -10);
+      scrollBy(10);
 
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeNull();
     });
 
-    it('scrolls the sheet with the footer pinned below only while open', () => {
+    it('scrolls the sheet from the start and pins the footer only while open', () => {
       render(<PositionDetailsSheet />);
       const scroll = screen.getByTestId(
         PositionDetailsSheetSelectorsIDs.SCROLL,
       );
       const copyTradeId = PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON;
 
-      expect(scroll).toHaveProp('scrollEnabled', false);
+      expect(scroll).toHaveProp('scrollEnabled', true);
       expect(within(scroll).getByTestId(copyTradeId)).toBeOnTheScreen();
 
       fireEvent.press(
