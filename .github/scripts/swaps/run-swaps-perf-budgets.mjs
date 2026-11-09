@@ -77,7 +77,11 @@ async function main() {
   const message =
     errors.length > 0 && allClear ? null : buildSlackMessage(results, { windowLabel: window.label, runUrl });
   if (!message) {
-    console.log('\nSome queries failed and the rest are within guardrails; no Slack post.');
+    console.log(
+      results.length > 0
+        ? '\nSome queries failed and the rest are within guardrails; no Slack post.'
+        : '\nEvery query failed, so no rules could be checked; no Slack post.',
+    );
   } else if (dryRun) {
     console.log(`\nDry run; would post to Slack:\n\n${message}`);
   } else {
