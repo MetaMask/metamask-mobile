@@ -104,6 +104,7 @@ import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   calculatePositionSize,
+  calculateRoEForPrice,
   getPerpsDisplaySymbol,
   type InputMethod,
   type OrderParams,
@@ -193,10 +194,7 @@ import { willFlipPosition } from '../../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
-import {
-  calculateRoEForPrice,
-  getPerpsOrderTpSlWarnings,
-} from '../../utils/tpslValidation';
+import { getPerpsOrderTpSlWarnings } from '../../utils/tpslValidation';
 import {
   deriveOrderSizing,
   getPayWithTokenDepositAmount,
@@ -1416,17 +1414,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : price; // fallback to current price for market orders or when no limit price set
 
     if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
-      const tpRoE = calculateRoEForPrice(
-        orderForm.takeProfitPrice,
-        true,
-        false,
-        {
-          currentPrice: price,
-          direction: orderForm.direction,
-          leverage: orderForm.leverage,
-          entryPrice,
-        },
-      );
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
         absRoE > 0
@@ -1437,17 +1430,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
-      const slRoE = calculateRoEForPrice(
-        orderForm.stopLossPrice,
-        false,
-        false,
-        {
-          currentPrice: price,
-          direction: orderForm.direction,
-          leverage: orderForm.leverage,
-          entryPrice,
-        },
-      );
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
         absRoE > 0

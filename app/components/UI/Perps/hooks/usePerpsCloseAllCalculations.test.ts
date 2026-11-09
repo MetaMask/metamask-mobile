@@ -11,6 +11,9 @@ import {
 } from '@metamask/perps-controller';
 import { applyFeeResolution } from '@metamask/perps-controller/utils/subscriptionFeeWaiver';
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectChainId } from '../../../../selectors/networkController';
+import { selectPerpsProvider } from '../selectors/perpsController';
 
 /**
  * Note: This test file contains act() warnings from React Testing Library.
@@ -38,6 +41,32 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+/** Answer each selector the hook reads by identity, not by call order. */
+const mockSelectors = ({
+  account = { address: TEST_ADDRESS },
+  chainId = '0xa4b1',
+  provider = 'hyperliquid',
+}: {
+  account?: { address: string } | null;
+  chainId?: string | null;
+  provider?: string;
+} = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+      return account;
+    }
+    if (selector === selectChainId) {
+      return chainId;
+    }
+    if (selector === selectPerpsProvider) {
+      return provider;
+    }
+    return undefined;
+  });
+};
 
 // Test data helpers
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
@@ -94,17 +123,7 @@ describe('usePerpsCloseAllCalculations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup default selector mocks
-    let selectorCallCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      selectorCallCount++;
-      if (selectorCallCount % 2 === 1) {
-        return {
-          address: '0x1234567890123456789012345678901234567890',
-        }; // selected account group EVM account
-      }
-      return '0xa4b1'; // chainId
-    });
+    mockSelectors();
 
     // Setup default Engine mock responses
     mockCalculateFees.mockResolvedValue(createMockFeeResult());
@@ -127,10 +146,14 @@ describe('usePerpsCloseAllCalculations', () => {
     });
     const positions = [createMockPosition()];
     const { result } = renderHook(() =>
-      usePerpsCloseAllCalculations({ positions, priceData: {} }),
+      usePerpsCloseAllCalculations({
+        positions,
+        priceData: { BTC: { price: '50000' } },
+      }),
     );
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.totalFees).toBeCloseTo(0.7);
+    // Core fee: closed notional (0.5 × 50,000) at the quoted rate.
+    expect(result.current.totalFees).toBeCloseTo(17.5);
     expect(result.current.avgFeeDiscountPercentage).toBe(75);
     expect(result.current.feeDiscountKind).toBe('promotional');
     expect(mockGetPerpsDiscount).not.toHaveBeenCalled();
@@ -151,7 +174,10 @@ describe('usePerpsCloseAllCalculations', () => {
     });
     const positions = [createMockPosition()];
     const { result } = renderHook(() =>
-      usePerpsCloseAllCalculations({ positions, priceData: {} }),
+      usePerpsCloseAllCalculations({
+        positions,
+        priceData: { BTC: { price: '50000' } },
+      }),
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -236,7 +262,7 @@ describe('usePerpsCloseAllCalculations', () => {
       // Assert
       expect(result.current.totalMargin).toBe(0);
       expect(result.current.totalPnl).toBe(0);
-      expect(result.current.totalFees).toBeUndefined();
+      expect(result.current.totalFees).toBe(0);
       expect(result.current.receiveAmount).toBe(0);
       expect(result.current.totalEstimatedPoints).toBeUndefined();
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
@@ -264,153 +290,95 @@ describe('usePerpsCloseAllCalculations', () => {
     });
   });
 
-  describe('Total Margin Calculation', () => {
-    it('calculates total margin excluding P&L for single position', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '1000',
-          unrealizedPnl: '100',
-        }),
-      ];
-      const priceData = { BTC: { price: '51000' } };
+  describe('Close totals from Core estimateCloseReceive', () => {
+    // Reference rows: a winning cross long keeps its whole margin and adds the
+    // PnL; an isolated short's margin already holds its PnL, so it is taken
+    // out before the PnL at the close price is added back.
+    const crossLong = createMockPosition({
+      symbol: 'BTC',
+      size: '0.5',
+      entryPrice: '50000',
+      marginUsed: '1000',
+      unrealizedPnl: '500',
+      leverage: { type: 'cross', value: 25 },
+    });
+    const isolatedShort = createMockPosition({
+      symbol: 'ETH',
+      size: '-0.2',
+      entryPrice: '3000',
+      marginUsed: '250',
+      unrealizedPnl: '-20',
+      leverage: { type: 'isolated', value: 3 },
+    });
+    const livePrices = {
+      BTC: { price: '51000' },
+      ETH: { price: '3100' },
+    };
 
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
+    beforeEach(() => {
+      mockCalculateFees.mockResolvedValue(
+        createMockFeeResult({ feeRate: 0.00145 }),
       );
-
-      // Assert
-      expect(result.current.totalMargin).toBe(1000); // Only marginUsed, PnL excluded
     });
 
-    it('calculates total margin for multiple positions', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          symbol: 'BTC',
-          marginUsed: '1000',
-          unrealizedPnl: '100',
-        }),
-        createMockPosition({
-          symbol: 'ETH',
-          marginUsed: '500',
-          unrealizedPnl: '-50',
-        }),
-      ];
-      const priceData = {
-        BTC: { price: '51000' },
-        ETH: { price: '3000' },
-      };
-
-      // Act
+    it('keeps a winning cross position margin and adds its PnL', async () => {
       const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
+        usePerpsCloseAllCalculations({
+          positions: [crossLong],
+          priceData: livePrices,
+        }),
       );
 
-      // Assert
-      expect(result.current.totalMargin).toBe(1500); // 1000 + 500, PnL excluded
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.totalMargin).toBe(1500);
+      expect(result.current.totalPnl).toBe(500);
+      expect(result.current.totalFees).toBeCloseTo(36.975);
+      expect(result.current.receiveAmount).toBe(1463.02);
     });
 
-    it('excludes negative P&L from margin calculation', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '1000',
-          unrealizedPnl: '-200',
-        }),
-      ];
-      const priceData = { BTC: { price: '48000' } };
-
-      // Act
+    it('sums isolated and cross positions to the cent', async () => {
       const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
+        usePerpsCloseAllCalculations({
+          positions: [crossLong, isolatedShort],
+          priceData: livePrices,
+        }),
       );
 
-      // Assert
-      expect(result.current.totalMargin).toBe(1000); // Only marginUsed, negative PnL excluded
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.totalMargin).toBe(1750);
+      expect(result.current.totalPnl).toBe(480);
+      expect(result.current.totalFees).toBeCloseTo(37.874);
+      expect(result.current.receiveAmount).toBeCloseTo(1712.12, 10);
     });
 
-    it('excludes positive P&L from margin calculation', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '500',
-          unrealizedPnl: '250',
-        }),
-      ];
-      const priceData = { BTC: { price: '52000' } };
-
-      // Act
+    it('leaves every total unknown while a position has no live price', async () => {
       const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
+        usePerpsCloseAllCalculations({
+          positions: [crossLong, isolatedShort],
+          priceData: { BTC: { price: '51000' } },
+        }),
       );
 
-      // Assert
-      expect(result.current.totalMargin).toBe(500); // Only marginUsed, positive PnL excluded
-      expect(result.current.totalPnl).toBe(250); // PnL is tracked separately
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.totalMargin).toBeUndefined();
+      expect(result.current.totalPnl).toBeUndefined();
+      expect(result.current.totalFees).toBeUndefined();
+      expect(result.current.receiveAmount).toBeUndefined();
     });
 
-    it('calculates total margin with zero P&L', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '800',
-          unrealizedPnl: '0',
+    it('leaves the fee and receive unknown until the fee rate is quoted', () => {
+      mockCalculateFees.mockReturnValue(new Promise(() => undefined));
+
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({
+          positions: [crossLong],
+          priceData: livePrices,
         }),
-      ];
-      const priceData = { BTC: { price: '50000' } };
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
       );
 
-      // Assert
-      expect(result.current.totalMargin).toBe(800); // Only marginUsed
-      expect(result.current.totalPnl).toBe(0);
-    });
-  });
-
-  describe('Total P&L Calculation', () => {
-    it('calculates total P&L for single position', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          unrealizedPnl: '100',
-        }),
-      ];
-      const priceData = { BTC: { price: '51000' } };
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      expect(result.current.totalPnl).toBe(100);
-    });
-
-    it('calculates total P&L for multiple positions', () => {
-      // Arrange
-      const positions = [
-        createMockPosition({ symbol: 'BTC', unrealizedPnl: '100' }),
-        createMockPosition({ symbol: 'ETH', unrealizedPnl: '50' }),
-        createMockPosition({ symbol: 'SOL', unrealizedPnl: '-25' }),
-      ];
-      const priceData = {
-        BTC: { price: '51000' },
-        ETH: { price: '3000' },
-        SOL: { price: '100' },
-      };
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      expect(result.current.totalPnl).toBe(125); // 100 + 50 - 25
+      expect(result.current.totalMargin).toBe(1500);
+      expect(result.current.totalFees).toBeUndefined();
+      expect(result.current.receiveAmount).toBeUndefined();
     });
   });
 
@@ -535,7 +503,9 @@ describe('usePerpsCloseAllCalculations', () => {
         expect(result.current.isLoading).toBe(false);
       });
       expect(result.current.hasError).toBe(true);
-      expect(result.current.totalFees).toBe(0);
+      // A fee that could not be quoted stays unknown rather than 0.
+      expect(result.current.totalFees).toBeUndefined();
+      expect(result.current.receiveAmount).toBeUndefined();
     });
 
     it('omits aggregate discount attribution when one fee calculation fails', async () => {
@@ -574,7 +544,8 @@ describe('usePerpsCloseAllCalculations', () => {
       await waitFor(() => {
         expect(result.current.hasError).toBe(true);
       });
-      expect(result.current.totalFees).toBeCloseTo(17.85, 6);
+      // One position's fee is unknown, so the total is too.
+      expect(result.current.totalFees).toBeUndefined();
       expect(result.current.originalTotalFees).toBeUndefined();
       expect(result.current.avgOriginalMetamaskFeeRate).toBeUndefined();
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
@@ -620,7 +591,8 @@ describe('usePerpsCloseAllCalculations', () => {
 
       // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.totalFees).toBeCloseTo(17.85, 6);
+      // One position's fee is unknown, so the total is too.
+      expect(result.current.totalFees).toBeUndefined();
       expect(result.current.originalTotalFees).toBeUndefined();
       expect(result.current.avgOriginalMetamaskFeeRate).toBeUndefined();
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
@@ -1352,115 +1324,6 @@ describe('usePerpsCloseAllCalculations', () => {
     });
   });
 
-  describe('Receive Amount Calculation', () => {
-    it('calculates receive amount as margin minus fees', async () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '1000',
-          unrealizedPnl: '100',
-        }),
-      ];
-      const priceData = { BTC: { price: '51000' } };
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 50,
-          metamaskFeeAmount: 25,
-          protocolFeeAmount: 25,
-        }),
-      );
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-      // Total fee recalculated: 25 + 25 = 50
-      // Receive amount: 1000 (margin only, PnL excluded) - 50 (fees) = 950
-      expect(result.current.receiveAmount).toBe(950);
-      expect(result.current.totalPnl).toBe(100); // PnL tracked separately
-    });
-
-    it('returns zero receive amount when fees equal margin', async () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          marginUsed: '100',
-          unrealizedPnl: '-50',
-        }),
-      ];
-      const priceData = { BTC: { price: '51000' } };
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 100,
-          metamaskFeeAmount: 75,
-          protocolFeeAmount: 25,
-        }),
-      );
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-      // Receive amount: 100 (margin only) - 100 (fees) = 0
-      expect(result.current.receiveAmount).toBe(0);
-      expect(result.current.totalPnl).toBe(-50); // PnL tracked separately
-    });
-
-    it('calculates receive amount excluding P&L for multiple positions', async () => {
-      // Arrange
-      const positions = [
-        createMockPosition({
-          symbol: 'BTC',
-          marginUsed: '2000',
-          unrealizedPnl: '300',
-        }),
-        createMockPosition({
-          symbol: 'ETH',
-          marginUsed: '1500',
-          unrealizedPnl: '-100',
-        }),
-      ];
-      const priceData = {
-        BTC: { price: '51000' },
-        ETH: { price: '3000' },
-      };
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 150,
-          metamaskFeeAmount: 100,
-          protocolFeeAmount: 50,
-        }),
-      );
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-      // Total margin: 2000 + 1500 = 3500 (PnL excluded)
-      // Total fees: 150 + 150 = 300 (two positions)
-      // Receive amount: 3500 - 300 = 3200
-      expect(result.current.totalMargin).toBe(3500);
-      expect(result.current.totalPnl).toBe(200); // 300 - 100
-      expect(result.current.totalFees).toBe(300);
-      expect(result.current.receiveAmount).toBe(3200);
-    });
-  });
-
   describe('Loading and Error States', () => {
     it('sets loading to false after successful calculation', async () => {
       // Arrange
@@ -1497,7 +1360,7 @@ describe('usePerpsCloseAllCalculations', () => {
 
     it('sets hasError to true when account information missing', async () => {
       // Arrange
-      mockUseSelector.mockReturnValue(null); // No selected address
+      mockSelectors({ account: null }); // No selected address
       const positions = [createMockPosition()];
       const priceData = { BTC: { price: '51000' } };
 
@@ -1609,9 +1472,9 @@ describe('usePerpsCloseAllCalculations', () => {
         usePerpsCloseAllCalculations({ positions, priceData }),
       );
 
-      // Assert - Should not crash
-      expect(result.current.totalMargin).toBe(0);
-      expect(result.current.totalPnl).toBe(0);
+      // Assert - an unreadable margin shows as unavailable, never 0 or NaN
+      expect(result.current.totalMargin).toBeUndefined();
+      expect(result.current.receiveAmount).toBeUndefined();
     });
 
     it('DOES recalculate when positions array changes (reset freeze)', async () => {
@@ -1691,14 +1554,7 @@ describe('usePerpsCloseAllCalculations', () => {
   describe('Account and Chain Requirements', () => {
     it('handles missing chain ID', async () => {
       // Arrange
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return '0x1234567890123456789012345678901234567890'; // Valid address
-        }
-        return null; // Missing chainId
-      });
+      mockSelectors({ chainId: null }); // Missing chainId
       const positions = [createMockPosition()];
       const priceData = { BTC: { price: '51000' } };
 

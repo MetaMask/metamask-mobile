@@ -1,4 +1,5 @@
 import React from 'react';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
@@ -12,8 +13,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../../utils/formatUtils';
 
-const formatSummaryFiat = (value: number) =>
-  formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+const formatSummaryFiat = (value: number | undefined) =>
+  value === undefined
+    ? PERPS_CONSTANTS.FallbackDataDisplay
+    : formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
 
 // `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
 // zero from below (a limit just under the entry price) must keep its minus
@@ -23,8 +26,16 @@ const formatSummaryFiat = (value: number) =>
 const formatSummaryPercentage = (value: number, pnl: number) =>
   Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
 
+const getPnlColor = (pnl: number | undefined): TextColor => {
+  if (pnl === undefined) {
+    return TextColor.TextDefault;
+  }
+  return pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault;
+};
+
 export interface PerpsCloseTotalsProps {
-  pnl: number;
+  /** P&L realized by the close; undefined while unavailable. */
+  pnl: number | undefined;
   /**
    * The %RoE shown beside the $PnL: the position's actual %RoE
    * (`returnOnEquity × 100`) for market closes, or the RoE at the effective
@@ -33,7 +44,8 @@ export interface PerpsCloseTotalsProps {
    * value is unavailable.
    */
   roePercentage?: number;
-  receiveAmount: number;
+  /** Cash the close returns; undefined while unavailable. */
+  receiveAmount: number | undefined;
 }
 
 /**
@@ -60,13 +72,17 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       variant={KeyValueRowVariant.Summary}
       twClassName="mt-0.5"
       keyLabel={strings('perps.close_position.included_pnl')}
-      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
-        roePercentage !== undefined
-          ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-          : ''
-      }`}
+      value={
+        pnl === undefined
+          ? PERPS_CONSTANTS.FallbackDataDisplay
+          : `${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
+              roePercentage !== undefined
+                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                : ''
+            }`
+      }
       valueTextProps={{
-        color: pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault,
+        color: getPnlColor(pnl),
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       }}
     />

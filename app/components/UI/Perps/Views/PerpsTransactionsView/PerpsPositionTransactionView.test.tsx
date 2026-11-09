@@ -387,6 +387,26 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$5')).toBeOnTheScreen();
   });
 
+  it('leaves out the fees row when the order fee is unknown', () => {
+    // A grouped order with a fill missing its fee carries an empty fee
+    mockUseRoute.mockReturnValue({
+      params: {
+        transaction: {
+          ...mockTransaction,
+          fill: { ...mockTransaction.fill, fee: '' },
+        },
+      },
+    });
+
+    const { queryByText } = renderWithProvider(
+      <PerpsPositionTransactionView />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByText('Total fees')).not.toBeOnTheScreen();
+    expect(queryByText('$0')).not.toBeOnTheScreen();
+  });
+
   it('should display fees with < $0.01 label for amounts < 0.01', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {

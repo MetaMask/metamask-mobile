@@ -97,6 +97,52 @@ describe('transactionTransforms', () => {
       },
     );
 
+    it('keeps an order fee unknown when one execution omits its fee', () => {
+      const fills = [
+        createFill({ fee: '5' }),
+        createFill({ fee: '', timestamp: 1700000000001 }),
+      ];
+
+      const [aggregate] = aggregateFillsByOrder(fills);
+
+      expect(aggregate.fee).toBe('');
+      expect(aggregate.pnl).toBe('200');
+    });
+
+    it('shows closed PnL as unknown when the grouped order fee is unknown', () => {
+      const fills = [
+        createFill({ fee: '5' }),
+        createFill({ fee: '', timestamp: 1700000000001 }),
+      ];
+
+      const [transaction] = transformFillsToTransactions(fills);
+
+      // A missing fee is not read as 0, so 200 is never shown as the net PnL.
+      expect(transaction.fill?.amount).toBe(
+        strings('perps.transactions.unknown_pnl'),
+      );
+      expect(transaction.fill?.amountNumber).toBeUndefined();
+      expect(transaction.fill?.isPositive).toBeUndefined();
+    });
+
+    it('nets the grouped fees from the grouped PnL once', () => {
+      const fills = [
+        createFill({ pnl: '100', fee: '5' }),
+        createFill({ pnl: '50', fee: '2.5', timestamp: 1700000000001 }),
+      ];
+
+      const [transaction] = transformFillsToTransactions(fills);
+
+      // calculateNetClosedPnl: 150 - 7.5
+      expect(transaction.fill).toMatchObject({
+        pnl: '150',
+        fee: '7.5',
+        amount: '+$142.50',
+        amountNumber: 142.5,
+        isPositive: true,
+      });
+    });
+
     it('preserves reported zero PnL', () => {
       const [transaction] = transformFillsToTransactions([
         createFill({ pnl: '0', fee: '0' }),

@@ -1,5 +1,6 @@
 import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useCallback } from 'react';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -30,11 +31,32 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+const UNAVAILABLE_VALUE = PERPS_CONSTANTS.FallbackDataDisplay;
+
+/** Formats a summary amount, or the unavailable state while it is unknown. */
+const formatSummaryFiat = (value: number | undefined): string =>
+  value === undefined
+    ? UNAVAILABLE_VALUE
+    : formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+
+/** Formats a P&L with its sign, or the unavailable state while it is unknown. */
+const formatSignedSummaryFiat = (value: number | undefined): string =>
+  value === undefined
+    ? UNAVAILABLE_VALUE
+    : `${value < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(value))}`;
+
+const getPnlColor = (value: number | undefined): TextColor => {
+  if (value === undefined) {
+    return TextColor.TextDefault;
+  }
+  return value < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault;
+};
+
 export interface PerpsCloseSummaryProps {
-  /** Total margin including P&L */
-  totalMargin: number;
-  /** Total unrealized P&L (for "includes P&L" breakdown) */
-  totalPnl: number;
+  /** Total margin including P&L (undefined when unavailable) */
+  totalMargin: number | undefined;
+  /** P&L realized by the close (for "includes P&L" breakdown; undefined when unavailable) */
+  totalPnl: number | undefined;
 
   /** Total fees for closing (undefined when unavailable) */
   totalFees?: number;
@@ -49,8 +71,8 @@ export interface PerpsCloseSummaryProps {
   protocolFeeRate?: number;
   /** Original MetaMask fee rate before discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
-  /** Amount user will receive after closing */
-  receiveAmount: number;
+  /** Amount user will receive after closing (undefined when unavailable) */
+  receiveAmount: number | undefined;
 
   /** Whether to show rewards section */
   shouldShowRewards: boolean;
@@ -167,7 +189,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       variant={TextVariant.BodyMd}
     />
   ) : (
-    '--'
+    UNAVAILABLE_VALUE
   );
 
   const pointsValue = accountOptedIn ? (
@@ -201,24 +223,14 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
           >
-            {formatPerpsFiat(totalMargin, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
+            {formatSummaryFiat(totalMargin)}
           </Text>
           <View style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {strings('perps.close_position.includes_pnl')}
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                totalPnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault
-              }
-            >
-              {totalPnl < 0 ? '-' : '+'}
-              {formatPerpsFiat(Math.abs(totalPnl), {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+            <Text variant={TextVariant.BodySm} color={getPnlColor(totalPnl)}>
+              {formatSignedSummaryFiat(totalPnl)}
             </Text>
           </View>
         </View>
@@ -258,9 +270,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             testID: testIDs?.receiveTooltip,
           },
         })}
-        value={formatPerpsFiat(receiveAmount, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })}
+        value={formatSummaryFiat(receiveAmount)}
         valueTextProps={{
           testID: testIDs?.receiveValue,
         }}

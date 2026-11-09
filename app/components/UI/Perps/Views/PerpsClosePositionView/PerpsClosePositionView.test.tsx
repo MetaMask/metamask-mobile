@@ -300,7 +300,11 @@ describe('PerpsClosePositionView', () => {
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsLiveFocusedPriceMock.mockReturnValue(undefined);
-    usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
+    // A quoted 1% rate: 1.5 ETH at 3,000 gives the default mock's $45 fee.
+    usePerpsOrderFeesMock.mockReturnValue({
+      ...defaultPerpsOrderFeesMock,
+      totalFeeRate: 0.01,
+    });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );
@@ -730,9 +734,8 @@ describe('PerpsClosePositionView', () => {
     it('calculates and displays correct fees', () => {
       // Arrange
       const mockFees = {
-        totalFee: 10.5,
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.007,
       };
       usePerpsOrderFeesMock.mockReturnValue(mockFees);
 
@@ -745,8 +748,8 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert
-      expect(getByText(/10\.5/)).toBeDefined();
+      // Assert - Core fee: 1.5 ETH × 3,000 × 0.7% = 31.5
+      expect(getByText(/31\.5/)).toBeDefined();
     });
 
     it('updates fees when close percentage changes', async () => {
@@ -778,9 +781,8 @@ describe('PerpsClosePositionView', () => {
         size: '1', // 1 token long position
       };
       const mockFees = {
-        totalFee: 50, // $50 fees
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.2, // 1 token × $150 × 20% = $30 fee
       };
 
       // Set current price to $150 for reference
@@ -806,18 +808,18 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = marginUsed - fees
-      // HyperLiquid's marginUsed already includes PnL
-      // receiveAmount = 1200 - 50 = 1150
+      // Assert - Core estimateCloseReceive for an isolated position: margin
+      // without its unrealized PnL (1200 - 200) plus the PnL at the close
+      // price ((150 - 100) × 1 = 50), less the fee: 1050 - 30 = 1020
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
       // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
-      expect(getByText('$1,150')).toBeDefined();
+      expect(getByText('$1,020')).toBeDefined();
     });
 
-    it('calculates receive amount correctly for partial close percentages', () => {
+    it('calculates receive amount for a losing isolated close', () => {
       // Arrange
       const mockPosition = {
         ...defaultPerpsPositionMock,
@@ -827,9 +829,8 @@ describe('PerpsClosePositionView', () => {
         size: '2', // 2 tokens long
       };
       const mockFees = {
-        totalFee: 25, // $25 fees for 100% close
-        metamaskFeeRate: 0.5,
-        protocolFeeRate: 0.5,
+        ...defaultPerpsOrderFeesMock,
+        totalFeeRate: 0.1, // 2 tokens × $75 × 10% = $15 fee
       };
 
       // Set current price lower than entry for loss scenario
@@ -855,15 +856,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 100% close (default):
-      // HyperLiquid's marginUsed already includes PnL
-      // receiveAmount = 1700 - 25 = 1675
+      // For 100% close (default): margin without its unrealized loss
+      // (1700 + 300) plus the PnL at the close price ((75 - 100) × 2 = -50),
+      // less the fee: 1950 - 15 = 1935
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1675 in the display
-      expect(getByText(/1,675/)).toBeDefined();
+      expect(getByText(/1,935/)).toBeDefined();
     });
   });
 
@@ -939,6 +939,10 @@ describe('PerpsClosePositionView', () => {
       useRouteMock.mockReturnValue({
         params: { position: positionWithProfit },
       });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [positionWithProfit],
+        isInitialLoading: false,
+      });
 
       // Act
       const { getByText } = renderWithProvider(
@@ -987,9 +991,8 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Now uses actual unrealizedPnl from position
-      // Look for negative P&L display (with - sign) - should show 150 (absolute value)
-      const pnlElement = getByText(/-.*150/);
+      // Assert - PnL realized at the close price: (100 - 150) × 1 = -50
+      const pnlElement = getByText(/-\$50/);
       expect(pnlElement).toBeDefined();
     });
   });
@@ -1424,7 +1427,7 @@ describe('PerpsClosePositionView', () => {
         position: typeof defaultPerpsPositionMock;
         markPrice: string;
         limitPrice?: string;
-        fees?: typeof defaultPerpsOrderFeesMock;
+        fees?: typeof defaultPerpsOrderFeesMock & { totalFeeRate?: number };
         handleClosePosition: jest.Mock;
       }) => {
         selectLimitFlagMock.mockReturnValue(true);
@@ -1492,7 +1495,12 @@ describe('PerpsClosePositionView', () => {
           position,
           markPrice: '120',
           limitPrice: '130',
-          fees: { ...defaultPerpsOrderFeesMock, totalFee: 26 },
+          // 2 × 130 × 10% = the $26 fee
+          fees: {
+            ...defaultPerpsOrderFeesMock,
+            totalFee: 26,
+            totalFeeRate: 0.1,
+          },
           handleClosePosition,
         });
         fireEvent.press(
@@ -1533,7 +1541,11 @@ describe('PerpsClosePositionView', () => {
           position,
           markPrice: '120',
           limitPrice: '80',
-          fees: { ...defaultPerpsOrderFeesMock, totalFee: 0 },
+          fees: {
+            ...defaultPerpsOrderFeesMock,
+            totalFee: 0,
+            totalFeeRate: 0,
+          },
           handleClosePosition,
         });
         fireEvent.press(

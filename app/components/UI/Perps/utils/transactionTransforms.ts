@@ -9,6 +9,7 @@ import {
   Order,
   OrderFill,
   UserHistoryItem,
+  calculateNetClosedPnl,
   getPerpsDisplaySymbol,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -356,7 +357,9 @@ export function aggregateFillsByOrderWithIds(
     // Sum sizes, PnLs, and fees
     let totalSize = BigNumber(0);
     let totalPnl: BigNumber | undefined = BigNumber(0);
-    let totalFee = BigNumber(0);
+    // Stays undefined once one fill's fee is unknown, so a missing fee is never
+    // read as 0 and netted from the order's PnL.
+    let totalFee: BigNumber | undefined = BigNumber(0);
     let totalNotional = BigNumber(0); // For VWAP calculation: sum of (size * price)
 
     // Preserve detailedOrderType and liquidation from any fill in the group
@@ -367,13 +370,14 @@ export function aggregateFillsByOrderWithIds(
     for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
       const price = BigNumber(fill.price);
-      const fee = BigNumber(fill.fee || '0');
 
       totalSize = totalSize.plus(size);
-      const reportedPnl = parseReportedFillPnl(fill.pnl);
+      const reportedPnl = parseReportedFillAmount(fill.pnl);
       totalPnl =
         reportedPnl === undefined ? undefined : totalPnl?.plus(reportedPnl);
-      totalFee = totalFee.plus(fee);
+      const reportedFee = parseReportedFillAmount(fill.fee);
+      totalFee =
+        reportedFee === undefined ? undefined : totalFee?.plus(reportedFee);
       totalNotional = totalNotional.plus(size.times(price));
 
       // Preserve detailedOrderType from any fill that has it
@@ -401,7 +405,8 @@ export function aggregateFillsByOrderWithIds(
       price: vwapPrice.toString(),
       pnl: totalPnl?.toString(),
       direction: latestFill.direction,
-      fee: totalFee.toString(),
+      // `OrderFill.fee` is a string; an empty one marks the total as unknown.
+      fee: totalFee?.toString() ?? '',
       feeToken: latestFill.feeToken,
       timestamp: latestFill.timestamp, // Order is complete at its last fill
       startPosition: aggregatedStartPosition,
@@ -534,9 +539,11 @@ export interface TransformFillsToTransactionsOptions {
 }
 
 /** Parse a reported amount without treating empty or non-finite values as zero. */
-function parseReportedFillPnl(pnl: string | undefined): BigNumber | undefined {
-  if (pnl === undefined || pnl.trim() === '') return undefined;
-  const value = BigNumber(pnl);
+function parseReportedFillAmount(
+  amount: string | undefined,
+): BigNumber | undefined {
+  if (amount === undefined || amount.trim() === '') return undefined;
+  const value = BigNumber(amount);
   return value.isFinite() ? value : undefined;
 }
 
@@ -579,8 +586,8 @@ export function transformFillsToTransactions(
       liquidation,
       detailedOrderType,
     } = fill;
-    const reportedPnl = parseReportedFillPnl(rawPnl);
-    const pnl = reportedPnl?.toString();
+    const pnl = parseReportedFillAmount(rawPnl)?.toString();
+    const netClosedPnl = calculateNetClosedPnl({ pnl: rawPnl, fee });
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
@@ -634,17 +641,17 @@ export function transformFillsToTransactions(
       isPositive = false; // Fee is always a cost
     } else if (
       (isClosed || isSell || isFlipped || isAutoDeleveraging) &&
-      reportedPnl === undefined
+      netClosedPnl === undefined
     ) {
+      // The venue's PnL or the fee is unknown, so the net is unknown too.
       displayAmount = strings('perps.transactions.unknown_pnl');
     } else if (
-      reportedPnl !== undefined &&
+      netClosedPnl !== undefined &&
       (isClosed || isSell || isFlipped || isAutoDeleveraging)
     ) {
-      // For closing positions: show reported PnL minus fee
-      const feeValue = BigNumber(fill.fee || 0);
-      amountBN = reportedPnl.minus(feeValue);
-      const netPnL = amountBN.toNumber();
+      // For closing positions: reported PnL net of the fee, from Core
+      amountBN = BigNumber(netClosedPnl);
+      const netPnL = netClosedPnl;
       // For display, show + for positive, - for negative, nothing for 0
       if (netPnL > 0) {
         displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
