@@ -28,6 +28,8 @@ export interface UseTokenBalanceResult {
    * non-'.'-decimal locales.
    */
   balance: string | undefined;
+  /** Unformatted token amount. Absent when the asset has no numeric balance. */
+  balanceAmount: number | undefined;
   fiatBalance: string | undefined;
   tokenFormattedBalance: string | undefined;
   isTronNative: boolean;
@@ -124,6 +126,7 @@ export function useTokenBalance(
 
   const base: UseTokenBalanceResult = {
     balance,
+    balanceAmount: processedAsset?.balanceAmount,
     fiatBalance: processedAsset?.balanceFiat,
     tokenFormattedBalance: balance
       ? `${balance} ${processedAsset.symbol}`

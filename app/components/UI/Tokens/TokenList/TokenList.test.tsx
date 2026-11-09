@@ -48,6 +48,12 @@ const mockTokenListItemCta = {
   onPress: jest.fn(),
 };
 
+jest.mock('../../../../hooks/assets/market-stats-live-prices', () => ({
+  useLiveAssetPrices: () => new Map(),
+  readLiveQuote: () => undefined,
+  useWatchAssetPrices: () => undefined,
+}));
+
 jest.mock('../../Money/hooks/useMoneyTokenListCta', () => ({
   useMoneyTokenListCta: jest.fn(() => ({
     tokenListItemCta: mockTokenListItemCta,
