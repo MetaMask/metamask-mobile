@@ -3,6 +3,7 @@ import type {
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
+  MechanismsView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
   ReferralFunnelDto,
@@ -27,6 +28,12 @@ export interface RewardsMoneyState {
   referralFunnel: Record<string, ReferralFunnelEntry>;
   /** First page of follow-trade commissions, keyed by Hydra profile id. */
   commissions: Record<string, CommissionEntryView[]>;
+  /**
+   * `claim_open` from this session's commissions page, keyed by Hydra profile
+   * id. Dropped on rehydrate so a restored flag cannot submit follow-trade
+   * before this session asks the server again.
+   */
+  commissionMechanisms: Record<string, MechanismsView>;
   /** First page of self-earned cashback ledger rows, keyed by Hydra profile id. */
   cashbackLedger: Record<string, LedgerEarningEntryDto[]>;
   /**
@@ -52,6 +59,24 @@ export interface RewardsMoneyState {
    * killed session cannot leave Claim disabled.
    */
   claimLocks: Record<string, ClaimLock>;
+  /**
+   * Referral code from the `ref` param of the last deeplink the user
+   * continued past the interstitial, waiting for the invite sheet. A newer
+   * link replaces it. Dropped on rehydrate: the code belongs to the session
+   * that opened the link.
+   */
+  pendingReferralCode: string | null;
+  /**
+   * Last pending code that was cleared, so the same link parsed again later
+   * in the session cannot prompt twice. Dropped on rehydrate.
+   */
+  answeredReferralCode: string | null;
+  /**
+   * True while a deeplink carrying `ref` is still being handled (waiting for
+   * the navigator or the interstitial). The invite sheet and the push
+   * pre-prompt both wait for it. Dropped on rehydrate.
+   */
+  isReferralLinkPending: boolean;
 }
 
 export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
@@ -66,11 +91,15 @@ export const initialState: RewardsMoneyState = {
   earningsSummary: {},
   referralFunnel: {},
   commissions: {},
+  commissionMechanisms: {},
   cashbackLedger: {},
   earningsHistory: {},
   inFlightClaims: {},
   claimWaitingUntil: {},
   claimLocks: {},
+  pendingReferralCode: null,
+  answeredReferralCode: null,
+  isReferralLinkPending: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -209,6 +238,16 @@ const rewardsMoneySlice = createSlice({
       entry.error = false;
       entry.data = action.payload.data;
     },
+    setCommissionMechanisms: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        mechanisms: MechanismsView;
+      }>,
+    ) => {
+      state.commissionMechanisms[action.payload.profileId] =
+        action.payload.mechanisms;
+    },
     setCommissions: (
       state,
       action: PayloadAction<{
@@ -271,6 +310,31 @@ const rewardsMoneySlice = createSlice({
       }
       state.claimLocks[action.payload.profileId] = action.payload.lock;
     },
+    setPendingReferralCode: (state, action: PayloadAction<string>) => {
+      if (action.payload === state.answeredReferralCode) {
+        return;
+      }
+      state.pendingReferralCode = action.payload;
+    },
+    /**
+     * Answers `code`, or whatever is pending without one. A newer code that
+     * replaced `code` stays pending, since its link was never offered.
+     */
+    clearPendingReferralCode: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      const code = action.payload ?? state.pendingReferralCode;
+      if (code) {
+        state.answeredReferralCode = code;
+      }
+      if (code === state.pendingReferralCode) {
+        state.pendingReferralCode = null;
+      }
+    },
+    setReferralLinkPending: (state, action: PayloadAction<boolean>) => {
+      state.isReferralLinkPending = action.payload;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -284,6 +348,7 @@ const rewardsMoneySlice = createSlice({
           earningsSummary: settleEntries(persisted.earningsSummary),
           referralFunnel: settleEntries(persisted.referralFunnel),
           commissions: persisted.commissions ?? initialState.commissions,
+          commissionMechanisms: {},
           cashbackLedger:
             persisted.cashbackLedger ?? initialState.cashbackLedger,
           earningsHistory:
@@ -295,6 +360,9 @@ const rewardsMoneySlice = createSlice({
           // A lock belongs to the running session. Restoring one would leave
           // Claim disabled after the process that owned the claim was gone.
           claimLocks: {},
+          pendingReferralCode: null,
+          answeredReferralCode: null,
+          isReferralLinkPending: false,
         };
       },
     );
@@ -312,11 +380,15 @@ export const {
   setReferralFunnelError,
   setReferralFunnel,
   setCommissions,
+  setCommissionMechanisms,
   setCashbackLedger,
   setEarningsHistory,
   setInFlightClaims,
   setClaimWaitingUntil,
   setClaimLock,
+  setPendingReferralCode,
+  clearPendingReferralCode,
+  setReferralLinkPending,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

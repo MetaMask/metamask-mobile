@@ -165,10 +165,21 @@ jest.mock('../../../UI/QuickBuy/hooks/usePositionTokenBalance', () => ({
 }));
 
 jest.mock('./components/PositionSheetChart', () => {
-  const { View } = jest.requireActual('react-native');
+  const { Pressable, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="position-sheet-chart" />,
+    default: ({
+      onScrub,
+    }: {
+      onScrub?: (point: [string, number] | null) => void;
+    }) => (
+      <View testID="position-sheet-chart">
+        <Pressable
+          testID="position-sheet-chart-scrub"
+          onPress={() => onScrub?.(['100', 60])}
+        />
+      </View>
+    ),
   };
 });
 
@@ -207,8 +218,11 @@ const buildSheetData = (
   currentPrice: 120,
   dailyChangePercent: 3.49,
   marketCap: undefined,
+  chartPeriod: '1D',
+  setChartPeriod: jest.fn(),
   summaryTitle: '2 PEPE',
-  summarySubtitle: '$240.00',
+  summaryTagLabel: undefined,
+  summarySubtitle: 'Opened · 2 hr ago',
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
@@ -258,6 +272,82 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens on price when the spot card has no market cap on its fills', () => {
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$120');
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$1.2M');
+  });
+
+  it('names the market cap toggle for screen readers', () => {
+    mockSheetData = buildSheetData({ marketCap: 1_200_000 });
+
+    render(<PositionDetailsSheet />);
+
+    const marketCapToggle = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+    );
+
+    expect(marketCapToggle).toHaveTextContent('MC');
+    expect(marketCapToggle.props.accessibilityLabel).toBe('Market cap');
+  });
+
+  it('changes the chart period from the range control', () => {
+    const setChartPeriod = jest.fn();
+    mockSheetData = buildSheetData({ setChartPeriod });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.chartPeriod('1W')),
+    );
+
+    expect(setChartPeriod).toHaveBeenCalledWith('1W');
+  });
+
+  it('scrubs the headline in the selected price or market cap format', () => {
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(screen.getByTestId('position-sheet-chart-scrub'));
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$60');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$600K');
   });
 
   it('opens token details from the price header', () => {
@@ -324,11 +414,17 @@ describe('PositionDetailsSheet', () => {
 
   it('labels a market cap so it is not read as a unit price', () => {
     mockSheetData = buildSheetData({
-      isMarketCapMode: true,
-      formatValue: () => '$1.2M',
+      marketCap: 1_200_000,
+      currentPrice: 120,
     });
 
     render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_MARKET_CAP,
+      ),
+    );
 
     const priceHeader = screen.getByTestId(
       PositionDetailsSheetSelectorsIDs.PRICE_HEADER,
@@ -1036,7 +1132,45 @@ describe('PositionDetailsSheet', () => {
 
     fireEvent.press(summary);
 
-    expect(summary).toHaveTextContent(/2 PEPE/);
+    expect(within(summary).getByText('2 PEPE')).toBeOnTheScreen();
+    expect(within(summary).getByText('Opened · 2 hr ago')).toBeOnTheScreen();
+    expect(summary).toHaveTextContent(/\+\$40\.00/);
+    expect(within(summary).queryByTestId('position-token-avatar')).toBeNull();
+  });
+
+  it('shows a direction tag and colors a loss', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '40x Short',
+      perpDirection: 'short',
+      isPnlPositive: false,
+      pnlValueLabel: '-$1.86',
+      pnlPercentLabel: '-10.38%',
+      summarySubtitle: '',
+    });
+
+    render(<PositionDetailsSheet />);
+    const summary = screen.getByTestId(
+      PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY,
+    );
+
+    expect(within(summary).getByText('40x Short')).toBeOnTheScreen();
+    expect(within(summary).getByText('-$1.86')).toBeOnTheScreen();
+    expect(within(summary).queryByText('Opened · 2 hr ago')).toBeNull();
+  });
+
+  it('shows a long tag', () => {
+    mockSheetData = buildSheetData({
+      summaryTagLabel: '2x Long',
+      perpDirection: 'long',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      within(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRADE_SUMMARY),
+      ).getByText('2x Long'),
+    ).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });

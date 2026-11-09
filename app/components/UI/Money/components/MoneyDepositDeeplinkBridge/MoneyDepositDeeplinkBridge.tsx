@@ -1,20 +1,41 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  type RouteProp,
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { toHex } from '@metamask/controller-utils';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import {
+  MoneyDepositTokenType,
+  MoneyPostOnboardingRedirectType,
+  type MoneyPreferredPaymentToken,
+} from '../../types/navigation';
 import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
+
+type MoneyDepositDeeplinkRouteProp = RouteProp<
+  RootStackParamList,
+  'MoneyDepositDeeplink'
+>;
 
 const MoneyDepositDeeplinkBridge = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyDepositDeeplinkRouteProp>();
+  const tokenType = route.params?.tokenType;
   const isMoneyAccountFeatureEnabled = useSelector(
     selectMoneyEnableMoneyAccountFlag,
   );
@@ -22,6 +43,10 @@ const MoneyDepositDeeplinkBridge = () => {
     selectIsMoneyAccountGeoEligible,
   );
   const geolocationStatus = useSelector(selectGeolocationStatus);
+  const highestBalanceAaveTokenMeetingDepositMinimum = useSelector(
+    selectHighestBalanceAaveTokenMeetingDepositMinimum,
+  );
+
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { isOnboardingRedirectNeeded } = useMoneyOnboardingNavigation();
   const hasHandledRequest = useRef(false);
@@ -30,6 +55,23 @@ const MoneyDepositDeeplinkBridge = () => {
     geolocationStatus === undefined ||
     geolocationStatus === 'idle' ||
     geolocationStatus === 'loading';
+
+  const preferredPaymentToken = useMemo<
+    MoneyPreferredPaymentToken | undefined
+  >(() => {
+    if (
+      tokenType !== MoneyDepositTokenType.ATOKEN ||
+      !highestBalanceAaveTokenMeetingDepositMinimum?.address ||
+      !highestBalanceAaveTokenMeetingDepositMinimum.chainId
+    ) {
+      return undefined;
+    }
+
+    return {
+      address: toHex(highestBalanceAaveTokenMeetingDepositMinimum.address),
+      chainId: toHex(highestBalanceAaveTokenMeetingDepositMinimum.chainId),
+    };
+  }, [highestBalanceAaveTokenMeetingDepositMinimum, tokenType]);
 
   const navigateToGeoBlockSheet = useCallback(() => {
     navigation.dispatch((state) => ({
@@ -74,6 +116,7 @@ const MoneyDepositDeeplinkBridge = () => {
         ...StackActions.replace(Routes.MONEY.ONBOARDING, {
           postOnboardingRedirect: {
             type: MoneyPostOnboardingRedirectType.DEPOSIT,
+            ...(preferredPaymentToken ? { preferredPaymentToken } : {}),
           },
         }),
         target: state.key,
@@ -83,7 +126,10 @@ const MoneyDepositDeeplinkBridge = () => {
 
     const startDeposit = async () => {
       try {
-        await initiateDeposit({ replaceConfirmation: true });
+        await initiateDeposit({
+          ...(preferredPaymentToken ? { preferredPaymentToken } : {}),
+          replaceConfirmation: true,
+        });
       } catch (error) {
         if (
           isUserRejectedError(
@@ -115,6 +161,7 @@ const MoneyDepositDeeplinkBridge = () => {
     navigateToGeoBlockSheet,
     navigation,
     isOnboardingRedirectNeeded,
+    preferredPaymentToken,
   ]);
 
   return null;

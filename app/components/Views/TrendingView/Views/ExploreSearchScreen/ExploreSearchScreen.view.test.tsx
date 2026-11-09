@@ -157,6 +157,11 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         );
       });
 
+      const openedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'opened',
+      );
+      expect(openedEvents).toHaveLength(1);
+
       expect(trackEventSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({

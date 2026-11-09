@@ -98,7 +98,7 @@ const CreateVirtualBankAccount = ({
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
-  const { arrivalTimeframe } = useVbaArrivalTime();
+  const { arrivalTitle } = useVbaArrivalTime();
 
   let vendorTermsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
@@ -212,16 +212,7 @@ const CreateVirtualBankAccount = ({
           />
           <FeatureRow
             icon={IconName.Clock}
-            title={
-              arrivalTimeframe
-                ? strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-                    { timeframe: arrivalTimeframe },
-                  )
-                : strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
-                  )
-            }
+            title={arrivalTitle}
             description={strings(
               'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
             )}
