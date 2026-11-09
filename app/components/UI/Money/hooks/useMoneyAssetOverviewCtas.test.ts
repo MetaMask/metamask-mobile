@@ -21,12 +21,6 @@ import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyDepositNavigation } from './useMoneyNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-} from '../../TokenDetails/components/abTestConfig';
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
@@ -37,13 +31,11 @@ jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
-jest.mock('./useMoneyAccount');
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyNavigation');
 jest.mock('react-redux');
-jest.mock('../../../../hooks/useABTest');
 
 const mockInitiateDeposit = jest.fn();
 const mockNavigateToMoneyDeposit = jest.fn();
@@ -55,7 +47,6 @@ const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
-const mockUseABTest = jest.mocked(useABTest);
 const mockSelectIsAaveOutputToken = jest.mocked(
   earnSelectors.selectIsAaveOutputToken,
 );
@@ -130,11 +121,6 @@ describe('useMoneyAssetOverviewCtas', () => {
       isBalanceCtaEligible: true,
       isFooterCtaEligible: true,
     });
-    mockUseABTest.mockReturnValue({
-      variant: { showMoneyDepositBalanceCta: true },
-      variantName: 'treatment',
-      isActive: true,
-    });
   });
 
   it('initializes shared analytics for the Asset Overview screen', () => {
@@ -170,59 +156,7 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
   });
 
-  it('does not track experiment exposure when the balance CTA is ineligible', () => {
-    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
-      isBalanceCtaEligible: false,
-      isFooterCtaEligible: false,
-    });
-
-    renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset,
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(mockUseABTest).toHaveBeenCalledWith(
-      EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-      EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-      {
-        ...EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-        trackExposure: false,
-      },
-    );
-  });
-
-  it('tracks experiment exposure for eligible control users without fetching APY', () => {
-    setupSelectors(EMPTY_RELAY_CONFIG, false);
-    mockUseABTest.mockReturnValue({
-      variant: { showMoneyDepositBalanceCta: false },
-      variantName: 'control',
-      isActive: true,
-    });
-
-    const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset,
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(mockUseABTest).toHaveBeenCalledWith(
-      EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-      EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-      {
-        ...EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-        trackExposure: true,
-      },
-    );
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
-    expect(result.current.isBalanceCtaVisible).toBe(false);
-  });
-
-  it('shows balance CTA loading only for eligible treatment users', () => {
+  it('shows balance CTA loading when eligible', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: undefined,
       apyPercent: undefined,
@@ -241,7 +175,7 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(result.current.isBalanceCtaVisible).toBe(false);
   });
 
-  it('hides the eligible treatment when the APY query settles without data', () => {
+  it('hides the eligible balance CTA when the APY query settles without data', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: undefined,
       apyPercent: undefined,
