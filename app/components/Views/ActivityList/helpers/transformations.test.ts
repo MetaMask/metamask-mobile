@@ -49,7 +49,7 @@ const buildV5Transaction = (
     from?: string;
     to?: string | null;
     value?: string;
-    methodId?: string | null;
+    methodId?: string;
     valueTransfers?: V5TransactionRecord['valueTransfers'];
   } = {},
 ): V5TransactionRecord => ({
@@ -360,7 +360,8 @@ describe('ActivityList transformations', () => {
             assetClass: 'ft',
             from: address,
             to: otherAddress,
-            assetId: 'eip155:59144/erc20:0x3333333333333333333333333333333333333333',
+            assetId:
+              'eip155:59144/erc20:0x3333333333333333333333333333333333333333',
             amount: '1',
             decimal: 18,
             symbol: 'aUSDC',

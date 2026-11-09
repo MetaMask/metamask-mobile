@@ -50,9 +50,9 @@ export function getPooledStakingFieldsFromV5Transaction(
 
   return {
     chainId: Number.isFinite(chainId) ? chainId : 0,
-    to: transaction.tx.to,
+    to: transaction.tx.to ?? '',
     methodId: transaction.tx.methodId,
-    gasUsed: transaction.tx.gasUsed,
-    effectiveGasPrice: transaction.tx.effectiveGasPrice,
+    gasUsed: 0,
+    effectiveGasPrice: '0',
   };
 }

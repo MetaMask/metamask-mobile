@@ -110,7 +110,9 @@ function transformV5ApiTransactions(
   const subjectAddress = address.toLowerCase();
 
   for (const transaction of transactions) {
-    if (shouldSkipV5Transaction(subjectAddress, transaction, excludedTxHashes)) {
+    if (
+      shouldSkipV5Transaction(subjectAddress, transaction, excludedTxHashes)
+    ) {
       continue;
     }
     const activity = mapV5ApiTransaction({

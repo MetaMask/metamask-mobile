@@ -42,6 +42,7 @@ export const useTransactionsQuery = () => {
     [evmAddress, excludedTxHashes],
   );
 
+  // @ts-expect-error v5 query options satisfy runtime; select maps to ActivityListItem pages
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
