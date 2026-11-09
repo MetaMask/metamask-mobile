@@ -16,6 +16,7 @@ import {
   AnimatedAmountDisplay,
   getFontSizeForInputLength,
 } from '../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { splitNumericString } from '../../../../component-library/components-temp/AnimatedNumericText/splitNumericString';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import useCurrency from '../../../Base/Keypad/useCurrency';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
@@ -147,33 +148,55 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     ? TextColor.ErrorDefault
     : TextColor.TextDefault;
 
-  let amountPrefix = '';
-  let amountValue = primaryLabel;
-  let amountSuffix = '';
-  if (showCursor) {
-    amountValue = formatAmountDigitsForDisplay(
-      isUnpricedSource ? sourceCryptoAmount || '0' : fiatAmount || '0',
-      decimalSeparator,
-    );
+  const amountDisplay = useMemo(() => {
+    if (!showCursor) {
+      return { prefix: '', value: primaryLabel, suffix: '' };
+    }
+
     if (isUnpricedSource) {
-      amountSuffix = sourceSymbol ? ` ${sourceSymbol}` : '';
-    } else if (currency) {
-      const [prefix = '', suffix = ''] = formatters
-        .formatCurrency(0, currency, {
+      const value = formatAmountDigitsForDisplay(
+        sourceCryptoAmount || '0',
+        decimalSeparator,
+      );
+      return {
+        prefix: '',
+        value,
+        suffix: sourceSymbol ? ` ${sourceSymbol}` : '',
+      };
+    }
+
+    const { prefix, suffix } = currency
+      ? splitNumericString(
+        formatters.formatCurrency(0, currency, {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
-        })
-        .split(/\p{N}+/u);
-      amountPrefix = prefix;
-      amountSuffix = suffix;
-    }
-  }
-  const visibleAmountLabel = `${amountPrefix}${amountValue}${amountSuffix}`;
+        }),
+      )
+      : { prefix: '', suffix: '' };
+
+    const value = formatAmountDigitsForDisplay(
+      fiatAmount || '0',
+      decimalSeparator,
+    );
+
+    return { prefix, value, suffix };
+  }, [
+    currency,
+    decimalSeparator,
+    fiatAmount,
+    formatters,
+    isUnpricedSource,
+    primaryLabel,
+    showCursor,
+    sourceCryptoAmount,
+    sourceSymbol,
+  ]);
+  const visibleAmountLabel = `${amountDisplay.prefix}${amountDisplay.value}${amountDisplay.suffix}`;
   const amountFontSize = getFontSizeForInputLength(
-    amountPrefix.length +
-      amountValue.length +
-      amountSuffix.length +
-      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+    amountDisplay.prefix.length +
+    amountDisplay.value.length +
+    amountDisplay.suffix.length +
+    INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const amountTextStyle = {
     fontSize: amountFontSize,
@@ -205,20 +228,20 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         cursor={
           showCursor
             ? {
-                animated: animateAmount,
-                style: cursorStyle,
-                testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
-              }
+              animated: animateAmount,
+              style: cursorStyle,
+              testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
+            }
             : false
         }
         fontFamily={FontFamily.Hero}
-        prefix={amountPrefix || undefined}
+        prefix={amountDisplay.prefix || undefined}
         style={amountTextStyle}
-        suffix={amountSuffix || undefined}
+        suffix={amountDisplay.suffix || undefined}
         suffixColor={amountColor}
         suffixStyle={amountTextStyle}
         testID="quick-buy-amount-row"
-        value={amountValue}
+        value={amountDisplay.value}
         variant={TextVariant.DisplayMd}
       />
 
