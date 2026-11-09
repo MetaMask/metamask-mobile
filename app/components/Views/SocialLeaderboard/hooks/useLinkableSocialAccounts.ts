@@ -1,19 +1,30 @@
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { CaipAccountId } from '@metamask/utils';
-import { useMemo } from 'react';
+import type { CaipAccountId, CaipChainId } from '@metamask/utils';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectBalanceForAllWalletsAndChains } from '../../../../selectors/assets/balances';
-import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectUnifiedBalancesByAccountGroup } from '../../../../selectors/assets/balances';
+import {
+  selectAccountToGroupMap,
+  selectSelectedAccountGroupId,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
+import {
+  portfolioTotal,
+  readPortfolioTotal,
+  rememberPortfolioTotal,
+} from './portfolioBalance';
+import { useNonTokenContribution } from './useNonTokenContribution';
 
 export interface LinkableSocialAccount {
   id: string;
@@ -60,30 +71,67 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
     selectAllAccountGroupIconSeedAddresses,
   );
   const accountsToGroupMap = useSelector(selectAccountToGroupMap);
-  const allBalances = useSelector(selectBalanceForAllWalletsAndChains);
+  const selectedGroupId = useSelector(selectSelectedAccountGroupId);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const { popularNetworks } = useNetworkEnablement();
+  const contribution = useNonTokenContribution();
+  const popularChainIdsKey = useMemo(
+    () => (popularNetworks ?? []).join(','),
+    [popularNetworks],
+  );
+  const chainIdsForBalance = useMemo<CaipChainId[]>(
+    () =>
+      popularChainIdsKey
+        ? (popularChainIdsKey.split(',') as CaipChainId[])
+        : [],
+    [popularChainIdsKey],
+  );
+  const unifiedBalancesSelector = useMemo(
+    () => selectUnifiedBalancesByAccountGroup(chainIdsForBalance),
+    [chainIdsForBalance],
+  );
+  const unifiedBalances = useSelector(unifiedBalancesSelector);
+  const selectedBalance = selectedGroupId
+    ? unifiedBalances[selectedGroupId]
+    : undefined;
+
+  useEffect(() => {
+    if (!selectedGroupId || !selectedBalance || contribution.isLoading) {
+      return;
+    }
+    rememberPortfolioTotal(
+      selectedBalance.userCurrency,
+      selectedGroupId,
+      selectedBalance.totalBalanceInUserCurrency + contribution.totalFiat,
+    );
+  }, [
+    contribution.isLoading,
+    contribution.totalFiat,
+    selectedBalance,
+    selectedGroupId,
+  ]);
 
   return useMemo(() => {
-    const balanceByGroupId = new Map<
-      string,
-      { total: number; currency: string }
-    >();
-    for (const wallet of Object.values(allBalances.wallets ?? {})) {
-      for (const group of Object.values(wallet.groups ?? {})) {
-        balanceByGroupId.set(group.groupId, {
-          total: group.totalBalanceInUserCurrency,
-          currency: group.userCurrency,
-        });
-      }
-    }
-
     const balanceLabelFor = (groupId: string): string => {
-      const balance = balanceByGroupId.get(groupId);
-      if (!balance?.total || !balance.currency) {
+      if (privacyMode) {
         return '';
       }
-      return formatWithThreshold(balance.total, 0.01, I18n.locale, {
+      const balance = unifiedBalances[groupId];
+      if (!balance?.userCurrency) {
+        return '';
+      }
+      const total = portfolioTotal({
+        isSelected: groupId === selectedGroupId,
+        tokenTotal: balance.totalBalanceInUserCurrency,
+        contribution,
+        cachedTotal: readPortfolioTotal(balance.userCurrency, groupId),
+      });
+      if (total === 0) {
+        return '';
+      }
+      return formatWithThreshold(total, 0.01, I18n.locale, {
         style: 'currency',
-        currency: balance.currency.toUpperCase(),
+        currency: balance.userCurrency.toUpperCase(),
       });
     };
 
@@ -140,8 +188,11 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
     accountSections,
     accountsById,
     accountsToGroupMap,
-    allBalances,
+    contribution,
     evmAccounts,
+    privacyMode,
     seedAddressByGroupId,
+    selectedGroupId,
+    unifiedBalances,
   ]);
 };
