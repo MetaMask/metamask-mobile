@@ -455,7 +455,7 @@ describe('tax form submission snapshot', () => {
     expect(isPreWebhookTaxForm(taxMe({ cleared: true }))).toBe(false);
   });
 
-  it('keeps the pending sheet only while the snapshot still matches', () => {
+  it('opens no sheet while the snapshot still matches', () => {
     const submitted = taxFormSubmittedSnapshot(openForm);
 
     expect(submitted).toEqual(PRE_WEBHOOK_TAX_FORM_SNAPSHOT);
@@ -471,11 +471,7 @@ describe('tax form submission snapshot', () => {
         }),
       ),
     ).toBe(false);
-    expect(taxSheetForClaim(openForm, submitted)).toEqual({
-      kind: 'info',
-      titleKey: 'taxFormPendingTitle',
-      descriptionKey: 'taxFormPendingDescription',
-    });
+    expect(taxSheetForClaim(openForm, submitted)).toEqual({ kind: 'none' });
     expect(taxSheetForClaim(openForm, null)).toEqual(taxSheetFor(openForm));
   });
 
@@ -512,18 +508,14 @@ describe('tax form submission snapshot', () => {
     ).toBe(false);
   });
 
-  it('keeps pending review for a correction until that open-form read changes', () => {
+  it('opens no sheet for a correction until that open-form read changes', () => {
     const mismatch = taxMe({
       next_action: 'OPEN_FORM',
       reason: 'TIN_NOT_MATCHED',
     });
     const submitted = taxFormSubmittedSnapshot(mismatch);
 
-    expect(taxSheetForClaim(mismatch, submitted)).toEqual({
-      kind: 'info',
-      titleKey: 'taxFormPendingTitle',
-      descriptionKey: 'taxFormPendingDescription',
-    });
+    expect(taxSheetForClaim(mismatch, submitted)).toEqual({ kind: 'none' });
     expect(
       taxSheetForClaim(
         taxMe({

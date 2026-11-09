@@ -279,14 +279,16 @@ export function taxFormSubmissionStillWaiting(
 
 /**
  * Claim's sheet. While the remembered open-form snapshot still matches,
- * the payee sees "submitted, checking" instead of the form again.
+ * Claim follows the fresh read once it changes and does not open a sheet
+ * of its own. The payee is not sent back to the form, and the claim is
+ * not skipped, during the gap before Taxbit's webhook.
  */
 export function taxSheetForClaim(
   taxMe: TaxMeDto,
   submitted: TaxFormSubmittedSnapshot | null,
 ): TaxDocumentationSheet {
   if (taxFormSubmissionStillWaiting(submitted, taxMe)) {
-    return pendingInfo();
+    return { kind: 'none' };
   }
   return taxSheetFor(taxMe);
 }

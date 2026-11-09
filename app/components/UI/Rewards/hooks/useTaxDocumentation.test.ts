@@ -508,7 +508,7 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the pending sheet while a submitted form is still the open-form read', async () => {
+    it('claims without a sheet while a submitted form is still the open-form read', async () => {
       const openForm = taxMe({
         next_action: 'OPEN_FORM',
         reason: 'NO_FORM',
@@ -535,17 +535,8 @@ describe('useTaxDocumentation', () => {
       expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe', {
         forceFresh: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.objectContaining({
-          title: localizedText.taxFormPendingTitle,
-        }),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
-        expect.anything(),
-      );
-      expect(claim).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledWith();
     });
 
     it('follows the new determination once the submitted snapshot changes', async () => {
@@ -599,7 +590,7 @@ describe('useTaxDocumentation', () => {
       );
     });
 
-    it('stays on the pending sheet when a refusal still matches the submitted snapshot', async () => {
+    it('opens no sheet when a refusal still matches the submitted snapshot', async () => {
       const openForm = taxMe({
         next_action: 'OPEN_FORM',
         reason: 'NO_FORM',
@@ -620,16 +611,7 @@ describe('useTaxDocumentation', () => {
         await result.current.openAfterClaimRefusal();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-        expect.objectContaining({
-          title: localizedText.taxFormPendingTitle,
-        }),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
-        expect.anything(),
-      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('throws when the determination opens no sheet', async () => {

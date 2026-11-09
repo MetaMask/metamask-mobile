@@ -644,16 +644,20 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps the pending sheet on the next Claim while tax status is unchanged', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
-      persona: 'referee',
-      summary: HELD_ONLY,
-      handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
-        'RewardsMoneyController:mintTaxFormToken': () =>
-          Promise.resolve({ token: TOKEN, expires_at: '2026-12-01T00:00:00Z' }),
-      },
-    });
+  it('does not reopen the form on the next Claim while tax status is unchanged', async () => {
+    const { findByTestId, queryByTestId, queryByText, engine } =
+      renderEarningsTab({
+        persona: 'referee',
+        summary: HELD_ONLY,
+        handlers: {
+          'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
+          'RewardsMoneyController:mintTaxFormToken': () =>
+            Promise.resolve({
+              token: TOKEN,
+              expires_at: '2026-12-01T00:00:00Z',
+            }),
+        },
+      });
 
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -672,22 +676,39 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(await findByText(COPY.taxFormPendingTitle)).toBeOnTheScreen();
-    expect(
-      queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
-    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(queryByText(COPY.taxFormPendingTitle)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          getRouteParamsProbeTestId(
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+      ).toHaveLength(0);
+    });
   });
 
-  it('keeps the pending sheet after resubmitting a TIN mismatch', async () => {
-    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
-      persona: 'referee',
-      summary: HELD_ONLY,
-      handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(TIN_MISMATCH),
-        'RewardsMoneyController:mintTaxFormToken': () =>
-          Promise.resolve({ token: TOKEN, expires_at: '2026-12-01T00:00:00Z' }),
-      },
-    });
+  it('does not reopen the form after resubmitting a TIN mismatch', async () => {
+    const { findByTestId, findByText, queryByTestId, queryByText, engine } =
+      renderEarningsTab({
+        persona: 'referee',
+        summary: HELD_ONLY,
+        handlers: {
+          'RewardsMoneyController:getTaxMe': () =>
+            Promise.resolve(TIN_MISMATCH),
+          'RewardsMoneyController:mintTaxFormToken': () =>
+            Promise.resolve({
+              token: TOKEN,
+              expires_at: '2026-12-01T00:00:00Z',
+            }),
+        },
+      });
 
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -707,10 +728,22 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(await findByText(COPY.taxFormPendingTitle)).toBeOnTheScreen();
-    expect(
-      queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
-    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(queryByText(COPY.taxFormPendingTitle)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          getRouteParamsProbeTestId(
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+      ).toHaveLength(0);
+    });
   });
 
   it('mints one replacement token and closes on the second expiry', async () => {

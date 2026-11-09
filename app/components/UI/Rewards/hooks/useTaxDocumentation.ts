@@ -622,7 +622,13 @@ export function useTaxDocumentation(profileId: string) {
     }
     let submitted = await readSubmitted();
     const taxMe = await readTaxMe(true);
-    if (submitted && !taxFormSubmissionStillWaiting(submitted, taxMe)) {
+    // The submit is stored and tax/me has not moved. The claim already
+    // failed; opening the form or the paused sheet would ask again before
+    // Taxbit has reported anything new.
+    if (submitted && taxFormSubmissionStillWaiting(submitted, taxMe)) {
+      return;
+    }
+    if (submitted) {
       await noteSubmitted(null);
       submitted = null;
     }
