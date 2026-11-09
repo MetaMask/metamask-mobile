@@ -43,6 +43,7 @@ import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
@@ -324,6 +325,7 @@ export const setupDefaultMocks = () => {
   });
 
   mockUseIsInsufficientBalance.mockReturnValue(false);
+  (useInsufficientNativeReserveError as jest.Mock).mockReturnValue(undefined);
   mockUseHasSufficientGas.mockReturnValue(true);
   (
     selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
@@ -1191,6 +1193,25 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.getButtonLabel()).toBe(
           'bridge.insufficient_funds',
         );
+      });
+
+      it('returns the native-reserve label and disables confirm when the amount eats the reserve', () => {
+        (useInsufficientNativeReserveError as jest.Mock).mockReturnValue({
+          minimumNativeBalanceToBeKeptInAccount: '3',
+          maxSwappableNativeBalance: '1',
+        });
+
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleAmountChange('20');
+        });
+
+        expect(result.current.buttonError).toBe('insufficient_native_reserve');
+        expect(result.current.getButtonLabel()).toBe(
+          'social_leaderboard.quick_buy.insufficient_native_reserve',
+        );
+        expect(result.current.isConfirmDisabled).toBe(true);
       });
 
       it('returns the insufficient-gas label when gas is short', () => {
