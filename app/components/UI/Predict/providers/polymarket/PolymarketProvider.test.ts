@@ -5039,6 +5039,22 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
     ).toHaveBeenCalledWith(['btc/usd'], callback, { twapWindowSeconds: 30 });
   });
 
+  it('forwards the price provider to the socket', async () => {
+    jest.mocked(createApiKey).mockResolvedValue(credentials);
+    const provider = createProvider(undefined, () => '0xabc');
+    const callback = jest.fn();
+
+    provider.subscribeToCryptoPrices(['btc/usd'], callback, {
+      provider: 'binance',
+    });
+    await jest.mocked(createApiKey).mock.results[0]?.value;
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.subscribeToCryptoPrices,
+    ).toHaveBeenCalledWith(['btc/usd'], callback, { provider: 'binance' });
+  });
+
   it('leaves the socket closed when the API key request fails', async () => {
     jest.mocked(createApiKey).mockRejectedValue(new Error('sign failed'));
     const provider = createProvider(undefined, () => '0xabc');

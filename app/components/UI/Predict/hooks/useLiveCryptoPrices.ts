@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
-import { CryptoPriceUpdate, type CryptoTwapWindowSeconds } from '../types';
+import {
+  CryptoPriceUpdate,
+  type CryptoPriceProvider,
+  type CryptoTwapWindowSeconds,
+} from '../types';
 
 export interface UseLiveCryptoPricesResult {
   isConnected: boolean;
@@ -10,6 +14,7 @@ export const useLiveCryptoPrices = (
   symbol: string,
   onUpdate: (update: CryptoPriceUpdate) => void,
   twapWindowSeconds?: CryptoTwapWindowSeconds,
+  provider?: CryptoPriceProvider,
 ): UseLiveCryptoPricesResult => {
   const [isConnected, setIsConnected] = useState(false);
   const isMountedRef = useRef(true);
@@ -40,7 +45,7 @@ export const useLiveCryptoPrices = (
         }
         onUpdateRef.current(update);
       },
-      { twapWindowSeconds },
+      { twapWindowSeconds, ...(provider && { provider }) },
     );
 
     const status = PredictController.getConnectionStatus();
@@ -54,7 +59,7 @@ export const useLiveCryptoPrices = (
       setIsConnected(false);
       unsubscribe();
     };
-  }, [symbol, twapWindowSeconds]);
+  }, [symbol, twapWindowSeconds, provider]);
 
   return { isConnected };
 };

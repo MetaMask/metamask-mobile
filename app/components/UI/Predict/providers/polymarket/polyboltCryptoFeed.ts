@@ -1,4 +1,4 @@
-import type { CryptoPriceUpdate } from '../../types';
+import type { CryptoPriceProvider, CryptoPriceUpdate } from '../../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export const POLYBOLT_WS_URL = 'wss://ws-live-v2.polymarket.com/ws';
@@ -11,6 +11,8 @@ const MAX_AUTH_FRAMES = 8;
 const MAX_SUBSCRIPTIONS = 64;
 const MAX_BACKOFF_MS = 30_000;
 const BASE_BACKOFF_MS = 1_000;
+// What `price.crypto` serves when a filter names no provider.
+const DEFAULT_CRYPTO_PROVIDER: CryptoPriceProvider = 'chainlink';
 
 export interface PolyBoltCredentials {
   apiKey: string;
@@ -24,11 +26,26 @@ export interface PolyBoltSubscription {
   channel: PolyBoltChannel;
   callerSymbol: string;
   wireSymbol: string;
+  /** Vendor pin on `price.crypto`. Absent follows the server default. */
+  provider?: CryptoPriceProvider;
 }
 
+/**
+ * Receives prices per subscription. `provider` is the pin the subscription
+ * asked for, so a pinned and an unpinned subscription to one symbol reach
+ * different callers. It is omitted for an unpinned subscription.
+ */
 export interface PolyBoltFeedListener {
-  onSnapshot: (channel: PolyBoltChannel, updates: CryptoPriceUpdate[]) => void;
-  onLive: (channel: PolyBoltChannel, update: CryptoPriceUpdate) => void;
+  onSnapshot: (
+    channel: PolyBoltChannel,
+    updates: CryptoPriceUpdate[],
+    provider?: CryptoPriceProvider,
+  ) => void;
+  onLive: (
+    channel: PolyBoltChannel,
+    update: CryptoPriceUpdate,
+    provider?: CryptoPriceProvider,
+  ) => void;
   onConnectionChange: () => void;
 }
 
@@ -66,15 +83,32 @@ const parseDecimalPrice = (fullAccuracyValue: unknown): number | undefined => {
   return Number.isFinite(price) ? price : undefined;
 };
 
+// The provider is part of the identity: a 5m (Chainlink) and an hourly
+// (Binance) BTC market are open together and must not share a subscription.
 const subscriptionId = (subscription: PolyBoltSubscription): string =>
-  `${subscription.channel}|${subscription.wireSymbol}`;
+  subscription.provider
+    ? `${subscription.channel}|${subscription.wireSymbol}|${subscription.provider}`
+    : `${subscription.channel}|${subscription.wireSymbol}`;
 
-const toFilter = (
-  subscription: PolyBoltSubscription,
-): { symbol: string; window_seconds?: 60 } =>
-  subscription.channel === 'price.crypto.twap'
-    ? { symbol: subscription.wireSymbol, window_seconds: 60 }
-    : { symbol: subscription.wireSymbol };
+/**
+ * Builds the `filter` of a subscribe or unsubscribe entry.
+ *
+ * @param channel - PolyBolt channel.
+ * @param wireSymbol - Lowercase PolyBolt symbol.
+ * @param provider - Vendor pin. TWAP is Chainlink only, so it is not sent there.
+ * @returns The filter object for the wire.
+ */
+export const toPolyboltFilter = (
+  channel: PolyBoltChannel,
+  wireSymbol: string,
+  provider?: CryptoPriceProvider,
+): { symbol: string; window_seconds?: 60; provider?: CryptoPriceProvider } => {
+  if (channel === 'price.crypto.twap') {
+    return { symbol: wireSymbol, window_seconds: 60 };
+  }
+
+  return provider ? { symbol: wireSymbol, provider } : { symbol: wireSymbol };
+};
 
 /**
  * Authenticated PolyBolt socket for crypto reference prices.
@@ -100,6 +134,16 @@ export class PolyBoltCryptoFeed {
   private authFramesSent = 0;
 
   private requestSerial = 0;
+
+  // Subscribe rid of each pinned subscription awaiting its ack, so the ack or
+  // a bad_filter can be traced back to the pin. Pins go out one per frame.
+  private pendingPins: Map<string, string> = new Map();
+
+  // Pinned subscriptions served by the default provider on this connection:
+  // the server rejected the pin, ignored it, or named another vendor.
+  private ownerServed: Set<string> = new Set();
+
+  private loggedProviderMismatches: Set<string> = new Set();
 
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -143,6 +187,15 @@ export class PolyBoltCryptoFeed {
     }
 
     this.subscriptions = next;
+    this.applySubscriptionChange(previous, next);
+    // After the diff, which still needs the fallback state of removed pins.
+    this.forgetRemoved(next);
+  }
+
+  private applySubscriptionChange(
+    previous: PolyBoltSubscription[],
+    next: PolyBoltSubscription[],
+  ): void {
     if (next.length === 0) {
       this.disconnect();
       return;
@@ -182,6 +235,54 @@ export class PolyBoltCryptoFeed {
 
     this.reconnectAttempts = 0;
     this.connect();
+  }
+
+  private forgetRemoved(current: PolyBoltSubscription[]): void {
+    const currentIds = new Set(current.map(subscriptionId));
+    this.ownerServed.forEach((id) => {
+      if (!currentIds.has(id)) {
+        this.ownerServed.delete(id);
+      }
+    });
+    this.loggedProviderMismatches.forEach((id) => {
+      if (!currentIds.has(id)) {
+        this.loggedProviderMismatches.delete(id);
+      }
+    });
+  }
+
+  /**
+   * The pin actually on the wire for a subscription. A pin that fell back is
+   * treated as unpinned, so it shares the server-side subscription of an
+   * unpinned listener on the same symbol instead of unsubscribing it.
+   */
+  private wireProvider(
+    subscription: PolyBoltSubscription,
+  ): CryptoPriceProvider | undefined {
+    return subscription.provider &&
+      subscription.channel === 'price.crypto' &&
+      !this.ownerServed.has(subscriptionId(subscription))
+      ? subscription.provider
+      : undefined;
+  }
+
+  private wireKey(subscription: PolyBoltSubscription): string {
+    return `${subscription.channel}|${subscription.wireSymbol}|${
+      this.wireProvider(subscription) ?? ''
+    }`;
+  }
+
+  private uniqueByWireKey(
+    subscriptions: PolyBoltSubscription[],
+  ): PolyBoltSubscription[] {
+    const byKey = new Map<string, PolyBoltSubscription>();
+    subscriptions.forEach((subscription) => {
+      const key = this.wireKey(subscription);
+      if (!byKey.has(key)) {
+        byKey.set(key, subscription);
+      }
+    });
+    return Array.from(byKey.values());
   }
 
   private sameCredentials(credentials: PolyBoltCredentials): boolean {
@@ -225,6 +326,9 @@ export class PolyBoltCryptoFeed {
     this.authed = false;
     this.authFramesSent = 0;
     this.closedByClient = false;
+    // A symbol's vendor can change between connections, so try each pin again.
+    this.pendingPins.clear();
+    this.ownerServed.clear();
 
     try {
       this.socket = new WebSocket(POLYBOLT_WS_URL);
@@ -367,38 +471,68 @@ export class PolyBoltCryptoFeed {
     });
   }
 
+  /**
+   * Diffs by what is on the wire, not by subscription id, so two listeners
+   * that share one server-side subscription never unsubscribe each other.
+   */
   private sendSubscriptionDiff(
     previous: PolyBoltSubscription[],
     next: PolyBoltSubscription[],
   ): void {
-    const previousIds = new Set(previous.map(subscriptionId));
-    const nextIds = new Set(next.map(subscriptionId));
+    const previousKeys = new Set(
+      previous.map((subscription) => this.wireKey(subscription)),
+    );
+    const nextKeys = new Set(
+      next.map((subscription) => this.wireKey(subscription)),
+    );
     const removed = previous.filter(
-      (subscription) => !nextIds.has(subscriptionId(subscription)),
+      (subscription) => !nextKeys.has(this.wireKey(subscription)),
     );
     const added = next.filter(
-      (subscription) => !previousIds.has(subscriptionId(subscription)),
+      (subscription) => !previousKeys.has(this.wireKey(subscription)),
     );
-    this.sendSubscriptionFrame('unsubscribe', removed);
-    this.sendSubscriptionFrame('subscribe', added);
+    this.sendSubscriptionFrame('unsubscribe', this.uniqueByWireKey(removed));
+    this.sendSubscribe(added);
+  }
+
+  private sendSubscribe(subscriptions: PolyBoltSubscription[]): void {
+    const unique = this.uniqueByWireKey(subscriptions);
+    this.sendSubscriptionFrame(
+      'subscribe',
+      unique.filter((subscription) => !this.wireProvider(subscription)),
+    );
+    unique
+      .filter((subscription) => this.wireProvider(subscription))
+      .forEach((subscription) => {
+        const rid = this.sendSubscriptionFrame('subscribe', [subscription]);
+        if (rid) {
+          this.pendingPins.set(rid, subscriptionId(subscription));
+        }
+      });
   }
 
   private sendSubscriptionFrame(
     op: 'subscribe' | 'unsubscribe',
     subscriptions: PolyBoltSubscription[],
-  ): void {
+  ): string | undefined {
     if (subscriptions.length === 0) {
-      return;
+      return undefined;
     }
 
+    const rid = this.nextRequestId(op === 'subscribe' ? 's' : 'u');
     this.send({
       op,
-      rid: this.nextRequestId(op === 'subscribe' ? 's' : 'u'),
+      rid,
       subscriptions: subscriptions.map((subscription) => ({
         channel: subscription.channel,
-        filter: toFilter(subscription),
+        filter: toPolyboltFilter(
+          subscription.channel,
+          subscription.wireSymbol,
+          this.wireProvider(subscription),
+        ),
       })),
     });
+    return rid;
   }
 
   private handleMessage(event: WebSocketMessageEvent): void {
@@ -434,11 +568,21 @@ export class PolyBoltCryptoFeed {
     if (message.op === 'authed') {
       this.authed = true;
       this.listener.onConnectionChange();
-      this.sendSubscriptionFrame('subscribe', this.subscriptions);
+      this.sendSubscribe(this.subscriptions);
+      return;
+    }
+
+    if (message.op === 'subscribed') {
+      this.handleSubscribedAck(message);
       return;
     }
 
     if (message.op !== 'error' || typeof message.code !== 'string') {
+      return;
+    }
+
+    if (message.code === 'bad_filter') {
+      this.handleBadFilter(message);
       return;
     }
 
@@ -458,6 +602,89 @@ export class PolyBoltCryptoFeed {
     if (message.code === 'auth_unavailable') {
       this.scheduleAuthRetry();
     }
+  }
+
+  private takePendingPin(rid: unknown): PolyBoltSubscription | undefined {
+    if (typeof rid !== 'string') {
+      return undefined;
+    }
+
+    const id = this.pendingPins.get(rid);
+    if (!id) {
+      return undefined;
+    }
+
+    this.pendingPins.delete(rid);
+    return this.subscriptions.find(
+      (subscription) => subscriptionId(subscription) === id,
+    );
+  }
+
+  /**
+   * The ack names the provider actually served while the server's provider
+   * selector is on, and omits it while the selector is off, in which case the
+   * pin is ignored and the default vendor is served.
+   */
+  private handleSubscribedAck(message: Record<string, unknown>): void {
+    const subscription = this.takePendingPin(message.rid);
+    if (!subscription?.provider) {
+      return;
+    }
+
+    const served =
+      typeof message.provider === 'string' ? message.provider : undefined;
+    if (served === subscription.provider) {
+      return;
+    }
+
+    this.ownerServed.add(subscriptionId(subscription));
+    this.logProviderMismatch(subscription, served ?? 'none named in ack');
+  }
+
+  /**
+   * Polymarket's docs disagree on whether a binance pin is honoured, ignored
+   * or rejected. When it is rejected, fall back to the default vendor so the
+   * market keeps a live price.
+   */
+  private handleBadFilter(message: Record<string, unknown>): void {
+    const subscription = this.takePendingPin(message.rid);
+    DevLogger.log('PolyBoltCryptoFeed: filter rejected', {
+      channel: message.channel,
+      rid: message.rid,
+      symbol: subscription?.wireSymbol,
+      provider: subscription?.provider,
+    });
+    if (!subscription) {
+      return;
+    }
+
+    const alreadyOnWire = new Set(
+      this.subscriptions
+        .filter((other) => other !== subscription)
+        .map((other) => this.wireKey(other)),
+    );
+    this.ownerServed.add(subscriptionId(subscription));
+    if (!alreadyOnWire.has(this.wireKey(subscription))) {
+      this.sendSubscriptionFrame('subscribe', [subscription]);
+    }
+  }
+
+  private logProviderMismatch(
+    subscription: PolyBoltSubscription,
+    served: string,
+  ): void {
+    const id = subscriptionId(subscription);
+    if (this.loggedProviderMismatches.has(id)) {
+      return;
+    }
+
+    this.loggedProviderMismatches.add(id);
+    DevLogger.log('PolyBoltCryptoFeed: served provider differs from request', {
+      channel: subscription.channel,
+      symbol: subscription.wireSymbol,
+      requested: subscription.provider ?? DEFAULT_CRYPTO_PROVIDER,
+      served,
+    });
   }
 
   private scheduleAuthRetry(): void {
@@ -481,41 +708,104 @@ export class PolyBoltCryptoFeed {
     }
 
     const channel = message.channel;
-    if (message.snapshot === true) {
-      const updates = this.parseSnapshot(channel, message.payload);
-      if (updates.length > 0) {
-        this.listener.onSnapshot(channel, updates);
-      }
+    const payload = message.payload;
+    if (typeof payload.symbol !== 'string') {
       return;
     }
 
-    const update = this.parseLivePoint(channel, message.payload);
-    if (update) {
-      this.listener.onLive(channel, update);
-    }
+    const isSnapshot = message.snapshot === true;
+    this.findRecipients(channel, payload.symbol, payload.source).forEach(
+      (subscription) => {
+        this.checkServedSource(subscription, payload.source);
+        const { callerSymbol, provider } = subscription;
+        if (isSnapshot) {
+          const updates = this.parseSnapshot(channel, callerSymbol, payload);
+          if (updates.length === 0) {
+            return;
+          }
+          if (provider) {
+            this.listener.onSnapshot(channel, updates, provider);
+          } else {
+            this.listener.onSnapshot(channel, updates);
+          }
+          return;
+        }
+
+        const update = this.parseLivePoint(channel, callerSymbol, payload);
+        if (!update) {
+          return;
+        }
+        if (provider) {
+          this.listener.onLive(channel, update, provider);
+        } else {
+          this.listener.onLive(channel, update);
+        }
+      },
+    );
   }
 
-  private findCallerSymbol(
+  /**
+   * Frames name only channel, symbol and `source`, so `source` is what tells
+   * a pinned stream from the default one when both are open for one symbol.
+   * A frame goes to the subscriptions pinned to its source, else to those
+   * that asked for that source but fell back, else to the default stream.
+   * When nothing matches, every subscription for the symbol gets it so
+   * prices keep flowing.
+   */
+  private findRecipients(
     channel: PolyBoltChannel,
     wireSymbol: string,
-  ): string | undefined {
-    return this.subscriptions.find(
+    source: unknown,
+  ): PolyBoltSubscription[] {
+    const candidates = this.subscriptions.filter(
       (subscription) =>
         subscription.channel === channel &&
         subscription.wireSymbol === wireSymbol,
-    )?.callerSymbol;
+    );
+    if (candidates.length <= 1) {
+      return candidates;
+    }
+
+    if (typeof source === 'string') {
+      const pinned = candidates.filter(
+        (subscription) => this.wireProvider(subscription) === source,
+      );
+      if (pinned.length > 0) {
+        return pinned;
+      }
+
+      const requested = candidates.filter(
+        (subscription) => subscription.provider === source,
+      );
+      if (requested.length > 0) {
+        return requested;
+      }
+    }
+
+    const unpinned = candidates.filter(
+      (subscription) => !this.wireProvider(subscription),
+    );
+    return unpinned.length > 0 ? unpinned : candidates;
+  }
+
+  private checkServedSource(
+    subscription: PolyBoltSubscription,
+    source: unknown,
+  ): void {
+    if (
+      typeof source === 'string' &&
+      source !== (subscription.provider ?? DEFAULT_CRYPTO_PROVIDER)
+    ) {
+      this.logProviderMismatch(subscription, source);
+    }
   }
 
   private parseSnapshot(
     channel: PolyBoltChannel,
+    callerSymbol: string,
     payload: Record<string, unknown>,
   ): CryptoPriceUpdate[] {
-    if (typeof payload.symbol !== 'string' || !Array.isArray(payload.data)) {
-      return [];
-    }
-
-    const callerSymbol = this.findCallerSymbol(channel, payload.symbol);
-    if (!callerSymbol) {
+    if (!Array.isArray(payload.data)) {
       return [];
     }
 
@@ -537,12 +827,10 @@ export class PolyBoltCryptoFeed {
 
   private parseLivePoint(
     channel: PolyBoltChannel,
+    callerSymbol: string,
     payload: Record<string, unknown>,
   ): CryptoPriceUpdate | undefined {
-    if (
-      typeof payload.symbol !== 'string' ||
-      typeof payload.timestamp !== 'number'
-    ) {
+    if (typeof payload.timestamp !== 'number') {
       return undefined;
     }
 
@@ -550,9 +838,8 @@ export class PolyBoltCryptoFeed {
       return undefined;
     }
 
-    const callerSymbol = this.findCallerSymbol(channel, payload.symbol);
     const price = parseDecimalPrice(payload.full_accuracy_value);
-    if (!callerSymbol || price === undefined) {
+    if (price === undefined) {
       return undefined;
     }
 

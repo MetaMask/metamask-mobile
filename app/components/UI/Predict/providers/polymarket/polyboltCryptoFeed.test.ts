@@ -1,8 +1,11 @@
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   POLYBOLT_WS_URL,
   PolyBoltCryptoFeed,
+  toPolyboltFilter,
   toPolyboltWireSymbol,
   type PolyBoltCredentials,
+  type PolyBoltSubscription,
 } from './polyboltCryptoFeed';
 
 const credentials: PolyBoltCredentials = {
@@ -66,6 +69,27 @@ describe('toPolyboltWireSymbol', () => {
   it('rejects a symbol that is not a usd pair', () => {
     expect(toPolyboltWireSymbol('btcusdt')).toBeUndefined();
     expect(toPolyboltWireSymbol('BTCUSD')).toBeUndefined();
+  });
+});
+
+describe('toPolyboltFilter', () => {
+  it('sends no provider for a Chainlink market', () => {
+    expect(toPolyboltFilter('price.crypto', 'btcusd')).toEqual({
+      symbol: 'btcusd',
+    });
+  });
+
+  it('pins Binance for a Binance market', () => {
+    expect(toPolyboltFilter('price.crypto', 'btcusd', 'binance')).toEqual({
+      symbol: 'btcusd',
+      provider: 'binance',
+    });
+  });
+
+  it('never pins the TWAP channel, which only Chainlink serves', () => {
+    expect(toPolyboltFilter('price.crypto.twap', 'btcusd', 'binance')).toEqual(
+      { symbol: 'btcusd', window_seconds: 60 },
+    );
   });
 });
 
@@ -206,5 +230,325 @@ describe('PolyBoltCryptoFeed', () => {
 
     expect(socket.send).not.toHaveBeenCalled();
     expect(mockSockets).toHaveLength(1);
+  });
+  describe('provider pins', () => {
+    const chainlinkBtc: PolyBoltSubscription = {
+      channel: 'price.crypto',
+      callerSymbol: 'btc/usd',
+      wireSymbol: 'btcusd',
+    };
+    const binanceBtc: PolyBoltSubscription = {
+      ...chainlinkBtc,
+      provider: 'binance',
+    };
+
+    const sentFrames = (socket: MockSocket) =>
+      socket.send.mock.calls.map(
+        ([frame]) =>
+          JSON.parse(frame as string) as {
+            op: string;
+            rid: string;
+            subscriptions?: { channel: string; filter: object }[];
+          },
+      );
+
+    const connectWith = (
+      subscriptions: PolyBoltSubscription[],
+      handlers = listener(),
+    ) => {
+      const feed = new PolyBoltCryptoFeed(handlers);
+      feed.setCredentials(credentials);
+      feed.setSubscriptions(subscriptions);
+      const socket = mockSockets[0];
+      socket.open();
+      socket.receive({ op: 'authed', rid: sentFrames(socket)[0].rid });
+      return { feed, socket, handlers };
+    };
+
+    const livePoint = (source: string, value: string) => ({
+      v: 1,
+      channel: 'price.crypto',
+      seq: 1,
+      ts: 1,
+      payload: {
+        symbol: 'btcusd',
+        value: Number(value),
+        full_accuracy_value: value,
+        timestamp: 1_000,
+        source,
+      },
+    });
+
+    it('subscribes a Chainlink and a Binance market on one symbol side by side', () => {
+      const { socket } = connectWith([chainlinkBtc, binanceBtc]);
+
+      const subscribes = sentFrames(socket).filter(
+        (frame) => frame.op === 'subscribe',
+      );
+      expect(subscribes).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's2',
+          subscriptions: [
+            { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+          ],
+        },
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'btcusd', provider: 'binance' },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('gives each subscription the prices of its own provider', () => {
+      const { socket, handlers } = connectWith([chainlinkBtc, binanceBtc]);
+      socket.receive({ op: 'subscribed', channel: 'price.crypto', rid: 's2' });
+      socket.receive({
+        op: 'subscribed',
+        channel: 'price.crypto',
+        rid: 's3',
+        provider: 'binance',
+      });
+
+      socket.receive(livePoint('chainlink', '100'));
+      socket.receive(livePoint('binance', '101'));
+
+      expect(handlers.onLive).toHaveBeenCalledTimes(2);
+      expect(handlers.onLive).toHaveBeenNthCalledWith(1, 'price.crypto', {
+        symbol: 'btc/usd',
+        price: 100,
+        timestamp: 1_000,
+      });
+      expect(handlers.onLive).toHaveBeenNthCalledWith(
+        2,
+        'price.crypto',
+        { symbol: 'btc/usd', price: 101, timestamp: 1_000 },
+        'binance',
+      );
+    });
+
+    it('unsubscribes only the pinned stream when the Binance market goes away', () => {
+      const { feed, socket } = connectWith([chainlinkBtc, binanceBtc]);
+      socket.send.mockClear();
+
+      feed.setSubscriptions([chainlinkBtc]);
+
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'unsubscribe',
+          rid: 'u4',
+          subscriptions: [
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'btcusd', provider: 'binance' },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('resubscribes unpinned after a bad_filter so prices keep flowing', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket, handlers } = connectWith([binanceBtc]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's2',
+      });
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: filter rejected',
+        expect.objectContaining({ rid: 's2', provider: 'binance' }),
+      );
+      expect(sentFrames(socket)).toEqual([
+        {
+          op: 'subscribe',
+          rid: 's3',
+          subscriptions: [
+            { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+          ],
+        },
+      ]);
+
+      socket.receive(livePoint('chainlink', '100'));
+      expect(handlers.onLive).toHaveBeenCalledWith(
+        'price.crypto',
+        { symbol: 'btc/usd', price: 100, timestamp: 1_000 },
+        'binance',
+      );
+    });
+
+    it('shares the existing unpinned stream after a bad_filter instead of subscribing twice', () => {
+      const { socket, handlers } = connectWith([chainlinkBtc, binanceBtc]);
+      socket.send.mockClear();
+
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's3',
+      });
+      socket.receive(livePoint('chainlink', '100'));
+
+      expect(socket.send).not.toHaveBeenCalled();
+      expect(handlers.onLive).toHaveBeenCalledTimes(2);
+      expect(handlers.onLive).toHaveBeenCalledWith('price.crypto', {
+        symbol: 'btc/usd',
+        price: 100,
+        timestamp: 1_000,
+      });
+      expect(handlers.onLive).toHaveBeenCalledWith(
+        'price.crypto',
+        { symbol: 'btc/usd', price: 100, timestamp: 1_000 },
+        'binance',
+      );
+    });
+
+    it('keeps the unpinned stream when a rejected pin is dropped later', () => {
+      const { feed, socket } = connectWith([chainlinkBtc, binanceBtc]);
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's3',
+      });
+      socket.send.mockClear();
+
+      feed.setSubscriptions([chainlinkBtc]);
+
+      expect(socket.send).not.toHaveBeenCalled();
+    });
+
+    it('logs once when the ack names a different provider than requested', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket } = connectWith([binanceBtc]);
+
+      socket.receive({
+        op: 'subscribed',
+        channel: 'price.crypto',
+        rid: 's2',
+        provider: 'chainlink',
+      });
+      socket.receive(livePoint('chainlink', '100'));
+      socket.receive(livePoint('chainlink', '101'));
+
+      const mismatchLogs = logSpy.mock.calls.filter(
+        ([message]) =>
+          message === 'PolyBoltCryptoFeed: served provider differs from request',
+      );
+      expect(mismatchLogs).toEqual([
+        [
+          'PolyBoltCryptoFeed: served provider differs from request',
+          {
+            channel: 'price.crypto',
+            symbol: 'btcusd',
+            requested: 'binance',
+            served: 'chainlink',
+          },
+        ],
+      ]);
+    });
+
+    it('treats an ack without a provider as an ignored pin', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket, handlers } = connectWith([chainlinkBtc, binanceBtc]);
+
+      socket.receive({ op: 'subscribed', channel: 'price.crypto', rid: 's3' });
+      socket.receive(livePoint('chainlink', '100'));
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: served provider differs from request',
+        expect.objectContaining({
+          requested: 'binance',
+          served: 'none named in ack',
+        }),
+      );
+      expect(handlers.onLive).toHaveBeenCalledWith(
+        'price.crypto',
+        { symbol: 'btc/usd', price: 100, timestamp: 1_000 },
+        'binance',
+      );
+    });
+
+    it('logs once when payloads come from another provider than requested', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket, handlers } = connectWith([binanceBtc]);
+
+      socket.receive(livePoint('chainlink', '100'));
+      socket.receive(livePoint('chainlink', '101'));
+
+      expect(handlers.onLive).toHaveBeenCalledTimes(2);
+      expect(
+        logSpy.mock.calls.filter(
+          ([message]) =>
+            message ===
+            'PolyBoltCryptoFeed: served provider differs from request',
+        ),
+      ).toEqual([
+        [
+          'PolyBoltCryptoFeed: served provider differs from request',
+          {
+            channel: 'price.crypto',
+            symbol: 'btcusd',
+            requested: 'binance',
+            served: 'chainlink',
+          },
+        ],
+      ]);
+    });
+
+    it('does not log a mismatch for an unpinned subscription served by Chainlink', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket } = connectWith([chainlinkBtc]);
+
+      socket.receive(livePoint('chainlink', '100'));
+
+      expect(logSpy).not.toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: served provider differs from request',
+        expect.anything(),
+      );
+    });
+
+    it('tries the pin again on a new connection', () => {
+      const { socket } = connectWith([chainlinkBtc, binanceBtc]);
+      socket.receive({
+        op: 'error',
+        code: 'bad_filter',
+        channel: 'price.crypto',
+        rid: 's3',
+      });
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      const reconnected = mockSockets[1];
+      reconnected.open();
+      reconnected.receive({
+        op: 'authed',
+        rid: sentFrames(reconnected)[0].rid,
+      });
+
+      expect(
+        sentFrames(reconnected)
+          .filter((frame) => frame.op === 'subscribe')
+          .map((frame) => frame.subscriptions),
+      ).toEqual([
+        [{ channel: 'price.crypto', filter: { symbol: 'btcusd' } }],
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'btcusd', provider: 'binance' },
+          },
+        ],
+      ]);
+    });
   });
 });

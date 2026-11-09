@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   ConnectionStatus,
   ConnectionStatusCallback,
+  CryptoPriceProvider,
   CryptoPriceSubscriptionOptions,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
@@ -160,22 +161,36 @@ const getRtdsTopic = (options?: CryptoPriceSubscriptionOptions): string =>
     ? RTDS_CRYPTO_PRICES_TWAP_TOPICS[options.twapWindowSeconds]
     : RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC;
 
+/**
+ * The vendor to pin for a subscription. Chainlink is the feed default and the
+ * only TWAP vendor, so only another vendor on spot prices is a pin.
+ */
+const getPinnedCryptoProvider = (
+  options?: CryptoPriceSubscriptionOptions,
+): CryptoPriceProvider | undefined =>
+  options?.provider &&
+  options.provider !== 'chainlink' &&
+  !options.twapWindowSeconds
+    ? options.provider
+    : undefined;
+
 const getCryptoSubscriptionKey = (
   symbols: string[],
   options?: CryptoPriceSubscriptionOptions,
-): string =>
-  `${getRtdsTopic(options)}|${[...symbols]
+): string => {
+  const key = `${getRtdsTopic(options)}|${[...symbols]
     .sort((a, b) => a.localeCompare(b))
     .join(',')}`;
+  const provider = getPinnedCryptoProvider(options);
+  return provider ? `${key}|${provider}` : key;
+};
 
 const parseCryptoSubscriptionKey = (key: string) => {
-  const separatorIndex = key.indexOf('|');
+  const [topic, symbols = '', provider] = key.split('|');
   return {
-    topic: key.slice(0, separatorIndex),
-    symbols: key
-      .slice(separatorIndex + 1)
-      .split(',')
-      .filter(Boolean),
+    topic,
+    symbols: symbols.split(',').filter(Boolean),
+    provider: (provider || undefined) as CryptoPriceProvider | undefined,
   };
 };
 
@@ -247,7 +262,14 @@ export class WebSocketManager {
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
   private cryptoFeedMode: CryptoFeedMode = 'rtds';
   private readonly polyboltFeed: PolyBoltCryptoFeed;
-  private polyboltLiveBuffer: Map<string, CryptoPriceUpdate> = new Map();
+  private polyboltLiveBuffer: Map<
+    string,
+    {
+      channel: PolyBoltChannel;
+      provider?: CryptoPriceProvider;
+      update: CryptoPriceUpdate;
+    }
+  > = new Map();
 
   private appStateSubscription: { remove: () => void } | null = null;
 
@@ -260,13 +282,16 @@ export class WebSocketManager {
 
   private constructor() {
     this.polyboltFeed = new PolyBoltCryptoFeed({
-      onSnapshot: (channel, updates) => {
+      onSnapshot: (channel, updates, provider) => {
         updates.forEach((update) => {
-          this.invokeCryptoPriceCallbacks(channel, update);
+          this.invokeCryptoPriceCallbacks(channel, update, provider);
         });
       },
-      onLive: (channel, update) => {
-        this.polyboltLiveBuffer.set(`${channel}|${update.symbol}`, update);
+      onLive: (channel, update, provider) => {
+        this.polyboltLiveBuffer.set(
+          `${channel}|${provider ?? ''}|${update.symbol}`,
+          { channel, provider, update },
+        );
         this.ensureThrottleTimer();
       },
       onConnectionChange: () => {
@@ -1015,7 +1040,7 @@ export class WebSocketManager {
   private syncPolyboltSubscriptions(): void {
     const subscriptions = new Map<string, PolyBoltSubscription>();
     this.cryptoPriceSubscriptions.forEach((_callbacks, key) => {
-      const { topic, symbols } = parseCryptoSubscriptionKey(key);
+      const { topic, symbols, provider } = parseCryptoSubscriptionKey(key);
       const channel = this.polyboltChannelForTopic(topic);
       if (!channel) {
         return;
@@ -1027,8 +1052,16 @@ export class WebSocketManager {
           return;
         }
 
-        const subscription = { channel, callerSymbol: symbol, wireSymbol };
-        subscriptions.set(`${channel}|${wireSymbol}`, subscription);
+        const subscription: PolyBoltSubscription = {
+          channel,
+          callerSymbol: symbol,
+          wireSymbol,
+          ...(provider && { provider }),
+        };
+        subscriptions.set(
+          `${channel}|${wireSymbol}|${provider ?? ''}`,
+          subscription,
+        );
       });
     });
     this.polyboltFeed.setSubscriptions(Array.from(subscriptions.values()));
@@ -1051,9 +1084,13 @@ export class WebSocketManager {
     key: string,
     channel: PolyBoltChannel,
     symbol: string,
+    provider: CryptoPriceProvider | undefined,
   ): boolean {
     const parsedSubscription = parseCryptoSubscriptionKey(key);
-    if (!parsedSubscription.symbols.includes(symbol)) {
+    if (
+      parsedSubscription.provider !== provider ||
+      !parsedSubscription.symbols.includes(symbol)
+    ) {
       return false;
     }
 
@@ -1063,9 +1100,12 @@ export class WebSocketManager {
   private invokeCryptoPriceCallbacks(
     channel: PolyBoltChannel,
     update: CryptoPriceUpdate,
+    provider: CryptoPriceProvider | undefined,
   ): void {
     this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-      if (!this.subscriptionMatchesPolybolt(key, channel, update.symbol)) {
+      if (
+        !this.subscriptionMatchesPolybolt(key, channel, update.symbol, provider)
+      ) {
         return;
       }
 
@@ -1595,12 +1635,10 @@ export class WebSocketManager {
 
   private flushCryptoPriceBuffer(): void {
     if (this.polyboltLiveBuffer.size > 0) {
-      const pending = Array.from(this.polyboltLiveBuffer.entries());
+      const pending = Array.from(this.polyboltLiveBuffer.values());
       this.polyboltLiveBuffer.clear();
-      pending.forEach(([bufferKey, update]) => {
-        const separatorIndex = bufferKey.indexOf('|');
-        const channel = bufferKey.slice(0, separatorIndex) as PolyBoltChannel;
-        this.invokeCryptoPriceCallbacks(channel, update);
+      pending.forEach(({ channel, provider, update }) => {
+        this.invokeCryptoPriceCallbacks(channel, update, provider);
       });
     }
 

@@ -154,6 +154,7 @@ export const useCryptoUpDownChartData = (
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
   const twapWindowSeconds = market.twapWindowSeconds;
+  const priceProvider = market.cryptoPriceProvider;
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
@@ -444,9 +445,12 @@ export const useCryptoUpDownChartData = (
     string,
     typeof handleLiveUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
-  ] = twapWindowSeconds
-    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
-    : [wsSymbol, handleLiveUpdate];
+    provider?: typeof priceProvider,
+  ] = priceProvider
+    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds, priceProvider]
+    : twapWindowSeconds
+      ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
+      : [wsSymbol, handleLiveUpdate];
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =

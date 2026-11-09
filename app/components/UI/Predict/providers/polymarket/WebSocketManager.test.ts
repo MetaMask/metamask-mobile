@@ -3152,5 +3152,103 @@ describe('WebSocketManager', () => {
         twapWindowSeconds: 60,
       });
     });
+
+    const openPolyboltSocket = () => {
+      const socket = mockWebSocketInstances.find(
+        (candidate) => candidate.url === 'wss://ws-live-v2.polymarket.com/ws',
+      );
+      if (!socket) {
+        throw new Error('PolyBolt socket was not opened');
+      }
+      socket.simulateOpen();
+      const authFrame = JSON.parse(socket.send.mock.calls[0][0] as string) as {
+        rid: string;
+      };
+      socket.simulateMessage({ op: 'authed', rid: authFrame.rid });
+      return socket;
+    };
+
+    const livePoint = (source: string, value: string) => ({
+      v: 1,
+      channel: 'price.crypto',
+      seq: 1,
+      ts: 1,
+      payload: {
+        symbol: 'btcusd',
+        value: Number(value),
+        full_accuracy_value: value,
+        timestamp: 1_000,
+        source,
+      },
+    });
+
+    it('keeps a Chainlink and a Binance BTC market apart', () => {
+      const manager = WebSocketManager.getInstance();
+      const chainlinkCallback = jest.fn();
+      const binanceCallback = jest.fn();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+
+      manager.subscribeToCryptoPrices(['btc/usd'], chainlinkCallback);
+      manager.subscribeToCryptoPrices(['btc/usd'], binanceCallback, {
+        provider: 'binance',
+      });
+      const socket = openPolyboltSocket();
+
+      const subscriptions = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe')
+        .map((frame) => frame.subscriptions);
+      expect(subscriptions).toEqual([
+        [{ channel: 'price.crypto', filter: { symbol: 'btcusd' } }],
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'btcusd', provider: 'binance' },
+          },
+        ],
+      ]);
+
+      socket.simulateMessage(livePoint('chainlink', '100'));
+      socket.simulateMessage(livePoint('binance', '101'));
+      jest.advanceTimersByTime(250);
+
+      expect(chainlinkCallback).toHaveBeenCalledTimes(1);
+      expect(chainlinkCallback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 100,
+        timestamp: 1_000,
+      });
+      expect(binanceCallback).toHaveBeenCalledTimes(1);
+      expect(binanceCallback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 101,
+        timestamp: 1_000,
+      });
+    });
+
+    it('does not pin Chainlink, the default provider', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn(), {
+        provider: 'chainlink',
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const socket = openPolyboltSocket();
+
+      const subscribeFrames = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe');
+      expect(subscribeFrames).toHaveLength(1);
+      expect(subscribeFrames[0].subscriptions).toEqual([
+        { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+      ]);
+    });
   });
 });

@@ -58,6 +58,18 @@ describe('useLiveCryptoPrices', () => {
       );
     });
 
+    it('subscribes to the provider the market settles against', () => {
+      renderHook(() =>
+        useLiveCryptoPrices('btc/usd', jest.fn(), undefined, 'binance'),
+      );
+
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+        ['btc/usd'],
+        expect.any(Function),
+        { twapWindowSeconds: undefined, provider: 'binance' },
+      );
+    });
+
     it('does not subscribe when symbol is empty string', () => {
       const onUpdate = jest.fn();
 
