@@ -30,8 +30,9 @@ export const servesVenue = (
  * intents resolve on that branch too. Every other intent depends on the
  * Venue and opens nothing until it is known. So does an intent a campaign
  * opens: it belongs to the campaign's Venue, and opens nothing on another.
- * A V1 link's list parameters behave like a feed. `legacyLinkFeeds` carries
- * the legacy flags they depend on.
+ * A V1 link's list parameters behave like a feed: while resolving they take
+ * the market list, never a legacy generic feed screen. `legacyLinkFeeds`
+ * carries the legacy flags they depend on once the Venue is known.
  */
 export const resolvePredictIntent = (
   intent: PredictIntent,
@@ -43,7 +44,10 @@ export const resolvePredictIntent = (
     return (intent.type === 'home' && campaign === undefined) ||
       intent.type === 'feed' ||
       intent.type === 'linkList'
-      ? resolveLegacyIntent(intent, legacyLinkFeeds)
+      ? // Without the link feeds: a legacy generic feed screen exists only on
+        // the legacy stack, so an unresolved link takes the market list,
+        // which serves whichever Venue resolves.
+        resolveLegacyIntent(intent)
       : unavailable('resolving');
   }
   if (

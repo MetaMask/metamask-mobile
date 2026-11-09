@@ -189,6 +189,21 @@ describe('resolvePredictLink', () => {
       );
     });
 
+    it.each([
+      ['?feed=sports&tab=all&q=nba', { query: 'nba' }],
+      ['?feed=popular-today&filter=elections', {}],
+    ])(
+      'takes the market list for the generic feed link %s, never a legacy feed screen',
+      (path, params) => {
+        expect(resolve(path, RESOLVING)).toStrictEqual(
+          predict(Routes.PREDICT.MARKET_LIST, {
+            entryPoint: 'deeplink',
+            ...params,
+          }),
+        );
+      },
+    );
+
     it.each(['?market=1', '?venue=kalshi&event=K-1', '?venue=polymarket'])(
       'gives a bounded not-found for %s',
       (path) => {
