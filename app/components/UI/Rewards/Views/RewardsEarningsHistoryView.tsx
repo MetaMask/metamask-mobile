@@ -3,9 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import {
+  isCopyTradingOnly,
   selectEarningsSummaryEntry,
+  selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -32,12 +35,19 @@ const RewardsEarningsHistoryView: React.FC = () => {
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
+  const roles = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  );
+  const copyTradingOnly = isCopyTradingOnly(roles);
   useEarningsSummary(profileId);
   const list = useEarningsHistory(profileId);
   const openTradeActions = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+  }, [navigation]);
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
   }, [navigation]);
   const inFlight = useInFlightClaims(profileId);
   const items = useMemo(
@@ -85,9 +95,17 @@ const RewardsEarningsHistoryView: React.FC = () => {
           ? `pending-${item.id}`
           : `${item.type}-${item.id}`
       }
-      emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
-      emptyActionLabel={localizedText?.tradingActivityEmptyAction}
-      emptyOnAction={openTradeActions}
+      emptyDescription={
+        (copyTradingOnly
+          ? localizedText?.copyTradingEmptyDescription
+          : localizedText?.tradingActivityEmptyDescription) ?? ''
+      }
+      emptyActionLabel={
+        copyTradingOnly
+          ? localizedText?.copyTradingEmptyAction
+          : localizedText?.tradingActivityEmptyAction
+      }
+      emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
       header={header}
     />
   );

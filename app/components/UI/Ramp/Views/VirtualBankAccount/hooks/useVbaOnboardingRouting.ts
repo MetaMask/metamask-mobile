@@ -144,12 +144,9 @@ export const openAsOnlyOnboardingRoute = (
  * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -164,12 +161,7 @@ export const openCompletedVbaAccount = (
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
@@ -184,9 +176,57 @@ export const openCompletedVbaAccount = (
   }
 };
 
+/**
+ * Opens the step after Identity verified: Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
+ * which creates the account. Shared by the Identity verified screen's
+ * Continue and the Money home `identity_verified` card, which skips that
+ * screen.
+ *
+ * Inside onboarding (Identity verified), Choose Currency is pushed so Back
+ * returns there. From outside it opens as the only onboarding route, so
+ * Back returns to the caller.
+ *
+ * @param navigation - Navigation from Identity verified or an entry surface.
+ * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ */
+export const openVbaAccountSetup = (
+  navigation: AppNavigationProp,
+  isChooseCurrencyEnabled: boolean,
+): void => {
+  if (!isChooseCurrencyEnabled) {
+    openCompletedVbaAccount(navigation);
+    return;
+  }
+  const isInsideOnboarding = Boolean(
+    navigation
+      .getState?.()
+      ?.routeNames?.includes(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+  );
+  if (isInsideOnboarding) {
+    navigation.dispatch(StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY));
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.CHOOSE_CURRENCY);
+};
+
 const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
   const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
   return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
+};
+
+/**
+ * True when account details can open from persisted state, with no loading
+ * route. Matches the fast path inside {@link openVbaEntry}.
+ */
+export const canOpenPersistedVbaDetails = (): boolean => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!walletAddress || getVbaKycStatusOverride() !== null) {
+    return false;
+  }
+  return hasPersistedApprovedAutoramp(walletAddress);
 };
 
 /**
@@ -206,11 +246,7 @@ export const openVbaEntry = (
   const walletAddress = selectSelectedVbaWalletAddress(
     ReduxService.store.getState() as RootState,
   );
-  if (
-    walletAddress &&
-    getVbaKycStatusOverride() === null &&
-    hasPersistedApprovedAutoramp(walletAddress)
-  ) {
+  if (walletAddress && canOpenPersistedVbaDetails()) {
     openCompletedVbaAccount(navigation);
     Engine.context.RampsController.hydrateVbaOnboarding({
       walletAddress,

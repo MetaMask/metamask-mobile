@@ -1,10 +1,5 @@
 import React, { type ReactNode, useMemo } from 'react';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  HeaderSubpage,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
@@ -15,6 +10,9 @@ import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import { useSelector } from 'react-redux';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 export interface PerpsMarketInlineHeaderProps {
   market: PerpsMarketData;
@@ -38,6 +36,7 @@ export const PerpsMarketInlineHeader = ({
   testID,
   endAccessory,
 }: PerpsMarketInlineHeaderProps) => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const displaySymbol = getPerpsDisplaySymbol(market.symbol);
   const displayTitle = `${displaySymbol}-${PERPS_COLLATERAL_SYMBOL}`;
 
@@ -87,20 +86,20 @@ export const PerpsMarketInlineHeader = ({
   }, [onFavoritePress, isFavorite, onMorePress]);
 
   return (
-    <HeaderSubpage
+    <HeaderSubpageGlass
+      isGlass={isBrandRefresh}
+      isFloating={false}
       includesTopInset
       twClassName="min-h-14 h-auto bg-default justify-center"
       testID={testID}
-      startAccessory={
-        onBackPress ? (
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={onBackPress}
-            accessibilityLabel={strings('perps.market_details.back')}
-            testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
-          />
-        ) : undefined
+      onBack={onBackPress}
+      backButtonProps={
+        onBackPress
+          ? {
+              accessibilityLabel: strings('perps.market_details.back'),
+              testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+            }
+          : undefined
       }
       endAccessory={endAccessory}
       endButtonIconProps={endAccessory ? undefined : endButtonIconProps}

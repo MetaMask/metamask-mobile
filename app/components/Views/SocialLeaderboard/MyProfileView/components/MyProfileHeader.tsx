@@ -107,6 +107,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           <TraderAvatar
             imageUrl={profile.imageUrl}
             address={profile.linkedAccountAddress ?? undefined}
+            profileId={profile.profileId}
             size={56}
             recyclingKey={profile.profileId}
             testID={MyProfileViewSelectorsIDs.AVATAR}

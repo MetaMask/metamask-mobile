@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
+import { X_TRUST_MARK_TEST_ID } from '../../../../UI/SocialFeed/components/XTrustMark';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -30,6 +31,19 @@ const mockOnTraderPress = jest.fn();
 describe('SocialV1TraderRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('seeds the avatar with the profile id even when the trader has a wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('seeds the avatar with the profile id when the trader has no wallet address', () => {
@@ -111,6 +125,69 @@ describe('SocialV1TraderRow', () => {
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
     expect(screen.queryByText('-')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+  });
+
+  it('renders the name tag after the username, colored by its side', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        nameTag={{ label: '20x Short', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toHaveTextContent('20x Short');
+  });
+
+  it('renders the X mark when the trader is connected to X', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, xHandle: 'alpha' }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the trader has no X handle', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
+  });
+
+  it('renders no name tag by default', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toBeNull();
+  });
+
+  it('drops the rank column, medal included, when showRankColumn is off', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        showRankColumn={false}
+      />,
+    );
+
+    expect(screen.queryByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toBeNull();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
@@ -296,5 +373,38 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
     ).toBeNull();
+  });
+
+  it('renders a neutral metric in the default text color', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.METRIC),
+    ).toHaveStyle({ color: lightTheme.colors.text.default });
+  });
+
+  it('shows the secondary metric in place of the window percent', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76 }}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        secondaryMetric={{ label: '-$300 (-2.0%)', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    const subline = screen.getByTestId(
+      SocialV1TraderRowSelectorsIDs.PERCENTAGE,
+    );
+    expect(subline).toHaveTextContent('-$300 (-2.0%)');
+    expect(subline).toHaveStyle({ color: lightTheme.colors.error.default });
+    expect(screen.queryByText('+7.8%')).toBeNull();
   });
 });

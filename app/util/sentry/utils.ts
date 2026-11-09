@@ -14,6 +14,7 @@ import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import { getTraceTags } from './tags';
 import {
   groupDiskSpaceSentryReport,
@@ -486,6 +487,14 @@ export function excludeEvents(event: SentryEvent | null): SentryEvent | null {
     return null;
   }
 
+  // NavigationChildren is the root native-stack wrapper in NavigationProvider,
+  // not a screen. Its ui.load transaction shadows the real screen in Mobile
+  // Vitals, reporting a TTID that starts at navigator mount instead of route
+  // start. App start is reported separately via standalone app start tracing.
+  if (event?.transaction === 'NavigationChildren') {
+    return null;
+  }
+
   return event;
 }
 
@@ -710,7 +719,15 @@ export async function setupSentry(
       enabled: forceEnabled || hasConsent,
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+      _experiments: {
+        // Send app start as its own `App Start` transaction instead of
+        // attaching it to the first ui.load. Without this the app start spans
+        // land on the dropped NavigationChildren transaction and are lost.
+        enableStandaloneAppStartTracing: true,
+      },
     });
+
+    beginNavigationInitializationAppStart();
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();

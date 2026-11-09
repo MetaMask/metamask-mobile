@@ -71,7 +71,9 @@ const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
             color={TextColor.TextAlternative}
             twClassName="mt-[4px] text-center"
           >
-            {strings('virtual_bank_account.kyc_taking_longer.description')}
+            {strings(
+              'virtual_bank_account.kyc_taking_longer.description_few_minutes',
+            )}
           </Text>
         </Box>
       </ScrollView>
@@ -83,7 +85,7 @@ const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
           onPress={handleComeBackLater}
           testID={VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
         >
-          {strings('virtual_bank_account.kyc_taking_longer.button')}
+          {strings('virtual_bank_account.kyc_taking_longer.done_button')}
         </Button>
       </Box>
     </SafeAreaView>
