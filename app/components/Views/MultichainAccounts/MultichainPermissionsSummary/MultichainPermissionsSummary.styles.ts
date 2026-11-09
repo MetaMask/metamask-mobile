@@ -26,7 +26,7 @@ const createStyles = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       borderRadius: 16,
       paddingTop: 8,
-      marginHorizontal: 16,
+      alignSelf: 'stretch',
     },
     title: {
       alignSelf: 'center',
@@ -45,12 +45,12 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
-    networkPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 16,
-      alignItems: 'center',
-      flexDirection: 'row',
+    permissionRow: {
+      alignSelf: 'stretch',
+      width: '100%',
+    },
+    permissionLabel: {
+      flexShrink: 1,
     },
     logoContainer: {
       flex: 1,
@@ -70,42 +70,6 @@ const createStyles = (params: { theme: Theme }) => {
       justifyContent: 'center',
       borderRadius: 10,
     },
-    networkPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestNetworkInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    permissionRequestAccountName: {
-      maxWidth: '75%',
-    },
-    permissionRequestNetworkName: {
-      marginRight: 4,
-      maxWidth: '60%',
-    },
-    avatarGroup: {
-      marginLeft: 2,
-      minWidth: '25%',
-      flexGrow: 1,
-    },
-    accountPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    accountPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestAccountInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 2,
-    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -123,18 +87,12 @@ const createStyles = (params: { theme: Theme }) => {
     editArrow: {
       marginHorizontal: 16,
     },
-    walletIcon: { alignSelf: 'flex-start' },
-    dataIcon: { alignSelf: 'flex-start' },
     disconnectAllContainer: {
       marginHorizontal: 16,
       marginVertical: 8,
       flexDirection: 'row',
     },
     disconnectButton: { flex: 1 },
-    editTextContainer: {
-      width: 56,
-      alignItems: 'center',
-    },
     nonDappNetworkSwitchButtons: {
       gap: 16,
     },
@@ -145,6 +103,8 @@ const createStyles = (params: { theme: Theme }) => {
     // Tab Bar
     tabsContainer: {
       flex: 1,
+    },
+    tabBarContainer: {
       paddingHorizontal: 16,
     },
     // Header
@@ -154,6 +114,7 @@ const createStyles = (params: { theme: Theme }) => {
     // Permissions Management
     permissionsManagementContainer: {
       marginTop: 8,
+      alignSelf: 'stretch',
       backgroundColor: colors.background.default,
       borderRadius: 16,
       paddingVertical: 8,
