@@ -830,7 +830,6 @@ export async function startAndroidEmulatorPool(
     isCI,
     poolSize,
     cores: process.env.ANDROID_EMULATOR_CI_CORES,
-    memoryMb: process.env.ANDROID_EMULATOR_CI_MEMORY_MB,
     skin: process.env.ANDROID_EMULATOR_CI_SKIN,
     bootMode: useGoldenSnapshot ? 'snapshot-resume' : 'cold',
   });
@@ -1038,7 +1037,6 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
     isCI,
     bootMode: 'cold',
     cores: process.env.ANDROID_EMULATOR_CI_CORES,
-    memoryMb: process.env.ANDROID_EMULATOR_CI_MEMORY_MB,
     skin: process.env.ANDROID_EMULATOR_CI_SKIN,
   });
 
@@ -1086,7 +1084,6 @@ async function tryBootFromGoldenSnapshot(
     isCI: true,
     bootMode: 'snapshot-resume',
     cores: process.env.ANDROID_EMULATOR_CI_CORES,
-    memoryMb: process.env.ANDROID_EMULATOR_CI_MEMORY_MB,
     skin: process.env.ANDROID_EMULATOR_CI_SKIN,
     snapshotReadOnly:
       process.env.ANDROID_EMULATOR_SNAPSHOT_READ_ONLY?.trim().toLowerCase() !==
@@ -1160,7 +1157,6 @@ export async function primeAndroidGoldenSnapshot(
     isCI,
     bootMode: 'snapshot-prime',
     cores: process.env.ANDROID_EMULATOR_CI_CORES,
-    memoryMb: process.env.ANDROID_EMULATOR_CI_MEMORY_MB,
     skin: process.env.ANDROID_EMULATOR_CI_SKIN,
   });
 

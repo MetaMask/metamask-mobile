@@ -17,15 +17,13 @@ too little RAM for the host processes.
 ## Golden fingerprint strategy
 
 The prime job and all Android Appium shard jobs use the same 4-core, 5120 MB,
-1440x3120 emulator shape (`ANDROID_EMULATOR_CI_CORES` /
-`ANDROID_EMULATOR_CI_MEMORY_MB`). The fingerprint hashes the complete prime
-argument list, including cores, memory, and skin, so changing any of them
-invalidates the golden cache once and prime and shard workflows then agree on
-the replacement cache key. Two guests reserve all 8 vCPUs and 10 GB, which
-leaves about 6 GB for Appium, the Playwright workers, Anvil, and the dapp
-servers. `update-e2e-fixtures.yml` sets neither memory nor the small profile:
-it cold-boots one 8-core, 10240 MB guest on the 16 vCPU / 32 GB `android-e2e`
-profile.
+1440x3120 emulator shape. The fingerprint hashes the complete prime argument
+list, including cores, memory, and skin, so changing any of them invalidates
+the golden cache once and prime and shard workflows then agree on the
+replacement cache key. Two guests reserve all 8 vCPUs and 10 GB, which leaves
+about 6 GB for Appium, the Playwright workers, Anvil, and the dapp servers.
+`update-e2e-fixtures.yml` cold-boots one 8-core, 5120 MB guest on the
+16 vCPU / 32 GB `android-e2e` profile.
 
 Each pooled emulator resumes `e2e_golden` with `-read-only`. Console ports are
 fixed so adb serials and Appium auxiliary ports never overlap:

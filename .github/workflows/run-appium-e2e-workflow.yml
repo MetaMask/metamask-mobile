@@ -141,10 +141,9 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      # Shared golden strategy: prime and every shard use the same shape. Both
-      # values are in the golden fingerprint, so changing either re-primes once.
+      # Shared golden strategy: prime and every shard use the 4-core shape.
+      # This intentionally invalidates the old 8-core cache once.
       ANDROID_EMULATOR_CI_CORES: '4'
-      ANDROID_EMULATOR_CI_MEMORY_MB: '5120'
       # Platform-gate pool sizes: a leaked ANDROID_DEVICE_POOL_SIZE on ios-smoke
       # makes mm-connect invent emulator serials and fail closed on missing adb.
       ANDROID_DEVICE_POOL_SIZE: ${{ inputs.platform == 'android' && inputs.android-device-pool-size || '' }}

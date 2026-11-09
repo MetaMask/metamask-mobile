@@ -11,7 +11,7 @@ const logger = createLogger({ name: 'AndroidGoldenSnapshot' });
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
-const ANDROID_EMULATOR_CI_MEMORY_MB_DEFAULT = '10240';
+const ANDROID_EMULATOR_CI_MEMORY_MB = '5120';
 
 /** Named quick-boot snapshot shared by Appium CI shards. */
 export const ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME = 'e2e_golden';
@@ -193,7 +193,6 @@ export function buildAndroidEmulatorArgs(options: {
   isCI: boolean;
   bootMode?: AndroidEmulatorArgMode;
   cores?: string;
-  memoryMb?: string;
   skin?: string;
   snapshotName?: string;
   snapshotReadOnly?: boolean;
@@ -217,8 +216,6 @@ export function buildAndroidEmulatorArgs(options: {
   }
 
   const cores = options.cores?.trim() || ANDROID_EMULATOR_CI_CORES_DEFAULT;
-  const memoryMb =
-    options.memoryMb?.trim() || ANDROID_EMULATOR_CI_MEMORY_MB_DEFAULT;
   const skin = options.skin?.trim() || ANDROID_EMULATOR_CI_SKIN;
   const snapshotName =
     options.snapshotName?.trim() || ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME;
@@ -229,7 +226,7 @@ export function buildAndroidEmulatorArgs(options: {
     '-skin',
     skin,
     '-memory',
-    memoryMb,
+    ANDROID_EMULATOR_CI_MEMORY_MB,
     '-cores',
     cores,
     '-dns-server',
@@ -277,7 +274,6 @@ export function buildAndroidEmulatorPoolArgs(options: {
   isCI: boolean;
   poolSize: number;
   cores?: string;
-  memoryMb?: string;
   skin?: string;
   bootMode?: Extract<AndroidEmulatorArgMode, 'cold' | 'snapshot-resume'>;
 }): AndroidEmulatorPoolBoot[] {
@@ -295,7 +291,6 @@ export function buildAndroidEmulatorPoolArgs(options: {
       isCI: options.isCI,
       bootMode,
       cores: options.cores,
-      memoryMb: options.memoryMb,
       skin: options.skin,
       snapshotReadOnly: true,
       port,
@@ -358,7 +353,6 @@ export async function computeAndroidSystemImageFingerprint(
         isCI: true,
         bootMode: 'snapshot-prime',
         cores: env.ANDROID_EMULATOR_CI_CORES,
-        memoryMb: env.ANDROID_EMULATOR_CI_MEMORY_MB,
         skin: env.ANDROID_EMULATOR_CI_SKIN,
       }),
     ),
