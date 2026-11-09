@@ -3,8 +3,6 @@
 name: Swaps Performance Budgets
 
 on:
-  push:
-    branches: [swaps-perf-budgets-daily-check]
   schedule:
     - cron: '0 5 * * *'
   workflow_dispatch:
@@ -23,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      DRY_RUN: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
       GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout repository
