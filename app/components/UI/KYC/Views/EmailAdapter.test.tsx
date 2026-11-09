@@ -40,7 +40,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
       state: { email: null as string | null },
-      getSessionStatusForVendor: jest.fn(),
+      readSessionStatus: jest.fn(),
       startSession: jest.fn(),
       recordVendorDisclaimers: jest.fn(),
     },
@@ -73,7 +73,7 @@ jest.mock('../../../../util/Logger', () => ({
 
 const mockKycController = Engine.context.KycController as unknown as {
   state: { email: string | null };
-  getSessionStatusForVendor: jest.Mock<Promise<unknown>, [unknown]>;
+  readSessionStatus: jest.Mock;
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
 };
@@ -107,7 +107,7 @@ describe('VbaEmailAdapter', () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue({
       disclaimerIds: ['privacy', 'terms'],
     });
-    mockKycController.getSessionStatusForVendor.mockResolvedValue(null);
+    mockKycController.readSessionStatus.mockReturnValue(null);
     mockKycController.startSession.mockResolvedValue({
       id: 'session-1',
       finalStatus: 'new',
@@ -120,8 +120,8 @@ describe('VbaEmailAdapter', () => {
     jest.restoreAllMocks();
   });
 
-  it('reuses an existing session without prompting for email OTP', async () => {
-    mockKycController.getSessionStatusForVendor.mockResolvedValue({
+  it('reuses a local active session without prompting for email OTP', async () => {
+    mockKycController.readSessionStatus.mockReturnValue({
       id: 'session-1',
       finalStatus: 'pending',
     });
@@ -129,9 +129,7 @@ describe('VbaEmailAdapter', () => {
     renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
-      expect(mockKycController.getSessionStatusForVendor).toHaveBeenCalledWith(
-        VBA_KYC_VENDOR,
-      );
+      expect(mockKycController.readSessionStatus).toHaveBeenCalledWith();
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
       });
@@ -278,8 +276,10 @@ describe('VbaEmailAdapter', () => {
     ).toBeNull();
   });
 
-  it('shows the generic error when session lookup rejects with a non-Error', async () => {
-    mockKycController.getSessionStatusForVendor.mockRejectedValue('offline');
+  it('shows the generic error when reading session status throws a non-Error', async () => {
+    mockKycController.readSessionStatus.mockImplementation(() => {
+      throw 'offline';
+    });
 
     const screen = renderWithProvider(<VbaEmailAdapter />);
 
@@ -308,9 +308,7 @@ describe('VbaEmailAdapter', () => {
   });
 
   it('shows a spinner without navigation on the loading screen', () => {
-    mockKycController.getSessionStatusForVendor.mockReturnValue(
-      new Promise(() => undefined),
-    );
+    mockVerifyOrEnroll.mockReturnValue(new Promise(() => undefined));
 
     const screen = renderWithProvider(<VbaEmailAdapter />);
 
@@ -326,22 +324,24 @@ describe('VbaEmailAdapter', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('does not open email OTP after leaving during session lookup', async () => {
-    let resolveLookup: (session: null) => void = () => undefined;
-    mockKycController.getSessionStatusForVendor.mockReturnValue(
+  it('does not start the session after leaving during email verification', async () => {
+    let resolveVerification: (
+      result: ReturnType<typeof verifiedEmail>,
+    ) => void = () => undefined;
+    mockVerifyOrEnroll.mockReturnValue(
       new Promise((resolve) => {
-        resolveLookup = resolve;
+        resolveVerification = resolve;
       }),
     );
     const screen = renderWithProvider(<VbaEmailAdapter />);
 
     screen.unmount();
     await act(async () => {
-      resolveLookup(null);
+      resolveVerification(verifiedEmail());
     });
 
-    expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
     expect(mockKycController.startSession).not.toHaveBeenCalled();
+    expect(mockAdvance).not.toHaveBeenCalled();
   });
 
   it('leaves the step from the error screen', async () => {

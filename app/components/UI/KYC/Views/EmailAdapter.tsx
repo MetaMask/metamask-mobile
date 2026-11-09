@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -93,16 +93,18 @@ const VbaEmailAdapter = () => {
     let active = true;
 
     const verifyEmail = async () => {
-      const existingSession =
-        await Engine.context.KycController.getSessionStatusForVendor(
-          VBA_KYC_VENDOR,
-        );
+      // Purposely checking local state only rather than querying the kyc-api
+      // to see if there is an existing vendor session that can be resumed
+      // to ensure that the MFA module is run. KycController.startSession()
+      // will use the existing vendor session if it exists still.
+      const existingActiveSession =
+        await Engine.context.KycController.readSessionStatus();
       if (!active) {
         return;
       }
 
       let aal2Token: string | undefined;
-      if (!existingSession) {
+      if (!existingActiveSession) {
         const result = await verifyOrEnroll({
           methods: ['email_otp'],
           verifyWith: 'email_otp',
@@ -146,6 +148,10 @@ const VbaEmailAdapter = () => {
     };
 
     verifyEmail().catch((error: unknown) => {
+      Alert.alert(
+        'verifyEmail',
+        error instanceof Error ? error.message : String(error),
+      );
       if (!active) {
         return;
       }
