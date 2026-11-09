@@ -217,7 +217,6 @@ export const Recipient = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Box twClassName="flex-1">
           <RecipientInput

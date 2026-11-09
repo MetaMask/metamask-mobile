@@ -27,6 +27,7 @@ import {
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
   getVisiblePendingNewCount,
   mergeRealtimeRows,
   rememberEvictedRevision,
@@ -106,8 +107,9 @@ const noop = () => undefined;
  * Merges socket events into the server rows of `useSocialFeed`.
  *
  * New posts flow in at the top while the list sits there and is live, and are
- * held behind `pendingNewCount` otherwise. Updates to posts already shown are
- * held the same way and applied silently. Socket-only posts are capped at
+ * held behind `pendingNewCount` otherwise. Updates to posts already shown apply
+ * in place wherever the list is scrolled and whether or not it is paused.
+ * Socket-only posts are capped at
  * {@link SOCIAL_FEED_REALTIME_BUFFER_SIZE}; going over the cap, a reconnect,
  * or becoming active again schedules a catch-up refresh, run once the list is
  * at the top and live. Rows survive while inactive.
@@ -139,7 +141,7 @@ export const useSocialFeedRealtime = (
   const serverRowsById = useMemo(
     () =>
       realtimeScope
-        ? new Map(rows.map((row) => [row.core.positionId, row]))
+        ? new Map(rows.map((row) => [getRowFeedItemId(row), row]))
         : EMPTY_ROWS_BY_ID,
     [realtimeScope, rows],
   );
@@ -324,10 +326,12 @@ export const useSocialFeedRealtime = (
         }
       }
 
+      // Only a post the list does not show yet waits: a post still held as new
+      // stays behind the pill even once its server copy loads.
+      const isNew = !isKnown || store.pending.get(feedItemId)?.isNew === true;
       if (
-        pausedRef.current ||
-        !nearTopRef.current ||
-        (!isKnown && holdNewPostsRef.current)
+        isNew &&
+        (pausedRef.current || !nearTopRef.current || holdNewPostsRef.current)
       ) {
         queuePending(event, !isKnown);
         return;

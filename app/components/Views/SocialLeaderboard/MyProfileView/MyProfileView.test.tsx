@@ -629,7 +629,7 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('42%');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
-    ).toHaveTextContent('+$1,200');
+    ).toHaveTextContent('+$1,200.00');
     expect(
       screen.queryByTestId(
         MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
@@ -640,7 +640,7 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('3h');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
-    ).toHaveTextContent('$50,000');
+    ).toHaveTextContent('$50,000.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
@@ -718,7 +718,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
-    ).toHaveTextContent('+$100');
+    ).toHaveTextContent('+$100.00');
   });
 
   it('opens followers connections on the followers tab', () => {
@@ -1874,14 +1874,19 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'current-user',
-      traderName: 'Giga Whale',
-      traderImageUrl: undefined,
-      traderAddress: undefined,
-      tokenSymbol: 'ETH',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'eth-spot',
       position: openSpot,
-      source: 'profile_position',
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
       isClosed: false,
     });
   });
@@ -1934,6 +1939,53 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-Nigel')).toBeOnTheScreen();
+  });
+
+  it('opens the position sheet from a Closed row', () => {
+    const closedSpot: Position = {
+      positionId: 'doge-closed',
+      tokenSymbol: 'DOGE',
+      tokenName: 'Doge',
+      tokenAddress: '0xdoge',
+      chain: 'base',
+      positionAmount: 0,
+      boughtUsd: 100,
+      soldUsd: 150,
+      realizedPnl: 50,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [closedSpot],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+    fireEvent.press(screen.getByTestId('position-row-DOGE'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'doge-closed',
+      position: closedSpot,
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
+      isClosed: true,
+    });
   });
 
   it('opens and closes the uncounted-positions sheet over the profile', () => {
@@ -2423,14 +2475,19 @@ describe('MyProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-Nigel'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'current-user',
-      traderName: 'Giga Whale',
-      traderImageUrl: undefined,
-      traderAddress: undefined,
-      tokenSymbol: 'Nigel',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'nigel',
       position: flagged,
-      source: 'profile_position',
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
       isClosed: false,
     });
 
@@ -2495,14 +2552,19 @@ describe('MyProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-Nigel'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'trader-1',
-      traderName: 'shittymike.sol',
-      traderImageUrl: undefined,
-      traderAddress: '0xabc',
-      tokenSymbol: 'Nigel',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'd11488e1-89d8-4010-b772-a8ec23fe2589',
       position: nigel,
-      source: 'profile_position',
+      author: {
+        id: 'trader-1',
+        username: 'shittymike.sol',
+        address: '0xabc',
+        avatarUri: undefined,
+        winRatePercent: null,
+        pnl30d: null,
+        followerCount: null,
+        xHandle: null,
+      },
       isClosed: false,
     });
   });
