@@ -100,7 +100,12 @@ describe('PolyBoltCryptoFeed', () => {
   beforeEach(() => {
     mockSockets = [];
     jest.useFakeTimers();
-    jest.spyOn(Math, 'random').mockReturnValue(0);
+    jest
+      .spyOn(global.crypto, 'getRandomValues')
+      .mockImplementation(<T extends ArrayBufferView | null>(array: T): T => {
+        (array as unknown as Uint32Array).fill(0);
+        return array;
+      });
     (global as unknown as { WebSocket: typeof MockSocket }).WebSocket =
       MockSocket;
   });

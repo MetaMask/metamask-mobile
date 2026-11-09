@@ -441,16 +441,24 @@ export const useCryptoUpDownChartData = (
   // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
   // flips back to true when ticks stop arriving — correctly resuming HTTP
   // polling as a fallback.
-  const liveSubscriptionArgs: [
+  let liveSubscriptionArgs: [
     string,
     typeof handleLiveUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
     provider?: typeof priceProvider,
-  ] = priceProvider
-    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds, priceProvider]
-    : twapWindowSeconds
-      ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
-      : [wsSymbol, handleLiveUpdate];
+  ];
+  if (priceProvider) {
+    liveSubscriptionArgs = [
+      wsSymbol,
+      handleLiveUpdate,
+      twapWindowSeconds,
+      priceProvider,
+    ];
+  } else if (twapWindowSeconds) {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate, twapWindowSeconds];
+  } else {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate];
+  }
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =

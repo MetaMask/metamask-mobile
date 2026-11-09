@@ -110,6 +110,16 @@ export const toPolyboltFilter = (
   return provider ? { symbol: wireSymbol, provider } : { symbol: wireSymbol };
 };
 
+const compareIds = (left: string, right: string): number =>
+  left.localeCompare(right);
+
+// Uniform integer in [0, maxExclusive) for reconnect jitter.
+const randomInt = (maxExclusive: number): number => {
+  const value = new Uint32Array(1);
+  global.crypto.getRandomValues(value);
+  return Math.floor((value[0] / 0x1_0000_0000) * maxExclusive);
+};
+
 /**
  * Authenticated PolyBolt socket for crypto reference prices.
  * The server sends protocol pings. This client does not send a text ping.
@@ -137,13 +147,13 @@ export class PolyBoltCryptoFeed {
 
   // Subscribe rid of each pinned subscription awaiting its ack, so the ack or
   // a bad_filter can be traced back to the pin. Pins go out one per frame.
-  private pendingPins: Map<string, string> = new Map();
+  private readonly pendingPins: Map<string, string> = new Map();
 
   // Pinned subscriptions served by the default provider on this connection:
   // the server rejected the pin, ignored it, or named another vendor.
-  private ownerServed: Set<string> = new Set();
+  private readonly ownerServed: Set<string> = new Set();
 
-  private loggedProviderMismatches: Set<string> = new Set();
+  private readonly loggedProviderMismatches: Set<string> = new Set();
 
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -297,8 +307,8 @@ export class PolyBoltCryptoFeed {
     left: PolyBoltSubscription[],
     right: PolyBoltSubscription[],
   ): boolean {
-    const leftIds = left.map(subscriptionId).sort();
-    const rightIds = right.map(subscriptionId).sort();
+    const leftIds = left.map(subscriptionId).sort(compareIds);
+    const rightIds = right.map(subscriptionId).sort(compareIds);
     return (
       leftIds.length === rightIds.length &&
       leftIds.every((id, index) => id === rightIds[index])
@@ -400,7 +410,7 @@ export class PolyBoltCryptoFeed {
     }
 
     if (code === DRAINING_CLOSE_CODE) {
-      this.scheduleReconnect(Math.floor(Math.random() * 10_001));
+      this.scheduleReconnect(randomInt(10_001));
       return;
     }
 
@@ -411,7 +421,7 @@ export class PolyBoltCryptoFeed {
     this.reconnectAttempts += 1;
     const exponent = Math.min(this.reconnectAttempts - 1, 5);
     const base = Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** exponent);
-    const jitter = Math.floor(Math.random() * 1_000);
+    const jitter = randomInt(1_000);
     return Math.min(MAX_BACKOFF_MS, base + jitter);
   }
 

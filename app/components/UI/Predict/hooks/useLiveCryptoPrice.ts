@@ -104,16 +104,24 @@ export const useLiveCryptoPrice = ({
   }, [symbol, twapWindowSeconds, provider]);
 
   const wsSymbol = enabled && symbol ? `${symbol.toLowerCase()}/usd` : '';
-  const liveSubscriptionArgs: [
+  let liveSubscriptionArgs: [
     string,
     typeof handleUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
     provider?: typeof provider,
-  ] = provider
-    ? [wsSymbol, handleUpdate, twapWindowSeconds, provider]
-    : twapWindowSeconds !== undefined
-      ? [wsSymbol, handleUpdate, twapWindowSeconds]
-      : [wsSymbol, handleUpdate];
+  ];
+  if (provider) {
+    liveSubscriptionArgs = [
+      wsSymbol,
+      handleUpdate,
+      twapWindowSeconds,
+      provider,
+    ];
+  } else if (twapWindowSeconds !== undefined) {
+    liveSubscriptionArgs = [wsSymbol, handleUpdate, twapWindowSeconds];
+  } else {
+    liveSubscriptionArgs = [wsSymbol, handleUpdate];
+  }
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   return { value };
