@@ -461,12 +461,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
-  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+  const { headerTopInset } = usePerpsMarketHeaderInsets(
     edgeInsets,
     isServiceInterruptionBannerEnabled,
   );
-  // iOS only drops the refresh spinner below a real content inset, not a spacer.
-  const scrollTopInset = Platform.OS === 'ios' ? headerInset : 0;
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -518,16 +516,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
-  // A ref so an inset change (banner shown or dismissed) does not reset the scroll.
-  const scrollTopInsetRef = useRef(scrollTopInset);
-  scrollTopInsetRef.current = scrollTopInset;
-
   // Auto-scroll to top when navigating to a different market (e.g. related markets)
   useEffect(() => {
-    scrollViewRef.current?.scrollTo({
-      y: -scrollTopInsetRef.current,
-      animated: false,
-    });
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [market?.symbol]);
 
   // Record the view for the Recently Viewed rail — fires for every entry
@@ -576,8 +567,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     onScroll: (event) => {
       'worklet';
       // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
-      scrollYShared.value = event.contentOffset.y + scrollTopInset;
-      // The About tracker measures against content layout, so it takes the raw offset.
+      scrollYShared.value = event.contentOffset.y;
       scheduleOnRN(
         scheduleAboutScrollOnRN,
         event.contentOffset.y,
@@ -2048,6 +2038,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           priceSectionHeight={titleSectionHeightSv}
           currentPrice={syncedChartCurrentPrice}
           topInset={headerTopInset}
+          isFloating={false}
         />
         <Animated.ScrollView
           ref={scrollViewRef}
@@ -2057,23 +2048,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
-          contentInset={{ top: scrollTopInset }}
-          contentOffset={{ x: 0, y: -scrollTopInset }}
-          scrollIndicatorInsets={{ top: scrollTopInset }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              progressViewOffset={headerInset - scrollTopInset}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          {headerInset > 0 && scrollTopInset === 0 && (
-            <View
-              style={{ height: headerInset }}
-              testID={PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER}
-            />
-          )}
           <PerpsMarketSummary
             symbol={market.symbol}
             currentPrice={syncedChartCurrentPrice}

@@ -128,6 +128,7 @@ const PerpsMarketHeader = ({
   priceSectionHeight,
   currentPrice: currentPriceOverride,
   topInset,
+  isFloating = true,
 }: PerpsMarketHeaderProps) => {
   const { playImpact, playSelection } = useHaptics();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
@@ -313,8 +314,7 @@ const PerpsMarketHeader = ({
     <Box
       testID={testIDs.container}
       style={styles.container}
-      // The glass backdrop replaces the solid background.
-      twClassName={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
+      twClassName={isBrandRefresh && isFloating ? 'px-4' : 'bg-default px-4'}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
@@ -361,6 +361,7 @@ const PerpsMarketHeader = ({
     <HeaderGlass
       topInset={topInset}
       scrollDistance={scrollY}
+      isFloating={isFloating}
       testID={`${testIDs.container}-glass`}
     >
       {header}

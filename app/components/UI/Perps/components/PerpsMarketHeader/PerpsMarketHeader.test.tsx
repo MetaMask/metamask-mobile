@@ -468,6 +468,16 @@ describe('PerpsMarketHeader', () => {
       expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
     });
 
+    it('sits in flow without the glass backdrop when isFloating is false', () => {
+      const { getByTestId, queryByTestId } = renderHeader({
+        isFloating: false,
+        topInset: 47,
+      });
+
+      expect(getByTestId(glassTestID)).toHaveStyle({ paddingTop: 47 });
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    });
+
     it('pads the status bar by topInset', () => {
       const { getByTestId } = renderHeader({ topInset: 47 });
 

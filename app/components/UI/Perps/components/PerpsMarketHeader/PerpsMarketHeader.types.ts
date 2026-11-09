@@ -65,6 +65,12 @@ export interface PerpsMarketHeaderProps {
    * falls back to the live mid-price stream.
    */
   currentPrice?: number;
-  /** Status bar space the floating header pads, when the screen runs under it. */
+  /** Status bar space the header pads, when the screen runs under it. */
   topInset?: number;
+  /**
+   * With the brand refresh, whether the header floats over the content on the
+   * glass backdrop. When false it sits in the layout above the content.
+   * Defaults to true.
+   */
+  isFloating?: boolean;
 }

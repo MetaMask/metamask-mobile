@@ -55,6 +55,7 @@ let mockConnectionInitialized = true;
 let mockActiveProvider: PerpsActiveProviderMode | undefined;
 
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 jest.mock('../../../../../util/haptics');
 
 jest.mock('react-native-modal', () => {
@@ -6257,39 +6258,26 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-    it('insets the scroll content below the header on iOS so the refresh spinner clears it', () => {
+    it('keeps the header in flow above the content, padding the status bar', () => {
       withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
 
       const { getByTestId, queryByTestId } = renderLite({ edgeInsets });
+
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    });
+
+    // A reused iOS scroll view drops its contentInset, which left the content under the header on reopen.
+    it('does not inset the scroll view on iOS', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
 
-      // Status bar (47) plus the 64px header.
-      expect(scrollView).toHaveProp('contentInset', { top: 111 });
-      expect(scrollView).toHaveProp('contentOffset', { x: 0, y: -111 });
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
-      ).toBeNull();
-      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
-    });
-
-    it('reserves the header height with a spacer on Android', () => {
-      const originalOS = Platform.OS;
-      Platform.OS = 'android';
-      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
-
-      try {
-        const { getByTestId } = renderLite({ edgeInsets });
-
-        expect(
-          within(
-            getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
-          ).getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
-        ).toHaveStyle({ height: 111 });
-      } finally {
-        Platform.OS = originalOS;
-      }
+      expect(scrollView).not.toHaveProp('contentInset');
+      expect(scrollView).not.toHaveProp('contentOffset');
     });
 
     it('clears the home indicator at the bottom', () => {
@@ -6318,9 +6306,6 @@ describe('PerpsMarketDetailsView', () => {
     it('adds no spacers with the flag off', () => {
       const { queryByTestId } = renderLite();
 
-      expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
-      ).toBeNull();
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
       ).toBeNull();
