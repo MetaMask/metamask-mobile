@@ -144,6 +144,18 @@ describe('resolvePredictLink', () => {
       );
     });
 
+    it('opens a mixed-case Kalshi Feed Screen link on the requested tab', () => {
+      expect(
+        resolve('?venue=kalshi&feed=Sports-Football-NFL&tab=PROPS', KALSHI),
+      ).toStrictEqual(
+        predict(PredictNextRoutes.FEED, {
+          venueId: 'kalshi',
+          feedScreenId: 'sports-football-nfl',
+          selectedTabId: 'props',
+        }),
+      );
+    });
+
     it.each(['?venue=kalshi', '', '?tab=crypto', '?feed=sports&q=nba'])(
       'opens PredictNext Home for %s',
       (path) => {

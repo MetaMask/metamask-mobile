@@ -99,6 +99,17 @@ describe('parsePredictLink', () => {
       });
     });
 
+    it('lowercases a Kalshi Feed Screen and tab, as Polymarket list params are', () => {
+      expect(
+        parse('?venue=kalshi&feed=Sports-Football-NFL&tab=Props').intent,
+      ).toStrictEqual({
+        type: 'feedScreen',
+        feedScreenId: 'sports-football-nfl',
+        tabId: 'props',
+        entryPoint: 'deeplink',
+      });
+    });
+
     it('reads a bare Kalshi marker as its Home', () => {
       expect(parse('?venue=kalshi')).toStrictEqual({
         venue: 'kalshi',

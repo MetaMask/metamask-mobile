@@ -83,7 +83,10 @@ const parsePolymarketIntent = (
   };
 };
 
-/** `event`, else `feed` (+ `tab`), else Home. A `market` is not found. */
+/**
+ * `event` (case kept), else `feed` (+ `tab`, lowercased), else Home. A
+ * `market` is not found.
+ */
 const parseKalshiIntent = (
   params: URLSearchParams,
   entryPoint: PredictLinkEntryPoint,
@@ -99,12 +102,14 @@ const parseKalshiIntent = (
   if (nonEmpty(params.get('market')) || nonEmpty(params.get('marketId'))) {
     return null;
   }
-  const feedScreenId = nonEmpty(params.get('feed'));
+  // Feed Screen and tab IDs are client-owned and lowercase, read as the
+  // Polymarket vocabulary reads them. Event tickers keep their case.
+  const feedScreenId = nonEmpty(params.get('feed')?.toLowerCase());
   if (feedScreenId) {
     return {
       type: 'feedScreen',
       feedScreenId,
-      tabId: nonEmpty(params.get('tab')),
+      tabId: nonEmpty(params.get('tab')?.toLowerCase()),
       entryPoint,
     };
   }
