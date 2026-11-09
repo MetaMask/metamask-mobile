@@ -83,7 +83,7 @@ export function budgetStatus({ p90, n, fullScan }, guardrailMs) {
 const formatCount = (value) => Math.round(value).toLocaleString('en-US');
 const formatMs = (value) => (value === null ? 'n/a' : `${formatCount(value)}ms`);
 
-/** One line per rule, used for both the console and Slack. */
+/** One line per rule, for the console. */
 export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
   const measured = `p90 ${formatMs(p90)}, guardrail ${formatMs(rule.guardrailMs)}, n=${formatCount(n)}`;
   if (status !== STATUS.NOT_EVALUABLE) {
@@ -95,30 +95,69 @@ export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
   return `${rule.label}: not evaluable (${reason}); ${measured}`;
 }
 
-/** The Slack message for this run: the findings, or one line when every rule is within budget. */
+const TITLE = 'Swaps performance budgets';
+const ICON = {
+  [STATUS.BREACH]: ':rotating_light:',
+  [STATUS.NOT_EVALUABLE]: ':grey_question:',
+  [STATUS.OK]: ':white_check_mark:',
+};
+const ORDER = [STATUS.BREACH, STATUS.NOT_EVALUABLE, STATUS.OK];
+const runLink = (runUrl) => (runUrl ? [`<${runUrl}|Run log>`] : []);
+
+/** Labels read "<client> <trace>" with an optional "(<scope>)" suffix. */
+const splitLabel = (label) => label.match(/^(\S+) (.+?)(?: \((.+)\))?$/).slice(1);
+
+function slackRuleLine({ rule, measured: { p90, n, fullScan }, status, url }) {
+  const name = `<${url}|${splitLabel(rule.label)[1]}>`;
+  const count = `n=${formatCount(n)}`;
+  if (status === STATUS.NOT_EVALUABLE) {
+    const reason = fullScan ? `n below ${formatCount(MIN_SAMPLES)}` : 'partial scan';
+    return `${ICON[status]} ${name}: not evaluable (${reason}) · ${count}`;
+  }
+  const share = Math.round((p90 / rule.guardrailMs) * 100);
+  const figures = `${formatMs(p90)} / ${formatMs(rule.guardrailMs)} (${share}%)`;
+  return `${ICON[status]} ${name}: ${status === STATUS.BREACH ? `*${figures}*` : figures} · ${count}`;
+}
+
+/** The daily Slack message: a verdict line, then every rule grouped by client, breaches first. */
 export function buildSlackMessage(results, { windowLabel = '', runUrl = '' } = {}) {
-  const sections = [
-    [STATUS.BREACH, '*Over the guardrail* · 14-day p90'],
-    [STATUS.NOT_EVALUABLE, '*Not evaluable*'],
-  ]
-    .map(([status, title]) => [title, results.filter((result) => result.status === status)])
-    .filter(([, items]) => items.length > 0);
-  if (sections.length === 0) {
-    const run = runUrl ? ` <${runUrl}|Run log>` : '';
-    return `*Swaps performance budgets*, ${windowLabel}: all ${results.length} rules within guardrails.${run}`;
+  const total = results.length;
+  const breaches = results.filter((result) => result.status === STATUS.BREACH).length;
+  const unknown = results.filter((result) => result.status === STATUS.NOT_EVALUABLE).length;
+  const unknownNote = unknown ? `, ${unknown} not evaluable` : '';
+  let verdict = `:white_check_mark: *${TITLE}: all ${total} rules within guardrails*`;
+  if (breaches) {
+    verdict = `:rotating_light: *${TITLE}: ${breaches} of ${total} over guardrail${unknownNote}*`;
+  } else if (unknown) {
+    verdict = `:grey_question: *${TITLE}: ${unknown} of ${total} not evaluable*`;
   }
-  const breached = results.some((result) => result.status === STATUS.BREACH);
-  const lines = ['*Swaps performance budgets*'];
-  for (const [title, items] of sections) {
-    lines.push('', title, ...items.map((result) => `• <${result.url}|${resultLine(result)}>`));
+
+  const lines = [verdict, `${windowLabel} · ${WINDOW_DAYS}-day p90 vs guardrail`];
+  const groups = new Map();
+  for (const result of results) {
+    const [client, , scope] = splitLabel(result.rule.label);
+    const header = `*${client}*${scope ? ` (${scope})` : ''}`;
+    groups.set(header, [...(groups.get(header) || []), result]);
   }
-  if (breached) {
+  for (const [header, items] of groups) {
+    const sorted = [...items].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
+    lines.push('', header, ...sorted.map(slackRuleLine));
+  }
+  if (breaches) {
     lines.push('', 'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.');
   }
   if (runUrl) {
-    lines.push('', `_Run:_ <${runUrl}|GitHub Actions>`);
+    lines.push('', ...runLink(runUrl));
   }
   return lines.join('\n');
+}
+
+export function buildFailureNotice({ runUrl = '' } = {}) {
+  return [
+    `:warning: *${TITLE}: check failed*`,
+    "Today's results may be missing or incomplete.",
+    ...runLink(runUrl),
+  ].join('\n');
 }
 
 export async function runBudgetCheck({ todayEnd, token, rules = BUDGET_RULES }) {

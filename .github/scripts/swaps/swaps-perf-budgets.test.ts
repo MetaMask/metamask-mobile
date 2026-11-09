@@ -1,15 +1,25 @@
-import { STATUS, budgetStatus, buildSlackMessage } from './swaps-perf-budgets.mjs';
+import {
+  STATUS,
+  budgetStatus,
+  buildFailureNotice,
+  buildSlackMessage,
+} from './swaps-perf-budgets.mjs';
 
 const result = (
   label: string,
   status: string,
   measured: { p90: number | null; n: number },
 ) => ({
-  rule: { label, guardrailMs: 5199 },
+  rule: { label, guardrailMs: 5000 },
   measured: { fullScan: true, ...measured },
   status,
   url: 'https://example.com/explore',
 });
+
+const options = {
+  windowLabel: '2026-10-26 – 2026-11-08 UTC',
+  runUrl: 'https://example.com/run',
+};
 
 describe('budgetStatus', () => {
   it('needs the minimum sample count and a full scan', () => {
@@ -24,32 +34,63 @@ describe('budgetStatus', () => {
 });
 
 describe('buildSlackMessage', () => {
-  it('posts one line when every rule is within its guardrail', () => {
-    const ok = result('Within', STATUS.OK, { p90: 4000, n: 4176 });
-    expect(
-      buildSlackMessage([ok, ok], {
-        windowLabel: '2026-10-26 – 2026-11-08 UTC',
-        runUrl: 'https://example.com/run',
-      }),
-    ).toBe(
-      '*Swaps performance budgets*, 2026-10-26 – 2026-11-08 UTC: all 2 rules within guardrails. <https://example.com/run|Run log>',
+  it('leads with the all-clear verdict and lists every rule by client', () => {
+    const message = buildSlackMessage(
+      [
+        result('Mobile Swap Quote Fetch (mid-tier Android)', STATUS.OK, {
+          p90: 4000,
+          n: 4176,
+        }),
+        result('Extension Swap Quote Fetch', STATUS.OK, { p90: 2500, n: 671 }),
+      ],
+      options,
+    );
+    expect(message).toBe(
+      [
+        ':white_check_mark: *Swaps performance budgets: all 2 rules within guardrails*',
+        '2026-10-26 – 2026-11-08 UTC · 14-day p90 vs guardrail',
+        '',
+        '*Mobile* (mid-tier Android)',
+        ':white_check_mark: <https://example.com/explore|Swap Quote Fetch>: 4,000ms / 5,000ms (80%) · n=4,176',
+        '',
+        '*Extension*',
+        ':white_check_mark: <https://example.com/explore|Swap Quote Fetch>: 2,500ms / 5,000ms (50%) · n=671',
+        '',
+        '<https://example.com/run|Run log>',
+      ].join('\n'),
     );
   });
 
-  it('lists breaches and not-evaluable rules, and nothing else', () => {
-    const ok = result('Within', STATUS.OK, { p90: 4000, n: 4176 });
-    const breach = result('Over', STATUS.BREACH, { p90: 5300, n: 4176 });
-    const low = result('Sparse', STATUS.NOT_EVALUABLE, { p90: 9000, n: 120 });
-    const options = { runUrl: 'https://example.com/run' };
+  it('counts breaches in the verdict and lists them first, in bold', () => {
+    const message = buildSlackMessage(
+      [
+        result('Mobile Swap View Loaded', STATUS.OK, { p90: 4000, n: 4176 }),
+        result('Mobile Swap Token Search', STATUS.NOT_EVALUABLE, {
+          p90: 9000,
+          n: 120,
+        }),
+        result('Mobile Swap Quote Fetch', STATUS.BREACH, { p90: 5300, n: 4176 }),
+      ],
+      options,
+    );
+    const lines = message.split('\n');
+    expect(lines[0]).toBe(
+      ':rotating_light: *Swaps performance budgets: 1 of 3 over guardrail, 1 not evaluable*',
+    );
+    expect(lines.slice(3, 7)).toEqual([
+      '*Mobile*',
+      ':rotating_light: <https://example.com/explore|Swap Quote Fetch>: *5,300ms / 5,000ms (106%)* · n=4,176',
+      ':grey_question: <https://example.com/explore|Swap Token Search>: not evaluable (n below 400) · n=120',
+      ':white_check_mark: <https://example.com/explore|Swap View Loaded>: 4,000ms / 5,000ms (80%) · n=4,176',
+    ]);
+    expect(message).toMatch(/Triage within 2 business days/);
+  });
+});
 
-    const message = buildSlackMessage([ok, breach, low], options);
-    expect(message).toMatch(
-      /\*Over the guardrail\*[^]*Over: p90 5,300ms, guardrail 5,199ms, n=4,176>/,
+describe('buildFailureNotice', () => {
+  it('leads with the failure verdict and links the run', () => {
+    expect(buildFailureNotice(options)).toBe(
+      ":warning: *Swaps performance budgets: check failed*\nToday's results may be missing or incomplete.\n<https://example.com/run|Run log>",
     );
-    expect(message).toMatch(
-      /\*Not evaluable\*[^]*Sparse: not evaluable \(n below 400\)/,
-    );
-    expect(message).not.toMatch(/Within/);
-    expect(message).toMatch(/<https:\/\/example\.com\/run\|GitHub Actions>/);
   });
 });

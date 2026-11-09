@@ -8,6 +8,7 @@
 
 import { MIN_SAMPLES, SLACK_CHANNEL_ID } from './swaps-perf-budgets.config.mjs';
 import {
+  buildFailureNotice,
   buildSlackMessage,
   resultLine,
   runBudgetCheck,
@@ -49,7 +50,7 @@ async function main() {
   }
 
   if (process.argv.includes('--failure-notice')) {
-    const notice = `*Swaps performance budgets: the daily check failed*, so today's results may be missing or incomplete. Run: ${runUrl}`;
+    const notice = buildFailureNotice({ runUrl });
     if (dryRun) {
       console.log(`Dry run; would post to Slack:\n\n${notice}`);
     } else {
