@@ -22,8 +22,7 @@ export interface UseTokenBalanceResult {
    * `'<0.00001'`, or `'0'` for zero). Do not parse this with `Number()` —
    * formatted values return `NaN`. For presence checks use
    * `Boolean(balance) && balance !== '0'`; for numeric comparisons use
-   * `balanceFiatUsd` (via the `calculateUsdBalance` overload) or the raw
-   * balance from the asset state.
+   * `balanceFiatUsd` via the `calculateUsdBalance: true` overload.
    */
   balance: string | undefined;
   fiatBalance: string | undefined;
