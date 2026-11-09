@@ -1,0 +1,147 @@
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Image, useWindowDimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
+import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+
+// Threshold for small screen adjustments
+const SMALL_SCREEN_THRESHOLD = 700;
+
+/**
+ * Screen shown when KYC verification is still pending after the polling timeout.
+ * Informs the user that approvals typically take around 12 hours and they will be notified.
+ */
+const KYCPending = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const hasTrackedView = useRef(false);
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+  // Responsive image dimensions based on current window dimensions
+  const imageDimensions = useMemo(() => {
+    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
+    return {
+      width: isSmallScreen ? screenWidth * 1.2 : screenWidth * 1.3,
+      height: isSmallScreen ? screenHeight * 0.48 : screenHeight * 0.55,
+    };
+  }, [screenWidth, screenHeight]);
+
+  useEffect(() => {
+    // Wait for a known provider so we don't fire with a Baanx fallback then
+    // again when Immersve resolves (duplicate / misattributed views).
+    if (hasTrackedView.current || !activeProviderId) {
+      return;
+    }
+    hasTrackedView.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.KYC_PENDING,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, activeProviderId]);
+
+  const navigateToHome = useCallback(() => {
+    navigation.navigate(Routes.WALLET.HOME);
+  }, [navigation]);
+
+  return (
+    <Box twClassName="flex-1" style={tw.style('bg-accent04-dark')}>
+      {/* Header with back button */}
+      <SafeAreaView edges={['top']}>
+        <Box twClassName="px-4 py-2 items-start">
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            iconProps={{ twClassName: 'text-white' }}
+            onPress={navigateToHome}
+            testID="kyc-pending-back-button"
+          />
+        </Box>
+      </SafeAreaView>
+
+      {/* Content */}
+      <Box twClassName="flex-1 px-4">
+        {/* Title and description */}
+        <Box twClassName="mb-4">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-white"
+            testID="kyc-pending-title"
+          >
+            {strings('card.card_onboarding.kyc_pending.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-white opacity-80 mt-4"
+            testID="kyc-pending-description"
+          >
+            {strings('card.card_onboarding.kyc_pending.description')}
+          </Text>
+        </Box>
+
+        {/* Image - aligned left, extends beyond right edge */}
+        <Box twClassName="flex-1 justify-center items-start -ml-1 overflow-visible">
+          <Image
+            source={WaitingKYCImage}
+            resizeMode="contain"
+            style={{
+              width: imageDimensions.width,
+              height: imageDimensions.height,
+            }}
+            testID="kyc-pending-image"
+            accessible={false}
+          />
+        </Box>
+
+        {/* Footer */}
+        <SafeAreaView edges={['bottom']}>
+          <Box twClassName="pt-2 pb-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-white text-center mb-4"
+            >
+              {strings('card.card_onboarding.kyc_pending.footer_text')}
+            </Text>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={navigateToHome}
+              isFullWidth
+              testID="kyc-pending-got-it-button"
+            >
+              {strings('card.card_onboarding.kyc_pending.got_it_button')}
+            </Button>
+          </Box>
+        </SafeAreaView>
+      </Box>
+    </Box>
+  );
+};
+
+export default KYCPending;

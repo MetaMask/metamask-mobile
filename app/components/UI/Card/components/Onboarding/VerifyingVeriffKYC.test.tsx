@@ -29,10 +29,6 @@ jest.mock('../../../AnimatedSpinner', () => {
 // Mock useUserRegistrationStatus hook
 jest.mock('../../hooks/useUserRegistrationStatus');
 
-const mockShowKycInProgressToast = jest.fn();
-jest.mock('../../util/showKycInProgressToast', () => ({
-  showKycInProgressToast: () => mockShowKycInProgressToast(),
-}));
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -369,7 +365,7 @@ describe('VerifyingVeriffKYC', () => {
   });
 
   describe('Polling Timeout', () => {
-    it('goes to wallet home and shows the in-progress toast after 30 seconds of polling', () => {
+    it('navigates to KYC_PENDING after 30 seconds of polling', () => {
       (useUserRegistrationStatus as jest.Mock).mockReturnValue({
         verificationState: 'PENDING',
         startPolling: mockStartPolling,
@@ -383,12 +379,13 @@ describe('VerifyingVeriffKYC', () => {
       jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
 
       expect(mockStopPolling).toHaveBeenCalled();
-      expect(mockShowKycInProgressToast).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      });
     });
 
-    it('does not leave the screen before 30 seconds', () => {
+    it('does not navigate to KYC_PENDING before 30 seconds', () => {
       (useUserRegistrationStatus as jest.Mock).mockReturnValue({
         verificationState: 'PENDING',
         startPolling: mockStartPolling,
@@ -400,8 +397,6 @@ describe('VerifyingVeriffKYC', () => {
       jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
 
       expect(mockReset).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockShowKycInProgressToast).not.toHaveBeenCalled();
     });
 
     it('clears timeout when VERIFIED state is reached before timeout', async () => {
@@ -427,8 +422,10 @@ describe('VerifyingVeriffKYC', () => {
       mockReset.mockClear();
       jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(mockShowKycInProgressToast).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      });
     });
 
     it('clears timeout when REJECTED state is reached before timeout', async () => {
@@ -454,8 +451,10 @@ describe('VerifyingVeriffKYC', () => {
       mockReset.mockClear();
       jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME);
-      expect(mockShowKycInProgressToast).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      });
     });
 
     it('clears timeout on unmount', () => {

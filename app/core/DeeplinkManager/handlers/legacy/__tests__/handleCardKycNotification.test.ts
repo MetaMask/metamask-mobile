@@ -10,7 +10,6 @@ import {
 } from '../../../../../selectors/cardController';
 import { selectCardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
-import { showKycInProgressToast } from '../../../../../components/UI/Card/util/showKycInProgressToast';
 
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -28,7 +27,6 @@ jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/sdk/CardSDK');
 jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');
-jest.mock('../../../../../components/UI/Card/util/showKycInProgressToast');
 
 describe('handleCardKycNotification', () => {
   const mockGetState = jest.fn();
@@ -185,12 +183,19 @@ describe('handleCardKycNotification', () => {
         });
       });
 
-      it('navigates to wallet home and shows the in-progress toast', async () => {
+      it('navigates to KYCPending', async () => {
         await handleCardKycNotification();
         jest.runAllTimers();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-        expect(showKycInProgressToast).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: {
+              screen: Routes.CARD.ONBOARDING.KYC_PENDING,
+            },
+          },
+        });
       });
     });
 

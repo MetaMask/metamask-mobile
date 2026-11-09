@@ -1235,6 +1235,7 @@ export type RootStackParamList = {
   CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
   CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
   CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
+  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;

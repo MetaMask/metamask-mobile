@@ -100,6 +100,7 @@ jest.mock(
   () => 'ImmersveFundingApproval',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
+jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
