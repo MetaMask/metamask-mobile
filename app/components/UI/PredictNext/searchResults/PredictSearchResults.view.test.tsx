@@ -107,32 +107,38 @@ describeForPlatforms('Browser URL autocomplete predictions', () => {
       'bitcoin',
     );
 
-    const openRow = await view.findByTestId(
-      getPredictSearchResultRowTestId(IMAGED_MARKET.id),
-      HIDDEN,
-    );
-    const closedRow = view.getByTestId(
-      getPredictSearchResultRowTestId(MOCK_PREDICT_CLOSED_MARKET.id),
-      HIDDEN,
-    );
-    expect(view.getByText(PREDICTIONS_HEADER, HIDDEN)).toBeOnTheScreen();
-    expect(
-      within(openRow).getByText(IMAGED_MARKET.title, HIDDEN),
-    ).toBeOnTheScreen();
-    expect(within(openRow).getByText('Open', HIDDEN)).toBeOnTheScreen();
-    expect(
-      within(openRow).getByTestId(PredictSearchResultRowTestIds.IMAGE, HIDDEN),
-    ).toHaveProp('source', { uri: IMAGED_MARKET.image });
-    expect(
-      within(closedRow).getByText(MOCK_PREDICT_CLOSED_MARKET.title, HIDDEN),
-    ).toBeOnTheScreen();
-    expect(within(closedRow).getByText('closed', HIDDEN)).toBeOnTheScreen();
-    expect(
-      within(closedRow).getByTestId(
-        PredictSearchResultRowTestIds.PLACEHOLDER_ICON,
+    // Rows can remount while the search settles, so re-query them on retry.
+    await waitFor(() => {
+      const openRow = view.getByTestId(
+        getPredictSearchResultRowTestId(IMAGED_MARKET.id),
         HIDDEN,
-      ),
-    ).toBeOnTheScreen();
+      );
+      const closedRow = view.getByTestId(
+        getPredictSearchResultRowTestId(MOCK_PREDICT_CLOSED_MARKET.id),
+        HIDDEN,
+      );
+      expect(view.getByText(PREDICTIONS_HEADER, HIDDEN)).toBeOnTheScreen();
+      expect(
+        within(openRow).getByText(IMAGED_MARKET.title, HIDDEN),
+      ).toBeOnTheScreen();
+      expect(within(openRow).getByText('Open', HIDDEN)).toBeOnTheScreen();
+      expect(
+        within(openRow).getByTestId(
+          PredictSearchResultRowTestIds.IMAGE,
+          HIDDEN,
+        ),
+      ).toHaveProp('source', { uri: IMAGED_MARKET.image });
+      expect(
+        within(closedRow).getByText(MOCK_PREDICT_CLOSED_MARKET.title, HIDDEN),
+      ).toBeOnTheScreen();
+      expect(within(closedRow).getByText('closed', HIDDEN)).toBeOnTheScreen();
+      expect(
+        within(closedRow).getByTestId(
+          PredictSearchResultRowTestIds.PLACEHOLDER_ICON,
+          HIDDEN,
+        ),
+      ).toBeOnTheScreen();
+    });
     const rowIds = view
       .getAllByTestId(/^predict-search-result-row-market/, HIDDEN)
       .map((row) => row.props.testID);
