@@ -1,13 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
-  StyleSheet,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -61,15 +59,10 @@ import PositionSheetTabs, {
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
-import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
+import { useChartLineReveal } from './hooks/useChartLineReveal';
 import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
-
-const styles = StyleSheet.create({
-  // Measured at its natural height while the clipping parent animates open.
-  detailsMeasure: { position: 'absolute', top: 0, left: 0, right: 0 },
-});
 
 const addressesMatch = (
   left: string | null | undefined,
@@ -83,9 +76,8 @@ const addressesMatch = (
 };
 
 /**
- * Social V1 position / trade details. Opens in two steps: the header and the
- * self-drawing price line first, then the sheet grows to show the trade
- * summary, the post (when there is one) and the actions.
+ * Social V1 position / trade details: the header, a self-drawing price line,
+ * the trade summary, the post (when there is one) and the actions.
  */
 const PositionDetailsSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -118,7 +110,7 @@ const PositionDetailsSheet = () => {
     { isNetworkAvailable },
   );
   const isChartLoading = data.isPricesLoading || live.isLoading;
-  const reveal = useTwoStepSheetReveal({
+  const reveal = useChartLineReveal({
     isChartReady: !isChartLoading,
     hasChartData: data.prices.length >= 2,
   });
@@ -458,23 +450,9 @@ const PositionDetailsSheet = () => {
               overlayStyle={reveal.overlayStyle}
               onScrub={setScrubPoint}
             />
-            {reveal.isAnimated ? (
-              <Animated.View
-                style={reveal.detailsContainerStyle}
-                testID={PositionDetailsSheetSelectorsIDs.DETAILS}
-              >
-                <Animated.View
-                  style={[styles.detailsMeasure, reveal.detailsContentStyle]}
-                  onLayout={reveal.onDetailsLayout}
-                >
-                  {details}
-                </Animated.View>
-              </Animated.View>
-            ) : (
-              <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-                {details}
-              </View>
-            )}
+            <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
+              {details}
+            </View>
           </ScrollView>
           {isTabsExpanded ? footer : null}
         </BottomSheet>
