@@ -68,7 +68,7 @@ Code outside Predict opens Predict with an intent, never with a route, route par
 
 Empty params are omitted, as callers did before. While the Active Venue is resolving, `home` and `feed` take the legacy navigation, which the root router hands to the Active Venue's stack; every other intent is unavailable until the Venue is known.
 
-Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` exists for callers that still receive legacy Polymarket data (Browser autocomplete) and goes with PRED-1356.
+Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` mints the legacy references Predict's own legacy branches need and goes with PRED-1356. It left the entry point in PRED-1386, when Browser autocomplete stopped receiving legacy data.
 
 ### Campaign entry points (PRED-1391)
 
@@ -135,6 +135,17 @@ PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the 
 - An Explore refresh refetches only the active read. The next branch invalidates through the data service, so it reads the backend, and records triggers while inactive, so a Venue change never replays one.
 - `usePredictTrendingSupported(surface)` tells a caller to leave a surface out rather than render it empty. `search` (the search Predictions pill) follows the descriptor's search support. `allSports` (the Sports tab's All Sports list) is legacy-only: its sports are Polymarket tags, not Feed keys. Predict availability stays the caller's own gate, as before.
 - `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets. A next Venue's market renders the PredictNext Event card in the Polymarket layout: a card press opens the `event` intent, and a buy press opens the PredictNext Order Flow, which the carousel or card hosts. Both are refused for a market whose Venue is no longer the Active Venue. Explore's analytics are unchanged; a next Event reports its id and title, as it has no slug or tags.
+
+## Browser URL autocomplete
+
+PRED-1386 gave Browser autocomplete its own Predict search source, `searchResults/`, instead of reading Explore's Predictions search section and casting its markets back to `PredictMarket`:
+
+- `usePredictSearchResults(query)` returns `PredictSearchResult`s: venue-neutral display values (`id`, `title`, `subtitle`, `imageUrl`) and the `intent` that opens the result. No legacy market, provider ID or Venue crosses it. It debounces the query as Explore does and reports loading while it debounces.
+- The legacy branch is the Polymarket search Browser already used, `usePredictionsFeed` with the query, so it shares Explore's query key and adds no request. Its mapping (`internal/legacy/`) keeps Browser's values: the market title, "Open" or the raw status, the market image, and an `event` intent with a legacy reference and no entry point or snapshots, so the market details screen opens with the same params as before.
+- While the Active Venue resolves, and for next Venues until PRED-1409 (E4), it has no results and never loads, so Browser leaves its Predictions section out.
+- `PredictSearchResultRow` renders a result: image or placeholder icon, title, subtitle, in the autocomplete row layout. Browser opens `result.intent` with `openPredict` and keeps its own blur handling.
+
+`UrlAutocomplete`'s `PredictionsSearchResult` is `PredictSearchResult` plus its autocomplete category.
 
 ## Canonical decisions that remain
 

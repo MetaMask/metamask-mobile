@@ -492,6 +492,9 @@ app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask
 # Wallet Library initialization
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/analytics-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/listeners/ @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/messengers/analytics-controller-messenger* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confirmations
