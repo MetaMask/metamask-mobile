@@ -343,7 +343,6 @@ describe('PredictHomeSection', () => {
     it('names threshold Positions by their line, so two Players in one Game read differently', async () => {
       const event = makePredictNextPlayerPropsEvent();
       configurePredictNextFeeds({
-        details: [event],
         positions: [
           makePredictNextPosition(
             makePredictNextThresholdEntry(

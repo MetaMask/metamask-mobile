@@ -326,10 +326,12 @@ interface PredictFeed {
   picker of its lines. It knows nothing about the sport, stat or unit. The Event
   screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs · 60+".
   So do the Event screen's Position cards, and the Home, Portfolio and
-  Activity rows and details: an entry's `context.outcomeLabel` is only "Yes"
-  or "No", so mobile reads the entry's Market from its catalog Event
-  (`context.eventId`) to name the line. Until that Event loads, or when the
-  Market is not in it, they show the Outcome label alone.
+  Activity rows and details. Those screens take catalog presentation data
+  from the entry's context, never from an Event read: an entry's
+  `context.outcomeLabel` is only "Yes" or "No", so the backend also sends
+  `context.threshold` (the line's raw N and the group `label`) and mobile
+  formats it. An entry without `context.threshold` shows the Outcome label
+  alone.
 - `Market.layout` is optional. The backend places a Market on the Event screen
   as tab › section › optional subgroup, each a key and an `order` among its
   siblings. Unknown keys are valid. A malformed `layout` is dropped and the

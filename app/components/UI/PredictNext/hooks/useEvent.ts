@@ -5,17 +5,8 @@ import {
 } from '../queries/marketDataQueries';
 import type { PredictEntityId, PredictVenueId } from '../types';
 
-export interface UseEventOptions {
-  enabled?: boolean;
-}
-
 /** Reads one Event from a Venue. */
-export const useEvent = (
-  venueId: PredictVenueId,
-  eventId: PredictEntityId,
-  options?: UseEventOptions,
-) =>
+export const useEvent = (venueId: PredictVenueId, eventId: PredictEntityId) =>
   useQuery<GetEventResult>({
     queryKey: marketDataQueries.getEvent(venueId, eventId).queryKey,
-    enabled: options?.enabled,
   });

@@ -492,6 +492,17 @@ export interface FetchPositionsParams extends FetchPortfolioPageParams {
 }
 
 /**
+ * A threshold ("at least N") line, as an entry's catalog context names it:
+ * raw values that mobile formats, such as "Josh Jacobs · 60+".
+ */
+export interface PredictThresholdLine {
+  /** The whole N of "at least N". */
+  line: number;
+  /** The line's card title, such as a Player's name. */
+  label?: string;
+}
+
+/**
  * Catalog-derived presentation data for an account-scoped entry. Present only
  * when the entry's Market exists in the canonical catalog; a missing match
  * omits the context and the entry is never enriched from tickers or labels.
@@ -504,6 +515,9 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /** Present only when the Market is a threshold line: its Outcome label is
+   * only "Yes" or "No", so the line names it. */
+  threshold?: PredictThresholdLine;
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a

@@ -352,17 +352,12 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
     );
 
     beforeEach(() => {
-      mockPredictNextMessenger((action: string, ...params: unknown[]) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getActivity') {
           return Promise.resolve({
             venueId: 'kalshi',
             activity: [thresholdTrade, thresholdSettlement],
           });
-        }
-        if (action === 'PredictMarketDataService:getEvent') {
-          return params[1] === event.id
-            ? Promise.resolve(event)
-            : Promise.reject(new Error('Event not found'));
         }
         return Promise.resolve(undefined);
       });

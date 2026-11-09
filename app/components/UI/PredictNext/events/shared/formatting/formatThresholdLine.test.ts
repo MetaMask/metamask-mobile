@@ -2,6 +2,7 @@ import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictEntityId, PredictMarket } from '../../../types';
 import {
   formatThresholdLine,
+  formatThresholdLineOutcome,
   formatThresholdOutcome,
   formatThresholdTitle,
 } from './formatThresholdLine';
@@ -88,5 +89,17 @@ describe('formatThresholdOutcome', () => {
     expect(
       formatThresholdOutcome(createMarket(undefined), 'Yes'),
     ).toBeUndefined();
+  });
+});
+
+describe('formatThresholdLineOutcome', () => {
+  it('names an Outcome with a context threshold line and label', () => {
+    expect(
+      formatThresholdLineOutcome({ line: 60, label: 'Josh Jacobs' }, 'Yes'),
+    ).toBe('Yes · Josh Jacobs · 60+');
+  });
+
+  it('names an Outcome with an unlabelled context threshold line', () => {
+    expect(formatThresholdLineOutcome({ line: 60 }, 'No')).toBe('No · 60+');
   });
 });

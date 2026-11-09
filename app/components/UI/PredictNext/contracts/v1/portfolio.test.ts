@@ -199,6 +199,18 @@ describe('Predict API canonical Positions parser', () => {
     expect(parsePredictPositionsPage(input)).toEqual(input);
   });
 
+  it.each([
+    ['a labelled', { line: 60, label: 'Josh Jacobs' }],
+    ['an unlabelled', { line: 60 }],
+  ])('parses a Position on %s threshold line', (_name, threshold) => {
+    const input = {
+      venueId: 'kalshi',
+      positions: [createPosition({ context: createContext({ threshold }) })],
+    };
+
+    expect(parsePredictPositionsPage(input)).toEqual(input);
+  });
+
   it('discards superseded and unknown fields', () => {
     const input = {
       venueId: 'kalshi',
@@ -250,6 +262,18 @@ describe('Predict API canonical Positions parser', () => {
     [
       'a context with a non-HTTPS image',
       { context: createContext({ imageUrl: 'http://example.com/a.png' }) },
+    ],
+    [
+      'a threshold without its line',
+      { context: createContext({ threshold: { label: 'Josh Jacobs' } }) },
+    ],
+    [
+      'a preformatted threshold line',
+      { context: createContext({ threshold: { line: '60+' } }) },
+    ],
+    [
+      'a threshold with a blank label',
+      { context: createContext({ threshold: { line: 60, label: '' } }) },
     ],
   ])('rejects a Position with %s', (_name, overrides) => {
     const input = {

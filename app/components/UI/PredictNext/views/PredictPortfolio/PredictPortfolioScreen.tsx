@@ -28,7 +28,7 @@ import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioTabs } from './internal/PortfolioTabs';
-import { getEntryTitle } from '../../utils/entryCopy';
+import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
@@ -93,16 +93,16 @@ export const PredictPortfolioScreen = () => {
   );
 
   /** Opens the shared Order flow as a Cash Out: a sell bounded by the
-   * Position's whole-contract size, labeled as its row names the Outcome. */
+   * Position's whole-contract size, labeled from its catalog context. */
   const cashOut = useCallback(
-    (position: PredictPosition, outcomeLabel: string) => {
+    (position: PredictPosition) => {
       openOrderFlow({
         action: 'sell',
         eventId: position.context?.eventId,
         venueId,
         marketId: position.marketId,
         side: position.side,
-        outcomeLabel,
+        outcomeLabel: getOutcomeName(position.side, position.context),
         eventTitle: getEntryTitle(position.context),
         eventImageUrl: position.context?.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),

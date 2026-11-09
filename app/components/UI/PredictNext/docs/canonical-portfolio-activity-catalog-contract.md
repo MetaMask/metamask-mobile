@@ -60,6 +60,7 @@ interface PredictEntryContext {
   marketQuestion: string;
   outcomeLabel: string;
   imageUrl?: PredictHttpsUrl;
+  threshold?: { line: number; label?: string };
 }
 ```
 
@@ -70,6 +71,7 @@ interface PredictEntryContext {
 | `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                          |
 | `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details             |
 | `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                         |
+| `threshold`      | Threshold Markets only: the raw `line` (group `option.value`) and group `label` (the Player). Mobile formats them.      | Home, Portfolio and Activity rows, Activity details                |
 
 When `context` is absent, mobile renders neutral fallback copy and the Outcome side. It never renders a raw Venue identifier as a title.
 

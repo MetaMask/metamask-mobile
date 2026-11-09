@@ -92,16 +92,6 @@ describe('PredictNext market data hooks', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],
-      enabled: undefined,
-    });
-  });
-
-  it('forwards the enabled gate to the Event query', () => {
-    useEvent(venueId, eventId, { enabled: false });
-
-    expect(mockedUseQuery).toHaveBeenCalledWith({
-      queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],
-      enabled: false,
     });
   });
 

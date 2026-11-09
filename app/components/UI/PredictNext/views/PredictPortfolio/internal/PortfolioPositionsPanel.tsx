@@ -17,7 +17,7 @@ interface PortfolioPositionsPanelProps {
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
   /** Opens the Cash Out (sell) Order flow for one Position. */
-  onCashOut: (position: PredictPosition, outcomeLabel: string) => void;
+  onCashOut: (position: PredictPosition) => void;
 }
 
 /** Renders the independently cached Positions list for one Venue, open

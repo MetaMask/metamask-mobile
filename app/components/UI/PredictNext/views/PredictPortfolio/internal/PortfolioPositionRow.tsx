@@ -19,8 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
-import { useEntryOutcomeName } from '../../../hooks/useEntryOutcomeName';
-import { getEntryTitle } from '../../../utils/entryCopy';
+import { getEntryTitle, getOutcomeName } from '../../../utils/entryCopy';
 import { formatPositionPnl } from '../../../utils/positionValue';
 import {
   formatSharesAmount,
@@ -32,9 +31,8 @@ interface PortfolioPositionRowProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
   onPress?: (position: PredictPosition) => void;
-  /** Shows the Cash Out affordance for selling an open Position back, with
-   * the Outcome named as the row names it. */
-  onCashOut?: (position: PredictPosition, outcomeLabel: string) => void;
+  /** Shows the Cash Out affordance for selling an open Position back. */
+  onCashOut?: (position: PredictPosition) => void;
 }
 
 interface PortfolioPositionMetricsProps {
@@ -100,9 +98,8 @@ export const PortfolioPositionRow = ({
   const tw = useTailwind();
   const { context, status } = position;
   const title = getEntryTitle(context);
-  const outcome = useEntryOutcomeName(position);
   const metaLine = strings('predict_next.portfolio.outcome_shares', {
-    outcome,
+    outcome: getOutcomeName(position.side, context),
     shares: formatSharesAmount(position.shares),
   });
 
@@ -169,7 +166,7 @@ export const PortfolioPositionRow = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            onPress={() => onCashOut(position, outcome)}
+            onPress={() => onCashOut(position)}
             testID={PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT}
           >
             <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>

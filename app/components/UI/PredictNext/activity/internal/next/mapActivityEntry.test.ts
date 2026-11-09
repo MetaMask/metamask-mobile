@@ -122,6 +122,21 @@ describe('mapActivityEntry', () => {
     });
     expect(item.data).not.toHaveProperty('realizedPnl', expect.anything());
   });
+
+  it("names a threshold Settlement's Outcome with its line", () => {
+    const item = map({
+      ...settlement,
+      context: {
+        ...context,
+        outcomeLabel: 'No',
+        threshold: { line: 50, label: 'Kenneth Walker' },
+      },
+    } as PredictSettlementEntry);
+
+    expect(item.data).toMatchObject({
+      outcomeLabel: 'No · Kenneth Walker · 50+',
+    });
+  });
 });
 
 describe('getVenueActivityChainId', () => {

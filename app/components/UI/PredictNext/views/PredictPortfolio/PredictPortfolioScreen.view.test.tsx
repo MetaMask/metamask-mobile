@@ -419,10 +419,9 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('names threshold Positions by their line, so two Players in one Game read differently', async () => {
+  it('names threshold Positions by their context line, so two Players in one Game read differently', async () => {
     const event = makePredictNextPlayerPropsEvent();
     configurePredictNextFeeds({
-      details: [event],
       positions: [
         makePredictNextPosition(
           makePredictNextThresholdEntry(
@@ -454,10 +453,11 @@ describe('PredictPortfolioScreen', () => {
       await within(walker).findByText('Yes · Kenneth Walker · 50+ · 75 shares'),
     ).toBeOnTheScreen();
     expect(within(lakers).getByText('Lakers · 75 shares')).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledWith(
+    // The entry context names the line: no Event is read for it.
+    expect(messengerCall).not.toHaveBeenCalledWith(
       'PredictMarketDataService:getEvent',
-      KALSHI_VENUE_ID,
-      event.id,
+      expect.anything(),
+      expect.anything(),
     );
   });
 
@@ -615,7 +615,6 @@ describe('PredictPortfolioScreen', () => {
   it('names threshold trades and Settlements by their line', async () => {
     const event = makePredictNextPlayerPropsEvent();
     configurePredictNextFeeds({
-      details: [event],
       activity: [
         makePredictNextTrade(
           makePredictNextThresholdEntry(
@@ -1209,7 +1208,6 @@ describe('PredictPortfolioScreen', () => {
     it('names a threshold Position by its line in the Cash Out sheet', async () => {
       const event = makePredictNextPlayerPropsEvent();
       configurePredictNextFeeds({
-        details: [event],
         positions: [
           makePredictNextPosition(
             makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),

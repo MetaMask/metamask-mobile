@@ -5,6 +5,7 @@ import {
   enums,
   literal,
   mask,
+  number,
   object,
   optional,
   refine,
@@ -59,6 +60,13 @@ const entryContextSchema = object({
   marketQuestion: nonEmptyString,
   outcomeLabel: nonEmptyString,
   imageUrl: optional(httpsUrl),
+  /** A threshold line's raw N and card label; mobile formats them. */
+  threshold: optional(
+    object({
+      line: number(),
+      label: optional(nonEmptyString),
+    }),
+  ),
 });
 
 /**
