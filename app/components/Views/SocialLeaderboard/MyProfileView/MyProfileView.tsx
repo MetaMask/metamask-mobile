@@ -78,7 +78,10 @@ import {
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
-import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import type {
+  SocialV1FeedAuthor,
+  SocialV1FeedPost,
+} from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
@@ -169,6 +172,21 @@ const filteredPostsEmptyKey = (assetFilter: ProfileAssetFilter): string =>
   assetFilter === 'tokens'
     ? 'social_leaderboard.feed.empty_type.tokens.title'
     : 'social_leaderboard.feed.empty_type.perps.title';
+
+/** Sheet identity for a profile row. Missing stats stay empty so badges hide. */
+const positionSheetAuthor = (
+  profile: MySocialProfile,
+  traderAddress: string | undefined,
+): SocialV1FeedAuthor => ({
+  id: profile.profileId,
+  username: profile.displayName,
+  address: profile.linkedAccountAddress ?? traderAddress,
+  avatarUri: profile.imageUrl,
+  winRatePercent: profile.winRatePercent ?? null,
+  pnl30d: profile.pnlUsd ?? null,
+  followerCount: profile.followerCount ?? null,
+  xHandle: profile.xHandle ?? null,
+});
 
 interface ProfilePostsContentProps {
   showInitialPostSkeletons: boolean;
@@ -597,6 +615,17 @@ const MyProfileView: React.FC = () => {
       trackInteraction(Interaction.TAP, {
         trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
       });
+      const isClosed = activeTab === 'closed';
+      // Open rows use the feed sheet. Closed rows stay on the position screen.
+      if (!isClosed && position.positionId) {
+        navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+          positionId: position.positionId,
+          position,
+          author: positionSheetAuthor(displayProfile, traderAddress),
+          isClosed: false,
+        });
+        return;
+      }
       navigation.navigate(Routes.SOCIAL.POSITION, {
         traderId: displayProfile.profileId,
         traderName: displayProfile.displayName,
@@ -606,7 +635,7 @@ const MyProfileView: React.FC = () => {
         tokenSymbol: position.tokenSymbol,
         position,
         source: 'profile_position',
-        isClosed: activeTab === 'closed',
+        isClosed,
       });
     },
     [activeTab, displayProfile, navigation, trackInteraction, traderAddress],
