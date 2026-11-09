@@ -10,6 +10,7 @@ import { openE2EUrl } from '../../framework/DeepLink.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { mockRewardsMoneyApi } from '../../api-mocking/mock-responses/rewards-money.js';
 import { CLAIMED_EARNINGS_SUMMARY } from '../../component-view/presets/rewardsMoney.js';
+import { mockIdentityServices } from '../../smoke/identity/utils/mocks.js';
 
 /** iOS relaunch repeats fixture launch args. activateApp drops them after terminateApp. */
 const MONEY_CAMPAIGN_DEEPLINK =
@@ -38,6 +39,11 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money relaunch'), () => {
           restartDevice: true,
           currentDeviceDetails,
           testSpecificMock: async (mockServer: Mockttp) => {
+            // iOS kill starts a new process, so identity storage has to live on
+            // this mock server. Android keeps app data and these auth mocks stall it.
+            if (currentDeviceDetails.platform === 'ios') {
+              await mockIdentityServices(mockServer);
+            }
             await setupRemoteFeatureFlagsMock(mockServer, {
               rewardsMoneyControllerEnabled: {
                 enabled: true,
