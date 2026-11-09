@@ -945,13 +945,17 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "answeredReferralCode": null,
       "cashbackLedger": {},
       "claimLocks": {},
       "claimWaitingUntil": {},
+      "commissionMechanisms": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
       "inFlightClaims": {},
+      "isReferralLinkPending": false,
+      "pendingReferralCode": null,
       "referralFunnel": {},
       "referralMe": {}
     },

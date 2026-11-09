@@ -41,6 +41,11 @@ export interface TopTrader {
   followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 /**
@@ -56,6 +61,11 @@ export interface TraderRowMetric {
   label: string;
   /** Renders the value in success green rather than error red. */
   isPositive: boolean;
+  /**
+   * Renders the value in the default text color, ignoring `isPositive`. For a
+   * holding such as a position size, which is not a gain or a loss.
+   */
+  isNeutral?: boolean;
 }
 
 /**

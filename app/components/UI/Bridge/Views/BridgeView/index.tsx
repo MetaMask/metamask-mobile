@@ -35,6 +35,9 @@ import {
   setBridgeViewMode,
   setLimitOrderCostTolerance,
   setLimitOrderExpirationMinutes,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -93,17 +96,30 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
     route.params?.initialLimitOrderPriceTolerance;
+  const initialRecurringSchedule = route.params?.initialRecurringSchedule;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
@@ -169,6 +185,17 @@ const BridgeView = () => {
     dispatch,
     navigation,
   ]);
+
+  useLayoutEffect(() => {
+    if (!initialRecurringSchedule) {
+      return;
+    }
+
+    dispatch(setRecurringEveryUnit(initialRecurringSchedule.everyUnit));
+    dispatch(setRecurringEveryValue(initialRecurringSchedule.everyValue));
+    dispatch(setRecurringRepeatCount(initialRecurringSchedule.repeatCount));
+    navigation.setParams({ initialRecurringSchedule: undefined });
+  }, [dispatch, initialRecurringSchedule, navigation]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({

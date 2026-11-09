@@ -14,6 +14,10 @@ const mockParentGoBack = jest.fn();
 const mockParentCanGoBack = jest.fn(() => false);
 const mockNavigate = jest.fn();
 
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -170,13 +174,14 @@ describe('VbaSumSubKyc', () => {
       }),
     );
 
-    const { queryByTestId, unmount } = renderWithProvider(
+    const { getByTestId, queryByTestId, unmount } = renderWithProvider(
       <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledTimes(1);
     });
+    expect(getByTestId(VbaSumSubKycSelectorsIDs.LOADER)).toBeOnTheScreen();
     expect(
       queryByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
     ).not.toBeOnTheScreen();

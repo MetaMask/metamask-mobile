@@ -107,6 +107,7 @@ const renderRedirectHook = () => renderHook(() => useVbaKycStatusRedirect());
 
 const pending = { finalStatus: 'pending', kycStatus: 'pending' };
 const approved = { finalStatus: 'approved', kycStatus: 'approved' };
+const rejected = { finalStatus: 'rejected', kycStatus: 'rejected' };
 const relayApproved = { finalStatus: 'pending', kycStatus: 'approved' };
 
 describe('useVbaKycStatusRedirect', () => {
@@ -133,7 +134,6 @@ describe('useVbaKycStatusRedirect', () => {
 
   it.each([
     ['approved', 'approved'],
-    ['pending', 'approved'],
     ['retry', 'retry'],
     ['rejected', 'rejected'],
   ])(
@@ -170,7 +170,7 @@ describe('useVbaKycStatusRedirect', () => {
 
   it('does not start a second resolve while one is in flight', () => {
     mockResolve.mockReturnValue(createDeferred().promise);
-    setSessionStatus(relayApproved);
+    setSessionStatus(rejected);
     const { rerender } = renderRedirectHook();
 
     setSessionStatus(approved);
@@ -182,7 +182,7 @@ describe('useVbaKycStatusRedirect', () => {
   it('resolves again when a different terminal status arrived while staying on this screen', async () => {
     const deferred = createDeferred();
     mockResolve.mockReturnValueOnce(deferred.promise);
-    setSessionStatus(relayApproved);
+    setSessionStatus(rejected);
     const { rerender } = renderRedirectHook();
     setSessionStatus(approved);
     rerender({});
@@ -241,7 +241,7 @@ describe('useVbaKycStatusRedirect', () => {
     mockNavigate.mockImplementationOnce(() => {
       throw new Error('navigation failed');
     });
-    setSessionStatus(relayApproved);
+    setSessionStatus(rejected);
     const { rerender } = renderRedirectHook();
     await act(flushPromises);
 
@@ -261,8 +261,11 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockResolve).toHaveBeenCalledTimes(2);
   });
 
-  it('starts the session poll on mount with a pending status', () => {
-    setSessionStatus(pending);
+  it.each([
+    ['relay and provider pending', pending],
+    ['relay approved and provider pending', relayApproved],
+  ])('starts the session poll on mount when %s', (_label, sessionStatus) => {
+    setSessionStatus(sessionStatus);
 
     renderRedirectHook();
 
@@ -291,15 +294,21 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('refreshes the session status when the app returns to the foreground with a pending status', () => {
-    setSessionStatus(pending);
-    renderRedirectHook();
-    mockRefreshSessionStatus.mockClear();
+  it.each([
+    ['relay and provider pending', pending],
+    ['relay approved and provider pending', relayApproved],
+  ])(
+    'refreshes the session status when the app returns to the foreground while %s',
+    (_label, sessionStatus) => {
+      setSessionStatus(sessionStatus);
+      renderRedirectHook();
+      mockRefreshSessionStatus.mockClear();
 
-    act(() => appStateChangeHandler?.('active'));
+      act(() => appStateChangeHandler?.('active'));
 
-    expect(mockRefreshSessionStatus).toHaveBeenCalledTimes(1);
-  });
+      expect(mockRefreshSessionStatus).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each([
     ['a terminal status', approved],
@@ -321,7 +330,7 @@ describe('useVbaKycStatusRedirect', () => {
 describe('isTerminalVbaKycStatus', () => {
   it.each([
     [{ finalStatus: 'approved', kycStatus: 'approved' }, true],
-    [{ finalStatus: 'pending', kycStatus: 'approved' }, true],
+    [{ finalStatus: 'pending', kycStatus: 'approved' }, false],
     [{ finalStatus: 'retry', kycStatus: 'retry' }, true],
     [{ finalStatus: 'rejected', kycStatus: 'rejected' }, true],
     [{ finalStatus: 'pending', kycStatus: 'pending' }, false],

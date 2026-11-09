@@ -49,6 +49,7 @@ function setup(
     address?: string | undefined;
     tier?: 'WIFI' | 'SLOW_CELLULAR' | 'NONE';
     kycApproved?: boolean;
+    relayApproved?: boolean;
     registeredWallet?: string;
     autorampWallet?: string;
     locked?: boolean;
@@ -60,7 +61,9 @@ function setup(
   const isUnlocked = !(options.locked ?? false);
   const sessionStatus = kycApproved
     ? { finalStatus: 'approved', kycStatus: 'approved' }
-    : null;
+    : options.relayApproved
+      ? { finalStatus: 'pending', kycStatus: 'approved' }
+      : null;
   const rampsState = {
     moneyAccountWalletRegistrations: options.registeredWallet
       ? [{ walletAddress: options.registeredWallet }]
@@ -209,6 +212,18 @@ describe('useMoneyMicrodeposits', () => {
 
   it('does not fetch for a wallet with no KYC decision and no VBA evidence', async () => {
     const address = setup();
+    const getMicrodeposits = jest.fn();
+    setService({ getMicrodeposits });
+
+    const { result } = renderMicrodeposits(address);
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(getMicrodeposits).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch when only relay KYC is approved', async () => {
+    const address = setup({ relayApproved: true });
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 

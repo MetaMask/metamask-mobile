@@ -135,6 +135,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsTransactionHistory: false,
           supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
+          reportsVerificationStatus: true,
         }),
       },
       PhishingController: {

@@ -5,18 +5,19 @@ import {
 import Engine from '../../../../core/Engine';
 import { readAnalyticsRegion } from '../../../../util/analytics/analyticsRegion';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
+import { IRON_KYC_VENDOR } from '../vendors/iron';
 
 /** Screen name for the VBA onboarding funnel (`metamask-kyc-base`). */
-export const KYC_ANALYTICS_SCREEN_NAME = 'vba_onboarding';
+export const KYC_ANALYTICS_SCREEN_NAME = IRON_KYC_VENDOR.analytics.screenName;
 /** Entry point for the VBA onboarding funnel (`metamask-kyc-base`). */
-export const KYC_ANALYTICS_ENTRY_POINT = 'add_funds_bank_account';
+export const KYC_ANALYTICS_ENTRY_POINT = IRON_KYC_VENDOR.analytics.entryPoint;
 /** Identity verification provider (`metamask-kyc-base`). */
-export const KYC_ANALYTICS_PROVIDER = 'sumsub';
+export const KYC_ANALYTICS_PROVIDER = IRON_KYC_VENDOR.analytics.provider;
 /**
  * Vendor reported on KYC events. The schema allows `moonpay`; the KYC
  * controller itself still reports its own vendor (`iron`).
  */
-export const KYC_ANALYTICS_VENDOR = 'moonpay';
+export const KYC_ANALYTICS_VENDOR = IRON_KYC_VENDOR.analytics.vendor;
 
 export interface KycStateInput {
   /** Analytics KYC status now. Read from controller state when omitted. */

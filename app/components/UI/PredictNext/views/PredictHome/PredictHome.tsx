@@ -1,23 +1,31 @@
 import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandardAnimated,
   IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
+import {
+  KalshiDebugPanel,
+  KalshiDebugTestIds,
+} from '../../onboarding/KalshiDebugPanel';
 import {
   FEED_SCREENS,
   type FeedScreenDefinition,
@@ -81,6 +89,10 @@ const PredictHomeView = ({
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
   const {
     visibleKeys,
     onViewportLayout,
@@ -195,7 +207,9 @@ const PredictHomeView = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimated
+      <HeaderStandardAnimatedGlass
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
         includesTopInset
         title={homeTitle}
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
@@ -207,9 +221,12 @@ const PredictHomeView = ({
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <PredictVenueSelectorButton variant="standard" />
+            <PredictVenueSelectorButton
+              variant={isGlassHeader ? 'glass' : 'standard'}
+            />
             {isVenueSearchSupported(capabilities) ? (
-              <ButtonIcon
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
                 size={ButtonIconSize.Md}
                 iconName={IconName.Search}
                 onPress={openSearch}
@@ -218,6 +235,22 @@ const PredictHomeView = ({
                 accessibilityRole="button"
               />
             ) : null}
+            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on a
+                development build with Kalshi authentication on. Remove with
+                the demo onboarding. */}
+            <KalshiDebugPanel
+              renderTrigger={(open) => (
+                <ButtonIconGlass
+                  isCapsule={isGlassHeader}
+                  size={ButtonIconSize.Md}
+                  iconName={IconName.Flask}
+                  onPress={open}
+                  testID={KalshiDebugTestIds.OPEN}
+                  accessibilityLabel="User debug"
+                  accessibilityRole="button"
+                />
+              )}
+            />
           </Box>
         }
         {...(navigation.canGoBack()
@@ -229,6 +262,7 @@ const PredictHomeView = ({
       />
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
+        contentContainerStyle={{ paddingTop: headerInset }}
         onScroll={onScroll}
         onLayout={onViewportLayout}
         // The animated handler above only reads contentOffset, so these plain

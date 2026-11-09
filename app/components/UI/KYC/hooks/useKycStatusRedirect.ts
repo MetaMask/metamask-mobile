@@ -2,10 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  KYC_STATUSES,
-  TERMINAL_SESSION_STATUSES,
-} from '@metamask/kyc-controller';
+import { TERMINAL_SESSION_STATUSES } from '@metamask/kyc-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -29,10 +26,8 @@ const getStatusKey = ({ finalStatus, kycStatus }: KycStatusPair): string =>
 
 export const isTerminalVbaKycStatus = ({
   finalStatus,
-  kycStatus,
 }: KycStatusPair): boolean =>
-  kycStatus === KYC_STATUSES.approved ||
-  (finalStatus !== null && TERMINAL_SESSION_STATUSES.has(finalStatus));
+  finalStatus !== null && TERMINAL_SESSION_STATUSES.has(finalStatus);
 
 export const useVbaKycStatusRedirect = (): (() => void) => {
   const navigation = useNavigation<AppNavigationProp>();

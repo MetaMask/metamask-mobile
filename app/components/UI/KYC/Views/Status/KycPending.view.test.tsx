@@ -267,7 +267,7 @@ describeForPlatforms('VbaKycPending', () => {
     storeReady = true;
   });
 
-  it('returns to the previous screen from Come back later', async () => {
+  it('returns to the previous screen from Done', async () => {
     const { getByTestId, getByText, queryByLabelText } = renderKycScreen(
       <PendingWithHistory />,
       { finalStatus: 'pending', kycStatus: 'pending' },
@@ -282,10 +282,14 @@ describeForPlatforms('VbaKycPending', () => {
       getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.description')),
+      getByText(
+        strings(
+          'virtual_bank_account.kyc_taking_longer.description_few_minutes',
+        ),
+      ),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.button')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.done_button')),
     ).toBeOnTheScreen();
     expect(queryByLabelText('Back')).not.toBeOnTheScreen();
 
@@ -298,7 +302,7 @@ describeForPlatforms('VbaKycPending', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens Money home from Come back later when there is no previous screen', async () => {
+  it('opens Money home from Done when there is no previous screen', async () => {
     const { getByTestId, findByTestId } = renderKycScreen(<PendingAtRoot />, {
       finalStatus: 'pending',
       kycStatus: 'pending',

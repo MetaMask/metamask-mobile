@@ -2244,6 +2244,26 @@ export function encodeRouterRedeem({
   ]) as Hex;
 }
 
+// Buy previews poll every second; a market's tags do not change between ticks.
+const marketTagSlugsCache = new Map<string, Promise<string[]>>();
+
+export const clearMarketTagSlugsCache = () => {
+  marketTagSlugsCache.clear();
+};
+
+const getMarketTagSlugs = (marketId: string): Promise<string[]> => {
+  const cached = marketTagSlugsCache.get(marketId);
+  if (cached) {
+    return cached;
+  }
+  const slugs = getMarketDetailsFromGammaApi({ marketId }).then(
+    (market) => market.tags?.map((t) => t.slug) ?? [],
+  );
+  marketTagSlugsCache.set(marketId, slugs);
+  slugs.catch(() => marketTagSlugsCache.delete(marketId));
+  return slugs;
+};
+
 async function waiveFees({
   marketId,
   waiveList,
@@ -2252,10 +2272,8 @@ async function waiveFees({
   waiveList: string[];
 }): Promise<boolean> {
   try {
-    const market = await getMarketDetailsFromGammaApi({ marketId });
-    const { tags } = market;
-    const slugs = tags?.map((t) => t.slug);
-    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+    const slugs = await getMarketTagSlugs(marketId);
+    return slugs.some((slug) => waiveList?.includes(slug));
   } catch (error) {
     // A fee-waiver lookup failure must never fail the preview — degrade
     // to standard (non-waived) fees instead.

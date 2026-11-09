@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import VbaEmailAdapter, { VbaEmailAdapterSelectorsIDs } from './EmailAdapter';
+import { strings } from '../../../../../locales/i18n';
 
 const mockAdvance = jest.fn();
 const mockGoBack = jest.fn();
@@ -12,6 +13,10 @@ const mockVerifyOrEnroll = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
 };
+
+jest.mock('../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -304,13 +309,13 @@ describe('VbaEmailAdapter', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
-      ).toHaveTextContent('Too many attempts. Request a new code.');
+      ).toHaveTextContent(strings('mfa.errors.too_many_attempts'));
     });
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
-  it('shows a spinner without navigation on the loading screen', () => {
+  it('shows the fox loader without navigation on the loading screen', () => {
     mockKycController.getSessionStatusForVendor.mockReturnValue(
       new Promise(() => undefined),
     );
