@@ -167,11 +167,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 
     const { prefix, suffix } = currency
       ? splitNumericString(
-        formatters.formatCurrency(0, currency, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }),
-      )
+          formatters.formatCurrency(0, currency, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }),
+        )
       : { prefix: '', suffix: '' };
 
     const value = formatAmountDigitsForDisplay(
@@ -194,9 +194,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   const visibleAmountLabel = `${amountDisplay.prefix}${amountDisplay.value}${amountDisplay.suffix}`;
   const amountFontSize = getFontSizeForInputLength(
     amountDisplay.prefix.length +
-    amountDisplay.value.length +
-    amountDisplay.suffix.length +
-    INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+      amountDisplay.value.length +
+      amountDisplay.suffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const amountTextStyle = {
     fontSize: amountFontSize,
@@ -228,10 +228,10 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         cursor={
           showCursor
             ? {
-              animated: animateAmount,
-              style: cursorStyle,
-              testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
-            }
+                animated: animateAmount,
+                style: cursorStyle,
+                testID: QuickBuySheetSelectorsIDs.AMOUNT_CURSOR,
+              }
             : false
         }
         fontFamily={FontFamily.Hero}
