@@ -158,20 +158,14 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     if (isUnpricedSource) {
       amountSuffix = sourceSymbol ? ` ${sourceSymbol}` : '';
     } else if (currency) {
-      const formattedZero = formatters.formatCurrency(0, currency, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      const symbol =
-        formattedZero.replace(/[\d\s.,'’_-]/gu, '').trim() ||
-        currency.toUpperCase();
-      const formattedOne = formatters.formatCurrency(1, currency);
-      const isPrefix = formattedOne.indexOf(symbol) < formattedOne.search(/\d/);
-      if (isPrefix) {
-        amountPrefix = symbol;
-      } else {
-        amountSuffix = ` ${symbol}`;
-      }
+      const [prefix = '', suffix = ''] = formatters
+        .formatCurrency(0, currency, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })
+        .split(/\p{N}+/u);
+      amountPrefix = prefix;
+      amountSuffix = suffix;
     }
   }
   const visibleAmountLabel = `${amountPrefix}${amountValue}${amountSuffix}`;
