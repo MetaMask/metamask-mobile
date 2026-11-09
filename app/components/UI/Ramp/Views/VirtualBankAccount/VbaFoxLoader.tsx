@@ -33,26 +33,16 @@ export const VbaFoxLoaderSelectorsIDs = {
   FALLBACK: 'vba-fox-loader-fallback',
 } as const;
 
-interface ShouldPlayVbaFoxLoaderParams {
-  hardwareTier: HardwareTier | null;
-  networkTier: NetworkTier | null;
-  reduceMotion: boolean;
-}
-
-/**
- * Whether the VBA wait screens play `loading_mm_fox.riv`.
- *
- * `NONE` is local UI with no Rive, for every hardware tier including unknown.
- * `LOW` + `SLOW_CELLULAR` keeps the indicator (less animation). `LOW` on a
- * fast or unknown network still plays: unknown network is never treated as
- * constrained, and this file is one local loop. `null` hardware follows the
- * network column only.
- */
+/** Fox plays unless Reduce Motion is on, the network is `NONE`, or a `LOW` device is on slow cellular. */
 export const shouldPlayVbaFoxLoader = ({
   hardwareTier,
   networkTier,
   reduceMotion,
-}: ShouldPlayVbaFoxLoaderParams): boolean => {
+}: {
+  hardwareTier: HardwareTier | null;
+  networkTier: NetworkTier | null;
+  reduceMotion: boolean;
+}): boolean => {
   if (reduceMotion || networkTier === 'NONE') {
     return false;
   }

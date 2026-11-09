@@ -63,10 +63,6 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('../../../../../util/test/utils', () => ({
-  hasTestOverrides: false,
-}));
-
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
 const mockUseReduceMotion = jest.mocked(useReduceMotion);
