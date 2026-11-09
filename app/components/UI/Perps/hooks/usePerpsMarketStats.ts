@@ -5,6 +5,7 @@ import {
   PERPS_CONSTANTS,
   TimeDuration,
   calculate24hHighLow,
+  type CandleData,
   type PriceUpdate,
 } from '@metamask/perps-controller';
 import {
@@ -17,6 +18,16 @@ import {
 import { usePerpsMarketContext } from './usePerpsMarketContext';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 import Logger from '../../../../util/Logger';
+
+// 24h high/low is all this screen reads from the candle stream. Skip ticks that
+// only move the forming candle, so the details screen does not re-render.
+const hasSame24hRange = (previous: CandleData, next: CandleData): boolean => {
+  const previousRange = calculate24hHighLow(previous);
+  const nextRange = calculate24hHighLow(next);
+  return (
+    previousRange.high === nextRange.high && previousRange.low === nextRange.low
+  );
+};
 
 interface MarketStats {
   high24h: string;
@@ -96,6 +107,7 @@ export const usePerpsMarketStats = (
     throttleMs: 1000,
     resetKey: marketContextKey,
     enabled: isMarketContextReady,
+    isUnchanged: hasSame24hRange,
   });
 
   // Subscribe to market data updates (funding, open interest, volume).

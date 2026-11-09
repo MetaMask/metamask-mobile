@@ -250,6 +250,37 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).not.toHaveBeenCalled();
   });
 
+  it('skips updates that isUnchanged reports as equal', () => {
+    let capturedCallback: (data: CandleData) => void = jest.fn();
+    mockCandleSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+    const isUnchanged = jest.fn(() => true);
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        isUnchanged,
+      }),
+    );
+    act(() => {
+      capturedCallback(mockCandleData);
+    });
+    const firstCandleData = result.current.candleData;
+
+    act(() => {
+      capturedCallback({ ...mockCandleData, candles: [] });
+    });
+
+    expect(isUnchanged).toHaveBeenCalledWith(
+      firstCandleData,
+      expect.objectContaining({ candles: [] }),
+    );
+    expect(result.current.candleData).toBe(firstCandleData);
+  });
+
   it('rejects updates with mismatched symbol', async () => {
     let capturedCallback: (data: CandleData) => void = jest.fn();
     mockCandleSubscribe.mockImplementation((params) => {

@@ -518,6 +518,12 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 }));
 
 const mockRefreshMarketStats = jest.fn();
+// Below-fold sections mount after a viewport measurement, which Jest never produces.
+jest.mock('../../../ViewportLifecycle', () => ({
+  ...jest.requireActual('../../../ViewportLifecycle'),
+  ViewportLifecycle: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
   usePerpsMarketStats: () => ({
     currentPrice: '$45,000.00',

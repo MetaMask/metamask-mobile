@@ -267,6 +267,30 @@ describe('usePerpsLiveFocusedPrice', () => {
       expect(result.current?.price).toBe('51000');
     });
 
+    it('keeps the previous reference when a tick repeats the same prices', () => {
+      let capturedCallback: (update: PriceUpdate | undefined) => void =
+        jest.fn();
+      mockSubscribeToSymbol.mockImplementation(
+        (params: { callback: (update: PriceUpdate | undefined) => void }) => {
+          capturedCallback = params.callback;
+          return jest.fn();
+        },
+      );
+      const { result } = renderHook(() =>
+        usePerpsLiveFocusedPrice({ symbol: 'BTC' }),
+      );
+      act(() => {
+        capturedCallback(mockPriceUpdate);
+      });
+      const firstUpdate = result.current;
+
+      act(() => {
+        capturedCallback({ ...mockPriceUpdate, timestamp: 456 });
+      });
+
+      expect(result.current).toBe(firstUpdate);
+    });
+
     it('returns undefined when the channel fires with undefined', () => {
       let capturedCallback: (update: PriceUpdate | undefined) => void =
         jest.fn();
