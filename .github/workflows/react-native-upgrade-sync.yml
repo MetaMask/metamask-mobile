@@ -101,7 +101,7 @@ jobs:
             exit 0
           fi
 
-          if ! PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --state open --limit 100 --json number,url,headRefName,body); then
+          if ! PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --state open --limit 100 --json number,url,headRefName,headRefOid,body); then
             fail "Unable to list open pull requests targeting ${TARGET_BRANCH}."
           fi
           PR_COUNT=$(jq 'length' <<<"$PRS")
@@ -125,6 +125,28 @@ jobs:
 
           if [[ "$PREFIX_COUNT" -eq 1 ]]; then
             PR_URL=$(jq -r '.[0].url' <<<"$PREFIX_MATCHES")
+            EXISTING_HEAD_SHA=$(jq -r '.[0].headRefOid' <<<"$PREFIX_MATCHES")
+            EXISTING_HEAD_SHA=$(printf '%s' "$EXISTING_HEAD_SHA" | tr '[:upper:]' '[:lower:]')
+            require_sha "Existing pull request head" "$EXISTING_HEAD_SHA"
+
+            if [[ "$EXISTING_HEAD_SHA" == "$SOURCE_SHA" ]]; then
+              HEAD_RELATION="matches the observed main SHA."
+            else
+              # behind_by counts existing-head commits missing from the observed main SHA.
+              # Zero means that head is an ancestor of the observed main SHA.
+              if ! HEAD_BEHIND_BY=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${EXISTING_HEAD_SHA}...${SOURCE_SHA}" --jq .behind_by); then
+                fail "GitHub compare failed for existing pull request head ${EXISTING_HEAD_SHA}...${SOURCE_SHA}."
+              fi
+              if [[ ! "$HEAD_BEHIND_BY" =~ ^[0-9]+$ ]]; then
+                fail "GitHub compare returned a non-numeric behind_by value for the existing pull request."
+              fi
+              if [[ "$HEAD_BEHIND_BY" == "0" ]]; then
+                HEAD_RELATION="is behind the observed main SHA."
+              else
+                HEAD_RELATION="contains commits that are not in the observed main SHA."
+              fi
+            fi
+
             {
               echo "## React Native upgrade sync pull request already exists"
               echo
@@ -133,6 +155,8 @@ jobs:
               printf 'Target ref: %s\n' "$TARGET_BRANCH"
               echo
               printf 'Existing pull request: %s\n' "$PR_URL"
+              printf 'Existing pull request head: %s\n' "$EXISTING_HEAD_SHA"
+              printf 'The existing pull request head %s\n' "$HEAD_RELATION"
               echo
               echo "No additional temporary ref or pull request was created."
             } >> "$GITHUB_STEP_SUMMARY"
@@ -252,7 +276,23 @@ jobs:
           require_text "preserve both long-lived branch refs" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the conflict-resolution procedure."
 
           if ! PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --head "$TEMP_BRANCH" --title "$PR_TITLE" --body-file "$BODY_FILE"); then
-            fail "Unable to create the sync pull request."
+            if ! OPEN_FOR_HEAD=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$TEMP_BRANCH" --base "$TARGET_BRANCH" --state open --json url --jq '.[0].url // empty'); then
+              fail "Unable to create the sync pull request. Temporary ref ${TEMP_BRANCH} remains at ${SOURCE_SHA}."
+            fi
+            if [[ -n "$OPEN_FOR_HEAD" ]]; then
+              fail "Pull request creation reported failure, and ${OPEN_FOR_HEAD} is open for ${TEMP_BRANCH}."
+            fi
+            if ! CURRENT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${TEMP_BRANCH}" --jq .object.sha); then
+              fail "Unable to create the sync pull request. Temporary ref ${TEMP_BRANCH} could not be read."
+            fi
+            CURRENT_SHA=$(printf '%s' "$CURRENT_SHA" | tr '[:upper:]' '[:lower:]')
+            if [[ "$CURRENT_SHA" != "$SOURCE_SHA" ]]; then
+              fail "Unable to create the sync pull request. Temporary ref ${TEMP_BRANCH} points at ${CURRENT_SHA}, expected ${SOURCE_SHA}. The ref was not updated."
+            fi
+            if ! gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${TEMP_BRANCH}" >/dev/null; then
+              fail "Unable to create the sync pull request. Temporary ref ${TEMP_BRANCH} remains at ${SOURCE_SHA}."
+            fi
+            fail "Unable to create the sync pull request. Deleted temporary ref ${TEMP_BRANCH}."
           fi
           if ! VIEW=$(gh pr view "$PR_URL" --repo "$GITHUB_REPOSITORY" --json baseRefName,headRefName,title,body,url); then
             fail "Unable to read created pull request ${PR_URL}."

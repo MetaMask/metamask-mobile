@@ -198,7 +198,17 @@ describe('React Native upgrade sync workflow', () => {
     expect(syncRun).toContain('[[ "$PREFIX_COUNT" != "$MARKER_COUNT" ]]');
     expect(syncRun).toContain('[[ "$PREFIX_COUNT" -gt 1 ]]');
     expect(syncRun).toContain('[[ "$PREFIX_COUNT" -eq 1 ]]');
+    expect(syncRun).toContain('headRefOid');
+    expect(syncRun).toContain(
+      'repos/${GITHUB_REPOSITORY}/compare/${EXISTING_HEAD_SHA}...${SOURCE_SHA}',
+    );
+    expect(syncRun).toContain('matches the observed main SHA.');
+    expect(syncRun).toContain('is behind the observed main SHA.');
+    expect(syncRun).toContain(
+      'contains commits that are not in the observed main SHA.',
+    );
     expect(syncRun).toContain('Existing pull request:');
+    expect(syncRun).toContain('Existing pull request head:');
     expect(existingExit).toBeGreaterThan(pullRequests);
     expect(existingExit).toBeLessThan(createRef);
   });
@@ -222,6 +232,26 @@ describe('React Native upgrade sync workflow', () => {
     expect(syncRun).not.toContain('git update-ref');
     expect(syncRun).not.toContain('--method PATCH');
     expect(syncRun).not.toContain('gh pr merge');
+  });
+
+  it('deletes the temporary ref when pull request creation fails and the ref is unused', () => {
+    const create = indexOf(
+      'gh pr create --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --head "$TEMP_BRANCH"',
+    );
+    const remove = indexOf(
+      'gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${TEMP_BRANCH}"',
+    );
+
+    expect(remove).toBeGreaterThan(create);
+    expect(syncRun).toContain('Deleted temporary ref');
+    expect(syncRun).toContain(
+      'Temporary ref ${TEMP_BRANCH} remains at ${SOURCE_SHA}.',
+    );
+    expect(syncRun).toContain('[[ "$CURRENT_SHA" != "$SOURCE_SHA" ]]');
+    expect(syncRun).not.toContain('git/refs/heads/main');
+    expect(syncRun).not.toContain('git/refs/heads/${SOURCE_BRANCH}');
+    expect(syncRun).not.toContain('git/refs/heads/${TARGET_BRANCH}');
+    expect(syncRun.match(/--method DELETE/g)).toStrictEqual(['--method DELETE']);
   });
 
   it('opens the temporary ref into the upgrade branch with the ancestry contract', () => {
