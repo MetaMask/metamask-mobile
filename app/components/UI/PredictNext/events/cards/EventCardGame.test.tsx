@@ -421,6 +421,18 @@ describe('EventCardGame', () => {
     expect(screen.queryByRole('button', { name: /buy/ })).not.toBeOnTheScreen();
   });
 
+  it('fills an active quote with the Team color when the price color falls back', () => {
+    const event = createEvent();
+    // Pale enough that its price color falls back to the theme's success color.
+    getGame(event).homeTeam.primaryColor = `#${'FFF7CC'}` as PredictHexColor;
+
+    renderCard(event, { onOrder: jest.fn() });
+
+    expect(
+      screen.getByTestId('predict-next-game-quote-game-event-home'),
+    ).toHaveStyle({ backgroundColor: `#${'FFF7CC'}` });
+  });
+
   it('emits the Event, Market, and Outcome from an active quote', () => {
     const event = createEvent();
     const onOrder = jest.fn();

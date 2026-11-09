@@ -305,6 +305,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
   const { colors: themeColors } = useTheme();
   const {
     event,
+    game,
     team,
     quote,
     abbreviation,
@@ -317,6 +318,12 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
   if (!quote) {
     return null;
   }
+
+  // The label on this button is white, so the fill keeps the Team's own color.
+  // `teamColor` is the contrast-checked color for text on the card, and it can
+  // be a light theme color that white text cannot sit on.
+  const fillTeam = selection === 'home' ? game.homeTeam : game.awayTeam;
+  const fillColor = fillTeam.primaryColor ?? teamColor;
 
   const label = formattedPrice
     ? `${abbreviation} · ${formattedPrice}`
@@ -361,7 +368,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
       variant={ButtonVariant.Secondary}
       onPress={() => actions.order?.(event, quote.market, quote.outcome)}
       accessibilityLabel={`${team.name}, ${formattedPrice}, buy`}
-      style={{ backgroundColor: teamColor }}
+      style={{ backgroundColor: fillColor }}
       size={ButtonSize.Lg}
       twClassName="w-full px-3"
     >
