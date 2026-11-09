@@ -14,7 +14,6 @@ import {
 } from '../utils/perpsCufTrace';
 import { usePerpsTerminateTwap } from './usePerpsTerminateTwap';
 
-// Watch-only refusal is covered by the component-view tests.
 jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
   useWatchOnlyGuard: () => ({ guard: () => false }),
 }));

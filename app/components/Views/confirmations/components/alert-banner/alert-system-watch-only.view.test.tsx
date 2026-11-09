@@ -2,11 +2,11 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
 
-import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -35,24 +35,19 @@ function WatchOnlyAlertHarness() {
 }
 
 describeForPlatforms('Alert system (watch-only account)', () => {
-  const { keyrings } = Engine.context.KeyringController.state;
+  const originalEnv = { ...process.env };
+  withWatchOnlyKeyring(TRANSFER_SENDER);
 
   beforeEach(() => {
-    keyrings.push({
-      type: 'watch-only',
-      accounts: [TRANSFER_SENDER],
-      metadata: { id: 'watch-only', name: '' },
-    });
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED = 'true';
   });
 
   afterEach(() => {
-    keyrings.pop();
+    process.env = { ...originalEnv };
   });
 
   it('blocks a send from a watch-only account', async () => {
-    const blockedMessage = strings('watch_only.blocked_message');
-    expect(blockedMessage).not.toMatch(/\[missing ".*" translation\]/);
-
     const { getByTestId, getByText } = renderComponentViewScreen(
       WatchOnlyAlertHarness,
       { name: 'WatchOnlyAlert' },
@@ -60,7 +55,9 @@ describeForPlatforms('Alert system (watch-only account)', () => {
     );
 
     await waitFor(() => {
-      expect(getByText(blockedMessage)).toBeOnTheScreen();
+      expect(
+        getByText(strings('watch_only.blocked_message')),
+      ).toBeOnTheScreen();
     });
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),

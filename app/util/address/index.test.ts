@@ -1,6 +1,6 @@
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import Engine from '../../core/Engine';
+import { withWatchOnlyKeyring } from '../test/watchOnlyKeyring';
 
 import {
   isENS,
@@ -656,19 +656,7 @@ describe('isSnapAccount,', () => {
 
 describe('isWatchOnlyAccount', () => {
   const watchOnlyAddress = '0x5972698398d8c5bbe67c0db74906236691020417';
-  const { keyrings } = Engine.context.KeyringController.state;
-
-  beforeEach(() => {
-    keyrings.push({
-      type: 'watch-only',
-      accounts: [watchOnlyAddress],
-      metadata: { id: 'watch-only-keyring', name: '' },
-    });
-  });
-
-  afterEach(() => {
-    keyrings.pop();
-  });
+  withWatchOnlyKeyring(watchOnlyAddress);
 
   it('returns true for an account held by the watch-only keyring', () => {
     expect(

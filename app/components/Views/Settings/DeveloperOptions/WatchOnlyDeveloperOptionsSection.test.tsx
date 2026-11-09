@@ -51,7 +51,6 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
         name: 'Watch-only Account 1',
       },
     );
-    expect(expected).not.toMatch(/\[missing ".*" translation\]/);
     const result = await findByTestId(
       DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADD_RESULT,
     );

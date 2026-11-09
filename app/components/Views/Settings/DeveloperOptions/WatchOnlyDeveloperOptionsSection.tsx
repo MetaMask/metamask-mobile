@@ -23,6 +23,9 @@ const WatchOnlyDeveloperOptionsSection = () => {
   const [address, setAddress] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [result, setResult] = useState<string>();
+  const placeholder = strings(
+    'app_settings.developer_options.watch_only.address_placeholder',
+  );
 
   // Screen readers otherwise only hear the button when the add finishes.
   useEffect(() => {
@@ -91,15 +94,11 @@ const WatchOnlyDeveloperOptionsSection = () => {
       <TextField
         value={address}
         onChangeText={setAddress}
-        placeholder={strings(
-          'app_settings.developer_options.watch_only.address_placeholder',
-        )}
+        placeholder={placeholder}
         inputProps={{
           autoCapitalize: 'none',
           autoCorrect: false,
-          accessibilityLabel: strings(
-            'app_settings.developer_options.watch_only.address_placeholder',
-          ),
+          accessibilityLabel: placeholder,
           testID: DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT,
         }}
         twClassName="mt-4"
