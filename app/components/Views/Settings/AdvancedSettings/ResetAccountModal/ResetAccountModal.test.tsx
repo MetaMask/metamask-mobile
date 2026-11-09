@@ -9,6 +9,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../selectors/accountsController', () => {
   const actual = jest.requireActual(
@@ -97,7 +98,7 @@ describe('ResetAccountModal', () => {
     expect(wipeSmartTransactions).toHaveBeenCalledWith(
       '0x123456789abcdef123456789abcdef123456789a',
     );
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('does not call wipeBridgeStatus when selectedAddress is falsy', async () => {
@@ -118,6 +119,6 @@ describe('ResetAccountModal', () => {
     expect(wipeBridgeStatus).not.toHaveBeenCalled();
     expect(wipeTransactions).toHaveBeenCalledWith();
     expect(wipeSmartTransactions).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 });

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
-import MainNavigator from './MainNavigator';
+import MainNavigator, { WalletWithMessenger } from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -345,10 +345,7 @@ describe('MainNavigator', () => {
           node.props?.name === Routes.WALLET.HOME,
       )[0];
 
-      // The tab component is the wallet screen.
-      expect(homeTabScreen?.props?.component?.name).toBe(
-        'RouteMessengerProviderWrapper',
-      );
+      expect(homeTabScreen?.props?.component).toBe(WalletWithMessenger);
     });
 
     it('keeps the themed stack background on Settings, where RevealPrivateCredential is registered', () => {
@@ -519,6 +516,7 @@ describe('MainNavigator', () => {
       );
 
       expect(homeScreen?.props.options).toMatchObject({ title: 'Home' });
+      expect(homeScreen?.props.component).toBe(WalletWithMessenger);
       expect(typeof homeScreen?.props.options.tabBarIcon).toBe('function');
       expect(typeof homeScreen?.props.listeners).toBe('function');
     });
@@ -2093,9 +2091,7 @@ describe('MainNavigator', () => {
           node.type?.toString?.() === 'TabScreen' &&
           node.props?.name === Routes.MODAL.TRADE_WALLET_ACTIONS,
       )[0];
-      expect(trade?.props?.component?.name).toBe(
-        'RouteMessengerProviderWrapper',
-      );
+      expect(trade?.props?.component).toBe(WalletWithMessenger);
     });
 
     it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
@@ -2446,7 +2442,7 @@ describe('MainNavigator', () => {
           Routes.WALLET.HOME,
           'TabScreen',
         );
-        expect(Component.name).toBe('RouteMessengerProviderWrapper');
+        expect(Component).toBe(WalletWithMessenger);
       });
 
       it('points the TrendingView tab straight at the Explore feed', () => {

@@ -266,7 +266,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
     fetchAccountsWithActivity();
 
-    navigation.navigate('WalletTabHome');
+    navigation.navigate(Routes.WALLET.HOME);
   }, [
     seedPhrase,
     trackDiscoveryEvent,

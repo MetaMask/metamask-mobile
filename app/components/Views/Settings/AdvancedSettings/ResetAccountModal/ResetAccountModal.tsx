@@ -13,6 +13,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { selectChainId } from '../../../../../selectors/networkController';
 import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
 import { AdvancedViewSelectorsIDs } from '../AdvancedView.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -42,7 +43,7 @@ export const ResetAccountModal = ({
     resetFirstTimeUserState();
     // Clear any stuck pending Perps transactions
     clearPendingTransactionRequests();
-    navigation.navigate('WalletTabHome');
+    navigation.navigate(Routes.WALLET.HOME);
   };
 
   return (

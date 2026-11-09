@@ -274,7 +274,7 @@ const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
-const WalletWithMessenger = withRouteMessenger(Wallet, {
+export const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
