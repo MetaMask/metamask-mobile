@@ -10620,7 +10620,7 @@
       "date_created": "Date created",
       "order_type": "Order type",
       "order_type_limit": "Limit",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
