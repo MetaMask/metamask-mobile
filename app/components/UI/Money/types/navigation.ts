@@ -34,15 +34,20 @@ export interface MoneyDepositDeeplinkParams {
   tokenType?: string;
 }
 
+export type MoneyPostOnboardingRedirect =
+  | {
+      type: MoneyPostOnboardingRedirectType.DEPOSIT;
+      preferredPaymentToken?: MoneyPreferredPaymentToken;
+      autoSelectFiatPayment?: boolean;
+      intent?: MoneyAccountDepositIntent;
+    }
+  | {
+      type: MoneyPostOnboardingRedirectType.CARD;
+      cardScreen: MoneyCardReturnScreen;
+    };
+
 export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
-  postOnboardingRedirect?: {
-    type: MoneyPostOnboardingRedirectType;
-    preferredPaymentToken?: MoneyPreferredPaymentToken;
-    autoSelectFiatPayment?: boolean;
-    intent?: MoneyAccountDepositIntent;
-    /** Where to land in Card. Defaults to onboarding. */
-    cardScreen?: MoneyCardReturnScreen;
-  };
+  postOnboardingRedirect?: MoneyPostOnboardingRedirect;
 }
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {

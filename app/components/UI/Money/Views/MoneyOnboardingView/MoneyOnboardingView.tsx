@@ -68,7 +68,8 @@ import Logger from '../../../../../util/Logger';
 import moneyOnboardingRoundedButtons from '../../../../../animations/money_onboarding_rounded_buttons.riv';
 import {
   MoneyPostOnboardingRedirectType,
-  type MoneyOnboardingParams,
+  type MoneyCardReturnScreen,
+  type MoneyPostOnboardingRedirect,
 } from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
@@ -128,6 +129,11 @@ type MoneyOnboardingRouteProp = RouteProp<
   'MoneyOnboarding'
 >;
 
+const CARD_RETURN_ROUTES = {
+  authentication: Routes.CARD.AUTHENTICATION,
+  onboarding: Routes.CARD.ONBOARDING.ROOT,
+} as const satisfies Record<MoneyCardReturnScreen, string>;
+
 const useNavigateToPostOnboardingDestination = ({
   navigation,
   postOnboardingRedirect,
@@ -135,19 +141,17 @@ const useNavigateToPostOnboardingDestination = ({
   navigateToMoneyHome,
 }: {
   navigation: AppNavigationProp;
-  postOnboardingRedirect: MoneyOnboardingParams['postOnboardingRedirect'];
+  postOnboardingRedirect?: MoneyPostOnboardingRedirect;
   initiateDeposit: ReturnType<typeof useMoneyAccountDeposit>['initiateDeposit'];
   navigateToMoneyHome: () => void;
 }) =>
   useCallback(async () => {
     if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      const cardScreen =
-        postOnboardingRedirect.cardScreen === 'authentication'
-          ? Routes.CARD.AUTHENTICATION
-          : Routes.CARD.ONBOARDING.ROOT;
       navigation.navigate(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: { screen: cardScreen },
+        params: {
+          screen: CARD_RETURN_ROUTES[postOnboardingRedirect.cardScreen],
+        },
       });
       return;
     }
