@@ -1196,16 +1196,14 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('returns the native-reserve label and disables confirm when the amount eats the reserve', () => {
+        const { result, rerender, props } = settleQuote();
+        expect(result.current.isConfirmDisabled).toBe(false);
+
         (useInsufficientNativeReserveError as jest.Mock).mockReturnValue({
           minimumNativeBalanceToBeKeptInAccount: '3',
           maxSwappableNativeBalance: '1',
         });
-
-        const { result } = renderHook(createTarget(), jest.fn());
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
+        rerender(props);
 
         expect(result.current.buttonError).toBe('insufficient_native_reserve');
         expect(result.current.getButtonLabel()).toBe(
