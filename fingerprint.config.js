@@ -166,7 +166,7 @@ const config = {
     '.github/scripts/qa-automation/**',
 
     // Swaps performance budgets: reads Sentry and posts to Slack, doesn't build.
-    '.github/scripts/swaps/**',
+    '.github/scripts/swaps/perf-budgets/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
