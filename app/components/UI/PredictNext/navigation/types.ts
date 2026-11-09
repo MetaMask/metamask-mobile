@@ -32,4 +32,5 @@ export type PredictNextStackParamList = {
   PredictNextEvent: PredictNextEventParams;
   PredictNextPortfolio: PredictNextPortfolioParams;
   PredictNextSearch: PredictNextSearchParams;
+  PredictNextKalshiOnboarding: undefined;
 };

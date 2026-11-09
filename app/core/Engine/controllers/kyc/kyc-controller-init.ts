@@ -8,6 +8,7 @@ import {
   handleVerificationStatusChangedForMetrics,
 } from './event-handlers/analytics';
 import { sumsubLauncher } from './sumSubLauncher';
+import { createKalshiAccountAdapter } from '../../../../components/UI/KYC/Kalshi/kalshiAccountAdapter';
 
 /**
  * Initialize the KycController.
@@ -43,6 +44,8 @@ export const kycControllerInit: MessengerClientInitFunction<
       verificationOutcome: handleVerificationStatusChangedForMetrics,
       statusChanged: handleKycStatusChangedForMetrics,
     },
+    // POC: Kalshi's device-signed enrollment calls run on the phone.
+    vendorAccountAdapters: { kalshi: createKalshiAccountAdapter() },
   };
   const controller = new KycController(options);
 
