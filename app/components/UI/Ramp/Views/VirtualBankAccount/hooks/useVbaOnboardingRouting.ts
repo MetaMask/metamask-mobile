@@ -37,6 +37,7 @@ import {
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
+import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
@@ -359,7 +360,7 @@ const resumePersistedKycSession = async (): Promise<void> => {
   }
 
   try {
-    await kycController.startSession({
+    await startVbaKycSession({
       vendor: VBA_KYC_VENDOR,
     });
   } catch (error) {
