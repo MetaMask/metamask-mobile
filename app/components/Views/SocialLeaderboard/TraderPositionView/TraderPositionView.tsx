@@ -54,6 +54,7 @@ import {
   readTraderShareName,
 } from '../navigation/socialShareOpenGraph';
 import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
@@ -251,6 +252,7 @@ const TraderPositionView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { isSharing, runShare } = useSocialShareInProgress();
   const handleSharePosition = useCallback(() => {
     if (!effectivePositionId) {
       return;
@@ -279,6 +281,7 @@ const TraderPositionView = () => {
             traderId,
             positionId: effectivePositionId,
             username: fetchedProfile?.profile?.name || traderName,
+            avatarUrl: traderImageUrl,
             position: sharedPosition,
             market: symbol,
             marketIconUrl:
@@ -292,22 +295,24 @@ const TraderPositionView = () => {
           });
         }
       : undefined;
-    shareSocialTraderPosition(
-      effectivePositionId,
-      traderId,
-      () => {
-        trackSocialPost({
-          interaction_type: SocialEvent.Interaction.POST_SHARED,
-          screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
-          share_destination: SocialEvent.ShareDestination.EXTERNAL,
-          ...(source ? { source } : {}),
-        });
-      },
-      buildSocialPositionOpenGraph({
-        traderName: readTraderShareName(fetchedProfile?.profile, traderName),
-        assetSymbol: symbol,
-      }),
-      buildOgImageRequest,
+    runShare(() =>
+      shareSocialTraderPosition(
+        effectivePositionId,
+        traderId,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+            ...(source ? { source } : {}),
+          });
+        },
+        buildSocialPositionOpenGraph({
+          traderName: readTraderShareName(fetchedProfile?.profile, traderName),
+          assetSymbol: symbol,
+        }),
+        buildOgImageRequest,
+      ),
     );
   }, [
     currentPrice,
@@ -320,10 +325,12 @@ const TraderPositionView = () => {
     pnlValue,
     positionData.isPerp,
     positionData.tokenImageUrl,
+    runShare,
     sourceParam,
     symbol,
     trackSocialPost,
     traderId,
+    traderImageUrl,
     traderName,
   ]);
 
@@ -1005,6 +1012,7 @@ const TraderPositionView = () => {
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={effectivePositionId ? handleSharePosition : undefined}
+            isSharing={isSharing}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
             shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
             traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
@@ -1025,6 +1033,7 @@ const TraderPositionView = () => {
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={effectivePositionId ? handleSharePosition : undefined}
+            isSharing={isSharing}
           />
         )}
       </Box>

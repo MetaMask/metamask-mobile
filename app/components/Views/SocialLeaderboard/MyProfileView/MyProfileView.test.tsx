@@ -850,8 +850,6 @@ describe('MyProfileView', () => {
       MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
     );
 
-    fireEvent.press(shareProfileButton);
-
     expect(
       within(shareProfileButton).UNSAFE_getByProps({ name: IconName.Share }),
     ).toBeTruthy();
@@ -861,6 +859,12 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
+
+    fireEvent.press(shareProfileButton);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).toBeOnTheScreen();
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
         message:
@@ -870,6 +874,9 @@ describe('MyProfileView', () => {
       });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {

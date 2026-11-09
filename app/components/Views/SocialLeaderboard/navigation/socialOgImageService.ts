@@ -13,7 +13,7 @@ export type SocialOgImageTheme = 'mono' | 'blue' | 'purple' | 'orange';
 export interface SocialOgTradeCard {
   /** Drawn with a leading `@`. */
   handle: string;
-  /** Accepted by the API but not drawn for now, so the app does not send it. */
+  /** `https:` image or `foxicon://{variant}/{background}`. */
   avatarUrl?: string;
   market: string;
   marketIconUrl?: string;
@@ -41,11 +41,12 @@ export interface SocialOgTradeCard {
 export interface SocialOgProfileCard {
   /** Drawn with a leading `@`. */
   handle: string;
-  /** Accepted by the API but not drawn for now, so the app does not send it. */
+  /** `https:` image or `foxicon://{variant}/{background}`. */
   avatarUrl?: string;
   address?: string;
   subtitle?: string;
-  pnl30dUsd: number;
+  /** Omitted when the trader has no 30-day data; the card draws "—". */
+  pnl30dUsd?: number;
   /** 0–100. */
   winRatePct: number;
   tradeCount: number;

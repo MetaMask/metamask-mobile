@@ -3,7 +3,13 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
+import { hasRealAvatar } from '../../../UI/SocialFeed/utils/avatarFallback';
 import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
+import {
+  isFoxiconAvatarUrl,
+  parseFoxiconAvatarUrl,
+  toFoxiconAvatarUrl,
+} from '../MyProfileView/avatarPresets';
 import {
   fetchHyperliquidHistoricalPrices,
   resolveHyperliquidCandleLimit,
@@ -35,6 +41,28 @@ const toHttpsUrl = (value: string | null | undefined): string | undefined => {
   } catch {
     return undefined;
   }
+};
+
+/**
+ * The avatar as the og-image API takes it: a `foxicon://` preset with its
+ * current ids (legacy ids translated), or an `https:` image that is not a
+ * shared placeholder. Anything else is left out and the card shows the
+ * handle alone.
+ */
+export const toOgAvatarUrl = (
+  avatarUrl: string | null | undefined,
+): string | undefined => {
+  const foxicon = parseFoxiconAvatarUrl(avatarUrl);
+  if (foxicon) {
+    return toFoxiconAvatarUrl(
+      foxicon.avatarPresetId,
+      foxicon.avatarBackgroundId,
+    );
+  }
+  if (isFoxiconAvatarUrl(avatarUrl) || !hasRealAvatar(avatarUrl)) {
+    return undefined;
+  }
+  return toHttpsUrl(avatarUrl);
 };
 
 const toOgHandle = (
@@ -165,6 +193,8 @@ export interface SocialTradeOgCardInput {
   positionId: string;
   /** Username, with or without a leading `@`. */
   username: string | null | undefined;
+  /** Profile image URL or `foxicon://` preset; see {@link toOgAvatarUrl}. */
+  avatarUrl?: string | null;
   position: Position;
   /** Display symbol, for example `BTC` rather than `xyz:BTC`. */
   market: string;
@@ -249,6 +279,7 @@ export const buildSocialTradeOgImageRequest = (
     positionId: input.positionId,
     trade: {
       handle,
+      avatarUrl: toOgAvatarUrl(input.avatarUrl),
       market,
       marketIconUrl: toHttpsUrl(input.marketIconUrl),
       side: perpSide === 'short' ? 'Short' : 'Long',
@@ -279,6 +310,8 @@ export const buildSocialTradeOgImageRequest = (
 export interface SocialProfileOgCardInput {
   traderId: string;
   username: string | null | undefined;
+  /** Profile image URL or `foxicon://` preset; see {@link toOgAvatarUrl}. */
+  avatarUrl?: string | null;
   profile: TraderProfileResponse | null | undefined;
   closedPositions: readonly Position[];
   nowMs: number;
@@ -303,12 +336,12 @@ const realizedPnlsInLast30Days = (
 };
 
 /**
- * Profile A body. Returns `undefined` when there is no handle or no 30-day
+ * Profile A body. Returns `undefined` when there is no handle or the profile
+ * has not loaded. A trader with no 30-day data gets the card with "—" for the
  * PnL. The account address is never sent: Social profiles keep it private.
  * `bestTradeUsd` comes from loaded positions closed in the last 30 days, to
  * match the card's other 30-day figures. The card draws no PnL chart: there
- * is no PnL history for a profile. Profile pictures are not sent for now; the
- * card shows the `@handle` only.
+ * is no PnL history for a profile.
  */
 export const buildSocialProfileOgImageRequest = (
   input: SocialProfileOgCardInput,
@@ -316,12 +349,11 @@ export const buildSocialProfileOgImageRequest = (
   const handle = toOgHandle(input.username);
   const stats = input.profile?.stats;
   const pnl30dUsd = stats?.pnl30d;
-  if (!handle || !input.profile || !isFiniteNumber(pnl30dUsd)) {
+  if (!handle || !input.profile) {
     logSocialOgShare('Profile card skipped', {
       missing: [
         !handle && 'handle',
         !input.profile && 'profile (not loaded)',
-        !isFiniteNumber(pnl30dUsd) && 'pnl30dUsd',
       ].filter(Boolean),
       traderId: input.traderId,
     });
@@ -344,7 +376,9 @@ export const buildSocialProfileOgImageRequest = (
     traderId: input.traderId,
     profile: {
       handle,
-      pnl30dUsd,
+      avatarUrl: toOgAvatarUrl(input.avatarUrl),
+      // Null when the trader has no 30-day data; the card draws "—".
+      pnl30dUsd: isFiniteNumber(pnl30dUsd) ? pnl30dUsd : undefined,
       winRatePct: isFiniteNumber(winRate)
         ? Math.min(100, Math.max(0, winRate * 100))
         : 0,

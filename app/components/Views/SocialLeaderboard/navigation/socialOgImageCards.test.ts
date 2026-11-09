@@ -9,6 +9,7 @@ import {
   downsampleSeries,
   fetchPerpOgSeries,
   type SocialTradeOgCardInput,
+  toOgAvatarUrl,
 } from './socialOgImageCards';
 
 const mockFetchHyperliquid = jest.fn();
@@ -163,12 +164,14 @@ describe('buildSocialTradeOgImageRequest', () => {
     expect(trade?.marketIconUrl).toBeUndefined();
   });
 
-  it('sends no profile picture or promo code', () => {
-    const request = buildSocialTradeOgImageRequest(tradeInput());
+  it('sends the trader avatar and no promo code', () => {
+    const request = buildSocialTradeOgImageRequest(
+      tradeInput({ avatarUrl: 'foxicon://pirate/background2' }),
+    );
 
     const trade = request?.kind === 'trade' ? request.trade : undefined;
-    expect(trade).not.toHaveProperty('avatarUrl');
-    expect(trade).not.toHaveProperty('promoCode');
+    expect(trade?.avatarUrl).toBe('foxicon://pirate/background2');
+    expect(trade?.promoCode).toBeUndefined();
   });
 
   it.each([
@@ -232,10 +235,11 @@ describe('buildSocialProfileOgImageRequest', () => {
       lastTradeAt: nowMs / 1000 - daysAgo * daySeconds,
     }) as Position;
 
-  it('builds a profile card from stats and recent closed positions, without the address, avatar or chart', () => {
+  it('builds a profile card from stats and recent closed positions, without the address or chart', () => {
     const request = buildSocialProfileOgImageRequest({
       traderId: '796a9c22-4831-4813-ba75-4f3277825420',
       username: 'dip_spicy_maxi',
+      avatarUrl: 'https://cdn.test/dip.png',
       profile,
       closedPositions: [closed(2, 300), closed(40, 900), closed(10, -100)],
       nowMs,
@@ -246,6 +250,7 @@ describe('buildSocialProfileOgImageRequest', () => {
       traderId: '796a9c22-4831-4813-ba75-4f3277825420',
       profile: {
         handle: '@dip_spicy_maxi',
+        avatarUrl: 'https://cdn.test/dip.png',
         pnl30dUsd: 1200,
         winRatePct: 64,
         tradeCount: 31,
@@ -269,15 +274,54 @@ describe('buildSocialProfileOgImageRequest', () => {
     expect(card?.bestTradeUsd).toBe(0);
   });
 
-  it('returns undefined without a 30-day P&L', () => {
+  it('builds the card without a 30-day P&L when the trader has none', () => {
+    const request = buildSocialProfileOgImageRequest({
+      traderId: 'trader-1',
+      username: 'dip_spicy_maxi',
+      profile: {
+        ...profile,
+        stats: { pnl30d: null },
+      } as unknown as TraderProfileResponse,
+      closedPositions: [],
+      nowMs,
+    });
+
+    const card = request?.kind === 'profile' ? request.profile : undefined;
+    expect(card?.handle).toBe('@dip_spicy_maxi');
+    expect(card?.pnl30dUsd).toBeUndefined();
+  });
+
+  it('returns undefined before the profile loads', () => {
     expect(
       buildSocialProfileOgImageRequest({
         traderId: 'trader-1',
         username: 'dip_spicy_maxi',
-        profile: { ...profile, stats: {} } as TraderProfileResponse,
+        profile: null,
         closedPositions: [],
         nowMs,
       }),
     ).toBeUndefined();
+  });
+});
+
+describe('toOgAvatarUrl', () => {
+  it.each([
+    ['an https image', 'https://cdn.test/a.png', 'https://cdn.test/a.png'],
+    ['a foxicon', 'foxicon://vr/background3', 'foxicon://vr/background3'],
+    [
+      'a legacy foxicon, with current ids',
+      'foxicon://crown/lime',
+      'foxicon://royal/background7',
+    ],
+    ['an unknown foxicon', 'foxicon://dragon/background3', undefined],
+    ['an http image', 'http://cdn.test/a.png', undefined],
+    [
+      'the shared ENS placeholder',
+      'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png',
+      undefined,
+    ],
+    ['nothing', null, undefined],
+  ])('maps %s', (_name, input, expected) => {
+    expect(toOgAvatarUrl(input)).toBe(expected);
   });
 });

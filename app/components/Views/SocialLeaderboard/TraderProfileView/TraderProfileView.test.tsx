@@ -23,6 +23,7 @@ import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { createSocialOgImage } from '../navigation/socialOgImageService';
 
 jest.mock('react-native-share', () => ({
   __esModule: true,
@@ -525,6 +526,41 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share profile');
+  });
+
+  it('shows a spinner in place of the share button until the share sheet opens', async () => {
+    let finishCard: (url: string) => void = () => undefined;
+    (createSocialOgImage as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finishCard = resolve;
+        }),
+    );
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(TraderProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(Share.open).not.toHaveBeenCalled();
+
+    finishCard(
+      'https://social.dev-api.cx.metamask.io/api/v1/og-images/card.png?v=3',
+    );
+
+    expect(
+      await screen.findByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(Share.open).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).not.toBeOnTheScreen();
   });
 
   describe('safe area layout', () => {

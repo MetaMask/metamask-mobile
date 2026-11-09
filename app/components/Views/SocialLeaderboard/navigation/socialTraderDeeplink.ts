@@ -375,7 +375,7 @@ const shareLink = (
   openGraph: SocialLinkOpenGraph | undefined,
   onShared?: () => void,
   buildOgImageRequest?: BuildSocialOgImageRequest,
-): void => {
+): Promise<void> => {
   const generation = ++shareGeneration;
   activeShareAbort?.abort();
   const controller = new AbortController();
@@ -390,7 +390,7 @@ const shareLink = (
     hasCardBuilder: Boolean(buildOgImageRequest),
   });
 
-  (async () => {
+  return (async () => {
     let preview = openGraph;
     if (openGraph && buildOgImageRequest) {
       const imageUrl = await resolveSocialShareImageUrl(
@@ -443,13 +443,17 @@ const shareLink = (
  * Opens the native share sheet with the configured link type for the profile.
  * Pass `buildOgImageRequest` to use a server-rendered card as the preview
  * image instead of the brand image on `openGraph`.
+ *
+ * Resolves once the share sheet opens, or when the share ends without one
+ * (a newer share replaced it, or it failed). Never rejects. Use it to show
+ * progress while the card renders and the link is created.
  */
 export const shareSocialProfile = (
   traderId: string,
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
   buildOgImageRequest?: BuildSocialOgImageRequest,
-): void => {
+): Promise<void> =>
   shareLink(
     buildSocialTraderDeeplink(traderId),
     PROFILE_DEEPLINK_PATH,
@@ -457,12 +461,14 @@ export const shareSocialProfile = (
     onShared,
     buildOgImageRequest,
   );
-};
 
 /**
  * Opens the native share sheet with the configured link type for the position.
  * Pass `buildOgImageRequest` to use a server-rendered card as the preview
  * image instead of the brand image on `openGraph`.
+ *
+ * Resolves once the share sheet opens, or when the share ends without one.
+ * Never rejects. See {@link shareSocialProfile}.
  */
 export const shareSocialTraderPosition = (
   positionId: string,
@@ -470,7 +476,7 @@ export const shareSocialTraderPosition = (
   onShared?: () => void,
   openGraph?: SocialLinkOpenGraph,
   buildOgImageRequest?: BuildSocialOgImageRequest,
-): void => {
+): Promise<void> =>
   shareLink(
     buildSocialTraderPositionDeeplink(positionId, traderId),
     POSITION_DEEPLINK_PATH,
@@ -478,4 +484,3 @@ export const shareSocialTraderPosition = (
     onShared,
     buildOgImageRequest,
   );
-};
