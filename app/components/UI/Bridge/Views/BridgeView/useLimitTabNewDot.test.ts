@@ -21,7 +21,6 @@ describe('useLimitTabNewDot', () => {
     jest.clearAllMocks();
     notifyLimitTabVisited = undefined;
     jest.mocked(hasVisitedLimitTab).mockReturnValue(false);
-    jest.mocked(markLimitTabVisited).mockResolvedValue(undefined);
     jest.mocked(subscribeToLimitTabVisited).mockImplementation((listener) => {
       notifyLimitTabVisited = listener;
       return unsubscribe;

@@ -5,20 +5,20 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
 export const hasVisitedLimitTab = (): boolean =>
   StorageWrapper.getItemSync(BRIDGE_LIMIT_TAB_VISITED) === 'true';
 
+const persistLimitTabVisit = async (): Promise<void> => {
+  await StorageWrapper.setItem(BRIDGE_LIMIT_TAB_VISITED, 'true');
+};
+
 /**
  * Persists the first Limit tab visit and notifies active subscribers. A failed
- * write only means the dot shows again on the next visit, so it never rejects.
+ * write only means the dot shows again on the next visit, so it is ignored.
  */
-export const markLimitTabVisited = async (): Promise<void> => {
+export const markLimitTabVisited = (): void => {
   if (hasVisitedLimitTab()) {
     return;
   }
 
-  try {
-    await StorageWrapper.setItem(BRIDGE_LIMIT_TAB_VISITED, 'true');
-  } catch {
-    // The visit is retried the next time the Limit tab opens.
-  }
+  persistLimitTabVisit().catch(() => undefined);
 };
 
 /** Subscribes to Limit tab visit updates for the current app process. */
