@@ -1043,6 +1043,30 @@ describe('PositionDetailsSheet', () => {
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
     });
 
+    it('hides copy trade on the viewer’s own open position', () => {
+      mockProfile = { profileId: 'trader-1' };
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
+    it('keeps Long and Short on the viewer’s own closed perp', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('offers Long and Short on a closed perp', () => {
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData({ isClosed: true });

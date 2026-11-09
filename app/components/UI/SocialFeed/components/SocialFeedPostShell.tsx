@@ -67,8 +67,8 @@ export interface SocialFeedPostShellProps {
    */
   requireSocialProfile?: boolean;
   /**
-   * Set `false` to hide Copy trade on an open card. The owner's profile posts
-   * pass this so they cannot copy their own trade.
+   * Set `false` to hide Copy trade on an open card. The viewer's own posts
+   * hide it regardless, once their Social profile id has resolved.
    */
   showCopyTrade?: boolean;
   /** Clock for the relative timestamp. Defaults to `Date.now()`. */
@@ -338,8 +338,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     ensureCopyTradeAllowed,
   );
   const canShowCopyTrade =
-    showCopyTrade &&
-    (!profileId || !isViewerSocialAuthor(post.item.author.id, profileId));
+    showCopyTrade && !isViewerSocialAuthor(post.item.author.id, profileId);
 
   const chips = visibleReactions(reactions);
   const canReact = Boolean(post.commentId);

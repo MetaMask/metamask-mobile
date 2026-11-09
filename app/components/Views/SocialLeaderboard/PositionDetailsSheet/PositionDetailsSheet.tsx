@@ -373,16 +373,17 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
-  const footer = (
-    <PositionSheetFooter
-      isPerp={data.isPerp}
-      isClosed={data.isClosed}
-      canSell={Boolean(heldBalance)}
-      onCopyTrade={handleCopyTrade}
-      onPerpsOrder={handlePerpsOrder}
-      onSpotTrade={openQuickBuy}
-    />
-  );
+  const footer =
+    isOwnPost && !data.isClosed ? null : (
+      <PositionSheetFooter
+        isPerp={data.isPerp}
+        isClosed={data.isClosed}
+        canSell={Boolean(heldBalance)}
+        onCopyTrade={handleCopyTrade}
+        onPerpsOrder={handlePerpsOrder}
+        onSpotTrade={openQuickBuy}
+      />
+    );
 
   const details = (
     <GestureDetector gesture={expandGesture}>
