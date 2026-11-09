@@ -46,9 +46,13 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+jest.mock('react-redux', () => {
+  const store = { getState: () => ({}) };
+  return {
+    useSelector: jest.fn(),
+    useStore: () => store,
+  };
+});
 
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
@@ -148,6 +152,7 @@ describe('usePerpsHomeActions', () => {
     );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
+    (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -605,8 +610,8 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('checks Hyperliquid when the active provider is aggregated', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
-        selector === selectPerpsProvider ? 'aggregated' : true,
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(
+        'aggregated',
       );
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -614,33 +619,64 @@ describe('usePerpsHomeActions', () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid');
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
+        watchActiveProvider: expect.any(Function),
+      });
     });
 
     it('checks Hyperliquid when no active provider is selected', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
-        selector === selectPerpsProvider ? undefined : true,
-      );
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid');
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
+        watchActiveProvider: expect.any(Function),
+      });
     });
 
     it('checks the active venue when it is a direct provider', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) =>
-        selector === selectPerpsProvider ? 'lighter' : true,
-      );
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter');
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter', {
+        watchActiveProvider: expect.any(Function),
+      });
+    });
+
+    it('watches the venue a withdrawal signs on', async () => {
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      const watchActiveProvider = mockCheckAccountSupport.mock.calls[0][1]
+        .watchActiveProvider as (provider?: string) => string;
+
+      expect(watchActiveProvider('lighter')).toBe('lighter');
+      expect(watchActiveProvider('hyperliquid')).toBe('hyperliquid');
+      expect(watchActiveProvider('aggregated')).toBe('hyperliquid');
+      expect(watchActiveProvider(undefined)).toBe('hyperliquid');
+    });
+
+    it('does not start a withdrawal when the signing venue check is stale', async () => {
+      mockCheckAccountSupport.mockResolvedValue('stale');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('accepts a new withdrawal once the previous one has finished', async () => {
