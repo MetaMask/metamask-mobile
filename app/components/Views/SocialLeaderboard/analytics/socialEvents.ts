@@ -79,6 +79,7 @@ export const SocialEvent = {
   ShareDestination: {
     EXTERNAL: 'external',
     METAMASK_POST: 'metamask_post',
+    COPY_LINK: 'copy_link',
   },
   Outcome: {
     CONTENT: 'content',
