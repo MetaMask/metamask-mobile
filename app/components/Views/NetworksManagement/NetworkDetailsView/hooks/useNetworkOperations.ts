@@ -210,7 +210,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         if (isCustomMainnet) {
           navigation.navigate('OptinMetrics');
         } else if (shouldNetworkSwitchPopToWallet) {
-          navigation.navigate('WalletTabHome');
+          navigation.navigate(Routes.WALLET.HOME);
         } else {
           navigation.goBack();
         }

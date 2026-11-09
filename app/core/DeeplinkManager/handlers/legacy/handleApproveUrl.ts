@@ -11,6 +11,7 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 
 const toHexOrFallback = (value: string) => {
   try {
@@ -57,7 +58,8 @@ async function handleApproveUrl({
       title: strings('transaction.invalid_recipient'),
       description: strings('transaction.invalid_recipient_description'),
     });
-    NavigationService.navigation.navigate('WalletTabHome');
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+    return;
   }
 
   const selectedAccount = AccountsController.getSelectedAccount();

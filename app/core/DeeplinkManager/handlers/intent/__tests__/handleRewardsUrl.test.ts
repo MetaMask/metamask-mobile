@@ -314,7 +314,7 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
     });
 
-    it('falls back to wallet view when dispatch fails', async () => {
+    it('falls back to the wallet tab when dispatch fails', async () => {
       mockDispatch.mockImplementationOnce(() => {
         throw new Error('Dispatch error');
       });

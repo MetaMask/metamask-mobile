@@ -8,6 +8,7 @@ import {
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../../selectors/preferencesController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -304,14 +305,14 @@ describe('useNetworkOperations', () => {
     expect(mockEnableNetwork).not.toHaveBeenCalled();
   });
 
-  it('navigates to WalletView when shouldNetworkSwitchPopToWallet is true', async () => {
+  it('navigates to the wallet tab when shouldNetworkSwitchPopToWallet is true', async () => {
     const { result } = renderHook(() => useNetworkOperations());
 
     await act(async () => {
       await result.current.saveNetwork(baseForm, defaultSaveOpts());
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('navigates to OptinMetrics when isCustomMainnet is true', async () => {

@@ -10,6 +10,7 @@ import { createMockInternalAccount } from '../../../../../util/test/accountsCont
 import { toHex } from '@metamask/controller-utils';
 import { validateWithPPOM } from '../../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../../NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -213,8 +214,10 @@ describe('handleApproveUrl', () => {
     });
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      'WalletTabHome',
+      Routes.WALLET.HOME,
     );
+    expect(spyGenerateApproveData).not.toHaveBeenCalled();
+    expect(spyAddTransaction).not.toHaveBeenCalled();
   });
 
   it('does not call showSimpleNotification if the spender address is valid', async () => {
