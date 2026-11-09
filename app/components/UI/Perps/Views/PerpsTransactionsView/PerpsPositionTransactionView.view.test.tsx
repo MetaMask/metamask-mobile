@@ -44,26 +44,32 @@ const renderDetails = (fee: string) =>
     { initialParams: { transaction: closedLong(fee) } },
   );
 
+const MISSING_TRANSLATION = /\[missing ".*" translation\]/;
+
 describe('PerpsPositionTransactionView', () => {
   const feesLabel = strings('perps.transactions.position.fees');
+  const sizeLabel = strings('perps.transactions.position.size');
 
   it('shows the fees row for a known fee', async () => {
     renderDetails('5');
 
+    // A missing key renders its fallback, which would also match a lookup.
+    expect(feesLabel).not.toMatch(MISSING_TRANSLATION);
     expect(await screen.findByText(feesLabel)).toBeOnTheScreen();
     expect(screen.getByText('$5')).toBeOnTheScreen();
+    expect(screen.queryByText(MISSING_TRANSLATION)).not.toBeOnTheScreen();
   });
 
   it('leaves out the fees row when the order fee is unknown', async () => {
     // A grouped order with a fill missing its fee carries an empty fee.
     renderDetails('');
 
-    // A missing key would make the label a fallback that is never on screen.
-    expect(feesLabel).not.toMatch(/\[missing ".*" translation\]/);
-    expect(
-      await screen.findByText(strings('perps.transactions.position.size')),
-    ).toBeOnTheScreen();
+    // A missing key renders its fallback, which would also match a lookup.
+    expect(feesLabel).not.toMatch(MISSING_TRANSLATION);
+    expect(sizeLabel).not.toMatch(MISSING_TRANSLATION);
+    expect(await screen.findByText(sizeLabel)).toBeOnTheScreen();
     expect(screen.queryByText(feesLabel)).not.toBeOnTheScreen();
     expect(screen.queryByText('$0')).not.toBeOnTheScreen();
+    expect(screen.queryByText(MISSING_TRANSLATION)).not.toBeOnTheScreen();
   });
 });
