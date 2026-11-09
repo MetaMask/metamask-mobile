@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 15
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      HAS_SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN != '' }}
       GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout repository
@@ -48,8 +48,11 @@ jobs:
       - name: Check budgets
         env:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: node .github/scripts/swaps/run-swaps-perf-budgets.mjs
 
       - name: Post failure notice
-        if: ${{ failure() && env.DRY_RUN != 'true' && env.SLACK_BOT_TOKEN != '' }}
+        if: ${{ failure() && env.DRY_RUN != 'true' && env.HAS_SLACK_TOKEN == 'true' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: node .github/scripts/swaps/run-swaps-perf-budgets.mjs --failure-notice

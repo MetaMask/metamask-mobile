@@ -11,7 +11,12 @@ const MOBILE = '2299799';
 const EXTENSION = '273505';
 const MOBILE_MID_TIER = 'os.name:Android device.class:medium';
 
-/** Filter on `span.op`: older releases reuse these span names under other ops. */
+/**
+ * Each query is the one its guardrail was derived with; changing a filter
+ * means re-deriving the guardrail. `span.op` keeps out the same names under
+ * other ops: `custom` on Extension before 13.52.0, `ui.load` and `custom` on
+ * Mobile.
+ */
 export const BUDGET_RULES = [
   {
     // Not in the proposal: Oct 23 – Nov 6 p90 plus its headroom rule.
@@ -21,6 +26,7 @@ export const BUDGET_RULES = [
     guardrailMs: 1411,
   },
   {
+    // Derived with no `span.op` or `result` filter, so other ops and failed searches count.
     label: 'Mobile Swap Token Search (mid-tier Android)',
     projectId: MOBILE,
     query: `environment:production span.name:"Swap Token Search" ${MOBILE_MID_TIER}`,
@@ -34,11 +40,13 @@ export const BUDGET_RULES = [
     guardrailMs: 3489,
   },
   {
+    // Derived with no `span.op` filter.
     label: 'Mobile Swap Quote Fetch (mid-tier Android)',
     projectId: MOBILE,
     query: `environment:production span.name:"Swap Quote Fetch" result:success ${MOBILE_MID_TIER}`,
     guardrailMs: 5199,
   },
+  // Extension guardrails were derived with no `result` filter.
   {
     label: 'Extension Swap View Loaded',
     projectId: EXTENSION,
