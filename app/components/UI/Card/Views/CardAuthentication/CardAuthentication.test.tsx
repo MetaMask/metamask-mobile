@@ -15,6 +15,7 @@ import {
   CardProviderError,
   CardProviderErrorCode,
   CardProviderIds,
+  type CardAuthStep,
   type CardSignInResolution,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
@@ -1135,16 +1136,9 @@ describe('CardAuthentication', () => {
     it('keeps the original email code when authenticator sign-in follows an edited attempt', async () => {
       mockPasswordlessFlag.enabled = true;
       const auth = makeAuthReturn();
-      let setAuthStep: (
-        step:
-          | { type: 'email_password' }
-          | { type: 'otp'; destination: string; mode: 'TOTP' },
-      ) => void = () => undefined;
+      let setAuthStep: (step: CardAuthStep) => void = () => undefined;
       mockUseCardAuth.mockImplementation(() => {
-        const [step, setStep] = React.useState<
-          | { type: 'email_password' }
-          | { type: 'otp'; destination: string; mode: 'TOTP' }
-        >(auth.currentStep);
+        const [step, setStep] = React.useState<CardAuthStep>(auth.currentStep);
         setAuthStep = setStep;
         return {
           ...auth,
