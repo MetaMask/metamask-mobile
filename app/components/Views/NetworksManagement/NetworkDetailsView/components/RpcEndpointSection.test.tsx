@@ -221,12 +221,9 @@ describe('RpcEndpointSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it.each([
-    ['https://mainnet.infura.io/v3/key', true],
-    ['https://rpc1.example.com', false],
-  ])('shows the failover tag for %s: %s', (rpcUrl, expectTag) => {
+  it('shows the failover tag for an endpoint with a failover', () => {
     const formHook = createRpcModalFormHook({
-      form: { rpcUrl, chainId: '0x1' },
+      form: { rpcUrl: 'https://mainnet.infura.io/v3/key', chainId: '0x1' },
       showMultiRpcAddModal: false,
       rpcModalShowForm: false,
     });
@@ -243,9 +240,29 @@ describe('RpcEndpointSection', () => {
       />,
     );
 
-    expect(Boolean(queryByText(strings('app_settings.failover')))).toBe(
-      expectTag,
+    expect(queryByText(strings('app_settings.failover'))).toBeOnTheScreen();
+  });
+
+  it('hides the failover tag for an endpoint without a failover', () => {
+    const formHook = createRpcModalFormHook({
+      form: { rpcUrl: 'https://rpc1.example.com', chainId: '0x1' },
+      showMultiRpcAddModal: false,
+      rpcModalShowForm: false,
+    });
+
+    const { queryByText } = render(
+      <RpcEndpointSection
+        formHook={formHook}
+        validation={createRpcValidation()}
+        onValidationSuccess={jest.fn()}
+        isRpcFailoverEnabled
+        styles={styles}
+        themeAppearance="light"
+        placeholderTextColor={placeholderTextColor}
+      />,
     );
+
+    expect(queryByText(strings('app_settings.failover'))).not.toBeOnTheScreen();
   });
 
   it('renders RPC selector in edit mode', () => {
