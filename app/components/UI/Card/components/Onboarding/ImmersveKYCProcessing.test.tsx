@@ -87,14 +87,89 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className?: string) => ({ className })),
+  }),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../hooks/useCardHeaderHandlers', () => ({
+  useCardHeaderHandlers: () => ({
+    onClose: jest.fn(),
+    closeButtonProps: { testID: 'card-header-close-button' },
+  }),
+}));
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactActual.createElement(View, { testID: 'header-standard-glass' }),
+    };
+  },
+);
+
+jest.mock('./ImmersveVerifyingIdentityAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'immersve-verifying-identity-animation',
+      }),
+  };
+});
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
-    Box: ({ children, ...p }: React.PropsWithChildren<object>) =>
-      ReactActual.createElement(View, p, children),
+    Box: ({
+      children,
+      testID,
+      ...p
+    }: React.PropsWithChildren<{ testID?: string }>) =>
+      ReactActual.createElement(View, { testID, ...p }, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center', End: 'End' },
     Text: ({ children, ...p }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(Text, p, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-standard' },
+        topAccessory,
+        ReactActual.createElement(Text, { testID: titleProps?.testID }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
     Button: ({
       children,
       onPress,
@@ -354,7 +429,7 @@ describe('ImmersveKYCProcessing', () => {
     );
   });
 
-  it('prompts (with the illustration) instead of auto-opening for KYC_NOT_COMPLETED', () => {
+  it('prompts instead of auto-opening for KYC_NOT_COMPLETED', () => {
     setNextAction({
       type: 'kyc',
       url: 'https://verify.immersve.com/abc',
@@ -365,6 +440,7 @@ describe('ImmersveKYCProcessing', () => {
     // Backend told us the user bailed → prompt, never silently reopen.
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(getByTestId('immersve-kyc-processing-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
     expect(getByTestId('immersve-kyc-processing-reopen-button')).toBeTruthy();
     expect(getByTestId('onboarding-title').props.children).toBe(
       'card.card_onboarding.immersve_kyc_processing.incomplete_title',

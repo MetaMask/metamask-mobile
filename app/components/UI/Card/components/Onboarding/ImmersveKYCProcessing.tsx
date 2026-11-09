@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -11,10 +14,10 @@ import {
   Spinner,
   Text,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
@@ -30,6 +33,10 @@ import {
   clearImmersveKycOnClose,
 } from '../ImmersveKYCModal/ImmersveKYCModal';
 import OnboardingStep from './OnboardingStep';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
 // this window and send them to the "we'll notify you" pending screen. Immersve
@@ -50,6 +57,8 @@ const POLLING_TIMEOUT_MS = 30000;
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerHandlers = useCardHeaderHandlers('close-direct');
   const { countryKey, kycUrl } = useParams<{
     countryKey?: string;
     kycUrl?: string;
@@ -195,13 +204,6 @@ const ImmersveKYCProcessing = () => {
         >
           {errorMessage}
         </Text>
-      ) : isReopenPrompt ? (
-        <Image
-          source={MM_CARD_VERIFY_IDENTITY}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-          testID="immersve-kyc-processing-illustration"
-        />
       ) : (
         <>
           <Spinner
@@ -221,53 +223,102 @@ const ImmersveKYCProcessing = () => {
     </Box>
   );
 
-  const renderActions = () =>
-    isReopenPrompt ? (
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        onPress={() => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-              .addProperties(
-                withCardProvider(CardProviderIds.Immersve, {
-                  action: CardActions.KYC_REOPEN,
-                  cta_hint: ctaHint,
-                }),
-              )
-              .build(),
-          );
-          openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
-        }}
-        testID="immersve-kyc-processing-reopen-button"
+  const handleReopen = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.KYC_REOPEN,
+            cta_hint: ctaHint,
+          }),
+        )
+        .build(),
+    );
+    openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
+  }, [trackEvent, createEventBuilder, ctaHint, openKycWebview, nextAction]);
+
+  if (isReopenPrompt) {
+    const title = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
+        : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
+    );
+    const description = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
+        : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
+    );
+    const buttonLabel = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
+        : 'card.card_onboarding.immersve_kyc_processing.continue_button',
+    );
+
+    return (
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={tw.style('flex-1 bg-default')}
       >
-        {strings(
-          isInfoNeeded
-            ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
-            : 'card.card_onboarding.immersve_kyc_processing.continue_button',
-        )}
-      </Button>
-    ) : null;
-
-  const titleKey = isReopenPrompt
-    ? isInfoNeeded
-      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
-      : 'card.card_onboarding.immersve_kyc_processing.incomplete_title'
-    : 'card.card_onboarding.immersve_kyc_processing.title';
-
-  const descriptionKey = isReopenPrompt
-    ? isInfoNeeded
-      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
-      : 'card.card_onboarding.immersve_kyc_processing.incomplete_description'
-    : 'card.card_onboarding.immersve_kyc_processing.description';
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+        <ScrollView
+          contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+        >
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            titleProps={{
+              twClassName: 'text-center',
+              testID: 'onboarding-title',
+            }}
+            titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+            bottomLabelProps={{
+              twClassName: 'text-center',
+              testID: 'onboarding-description',
+            }}
+            bottomLabelWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            topAccessory={
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="mb-5 w-full overflow-hidden"
+                testID="immersve-kyc-processing-illustration"
+              >
+                <ImmersveVerifyingIdentityAnimation />
+              </Box>
+            }
+          />
+        </ScrollView>
+        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleReopen}
+            testID="immersve-kyc-processing-reopen-button"
+          >
+            {buttonLabel}
+          </Button>
+        </Box>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <OnboardingStep
-      title={strings(titleKey)}
-      description={strings(descriptionKey)}
+      title={strings('card.card_onboarding.immersve_kyc_processing.title')}
+      description={strings(
+        'card.card_onboarding.immersve_kyc_processing.description',
+      )}
       formFields={renderFormFields()}
-      actions={renderActions()}
+      actions={null}
       headerMode="close-direct"
     />
   );
