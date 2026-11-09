@@ -6,13 +6,8 @@ import {
 } from '@metamask/watch-only-keyring';
 
 /**
- * Build the V1 keyring builder for the watch-only keyring.
- *
- * The V1 entry is a `WatchOnlyKeyringV1Adapter` wrapping the V2
- * `WatchOnlyKeyring`, so the `KeyringController` can store it in the vault.
- * Registering the builder creates nothing: the keyring only enters the vault
- * when `WatchOnlyAccountService` creates the first watch-only account. The
- * adapter lacks V1 `addAccounts`, so it is not a full `KeyringBuilder`.
+ * V1 builder: a `WatchOnlyKeyringV1Adapter` wrapping the V2 keyring, so the
+ * vault can store it. It lacks `addAccounts` (not a full `KeyringBuilder`).
  *
  * @returns The watch-only keyring builder.
  */
@@ -24,10 +19,7 @@ export function buildWatchOnlyKeyringBuilder() {
 }
 
 /**
- * Build the V2 keyring builder for the watch-only keyring.
- *
- * Unwraps the `WatchOnlyKeyring` held by the V1 adapter, so the V1 and V2
- * entries share one instance (like the Snap keyring).
+ * V2 builder: unwraps the V1 adapter so both entries share one instance.
  *
  * @returns The watch-only keyring V2 builder.
  */

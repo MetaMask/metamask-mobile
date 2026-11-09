@@ -22,12 +22,8 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
- * Build-time gate for development-only watch-only accounts. Registers the
- * watch-only keyring builders and lets `WatchOnlyAccountService` create
- * accounts. Only dev builds can turn it on; release builds always return false.
- *
- * The variable is inlined from `.js.env` at build time; restart Metro after
- * changing it.
+ * Build-time gate for development-only watch-only accounts. Always false
+ * outside dev builds. Inlined from `.js.env`; restart Metro after changing.
  */
 export function isWatchOnlyAccountsBuildEnabled(): boolean {
   return (

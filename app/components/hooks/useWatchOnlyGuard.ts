@@ -7,11 +7,8 @@ import { strings } from '../../../locales/i18n';
 import { isWatchOnlyAccount } from '../../util/address';
 
 /**
- * Refuses write actions while the selected account is a development-only
- * watch-only account, which has no signing capability.
- *
- * @returns `guard()`, which shows the watch-only message and returns `true`
- * when the caller must stop.
+ * Refuses write actions while the selected account is a dev-only watch-only
+ * account: `guard()` shows the watch-only message and returns `true`.
  */
 export function useWatchOnlyGuard() {
   const selectedAddress = useSelector(
