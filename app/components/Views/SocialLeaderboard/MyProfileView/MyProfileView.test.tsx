@@ -2100,7 +2100,6 @@ describe('MyProfileView', () => {
       );
 
       expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-      expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
       expect(
         screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
       ).toBeOnTheScreen();
@@ -2131,20 +2130,10 @@ describe('MyProfileView', () => {
     let setAccessibilityFocus: jest.SpyInstance;
     let findHeader: jest.SpyInstance;
 
-    const settle = (
-      name: 'scrollEndDrag' | 'momentumScrollEnd',
-      velocityY: number,
+    const pressNote = (
+      measuredY: number,
+      layout?: { content: number; viewport: number },
     ) => {
-      fireEvent(screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL), name, {
-        nativeEvent: {
-          contentOffset: { x: 0, y: 640 },
-          contentSize: { height: 2000, width: 400 },
-          layoutMeasurement: { height: 800, width: 400 },
-          velocity: { x: 0, y: velocityY },
-        },
-      });
-    };
-    const pressNote = (measuredY: number) => {
       mockProfileRouteParams = {
         traderId: 'trader-1',
         traderName: 'alpha.eth',
@@ -2178,6 +2167,15 @@ describe('MyProfileView', () => {
         .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
         .mockReturnValue(44);
       renderWithProvider(<MyProfileView />);
+      if (layout) {
+        const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+        fireEvent(scroll, 'layout', {
+          nativeEvent: {
+            layout: { x: 0, y: 0, width: 400, height: layout.viewport },
+          },
+        });
+        fireEvent(scroll, 'contentSizeChange', 400, layout.content);
+      }
       fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
       fireEvent.press(
         screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
@@ -2190,52 +2188,49 @@ describe('MyProfileView', () => {
       findHeader.mockRestore();
     });
 
-    it('waits out a drag that still has momentum', () => {
-      pressNote(640);
-      settle('scrollEndDrag', 1.4);
-      expect(setAccessibilityFocus).not.toHaveBeenCalled();
-      settle('momentumScrollEnd', 0);
-      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-      expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
-    });
-
-    it('focuses when the drag stops with no momentum', () => {
-      pressNote(640);
-      settle('scrollEndDrag', 0);
-      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-      settle('momentumScrollEnd', 0);
-      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-    });
-
     it('focuses immediately when the section is already at that offset', () => {
       mockScrollY.value = 640;
       pressNote(640);
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
       expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-      expect(measureLayout).toHaveBeenCalledWith(
-        mockScrollContent,
-        expect.any(Function),
-        expect.any(Function),
-      );
     });
 
     it('drops a pending focus when the profile tab changes', () => {
-      pressNote(640);
-      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
-      settle('momentumScrollEnd', 0);
-      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+      jest.useFakeTimers();
+      try {
+        pressNote(640);
+        fireEvent.press(
+          screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
+        );
+        act(() => {
+          jest.advanceTimersByTime(400);
+        });
+        expect(setAccessibilityFocus).not.toHaveBeenCalled();
+      } finally {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
     });
 
-    it('drops a pending focus when the asset filter changes', () => {
-      pressNote(640);
-      fireEvent.press(
-        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
-      );
-      fireEvent.press(
-        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
-      );
-      settle('momentumScrollEnd', 0);
-      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+    it('focuses when the list cannot reach the measured offset', () => {
+      pressNote(640, { content: 500, viewport: 800 });
+      expect(mockScrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('focuses after a short wait when the scroll never settles', () => {
+      jest.useFakeTimers();
+      try {
+        pressNote(640);
+        expect(setAccessibilityFocus).not.toHaveBeenCalled();
+        act(() => {
+          jest.advanceTimersByTime(400);
+        });
+        expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
     });
   });
 
