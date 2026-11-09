@@ -157,7 +157,7 @@ describe('createSocialBranchShortUrl', () => {
     mockCreateBranchUniversalObject.mockReset();
   });
 
-  it('sends the preview on the universal object and the route on the link', async () => {
+  it('sends the preview on the universal object and the route on the link, with no web URL to scrape', async () => {
     const { generateShortUrl, release } = mockShortLink(shortUrl);
 
     await expect(
@@ -169,7 +169,6 @@ describe('createSocialBranchShortUrl', () => {
       {
         locallyIndex: false,
         publiclyIndex: false,
-        canonicalUrl: PROFILE_URL,
         title: profilePreview.title,
         contentDescription: profilePreview.description,
         contentImageUrl: profilePreview.imageUrl,
@@ -179,8 +178,6 @@ describe('createSocialBranchShortUrl', () => {
       { feature: 'share', channel: 'social' },
       {
         $deeplink_path: 'social/profile',
-        $fallback_url: PROFILE_URL,
-        $desktop_url: PROFILE_URL,
         $twitter_card: 'summary_large_image',
         $twitter_title: profilePreview.title,
         $twitter_description: profilePreview.description,
@@ -202,8 +199,6 @@ describe('createSocialBranchShortUrl', () => {
       { feature: 'share', channel: 'social' },
       {
         $deeplink_path: 'social/profile',
-        $fallback_url: PROFILE_URL,
-        $desktop_url: PROFILE_URL,
       },
     );
   });
@@ -257,14 +252,15 @@ describe('OS share completion', () => {
   it('counts an iOS share and ignores an iOS dismiss', async () => {
     jest.replaceProperty(Platform, 'OS', 'ios');
     const onShared = jest.fn();
+    mockShortLink(shortUrl);
     openShare.mockResolvedValueOnce({ success: true, message: 'shared' });
 
     shareSocialProfile('trader-1', onShared, profilePreview);
     await flush();
 
     expect(openShare).toHaveBeenCalledWith({
-      message: PROFILE_LONG_SHARE_URL,
-      url: PROFILE_LONG_SHARE_URL,
+      message: shortUrl,
+      url: shortUrl,
       failOnCancel: false,
     });
     expect(onShared).toHaveBeenCalledTimes(1);
@@ -414,12 +410,11 @@ describe('share with a generated card', () => {
     mockCreateSocialOgImage.mockReset();
   });
 
-  it('puts the rendered card and preview copy on the configured long link', async () => {
+  it('puts the rendered card and preview copy on the Branch short link', async () => {
     jest.replaceProperty(Platform, 'OS', 'android');
     mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+    const { generateShortUrl } = mockShortLink(shortUrl);
     const buildRequest = jest.fn(async () => tradeRequest);
-    const canonicalUrl =
-      'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1';
     const preview = {
       title: "trader1's BTC trade",
       description: 'trader1 is trading BTC',
@@ -436,27 +431,43 @@ describe('share with a generated card', () => {
     await flush();
 
     expect(buildRequest).toHaveBeenCalledTimes(1);
-    expect(mockCreateBranchUniversalObject).not.toHaveBeenCalled();
-    const expectedUrl = buildSocialLongShareUrl(canonicalUrl, {
-      ...preview,
-      imageUrl: GENERATED_CARD_URL,
-    });
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile/position',
+      expect.objectContaining({
+        title: preview.title,
+        contentDescription: preview.description,
+        contentImageUrl: GENERATED_CARD_URL,
+      }),
+    );
+    expect(generateShortUrl).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        $custom_meta_tags: JSON.stringify({
+          'twitter:image': GENERATED_CARD_URL,
+          'twitter:image:src': GENERATED_CARD_URL,
+        }),
+      }),
+    );
     expect(openShare).toHaveBeenCalledWith({
-      message: expectedUrl,
+      message: shortUrl,
       failOnCancel: false,
     });
   });
 
   it('keeps the brand image when no card builder is passed', async () => {
     jest.replaceProperty(Platform, 'OS', 'android');
+    mockShortLink(shortUrl);
 
     shareSocialProfile('trader-1', undefined, profilePreview);
     await flush();
 
     expect(mockCreateSocialOgImage).not.toHaveBeenCalled();
-    expect(mockCreateBranchUniversalObject).not.toHaveBeenCalled();
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile',
+      expect.objectContaining({ contentImageUrl: profilePreview.imageUrl }),
+    );
     expect(openShare).toHaveBeenCalledWith({
-      message: PROFILE_LONG_SHARE_URL,
+      message: shortUrl,
       failOnCancel: false,
     });
   });
@@ -472,6 +483,7 @@ describe('share with a generated card', () => {
         },
       )
       .mockResolvedValueOnce(GENERATED_CARD_URL);
+    mockShortLink(shortUrl);
 
     shareSocialProfile('trader-1', undefined, profilePreview, async () => ({
       kind: 'generic',
@@ -484,15 +496,13 @@ describe('share with a generated card', () => {
 
     expect(firstSignal?.aborted).toBe(true);
     expect(openShare).toHaveBeenCalledTimes(1);
-    expect(mockCreateBranchUniversalObject).not.toHaveBeenCalled();
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledTimes(1);
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile',
+      expect.objectContaining({ contentImageUrl: GENERATED_CARD_URL }),
+    );
     expect(openShare).toHaveBeenCalledWith({
-      message: buildSocialLongShareUrl(
-        'https://link.metamask.io/social/profile?traderId=trader-2',
-        {
-          ...profilePreview,
-          imageUrl: GENERATED_CARD_URL,
-        },
-      ),
+      message: shortUrl,
       failOnCancel: false,
     });
   });

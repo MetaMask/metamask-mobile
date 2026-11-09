@@ -23,12 +23,13 @@ const POSITION_DEEPLINK_PATH = `${ACTIONS.SOCIAL}/${SOCIAL_PROFILE_POSITION_SUBP
 type SocialShareLinkMode = 'long' | 'branch-short';
 
 /**
- * Use long links while Branch short links keep the account's default image.
- * Change this to `branch-short` once per-link images work through the SDK.
+ * Branch short links, with the preview set through the SDK. Switch back to
+ * `long` (preview data in the query string) if short links lose the
+ * per-link image again.
  */
-// Asserted, not annotated: an annotated `const` narrows to `'long'`, and tsc
-// then rejects the `'branch-short'` comparison as having no overlap.
-export const SOCIAL_SHARE_LINK_MODE = 'long' as SocialShareLinkMode;
+// Asserted, not annotated: an annotated `const` narrows to one literal, and
+// tsc then rejects the comparison with the other mode as having no overlap.
+export const SOCIAL_SHARE_LINK_MODE = 'branch-short' as SocialShareLinkMode;
 
 /**
  * A later share replaces an in-flight one. An older card or link result must
@@ -185,10 +186,14 @@ export const createSocialBranchShortUrl = async (
     ReturnType<typeof branch.createBranchUniversalObject>
   >;
   let universalObject: CreatedObject | undefined;
+  // No `canonicalUrl` here and no `$fallback_url` / `$desktop_url` below:
+  // given a web URL, Branch scrapes that page's meta tags for the preview, and
+  // the plain `link.metamask.io` URL carries the account's default image,
+  // which replaced the card set in `contentImageUrl` (`$og_image_url`).
+  // Desktop clicks follow the dashboard's default desktop redirect instead.
   const universalObjectOptions = {
     locallyIndex: false,
     publiclyIndex: false,
-    canonicalUrl,
     title: openGraph?.title,
     contentDescription: openGraph?.description,
     contentImageUrl: openGraph?.imageUrl,
@@ -200,8 +205,6 @@ export const createSocialBranchShortUrl = async (
   // page, so use Branch's custom-meta-tag escape hatch for the image.
   const controlParams = {
     $deeplink_path: deeplinkPath,
-    $fallback_url: canonicalUrl,
-    $desktop_url: canonicalUrl,
     ...(openGraph
       ? {
           $twitter_card: 'summary_large_image',
