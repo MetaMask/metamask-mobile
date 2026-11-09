@@ -89,6 +89,7 @@ export interface KalshiMfaChallenge {
 
 const VerifyStruct = type({
   verified: boolean(),
+  userId: optional(string()),
   mfa: optional(
     type({
       method: enums(KALSHI_MFA_METHODS),
@@ -100,6 +101,8 @@ const VerifyStruct = type({
 
 export interface KalshiLinkVerify {
   verified: boolean;
+  /** POC: Kalshi user id, when the server passes it through (kyc-api). */
+  userId?: string;
   /** Set when `verified` is false: submit that code to the same route. */
   mfa?: KalshiMfaChallenge;
 }
