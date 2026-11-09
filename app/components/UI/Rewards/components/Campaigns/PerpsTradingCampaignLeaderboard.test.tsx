@@ -241,7 +241,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-250`)).toBeDefined();
     });
 
-    const twentyFiveEntries = Array.from({ length: 25 }, (_, i) =>
+    const twentyEntries = Array.from({ length: 20 }, (_, i) =>
       createPerpsEntry({
         rank: i + 1,
         referralCode: `R${String(i + 1).padStart(3, '0')}`,
@@ -253,7 +253,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsTradingCampaignLeaderboard
           {...defaultProps}
-          entries={twentyFiveEntries}
+          entries={twentyEntries}
           currentUserReferralCode="USER"
           userPosition={{
             rank: 21,
@@ -273,11 +273,65 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-20`)).toBeDefined();
     });
 
+    it('full mode shows ranks through numberOfWinners when the API sends more than the default', () => {
+      const thirtyEntries = Array.from({ length: 30 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 3000 - i,
+        }),
+      );
+      const { getByTestId, queryByTestId, UNSAFE_queryAllByProps } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={thirtyEntries}
+          numberOfWinners={30}
+          currentUserReferralCode="USER"
+          userPosition={{
+            rank: 25,
+            neighbors: [
+              createPerpsEntry({ rank: 24, referralCode: 'N024' }),
+              createPerpsEntry({ rank: 25, referralCode: 'USER' }),
+              createPerpsEntry({ rank: 26, referralCode: 'N026' }),
+            ],
+          }}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-21`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-30`)).toBeDefined();
+      expect(queryByTestId(TEST_IDS.NEIGHBOR_SEPARATOR)).toBeNull();
+      expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(30);
+    });
+
+    it('full mode shows a 30-row board and crowns only numberOfWinners when that count is smaller', () => {
+      const thirtyEntries = Array.from({ length: 30 }, (_, i) =>
+        createPerpsEntry({
+          rank: i + 1,
+          referralCode: `W${String(i + 1).padStart(3, '0')}`,
+          pnl: 3000 - i,
+        }),
+      );
+      const { getByTestId, UNSAFE_queryAllByProps } = render(
+        <PerpsTradingCampaignLeaderboard
+          {...defaultProps}
+          entries={thirtyEntries}
+          numberOfWinners={5}
+        />,
+      );
+
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-1`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-20`)).toBeDefined();
+      expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-30`)).toBeDefined();
+      expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(5);
+    });
+
     it('full mode shows 20 top rows when user rank is 23 (standard strip)', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsTradingCampaignLeaderboard
           {...defaultProps}
-          entries={twentyFiveEntries}
+          entries={twentyEntries}
           currentUserReferralCode="USER"
           userPosition={{
             rank: 23,

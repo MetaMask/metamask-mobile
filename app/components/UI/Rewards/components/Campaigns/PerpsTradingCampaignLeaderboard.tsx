@@ -60,7 +60,10 @@ export interface PerpsTradingCampaignLeaderboardProps {
   isCampaignComplete?: boolean;
   /**
    * Number of prize-winning ranks for this campaign, from the leaderboard API.
-   * Falls back to PERPS_TRADING_MAX_WINNERS when the backend does not send it.
+   * Crowns use this count. The full board is the max of this count,
+   * PERPS_TRADING_MAX_WINNERS, and the rows returned by the API, so the list
+   * can be wider than the prize ranks. Falls back to PERPS_TRADING_MAX_WINNERS
+   * when the backend does not send it.
    */
   numberOfWinners?: number;
 }
@@ -81,6 +84,14 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
+  // Show every returned row, and never a shorter board than the historical 20
+  // or the prize-winning ranks. Crowns still use numberOfWinners, so a 30-row
+  // response can crown only the top 5.
+  const boardSize = Math.max(
+    PERPS_TRADING_MAX_WINNERS,
+    numberOfWinners,
+    entries.length,
+  );
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -97,6 +108,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
       entries,
       maxEntries,
       userPosition,
+      boardSize,
     });
 
   const isCurrentUser = useCallback(
@@ -107,7 +119,9 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
+    return (
+      <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? boardSize} />
+    );
   }
 
   if (hasError && entries.length === 0) {
