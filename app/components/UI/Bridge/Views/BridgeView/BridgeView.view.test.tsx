@@ -471,14 +471,14 @@ describeForPlatforms('BridgeView', () => {
       const { getByTestId, queryByTestId } = renderBridgeView();
 
       expect(
-        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
       ).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
 
       await waitFor(() => {
         expect(
-          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT),
         ).not.toBeOnTheScreen();
       });
     });
@@ -489,9 +489,10 @@ describeForPlatforms('BridgeView', () => {
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.limit'));
-      expect(
-        getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE),
-      ).toHaveProp('accessibilityLabel', strings('bridge.tabs.new_badge'));
+      expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT)).toHaveProp(
+        'accessibilityLabel',
+        strings('bridge.tabs.new_badge'),
+      );
       expect(
         getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
       ).toHaveTextContent(strings('bridge.tabs.recurring'));

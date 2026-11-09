@@ -1,27 +1,43 @@
 import { useEffect, useState } from 'react';
 
 import {
-  hasVisitedLimitTab as getHasVisitedLimitTab,
+  hasVisitedLimitTab,
+  markLimitTabVisited,
   subscribeToLimitTabVisited,
 } from './limitTabVisit';
 
+interface UseLimitTabNewDotParams {
+  isLimitTabEnabled: boolean;
+  isLimitTabOpen: boolean;
+}
+
 /**
- * Keeps the Limit discovery dot visible until the first time the Limit tab is
- * opened. The visit flag is read synchronously so a returning visit does not
- * flash the dot.
+ * Shows the Limit discovery dot until the Limit tab is first opened, then
+ * persists the visit so the dot stays hidden on later app launches. The visit
+ * is read synchronously so a returning user never sees the dot flash.
  */
-export const useLimitTabNewDot = (isLimitTabEnabled: boolean): boolean => {
-  const [hasVisitedLimitTab, setHasVisitedLimitTab] = useState(
-    getHasVisitedLimitTab,
-  );
+export const useLimitTabNewDot = ({
+  isLimitTabEnabled,
+  isLimitTabOpen,
+}: UseLimitTabNewDotParams): boolean => {
+  const [hasVisited, setHasVisited] = useState(hasVisitedLimitTab);
+  // A Limit deep link while the tab is disabled falls back to Market, so it
+  // must not count as a visit.
+  const isVisiting = isLimitTabEnabled && isLimitTabOpen;
 
   useEffect(() => {
     if (!isLimitTabEnabled) {
       return;
     }
 
-    return subscribeToLimitTabVisited(setHasVisitedLimitTab);
+    return subscribeToLimitTabVisited(setHasVisited);
   }, [isLimitTabEnabled]);
 
-  return isLimitTabEnabled && !hasVisitedLimitTab;
+  useEffect(() => {
+    if (isVisiting) {
+      markLimitTabVisited();
+    }
+  }, [isVisiting]);
+
+  return isLimitTabEnabled && !hasVisited;
 };

@@ -60,7 +60,8 @@ const LiveView: React.FC<LiveViewProps> = ({
   appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
   const feedPageRef = useRef<SocialFeedPageHandle>(null);

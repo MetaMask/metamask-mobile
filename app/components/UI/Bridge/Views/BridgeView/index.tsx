@@ -53,7 +53,6 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { markLimitTabVisited } from './limitTabVisit';
 import { useLimitTabNewDot } from './useLimitTabNewDot';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
@@ -96,7 +95,10 @@ const BridgeView = () => {
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
-  const showLimitTabNewDot = useLimitTabNewDot(isLimitOrderTabEnabled);
+  const showLimitTabNewDot = useLimitTabNewDot({
+    isLimitTabEnabled: isLimitOrderTabEnabled,
+    isLimitTabOpen: renderedTab === BridgeTabKey.Limit,
+  });
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
@@ -104,6 +106,10 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
@@ -114,8 +120,16 @@ const BridgeView = () => {
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
@@ -255,15 +269,6 @@ const BridgeView = () => {
     [renderedTab, handleSlippageSettingsPress],
   );
 
-  // Opening the Limit tab, including from a deep link, dismisses the dot.
-  useEffect(() => {
-    if (renderedTab !== BridgeTabKey.Limit) {
-      return;
-    }
-
-    markLimitTabVisited();
-  }, [renderedTab]);
-
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
   // disabled, only Market remains and the tabs bar is hidden entirely below.
@@ -285,18 +290,14 @@ const BridgeView = () => {
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
         // Same discovery dot as the Social nav item. Absolute so it sits just
         // past the label's top-right corner and does not widen the underline.
-        ...(showLimitTabNewDot
-          ? {
-              endAccessory: (
-                <BadgeStatus
-                  status={BadgeStatusStatus.Active}
-                  twClassName="absolute top-0.5 -right-3"
-                  testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
-                  accessibilityLabel={strings('bridge.tabs.new_badge')}
-                />
-              ),
-            }
-          : null),
+        endAccessory: showLimitTabNewDot ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Active}
+            twClassName="absolute top-0.5 -right-3"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT}
+            accessibilityLabel={strings('bridge.tabs.new_badge')}
+          />
+        ) : undefined,
       });
     }
 

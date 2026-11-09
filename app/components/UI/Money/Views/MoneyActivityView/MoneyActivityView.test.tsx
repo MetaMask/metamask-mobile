@@ -533,6 +533,7 @@ describe('MoneyActivityView', () => {
     useCardCapabilities.mockReturnValue({
       supportsTransactionHistory: true,
       supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: true,
     });
     mockedSelectEnrichmentFlag.mockReturnValue(true);
     mockedSelectMoneyAccountFlag.mockReturnValue(true);

@@ -808,16 +808,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock useABTest hook (controllable per-test)
-const mockUseABTest = jest.fn(() => ({
-  variantName: 'control',
-  variant: { long: 'white', short: 'white' },
-  isActive: false,
-}));
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => mockUseABTest(),
-}));
-
 // Mock useTooltipModal hook
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
@@ -1371,11 +1361,6 @@ function applyDefaultHookMocks() {
     payToken: undefined,
     setPayToken: jest.fn(),
     isNative: undefined,
-  });
-  mockUseABTest.mockReturnValue({
-    variantName: 'control',
-    variant: { long: 'white', short: 'white' },
-    isActive: false,
   });
   mockCreateEventBuilder.mockImplementation(() => ({
     addProperties: jest.fn().mockReturnThis(),
@@ -4694,43 +4679,6 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
 
-    it('disables control (white) button variant when TP/SL is invalid', async () => {
-      // Arrange: control (default/white) A/B test variant + invalid TP
-      mockUseABTest.mockReturnValue({
-        variantName: 'control',
-        variant: { long: 'white', short: 'white' },
-        isActive: true,
-      });
-      (usePerpsOrderContext as jest.Mock).mockReturnValue(
-        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
-      );
-      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-        isValid: true,
-        errors: [],
-        isValidating: false,
-        insufficientBalanceErrors: [],
-        validateNow: jest.fn(),
-      });
-      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn(),
-        isPlacing: false,
-      });
-
-      // Act
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      // Assert: warning visible (proves hasInvalidTPSL is true in control/white path)
-      await waitFor(() => {
-        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
-      });
-
-      // Assert: control (white) button rendered and receives isDisabled prop
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      expect(placeOrderButton).toBeDefined();
-    });
-
     describe('limit order TP/SL validates against entry price, not market price', () => {
       const orderContextForLimitOrder = (overrides: {
         direction: 'long' | 'short';
@@ -7408,10 +7356,22 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     beforeEach(() => {
       mockSelectedEvmAccount = { address: '0xTRADER' };
       mockMessengerCall.mockResolvedValue({});
       clearPostTradeShareSession();
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7494,6 +7454,31 @@ describe('PerpsOrderView', () => {
 
     it('keeps the normal toasts for a copied market order from a private profile', async () => {
       mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order below $10 margin', async () => {
+      mockOrderSize('50', 10);
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),
@@ -7611,6 +7596,17 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     const submitOrder = async () => {
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
@@ -7644,6 +7640,7 @@ describe('PerpsOrderView', () => {
       clearPostTradeShareSession();
       mockIsPerpsProModeActive = false;
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7750,6 +7747,48 @@ describe('PerpsOrderView', () => {
 
       expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
       expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('uses the normal toast for a share sheet when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('does not open create profile or mark it seen when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('uses the confirmed toast without Post to feed when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(showToast).toHaveBeenCalled();
+      expect(
+        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+      ).toBeUndefined();
     });
   });
 });

@@ -205,7 +205,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 3)', () => {
+  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 2 wins over identity_verified)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -213,6 +213,7 @@ describe('getVbaHomeCard', () => {
         kycStatus: 'approved',
       }),
       autoramps: [makeAutoramp()],
+      hasUsableAutoramp: true,
     });
 
     expect(card).toEqual({ type: 'account_is_ready' });
@@ -289,7 +290,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready for an approved session while no usable autoramp exists (decision rule 3)', () => {
+  it('renders identity_verified for an approved session while no usable autoramp exists (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -298,11 +299,27 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'identity_verified' });
+  });
+
+  it('renders identity_verified for an approved session with no autoramp at all, even with terms and a submitted flow', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      hasAcceptedVendorTerms: true,
+      providerFlowStatus: 'submitted',
+      autoramps: [],
+      hasUsableAutoramp: false,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'identity_verified' });
   });
 
   it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
-    'renders account_is_ready for an approved session whose only autoramp is %s (decision rule 3)',
+    'renders identity_verified for an approved session whose only autoramp is %s (decision rule 3)',
     (status) => {
       const card = getVbaHomeCard({
         ...baseInputs,
@@ -313,7 +330,7 @@ describe('getVbaHomeCard', () => {
         autoramps: [makeAutoramp({ status })],
       });
 
-      expect(card).toEqual({ type: 'account_is_ready' });
+      expect(card).toEqual({ type: 'identity_verified' });
     },
   );
 

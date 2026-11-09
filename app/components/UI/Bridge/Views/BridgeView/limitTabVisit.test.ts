@@ -30,8 +30,8 @@ describe('limitTabVisit', () => {
     expect(result).toBe(true);
   });
 
-  it('persists the first Limit tab visit', () => {
-    markLimitTabVisited();
+  it('persists the first Limit tab visit', async () => {
+    await markLimitTabVisited();
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       BRIDGE_LIMIT_TAB_VISITED,
@@ -39,12 +39,22 @@ describe('limitTabVisit', () => {
     );
   });
 
-  it('does not rewrite a persisted Limit tab visit', () => {
+  it('does not rewrite a persisted Limit tab visit', async () => {
     jest.mocked(StorageWrapper.getItemSync).mockReturnValue('true');
 
-    markLimitTabVisited();
+    await markLimitTabVisited();
 
     expect(StorageWrapper.setItem).not.toHaveBeenCalled();
+  });
+
+  it('resolves when persisting the Limit tab visit fails', async () => {
+    jest
+      .mocked(StorageWrapper.setItem)
+      .mockRejectedValue(new Error('write failed'));
+
+    const result = markLimitTabVisited();
+
+    await expect(result).resolves.toBeUndefined();
   });
 
   it('notifies subscribers when the Limit tab is visited', () => {

@@ -16,6 +16,7 @@ import {
   type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -30,7 +31,10 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
-/** Returns whether the entered Perps amount reaches the sharing threshold. */
+/**
+ * Returns whether the Perps order's margin reaches the sharing threshold.
+ * `amountUsd` is position size (notional); margin is notional / leverage.
+ */
 export const isPerpsPostTradeShareEligible = ({
   amountUsd,
   leverage,
@@ -38,12 +42,9 @@ export const isPerpsPostTradeShareEligible = ({
   amountUsd?: string;
   leverage?: number;
 }): boolean => {
-  const amount = Number(amountUsd);
-  const leveragedAmount = amount * (leverage ?? 0);
-  return (
-    Number.isFinite(leveragedAmount) &&
-    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
-  );
+  const notional = Number(amountUsd);
+  const margin = leverage && leverage > 0 ? notional / leverage : Number.NaN;
+  return Number.isFinite(margin) && margin >= MIN_POST_TRADE_SHARE_USD;
 };
 
 export const canBeginPerpsPostTradeShare = ({
@@ -118,12 +119,14 @@ export const openPerpsPostTradeShareSession = ({
   leverage,
   amountUsd,
   variant = 'share',
+  analyticsSource,
 }: {
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
   variant?: PostTradeShareVariant;
+  analyticsSource?: SocialEventSource;
 }): string => {
   const preview = buildPerpsPostTradePreview({
     asset,
@@ -141,6 +144,7 @@ export const openPerpsPostTradeShareSession = ({
       : `${directionLabel} ${preview.tokenSymbol}`,
     tradeInFlightChain: 'hyperliquid',
     preview,
+    ...(analyticsSource ? { analyticsSource } : {}),
   });
 };
 
@@ -157,6 +161,7 @@ export const beginPerpsPostTradeShare = ({
   direction,
   leverage,
   amountUsd,
+  analyticsSource,
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
@@ -165,6 +170,7 @@ export const beginPerpsPostTradeShare = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
     !canBeginPerpsPostTradeShare({
@@ -178,6 +184,7 @@ export const beginPerpsPostTradeShare = ({
   }
   return openPerpsPostTradeShareSession({
     asset,
+    analyticsSource,
     direction,
     leverage,
     amountUsd,

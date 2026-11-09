@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Wir swappen Ihre Token gegen pUSD auf Polygon, dem von Predictions verwendeten Netzwerk. Swap-Anbieter erheben möglicherweise eine Gebühr, MetaMask jedoch nicht."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask swappt den Token für Sie in den gewünschten Token um. Beim Swap in mUSD fallen keine MetaMask-Gebühren an."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask swappt den Token für Sie in den gewünschten Token um. Beim Swap in mUSD fallen keine MetaMask-Gebühren an."
-      },
       "musd_conversion": {
         "transaction_fee": "Die Gebühren für die mUSD-Konvertierung beinhalten Netzwerkkosten und können Anbietergebühren beinhalten. Bei der Konvertierung in mUSD fällt keine MetaMask-Gebühr an."
       },

@@ -24,6 +24,7 @@ import type {
 import {
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,
+  POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
   answerPredictNextCatalog,
@@ -35,12 +36,16 @@ import {
   mockPredictNextMessenger,
   ncaaEvents,
   nflEvents,
+  politicsEvents,
   PREDICT_NEXT_FEED_IDS,
   publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
-const { nflGames: NFL_GAMES_FEED_ID, ncaaGames: NCAA_GAMES_FEED_ID } =
-  PREDICT_NEXT_FEED_IDS;
+const {
+  nflGames: NFL_GAMES_FEED_ID,
+  ncaaGames: NCAA_GAMES_FEED_ID,
+  politicsTrump: POLITICS_TRUMP_FEED_ID,
+} = PREDICT_NEXT_FEED_IDS;
 
 describe('PredictHome', () => {
   beforeEach(() => {
@@ -444,7 +449,11 @@ describe('PredictHome', () => {
       // the two watches in either order. The ids are the contract, not the
       // arrival order; sorting keeps extra or duplicate watches failing.
       expect(watchedEventIds().sort()).toEqual(
-        [...eventIds(nflEvents), ...eventIds(ncaaEvents)].sort(),
+        [
+          ...eventIds(nflEvents),
+          ...eventIds(ncaaEvents),
+          ...eventIds(politicsEvents),
+        ].sort(),
       );
       expect(
         liveDataCalls().filter(
@@ -515,7 +524,11 @@ describe('PredictHome', () => {
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictLiveDataService:unwatchEvents',
         'kalshi',
-        [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+        [
+          ...eventIds(nflEvents),
+          ...eventIds(ncaaEvents),
+          ...eventIds(politicsEvents),
+        ],
         CARD_SCOPE,
       );
 
@@ -525,7 +538,11 @@ describe('PredictHome', () => {
         expect(messengerCall).toHaveBeenCalledWith(
           'PredictLiveDataService:watchEvents',
           'kalshi',
-          [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+          [
+            ...eventIds(nflEvents),
+            ...eventIds(ncaaEvents),
+            ...eventIds(politicsEvents),
+          ],
           CARD_SCOPE,
         ),
       );
@@ -596,7 +613,7 @@ describe('PredictHome', () => {
           venueId: 'kalshi',
           id: feedId,
           title: 'NCAAF Games',
-          events: ncaaEvents,
+          events: feedId === NCAA_GAMES_FEED_ID ? ncaaEvents : politicsEvents,
         });
       },
     );
@@ -890,6 +907,98 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Politics section', () => {
+    it('shows the Politics section with its Trump preview Events', async () => {
+      const view = renderPredictNext();
+
+      const section = await waitFor(() =>
+        view.getByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
+      );
+      expect(section).toBeOnTheScreen();
+      expect(
+        within(
+          view.getByTestId(
+            PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+          ),
+        ).getByText('Politics'),
+      ).toBeOnTheScreen();
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        'kalshi',
+        POLITICS_TRUMP_FEED_ID,
+        { limit: 2 },
+      );
+    });
+
+    it('opens the Politics Feed Screen from the section header', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      fireEvent.press(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      );
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        within(view.getByTestId(PredictFeedScreenTestIds.VIEW)).getByText(
+          'Politics',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the Event screen from a Politics card', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(
+          PredictHomeTestIds.eventContent('kalshi', 'politics-1'),
+        ),
+      );
+
+      // The screen's root is replaced when the Event read settles, so wait
+      // for the loaded header rather than the loading chrome.
+      expect(
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Politics section and reads no Politics Feed when the Venue lacks the Trump key', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
+          'politics-congress':
+            KALSHI_STATIC_VENUE_CATALOG.feeds['politics-congress'],
+          'politics-iran': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+        },
+      });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        messengerCall.mock.calls.filter(
+          ([action, , feedId]) =>
+            action === 'PredictMarketDataService:getFeed' &&
+            feedId === POLITICS_TRUMP_FEED_ID,
+        ),
+      ).toHaveLength(0);
     });
   });
 
