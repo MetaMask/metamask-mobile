@@ -6448,11 +6448,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  walletFrameworkRpcFailoverEnabled: {
-    name: 'walletFrameworkRpcFailoverEnabled',
+  corePlatformRpcFailoverMode: {
+    name: 'corePlatformRpcFailoverMode',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: true,
+    productionDefault: 'enabled',
     status: FeatureFlagStatus.Active,
   },
   cardExperimentalSwitch2: {
