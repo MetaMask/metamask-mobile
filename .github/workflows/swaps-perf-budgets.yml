@@ -6,6 +6,8 @@
 name: Swaps Performance Budgets
 
 on:
+  push:
+    branches: [swaps-perf-budgets-daily-check]
   schedule:
     - cron: '0 5 * * *'
   workflow_dispatch:
@@ -47,7 +49,7 @@ jobs:
 
       - name: Check budgets
         env:
-          SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
+          SWAPS_SENTRY_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
         run: node .github/scripts/swaps/run-swaps-perf-budgets.mjs
 
       - name: Post failure notice
