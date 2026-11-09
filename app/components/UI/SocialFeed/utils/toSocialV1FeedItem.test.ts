@@ -580,6 +580,36 @@ describe('toSocialV1FeedItem', () => {
       expect(result.comment).toBe('Thesis unchanged.');
     });
 
+    it('dates a commented card by its comment rather than its trade', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          timestamp: 1_700_000_000,
+          authorComment: {
+            uid: 'comment-1',
+            text: 'Still holding the thesis.',
+            timestamp: 1_700_691_200,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 0,
+            },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(1_700_691_200_000);
+    });
+
+    it('dates a card with no comment by its trade', () => {
+      const row = buildRow(mockSpotFeedItem({ timestamp: 1_700_000_000 }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(row.item.timestamp);
+    });
+
     it('strips a static.klipy.com gif url from the caption', () => {
       const gifUrl =
         'https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/14/af/um0L4dFH.gif';

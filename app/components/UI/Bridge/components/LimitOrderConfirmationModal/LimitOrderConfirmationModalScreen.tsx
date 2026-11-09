@@ -21,6 +21,7 @@ import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selec
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
+import { LimitOrderGeoRestrictedError } from '../../api/limitOrders/create/errors';
 import type { SignedLimitOrderDelegation } from '../../api/limitOrders/create/schema';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
@@ -51,6 +52,7 @@ enum LimitOrderConfirmError {
   Delegations = 'delegations',
   Signature = 'signature',
   Create = 'create',
+  GeoRestricted = 'geoRestricted',
 }
 
 const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
@@ -62,6 +64,8 @@ const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
     'bridge.limit.error_fetching_delegations',
   [LimitOrderConfirmError.Signature]: 'bridge.limit.error_signing_delegations',
   [LimitOrderConfirmError.Create]: 'bridge.limit.error_creating_order',
+  [LimitOrderConfirmError.GeoRestricted]:
+    'bridge.quote_stream_complete_rwa_geo_restricted',
 };
 
 export const LimitOrderConfirmationModalScreen = () => {
@@ -176,6 +180,13 @@ export const LimitOrderConfirmationModalScreen = () => {
       return {
         bannerMessage: strings('bridge.limit.error_calculation_network_fees'),
         primaryButtonLabel: strings('bridge.limit.try_again'),
+      };
+    }
+
+    // Retrying cannot change the user's region, so there is nothing to retry.
+    if (confirmError === LimitOrderConfirmError.GeoRestricted) {
+      return {
+        bannerMessage: strings(CONFIRM_ERROR_MESSAGE_KEY[confirmError]),
       };
     }
 
@@ -319,15 +330,24 @@ export const LimitOrderConfirmationModalScreen = () => {
           .build(),
       );
     } catch (createError) {
+      const isGeoRestricted =
+        createError instanceof LimitOrderGeoRestrictedError;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
             order_type: getOrderTypeFromTrigger(trigger),
-            error: (createError as Error).message,
+            error: isGeoRestricted
+              ? 'rwa_geo_restricted'
+              : (createError as Error).message,
           })
           .build(),
       );
+      // An expected rejection for the user's region, not a fault to report.
+      if (isGeoRestricted) {
+        setConfirmError(LimitOrderConfirmError.GeoRestricted);
+        return;
+      }
       Logger.error(
         createError as Error,
         'LimitOrderConfirmationModalScreen: Failed to create limit order',
@@ -387,7 +407,9 @@ export const LimitOrderConfirmationModalScreen = () => {
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
         isLoading: delegationFee.status === 'loading' || isCreatingOrder,
-        isDisabled: !feeTokenValidation.isValid,
+        isDisabled:
+          !feeTokenValidation.isValid ||
+          confirmError === LimitOrderConfirmError.GeoRestricted,
       }}
     />
   );
