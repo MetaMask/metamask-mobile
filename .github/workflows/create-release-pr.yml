@@ -26,8 +26,6 @@ on:
         required: false
       GCP_RLS_SHEET_ACCOUNT_BASE64:
         required: false
-      AI_ANALYZER_LITELLM_KEY:
-        required: false
 
 permissions:
   contents: read
