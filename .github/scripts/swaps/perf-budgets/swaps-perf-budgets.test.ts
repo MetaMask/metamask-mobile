@@ -18,9 +18,17 @@ const result = (
 });
 
 const options = {
-  windowLabel: '2026-10-26 – 2026-11-08 UTC',
+  window: {
+    start: new Date('2026-10-26T00:00:00Z'),
+    end: new Date('2026-11-09T00:00:00Z'),
+    label: '2026-10-26 – 2026-11-08 UTC',
+  },
   runUrl: 'https://example.com/run',
 };
+
+const dashboardLink = (id: string, project: string, client: string) =>
+  `<https://metamask.sentry.io/dashboard/${id}/?project=${project}&environment=production&start=2026-10-26T00%3A00%3A00&end=2026-11-09T00%3A00%3A00&utc=true|${client}>`;
+const mobileHeading = `*${dashboardLink('9580363', '2299799', 'Mobile')}*`;
 
 describe('budgetStatus', () => {
   it('needs the minimum sample count and a full scan', () => {
@@ -51,10 +59,10 @@ describe('buildSlackMessage', () => {
         ':white_check_mark: *Swaps performance budgets: all 2 rules within guardrails*',
         '2026-10-26 – 2026-11-08 UTC · 14-day p90 vs guardrail',
         '',
-        '*Mobile* (mid-tier Android)',
+        `${mobileHeading} (mid-tier Android)`,
         ':white_check_mark: <https://example.com/explore|Swap Quote Fetch>: 4,000ms / 5,000ms (80%) · n=4,176',
         '',
-        '*Extension*',
+        `*${dashboardLink('10089240', '273505', 'Extension')}*`,
         ':white_check_mark: <https://example.com/explore|Swap Quote Fetch>: 2,500ms / 5,000ms (50%) · n=671',
         '',
         '<https://example.com/run|Run log>',
@@ -79,7 +87,7 @@ describe('buildSlackMessage', () => {
       ':rotating_light: *Swaps performance budgets: 1 of 3 over guardrail, 1 not evaluable*',
     );
     expect(lines.slice(3, 7)).toEqual([
-      '*Mobile*',
+      mobileHeading,
       ':rotating_light: <https://example.com/explore|Swap Quote Fetch>: *5,300ms / 5,000ms (106%)* · n=4,176',
       ':grey_question: <https://example.com/explore|Swap Token Search>: not evaluable (n below 400) · n=120',
       ':white_check_mark: <https://example.com/explore|Swap View Loaded>: 4,000ms / 5,000ms (80%) · n=4,176',

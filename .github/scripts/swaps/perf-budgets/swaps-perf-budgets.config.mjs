@@ -9,6 +9,12 @@ export const SLACK_CHANNEL_ID = 'C0CFMPG4KB9';
 
 const MOBILE = '2299799';
 const EXTENSION = '273505';
+
+/** Each client's Swap & Bridge Performance dashboard, linked from its Slack heading. */
+export const SENTRY_DASHBOARDS = {
+  Mobile: { dashboardId: '9580363', projectId: MOBILE },
+  Extension: { dashboardId: '10089240', projectId: EXTENSION },
+};
 const MOBILE_MID_TIER = 'os.name:Android device.class:medium';
 
 /**

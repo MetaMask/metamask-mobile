@@ -76,7 +76,7 @@ async function main() {
   // An all-clear would be misleading when some queries failed; the failure notice covers that.
   const allClear = results.every((result) => result.status === STATUS.OK);
   const message =
-    errors.length > 0 && allClear ? null : buildSlackMessage(results, { windowLabel: window.label, runUrl });
+    errors.length > 0 && allClear ? null : buildSlackMessage(results, { window, runUrl });
   if (!message) {
     console.log(
       results.length > 0

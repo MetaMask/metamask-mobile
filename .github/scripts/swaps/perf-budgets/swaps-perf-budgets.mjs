@@ -3,7 +3,7 @@
  * guardrail when n >= MIN_SAMPLES and the scan wasn't downsampled.
  */
 
-import { BUDGET_RULES, MIN_SAMPLES, WINDOW_DAYS } from './swaps-perf-budgets.config.mjs';
+import { BUDGET_RULES, MIN_SAMPLES, SENTRY_DASHBOARDS, WINDOW_DAYS } from './swaps-perf-budgets.config.mjs';
 
 const SENTRY_ORG = 'metamask';
 const P90_FIELD = 'p90(span.duration)';
@@ -42,6 +42,18 @@ export function exploreUrl(rule, { start, end }) {
     table: 'span',
   });
   return `https://${SENTRY_ORG}.sentry.io/explore/traces/?${params}`;
+}
+
+/** A client's dashboard over the window, production only. */
+export function dashboardUrl({ dashboardId, projectId }, { start, end }) {
+  const params = new URLSearchParams({
+    project: projectId,
+    environment: 'production',
+    start: start.toISOString().slice(0, 19),
+    end: end.toISOString().slice(0, 19),
+    utc: 'true',
+  });
+  return `https://${SENTRY_ORG}.sentry.io/dashboard/${dashboardId}/?${params}`;
 }
 
 /**
@@ -122,7 +134,7 @@ function slackRuleLine({ rule, measured: { p90, n, fullScan }, status, url }) {
 }
 
 /** The daily Slack message: a verdict line, then every rule grouped by client, breaches first. */
-export function buildSlackMessage(results, { windowLabel = '', runUrl = '' } = {}) {
+export function buildSlackMessage(results, { window, runUrl = '' } = {}) {
   const total = results.length;
   const breaches = results.filter((result) => result.status === STATUS.BREACH).length;
   const unknown = results.filter((result) => result.status === STATUS.NOT_EVALUABLE).length;
@@ -134,11 +146,13 @@ export function buildSlackMessage(results, { windowLabel = '', runUrl = '' } = {
     verdict = `:grey_question: *${TITLE}: ${unknown} of ${total} not evaluable*`;
   }
 
-  const lines = [verdict, `${windowLabel} · ${WINDOW_DAYS}-day p90 vs guardrail`];
+  const lines = [verdict, `${window.label} · ${WINDOW_DAYS}-day p90 vs guardrail`];
   const groups = new Map();
   for (const result of results) {
     const [client, , scope] = splitLabel(result.rule.label);
-    const header = `*${client}*${scope ? ` (${scope})` : ''}`;
+    const dashboard = SENTRY_DASHBOARDS[client];
+    const name = dashboard ? `<${dashboardUrl(dashboard, window)}|${client}>` : client;
+    const header = `*${name}*${scope ? ` (${scope})` : ''}`;
     groups.set(header, [...(groups.get(header) || []), result]);
   }
   for (const [header, items] of groups) {
