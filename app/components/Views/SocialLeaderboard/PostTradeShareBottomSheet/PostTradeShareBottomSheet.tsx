@@ -32,6 +32,7 @@ import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomShe
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
   type PostTradeShareSession,
@@ -42,7 +43,11 @@ import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
 } from './postTradeComposerParams';
-import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import {
+  getSocialEventSource,
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../analytics';
 
 const ILLUSTRATION_SIZE = 64;
 
@@ -108,7 +113,7 @@ const navigateToActivity = (product: PostTradeShareSession['product']) => {
   }
   NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
 };
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
@@ -117,7 +122,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const isPerps = session?.product === 'perps';
-  const source = Source.TRADER_FEED;
+  const source = getSocialEventSource(session?.analyticsSource);
   const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
   const trackInteraction = useSocialScreenAnalytics(
     Screen.POST_TRADE_SHARE_SHEET,
@@ -133,7 +138,16 @@ const PostTradeShareBottomSheet: React.FC = () => {
     },
   );
   const isCreateProfile = session?.variant === 'create_profile';
-  const canRetry = session?.product === 'spot' && Boolean(session.owner);
+  const retryOwner = session?.product === 'spot' ? session.owner : undefined;
+  const getCanRetry = useCallback(
+    () => (retryOwner ? hasPostTradeShareReopenOwner(retryOwner) : false),
+    [retryOwner],
+  );
+  const canRetry = useSyncExternalStore(
+    subscribePostTradeShareSession,
+    getCanRetry,
+    getCanRetry,
+  );
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -186,6 +200,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
         ? buildPerpsPostTradeComposerParams({
             orderId: session.orderId,
             preview: session.preview,
+            analyticsSource: session.analyticsSource,
           })
         : session.product === 'spot' &&
             session.transactionHash &&
@@ -194,6 +209,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
               transactionHash: session.transactionHash,
               chain: session.tradeInFlightChain,
               preview: session.preview,
+              analyticsSource: session.analyticsSource,
             })
           : undefined;
     if (!params) {
@@ -261,51 +277,53 @@ const PostTradeShareBottomSheet: React.FC = () => {
           </Text>
         ) : null}
       </Box>
-      <Box twClassName="px-4 pt-4 pb-6">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
-          testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
-        >
-          {isCreateProfile ? (
-            <Image
-              source={createProfileIllustration}
-              resizeMode="contain"
-              style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
-            />
-          ) : (
-            <PostTradeEarnIllustration
-              name="post-trade-earn"
-              width={ILLUSTRATION_SIZE}
-              height={ILLUSTRATION_SIZE}
-            />
-          )}
-          <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_title'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_title',
-              )}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_body'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_body',
-              )}
-            </Text>
+      {session.status !== 'failed' ? (
+        <Box twClassName="px-4 pt-4 pb-6">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
+            testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
+          >
+            {isCreateProfile ? (
+              <Image
+                source={createProfileIllustration}
+                resizeMode="contain"
+                style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+              />
+            ) : (
+              <PostTradeEarnIllustration
+                name="post-trade-earn"
+                width={ILLUSTRATION_SIZE}
+                height={ILLUSTRATION_SIZE}
+              />
+            )}
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_title'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_title',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_body'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_body',
+                )}
+              </Text>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      ) : null}
       <Box twClassName="px-4 pb-6">
         <Button
           variant={ButtonVariant.Primary}

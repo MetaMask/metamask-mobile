@@ -1,9 +1,12 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelStayStep from './CancelStayStep';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
 import { MAX_STAY_FEEDBACK_LENGTH } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
+import type { RootState } from '../../../../../../reducers';
+import configureStore from '../../../../../../util/test/configureStore';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 
@@ -28,7 +31,11 @@ const renderStep = (
     errorMessage: null,
     ...overrides,
   };
-  const utils = render(<CancelStayStep {...props} />);
+  const utils = render(
+    <Provider store={configureStore({} as RootState)}>
+      <CancelStayStep {...props} />
+    </Provider>,
+  );
   return { ...utils, props };
 };
 

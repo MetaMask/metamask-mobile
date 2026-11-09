@@ -37,8 +37,8 @@ describe('useEarnAnalytics', () => {
   it('tracks a component view with Earn-only location properties', () => {
     const { result } = renderHook(() =>
       useEarnAnalytics({
-        component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
-        entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
       }),
     );
 
@@ -48,8 +48,8 @@ describe('useEarnAnalytics', () => {
       MetaMetricsEvents.EARN_MODULE_SURFACE_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
-      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
-      entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
     });
     expect(mockAddProperties.mock.calls[0][0]).not.toHaveProperty(
       'is_account_funded',

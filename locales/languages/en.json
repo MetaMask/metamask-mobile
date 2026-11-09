@@ -130,6 +130,9 @@
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
     },
+    "money_account_no_funds": {
+      "message": "You don't have funds in your Money account to send yet. Add funds first."
+    },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
@@ -692,7 +695,7 @@
     "import_wallet_from_extension": "import from the MetaMask extension",
     "import_menu_title": "Import",
     "import_from_srp_qr": "Import from Secret Recovery Phrase QR Code",
-    "import_from_extension_menu": "Import from the MetaMask extension",
+    "import_from_extension_menu": "Import from MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -1135,6 +1138,7 @@
       "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Funds land as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save it as a payee in your banking app.",
@@ -1153,21 +1157,45 @@
     },
     "verify_identity": {
       "title": "Verify your identity",
-      "description": "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
       "step_photograph_id": "Photograph your ID",
       "step_take_selfie": "Take a selfie",
       "step_confirm_details": "Confirm your details",
       "step_answer_questions": "Answer a few questions",
-      "footer": "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
-      "powered_by": "Powered by",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "button": "Continue",
-      "terms_sheet_title": "Data and privacy",
-      "terms_sheet_description": "To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.",
-      "metamask_privacy_policy": "MetaMask Privacy Policy",
-      "metamask_terms": "MetaMask Terms and Conditions",
-      "terms_sheet_button": "Agree and start verification"
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
     },
     "kyc_email": {
       "error_title": "Couldn't start verification",
@@ -1187,7 +1215,9 @@
     "kyc_taking_longer": {
       "title": "Verifying your identity",
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
-      "button": "Come back later"
+      "button": "Come back later",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
     },
     "identity_verified": {
       "title": "Identity verified",
@@ -1195,7 +1225,8 @@
       "button": "Continue"
     },
     "creating_account": {
-      "title": "Creating your bank account",
+      "title": "Creating your account...",
+      "description": "Most accounts are created instantly.",
       "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
@@ -1242,14 +1273,14 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar",
-        "eur": "Euro"
+        "usd": "US dollar"
       }
     },
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
@@ -1274,6 +1305,12 @@
     }
   },
   "social_leaderboard": {
+    "account_disabled": {
+      "title": "Your account is temporarily disabled",
+      "reason": "Reason: {{reason}}",
+      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "contact_support": "Contact support"
+    },
     "entry_options": {
       "title": "Options",
       "report": "Report",
@@ -1435,6 +1472,7 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
       }
@@ -1512,7 +1550,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Apply",
         "apply": "Apply",
         "reset": "Reset",
@@ -1623,6 +1661,26 @@
       "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
     },
     "all_networks": "All networks",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from P&L",
+      "short": {
+        "insider": "Insider",
+        "creator": "Creator",
+        "excluded": "Excluded"
+      },
+      "accessibility": {
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
+        "direction_up": "up",
+        "direction_down": "down",
+        "direction_flat": "unchanged",
+        "reason_insider": "insider",
+        "reason_creator": "creator",
+        "reason_excluded": "excluded"
+      }
+    },
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
@@ -1677,6 +1735,8 @@
       "mutuals_tab": "{{count}} mutuals",
       "win_rate": "Win rate",
       "pnl": "P&L",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
       "avg_hold_time": "Avg. hold time",
       "volume": "Volume",
@@ -1692,6 +1752,19 @@
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
+      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -1699,12 +1772,22 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
-      "joined": "Joined {{time}}",
+      "joined": "Joined {{time}} ago",
+      "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Try again"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "scroll_to_bottom": "Scroll to the bottom",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1714,6 +1797,8 @@
       "just_now": "just now",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Choose a MetaMask username and avatar",
       "choose_x_identity_description": "This is how other traders will know who you are.",
@@ -1746,10 +1831,6 @@
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Select an account",
-      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
-      "link_account_benefit_private": "Your account address stays private.",
-      "link_account_benefit_follow": "Other traders can follow your profile.",
-      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
       "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1759,6 +1840,13 @@
       "lets_go": "Let's go",
       "continue": "Continue"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "About",
@@ -1766,13 +1854,16 @@
       "display_name": "Display name",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Trading activity",
       "trading_activity_on": "On",
       "trading_activity_off": "Off",
       "linked_social_account": "Linked social account",
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
+      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
+      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
@@ -1780,7 +1871,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -1792,6 +1882,14 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Opens the asset page",
+      "open_market_accessibility_hint": "Opens market details",
+      "posts_tab": "Posts ({{count}})",
+      "transactions_tab": "Transactions ({{count}})",
+      "no_posts": "No posts on this trade yet",
       "level": {
         "entry": "Entry",
         "exit": "Exit",
@@ -2345,6 +2443,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
       "estimated_points": "Est. points",
       "market": "Market",
       "limit": "Limit",
@@ -2612,7 +2711,8 @@
       "updating_your_order": "Updating your order",
       "order_updated": "Order updated",
       "order_update_failed": "Failed to update order",
-      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -2921,6 +3021,8 @@
       "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
       "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
@@ -3296,7 +3398,7 @@
       "gainers": "Gainers",
       "losers": "Losers",
       "recently_added": "Recently added",
-      "social_feed": "Social feed",
+      "social_feed": "Social",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
@@ -3615,7 +3717,7 @@
     "tp_on_chart": "TP on Chart",
     "sl_on_chart": "SL on Chart",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
+      "title": "P&L Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
@@ -3682,6 +3784,10 @@
   },
   "predict_next": {
     "available_balance": "Available balance",
+    "home_section": {
+      "position_info": "{{costBasis}} on {{outcome}} to win {{payout}}",
+      "pnl_unavailable": "Unavailable"
+    },
     "balance_unavailable": {
       "title": "Balance unavailable",
       "description": "Unable to load your available balance.",
@@ -3689,6 +3795,14 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "venue_selector": {
+      "button_label": "Choose a prediction market",
+      "title": "Prediction market",
+      "venues": {
+        "polymarket": "Polymarket",
+        "kalshi": "Kalshi"
+      }
+    },
     "home_sections": {
       "error": "Markets couldn’t be loaded.",
       "retry": "Retry",
@@ -3697,7 +3811,37 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcome": "Outcome"
+      "outcomes": "Outcomes",
+      "view_all_markets": "View all {{count}} markets",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "player_props": "Player props",
+        "anytime_touchdown": "Anytime touchdown",
+        "rushing_yards": "Rushing yards",
+        "receiving_yards": "Receiving yards",
+        "passing_yards": "Passing yards",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% to win",
+        "buy": "Buy {{price}}",
+        "buy_price_unavailable": "Buy, price unavailable",
+        "holding": "{{shares}} shares at {{price}}",
+        "holding_shares": "{{shares}} shares"
+      }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Search markets",
@@ -3784,7 +3928,8 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order"
+      "review": "Review order",
+      "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
       "title": "Review your order",
@@ -3815,6 +3960,10 @@
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
       "requote": "Try again"
+    },
+    "order_notification": {
+      "not_placed_title": "Order not placed",
+      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     }
   },
   "predict": {
@@ -3872,7 +4021,14 @@
       "line_unavailable": "line unavailable",
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -4531,6 +4687,9 @@
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
+    "search_tokens": "Search tokens",
+    "no_tokens_match_search": "No tokens match your search",
+    "clear_search": "Clear search",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
@@ -4571,8 +4730,14 @@
     "current_network": "Current network",
     "popular_networks": "Popular networks",
     "all_networks": "All networks",
-    "declining_balance": "Declining balance ({{currency}} high-low)",
-    "alphabetically": "Alphabetically (A-Z)",
+    "sort_balance": "Balance",
+    "sort_name": "Name",
+    "sort_high_to_low": "High to low",
+    "sort_low_to_high": "Low to high",
+    "sort_a_to_z": "A to Z",
+    "sort_z_to_a": "Z to A",
+    "sort_apply": "Apply",
+    "sort_reset": "Reset",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
     "fund_your_wallet": "Fund your wallet",
@@ -4712,6 +4877,7 @@
       "all": "All types",
       "transactions": "Transactions",
       "buy_sell": "Buy/Sell",
+      "limit_orders": "Limit orders",
       "perps": "Perps",
       "predictions": "Predictions",
       "metamask_card": "Card"
@@ -4754,6 +4920,10 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "limit_orders": {
+        "description": "Your filled limit orders will show up here.",
+        "action": "Swap tokens"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -5127,7 +5297,7 @@
     "card_update_badge": "Update",
     "settings": "Settings",
     "networks": "Networks",
-    "log_out": "Log out",
+    "log_out": "Lock",
     "notifications": "Notifications",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Join MetaMask Orange",
@@ -5167,7 +5337,7 @@
     "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
     "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
     "x_account_disconnect_sheet_title": "Disconnect X account?",
-    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body": "{{handle}} on X will no longer be connected to your MetaMask profile. Your username, posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
@@ -5698,7 +5868,9 @@
         "title": "Social Leaderboard",
         "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
         "onboarding_seen": "Onboarding seen: {{seen}}",
-        "reset_onboarding": "Reset onboarding"
+        "reset_onboarding": "Reset onboarding",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "New wallet",
@@ -6072,7 +6244,7 @@
     "balance": "balance. See the support article",
     "position_pnl": {
       "your_position": "Your position",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6338,7 +6510,7 @@
         },
         "volume_flags": {
           "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
         },
         "listed_on_exchange": {
           "title": "Listed on exchange",
@@ -8648,9 +8820,9 @@
       "resend": "Resend code",
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
-      "paste": "Paste",
       "verifying": "Verifying code",
-      "get_new_code": "Get new code"
+      "get_new_code": "Get new code",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
@@ -8679,7 +8851,7 @@
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
-      "too_many_attempts": "Too many attempts. Request a new code.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
@@ -9443,14 +9615,19 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Convert to digital dollars",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
         "title": "You’re all set",
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
+      },
+      "identity_verified": {
+        "title": "Identity verified",
+        "description": "Next, get your virtual account details to add funds from your bank.",
+        "cta": "Get account details"
       },
       "kyc_pending": {
         "title": "Verifying your identity",
@@ -9598,7 +9775,8 @@
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon",
-      "new_badge": "New"
+      "new_badge": "New",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "More",
@@ -9717,6 +9895,9 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Verification deposit",
+      "microdeposit_from": "From {{name}}",
+      "microdeposit_from_bank": "From your bank",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
@@ -10150,7 +10331,7 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add funds",
+      "money_account_deposit_header": "Add to MetaMask Money",
       "money_account_send": "Send"
     },
     "sub_title": {
@@ -10174,10 +10355,10 @@
         "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "swap_to_token": "MetaMask will swap to your desired token for you."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
@@ -10290,6 +10471,7 @@
     "available_balance": "Available balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
     "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
@@ -10423,6 +10605,8 @@
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
       "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
+      "swap_into_token": "Swap into {{symbol}}",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",
@@ -10441,6 +10625,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "try_again": "Try again",
       "order_created_toast_title": "Order created",
       "order_created_toast_body": "We'll let you know when it's filled.",
       "order_canceled_toast_title": "Order canceled",
@@ -10452,9 +10639,9 @@
       "expires_after": "Expires after",
       "slippage_all_orders": "Slippage (all orders)",
       "est_network_fee_per_order": "Est. network fee (per order)",
-      "delegation_fee_one_time": "Delegation fee (one time)",
-      "delegation_fee_info_title": "Delegation fee",
-      "delegation_fee_info_body": "placeholder",
+      "account_upgrade_fee": "Account upgrade fee",
+      "account_upgrade_fee_info_title": "Account upgrade fee",
+      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
       "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
@@ -10462,6 +10649,7 @@
       "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
+        "input_label": "Price range (optional)",
         "not_set": "Not set",
         "token": "Token",
         "price": "Price",
@@ -10698,6 +10886,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
@@ -12259,12 +12448,12 @@
       "apply_success": "Bonus code applied!"
     },
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "Type 'erase progress' to continue",
         "confirm_phrase": "erase progress",
         "cancel": "Cancel",
@@ -12429,7 +12618,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
-      "top_pnl": "Top PnL",
+      "top_pnl": "Top P&L",
       "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
@@ -12539,7 +12728,7 @@
       "performance_title": "Performance",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
@@ -12555,7 +12744,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
-      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualified_description": "Keep trading to improve your P&L and climb the leaderboard before the competition ends.",
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
@@ -12569,7 +12758,7 @@
       "label_your_rank": "Your rank",
       "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL (after fees)",
+      "label_pnl": "P&L (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
@@ -13161,6 +13350,8 @@
     "membership_label": "Pro",
     "membership_status": {
       "active": "Active",
+      "processing": "Processing",
+      "free_trial": "Free trial",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
       "cancelled": "Cancelled",
@@ -13375,8 +13566,17 @@
         "description": "Get priority customer support from a real human—anytime, any day."
       }
     },
+    "payment": {
+      "processing_title": "Processing payment",
+      "processing_body": "This may take a few minutes.",
+      "active_title": "Your membership is active",
+      "view_membership": "View membership",
+      "failed_title": "Payment failed",
+      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "try_again": "Try again"
+    },
     "success": {
-      "title": "You just leveled up, {{name}}",
+      "title": "You just leveled up",
       "description": "Time to start earning.",
       "cta": "Continue"
     }

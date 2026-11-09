@@ -74,9 +74,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
-  actions: read
-  pull-requests: read
 
 jobs:
   compute-matrix:
@@ -147,6 +144,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+      pull-requests: read
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-${{ matrix.slug }}-ios-smoke-${{ matrix.split }}

@@ -58,6 +58,8 @@ import {
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
+import { parsePositionRoePercentage } from '../utils/positionDisplay';
+import { calculateRoEForPrice } from '../utils/tpslValidation';
 
 /**
  * The keypad reports an unchanged value when deleting the digit after a
@@ -198,6 +200,13 @@ export interface UsePerpsClosePositionFormResult {
   rewardsState: ReturnType<typeof usePerpsRewards>;
   summaryMargin: number;
   summaryPnl: number;
+  /**
+   * %RoE shown beside the summary $PnL. Market closes show the position's
+   * actual %RoE (the same value the position card renders); limit closes
+   * show the RoE at the effective (limit) price so it agrees with the $PnL.
+   * Undefined when nothing is being closed or the value is unavailable.
+   */
+  summaryRoePercentage: number | undefined;
   summaryFees: number;
   receiveAmount: number;
   filteredErrors: string[];
@@ -999,6 +1008,34 @@ export function usePerpsClosePositionForm(
 
   const summaryMargin = (closePercentage / 100) * effectiveMargin;
   const summaryPnl = effectivePnL * (closePercentage / 100);
+  // %RoE beside the summary $PnL. Market closes show the position's actual
+  // %RoE (`returnOnEquity × 100`) — the same value the position card renders.
+  // Limit closes recompute the RoE at the effective (limit) price via
+  // `calculateRoEForPrice`: the live position RoE is measured at the mark
+  // price and can disagree with the limit-price $PnL in both sign and size
+  // (#37377 rejected it for limit closes for exactly this reason). Omitted
+  // when nothing is being closed or the value is unavailable; a computed
+  // 0.00% (for example a limit at the entry price) is still shown.
+  let summaryRoePercentage: number | undefined;
+  if (closePercentage === 0) {
+    summaryRoePercentage = undefined;
+  } else if (effectiveOrderType === 'limit') {
+    const roeAtLimitPrice = Number.parseFloat(
+      calculateRoEForPrice(String(effectivePrice), true, true, {
+        currentPrice,
+        direction: isLong ? 'long' : 'short',
+        leverage: livePosition.leverage?.value,
+        entryPrice,
+      }),
+    );
+    summaryRoePercentage = Number.isNaN(roeAtLimitPrice)
+      ? undefined
+      : roeAtLimitPrice;
+  } else {
+    summaryRoePercentage = parsePositionRoePercentage(
+      livePosition.returnOnEquity,
+    );
+  }
   const summaryFees = feeResults.totalFee;
 
   const isConfirmDisabled =
@@ -1075,6 +1112,7 @@ export function usePerpsClosePositionForm(
     rewardsState,
     summaryMargin,
     summaryPnl,
+    summaryRoePercentage,
     summaryFees,
     receiveAmount,
     filteredErrors,

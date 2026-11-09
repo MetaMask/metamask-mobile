@@ -5,6 +5,7 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -53,7 +54,7 @@ describe('Migration #60 - Insert NotificationServicesController if missing', () 
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

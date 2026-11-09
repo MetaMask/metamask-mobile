@@ -37,22 +37,64 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
 
+Wallet reset is named composition wiring. It calls
+`PredictDeviceAuthService:reset` through the Engine messenger; Authentication
+does not import PredictNext key or session internals.
+
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
-| Proposed API                                                                    | Polymarket branch (transition)                               | Kalshi branch                                | After PRED-1356                            |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------- | ------------------------------------------ |
-| `selectPredictAvailability` / `usePredictAvailability()`                        | Existing legacy flag and eligibility logic                   | Kalshi flags, eligibility, kill switch       | Venue availability from the API service    |
-| `openPredict(intent)`, `usePredictEntryActions()`                               | Legacy `usePredictNavigation` and routes                     | PredictNext routes                           | PredictNext routes                         |
-| `PredictHomeSection`, `PredictTrendingFeed`, slot widgets, autocomplete results | Existing Homepage/Trending/Browser Predict code, moved as-is | New Kalshi UI                                | PredictNext UI                             |
-| `usePredictPortfolioValue()`                                                    | `usePredictPortfolio().portfolioValue`                       | Kalshi Portfolio Summary `totalValue`        | PredictNext Portfolio Summary `totalValue` |
-| `usePredictActivityItems()` returning `ActivityListItem`, plus details          | Existing `usePredictActivity` and `mapPredictActivity`       | Kalshi Activity mapped to `ActivityListItem` | PredictNext Activity mapped the same way   |
-| Analytics constants and entry-point attribution                                 | Existing values, re-exported unchanged                       | Same values                                  | Same values                                |
+| Proposed API                                                                                                                         | Polymarket branch (transition)                                                     | Kalshi branch                                            | After PRED-1356                            |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
+| `selectPredictAvailability` / `usePredictAvailability()` (venue-aware since PRED-1377, see [Active Venue](./active-venue.md))        | Existing legacy flag and eligibility logic                                         | Kalshi flags, eligibility, kill switch                   | Venue availability from the API service    |
+| `openPredict(intent)`, `usePredictEntryActions()`                                                                                    | Legacy `usePredictNavigation` and routes                                           | PredictNext routes                                       | PredictNext routes                         |
+| `PredictHomeSection`, `PredictTrendingFeed`, slot widgets, autocomplete results                                                      | Existing Homepage/Trending/Browser Predict code, moved as-is                       | New Kalshi UI                                            | PredictNext UI                             |
+| `usePredictPortfolioValue()`                                                                                                         | `usePredictPortfolio().portfolioValue`                                             | Kalshi Portfolio Summary `totalValue`                    | PredictNext Portfolio Summary `totalValue` |
+| `usePredictActivityItems()` returning `ActivityListItem`, `usePredictActivityDetailsItem()` and `PredictActivityDetails` (PRED-1387) | Existing `usePredictActivity`, `mapPredictActivity` and `PredictDetails` templates | Kalshi Activity mapped to `ActivityListItem` (PRED-1410) | PredictNext Activity mapped the same way   |
+| Analytics constants and entry-point attribution                                                                                      | Existing values, re-exported unchanged                                             | Same values                                              | Same values                                |
 
 Public inputs are intents, consumer-owned types, and callbacks with Venue-neutral arguments. Public outputs never include legacy objects (`PredictMarket`, `PredictPosition`, `PredictActivity`), Venue DTOs, proxy-wallet data, or provider IDs. Canonical PredictNext domain types and data hooks are not public yet. Expose them only when a consumer needs domain data and every supported Venue can supply it truthfully.
 
+## Entry actions (PRED-1379)
+
+Code outside Predict opens Predict with an intent, never with a route, route params or `usePredictNavigation`. Components use `usePredictEntryActions()`, which returns `openPredict(intent)` and `canOpenPredict(intent)` bound to their own navigation. Code without a component (deep-link handlers, sagas) calls `openPredict(intent)` from the entry point, which resolves the Active Venue from the store at call time. Both return whether they navigated.
+
+| Intent                     | Legacy branch (today's call, unchanged)                                                                                                                                                   | Next branch                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `home`                     | `Predict` → `PredictMarketList` with `entryPoint` and non-empty `transactionActiveAbTests`                                                                                                | `Predict` → `PredictNextHome`                                             |
+| `feed` (`category`)        | `Predict` → `PredictMarketList` with `entryPoint` and `tab: category`                                                                                                                     | `Predict` → `PredictNextHome`                                             |
+| `event` (`eventRef`)       | `usePredictNavigation().navigateToMarketDetails({ marketId, providerId, entryPoint, title, image }, { throughRoot: true })`, `title` and `image` from `titleSnapshot` and `imageSnapshot` | `Predict` → `PredictNextEvent` with `venueId`, `eventId`, `titleSnapshot` |
+| `portfolio` (`tab`)        | `Predict` → `PredictPositions` with `entryPoint` and `initialTab` (`activity` → `history`)                                                                                                | `Predict` → `PredictNextPortfolio` with `venueId`, `initialTab`           |
+| `addFunds` (`autoDeposit`) | `PredictModals` → `PredictAddFundsSheet` with `autoDeposit`                                                                                                                               | Unavailable: PredictNext has no funding yet                               |
+
+Empty params are omitted, as callers did before. While the Active Venue is resolving, `home` and `feed` take the legacy navigation, which the root router hands to the Active Venue's stack; every other intent is unavailable until the Venue is known.
+
+Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` mints the legacy references Predict's own legacy branches need and goes with PRED-1356. It left the entry point in PRED-1386, when Browser autocomplete stopped receiving legacy data.
+
+### Campaign entry points (PRED-1391)
+
+A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaignVenues.ts`; Predict The Pitch runs on Polymarket). Rewards names the campaign, never the Venue:
+
+- A `home` intent with `campaign` opens only while the campaign's Venue is the Active Venue. On another Venue, or while the Active Venue is resolving, it is unavailable (`venueMismatch`, `resolving`), so the campaign's "Predict now" is hidden.
+- `createPredictCampaignEventRef(campaign, eventId)` mints the reference for an Event the campaign's backend names. Its type is the campaign's Venue (`PredictEventRef<'polymarket'>`), and no public minter produces a Kalshi reference, so a campaign identifier cannot become a Kalshi Event in the types. At runtime the Kalshi branch refuses it as `venueMismatch`.
+- `usePredictCampaignEligibility(campaign)` is the campaign Venue's region eligibility, which gates the campaign's opt-in. For Polymarket it is the legacy eligibility, whichever Venue is active.
+
+Campaign data, statistics, leaderboards and the Rewards controller stay Rewards-owned. Only navigation and eligibility come from Predict.
+
+A surface hides an action its intent cannot open. `NavigationService` types take Predict's root-navigator routes from `PredictAppRouteParamList`. `MainNavigator` registers the `Predict` routes while `selectPredictAvailability` is true and keeps the legacy modal stack and preview-sheet provider as named composition wiring.
+
+### Funding entry points (PRED-1388)
+
+Money's Predictions-account transfer, pay-with's Predict source (the Predict balance row and its Add button) and the Predict deposit Money starts are legacy Polymarket funding. They stay legacy execution until PRED-1356; PredictNext only decides whether they may appear.
+
+- `usePredictLegacyDeposit()` returns `isAvailable` and `isAvailableNow()`. It is true only when Predict is available for the Active Venue (`selectPredictAvailability`), the Active Venue's implementation is `legacy`, and that Venue's descriptor lists `deposit`. While Kalshi is active, or while the Active Venue is resolving, it is false and the surface renders no entry point at all.
+- `isAvailableNow()` re-reads the store. A deposit that runs after a delay checks it when it runs: Money's transfer deferred behind a rejected confirmation, the deposit Money starts once its sheet has closed, and pay-with's Add before it rejects the confirmation. An Active Venue change in between drops the action instead of starting the legacy deposit on the wrong implementation.
+- `usePredictLegacyDepositEligibility()` is Polymarket's region eligibility, which Money also requires before it offers the transfer.
+
+Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry is empty until PRED-1161 (deposit) and PRED-1163 (withdraw) ship real flows, so a descriptor that lists `deposit` early still shows nothing. Those tickets add the `next` flow and its own entry points. Because the legacy gate is false on every Venue the `next` implementation serves, a Kalshi deposit can never start the Polymarket one.
+
 ## Rules for the Venue switch
 
-- Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 owns that resolution. The Active Venue can therefore change during a session.
+- Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 implements that resolution as `selectActiveVenue`; see [Active Venue and availability](./active-venue.md). The Active Venue can change during a session, but only when the preference or the rollout config changes.
 - On an Active Venue change, the public API remounts the newly active branch. Kalshi cancels its own unsubmitted previews. Legacy Polymarket keeps its existing behavior, including toast registration and observation of submitted operations, which stay mounted regardless of Active Venue.
 - A surface whose action has no implementation for the Active Venue hides that action. For example, while Kalshi is active, Money and pay-with must not offer the Polymarket deposit or add-funds flow. That is an availability gate, not a wrapper around legacy execution.
 - Every public API resolves its branch through `implementation/`. `usePredictImplementation()` returns `{ status: 'resolving' }`, `{ status: 'ready', implementation: 'legacy' }`, or `{ status: 'ready', implementation: 'next', venueId }`. One internal map sends each Venue to an implementation (`polymarket → legacy`, `kalshi → next`); PRED-1356 changes only that map.
@@ -67,19 +109,43 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 2. Do not change the legacy controller, providers, confirmations, pay-with integration, transaction-pay callbacks, or Engine wiring before PRED-1356.
 3. Do not add Kalshi branches to legacy code.
 4. Migrate one surface per PR, cheapest first: availability and analytics constants, entry points, narrow projections, then Predict-owned Homepage, Trending, and autocomplete components.
-5. Fence the boundary with `import-x/no-restricted-paths` no later than the end of PRED-1340 (PRED-1394). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a small allowlist until PRED-1356 removes the legacy parts.
+5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a permanent allowlist, `predictCompositionFiles`, until PRED-1356 removes the legacy parts. Every other existing importer is on the burn-down list, `predictImportBurndownFiles`.
+6. **Each migration PR deletes the files it migrates from `predictImportBurndownFiles`.** The list only shrinks. `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, and also if a listed file no longer imports Predict internals, so a finished migration cannot leave its files exempt.
 
 ## Homepage Predictions section
 
 The Homepage Predictions section becomes a Predict-owned component, `PredictHomeSection`, exported from the PredictNext entry point. Homepage renders it the way it already renders other feature sections. The case for this:
 
-- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps and Earn already own their Homepage sections the same way.
-- **There is an established pattern.** `Sections/EarnSection/HomepageEarnSection.tsx` is a 50-line Homepage wrapper that renders the Earn-owned `UI/Earn/components/EarnSection`.
+- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps already owns its Homepage sections the same way.
 - **The interface already exists.** Today's `PredictionsSection` takes `sectionIndex`, `totalSectionsLoaded`, and `mode`, and exposes a `SectionRefreshHandle` through its ref. `PredictHomeSection` keeps exactly that contract, so `Homepage.tsx` changes one import.
 - **Every alternative is worse.** The section is 28 non-test files, about 2,600 lines, that import legacy types, hooks, queries, Polymarket endpoints, and account utilities. To show Kalshi there without moving it, Homepage would either branch on Venue, which PRED-1340 forbids, or need canonical data hooks for both Venues, which requires the client-side Polymarket adapter that ADR-0002 rejects.
 - **The Homepage team gains.** Prediction-market changes, PRED-1356, and Predict regressions stop touching Homepage files, and Homepage keeps full control of placement, ordering, visibility, and refresh.
 
 The BalanceBreakdown Predict slice stays Homepage code and calls `usePredictPortfolioValue()`.
+
+For a next Venue (PRED-1406, PRED-1407) the section has the Polymarket layout over canonical reads. With open Positions it lists the top ones by value under the Summary PnL. Without them, or when they fail to load, it shows discovery: the trending-carousel layout, filled with the Events of each `homepageSlots` row in `capabilities/surfaceFeedKeys.ts` whose Feed key the Venue's descriptor has. A slot without a key is absent, and pinned championship Events are Polymarket Events, so no next Venue shows them. Card presses open an `event` intent, and outcome presses open the PredictNext Order flow, which the section mounts over the Homepage. Discovery renders through the same `wallet-home.predict-empty-state` UI Slot. Under a next Venue, the registered widget keeps only the assignment items a Feed can fill, and an assignment that names none falls back to the Venue's default slots. It does not join the Polymarket empty-state A/B test.
+
+## Explore (TrendingView) prediction sections
+
+PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. PRED-1408 filled the next branch. Explore renders both through `trending/`:
+
+- `usePredictTrendingFeed({ tab, query })` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. Both implementations' hooks always run, and only the active one is enabled, so a Venue change swaps the markets on the same render. While the Active Venue resolves they return nothing.
+- A tab (`now`, `macro`, `rwas`, `crypto`, `sports`) names a Feed key through `PREDICT_SURFACE_FEED_KEYS.exploreTabs`. On the legacy lane that key is the legacy feed category, passed through unchanged. A next Venue reads the Feed its descriptor maps the key to, and nothing when the descriptor lacks it: the section is left out, never filled from another Feed or Venue. Kalshi V1 maps only `sports`, so only the Sports tab has a Predictions section.
+- A query searches. A next Venue searches with `useSearchEvents` when its descriptor supports search. That search is unpaginated (no `fetchMore`, `total` is the result count); Polymarket's paginated search is unchanged.
+- An Explore refresh refetches only the active read. The next branch invalidates through the data service, so it reads the backend, and records triggers while inactive, so a Venue change never replays one.
+- `usePredictTrendingSupported(surface)` tells a caller to leave a surface out rather than render it empty. `search` (the search Predictions pill) follows the descriptor's search support. `allSports` (the Sports tab's All Sports list) is legacy-only: its sports are Polymarket tags, not Feed keys. Predict availability stays the caller's own gate, as before.
+- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets. A next Venue's market renders the PredictNext Event card in the Polymarket layout: a card press opens the `event` intent, and a buy press opens the PredictNext Order Flow, which the carousel or card hosts. Both are refused for a market whose Venue is no longer the Active Venue. Explore's analytics are unchanged; a next Event reports its id and title, as it has no slug or tags.
+
+## Browser URL autocomplete
+
+PRED-1386 gave Browser autocomplete its own Predict search source, `searchResults/`, instead of reading Explore's Predictions search section and casting its markets back to `PredictMarket`:
+
+- `usePredictSearchResults(query)` returns `PredictSearchResult`s: venue-neutral display values (`id`, `title`, `subtitle`, `imageUrl`) and the `intent` that opens the result. No legacy market, provider ID or Venue crosses it. It debounces the query as Explore does and reports loading while it debounces.
+- The legacy branch is the Polymarket search Browser already used, `usePredictionsFeed` with the query, so it shares Explore's query key and adds no request. Its mapping (`internal/legacy/`) keeps Browser's values: the market title, "Open" or the raw status, the market image, and an `event` intent with a legacy reference and no entry point or snapshots, so the market details screen opens with the same params as before.
+- While the Active Venue resolves, and for next Venues until PRED-1409 (E4), it has no results and never loads, so Browser leaves its Predictions section out.
+- `PredictSearchResultRow` renders a result: image or placeholder icon, title, subtitle, in the autocomplete row layout. Browser opens `result.intent` with `openPredict` and keeps its own blur handling.
+
+`UrlAutocomplete`'s `PredictionsSearchResult` is `PredictSearchResult` plus its autocomplete category.
 
 ## Canonical decisions that remain
 
@@ -110,5 +176,5 @@ The per-field sources and risks for the canonical Position, Portfolio Summary, a
 ## Resolved questions
 
 - Launch scope: every surface that shows Polymarket today shows Kalshi at launch.
-- Homepage: plan for a Predict-owned `PredictHomeSection`. Confirm with `@MetaMask/mobile-core-ux` when PRED-1382 starts.
+- Homepage: Homepage renders the Predict-owned `PredictHomeSection` from the entry point (PRED-1382). The UI Slots widget and contract registries are composition wiring. Engine init loads the contract registry and must not load the Predict UI. The section renders a UI Slot, so the widget registry loads while the entry point is still loading, and importing the entry point back from it would form a cycle.
 - Venue descriptors: under PRED-1376, the Polymarket descriptor comes from client configuration and implemented behavior during staged delivery. The backend descriptor covers Kalshi until PRED-1356. Its wire shape is the [Venue catalog](./canonical-portfolio-activity-catalog-contract.md#venue-catalog).

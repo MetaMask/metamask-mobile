@@ -59,6 +59,8 @@ export interface PerpsProOrderFormPanelProps {
   onExpandOrderBook?: () => void;
   onRequestScrollBy?: (delta: number) => void;
   scrollViewRef?: React.RefObject<ScrollView | null>;
+  /** Height covered by a header floating over the scroll view's top edge. */
+  scrollViewTopInset?: number;
 }
 
 /**
@@ -75,6 +77,7 @@ const PerpsProOrderFormPanel = ({
   onExpandOrderBook,
   onRequestScrollBy,
   scrollViewRef,
+  scrollViewTopInset,
 }: PerpsProOrderFormPanelProps) => {
   const isProModeActive = useIsPerpsProModeActive();
   const isTriggeredOrdersEnabled = useSelector(
@@ -313,31 +316,32 @@ const PerpsProOrderFormPanel = ({
     }
   }, [orderType]);
 
+  const keyboardScrollOptions = {
+    onRequestScrollBy,
+    scrollViewRef,
+    viewportTopInset: scrollViewTopInset,
+  };
   const {
     cardRef: sizeCardRef,
     onFocus: onSizeCardFocus,
     onBlur: onSizeCardBlur,
     realign: onSizeFieldPress,
-  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+  } = usePerpsProKeyboardScroll(keyboardScrollOptions);
 
   // Each Scale row owns its measurement so focus navigation can realign the
   // newly focused row instead of measuring the full four-row card.
-  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
-  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll({
-    onRequestScrollBy,
-    scrollViewRef,
-  });
+  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
+  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll(
+    keyboardScrollOptions,
+  );
 
   // Limit and trigger share the order-type card because only one is visible.
   const {
@@ -345,7 +349,7 @@ const PerpsProOrderFormPanel = ({
     onFocus: onPriceCardFocus,
     onBlur: onLimitPriceCardBlur,
     realign: onLimitPriceFieldPress,
-  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+  } = usePerpsProKeyboardScroll(keyboardScrollOptions);
 
   // Each price field records itself as the order-book target. Limit and
   // trigger share one keyboard-scroll instance; stop-limit shows both.

@@ -127,6 +127,15 @@ describe('PredictNext market data hooks', () => {
         marketId,
         '1D',
       ],
+      enabled: true,
     });
+  });
+
+  it('skips the Market history read when disabled', () => {
+    useMarketHistory(venueId, marketId, '1D', false);
+
+    expect(mockedUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 });

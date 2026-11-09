@@ -1,9 +1,12 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import MultipleAlertModal from './multiple-alert-modal';
 import { Severity } from '../../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
+import type { RootState } from '../../../../../../reducers';
+import configureStore from '../../../../../../util/test/configureStore';
 
 jest.mock('../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
@@ -62,6 +65,13 @@ describe('MultipleAlertModal', () => {
   };
   const trackAlertRendered = jest.fn();
 
+  const renderModal = () =>
+    render(
+      <Provider store={configureStore({} as RootState)}>
+        <MultipleAlertModal />
+      </Provider>,
+    );
+
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
     (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
@@ -71,7 +81,7 @@ describe('MultipleAlertModal', () => {
   });
 
   it('renders the MultipleAlertModal correctly', () => {
-    const { getByText } = render(<MultipleAlertModal />);
+    const { getByText } = renderModal();
     expect(getByText('Test Alert')).toBeDefined();
     expect(getByText(ALERT_MESSAGE_MOCK)).toBeDefined();
   });
@@ -84,7 +94,7 @@ describe('MultipleAlertModal', () => {
       alertKey: 'alert2',
     });
 
-    const { getByTestId } = render(<MultipleAlertModal />);
+    const { getByTestId } = renderModal();
     const backButton = getByTestId('alert-button-icon-arrow-left');
 
     await act(async () => {
@@ -101,7 +111,7 @@ describe('MultipleAlertModal', () => {
       setAlertKey,
     });
 
-    const { getByTestId } = render(<MultipleAlertModal />);
+    const { getByTestId } = renderModal();
     const nextButton = getByTestId('alert-button-icon-arrow-right');
 
     await act(async () => {
@@ -119,7 +129,7 @@ describe('MultipleAlertModal', () => {
       alertKey: 'alert3',
     });
 
-    const { getByText } = render(<MultipleAlertModal />);
+    const { getByText } = renderModal();
     const gotItButton = getByText('Got it');
 
     await act(async () => {
@@ -135,13 +145,23 @@ describe('MultipleAlertModal', () => {
       fieldAlerts: [mockAlerts[0]],
     });
 
-    const { getByText } = render(<MultipleAlertModal />);
+    const { getByText } = renderModal();
     expect(getByText('Test Alert')).toBeDefined();
   });
 
   it('renders PageNavigation when there are multiple alerts', () => {
-    const { getByTestId } = render(<MultipleAlertModal />);
+    const { getByTestId } = renderModal();
+    const header = getByTestId('header');
+
     expect(getByTestId('multiple-alert-modal-icon')).toBeDefined();
+    expect(header).toBeDefined();
+    expect(header.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          flex: 1,
+        }),
+      ]),
+    );
   });
 
   it('returns null when no alert is selected', () => {
@@ -150,7 +170,7 @@ describe('MultipleAlertModal', () => {
       fieldAlerts: [],
     });
 
-    const { queryByText } = render(<MultipleAlertModal />);
+    const { queryByText } = renderModal();
     expect(queryByText('Test Alert')).toBeNull();
   });
 
@@ -162,7 +182,7 @@ describe('MultipleAlertModal', () => {
       alertKey: 'alert2',
     });
 
-    const { getByText, rerender } = render(<MultipleAlertModal />);
+    const { getByText, rerender } = renderModal();
 
     expect(getByText('Test Alert 2')).toBeOnTheScreen();
 
@@ -172,7 +192,11 @@ describe('MultipleAlertModal', () => {
       alertKey: 'alert1',
     });
 
-    rerender(<MultipleAlertModal />);
+    rerender(
+      <Provider store={configureStore({} as RootState)}>
+        <MultipleAlertModal />
+      </Provider>,
+    );
 
     expect(getByText('Test Alert')).toBeOnTheScreen();
   });

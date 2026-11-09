@@ -53,8 +53,9 @@ const TRENDING_INLINE_ROWS: readonly SocialFeedInlineRow[] = [
     key: 'popular-traders',
     afterIndex: TRENDING_POPULAR_TRADERS_INSERT_AFTER,
     render: () => (
-      // The rail pulls itself 16px up; this leaves 8px above its header, the
-      // same gap a post keeps between its card and the divider.
+      // The rail pulls itself 16px up and the header has no vertical padding,
+      // so 8px sits above the title. With the divider's 4px margin, that reads
+      // as 12px, the same gap a post keeps above its content.
       <Box twClassName="pt-6 pb-2">
         <PopularTradersCarousel />
       </Box>
@@ -105,7 +106,8 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   testID,
   scrollTestID,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_trending');
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
   // The pager mounts every page up front: hold the feed back until Trending
   // is first opened.
@@ -239,6 +241,7 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
+          requireSocialProfile
           testID={testID}
           scrollTestID={scrollTestID}
         />
