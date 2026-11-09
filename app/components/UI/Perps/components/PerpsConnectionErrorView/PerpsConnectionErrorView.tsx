@@ -64,10 +64,17 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      // If we can't go back, navigate to wallet home
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.WALLET.HOME }],
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WALLET.HOME }],
+            },
+          },
+        ],
       });
     }
   };
