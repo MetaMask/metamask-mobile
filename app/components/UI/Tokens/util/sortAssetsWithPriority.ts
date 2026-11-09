@@ -4,9 +4,9 @@ import type { CaipChainId, Hex } from '@metamask/utils';
 import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { sortAssets, type SortCriteria } from './sortAssets';
 
-// These are the only two options for sorting assets
-// {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
-// {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
+// These are the only two sort keys; each supports both directions
+// {"key": "name", "order": "asc" | "dsc", "sortCallback": "alphaNumeric"}
+// {"key": "tokenFiatAmount", "order": "asc" | "dsc", "sortCallback": "stringNumeric"}
 export function sortAssetsWithPriority(
   array: Asset[],
   criteria: SortCriteria,
@@ -14,12 +14,18 @@ export function sortAssetsWithPriority(
   if (criteria.key === 'name') {
     return sortAssets(array, {
       key: 'name',
-      order: 'asc',
+      order: criteria.order,
       sortCallback: 'alphaNumeric',
     });
   }
 
-  return [...array].sort(compareFiatBalanceWithPriority);
+  return [...array].sort((a, b) =>
+    compareFiatBalanceWithPriority(
+      a,
+      b,
+      criteria.order === 'asc' ? 'asc' : 'dsc',
+    ),
+  );
 }
 
 // Higher priority assets are last in the array to facilitate sorting
@@ -42,11 +48,18 @@ const defaultNativeAssetOrder: (Hex | CaipChainId)[] = [
  *
  * @param a - The first asset to compare.
  * @param b - The second asset to compare.
+ * @param order - Direction of the fiat balance comparison. Tie-breakers (native first, priority, name) are unaffected.
  * @returns A negative number if the first asset should appear before the second, a positive number if the first asset should appear after the second, or 0 if they are equal.
  */
-export function compareFiatBalanceWithPriority(a: Asset, b: Asset) {
+export function compareFiatBalanceWithPriority(
+  a: Asset,
+  b: Asset,
+  order: 'asc' | 'dsc' = 'dsc',
+) {
   // If one of the fiat balances is greater than the other, return the comparison
-  const fiatBalanceComparison = (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0);
+  const descComparison = (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0);
+  const fiatBalanceComparison =
+    order === 'asc' ? -descComparison : descComparison;
 
   // Only return comparison if it is not zero
   if (fiatBalanceComparison) {

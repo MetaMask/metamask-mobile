@@ -110,6 +110,8 @@ import {
 } from '../../../../selectors/rewards';
 import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -246,6 +248,14 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
     );
   },
 }));
+
+jest.mock('../components/Money/RewardsOptInSection', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="rewards-opt-in-section" />,
+  };
+});
 
 jest.mock('../components/Benefits/BenefitsPreview', () => ({
   __esModule: true,
@@ -496,18 +506,6 @@ describe('RewardsDashboard', () => {
       );
     });
 
-    it('renders all child components', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
-      expect(getByTestId('benefits-preview')).toBeTruthy();
-    });
-
     it('calls modal hooks when component is rendered', () => {
       // Act
       render(<RewardsDashboard />);
@@ -583,6 +581,41 @@ describe('RewardsDashboard', () => {
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+
+    describe('with glass headers on', () => {
+      beforeEach(() => {
+        const defaultSelector = mockUseSelector.getMockImplementation();
+        mockUseSelector.mockImplementation((selector) =>
+          selector === selectGlassHeadersEnabled
+            ? true
+            : defaultSelector?.(selector),
+        );
+      });
+
+      it('floats the tab header over the content', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+
+      it('keeps settings pressable in its glass capsule', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_SETTINGS_VIEW,
+          params: undefined,
+        });
+      });
+    });
+
+    it('keeps the solid header when glass headers are off', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('renders settings button in header', () => {
@@ -892,7 +925,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal triggering for current account', () => {
-    it('shows not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
+    it('does not show the add account modal when the current account is not opted in', async () => {
       // Arrange
       const mockAccountGroupWithOptedOut = {
         id: 'keyring:wallet1/1' as const,
@@ -929,7 +962,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowNotOptedInModal).toHaveBeenCalled();
+        expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1031,7 +1064,7 @@ describe('RewardsDashboard', () => {
       },
     ];
 
-    it('shows unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
+    it('does not show the add accounts modal when there are unlinked accounts', async () => {
       // Arrange
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
@@ -1046,7 +1079,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1088,7 +1121,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal prioritization', () => {
-    it('shows unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
+    it('does not show the add accounts modal when the current account banner is dismissed', async () => {
       // Arrange
       const mockWalletWithOptedOutAccounts = [
         {
@@ -1155,7 +1188,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
       expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
     });

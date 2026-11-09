@@ -5226,7 +5226,7 @@
     "card_update_badge": "更新",
     "settings": "設定",
     "networks": "ネットワーク",
-    "log_out": "ログアウト",
+    "log_out": "ロック",
     "notifications": "通知",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orangeに参加",
@@ -10275,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Polygon (予測で使用されるネットワーク) 上でトークンをpUSDに交換します。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
-      },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMaskがユーザーに代わって希望のトークンをスワップします。mUSDへのスワップ時にMetaMaskの手数料は発生しません。"
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMaskがユーザーに代わって希望のトークンをスワップします。mUSDへのスワップ時にMetaMaskの手数料は発生しません。"
       },
       "musd_conversion": {
         "transaction_fee": "mUSD換算手数料にはネットワークコストが含まれるほか、プロバイダー手数料も含まれる場合があります。なお、mUSDへの換算時にMetaMaskの手数料は発生しません。"

@@ -1523,7 +1523,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Anwenden",
         "apply": "Anwenden",
         "reset": "Zurücksetzen",
@@ -5226,7 +5226,7 @@
     "card_update_badge": "Update",
     "settings": "Einstellungen",
     "networks": "Netzwerke",
-    "log_out": "Abmelden",
+    "log_out": "Sperren",
     "notifications": "Benachrichtigungen",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange beitreten",
@@ -10253,7 +10253,6 @@
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
       "predict_withdraw": "Auszahlen",
-      "money_account_add_money": "Gelder hinzufügen",
       "money_account_deposit_header": "Add to MetaMask Money",
       "money_account_send": "Senden"
     },
@@ -10276,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Wir swappen Ihre Token gegen pUSD auf Polygon, dem von Predictions verwendeten Netzwerk. Swap-Anbieter erheben möglicherweise eine Gebühr, MetaMask jedoch nicht."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask swappt den Token für Sie in den gewünschten Token um. Beim Swap in mUSD fallen keine MetaMask-Gebühren an."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask swappt den Token für Sie in den gewünschten Token um. Beim Swap in mUSD fallen keine MetaMask-Gebühren an."
       },
       "musd_conversion": {
         "transaction_fee": "Die Gebühren für die mUSD-Konvertierung beinhalten Netzwerkkosten und können Anbietergebühren beinhalten. Bei der Konvertierung in mUSD fällt keine MetaMask-Gebühr an."

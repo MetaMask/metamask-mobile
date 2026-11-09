@@ -25,6 +25,7 @@ import type {
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketLayout,
   PredictOutcome,
   PredictPosition,
   PredictSignedAmount,
@@ -348,6 +349,143 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   };
 };
 
+const gameLinesLayout = (
+  section: { key: string; order: number },
+  subgroup: { key: string; order: number },
+): PredictMarketLayout => ({
+  tab: { key: 'game_lines', order: 0 },
+  section,
+  subgroup,
+});
+const MONEYLINE = { key: 'moneyline', order: 0 };
+const FULL_GAME = { key: 'full_game', order: 0 };
+const FIRST_HALF = { key: 'first_half', order: 1 };
+
+/**
+ * The composite Game as the backend composes it (PRED-1424): every moneyline
+ * is a `choice` group with an Event screen layout, and a first-half moneyline
+ * with a tie claims the same Game Selections as the full-game one.
+ */
+export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
+  const event = makePredictNextCompositeGameEvent();
+  const markets = event.markets.map((market): PredictMarket => {
+    if (market.group !== undefined) {
+      const section =
+        market.group.marketType === PREDICT_MARKET_TYPES.TOTAL
+          ? { key: 'total_points', order: 2 }
+          : { key: 'spread', order: 1 };
+      return { ...market, layout: gameLinesLayout(section, FULL_GAME) };
+    }
+    const isAway = market.outcomes[0].gameSelection === 'away';
+    return {
+      ...market,
+      group: {
+        key: `${event.id}:moneyline`,
+        groupType: 'choice',
+        displayOrder: isAway ? 0 : 1,
+      },
+      layout: gameLinesLayout(MONEYLINE, FULL_GAME),
+    };
+  });
+  const [template] = event.markets;
+  const firstHalf = (
+    suffix: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    displayOrder: number,
+  ): PredictMarket => ({
+    ...template,
+    id: `${event.id}-1h-${suffix}` as PredictEntityId,
+    outcomes: [
+      {
+        ...template.outcomes[0],
+        id: `${event.id}-1h-${suffix}-yes` as PredictEntityId,
+        gameSelection,
+      },
+      {
+        ...template.outcomes[1],
+        id: `${event.id}-1h-${suffix}-no` as PredictEntityId,
+      },
+    ],
+    group: {
+      key: `${event.id}-1h:moneyline`,
+      groupType: 'choice',
+      displayOrder,
+    },
+    layout: gameLinesLayout(MONEYLINE, FIRST_HALF),
+  });
+
+  return {
+    ...event,
+    markets: [
+      // Period moneylines first, so a lookup by order alone would pick them.
+      firstHalf('away', 'away', 0),
+      firstHalf('tie', undefined, 1),
+      firstHalf('home', 'home', 2),
+      ...markets,
+    ],
+  };
+};
+
+/**
+ * The laid-out Game with player props as the backend composes them
+ * (PRED-1438): a `player_props` tab where each Player's thresholds are one
+ * `choice` group titled with the Player. Rushing yards has four Players (one
+ * with a single threshold), passing yards one.
+ */
+export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
+  const event = makePredictNextLaidOutGameEvent();
+  const [template] = makePredictNextCompositeGameEvent().markets;
+  const prop = (
+    stat: { key: string; order: number },
+    player: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    threshold: number,
+    displayOrder: number,
+  ): PredictMarket => {
+    const id = `${event.id}-${stat.key}-${player}-${threshold}`;
+    const label = `${threshold}+ yards`;
+    return {
+      ...template,
+      id: id as PredictEntityId,
+      question: `${player}: ${label}`,
+      outcomes: [
+        {
+          ...template.outcomes[0],
+          id: `${id}-yes` as PredictEntityId,
+          label,
+          gameSelection,
+        },
+        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+      ],
+      group: {
+        key: `${event.id}:${stat.key}:${player}`,
+        groupType: 'choice',
+        displayOrder,
+        label: player,
+      },
+      layout: { tab: { key: 'player_props', order: 1 }, section: stat },
+    };
+  };
+  const rushing = { key: 'rushing_yards', order: 1 };
+  const passing = { key: 'passing_yards', order: 3 };
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      prop(rushing, 'Rhamondre Stevenson', 'away', 60, 1),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 40, 0),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 80, 2),
+      prop(rushing, 'Kenneth Walker', 'home', 50, 0),
+      prop(rushing, 'Kenneth Walker', 'home', 70, 1),
+      prop(rushing, 'Drake Maye', 'away', 20, 0),
+      prop(rushing, 'Zach Charbonnet', 'home', 30, 0),
+      prop(passing, 'Drake Maye', 'away', 200, 0),
+      prop(passing, 'Drake Maye', 'away', 250, 1),
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },
@@ -457,10 +595,11 @@ export interface PredictNextPositionsPageFixture {
  * trading adapter is bound to the stubbed transport and the bearer-token
  * provider resolves through the mocked Engine context.
  */
-export const composePredictNextOrderService = (): PredictOrderService => {
-  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+export const composePredictNextOrderService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
-  });
+  }),
+): PredictOrderService => {
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -526,6 +665,74 @@ export const composePredictNextPortfolioTrading = () => {
       orderService.destroy();
       portfolioService.destroy();
     },
+  };
+};
+
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+export const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
   };
 };
 

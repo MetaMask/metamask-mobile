@@ -6,6 +6,7 @@ import {
   ButtonBaseSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import PerpsAggregatedFillsCheckbox from '../../../../UI/Perps/components/PerpsAggregatedFillsCheckbox';
 
 /**
@@ -42,6 +43,8 @@ export interface AssetListControlBarProps {
    */
   aggregatedToggle?: AggregatedToggleDescriptor | null;
   suppressTestIDs?: boolean;
+  /** Draws each chip in a glass capsule, to match a glass header. */
+  isGlass?: boolean;
 }
 
 /**
@@ -52,16 +55,22 @@ export interface AssetListControlBarProps {
 const FilterChip: React.FC<{
   chip: FilterChipDescriptor;
   suppressTestID: boolean;
-}> = ({ chip, suppressTestID }) => (
-  <ButtonBase
-    size={ButtonBaseSize.Md}
-    endIconName={IconName.ArrowDown}
-    onPress={chip.onPress}
-    testID={suppressTestID ? undefined : chip.testID}
-  >
-    {chip.label}
-  </ButtonBase>
-);
+  isGlass: boolean;
+}> = ({ chip, suppressTestID, isGlass }) => {
+  const button = (
+    <ButtonBase
+      size={ButtonBaseSize.Md}
+      endIconName={IconName.ArrowDown}
+      onPress={chip.onPress}
+      testID={suppressTestID ? undefined : chip.testID}
+      twClassName={isGlass ? 'bg-transparent' : undefined}
+    >
+      {chip.label}
+    </ButtonBase>
+  );
+
+  return isGlass ? <CapsuleGlass>{button}</CapsuleGlass> : button;
+};
 
 /**
  * Horizontally-scrollable filter chip row for the Activity screen — mirrors
@@ -77,26 +86,44 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   secondaryChip,
   aggregatedToggle,
   suppressTestIDs = false,
+  isGlass = false,
 }) => {
   const tw = useTailwind();
+
+  const aggregatedCheckbox = aggregatedToggle ? (
+    <PerpsAggregatedFillsCheckbox
+      isSelected={aggregatedToggle.isSelected}
+      onChange={aggregatedToggle.onChange}
+      testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
+      isGlass={isGlass}
+    />
+  ) : null;
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      // Glass capsules cast a shadow wider than the row; clipping it leaves a grey band.
+      style={isGlass ? tw.style('overflow-visible') : undefined}
       contentContainerStyle={tw.style('flex-row items-center gap-2 px-4 pb-4')}
     >
-      <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
+      <FilterChip
+        chip={typeChip}
+        suppressTestID={suppressTestIDs}
+        isGlass={isGlass}
+      />
       {secondaryChip ? (
-        <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
-      ) : null}
-      {aggregatedToggle ? (
-        <PerpsAggregatedFillsCheckbox
-          isSelected={aggregatedToggle.isSelected}
-          onChange={aggregatedToggle.onChange}
-          testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
+        <FilterChip
+          chip={secondaryChip}
+          suppressTestID={suppressTestIDs}
+          isGlass={isGlass}
         />
       ) : null}
+      {aggregatedCheckbox && isGlass ? (
+        <CapsuleGlass>{aggregatedCheckbox}</CapsuleGlass>
+      ) : (
+        aggregatedCheckbox
+      )}
     </ScrollView>
   );
 };

@@ -12,6 +12,8 @@
 import '../mocks';
 import React from 'react';
 import { View } from 'react-native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -35,6 +37,7 @@ import {
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
+import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { createStateFixture } from '../stateFixture';
 
@@ -244,10 +247,70 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
   address: '0x0000000000000000000000000000000000000002',
 };
 
+const ONBOARDING_WALLET_ID = 'entropy:wallet1';
+const ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/0`;
+const SECOND_ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/1`;
+
+/**
+ * Account tree mirroring `AccountsController`: one entropy wallet whose groups
+ * hold the EVM accounts. `useLinkableSocialAccounts` reads the groups (not the
+ * flat account list) to build its rows, so onboarding needs this slice even
+ * though it only ever shows EVM accounts. The Solana account is deliberately
+ * left out of the tree, matching a snap wallet onboarding must not offer.
+ */
+const buildOnboardingAccountTree = (
+  includeSecondEvmAccount: boolean,
+): DeepPartial<AccountTreeControllerState> => ({
+  accountTree: {
+    wallets: {
+      [ONBOARDING_WALLET_ID]: {
+        id: ONBOARDING_WALLET_ID,
+        type: AccountWalletType.Entropy,
+        status: 'ready',
+        metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+        groups: {
+          [ONBOARDING_ACCOUNT_GROUP_ID]: {
+            id: ONBOARDING_ACCOUNT_GROUP_ID,
+            type: AccountGroupType.MultichainAccount,
+            metadata: {
+              name: 'Account 1',
+              pinned: false,
+              hidden: false,
+              lastSelected: 0,
+              entropy: { groupIndex: 0 },
+            },
+            accounts: ['acc-1'],
+          },
+          ...(includeSecondEvmAccount
+            ? {
+                [SECOND_ONBOARDING_ACCOUNT_GROUP_ID]: {
+                  id: SECOND_ONBOARDING_ACCOUNT_GROUP_ID,
+                  type: AccountGroupType.MultichainAccount,
+                  metadata: {
+                    name: SECOND_ONBOARDING_EVM_ACCOUNT.name,
+                    pinned: false,
+                    hidden: false,
+                    lastSelected: 0,
+                    entropy: { groupIndex: 1 },
+                  },
+                  accounts: [SECOND_ONBOARDING_EVM_ACCOUNT.id],
+                },
+              }
+            : {}),
+        },
+      },
+    },
+  },
+  selectedAccountGroup: ONBOARDING_ACCOUNT_GROUP_ID,
+});
+
 /**
  * Renders profile onboarding with an EVM account that has a native mainnet
  * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
  * must mount and list only the EVM account.
+ *
+ * Seeds `AccountTreeController` because `useLinkableSocialAccounts` reads
+ * account groups (the production shape) rather than the flat account list.
  *
  * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
  */
@@ -325,6 +388,9 @@ export function renderSocialProfileOnboarding(
               },
             },
           },
+          AccountTreeController: buildOnboardingAccountTree(
+            options.includeSecondEvmAccount ?? false,
+          ),
         },
       },
     })
@@ -351,7 +417,10 @@ export function renderSocialV1ViewWithRoutes(
   options: RenderSocialLeaderboardOptions = {},
 ) {
   const { presetOptions, overrides } = options;
-  const builder = initialStateSocialLeaderboard(presetOptions);
+  const builder = initialStateSocialLeaderboard({
+    ...presetOptions,
+    linkedSocialProfile: presetOptions?.linkedSocialProfile ?? true,
+  });
   if (overrides) builder.withOverrides(overrides);
   const state = builder.build();
 
@@ -370,6 +439,39 @@ export function renderSocialV1ViewWithRoutes(
  * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
  * No external API mock is required; the default Engine mock is sufficient.
  */
+export const gifPickerSheetHarness = {
+  onSelect: jest.fn(),
+  onClose: jest.fn(),
+};
+
+function GifPickerSheetHarness() {
+  return (
+    <GifPickerSheet
+      onSelect={gifPickerSheetHarness.onSelect}
+      onClose={gifPickerSheetHarness.onClose}
+    />
+  );
+}
+
+/**
+ * Renders the composer GIF picker through real Redux flag state.
+ * Tests spy on Engine.controllerMessenger for the social GIF actions.
+ */
+export function renderGifPickerSheet(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+  const state = builder.build();
+
+  return renderComponentViewScreen(
+    GifPickerSheetHarness as unknown as React.ComponentType,
+    { name: 'GifPickerSheet' },
+    { state },
+  );
+}
+
 export function renderSettingsTopTradersSection(
   options: RenderSocialLeaderboardOptions = {},
 ) {

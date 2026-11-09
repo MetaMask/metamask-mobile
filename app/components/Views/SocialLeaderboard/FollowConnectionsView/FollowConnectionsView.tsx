@@ -5,7 +5,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Spinner,
   Text,
   TextColor,
@@ -32,7 +31,7 @@ import type {
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import { formatAddress } from '../../../../util/address';
@@ -49,6 +48,8 @@ import {
   type FollowerConnection,
 } from './hooks';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const { Interaction, Screen } = SocialEvent;
 const addressesMatch = (
@@ -81,6 +82,7 @@ const tabIndexFor = (
 };
 
 const FollowConnectionsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
@@ -142,7 +144,7 @@ const FollowConnectionsView: React.FC = () => {
     ? traderFollowing.refresh
     : myFollowing.refresh;
   const { isFollowing, toggleFollow } = useFollowToggleMany();
-  const { profileId: viewerProfileId } = useSessionProfileId();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
   const [activeLoading, activeError, activeCount] =
     activeIndex === 1
@@ -268,14 +270,18 @@ const FollowConnectionsView: React.FC = () => {
       if (isViewerConnection(trader, viewerProfileId, viewerAddress)) {
         return;
       }
-      toggleFollow(trader.id, {
-        source: 'trader_profile',
-        traderAddress: trader.address,
-        traderUsername: trader.username,
-        traderAvatarUri: trader.avatarUri,
-      }).catch(() => undefined);
+      toggleFollow(
+        trader.id,
+        {
+          source: 'trader_profile',
+          traderAddress: trader.address,
+          traderUsername: trader.username,
+          traderAvatarUri: trader.avatarUri,
+        },
+        !isTraderList,
+      ).catch(() => undefined);
     },
-    [toggleFollow, viewerAddress, viewerProfileId],
+    [isTraderList, toggleFollow, viewerAddress, viewerProfileId],
   );
 
   const renderFollowingItem = useCallback(
@@ -288,7 +294,7 @@ const FollowConnectionsView: React.FC = () => {
           subtitle={formatAddress(item.address, 'short')}
           address={item.address}
           avatarUri={item.avatarUri}
-          isFollowing={isTraderList ? isFollowing(item.id) : true}
+          isFollowing={isFollowing(item.id, !isTraderList)}
           onFollowPress={
             isSelf ? undefined : () => handleFollowingFollowPress(item)
           }
@@ -553,7 +559,9 @@ const FollowConnectionsView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={FollowConnectionsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title=""
         onBack={handleBack}

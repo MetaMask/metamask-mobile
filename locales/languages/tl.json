@@ -1523,7 +1523,7 @@
         "kols": "Mga KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Ilapat",
         "apply": "Ilapat",
         "reset": "I-reset",
@@ -5226,7 +5226,7 @@
     "card_update_badge": "I-update",
     "settings": "Mga Setting",
     "networks": "Mga Network",
-    "log_out": "Mag-log out",
+    "log_out": "I-lock",
     "notifications": "Mga notipikasyon",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Sumali sa MetaMask Orange",
@@ -10275,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Isu-swap namin ang mga token mo para sa pUSD sa Polygon, ang network na ginamit ng Predictions. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
       },
       "musd_conversion": {
         "transaction_fee": "Kasama sa mga bayarin sa pag-convert ng mUSD ang mga bayad sa network at posible ring kasama ang mga bayarin sa provider. Walang hihinging bayad sa MetaMask kapag nag-convert ka sa mUSD."

@@ -6,7 +6,11 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { createGamePresentation, getEventGame } from './createGamePresentation';
+import {
+  createGamePresentation,
+  getEventGame,
+  getGameTeamOrder,
+} from './createGamePresentation';
 
 const game: PredictGame = {
   status: 'in_progress',
@@ -55,6 +59,32 @@ describe('getEventGame', () => {
     });
 
     expect(getEventGame(event)).toBeUndefined();
+  });
+});
+
+describe('getGameTeamOrder', () => {
+  it('lists the away Team first when the Game sends no Team order', () => {
+    const result = getGameTeamOrder(game);
+
+    expect(result).toEqual(['away', 'home']);
+  });
+
+  it('lists the away Team first without a Game', () => {
+    const result = getGameTeamOrder(undefined);
+
+    expect(result).toEqual(['away', 'home']);
+  });
+
+  it('lists the away Team first for away_first', () => {
+    const result = getGameTeamOrder({ ...game, teamOrder: 'away_first' });
+
+    expect(result).toEqual(['away', 'home']);
+  });
+
+  it('lists the home Team first for home_first', () => {
+    const result = getGameTeamOrder({ ...game, teamOrder: 'home_first' });
+
+    expect(result).toEqual(['home', 'away']);
   });
 });
 

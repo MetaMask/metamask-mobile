@@ -18,7 +18,9 @@ import {
 } from '../../../../../../selectors/featureFlagController/confirmations';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import { NoDepositFeeTag } from '../../../components/UI/no-fee-tag';
+import { ApyTag } from '../../../components/UI/apy-tag';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
@@ -52,6 +54,21 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
   const { isAvailable: isMoneyAccountAvailable } =
     usePayMoneyAccountAvailable();
+
+  // Perps and Predict withdraws only. Those flows pay *into* the Money account,
+  // so the vault rate is what the user earns on the funds they are about to
+  // receive. Every other flow spends from the account, where the rate is not a
+  // property of the payment, so the tag must never show there.
+  const isApyTagTransactionType = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+
+  // Skip the vault APY request entirely on the flows that cannot render the tag.
+  const { apyPercent } = useMoneyVaultApy({
+    enabled: isApyTagTransactionType,
+  });
+  const showApyTag = isApyTagTransactionType && apyPercent !== undefined;
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -104,14 +121,28 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      ...(showNoDepositFeeTag
+      ...(showNoDepositFeeTag || showApyTag
         ? {
             tagRenderers: [
-              () => (
-                <NoDepositFeeTag
-                  testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
-                />
-              ),
+              ...(showApyTag
+                ? [
+                    () => (
+                      <ApyTag
+                        apyPercent={apyPercent}
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`}
+                      />
+                    ),
+                  ]
+                : []),
+              ...(showNoDepositFeeTag
+                ? [
+                    () => (
+                      <NoDepositFeeTag
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
+                      />
+                    ),
+                  ]
+                : []),
             ],
           }
         : {}),
@@ -131,7 +162,9 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     isEnabled,
     isMoneyAccountAvailable,
     isMoneyAccountSelected,
+    showApyTag,
     showNoDepositFeeTag,
     withdrawableFiatFormatted,
+    apyPercent,
   ]);
 }
