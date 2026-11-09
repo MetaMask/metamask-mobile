@@ -3811,6 +3811,16 @@
       "retry": "Retry",
       "unavailable": "No markets are available right now."
     },
+    "home_categories": {
+      "title": "Categories",
+      "politics": "Politics",
+      "sports": "Sports",
+      "crypto": "Crypto",
+      "esports": "E-sports",
+      "weather": "Weather",
+      "finance": "Finance",
+      "tech": "Tech"
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",

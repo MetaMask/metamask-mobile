@@ -1044,6 +1044,117 @@ describe('PredictHome', () => {
     });
   });
 
+  describe('Categories section', () => {
+    const HIDDEN_CATEGORY_IDS = [
+      'sports',
+      'crypto',
+      'esports',
+      'weather',
+      'finance',
+      'tech',
+    ];
+
+    it('shows the header and only the Categories the Venue has a Feed Screen for', async () => {
+      const view = renderPredictNext();
+
+      const categories = await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+      expect(
+        within(categories).getByTestId(PredictHomeTestIds.CATEGORIES_HEADER),
+      ).toHaveTextContent('Categories');
+      expect(
+        within(categories).getByTestId(
+          PredictHomeTestIds.categoryChip('politics'),
+        ),
+      ).toHaveTextContent('Politics');
+      HIDDEN_CATEGORY_IDS.forEach((categoryId) =>
+        expect(
+          within(categories).queryByTestId(
+            PredictHomeTestIds.categoryChip(categoryId),
+          ),
+        ).not.toBeOnTheScreen(),
+      );
+    });
+
+    it('sits after the sports previews and before Politics', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      const order = [
+        PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
+        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+      ];
+      const blocks = view.getAllByTestId(new RegExp(`^(${order.join('|')})$`));
+      expect(blocks.map((block) => block.props.testID)).toEqual(order);
+    });
+
+    it('opens the Politics Feed Screen from the Politics chip', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('politics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(within(feedScreen).getByText('Politics')).toBeOnTheScreen();
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('trump')),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the Politics chip while any Politics tab has a Feed, without the Trump preview', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
+          'politics-iran': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+        },
+      });
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('politics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('iran')),
+      ).toBeOnTheScreen();
+      expect(
+        within(feedScreen).queryByTestId(PredictFeedScreenTestIds.UNAVAILABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the section when the Venue has no Feed for any Category', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: { 'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] },
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.CATEGORIES),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["another Venue's catalog", POLYMARKET_STATIC_VENUE_CATALOG],
+      ['a pending catalog', 'pending' as const],
+    ])('shows no Categories for %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.CATEGORIES),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('venue-generic Home', () => {
     const calls = (action: string) =>
       messengerCall.mock.calls.filter(([name]) => name === action);
