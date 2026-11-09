@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Add funds right from your bank",
