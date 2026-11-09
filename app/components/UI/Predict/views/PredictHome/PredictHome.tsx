@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
@@ -42,6 +42,8 @@ import { usePredictTrendingSection } from './components/PredictTrendingSection/u
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -152,6 +154,23 @@ const PredictHome: React.FC = () => {
     refetch: retryHome,
   } = usePredictTrendingSection();
   const showHomeError = Boolean(homeError) && homeMarkets.length === 0;
+  const [isLiveNowSettled, setIsLiveNowSettled] = useState(false);
+  const handleLiveNowSettledChange = useCallback((settled: boolean) => {
+    setIsLiveNowSettled(settled);
+  }, []);
+
+  // End on the first content rail, not mount. Live Now is the above-fold
+  // fetch; the full-screen error is already interactive without that rail.
+  usePredictMeasurement({
+    traceName: TraceName.PredictHomeView,
+    conditions: [!isSearchVisible, showHomeError || isLiveNowSettled],
+    debugContext: {
+      isSearchVisible,
+      showHomeError,
+      isLiveNowSettled,
+    },
+  });
+
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -223,7 +242,9 @@ const PredictHome: React.FC = () => {
                   PredictEventValues.SECTION_ID.LIVE_NOW,
                 )}
               >
-                <PredictLiveNowSection />
+                <PredictLiveNowSection
+                  onSettledChange={handleLiveNowSettledChange}
+                />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterLiveNow}

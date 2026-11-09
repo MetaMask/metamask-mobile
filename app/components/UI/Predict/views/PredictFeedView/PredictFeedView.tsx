@@ -42,6 +42,8 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { resolvePredictFilterLabel } from '../../utils/feed';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../types';
 
@@ -126,6 +128,22 @@ const PredictFeedView: React.FC = () => {
     autoAdvanceEmptyPages: feedId === 'sports',
     filterStaleGameMarkets: feedId === 'sports',
     filterByVolume: activeFilter?.filterByVolume,
+  });
+
+  // Unknown feeds return null and navigate away. Don't start the span until
+  // the config exists, and don't end it on mount: `!isLoading` is already
+  // true while the query is disabled.
+  usePredictMeasurement({
+    traceName: TraceName.PredictFeedView,
+    startConditions: [isReady],
+    endConditions: [!isSearchVisible, !isLoading],
+    resetConditions: [isSearchVisible],
+    debugContext: {
+      feedId: feedId ?? '',
+      isSearchVisible,
+      isReady,
+      isLoading,
+    },
   });
 
   // Keep the latest tab/filter selection in a ref so the focus effect can read

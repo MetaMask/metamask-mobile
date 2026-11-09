@@ -12,6 +12,7 @@ import {
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
 import type { UsePredictSearchResult } from '../../hooks/usePredictSearch';
+import { TraceName } from '../../../../../util/trace';
 
 let mockPredictBrandRefreshEnabled = false;
 jest.mock('react-redux', () => {
@@ -55,6 +56,7 @@ const mockClearSearchAndClose = jest.fn();
 const mockUsePredictFeedConfig = jest.fn();
 const mockUsePredictFeedMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
+const mockUsePredictMeasurement = jest.fn();
 const mockPredictMarketProps = jest.fn();
 const mockSearchOverlayProps = jest.fn();
 
@@ -106,6 +108,11 @@ jest.mock('../../hooks/usePredictFeedMarketList', () => ({
 
 jest.mock('../../hooks/usePredictSearch', () => ({
   usePredictSearch: () => mockUsePredictSearch(),
+}));
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: (options: unknown) =>
+    mockUsePredictMeasurement(options),
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -788,6 +795,68 @@ describe('PredictFeedView', () => {
       expect(
         screen.queryByTestId(PredictFeedViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    it('keeps the feed trace open while the list is in its initial load', () => {
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          startConditions: [true],
+          endConditions: [true, false],
+          resetConditions: [false],
+        }),
+      );
+    });
+
+    it('ends the feed trace once the list can show content', () => {
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          startConditions: [true],
+          endConditions: [true, true],
+        }),
+      );
+    });
+
+    it('does not start the feed trace for an unknown feed', () => {
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({ status: 'not-found' }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          startConditions: [false],
+        }),
+      );
+    });
+
+    it('resets the feed trace while search covers the list', () => {
+      mockUsePredictSearch.mockReturnValue(
+        searchResult({ isSearchVisible: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          endConditions: [false, true],
+          resetConditions: [true],
+        }),
+      );
     });
   });
 });
