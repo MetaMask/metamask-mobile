@@ -59,6 +59,9 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       twClassName="mt-0.5"
+      // One native element carries the label with its value for automation.
+      accessible
+      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
       keyLabel={strings('perps.close_position.included_pnl')}
       value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
         roePercentage !== undefined

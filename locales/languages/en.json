@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Add funds right from your bank",
@@ -1479,6 +1480,8 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_more": "See more",
+      "see_less": "See less",
       "translating": "Translating...",
       "translated_to_english": "Translated to English",
       "failed": "Couldn't translate.",
@@ -3813,7 +3816,9 @@
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
       "market_layout": {
+        "markets": "Markets",
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Total points",
@@ -7179,8 +7184,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Contract interaction",
-    "money_account_deposit": "Deposit to Money Account",
-    "money_account_withdraw": "Transfer from Money Account",
+    "money_account_deposit": "Deposit to Money account",
+    "money_account_withdraw": "Transfer from Money account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -11515,6 +11520,7 @@
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "money_account_description": "Approve MetaMask Card to use your Money account for purchases.",
         "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again",
@@ -11913,9 +11919,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming mUSD back.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money account"
       }
     },
     "credit_screen": {
@@ -11936,9 +11942,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming your credit.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming your credit.",
+        "confirm_button_label": "Set up Money account"
       },
       "refund_info": {
         "title": "Refund balance",
@@ -11998,7 +12004,11 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Sign in",
-      "siwe_button": "Sign in with Ethereum",
+      "money_account_required": {
+        "title": "Set up Money account",
+        "description": "A Money account is required to get the card in your country.",
+        "confirm_button_label": "Set up Money account"
+      },
       "continue_button": "Continue",
       "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
@@ -12874,8 +12884,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Deposit to Money Account",
-      "money_account_withdraw": "Transfer from Money Account",
+      "money_account_deposit": "Deposit to Money account",
+      "money_account_withdraw": "Transfer from Money account",
       "default": "Transaction details"
     },
     "label": {

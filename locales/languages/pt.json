@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Carregando",
     "create_virtual_bank_account": {
       "navbar_title": "Conta bancária",
       "title": "Adicione fundos diretamente do seu banco",
@@ -11932,7 +11933,6 @@
       "email_label": "E-mail",
       "password_label": "Senha",
       "login_button": "Fazer login",
-      "siwe_button": "Fazer login com Ethereum",
       "continue_button": "Continuar",
       "uk_login_button": "Entrar com esta conta",
       "signup_button": "Inscrever-me",

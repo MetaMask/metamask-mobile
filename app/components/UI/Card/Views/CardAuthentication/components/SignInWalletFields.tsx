@@ -24,6 +24,7 @@ import {
 } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
 import CardFormField from '../../../components/Onboarding/CardFormField';
+import { MoneyAccountIdentity } from '../../../components/MoneyAccountRow/MoneyAccountRow';
 
 interface SignInWalletFieldsProps {
   origin: 'linked' | 'resume' | 'manual';
@@ -35,6 +36,8 @@ interface SignInWalletFieldsProps {
   onBack?: () => void;
   onSelectAccount: () => void;
   onUseCurrentCard: () => void;
+  /** Money account channel: the row is locked and shows the Money account icon. */
+  lockToMoneyAccount?: boolean;
 }
 
 const SignInWalletFields = ({
@@ -47,6 +50,7 @@ const SignInWalletFields = ({
   onBack,
   onSelectAccount,
   onUseCurrentCard,
+  lockToMoneyAccount = false,
 }: SignInWalletFieldsProps) => {
   const tw = useTailwind();
   return (
@@ -78,21 +82,30 @@ const SignInWalletFields = ({
         errorText={walletError}
         errorTestID={CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT}
       >
-        <SelectField
-          value={displayAccountLabel}
-          onPress={onSelectAccount}
-          isError={Boolean(walletError)}
-          testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
-          startAccessory={
-            displayAccountAddress ? (
-              <AvatarAccount
-                address={displayAccountAddress}
-                variant={getAvatarAccountVariant(avatarAccountType)}
-                size={AvatarBaseSize.Sm}
-              />
-            ) : undefined
-          }
-        />
+        {lockToMoneyAccount ? (
+          <Box
+            twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+            testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
+          >
+            <MoneyAccountIdentity />
+          </Box>
+        ) : (
+          <SelectField
+            value={displayAccountLabel}
+            onPress={onSelectAccount}
+            isError={Boolean(walletError)}
+            testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
+            startAccessory={
+              displayAccountAddress ? (
+                <AvatarAccount
+                  address={displayAccountAddress}
+                  variant={getAvatarAccountVariant(avatarAccountType)}
+                  size={AvatarBaseSize.Sm}
+                />
+              ) : undefined
+            }
+          />
+        )}
       </CardFormField>
 
       {showSoftLink && (

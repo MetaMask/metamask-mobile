@@ -104,6 +104,22 @@ const mockRampCountryCacheData = {
       excludedFiatAndPaymentMethods: [],
     },
     {
+      id: '/currencies/crypto/solana/slip44:501',
+      idv2: '/currencies/crypto/solana/slip44:501',
+      symbol: 'SOL',
+      name: 'Solana',
+      assetId: 'slip44:501',
+      decimals: 9,
+      network: {
+        active: true,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainName: 'Solana Mainnet',
+        shortName: 'Solana',
+      },
+      logo: '',
+      excludedFiatAndPaymentMethods: [],
+    },
+    {
       id: '/currencies/crypto/1/0x6b175474e89094c44da98b954eedeac495271d0f',
       idv2: '/currencies/crypto/1/0x6b175474e89094c44da98b954eedeac495271d0f',
       legacyId: '/currencies/crypto/1/dai',
