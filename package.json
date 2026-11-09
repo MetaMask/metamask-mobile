@@ -191,6 +191,7 @@
   "resolutions": {
     "uniffi-bindgen-react-native": "0.31.0-2",
     "@metamask/mfa-wallet-network": "0.2.0",
+    "@metamask/money-account-mfa-whitelist": "^0.2.0",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^37.1.1",

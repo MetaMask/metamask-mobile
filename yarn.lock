@@ -11075,15 +11075,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-mfa-whitelist@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/money-account-mfa-whitelist@npm:0.1.0"
+"@metamask/money-account-mfa-whitelist@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/money-account-mfa-whitelist@npm:0.2.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/73cbe3e723b0aff74b649b693fd95fd81da053f930ab882fc92a889d73faf876808bf84732ff989a23589f1495c1ab90da38084028b3ebd9d271e467a90e23cb
+  checksum: 10/431140cb5abaa56c2d60ed290e6805ed8d261919f12518044779d3e57fc01ca57282ef375e6240d2875c9b0f1334b02018898e2b42e8f0b29ce69a2dce4a9ed8
   languageName: node
   linkType: hard
 
