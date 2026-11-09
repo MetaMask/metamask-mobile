@@ -111,7 +111,7 @@ describe('KalshiOnboardingClient', () => {
     expect(sent(fetchImpl, 0).headers.Authorization).toBe('Bearer mm-token');
     const decoded = envelope(fetchImpl, 0);
     expect(decoded.v).toBe(2);
-    expect(decoded.signingProfileId).toBe('kalshi-demo-signing-v1');
+    expect(decoded.signingProfileId).toBe('kalshi-demo-signing-v2');
     expect(decoded.step).toBe('default');
     expect(decoded.credential).toEqual(CONTEXT);
     expect(decoded.values).toEqual({});

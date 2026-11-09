@@ -2,11 +2,11 @@ import { sha256 } from '@noble/hashes/sha2';
 
 /**
  * Direct signer for the Kalshi onboarding routes (no request templates).
- * Each onboarding operation signs its ONE fixed upstream request; the
- * `Venue-Authorization` header keeps the {v:2, signingProfileId, step,
- * credential, values, signatures[]} shape of the first merged envelope
- * generation, with this profile's pinned covered components, header names
- * and signature label.
+ * Each onboarding operation signs its ONE fixed upstream request; the covered
+ * components, the header names, the signature label and the envelope are the
+ * pinned values the retired `kalshi-demo-signing-v2` template profile carried
+ * for these routes, so the `Venue-Authorization` header is unchanged on the
+ * wire ({v:2, signingProfileId, step, credential, values, signatures[]}).
  */
 
 /** Version of the `Venue-Authorization` envelope. */
@@ -23,7 +23,7 @@ const SIGNATURE_TAG = 'kalshi-device-request-v1';
 const SIGNATURE_LIFETIME_SEC = 60;
 const TOKEN_SCHEME = 'Kalshi-A2T';
 /** Signing profile id the onboarding envelope reports. */
-export const KALSHI_ONBOARDING_SIGNING_PROFILE_ID = 'kalshi-demo-signing-v1';
+export const KALSHI_ONBOARDING_SIGNING_PROFILE_ID = 'kalshi-demo-signing-v2';
 const REQUEST_ID_HEADER = 'kalshi-device-request-id';
 const KEY_HEADER = 'kalshi-device-key';
 const SALT_HEADER = 'kalshi-device-key-salt';
