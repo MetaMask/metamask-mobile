@@ -4,7 +4,7 @@ import {
   buildFailureNotice,
   buildSlackMessage,
   exploreUrl,
-} from './swaps-perf-budgets.mjs';
+} from './swaps-performance-budgets.mjs';
 
 const result = (
   label: string,

@@ -1,6 +1,6 @@
 # Daily Swaps performance budgets check. Posts to Slack every day: an all-clear,
 # a breach list, or a failure notice.
-# Rules: .github/scripts/swaps/perf-budgets/swaps-perf-budgets.config.mjs.
+# Rules: .github/scripts/swaps/performance-budgets/swaps-performance-budgets.config.mjs.
 # Secrets: SWAPS_SENTRY_TOKEN (Sentry, org:read) and SLACK_BOT_TOKEN, which must
 # be invited to the channel set in the config.
 
@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: swaps-perf-budgets
+  group: swaps-performance-budgets
   cancel-in-progress: false
 
 jobs:
@@ -50,10 +50,10 @@ jobs:
         env:
           SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        run: node .github/scripts/swaps/perf-budgets/run-swaps-perf-budgets.mjs
+        run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs
 
       - name: Post failure notice
         if: ${{ failure() && env.DRY_RUN != 'true' && env.HAS_SLACK_TOKEN == 'true' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        run: node .github/scripts/swaps/perf-budgets/run-swaps-perf-budgets.mjs --failure-notice
+        run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs --failure-notice

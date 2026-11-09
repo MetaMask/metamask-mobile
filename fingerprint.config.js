@@ -166,7 +166,7 @@ const config = {
     '.github/scripts/qa-automation/**',
 
     // Swaps performance budgets: reads Sentry and posts to Slack, doesn't build.
-    '.github/scripts/swaps/perf-budgets/**',
+    '.github/scripts/swaps/performance-budgets/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
@@ -193,7 +193,7 @@ const config = {
     '.github/workflows/flaky-test-report.yml',
     '.github/workflows/analyze-app-profiling.yml',
     '.github/workflows/qa-stats.yml',
-    '.github/workflows/swaps-perf-budgets.yml',
+    '.github/workflows/swaps-performance-budgets.yml',
     '.github/workflows/post-merge-validation.yml',
 
     // Release/branch bookkeeping (merges, syncs, changelog) - no native or OTA build step.

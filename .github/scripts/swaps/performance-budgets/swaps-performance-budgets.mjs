@@ -3,7 +3,7 @@
  * guardrail when n >= MIN_SAMPLES and the scan wasn't downsampled.
  */
 
-import { BUDGET_RULES, MIN_SAMPLES, SENTRY_DASHBOARDS, WINDOW_DAYS } from './swaps-perf-budgets.config.mjs';
+import { BUDGET_RULES, MIN_SAMPLES, SENTRY_DASHBOARDS, WINDOW_DAYS } from './swaps-performance-budgets.config.mjs';
 
 const SENTRY_ORG = 'metamask';
 const P90_FIELD = 'p90(span.duration)';

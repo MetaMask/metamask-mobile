@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * GitHub Actions entrypoint for swaps-perf-budgets.mjs. Exits 1 when any
+ * GitHub Actions entrypoint for swaps-performance-budgets.mjs. Exits 1 when any
  * Sentry query failed, after posting the other results.
  * `--failure-notice` posts only the "check failed" message.
  */
 
-import { MIN_SAMPLES, SLACK_CHANNEL_ID } from './swaps-perf-budgets.config.mjs';
+import { MIN_SAMPLES, SLACK_CHANNEL_ID } from './swaps-performance-budgets.config.mjs';
 import {
   buildFailureNotice,
   buildSlackMessage,
@@ -14,7 +14,7 @@ import {
   runBudgetCheck,
   startOfTodayUtc,
   STATUS,
-} from './swaps-perf-budgets.mjs';
+} from './swaps-performance-budgets.mjs';
 
 /** chat.postMessage reports errors as HTTP 200 with `ok: false`. */
 async function postToSlack(token, text) {
