@@ -30,6 +30,11 @@ export interface UsePerpsLiveCandlesOptions {
   resetKey?: string;
   /** Defers subscription until the requested market context is connected. */
   enabled?: boolean;
+  /**
+   * Return true to keep the previous candle state. Stops a parent render when
+   * the tick does not change what the caller displays.
+   */
+  isUnchanged?: (previous: CandleData, next: CandleData) => boolean;
 }
 
 export interface UsePerpsLiveCandlesReturn {
@@ -81,8 +86,11 @@ export function usePerpsLiveCandles(
     throttleMs = 1000,
     resetKey,
     enabled = true,
+    isUnchanged,
   } = options;
   const stream = usePerpsStream();
+  const isUnchangedRef = useRef(isUnchanged);
+  isUnchangedRef.current = isUnchanged;
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -90,11 +98,13 @@ export function usePerpsLiveCandles(
   const [deliveryRevision, setDeliveryRevision] = useState(0);
   const hasReceivedFirstUpdate = useRef(false);
   const acceptedDeliveryRef = useRef(false);
+  const candleDataRef = useRef<CandleData | null>(null);
 
   useEffect(() => {
     let isActive = true;
     // Reset state immediately when symbol or interval changes to prevent stale data
     setCandleData(null);
+    candleDataRef.current = null;
     setIsLoading(true);
     setError(null);
     hasReceivedFirstUpdate.current = false;
@@ -145,6 +155,15 @@ export function usePerpsLiveCandles(
             setIsLoading(false);
           }
 
+          const previousCandleData = candleDataRef.current;
+          if (
+            previousCandleData &&
+            isUnchangedRef.current?.(previousCandleData, newCandleData)
+          ) {
+            return;
+          }
+
+          candleDataRef.current = newCandleData;
           setCandleData(newCandleData);
           acceptedDeliveryRef.current = true;
         },

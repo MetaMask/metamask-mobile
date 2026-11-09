@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import { SectionDivider } from '@metamask/design-system-react-native';
+import { ViewportLifecycle } from '../../../ViewportLifecycle';
 
 export interface PerpsHomeSectionItem {
   key: string;
@@ -13,6 +14,8 @@ interface PerpsHomeSectionListProps {
   sections: PerpsHomeSectionItem[];
   /** Skip the divider above the first visible section (e.g. right under a tab bar). */
   hideLeadingDivider?: boolean;
+  /** Mount sections before their first viewport measurement. Pass `false` for below-fold lists. */
+  initiallyMounted?: boolean;
 }
 
 /**
@@ -22,6 +25,7 @@ interface PerpsHomeSectionListProps {
 const PerpsHomeSectionList: React.FC<PerpsHomeSectionListProps> = ({
   sections,
   hideLeadingDivider = false,
+  initiallyMounted = true,
 }) => {
   const firstVisibleKey = sections.find((section) => section.visible)?.key;
 
@@ -44,7 +48,14 @@ const PerpsHomeSectionList: React.FC<PerpsHomeSectionListProps> = ({
               testID={`perps-home-section-${section.key}`}
               onLayout={section.onLayout}
             >
-              {section.content}
+              <ViewportLifecycle
+                mode="unmount-when-far"
+                initiallyMounted={initiallyMounted}
+                preloadMargin={400}
+                placeholderHeight={220}
+              >
+                {section.content}
+              </ViewportLifecycle>
             </View>
           </Fragment>
         );
