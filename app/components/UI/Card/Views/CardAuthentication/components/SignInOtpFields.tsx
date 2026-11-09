@@ -1,5 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Platform, TextInput, TouchableOpacity } from 'react-native';
+import {
+  AccessibilityInfo,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import {
   Box,
   FontWeight,
@@ -53,6 +58,20 @@ const SignInOtpFields = ({
     codeInputRef.current?.focus();
   }, [isScreenTransitionComplete]);
 
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
+
+  useEffect(() => {
+    if (!otpError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(otpError);
+  }, [otpError]);
+
   return (
     <>
       <Box>
@@ -79,6 +98,7 @@ const SignInOtpFields = ({
             testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
             variant={TextVariant.BodySm}
             twClassName="text-error-default"
+            accessibilityLiveRegion="polite"
           >
             {error}
           </Text>
@@ -114,6 +134,7 @@ const SignInOtpFields = ({
               testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
               variant={TextVariant.BodySm}
               twClassName="text-error-default"
+              accessibilityLiveRegion="polite"
             >
               {otpError}
             </Text>

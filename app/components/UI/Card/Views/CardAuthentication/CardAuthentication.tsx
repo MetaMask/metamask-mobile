@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { AccessibilityInfo, TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -167,6 +167,7 @@ const CardAuthentication = () => {
   const walletSignInLock = useRef(false);
   const emailCodeRequestId = useRef(0);
   const emailAuthLock = useRef(false);
+  const submittedEmailCodeRef = useRef('');
   const clearAuthFailureRef = useRef<() => void>(() => undefined);
   const [emailLoginAttempt, setEmailLoginAttempt] = useState(0);
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -304,6 +305,13 @@ const CardAuthentication = () => {
   const displayedLoginError =
     loginError ??
     (requestEmailCode.error ? getErrorMessage(requestEmailCode.error) : null);
+
+  useEffect(() => {
+    if (!displayedLoginError || view.mode !== 'email') {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(displayedLoginError);
+  }, [displayedLoginError, view.mode]);
 
   const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
     resolveSignInAccountPresentation({
@@ -469,6 +477,7 @@ const CardAuthentication = () => {
       if (passwordlessEmailCodeLogin && emailAuthLock.current) return;
       if (passwordlessEmailCodeLogin) {
         emailAuthLock.current = true;
+        submittedEmailCodeRef.current = emailCode;
       }
 
       trackEvent(
@@ -483,6 +492,7 @@ const CardAuthentication = () => {
           .build(),
       );
 
+      let emailCodeLoginSettled = false;
       try {
         if (isBaanxPasswordless) {
           clearAuthFailure();
@@ -497,7 +507,9 @@ const CardAuthentication = () => {
             ? {
                 type: 'email_code',
                 email: email.trim(),
-                code: emailCode,
+                code: isOtpStep
+                  ? submittedEmailCodeRef.current || emailCode
+                  : emailCode,
                 ...(otpCode ? { otpCode } : {}),
               }
             : {
@@ -507,6 +519,9 @@ const CardAuthentication = () => {
                 ...(otpCode ? { otpCode } : {}),
               },
         );
+        if (passwordlessEmailCodeLogin) {
+          emailCodeLoginSettled = true;
+        }
 
         if (result.nextStep?.type === 'otp') return;
 
@@ -575,7 +590,9 @@ const CardAuthentication = () => {
       } finally {
         if (passwordlessEmailCodeLogin) {
           emailAuthLock.current = false;
-          setEmailLoginAttempt((attempt) => attempt + 1);
+          if (!emailCodeLoginSettled) {
+            setEmailLoginAttempt((attempt) => attempt + 1);
+          }
         }
       }
     },
@@ -825,6 +842,7 @@ const CardAuthentication = () => {
       Logger.log('CardAuthentication::Request email code failed', err);
     } finally {
       emailAuthLock.current = false;
+      setEmailLoginAttempt((attempt) => attempt + 1);
     }
   }, [
     countryKey,
@@ -1153,6 +1171,7 @@ const CardAuthentication = () => {
           <Text
             variant={TextVariant.BodySm}
             twClassName="text-error-default"
+            accessibilityLiveRegion="polite"
             testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
           >
             {displayedLoginError}

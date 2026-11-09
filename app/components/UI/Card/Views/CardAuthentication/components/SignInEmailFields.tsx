@@ -158,6 +158,12 @@ const SignInEmailFields = ({
             endAccessory={
               <TouchableOpacity
                 onPress={onTogglePasswordVisibility}
+                accessibilityRole="button"
+                accessibilityLabel={strings(
+                  isPasswordVisible
+                    ? 'card.card_authentication.hide_password'
+                    : 'card.card_authentication.show_password',
+                )}
                 testID={CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE}
               >
                 <Icon

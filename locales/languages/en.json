@@ -11952,6 +11952,8 @@
       "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
+      "show_password": "Show password",
+      "hide_password": "Hide password",
       "email_code_label": "Email code",
       "request_email_code_button": "Email me a code",
       "login_button": "Sign in",

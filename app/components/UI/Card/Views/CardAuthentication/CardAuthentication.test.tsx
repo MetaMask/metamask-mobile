@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput } from 'react-native';
+import { AccessibilityInfo, TextInput } from 'react-native';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { setAvatarAccountType } from '../../../../../actions/settings';
@@ -332,6 +332,10 @@ function render(controllerState?: Record<string, unknown>) {
 }
 
 jest.useFakeTimers({ advanceTimers: true });
+
+jest
+  .spyOn(AccessibilityInfo, 'announceForAccessibility')
+  .mockReturnValue(undefined);
 
 describe('CardAuthentication', () => {
   beforeEach(() => {
@@ -752,6 +756,23 @@ describe('CardAuthentication', () => {
       expect(
         screen.queryByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
       ).toBeNull();
+      expect(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      ).toHaveProp('accessibilityLabel', 'Show password');
+
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE,
+        ),
+      ).toHaveProp('accessibilityLabel', 'Hide password');
     });
 
     it('requests and submits an email code when passwordless login is enabled', async () => {
@@ -979,6 +1000,12 @@ describe('CardAuthentication', () => {
       await waitFor(() => {
         expect(screen.getByText('Incorrect code, try again')).toBeOnTheScreen();
       });
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.LOGIN_ERROR_TEXT),
+      ).toHaveProp('accessibilityLiveRegion', 'polite');
+      expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+        'Incorrect code, try again',
+      );
 
       fireEvent.press(
         screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
@@ -1103,6 +1130,149 @@ describe('CardAuthentication', () => {
         });
       });
       expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the original email code when authenticator sign-in follows an edited attempt', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const auth = makeAuthReturn();
+      let setAuthStep: (
+        step:
+          | { type: 'email_password' }
+          | { type: 'otp'; destination: string; mode: 'TOTP' },
+      ) => void = () => undefined;
+      mockUseCardAuth.mockImplementation(() => {
+        const [step, setStep] = React.useState<
+          | { type: 'email_password' }
+          | { type: 'otp'; destination: string; mode: 'TOTP' }
+        >(auth.currentStep);
+        setAuthStep = setStep;
+        return {
+          ...auth,
+          currentStep: step,
+        } as ReturnType<typeof useCardAuth>;
+      });
+      let finishFirstLogin: (value: unknown) => void = () => undefined;
+      mockSubmitMutateAsync.mockImplementation(() => {
+        if (mockSubmitMutateAsync.mock.calls.length === 1) {
+          return new Promise((resolve) => {
+            finishFirstLogin = resolve;
+          });
+        }
+        return Promise.resolve({ done: true });
+      });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '654321',
+      );
+
+      await act(async () => {
+        finishFirstLogin({
+          nextStep: {
+            type: 'otp',
+            destination: 'user@example.com',
+            mode: 'TOTP',
+          },
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        setAuthStep({
+          type: 'otp',
+          destination: 'user@example.com',
+          mode: 'TOTP',
+        });
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.OTP_CODE_FIELD),
+        '111111',
+      );
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenLastCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+          otpCode: '111111',
+        });
+      });
+      expect(mockSubmitMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('submits a code typed while a resend fails', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const networkError = new CardProviderError(
+        CardProviderErrorCode.Network,
+        'Network error. Check your connection and try again.',
+      );
+      let failResend: () => void = () => undefined;
+      mockRequestEmailCode.mockImplementation(() => {
+        if (mockRequestEmailCode.mock.calls.length === 1) {
+          return Promise.resolve();
+        }
+        return new Promise((_resolve, reject) => {
+          failResend = () => {
+            reject(networkError);
+          };
+        });
+      });
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      for (let second = 0; second < 60; second += 1) {
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(1000);
+        });
+      }
+      fireEvent.press(screen.getByText('Resend it'));
+      await waitFor(() => {
+        expect(mockRequestEmailCode).toHaveBeenCalledTimes(2);
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      expect(mockSubmitMutateAsync).not.toHaveBeenCalled();
+
+      await act(async () => {
+        failResend();
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
     });
 
     it('keeps sign in enabled after a rejected email code', async () => {
