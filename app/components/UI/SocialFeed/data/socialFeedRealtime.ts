@@ -118,21 +118,28 @@ const resolveRefreshedAuthorComment = (
  * `authorComment`: an explicit null clears the Call, while an absent one keeps
  * the HTTP row's Call. When both comments have the same UID, the realtime
  * aggregate reactions are kept while the known viewer reaction is preserved.
+ *
+ * Core's normalized `data` drops the envelope's `feedItemId`, so it is copied
+ * back: a socket-only card keys on it like its HTTP copy does.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
   event: SocialFeedEvent,
-): CoreFeedItem => ({
-  ...current,
-  ...event.data,
-  authorComment: resolveRealtimeAuthorComment(
-    event.data.authorComment,
-    current?.authorComment,
-  ),
-  eventId: event.eventId,
-  revision: event.revision,
-  occurredAt: event.occurredAt,
-});
+): CoreFeedItem => {
+  const merged: CoreFeedItem & { feedItemId: string } = {
+    ...current,
+    ...event.data,
+    authorComment: resolveRealtimeAuthorComment(
+      event.data.authorComment,
+      current?.authorComment,
+    ),
+    eventId: event.eventId,
+    revision: event.revision,
+    occurredAt: event.occurredAt,
+    feedItemId: event.feedItemId,
+  };
+  return merged;
+};
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
