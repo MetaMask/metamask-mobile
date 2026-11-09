@@ -967,8 +967,10 @@ describe('PredictHome', () => {
         ),
       );
 
+      // The screen's root is replaced when the Event read settles, so wait
+      // for the loaded header rather than the loading chrome.
       expect(
-        await view.findByTestId(PredictEventScreenTestIds.VIEW),
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
       ).toBeOnTheScreen();
     });
 

@@ -1,5 +1,5 @@
 import type { Position } from '@metamask/social-controllers';
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   useTraderPositionData,
@@ -96,7 +96,7 @@ describe('usePositionSheetData', () => {
           trades: [
             buildTrade({
               marketCap: 1_000_000,
-              timestamp: NOW_MS - 3 * DAY_MS,
+              timestamp: NOW_MS - 2 * HOUR_MS,
               action: 'opened',
             }),
           ],
@@ -122,18 +122,21 @@ describe('usePositionSheetData', () => {
       expect(result.current.formatValue(120)).toMatch(/^\$120/);
     });
 
-    it('asks for the narrowest spot period that covers the window', () => {
+    it('requests 1D prices until the user picks another range', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({ activeTimePeriod: '1W' }),
       );
 
-      renderData(
-        buildPosition({
-          trades: [buildTrade({ timestamp: NOW_MS - 20 * DAY_MS })],
-        }),
-      );
+      const { result } = renderData(buildPosition());
+
+      expect(mockSetActiveTimePeriod).toHaveBeenCalledWith('1D');
+
+      act(() => {
+        result.current.setChartPeriod('1M');
+      });
 
       expect(mockSetActiveTimePeriod).toHaveBeenCalledWith('1M');
+      expect(result.current.chartPeriod).toBe('1M');
     });
 
     it('reports loading until the requested period is active', () => {
@@ -219,7 +222,11 @@ describe('usePositionSheetData', () => {
       );
 
       expect(mockUsePerpsSheetPrices).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: 'BTC', enabled: true }),
+        expect.objectContaining({
+          symbol: 'BTC',
+          period: '1D',
+          enabled: true,
+        }),
       );
       expect(result.current.currentPrice).toBe(104000);
       expect(result.current.isTrendPositive).toBe(false);

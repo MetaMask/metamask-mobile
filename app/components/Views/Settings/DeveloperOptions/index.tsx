@@ -14,9 +14,6 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
-///: END:ONLY_INCLUDE_IF
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -36,6 +33,18 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+
+/**
+ * Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local
+ * opt-in; no build in builds.yml sets it); otherwise this is
+ * dead-code-eliminated.
+ */
+const SampleFeatureDevSettingsEntryPoint: React.FC =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint')
+        .default
+    : () => null;
 
 const DeveloperOptions = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -92,13 +101,7 @@ const DeveloperOptions = () => {
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <SentryTest />
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-        }
         <SampleFeatureDevSettingsEntryPoint />
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
         {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
         <ConfirmationsDeveloperOptions />
         {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}

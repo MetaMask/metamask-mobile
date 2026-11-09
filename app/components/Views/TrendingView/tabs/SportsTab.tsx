@@ -37,6 +37,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import {
   trackExploreInteracted,
@@ -136,12 +137,12 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const { colors } = useTheme();
 
   const sportsPredictions = usePredictTrendingFeed({
-    variant: 'sports',
+    tab: 'sports',
     refresh,
     enabled: isPredictEnabled,
   });
   const sportsMarkets = usePredictSportsMarketsFeed({ refresh });
-  const showAllSports = usePredictTrendingSupported();
+  const showAllSports = usePredictTrendingSupported('allSports');
 
   const { active, activeKey } = sportsMarkets;
   const activeKeyRef = useRef(activeKey);
@@ -244,7 +245,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       contentContainerStyle={tw.style(
         `pt-3 pb-[${16 + floatingTabBarInset}px]`,
       )}
-      testID={`all-sports-list-${activeKey}`}
+      testID={TrendingViewSelectorsIDs.exploreSportsList(activeKey)}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

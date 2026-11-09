@@ -20,7 +20,6 @@ import type {
   ReferralLocalizedText,
   ReferralLocalizedTextKey,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import Engine from '../../../../core/Engine';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
@@ -31,6 +30,12 @@ import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../../Money/utils/moneyAccountTransactions';
+import { isPositiveBaseUnits } from './formatUtils';
+import {
+  followTradeHeldForTax,
+  isTaxFlowEnabled,
+  revShareHeldForTax,
+} from './taxDocumentation';
 
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
@@ -79,12 +84,27 @@ const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
  */
 const CLAIMS_PAUSED_REASONS = new Set([
   'SUSPENDED',
-  'TAX_DETERMINATION_REQUIRED',
   'MECHANISM_NOT_CLAIMABLE',
   'EARNING_ADDRESS_UNSCREENABLE',
   'UNDER_REVIEW',
   'EARNING_ADDRESS_MISSING',
 ]);
+
+/**
+ * True when nothing was paid and a route refused because tax documentation
+ * is still required. That opens the tax flow. A paid claim that only names
+ * the reason in `excluded[]` is not one of these.
+ */
+export function isTaxDeterminationRefusal(
+  outcomes: ClaimRouteOutcome[],
+): boolean {
+  if (outcomes.some((outcome) => outcome.submitted)) {
+    return false;
+  }
+  return outcomes.some(
+    (outcome) => outcome.reason === 'TAX_DETERMINATION_REQUIRED',
+  );
+}
 
 /**
  * True when nothing was submitted and every refusal is a held or blocked
@@ -151,25 +171,44 @@ export function meetsClaimMinimum(
 }
 
 export interface ClaimRouteOptions {
-  /** Follow-trade claims need an open claim route. Omitted leaves the route off. */
+  /**
+   * Follow-trade claims need the tax form and an open claim route. Omitted
+   * leaves the route off.
+   */
   includeFollowTrade?: boolean;
-}
-
-/** Follow-trade is included only when this session has seen `claim_open`. */
-export function claimRouteOptions(
-  followTradeClaimOpen: boolean | undefined,
-): ClaimRouteOptions {
-  return { includeFollowTrade: followTradeClaimOpen === true };
+  /**
+   * Revenue share needs the tax form and an open claim route. Omitted
+   * leaves that route off, even when the family balance is positive.
+   */
+  includeRevShare?: boolean;
 }
 
 /**
- * Cashback for a referee, then follow-trade when its route is included. Each
- * family must reach `minimum_musd_base_units` on its own. Revenue share stays
- * off. Omitted options leave follow-trade off.
+ * Follow-trade and revenue share are included only when the tax form is on
+ * and commissions reports that route's `claim_open`. An unknown route stays
+ * off. Cashback does not use this: commissions has no cashback `claim_open`,
+ * so that family follows its own claimable balance.
+ */
+export function claimRouteOptions(
+  taxFormUrl: string | undefined,
+  followTradeClaimOpen: boolean | undefined,
+  revShareClaimOpen: boolean | undefined = false,
+): ClaimRouteOptions {
+  const taxFlowEnabled = isTaxFlowEnabled(taxFormUrl);
+  return {
+    includeFollowTrade: taxFlowEnabled && followTradeClaimOpen === true,
+    includeRevShare: taxFlowEnabled && revShareClaimOpen === true,
+  };
+}
+
+/**
+ * Cashback when that family meets the minimum, then revenue share and
+ * follow-trade when those routes are included. Each family must reach
+ * `minimum_musd_base_units` on its own. A closed route stays off no matter
+ * which persona holds the balance.
  */
 export function claimRoutesForSummary(
   summary: EarningsSummaryDto | null | undefined,
-  persona?: MoneyDashboardPersona,
   options?: ClaimRouteOptions,
 ): ClaimRouteSlug[] {
   const minimum = summary?.minimum_musd_base_units;
@@ -177,8 +216,16 @@ export function claimRoutesForSummary(
   const cashback =
     summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
       ?.claimable;
-  if (persona === 'referee' && meetsClaimMinimum(cashback, minimum)) {
+  if (meetsClaimMinimum(cashback, minimum)) {
     routes.push('referral-trade-fee-cashback');
+  }
+  const revShare =
+    summary?.earned_by_others?.by_claim_family?.REFERRAL_REV_SHARE?.claimable;
+  if (
+    options?.includeRevShare === true &&
+    meetsClaimMinimum(revShare, minimum)
+  ) {
+    routes.push('referral-rev-share');
   }
   const followTrade =
     summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE?.claimable;
@@ -191,13 +238,48 @@ export function claimRoutesForSummary(
   return routes;
 }
 
-/** True when cashback or follow-trade reaches the summary minimum. */
+/**
+ * True when an open route's family reaches the summary minimum. A positive
+ * revenue-share balance does not count while that route is closed.
+ */
 export function canClaimEarnings(
   summary: EarningsSummaryDto | null | undefined,
-  persona: MoneyDashboardPersona | undefined,
   options?: ClaimRouteOptions,
 ): boolean {
-  return claimRoutesForSummary(summary, persona, options).length > 0;
+  return claimRoutesForSummary(summary, options).length > 0;
+}
+
+/**
+ * True when follow-trade or revenue share is held for tax and that claim
+ * route is open. A closed route stays false even when its balance is held.
+ */
+export function incomeHeldOnOpenRoute(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  return (
+    (options?.includeFollowTrade === true && followTradeHeldForTax(summary)) ||
+    (options?.includeRevShare === true && revShareHeldForTax(summary))
+  );
+}
+
+/**
+ * True when the Earnings tab shows Claim: an open route meets the minimum,
+ * or an open income route is held only for tax documentation. A blocked
+ * balance stays off, because that card shows Paused.
+ */
+export function showEarningsIndicator(
+  summary: EarningsSummaryDto | null | undefined,
+  options?: ClaimRouteOptions,
+): boolean {
+  if (canClaimEarnings(summary, options)) {
+    return true;
+  }
+  return (
+    incomeHeldOnOpenRoute(summary, options) &&
+    isPositiveBaseUnits(summary?.held) &&
+    !isPositiveBaseUnits(summary?.blocked)
+  );
 }
 
 /**
@@ -625,7 +707,10 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'MECHANISM_NOT_CLAIMABLE') {
     return 'not_claimable';
   }
-  if (CLAIMS_PAUSED_REASONS.has(reason)) {
+  if (
+    reason === 'TAX_DETERMINATION_REQUIRED' ||
+    CLAIMS_PAUSED_REASONS.has(reason)
+  ) {
     return 'paused';
   }
   if (reason === 'UNSUPPORTED_EARNING_ADDRESS') {

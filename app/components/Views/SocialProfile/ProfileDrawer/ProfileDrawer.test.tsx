@@ -54,9 +54,8 @@ jest.mock('../../../hooks/useSupportConsent', () => ({
   }),
 }));
 
-// Mocking the helper (rather than the inline `///: ONLY_INCLUDE_IF(beta)` fence)
-// lets Jest exercise both the beta and consent branches, since babel-jest
-// leaves the fence as a comment. Mirrors AccountsMenu.test.
+// Mocking the helper lets Jest exercise both the beta and consent branches.
+// Mirrors AccountsMenu.test.
 jest.mock('../../../../util/support/betaSupportUrl', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
