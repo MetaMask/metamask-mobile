@@ -71,6 +71,11 @@ jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
+const mockUseQuoteTokensQuery = jest.fn();
+jest.mock('../PostTradeShareBottomSheet/useQuoteTokensQuery', () => ({
+  useQuoteTokensQuery: (enabled: boolean) => mockUseQuoteTokensQuery(enabled),
+}));
+
 jest.mock('../utils/socialTabVisit', () => ({
   markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
@@ -364,6 +369,12 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
+  });
+
+  it('loads the quote-token list for Social V1', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
   });
 
   it('omits tab sub-navigation pills', () => {
