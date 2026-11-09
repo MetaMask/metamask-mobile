@@ -99,6 +99,24 @@ test('onboarding discovery includes cold start after wallet import', () => {
   );
 });
 
+test('dev-onboarding discovery includes only the dev onboarding spec', () => {
+  const { status, specs } = discover('dev-onboarding');
+
+  assert.equal(status, 0);
+  assert.deepEqual(specs, [
+    'tests/performance/dev-onboarding/create-wallet.spec.ts',
+  ]);
+});
+
+test('onboarding discovery does not include the dev onboarding spec', () => {
+  const { specs } = discover('onboarding');
+
+  assert.equal(
+    specs.includes('tests/performance/dev-onboarding/create-wallet.spec.ts'),
+    false,
+  );
+});
+
 test('onboarding discovery stays inside the onboarding folder', () => {
   const { specs } = discover('onboarding');
 

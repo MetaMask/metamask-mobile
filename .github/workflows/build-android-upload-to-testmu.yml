@@ -3,9 +3,9 @@
 # to BrowserStack by leaving upload_to_browserstack at its default.
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
-# build_variant=dev skips both of those and builds nothing here. The main-dev
-# APK is a separate job in run-performance-e2e.yml, because a reusable
-# workflow call cannot set continue-on-error.
+# build_variant=dev skips both of those and builds nothing here. The
+# main-dev-without-srp APK is a separate job in run-performance-e2e.yml,
+# because a reusable workflow call cannot set continue-on-error.
 #
 # Fingerprint reuse (same procedure as build-android-e2e.yml):
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
@@ -44,7 +44,7 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant (e2e, exp, rc, or dev). dev builds main-dev only.'
+        description: 'Build variant (e2e, exp, rc, or dev). dev builds main-dev-without-srp only.'
         default: 'exp'
       source_fingerprint:
         required: false
@@ -180,9 +180,9 @@ jobs:
         env:
           BUILD_VARIANT: ${{ inputs.build_variant }}
         run: |
-          # Selecting dev builds only the main-dev APK from run-performance-e2e.yml.
+          # Selecting dev builds only the main-dev-without-srp APK from run-performance-e2e.yml.
           # The SRP pair must not fall through to the e2e profile.
-          echo "main-dev-build-name=main-dev" >> "$GITHUB_OUTPUT"
+          echo "main-dev-build-name=main-dev-without-srp" >> "$GITHUB_OUTPUT"
           if [ "${BUILD_VARIANT}" = "exp" ]; then
             {
               echo "with-srp-build-name=main-exp-with-srp"

@@ -252,7 +252,7 @@ describe('main-dev performance build', () => {
     expect(loadWorkflow().jobs['build-main-dev']).toBeUndefined();
     expect(build.uses).toBe('./.github/workflows/build.yml');
     expect(build.with).toMatchObject({
-      build_name: 'main-dev',
+      build_name: 'main-dev-without-srp',
       platform: 'android',
     });
     // A reusable workflow call cannot set continue-on-error. GitHub then
@@ -275,7 +275,7 @@ describe('main-dev performance build', () => {
       stepByName('check-builds-needed', 'Resolve build artifact names')?.run ??
       '';
 
-    expect(names).toContain('main-dev-build-name=main-dev');
+    expect(names).toContain('main-dev-build-name=main-dev-without-srp');
     expect(names).toContain('[ "${BUILD_VARIANT}" = "dev" ]');
     expect(names).toContain('srp-builds-needed=false');
     expect(names).toContain('github-environment=build-dev');
@@ -311,7 +311,7 @@ describe('main-dev performance build', () => {
     );
 
     expect(job(performancePath, 'build-main-dev').with?.build_name).toBe(
-      'main-dev',
+      'main-dev-without-srp',
     );
     expect(systemTests).not.toContain('build_name: main-dev');
   });

@@ -478,6 +478,22 @@ builds:
       E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
     code_fencing: *code_fencing_experimental
 
+  # Dev-environment onboarding build. Same API hosts as main-dev, with no
+  # baked SRP, so the app opens on the onboarding screen. Used by the
+  # performance dev-onboarding suite on TestMu.
+  main-dev-without-srp:
+    script_name: main-dev
+    github_environment: build-dev
+    signing: *signing_dev
+    env:
+      <<: *main_dev_env
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
   # Local development / Expo development build (Runway .app for simulator)
   # Dev release build (Ex. For sideloading via Build Mobile App workflow)
   main-dev:
