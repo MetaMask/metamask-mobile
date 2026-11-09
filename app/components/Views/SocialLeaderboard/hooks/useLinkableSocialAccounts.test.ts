@@ -28,23 +28,35 @@ jest.mock('../../../hooks/useGetTotalFiatBalanceCrossChains', () => ({
 const EVM_ADDRESS_1 = '0x1111111111111111111111111111111111111111';
 const EVM_ADDRESS_2 = '0x2222222222222222222222222222222222222222';
 const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
+const GROUP_1_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
 const evmAccount1 = {
   id: 'evm-1',
   address: EVM_ADDRESS_1,
   type: 'eip155:eoa',
+  scopes: ['eip155:0'],
   metadata: { name: 'Internal One' },
 };
 const evmAccount2 = {
   id: 'evm-2',
   address: EVM_ADDRESS_2,
   type: 'eip155:eoa',
+  scopes: ['eip155:0'],
   metadata: { name: '' },
+};
+const group1SolanaAccount = {
+  id: 'sol-group-1',
+  address: GROUP_1_SOLANA_ADDRESS,
+  type: 'solana:data-account',
+  scopes: [SOLANA_MAINNET],
+  metadata: { name: 'Solana Account 1' },
 };
 const solanaAccount = {
   id: 'sol-1',
   address: SOLANA_ADDRESS,
   type: 'solana:data-account',
+  scopes: [SOLANA_MAINNET],
   metadata: { name: 'Solana' },
 };
 
@@ -79,15 +91,24 @@ const defaultSelectors: SelectorValues = {
   accountsById: {
     [evmAccount1.id]: evmAccount1,
     [evmAccount2.id]: evmAccount2,
+    [group1SolanaAccount.id]: group1SolanaAccount,
     [solanaAccount.id]: solanaAccount,
   },
   accountSections: [
     {
       title: 'Wallet 1',
       data: [
-        { id: 'group-1', metadata: { name: 'Account 1' } },
-        { id: 'group-2', metadata: { name: '' } },
-        { id: 'group-sol', metadata: { name: 'Solana only' } },
+        {
+          id: 'group-1',
+          accounts: [evmAccount1.id, group1SolanaAccount.id],
+          metadata: { name: 'Account 1' },
+        },
+        { id: 'group-2', accounts: [evmAccount2.id], metadata: { name: '' } },
+        {
+          id: 'group-sol',
+          accounts: [solanaAccount.id],
+          metadata: { name: 'Solana only' },
+        },
       ],
     },
   ],
@@ -116,6 +137,10 @@ describe('useLinkableSocialAccounts', () => {
       name: 'Account 1',
       address: EVM_ADDRESS_1,
       balanceLabel: '$12.50',
+      linkedAddresses: [
+        `eip155:1:${EVM_ADDRESS_1}`,
+        `${SOLANA_MAINNET}:${GROUP_1_SOLANA_ADDRESS}`,
+      ],
     });
   });
 
@@ -129,6 +154,7 @@ describe('useLinkableSocialAccounts', () => {
       name: renderShortAddress(EVM_ADDRESS_2),
       address: EVM_ADDRESS_2,
       balanceLabel: '',
+      linkedAddresses: [`eip155:1:${EVM_ADDRESS_2}`],
     });
   });
 

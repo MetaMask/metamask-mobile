@@ -29,6 +29,12 @@ export const toSocialFeedPosts = (
       authorImageUrl: item.author.avatarUri ?? null,
       timestampMs: item.timestamp,
       commentId: authorComment?.uid,
+      ...(authorComment && 'sourceLanguage' in authorComment
+        ? { sourceLanguage: authorComment.sourceLanguage ?? null }
+        : {}),
+      ...(authorComment?.translations
+        ? { translations: authorComment.translations }
+        : {}),
       ...(gifUrl ? { gifUri: gifUrl } : {}),
       reactions: (authorComment?.engagement.reactions ?? []).map(
         (reaction) => ({

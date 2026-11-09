@@ -2,7 +2,12 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, { useMemo, type ReactNode } from 'react';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import type { LayoutChangeEvent } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  type SharedValue,
+} from 'react-native-reanimated';
 import {
   BadgeNetwork,
   BadgeWrapper,
@@ -12,7 +17,6 @@ import {
   BoxAlignItems,
   ButtonIcon,
   ButtonIconSize,
-  HeaderSubpage,
   IconName,
   IconColor,
   IconSize,
@@ -22,6 +26,8 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
+import HeaderSubpageGlass from '../../../../component-library/components-temp/HeaderSubpageGlass';
 import { formatAddress } from '../../../../util/address';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
@@ -46,6 +52,9 @@ export const TokenDetailsInlineHeader = ({
   titleEndAccessory,
   description,
   tdpVersion,
+  isGlass = false,
+  onLayout,
+  scrollY,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -67,6 +76,15 @@ export const TokenDetailsInlineHeader = ({
    * events report the correct `tdp_version`.
    */
   tdpVersion?: TdpVersion;
+  /**
+   * Floats the header over the page on its glass backdrop, with the buttons in
+   * capsules, as on the brand refresh.
+   */
+  isGlass?: boolean;
+  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
+  onLayout?: (event: LayoutChangeEvent) => void;
+  /** The page's scroll offset, which fades the glass backdrop in. */
+  scrollY?: SharedValue<number>;
 }) => {
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
@@ -169,12 +187,16 @@ export const TokenDetailsInlineHeader = ({
     }
 
     if (buttons.length === 0) return undefined;
+    // On glass the actions share one capsule, as on the home header.
+    if (isGlass) {
+      return <CapsuleGlass twClassName="gap-1 px-1">{buttons}</CapsuleGlass>;
+    }
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
         {buttons}
       </Box>
     );
-  }, [starButton, onPriceAlertPress, onSharePress]);
+  }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
 
   const inlineDescription = useMemo(() => {
     if (!contractAddress) {
@@ -224,17 +246,19 @@ export const TokenDetailsInlineHeader = ({
   }, [description, inlineDescription]);
 
   return (
-    <HeaderSubpage
+    <HeaderSubpageGlass
+      isGlass={isGlass}
+      onLayout={onLayout}
+      scrollY={scrollY}
       includesTopInset
-      twClassName="min-h-14 h-auto bg-default justify-center"
-      startAccessory={
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={onBackPress}
-          testID="back-arrow-button"
-        />
+      // The glass backdrop replaces the solid background.
+      twClassName={
+        isGlass
+          ? 'min-h-14 h-auto justify-center'
+          : 'min-h-14 h-auto bg-default justify-center'
       }
+      onBack={onBackPress}
+      backButtonProps={{ testID: 'back-arrow-button' }}
       endAccessory={endAccessory}
       avatar={
         <BadgeWrapper

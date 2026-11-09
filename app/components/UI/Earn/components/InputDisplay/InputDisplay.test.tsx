@@ -1,12 +1,12 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import InputDisplay, { INPUT_DISPLAY_TEST_IDS, InputDisplayProps } from '.';
+import InputDisplay, { InputDisplayProps } from '.';
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const mockNavigate = jest.fn();
 
@@ -52,14 +52,6 @@ jest.mock('../../hooks/useEarnTokens', () => () => ({
     isNative: true,
   })),
 }));
-
-jest.mock('../../selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-}));
-
-const mockSelectStablecoinLendingEnabledFlag = jest.mocked(
-  selectStablecoinLendingEnabledFlag,
-);
 
 const mockToken = {
   address: '0x123',
@@ -112,7 +104,6 @@ const renderComponent = (props: InputDisplayProps = defaultProps) =>
 describe('InputDisplay', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(false);
   });
 
   it('renders balance text correctly', () => {
@@ -179,22 +170,6 @@ describe('InputDisplay', () => {
 
     expect(amountButton).toBeOnTheScreen();
     expect(onPressAmount).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not render a cursor outside stablecoin lending', () => {
-    const { queryByTestId } = renderComponent();
-
-    expect(
-      queryByTestId(INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders a cursor for stablecoin lending', () => {
-    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(true);
-
-    const { getByTestId } = renderComponent();
-
-    expect(getByTestId(INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR)).toBeOnTheScreen();
   });
 
   it('calls handleCurrencySwitch when currency toggle is pressed', () => {

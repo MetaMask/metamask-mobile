@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { useTokenStats } from './useTokenStats';
 import { TokenStatKey } from '../constants/tokenStats';
-import type { TokenAssetLaunchpadData } from '../queries/tokenAssetQuery';
 import type { TokenMarketData } from '../queries/tokenMarketData';
 
 const buildMarketData = (
@@ -32,8 +31,8 @@ const buildSecurityData = (
     financialStats: {
       supply: 1_000_000,
       topHolders: [
-        { label: '', name: null, address: '0x1', holdingPercentage: 10 },
-        { label: '', name: null, address: '0x2', holdingPercentage: 8.4 },
+        { label: 'wallet', name: null, address: '0x1', holdingPercentage: 10 },
+        { label: 'wallet', name: null, address: '0x2', holdingPercentage: 8.4 },
       ],
       holdersCount: 12_900,
       tradeVolume24h: null,
@@ -59,24 +58,6 @@ const buildSecurityData = (
     created: '2026-10-05T21:57:11Z',
     ...overrides,
   }) as TokenSecurityData;
-
-const buildLaunchpadData = (
-  overrides: Partial<TokenAssetLaunchpadData> = {},
-): TokenAssetLaunchpadData => ({
-  protocol: null,
-  deployer: null,
-  launchedAt: null,
-  description: null,
-  bondingCurve: null,
-  graduationPercent: null,
-  graduationStage: null,
-  devHeldPercent: null,
-  insiderHeldPercent: null,
-  sniperHeldPercent: null,
-  holdersCount: 66,
-  top10HeldPercent: '19.210466818518498',
-  ...overrides,
-});
 
 const renderStats = (
   params: Partial<Parameters<typeof useTokenStats>[0]> = {},
@@ -104,10 +85,10 @@ describe('useTokenStats', () => {
     expect(stats[TokenStatKey.CirculatingSupply]?.value).toBe('12.4M');
   });
 
-  it('formats the 24h range with sub-unit precision', () => {
+  it('formats the 24h range like the price header', () => {
     const stats = renderStats();
 
-    expect(stats[TokenStatKey.HighLow24h]?.value).toBe('$0.043120 / $0.039812');
+    expect(stats[TokenStatKey.HighLow24h]?.value).toBe('$0.0431 / $0.0398');
   });
 
   // Liquidity over market cap: 560k / 12.4m = 4.52%.
@@ -426,28 +407,26 @@ describe('useTokenStats', () => {
     expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBe('38.30%');
   });
 
-  it('reads top 10 from the launchpad ahead of security data', () => {
-    const stats = renderStats({
-      launchpadData: buildLaunchpadData(),
-    });
+  // Top 10 is the Blockaid wallet-only sum (10 + 8.4), with no launchpad
+  // override ahead of it.
+  it('reads top 10 from the Blockaid wallet holders', () => {
+    const stats = renderStats();
 
     expect(stats[TokenStatKey.Holders]?.value).toBe('12.9K');
-    expect(stats[TokenStatKey.Top10]?.value).toBe('19.2%');
+    expect(stats[TokenStatKey.Top10]?.value).toBe('18.4%');
   });
 
   it('reads the holder count from the token API ahead of Blockaid', () => {
     const stats = renderStats({
-      launchpadData: buildLaunchpadData(),
       tokenApiHoldersCount: 1_250,
     });
 
     expect(stats[TokenStatKey.Holders]?.value).toBe('1.3K');
-    expect(stats[TokenStatKey.Top10]?.value).toBe('19.2%');
+    expect(stats[TokenStatKey.Top10]?.value).toBe('18.4%');
   });
 
   it('falls back to Blockaid holders when the token API count is missing', () => {
     const stats = renderStats({
-      launchpadData: buildLaunchpadData(),
       tokenApiHoldersCount: null,
     });
 

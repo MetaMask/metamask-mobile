@@ -1,4 +1,5 @@
 import React from 'react';
+import { CommonActions } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
@@ -18,7 +19,34 @@ const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+
+const mockHomeRoute = {
+  key: 'home-key',
+  name: Routes.HOME_TABS,
+};
+
+const mockRootRoutesBeforeDismiss = [
+  mockHomeRoute,
+  { key: 'old-rewards', name: Routes.REWARDS_VIEW },
+  { key: 'rewards-flow', name: Routes.REWARDS_FLOW },
+  {
+    key: 'splash',
+    name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+  },
+];
+
+const moneyDashboardReset = CommonActions.reset({
+  index: 1,
+  routes: [
+    mockHomeRoute,
+    {
+      name: Routes.REWARDS_VIEW,
+      params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
+    },
+  ],
+});
 
 const sessionBackgroundState = (profileId: string) => ({
   AuthenticationController: {
@@ -45,6 +73,11 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       canGoBack: () => true,
+      dispatch: mockDispatch,
+      getState: () => ({
+        index: mockRootRoutesBeforeDismiss.length - 1,
+        routes: mockRootRoutesBeforeDismiss,
+      }),
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
@@ -72,8 +105,11 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, { testID: 'theme-image-hero' }),
+      default: ({ accessibilityLabel }: { accessibilityLabel?: string }) =>
+        ReactActual.createElement(View, {
+          testID: 'theme-image-hero',
+          accessibilityLabel,
+        }),
     };
   },
 );
@@ -122,6 +158,7 @@ const buildReferralMe = (
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -237,6 +274,10 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     );
 
     expect(getByTestId('theme-image-hero')).toBeOnTheScreen();
+    expect(getByTestId('theme-image-hero')).toHaveProp(
+      'accessibilityLabel',
+      'Referral invite illustration',
+    );
   });
 
   it('renders no hero when invite_hero is absent', () => {
@@ -250,13 +291,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.VIEW_REWARDS));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
   it('opens the money dashboard when the splash is closed', () => {
@@ -264,13 +299,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
   it('opens the trade actions sheet over the money dashboard when start trading is pressed', () => {
@@ -278,20 +307,10 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.START_TRADING));
 
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+      params: { hasBottomNotch: false },
     });
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      {
-        screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
-        params: { hasBottomNotch: false },
-      },
-    );
   });
 });

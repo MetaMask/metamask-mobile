@@ -6,10 +6,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import Text, {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import {
   getBlockExplorerName,
@@ -41,7 +38,6 @@ const createStyles = (
     disclaimerText: {
       color: colors.text.default,
       ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
     } as TextStyle,
   });
 
@@ -141,7 +137,7 @@ const TransactionsFooter = ({
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text variant={TextVariant.BodySm} style={styles.disclaimerText}>
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

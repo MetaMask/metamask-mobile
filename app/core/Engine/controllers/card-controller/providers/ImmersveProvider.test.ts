@@ -60,6 +60,7 @@ function makeJwt(expMs: number): string {
 
 function createProvider(
   programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+  options?: { isMfaEnabled?: () => boolean },
 ) {
   const service = {
     get: jest.fn(),
@@ -76,6 +77,7 @@ function createProvider(
     service,
     config: CONFIG,
     getProgramConfig: () => programConfig,
+    isMfaEnabled: options?.isMfaEnabled,
   });
   return { provider, service };
 }
@@ -424,7 +426,9 @@ describe('ImmersveProvider', () => {
     });
 
     it('completes login and binds cardholderAccountId + address', async () => {
-      const { provider, service } = createProvider();
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        isMfaEnabled: () => true,
+      });
       const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
       const refreshJwt = makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000);
       service.post.mockResolvedValue({
@@ -438,10 +442,13 @@ describe('ImmersveProvider', () => {
         signature: '0xsig',
       });
 
-      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
-        loginRequestId: 'login-req-1',
-        signature: '0xsig',
-      });
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-complete?mfa=true',
+        {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        },
+      );
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
       expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
@@ -451,6 +458,37 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.accessTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
       expect(result.tokenSet?.refreshTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
     });
+
+    it.each([
+      ['by default', undefined],
+      ['when MFA is disabled', () => false],
+    ] as const)(
+      'completes SIWE login without MFA %s',
+      async (_label, isMfaEnabled) => {
+        const { provider, service } = createProvider(PROGRAM_CONFIG, {
+          isMfaEnabled,
+        });
+        const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
+        service.post.mockResolvedValue({
+          accessToken: accessJwt,
+          refreshToken: makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000),
+          cardholderAccountId: 'cardholder-1',
+        });
+
+        const result = await provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        });
+
+        expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        });
+        expect(result.done).toBe(true);
+        expect(result.tokenSet?.accessToken).toBe(accessJwt);
+        expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+      },
+    );
 
     it('omits refreshTokenExpiresAt when login response has no refresh token', async () => {
       const { provider, service } = createProvider();
@@ -498,6 +536,174 @@ describe('ImmersveProvider', () => {
         }),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
     });
+
+    it('returns a method-selection step from the signature call', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        loginRequestId: 'login-req-1',
+        nextStep: {
+          type: 'select-mfa-method',
+          expiresAt: '2024-06-01T12:05:00.000Z',
+          mfaOptions: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+            { method: 'sms', maskedDestination: 'ignored' },
+          ],
+        },
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextSessionId: 'login-req-1',
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('accepts a flat method-selection step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: 'select-mfa-method',
+        mfaOptions: [
+          { method: 'phone', maskedDestination: '+64 *****1234' },
+          { method: 'email', maskedDestination: 'j***@example.com' },
+        ],
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('throws AuthRestartRequired when no verified contact is returned', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: { type: 'select-mfa-method', mfaOptions: [] },
+      });
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.AuthRestartRequired,
+        errorCode: 'NO_VERIFIED_CONTACT',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('posts the chosen method and returns the code step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        loginRequestId: 'login-req-2',
+        nextStep: {
+          type: 'submit-mfa-code',
+          mfaOption: {
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+          },
+          expiresAt: '2024-06-01T12:05:00.000Z',
+        },
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaMethod: 'email',
+        mfaDestination: 'jane@example.com',
+      });
+      expect(result).toStrictEqual({
+        done: false,
+        nextSessionId: 'login-req-2',
+        nextStep: {
+          type: 'mfa_code',
+          method: 'email',
+          maskedDestination: 'j***@example.com',
+          expiresAt: Date.parse('2024-06-01T12:05:00.000Z'),
+        },
+      });
+    });
+
+    it('posts the MFA code', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        accessToken: makeJwt(FIXED_NOW + 60 * 60 * 1000),
+        cardholderAccountId: 'cardholder-1',
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_code',
+        code: '123456',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaCode: '123456',
+      });
+      expect(result.done).toBe(true);
+      expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+    });
+
+    it.each([
+      ['MFA_CODE_INVALID', CardProviderErrorCode.InvalidOtp],
+      ['MFA_METHOD_MISMATCH', CardProviderErrorCode.MfaDestinationMismatch],
+      ['MFA_CODE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['MFA_ATTEMPTS_EXCEEDED', CardProviderErrorCode.AuthRestartRequired],
+      ['CHALLENGE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['LOGIN_STEP_INVALID', CardProviderErrorCode.AuthRestartRequired],
+    ] as const)(
+      'maps %s without reporting to Sentry',
+      async (errorCode, expectedCode) => {
+        const { provider, service } = createProvider();
+        service.post.mockRejectedValue(
+          new CardApiError(
+            403,
+            '/auth/login-complete',
+            JSON.stringify({ errorCode }),
+          ),
+        );
+
+        await expect(
+          provider.submitCredentials(session, {
+            type: 'mfa_code',
+            code: '000000',
+          }),
+        ).rejects.toMatchObject({
+          code: expectedCode,
+          statusCode: 403,
+          errorCode,
+        });
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('refreshTokens', () => {
@@ -737,6 +943,24 @@ describe('ImmersveProvider', () => {
         statusCode: 403,
         errorCode: 'FUNDING_SOURCE_EXISTS',
       });
+    });
+
+    it('maps an MFA 403 on a non-login call to Forbidden and reports it', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({ errorCode: 'MFA_CODE_INVALID' }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'MFA_CODE_INVALID',
+      });
+      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('createFundingSource maps API failures', async () => {
@@ -1828,6 +2052,7 @@ describe('ImmersveProvider', () => {
         status: 'completed',
         type: 'purchase',
         billingAmount: { value: '314.12', currency: 'USD' },
+        originalAmount: { value: '314.12', currency: 'NZD' },
         feeAmount: { value: '0.12', currency: 'USDC' },
         merchant: {
           name: 'Air NZ Online',
@@ -1863,6 +2088,70 @@ describe('ImmersveProvider', () => {
       const page = await provider.listTransactions({}, TOKENS);
 
       expect(page.items[0].status).toBe('completed');
+    });
+
+    it('omits the merchant amount when the acquirer amount is zero', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'tx-reversed-brl',
+            description: 'FIME BRAZIL LTDA SAO PAULO BRA',
+            accountId: 'cardholder-1',
+            cardId: 'card-1',
+            amount: '0',
+            currency: 'USD',
+            feeAmount: '0',
+            status: 'reversed' as const,
+            transactionDate: '2026-10-21T16:24:18.523Z',
+            cardAcceptor: {
+              name: 'FIME BRAZIL LTDA',
+              city: 'SAO PAULO',
+              countryCode: 'BRA',
+            },
+            reference: '1000298208517',
+            acquirerAmount: '0',
+            acquirerCurrency: 'BRL',
+            creditDebitIndicator: 'debit' as const,
+            paymentType: 'purchase' as const,
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'reversed',
+        billingAmount: { value: '0', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
+      expect(page.items[0].feeAmount).toBeUndefined();
+    });
+
+    it('maps a holding purchase from minor units without a second currency line', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            ...rawTx,
+            id: 'tx-holding-usd',
+            status: 'holding' as const,
+            amount: '50',
+            currency: 'USD',
+            acquirerAmount: '50',
+            acquirerCurrency: 'USD',
+            feeAmount: '0',
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'completed',
+        billingAmount: { value: '0.5', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
     });
 
     it('throws when cardholderAccountId is missing', async () => {

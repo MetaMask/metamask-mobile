@@ -18,7 +18,7 @@ export interface MoneyMetricCardProps {
   label: string;
   /** Formatted USD total, or null when the amount is not known. */
   amount: string | null;
-  /** Copy under the amount, e.g. "recorded claims". */
+  /** Copy under the amount, e.g. "recorded earnings". */
   caption: string;
   /** Renders a placeholder in place of the amount while the summary loads. */
   isLoading?: boolean;

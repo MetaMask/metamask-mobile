@@ -31,14 +31,16 @@ export type RecurringOrdersByAssetQueryKey = readonly [
 export const recurringOrdersQueries = {
   getRecurringOrders: ({
     walletAddress,
-    status,
+    orderStates,
     chainId,
+    assetId,
     limit,
   }: RecurringOrdersQueryParams) => {
     const params: RecurringOrdersQueryParams = {
       walletAddress: walletAddress.toLowerCase(),
-      ...(status ? { status: [...status] } : {}),
+      ...(orderStates ? { orderStates: [...orderStates] } : {}),
       ...(chainId ? { chainId } : {}),
+      ...(assetId ? { assetId } : {}),
       ...(limit === undefined ? {} : { limit }),
     };
 

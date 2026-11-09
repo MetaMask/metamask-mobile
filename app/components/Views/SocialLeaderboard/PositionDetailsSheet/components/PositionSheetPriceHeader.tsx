@@ -3,10 +3,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -58,13 +56,6 @@ const PositionSheetPriceHeader = ({
         >
           {assetName}
         </Text>
-        {isPerp ? (
-          <Icon
-            name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
-            twClassName="text-info-default"
-          />
-        ) : null}
         {isPerp && leverage ? (
           <Box twClassName="rounded px-1.5 bg-muted">
             <Text
@@ -83,7 +74,8 @@ const PositionSheetPriceHeader = ({
         gap={1}
       >
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.AmountDisplayLg}
+          fontFamily={FontFamily.Hero}
           testID={PositionDetailsSheetSelectorsIDs.PRICE}
         >
           {valueLabel ?? EM_DASH}

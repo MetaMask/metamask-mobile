@@ -46,6 +46,11 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
 }));
 
+const mockHandoffMfa = jest.fn();
+jest.mock('./useImmersveMfaHandoff', () => ({
+  useImmersveMfaHandoff: () => mockHandoffMfa,
+}));
+
 const mockDispatch = jest.fn();
 let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
@@ -87,6 +92,7 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHandoffMfa.mockReset();
     mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
     mockRecordCardActivated.mockResolvedValue(undefined);
     mockImmersveConfig = { fundingChannelId: 'base-channel' };
@@ -496,6 +502,83 @@ describe('useImmersveResumeOnboarding', () => {
       'fs-arbitrum',
       expect.any(Object),
     );
+  });
+
+  it('hands off to MFA and does not resume when sign-in returns a method step', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockSignIn.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_select',
+        options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+      },
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_select' }),
+      }),
+      {
+        country: 'GB',
+        address: '0xabc',
+        continuation: {
+          entrypoint: 'SIGN_UP',
+          email: 'user@example.com',
+          phone: '+447911123456',
+          showAccountExistsToast: undefined,
+          navigateFromRoot: undefined,
+        },
+      },
+    );
+    expect(mockGetResumeCardInfo).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('hands off to MFA when sign-in returns a code step', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockSignIn.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'email',
+        maskedDestination: 'j***@example.com',
+        expiresAt: null,
+      },
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_code' }),
+      }),
+      expect.objectContaining({ country: 'GB', address: '0xabc' }),
+    );
+    expect(mockGetResumeCardInfo).not.toHaveBeenCalled();
+  });
+
+  it('does not resume when the MFA handoff rejects an unfinished login', async () => {
+    mockHandoffMfa.mockImplementation(() => {
+      throw new Error('Unexpected login step');
+    });
+    mockSignIn.mockResolvedValue({ done: false });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+    await expect(
+      act(async () => {
+        await result.current(PARAMS);
+      }),
+    ).rejects.toThrow('Unexpected login step');
+    expect(mockGetResumeCardInfo).not.toHaveBeenCalled();
   });
 
   it('falls back to the configured funding channel when there is no existing card', async () => {

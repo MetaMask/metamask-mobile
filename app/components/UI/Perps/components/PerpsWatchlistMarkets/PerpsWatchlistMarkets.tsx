@@ -339,7 +339,11 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   );
 
   return (
-    <Box style={sectionStyle} testID={testID}>
+    // testID keeps this view, but without collapsable={false} its children
+    // still attach to a higher native parent (the page). The LinearTransition
+    // wrapper below then animates whenever content above this section changes
+    // height, and can be left drawn over that content (TAT-4456).
+    <Box style={sectionStyle} testID={testID} collapsable={false}>
       {watchlistHeader}
       <Box style={contentContainerStyle}>
         <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>

@@ -1,11 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import {
   CandlePeriod,
   TimeDuration,
   type CandleData,
 } from '@metamask/perps-controller';
 import TradingViewChart, { TPSLLines } from './TradingViewChart';
+import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock WebView - using a string name to avoid out-of-scope issues
@@ -28,12 +29,19 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
-// Mock selectors
-jest.mock('../../Perps.testIds', () => ({
-  TradingViewChartSelectorsIDs: {
-    CONTAINER: 'tradingview-chart-container',
-  },
-}));
+jest.mock('../../../Charts/ChartCandleSkeleton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockChartCandleSkeleton = ({
+    testID = 'chart-candle-skeleton',
+    height,
+  }: {
+    testID?: string;
+    height?: number;
+  }) => ReactActual.createElement(View, { testID, style: { height } });
+
+  return { __esModule: true, default: MockChartCandleSkeleton };
+});
 
 describe('TradingViewChart', () => {
   const mockCandleData: CandleData = {
@@ -81,7 +89,34 @@ describe('TradingViewChart', () => {
     it('renders chart container with default props', () => {
       const { getByTestId } = render(<TradingViewChart />);
 
-      expect(getByTestId('tradingview-chart-container')).toBeOnTheScreen();
+      expect(
+        getByTestId(TradingViewChartSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the candle skeleton until the chart webview is ready', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TradingViewChart
+          testID={TradingViewChartSelectorsIDs.CONTAINER}
+          height={350}
+        />,
+      );
+
+      expect(
+        getByTestId(`${TradingViewChartSelectorsIDs.CONTAINER}-skeleton`),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        getByTestId(
+          `${TradingViewChartSelectorsIDs.CONTAINER}-webview`,
+        ).props.onMessage({
+          nativeEvent: { data: JSON.stringify({ type: 'CHART_READY' }) },
+        });
+      });
+
+      expect(
+        queryByTestId(`${TradingViewChartSelectorsIDs.CONTAINER}-skeleton`),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders with custom testID', () => {
@@ -97,7 +132,7 @@ describe('TradingViewChart', () => {
       const { getByTestId } = render(<TradingViewChart />);
 
       expect(
-        getByTestId('tradingview-chart-container-webview'),
+        getByTestId(`${TradingViewChartSelectorsIDs.CONTAINER}-webview`),
       ).toBeOnTheScreen();
     });
 
@@ -107,7 +142,7 @@ describe('TradingViewChart', () => {
         <TradingViewChart height={customHeight} />,
       );
 
-      const container = getByTestId('tradingview-chart-container');
+      const container = getByTestId(TradingViewChartSelectorsIDs.CONTAINER);
       expect(container).toBeOnTheScreen();
     });
   });
@@ -290,7 +325,7 @@ describe('TradingViewChart', () => {
       const { getByTestId } = render(<TradingViewChart />);
 
       // Assert
-      const container = getByTestId('tradingview-chart-container');
+      const container = getByTestId(TradingViewChartSelectorsIDs.CONTAINER);
       expect(container).toBeOnTheScreen();
     });
 

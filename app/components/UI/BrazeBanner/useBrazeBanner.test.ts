@@ -82,6 +82,8 @@ const mockEndTrace = jest.mocked(endTrace);
  */
 function makeRawProperties(props: {
   bannerName?: string;
+  variantName?: string;
+  flushImmediately?: boolean;
   deeplink?: string;
   title?: string;
   body?: string;
@@ -91,6 +93,13 @@ function makeRawProperties(props: {
   const result: Record<string, { type: string; value: unknown }> = {};
   if (props.bannerName !== undefined)
     result.campaign_name = { type: 'string', value: props.bannerName };
+  if (props.variantName !== undefined)
+    result.variant_name = { type: 'string', value: props.variantName };
+  if (props.flushImmediately !== undefined)
+    result.flush_immediately = {
+      type: 'boolean',
+      value: props.flushImmediately,
+    };
   if (props.deeplink !== undefined)
     result.deeplink = { type: 'string', value: props.deeplink };
   if (props.title !== undefined)
@@ -109,6 +118,8 @@ function makeBanner(
     trackingId: string;
     placementId: string;
     bannerName: string;
+    variantName: string;
+    flushImmediately: boolean;
     deeplink: string;
     title: string;
     body: string;
@@ -125,6 +136,8 @@ function makeBanner(
     expiresAt: -1,
     properties: makeRawProperties({
       bannerName: overrides.bannerName,
+      variantName: overrides.variantName,
+      flushImmediately: overrides.flushImmediately,
       deeplink: overrides.deeplink,
       title: overrides.title,
       body: overrides.body ?? 'Default body',
@@ -557,6 +570,58 @@ describe('useBrazeBanner', () => {
     it('returns null deeplink when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       expect(result.current.deeplink).toBeNull();
+    });
+  });
+
+  describe('analytics properties', () => {
+    it('returns null event properties when campaign_name is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.eventProperties).toBeNull();
+    });
+
+    it('builds event properties from campaign_name and variant_name', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([
+        makeBanner({ bannerName: 'campaign-abc', variantName: 'variant-1' }),
+      ]);
+      expect(result.current.eventProperties).toEqual({
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+    });
+
+    it('omits variant_name when the property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
+      expect(result.current.eventProperties).toEqual({
+        campaign_name: 'campaign-abc',
+      });
+    });
+  });
+
+  describe('flush_immediately property', () => {
+    it('defaults to false when no banner is loaded', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      expect(result.current.flushImmediately).toBe(false);
+    });
+
+    it('defaults to false when the property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.flushImmediately).toBe(false);
+    });
+
+    it('is true when the campaign sets flush_immediately to true', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ flushImmediately: true })]);
+      expect(result.current.flushImmediately).toBe(true);
+    });
+
+    it('is false when the campaign sets flush_immediately to false', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ flushImmediately: false })]);
+      expect(result.current.flushImmediately).toBe(false);
     });
   });
 

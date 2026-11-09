@@ -57,7 +57,9 @@ import {
 } from './intent/handleTrendingUrl';
 import { handleWhatsHappeningUrl } from './legacy/handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from './legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from './legacy/handleSocialTraderPositionUrl';
+import { handleSocialUrl } from './legacy/handleSocialUrl';
 import { handleEarnMusd } from './legacy/handleEarnMusd';
 import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
@@ -91,6 +93,7 @@ import {
   DeepLinkRoute,
 } from '../types/deepLinkAnalytics.types';
 import { isSupportedAction } from '../types/deepLink.types';
+import { resolveSocialDeeplinkTarget } from '../util/deeplinks/socialDeeplinkPath';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import ReduxService from '../../redux';
 import { analytics } from '../../../util/analytics/analytics';
@@ -130,6 +133,8 @@ const SUPPORTED_ACTIONS = {
   TRENDING: ACTIONS.TRENDING,
   WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
   TOP_TRADERS: ACTIONS.TOP_TRADERS,
+  SOCIAL: ACTIONS.SOCIAL,
+  SOCIAL_TRADER: ACTIONS.SOCIAL_TRADER,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
@@ -173,6 +178,8 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.TRENDING,
   SUPPORTED_ACTIONS.WHATS_HAPPENING,
   SUPPORTED_ACTIONS.TOP_TRADERS,
+  SUPPORTED_ACTIONS.SOCIAL,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
@@ -336,6 +343,26 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
     execute: () => handleMoneyDeposit(),
     resolve: () => createMoneyDepositDeeplinkIntent(),
   },
+};
+
+const resolveUniversalLinkRoute = (
+  action: string,
+  pathname: string,
+): DeepLinkRoute => {
+  if (action === ACTIONS.SOCIAL) {
+    switch (resolveSocialDeeplinkTarget(pathname)) {
+      case 'position':
+        return DeepLinkRoute.SOCIAL_TRADER_POSITION;
+      case 'trader':
+        return DeepLinkRoute.SOCIAL_TRADER;
+      default:
+        return DeepLinkRoute.TOP_TRADERS;
+    }
+  }
+
+  return isSupportedAction(action)
+    ? mapSupportedActionToRoute(action)
+    : DeepLinkRoute.INVALID;
 };
 
 async function handleUniversalLink({
@@ -566,9 +593,7 @@ async function handleUniversalLink({
   }
 
   // Type guard to ensure action is a SupportedAction before mapping
-  const route = isSupportedAction(action)
-    ? mapSupportedActionToRoute(action)
-    : DeepLinkRoute.INVALID;
+  const route = resolveUniversalLinkRoute(action, validatedUrl.pathname);
 
   // Get interstitial disabled state safely
   let interstitialDisabled = false;
@@ -846,7 +871,21 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {
-      handleSocialLeaderboardUrl();
+      handleSocialLeaderboardUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL: {
+      handleSocialUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER: {
+      handleSocialTraderUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {

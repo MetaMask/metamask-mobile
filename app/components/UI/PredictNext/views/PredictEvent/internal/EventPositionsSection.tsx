@@ -12,7 +12,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../types';
+import { getOutcomeName } from '../../../utils/entryCopy';
 import { formatSharesAmount } from '../../../utils/formatShares';
+import { positionKey } from '../../../utils/positions';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
 interface EventPositionsSectionProps {
@@ -41,7 +43,7 @@ const EventPositionRow = ({
   >
     <Box twClassName="min-w-0 flex-1 pr-3">
       <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-        {position.context?.outcomeLabel ?? position.side}
+        {getOutcomeName(position.side, position.context)}
       </Text>
       {position.context?.marketQuestion ? (
         <Text
@@ -59,7 +61,7 @@ const EventPositionRow = ({
         length={SensitiveTextLength.Short}
       >
         {strings('predict_next.portfolio.outcome_shares', {
-          outcome: position.context?.outcomeLabel ?? position.side,
+          outcome: getOutcomeName(position.side, position.context),
           shares: formatSharesAmount(position.shares),
         })}
       </SensitiveText>
@@ -99,7 +101,7 @@ export const EventPositionsSection = ({
     <Box twClassName="gap-2">
       {positions.map((position) => (
         <EventPositionRow
-          key={`${position.marketId}-${position.side}`}
+          key={positionKey(position)}
           position={position}
           isPrivacyMode={isPrivacyMode}
           onCashOut={onCashOut}

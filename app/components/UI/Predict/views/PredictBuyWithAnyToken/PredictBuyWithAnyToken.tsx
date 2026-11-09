@@ -155,8 +155,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         entryPoint,
         predictFeedTab,
         predictScreen,
+        outcome,
       ),
-    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen, outcome],
   );
 
   const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =
@@ -318,7 +319,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         params: { autoDeposit: true },
       });
     } else {
-      deposit();
+      deposit(); // NOSONAR
     }
   }, [deposit, isSheetMode, navigation]);
 
@@ -471,7 +472,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       handleAddFunds();
       return;
     }
-    handleConfirm();
+    handleConfirm(); // NOSONAR
   }, [
     isBannerActive,
     isPaymentSelectorNavigationLocked,
@@ -631,7 +632,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             loading={isPayFeesLoading}
             total={total}
             originalTotal={originalFeeBreakdown?.total}
-            feePolicyDiscountType={preview?.feePolicy?.discountType}
+            feePolicy={preview?.feePolicy}
             rewardsFeeAmountUsd={rewardsFeeAmount}
             rewardsLoadingOverride={isUserChangeTriggeringCalculation}
             handleFeesInfoPress={handleFeesInfoPress}
@@ -697,8 +698,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0

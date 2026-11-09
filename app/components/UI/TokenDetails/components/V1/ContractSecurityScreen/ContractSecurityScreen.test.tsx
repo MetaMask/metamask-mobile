@@ -251,13 +251,48 @@ describe('ContractSecurityScreen', () => {
   // Solana sends neither `VERIFIED_CONTRACT` nor `UNVERIFIED_CONTRACT`, which
   // is the one check that can honestly say it does not know.
   it('dashes the check the payload leaves unresolved', () => {
-    const { getByTestId } = renderScreen(ETHOS_WARNING);
+    const { getByTestId, queryByTestId } = renderScreen(ETHOS_WARNING);
 
     expect(
       getByTestId(
         ContractSecuritySelectors.rowValue(ContractCheckKey.ContractVerified),
       ),
     ).toHaveTextContent(STAT_EMPTY_VALUE);
+    expect(
+      queryByTestId(
+        ContractSecuritySelectors.rowIcon(ContractCheckKey.ContractVerified),
+      ),
+    ).toBeNull();
+  });
+
+  // Passing checks stay green without a tick so they match `is_mintable`. Fail
+  // still draws the Close glyph. CBXRP_VERIFIED is both: mintable and
+  // blacklistable, so `no_blacklist` is the fail row and the rest pass.
+  describe('check presentation', () => {
+    it('omits the tick on passing rows and keeps the fail glyph', () => {
+      const { getByTestId, queryByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      for (const checkKey of [
+        ContractCheckKey.NoHoneypot,
+        ContractCheckKey.ContractVerified,
+        ContractCheckKey.Renounced,
+      ]) {
+        expect(
+          queryByTestId(ContractSecuritySelectors.rowIcon(checkKey)),
+        ).toBeNull();
+      }
+
+      expect(
+        getByTestId(
+          ContractSecuritySelectors.rowIcon(ContractCheckKey.NoBlacklist),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          ContractSecuritySelectors.rowIcon(ContractCheckKey.IsMintable),
+        ),
+      ).toBeNull();
+    });
   });
 
   describe('findings', () => {

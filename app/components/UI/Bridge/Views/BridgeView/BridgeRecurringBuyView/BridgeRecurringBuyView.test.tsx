@@ -5,10 +5,18 @@ import {
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
+import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { createBridgeTestState } from '../../../testUtils';
+import {
+  evmAccountAddress,
+  initialState,
+  solanaAccountAddress,
+  solanaAccountId,
+} from '../../../_mocks_/initialState';
+import { RecurringOrderState } from '../../../api/recurringOrders.types';
 import { OrderType } from '../../../types/advancedOrders';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -224,5 +232,43 @@ describe('BridgeRecurringBuyView', () => {
       feature_id: FeatureId.RECURRING_ORDER,
       order_type: OrderType.SELL_BELOW,
     });
+  });
+
+  it('loads the orders of the EVM account of the selected group when a non-EVM account is selected', () => {
+    renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      {
+        state: createBridgeTestState(
+          { bridgeReducerOverrides: { sourceToken, destToken } },
+          merge({}, initialState, {
+            engine: {
+              backgroundState: {
+                AccountsController: {
+                  internalAccounts: { selectedAccount: solanaAccountId },
+                },
+              },
+            },
+          }),
+        ),
+      },
+    );
+
+    expect(useRecurringOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        walletAddress: evmAccountAddress,
+        orderStates: [RecurringOrderState.Open],
+      }),
+    );
+    expect(useRecurringOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        walletAddress: evmAccountAddress,
+        orderStates: expect.arrayContaining([RecurringOrderState.Completed]),
+      }),
+    );
+    expect(useRecurringOrders).not.toHaveBeenCalledWith(
+      expect.objectContaining({ walletAddress: solanaAccountAddress }),
+    );
   });
 });

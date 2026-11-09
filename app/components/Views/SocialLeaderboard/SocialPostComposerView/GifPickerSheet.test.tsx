@@ -46,7 +46,8 @@ describe('GifPickerSheet', () => {
       <GifPickerSheet onSelect={onSelect} onClose={onClose} />,
     );
 
-    expect(screen.getByText('Cheers')).toBeOnTheScreen();
+    expect(screen.queryByText('Cheers')).toBeNull();
+    expect(screen.getByLabelText('Cheers')).toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(GifPickerSheetSelectorsIDs.item('cheers')),
     );

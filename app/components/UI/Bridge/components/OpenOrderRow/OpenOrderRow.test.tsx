@@ -143,7 +143,7 @@ describe('OpenOrderRow', () => {
     });
 
     expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
-      'Filled at Mar 12',
+      'Filled on Mar 12',
     );
     expect(
       getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),

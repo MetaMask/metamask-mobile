@@ -974,6 +974,27 @@ describe('EarnInputView', () => {
       expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
     });
 
+    it('reopens keypad editing when the amount is pressed during preview', async () => {
+      const { getByRole, getByText, queryByText } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByRole('button', { name: '1 TRX' }));
+      });
+
+      expect(getByText('25%')).toBeOnTheScreen();
+      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+    });
+
     it('does not show MaxInputModal when Max button is pressed for TRX', async () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
@@ -1102,16 +1123,6 @@ describe('EarnInputView', () => {
       });
 
       expect(getByText('USD')).toBeOnTheScreen();
-    });
-  });
-
-  describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      const { getByText, getByRole } = renderComponent();
-
-      fireEvent.press(getByText('25%'));
-
-      expect(getByRole('button', { name: '0.375 ETH' })).toBeOnTheScreen();
     });
   });
 

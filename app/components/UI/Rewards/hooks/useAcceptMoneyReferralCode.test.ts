@@ -63,6 +63,7 @@ const buildReferralMe = (
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 });
 
 describe('useAcceptMoneyReferralCode', () => {
@@ -199,20 +200,23 @@ describe('useAcceptMoneyReferralCode', () => {
         acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(acceptResult).toEqual({ accepted: false });
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'invalid_code',
+      });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
       );
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
-      expect(result.current.refusalReason).toBeNull();
+      expect(result.current.refusalReason).toBe('invalid_code');
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not register when validation throws', async () => {
+    it('registers when validation could not reach the server', async () => {
       mockMessenger({ validateError: new Error('Network error') });
 
       const { result } = renderAcceptHook();
@@ -221,18 +225,38 @@ describe('useAcceptMoneyReferralCode', () => {
         acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      // validateCode catches the throw and returns an unknown-error marker, so
-      // this never reaches register and does not emit a refusal reason.
-      expect(acceptResult).toEqual({ accepted: false });
+      expect(acceptResult).toEqual({ accepted: true });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
-        0,
+        1,
+      );
+      expect(result.current.refusalReason).toBeNull();
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('emits the register reason when an unknown validation still fails to register', async () => {
+      mockMessenger({
+        validateError: new Error('Network error'),
+        registerError: new Error('Rewards Money is disabled'),
+      });
+
+      const { result } = renderAcceptHook();
+      let acceptResult: AcceptReferralCodeResult | undefined;
+      await act(async () => {
+        acceptResult = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'registration_failed',
+      });
+      expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
+        1,
       );
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
-      expect(result.current.refusalReason).toBeNull();
-      expect(mockShowToast).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(result.current.refusalReason).toBe('registration_failed');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not reach the backend at all for a malformed code', async () => {
@@ -244,7 +268,10 @@ describe('useAcceptMoneyReferralCode', () => {
         acceptResult = await result.current.acceptReferralCode('AB');
       });
 
-      expect(acceptResult).toEqual({ accepted: false });
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'invalid_code',
+      });
       expect(
         callsFor('RewardsMoneyController:validateReferralCode'),
       ).toHaveLength(0);
@@ -254,7 +281,7 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
-      expect(result.current.refusalReason).toBeNull();
+      expect(result.current.refusalReason).toBe('invalid_code');
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
@@ -370,6 +397,15 @@ describe('useAcceptMoneyReferralCode', () => {
         'some other gate',
         'registration_failed' as const,
         'rewards.error_messages.something_went_wrong' as const,
+      ],
+      [
+        403,
+        JSON.stringify({
+          message: 'Product is not available in your country',
+          error: 'RestrictedCountryCodeError',
+        }),
+        'restricted_country' as const,
+        'rewards.onboarding.not_supported_region_description' as const,
       ],
     ])(
       'maps a %s with body "%s" to %s and stays on the sheet',

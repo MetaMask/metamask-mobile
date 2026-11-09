@@ -4,6 +4,23 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { MarketInsightsReport } from '@metamask/ai-controllers';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
@@ -394,5 +411,54 @@ describe('MarketInsightsEntryCard', () => {
     });
 
     expect(getAnimationKey()).toBe(1);
+  });
+
+  describe('glass', () => {
+    const glassReport: MarketInsightsReport = {
+      digestId: 'digest-1',
+      asset: 'ETH',
+      generatedAt: '2026-10-16T00:00:00Z',
+      headline: 'ETH rallies on ETF optimism',
+      summary: 'ETF optimism is driving momentum.',
+      trends: [
+        {
+          title: 'ETF optimism',
+          description: 'ETF inflows are driving demand.',
+          category: 'macro',
+          impact: 'positive',
+          articles: [],
+          tweets: [],
+        },
+      ],
+      sources: [{ name: 'CoinDesk', url: 'coindesk.com', type: 'news' }],
+    };
+    const glassCardProps = (): MarketInsightsEntryCardProps => ({
+      report: glassReport,
+      timeAgo: '3m ago',
+      onPress: jest.fn(),
+      source: 'token_details',
+      testID: 'entry-card',
+    });
+
+    it('keeps the muted card by default', () => {
+      const { queryByTestId } = renderWithProvider(
+        <MarketInsightsEntryCard {...glassCardProps()} />,
+      );
+
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
+    });
+
+    it('draws the card on glass with the sheen and keeps it pressable', () => {
+      const props = glassCardProps();
+      const { getByTestId } = renderWithProvider(
+        <MarketInsightsEntryCard {...props} isGlass />,
+      );
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('entry-card'));
+
+      expect(props.onPress).toHaveBeenCalledTimes(1);
+    });
   });
 });

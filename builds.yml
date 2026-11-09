@@ -34,7 +34,7 @@ _api_prod: &api_prod
   PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
-  IDOS_ENCLAVE_URL: 'https://enclave.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.idos.network'
   IDOS_RELAY_URL: 'https://relay.idos.network'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
@@ -132,6 +132,7 @@ _secrets: &secrets # Infrastructure
   # API Keys
   MM_INFURA_PROJECT_ID: 'MM_INFURA_PROJECT_ID'
   WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
+  MM_KLIPY_API_KEY: 'MM_KLIPY_API_KEY'
   MM_FOX_CODE: 'MM_FOX_CODE'
   MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
   MM_BRANCH_KEY_TEST: 'MM_BRANCH_KEY_TEST'

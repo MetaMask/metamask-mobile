@@ -5,12 +5,18 @@ type PredictActivityType =
   | 'predictionsAddFunds'
   | 'predictionsWithdrawFunds'
   | 'predictionClaimWinnings'
+  | 'predictionSettled'
   | 'predictionCashedOut'
   | 'predictionPlaced';
 
 export type PredictActivityListItem = ActivityListItem & {
   type: PredictActivityType;
 };
+
+export type PredictSettlementListItem = Extract<
+  ActivityListItem,
+  { type: 'predictionSettled' }
+>;
 
 export function formatPredictDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString(undefined, {

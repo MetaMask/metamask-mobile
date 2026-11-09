@@ -464,8 +464,11 @@ class TransactionPayConfirmation {
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
+    // Exact matching so "50" does not pass when the screen shows "500" or "0.5".
+    // Joined accessibility + visible labels ("50, 50") still match "50".
     await Assertions.expectElementToHaveLabel(this.amountValue, amount, {
       description,
+      exact: true,
     });
   }
 

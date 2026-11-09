@@ -28,11 +28,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
 import { useTheme } from '../../../../util/theme';
+import { useSocialBlockLists } from '../hooks/useSocialBlockLists';
+import {
+  type SocialModerationTarget,
+  useSocialModerationActions,
+} from '../hooks/useSocialModerationActions';
 import {
   getSocialEntryReportReasonTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
@@ -52,15 +53,13 @@ const REPORT_REASONS = [
   SocialEntryReportReason.Other,
 ] as const;
 
-export interface SocialEntryOptionsTarget {
-  postId: string;
-  authorId: string;
-  authorHandle: string;
-}
+export type SocialEntryOptionsTarget = SocialModerationTarget;
 
 export interface SocialEntryOptionsBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Whether the post can be reported: only a post with a comment can. */
+  canReport?: boolean;
   onReport?: (reason: SocialEntryReportReason) => void;
   onHidePost?: () => void;
   onBlockUser?: () => void;
@@ -75,12 +74,11 @@ const SocialEntryOptionsContext =
   createContext<SocialEntryOptionsContextValue | null>(null);
 
 /**
- * Mocked moderation menu for Social V1. Actions only update in-memory UI state
- * until the social API supports reporting, hiding, and blocking.
+ * The post options sheet: report, hide the post, or block its author.
  */
 const SocialEntryOptionsBottomSheetInner: React.FC<
   Omit<SocialEntryOptionsBottomSheetProps, 'isOpen'>
-> = ({ onClose, onReport, onHidePost, onBlockUser }) => {
+> = ({ onClose, onReport, onHidePost, onBlockUser, canReport = true }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const [showReportReasons, setShowReportReasons] = useState(false);
@@ -217,12 +215,14 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
               </Box>
             ) : (
               <Box twClassName="pb-4">
-                <ActionListItem
-                  iconName={IconName.Flag}
-                  label={strings('social_leaderboard.entry_options.report')}
-                  onPress={handleReport}
-                  testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
-                />
+                {canReport ? (
+                  <ActionListItem
+                    iconName={IconName.Flag}
+                    label={strings('social_leaderboard.entry_options.report')}
+                    onPress={handleReport}
+                    testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
+                  />
+                ) : null}
                 <ActionListItem
                   iconName={IconName.EyeSlash}
                   label={strings('social_leaderboard.entry_options.hide_post')}
@@ -276,11 +276,21 @@ const SocialEntryOptionsBottomSheet: React.FC<
   return <SocialEntryOptionsBottomSheetInner {...innerProps} />;
 };
 
+const withId = (ids: Set<string>, id: string) => new Set(ids).add(id);
+
+const withoutId = (ids: Set<string>, id: string) => {
+  const next = new Set(ids);
+  next.delete(id);
+  return next;
+};
+
 const SocialEntryOptionsHost: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { toastRef } = useContext(ToastContext);
+  const { hidePost, blockUser, report } = useSocialModerationActions();
+  const { blockedProfileIds, blockedCommentIds } = useSocialBlockLists();
   const [target, setTarget] = useState<SocialEntryOptionsTarget | null>(null);
+  // Hidden at once on the viewer's action, before the block lists refetch.
   const [hiddenPostIds, setHiddenPostIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -293,44 +303,42 @@ const SocialEntryOptionsHost: React.FC<{
   const onClose = useCallback(() => setTarget(null), []);
   const isEntryHidden = useCallback(
     (entry: SocialEntryOptionsTarget) =>
-      hiddenPostIds.has(entry.postId) || blockedAuthorIds.has(entry.authorId),
-    [blockedAuthorIds, hiddenPostIds],
+      hiddenPostIds.has(entry.postId) ||
+      blockedAuthorIds.has(entry.authorId) ||
+      blockedProfileIds.has(entry.authorId) ||
+      (entry.commentId !== undefined && blockedCommentIds.has(entry.commentId)),
+    [blockedAuthorIds, blockedCommentIds, blockedProfileIds, hiddenPostIds],
   );
-  const showConfirmation = useCallback(
-    (message: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: message, isBold: true }],
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef],
+  const hidePostLocally = useCallback(
+    (postId: string) => ({
+      apply: () => setHiddenPostIds((current) => withId(current, postId)),
+      revert: () => setHiddenPostIds((current) => withoutId(current, postId)),
+    }),
+    [],
   );
   const handleHidePost = useCallback(() => {
-    if (!target) {
-      return;
+    if (target) {
+      hidePost(target, hidePostLocally(target.postId));
     }
-    setHiddenPostIds((current) => new Set(current).add(target.postId));
-    showConfirmation(
-      strings('social_leaderboard.entry_options.post_hidden_confirmation'),
-    );
-  }, [showConfirmation, target]);
+  }, [hidePost, hidePostLocally, target]);
   const handleBlockUser = useCallback(() => {
-    if (!target) {
-      return;
+    if (target) {
+      blockUser(target, {
+        apply: () =>
+          setBlockedAuthorIds((current) => withId(current, target.authorId)),
+        revert: () =>
+          setBlockedAuthorIds((current) => withoutId(current, target.authorId)),
+      });
     }
-    setBlockedAuthorIds((current) => new Set(current).add(target.authorId));
-    showConfirmation(
-      strings('social_leaderboard.entry_options.user_blocked_confirmation', {
-        username: target.authorHandle,
-      }),
-    );
-  }, [showConfirmation, target]);
-  const handleReport = useCallback(() => {
-    showConfirmation(
-      strings('social_leaderboard.entry_options.report_confirmation'),
-    );
-  }, [showConfirmation]);
+  }, [blockUser, target]);
+  const handleReport = useCallback(
+    (reason: SocialEntryReportReason) => {
+      if (target) {
+        report(target, reason, hidePostLocally(target.postId));
+      }
+    },
+    [hidePostLocally, report, target],
+  );
   const value = useMemo(() => ({ open, isEntryHidden }), [isEntryHidden, open]);
 
   return (
@@ -339,6 +347,7 @@ const SocialEntryOptionsHost: React.FC<{
       <SocialEntryOptionsBottomSheet
         isOpen={target !== null}
         onClose={onClose}
+        canReport={Boolean(target?.commentId)}
         onHidePost={handleHidePost}
         onBlockUser={handleBlockUser}
         onReport={handleReport}
@@ -379,11 +388,18 @@ export const useSocialEntryOptions = (
   isHidden: boolean;
 } => {
   const hosted = useContext(SocialEntryOptionsContext);
+  const { hidePost, blockUser, report } = useSocialModerationActions();
   const [localOpen, setLocalOpen] = useState(false);
   const [isLocallyHidden, setIsLocallyHidden] = useState(false);
   const openLocal = useCallback(() => setLocalOpen(true), []);
   const closeLocal = useCallback(() => setLocalOpen(false), []);
-  const hideLocal = useCallback(() => setIsLocallyHidden(true), []);
+  const hideLocally = useMemo(
+    () => ({
+      apply: () => setIsLocallyHidden(true),
+      revert: () => setIsLocallyHidden(false),
+    }),
+    [],
+  );
 
   if (hosted) {
     return {
@@ -400,13 +416,20 @@ export const useSocialEntryOptions = (
       <SocialEntryOptionsBottomSheet
         isOpen={localOpen}
         onClose={closeLocal}
-        onHidePost={hideLocal}
-        onBlockUser={hideLocal}
+        canReport={Boolean(target.commentId)}
+        onHidePost={() => hidePost(target, hideLocally)}
+        onBlockUser={() => blockUser(target, hideLocally)}
+        onReport={(reason) => report(target, reason, hideLocally)}
       />
     ),
   };
 };
 
+/**
+ * Whether a post is hidden for the viewer: by their own action this session,
+ * or by their block lists. Reads them from the {@link SocialEntryOptionsProvider}
+ * every feed is mounted under; without one nothing is hidden.
+ */
 export const useSocialEntryModeration = () => {
   const hosted = useContext(SocialEntryOptionsContext);
   return {

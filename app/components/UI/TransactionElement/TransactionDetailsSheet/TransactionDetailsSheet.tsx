@@ -6,10 +6,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
+import {
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../../component-library/components/Texts/Text/Text.types';
+} from '@metamask/design-system-react-native';
 
 import TransactionDetails from '../TransactionDetails';
 import { toDateFormat } from '../../../../util/date';
@@ -85,10 +86,10 @@ const TransactionDetailsSheet: React.FC = () => {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {transactionElement?.actionKey}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {currentTx?.time ? toDateFormat(currentTx.time) : null}
         </Text>
       </BottomSheetHeader>
