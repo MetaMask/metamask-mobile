@@ -11,7 +11,7 @@ const logger = createLogger({ name: 'AndroidGoldenSnapshot' });
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
-const ANDROID_EMULATOR_CI_MEMORY_MB = '10240';
+const ANDROID_EMULATOR_CI_MEMORY_MB = '5120';
 
 /** Named quick-boot snapshot shared by Appium CI shards. */
 export const ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME = 'e2e_golden';

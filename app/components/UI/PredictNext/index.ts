@@ -32,7 +32,6 @@ export {
   type PredictCampaign,
 } from './campaigns';
 export {
-  createLegacyPredictEventRef,
   createPredictCampaignEventRef,
   openPredict,
   parsePredictLink,
@@ -65,3 +64,10 @@ export {
   type PredictTrendingTab,
   type PredictTrendingVariant,
 } from './trending';
+export {
+  PredictSearchResultRow,
+  usePredictSearchResults,
+  type PredictSearchResult,
+  type PredictSearchResultRowProps,
+  type PredictSearchResults,
+} from './searchResults';

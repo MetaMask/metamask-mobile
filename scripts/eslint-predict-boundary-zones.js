@@ -94,7 +94,6 @@ const predictCompositionFiles = [
  * instead, and add the export you need to its public API.
  */
 const predictImportBurndownFiles = [
-  'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
   'app/components/Views/confirmations/__mocks__/controllers/other-controllers-mock.ts',
   'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.test.tsx',
