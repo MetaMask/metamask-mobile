@@ -494,20 +494,27 @@ describe('AccountsMenu', () => {
     it('renders Activity, Scan and Batch sell in that order', () => {
       jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
 
-      const { getByTestId } = render(<AccountsMenu />);
+      const { getByTestId, getAllByTestId } = render(<AccountsMenu />);
 
-      const activity = getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON);
-      const scan = getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON);
-      const batchSell = getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON);
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).toBeOnTheScreen();
 
-      expect(activity).toBeOnTheScreen();
-      expect(scan).toBeOnTheScreen();
-      expect(batchSell).toBeOnTheScreen();
+      // getAllByTestId returns matches in tree (render) order, so this
+      // assertion fails if the JSX order of the quick-action tiles changes.
+      const quickActionsInRenderOrder = getAllByTestId(
+        new RegExp(
+          `^(${AccountsMenuSelectorsIDs.ACTIVITY_BUTTON}|${WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}|${AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON})$`,
+        ),
+      ).map((node) => node.props.testID);
 
-      const order = [activity, scan, batchSell].map(
-        (node) => node.props.testID,
-      );
-      expect(order).toEqual([
+      expect(quickActionsInRenderOrder).toEqual([
         AccountsMenuSelectorsIDs.ACTIVITY_BUTTON,
         WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
         AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON,
