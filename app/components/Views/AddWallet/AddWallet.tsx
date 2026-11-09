@@ -164,7 +164,7 @@ const AddWallet = () => {
             endAccessory={
               <Icon
                 name={IconName.ArrowRight}
-                size={IconSize.Sm}
+                size={IconSize.Md}
                 color={IconColor.IconAlternative}
                 accessible={false}
                 importantForAccessibility="no"
