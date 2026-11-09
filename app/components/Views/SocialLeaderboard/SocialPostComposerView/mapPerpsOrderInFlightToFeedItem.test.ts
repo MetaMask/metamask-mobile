@@ -39,8 +39,8 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
       {
         ...preview,
         tokenSymbol: 'ANTHROPIC',
-        tradeSymbol: 'xyz:ANTHROPIC',
-        tokenAddress: 'xyz:ANTHROPIC',
+        tradeSymbol: 'vntl:ANTHROPIC',
+        tokenAddress: 'vntl:ANTHROPIC',
       },
       '',
     );
@@ -49,7 +49,7 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
       throw new Error('expected perpsOpen');
     }
     expect(item.asset.symbol).toBe('ANTHROPIC');
-    expect(item.asset.avatar.tokenSymbol).toBe('xyz:ANTHROPIC');
+    expect(item.asset.avatar.tokenSymbol).toBe('vntl:ANTHROPIC');
   });
 
   it('carries the KLIPY GIF URL as commentGifUrl for a GIF-only perps post', () => {
