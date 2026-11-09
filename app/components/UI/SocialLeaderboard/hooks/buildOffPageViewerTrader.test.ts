@@ -220,6 +220,18 @@ describe('buildOffPageViewerTrader', () => {
     expect(result.trader.pnlValue).toBe(-0.59);
   });
 
+  it('copies the live X handle onto the pinned card', () => {
+    const result = buildOffPageViewerTrader({
+      identity,
+      live: liveProfile({ socialHandles: { twitter: '@wen' } }),
+      sort: 'pnl',
+      timeframe: '7d',
+      chains: ALL_CHAINS,
+    });
+
+    expect(result.trader.xHandle).toBe('wen');
+  });
+
   it('uses the live fox url', () => {
     const result = buildOffPageViewerTrader({
       identity: {
