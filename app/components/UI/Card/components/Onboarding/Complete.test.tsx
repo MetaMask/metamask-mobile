@@ -33,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockReduxDispatch,
+  useSelector: jest.fn(() => false),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -45,6 +46,124 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className?: string) => ({ className })),
+  }),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ onBack }: { onBack?: () => void }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header-standard-glass' },
+          ReactActual.createElement(TouchableOpacity, {
+            testID: 'complete-back-button',
+            onPress: onBack,
+          }),
+        ),
+    };
+  },
+);
+
+jest.mock('../../../KYC/components/Illustration', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    VbaIllustrationSource: {
+      scanner: 'scanner',
+      checkmark: 'checkmark',
+      hazard: 'hazard',
+    },
+    default: () =>
+      ReactActual.createElement(View, { testID: 'vba-illustration' }),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return {
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID, ...props }, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center', End: 'End' },
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-standard' },
+        topAccessory,
+        ReactActual.createElement(Text, { testID: titleProps?.testID }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        {
+          testID,
+          onPress,
+          disabled: isDisabled ?? disabled,
+          ...props,
+        },
+        typeof children === 'string'
+          ? ReactActual.createElement(Text, null, children)
+          : children,
+      ),
+    ButtonVariant: { Primary: 'Primary', Secondary: 'Secondary' },
+    ButtonSize: { Lg: 'Lg' },
+  };
+});
 
 const mockUseRoute = jest.mocked(useRoute);
 const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
@@ -69,7 +188,7 @@ describe('Complete', () => {
   });
 
   it('renders the completion copy, artwork, and actions', () => {
-    const { getByTestId } = render(<Complete />);
+    const { getByTestId, queryByTestId } = render(<Complete />);
 
     expect(getByTestId(CompleteSelectors.TITLE)).toHaveTextContent(
       strings('card.card_onboarding.complete.title'),
@@ -81,9 +200,7 @@ describe('Complete', () => {
     expect(getByTestId(CompleteSelectors.CONFIRM_BUTTON)).toHaveTextContent(
       strings('card.card_onboarding.complete.confirm_button'),
     );
-    expect(getByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toHaveTextContent(
-      strings('card.card_onboarding.not_now_button'),
-    );
+    expect(queryByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toBeNull();
   });
 
   it('tracks the screen view on mount', () => {
@@ -97,15 +214,6 @@ describe('Complete', () => {
       screen: CardScreens.COMPLETE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('goes back when Not now is pressed', () => {
-    const { getByTestId } = render(<Complete />);
-
-    fireEvent.press(getByTestId(CompleteSelectors.NOT_NOW_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('tracks the continue press', async () => {

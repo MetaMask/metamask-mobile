@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
+import { ScrollView } from 'react-native';
 import {
   StackActions,
   useNavigation,
@@ -10,17 +10,30 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
-import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MarketingMoment from '../../../MarketingMoment';
 import { CompleteSelectors } from './Complete.testIds';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  TitleStandard,
+} from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../../KYC/components/Illustration';
 
 /**
  * Route params for Complete screen
@@ -37,13 +50,17 @@ interface CompleteRouteParams {
   nextDestination?: NextDestination;
 }
 
+/**
+ * Card onboarding success ("You're in!"). Visual layout mirrors VBA's
+ * IdentityVerified success pattern (VbaIllustration checkmark + centred
+ * TitleStandard + pinned primary button). No Not now / header back — Continue
+ * is the only exit (Connor). Replaces MarketingMoment and the old success PNG.
+ */
 const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const handleNotNow = () => {
-    navigation.goBack();
-  };
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -114,36 +131,62 @@ const Complete = () => {
   };
 
   return (
-    <MarketingMoment
-      title={strings('card.card_onboarding.complete.title')}
-      titleProps={{ testID: CompleteSelectors.TITLE }}
-      description={strings('card.card_onboarding.complete.description')}
-      descriptionProps={{
-        testID: CompleteSelectors.DESCRIPTION,
-        twClassName: 'text-center px-4',
-      }}
-      artwork={
-        <Image
-          source={MM_CARD_ONBOARDING_SUCCESS}
-          resizeMode="contain"
-          style={tw.style('h-full w-full')}
-          testID={CompleteSelectors.IMAGE}
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+      />
+      <ScrollView
+        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+      >
+        <TitleStandard
+          title={strings('card.card_onboarding.complete.title')}
+          bottomLabel={strings('card.card_onboarding.complete.description')}
+          titleProps={{
+            twClassName: 'text-center',
+            testID: CompleteSelectors.TITLE,
+          }}
+          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+          bottomLabelProps={{
+            twClassName: 'text-center',
+            testID: CompleteSelectors.DESCRIPTION,
+          }}
+          bottomLabelWrapperProps={{
+            justifyContent: BoxJustifyContent.Center,
+          }}
+          topAccessory={
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.End}
+              twClassName="mb-5 w-full"
+              testID={CompleteSelectors.IMAGE}
+            >
+              <VbaIllustration
+                source={VbaIllustrationSource.checkmark}
+                twClassName="h-[107px] w-[140px]"
+              />
+            </Box>
+          }
         />
-      }
-      primaryAction={{
-        label: strings('card.card_onboarding.complete.confirm_button'),
-        onPress: handleContinue,
-        isDisabled: isLoading,
-        isLoading,
-        testID: CompleteSelectors.CONFIRM_BUTTON,
-      }}
-      secondaryAction={{
-        label: strings('card.card_onboarding.not_now_button'),
-        onPress: handleNotNow,
-        isDisabled: isLoading,
-        testID: CompleteSelectors.NOT_NOW_BUTTON,
-      }}
-    />
+      </ScrollView>
+      <Box twClassName="gap-2 px-4 pb-2 pt-4">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          onPress={handleContinue}
+          isFullWidth
+          isDisabled={isLoading}
+          isLoading={isLoading}
+          testID={CompleteSelectors.CONFIRM_BUTTON}
+        >
+          {strings('card.card_onboarding.complete.confirm_button')}
+        </Button>
+      </Box>
+    </SafeAreaView>
   );
 };
 

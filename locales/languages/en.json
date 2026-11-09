@@ -11595,7 +11595,7 @@
         "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "You're in!",
+        "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
