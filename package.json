@@ -333,7 +333,8 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
-    "@metamask/subscription-controller": "15.0.0"
+    "@metamask/subscription-controller": "15.0.0",
+    "@metamask/profile-controller": "npm:@metamask-previews/profile-controller@2.0.0-preview-f6f331e81"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",

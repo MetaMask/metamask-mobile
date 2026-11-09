@@ -11626,9 +11626,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-controller@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/profile-controller@npm:2.0.0"
+"@metamask/profile-controller@npm:@metamask-previews/profile-controller@2.0.0-preview-f6f331e81":
+  version: 2.0.0-preview-f6f331e81
+  resolution: "@metamask-previews/profile-controller@npm:2.0.0-preview-f6f331e81"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
@@ -11637,7 +11637,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/98834b87f75f4612cd4016985e0528991cde20479792ad227d067b8442b171f769c572b7e83e13bbbee0b1f3f8ed0d8b21735b2f245ea4401a9dfc83307bf884
+  checksum: 10/1d1b6a761635e40414e0a96ca371316642787d1b6d14397178d72dc5106bfaa9313e4bcb9499ac014dcca51b3522f0cfddd2e03410227f77764a349fc60d74a1
   languageName: node
   linkType: hard
 
