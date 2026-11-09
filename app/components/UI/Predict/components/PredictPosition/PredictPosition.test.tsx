@@ -10,6 +10,7 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../selectors/featureFlags', () => {
   const feeCollection = {
@@ -291,6 +292,57 @@ describe('PredictPosition', () => {
       expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
       expect(screen.getByText('$2,251.84')).toBeOnTheScreen();
       expect(screen.getByText('1724.09%')).toBeOnTheScreen();
+    });
+  });
+
+  describe('memoization', () => {
+    const positionInfoRenderCount = () =>
+      jest
+        .mocked(strings)
+        .mock.calls.filter(([key]) => key === 'predict.position_info').length;
+
+    it('skips re-rendering when props are referentially equal', () => {
+      const onPress = jest.fn();
+      const { rerender } = renderWithProvider(
+        <PredictPosition
+          position={basePosition}
+          onPress={onPress}
+          privacyMode={false}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      rerender(
+        <PredictPosition
+          position={basePosition}
+          onPress={onPress}
+          privacyMode={false}
+        />,
+      );
+
+      expect(positionInfoRenderCount()).toBe(1);
+    });
+
+    it('re-renders when the position reference changes', () => {
+      const onPress = jest.fn();
+      const { rerender } = renderWithProvider(
+        <PredictPosition
+          position={basePosition}
+          onPress={onPress}
+          privacyMode={false}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      rerender(
+        <PredictPosition
+          position={{ ...basePosition, currentValue: 3000 }}
+          onPress={onPress}
+          privacyMode={false}
+        />,
+      );
+
+      expect(positionInfoRenderCount()).toBe(2);
     });
   });
 });

@@ -9,6 +9,10 @@ import type {
   SignedLimitOrderDelegation,
 } from './schema';
 import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
+import {
+  isGeoRestrictedResponse,
+  LimitOrderGeoRestrictedError,
+} from './errors';
 
 export interface CreateLimitOrderParams {
   /**
@@ -81,6 +85,9 @@ export const createLimitOrder = async (
   });
 
   if (!response.ok) {
+    if (await isGeoRestrictedResponse(response)) {
+      throw new LimitOrderGeoRestrictedError();
+    }
     throw new Error(
       `createLimitOrder: Request failed with status ${response.status}`,
     );

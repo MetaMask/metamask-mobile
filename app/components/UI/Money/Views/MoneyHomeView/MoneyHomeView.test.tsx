@@ -43,6 +43,11 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
+import {
+  getMoneyHomeCardDevOverrideById,
+  setMoneyHomeCardDevOverride,
+} from '../../hooks/moneyHomeCardDevOverride';
 import {
   type MoneyHomeSegment,
   useMoneyHomePerformance,
@@ -482,6 +487,9 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
 const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
+const mockUseActiveGroupCryptoPresence = jest.mocked(
+  useActiveGroupCryptoPresence,
+);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
   () => ({
@@ -492,6 +500,14 @@ jest.mock(
 
 jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
   useVbaTransactionRefresh: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
 }));
 
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
@@ -846,7 +862,12 @@ describe('MoneyHomeView', () => {
     mockUseMoneyAccountCardLinkage.mockReturnValue(createLinkageMock());
 
     // Default to no VBA card so variant tests cannot leak into others.
+    setMoneyHomeCardDevOverride(null);
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockUseActiveGroupCryptoPresence.mockReturnValue({
+      hasCrypto: false,
+      isLoading: false,
+    });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
     mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
     mockOpenVbaEntry.mockClear();
@@ -982,9 +1003,18 @@ describe('MoneyHomeView', () => {
       ).forEach((testId) => {
         expect(rendered.queryByTestId(testId)).not.toBeOnTheScreen();
       });
+      expect(
+        rendered.queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     };
 
     it('renders the get_started card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
@@ -995,14 +1025,20 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the account_is_ready card', () => {
+    it('renders the identity_verified card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
+        type: 'identity_verified',
       } as VbaHomeCard);
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
       );
     });
 
@@ -1039,18 +1075,70 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the VBA card above the onboarding card', () => {
+    it('renders the forced VBA card from the developer override', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(
+        getMoneyHomeCardDevOverrideById('get_started'),
+      );
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('renders Add funds when the developer override forces that step on a funded account', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(getMoneyHomeCardDevOverrideById('add_funds'));
+
+      const { getByTestId, getByText } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.onboarding.step_1.cta')),
+      ).toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('shows the onboarding card instead of Get started when the wallet has crypto', () => {
+      mockUseActiveGroupCryptoPresence.mockReturnValue({
+        hasCrypto: true,
+        isLoading: false,
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expectTestIdBefore(
-        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
-        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
-        MoneyOnboardingCardTestIds.CONTAINER,
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
       );
+
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('wires the one-shot KYC session refresh on mount', () => {
@@ -1074,6 +1162,12 @@ describe('MoneyHomeView', () => {
     });
 
     it('remounts the card with fresh dismiss state when the variant changes', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
       } as VbaHomeCard);
@@ -1089,6 +1183,9 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
       ).toBeNull();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
 
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',

@@ -54,7 +54,7 @@ interface Registration {
 }
 
 const ohlcvChannel = (assetId: string) =>
-  `market-data.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
+  `ohlcv.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
 
 const subscribeSpot = (assetId: string) =>
   Engine.controllerMessenger.call('OHLCVService:subscribe', {
@@ -371,7 +371,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
 
 /**
  * Streams live prices to the open position cards on screen beneath it: spot
- * assets over the `market-data.v1` candle channel (the in-progress candle's
+ * assets over the `ohlcv.v1` candle channel (the in-progress candle's
  * close is the last trade), perps over the Hyperliquid price stream.
  *
  * Only cards inside the window plus a screen of buffer are subscribed, spot is

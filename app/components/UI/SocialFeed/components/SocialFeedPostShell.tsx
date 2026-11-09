@@ -5,6 +5,7 @@ import {
   BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
+  FontFamily,
   Icon,
   IconColor,
   IconName,
@@ -18,6 +19,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
+import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -57,6 +60,11 @@ export interface SocialFeedPostShellProps {
   /** Gates interactions when the post is rendered on a Social V1 surface. */
   requireSocialTerms?: boolean;
   /**
+   * Gates Copy trade behind a linked social wallet. Social V1 hosts pass
+   * this; token details and other embeds leave it off.
+   */
+  requireSocialProfile?: boolean;
+  /**
    * Set `false` to hide Copy trade on an open card. The owner's profile posts
    * pass this so they cannot copy their own trade.
    */
@@ -69,7 +77,7 @@ const useShellCopyTrade = (
   post: SocialV1FeedPost,
   onSpotCopyTrade: SocialFeedPostShellProps['onCopyTrade'],
   notifyCopy: ((tradeType: 'perps' | 'spot') => void) | undefined,
-  ensureSocialTermsForInteraction: () => boolean,
+  ensureCopyTradeAllowed: () => boolean,
 ) => {
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
@@ -78,25 +86,25 @@ const useShellCopyTrade = (
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
+    if (!ensureCopyTradeAllowed()) {
       return;
     }
     notifyCopy?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
   }, [
-    ensureSocialTermsForInteraction,
+    ensureCopyTradeAllowed,
     notifyCopy,
     onSpotCopyTrade,
     post.item,
     post.commentId,
   ]);
   const handlePerpsCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
+    if (!ensureCopyTradeAllowed()) {
       return;
     }
     notifyCopy?.('perps');
     onPerpsCopyTrade?.();
-  }, [ensureSocialTermsForInteraction, notifyCopy, onPerpsCopyTrade]);
+  }, [ensureCopyTradeAllowed, notifyCopy, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade && handlePerpsCopyTrade
@@ -203,9 +211,14 @@ const SocialFeedPostFooter = ({
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {copyCount}
-          </Text>
+          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero. */}
+          <AnimatedNumericText
+            animated={getHardwareTier() !== 'LOW'}
+            color={TextColor.TextAlternative}
+            fontFamily={FontFamily.Default}
+            value={String(copyCount)}
+            variant={TextVariant.BodySm}
+          />
         </Box>
       ) : null}
     </Box>
@@ -221,6 +234,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onAuthorPress,
   onPositionPress,
   requireSocialTerms = false,
+  requireSocialProfile = false,
   showCopyTrade = true,
   now,
 }) => {
@@ -239,6 +253,19 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     () => !requireSocialTerms || ensureSocialTermsAccepted(),
     [ensureSocialTermsAccepted, requireSocialTerms],
   );
+  const ensureCopyTradeAllowed = useCallback(() => {
+    if (!ensureSocialTermsForInteraction()) {
+      return false;
+    }
+    if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
+      return false;
+    }
+    return true;
+  }, [
+    ensureSocialProfileOnboarding,
+    ensureSocialTermsForInteraction,
+    requireSocialProfile,
+  ]);
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -305,7 +332,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     post,
     onSpotCopyTrade,
     notifyCopy,
-    ensureSocialTermsForInteraction,
+    ensureCopyTradeAllowed,
   );
 
   const chips = visibleReactions(reactions);

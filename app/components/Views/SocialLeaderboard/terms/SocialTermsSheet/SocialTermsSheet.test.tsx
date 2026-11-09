@@ -80,6 +80,57 @@ describe('SocialTermsSheet', () => {
     mockInjectJavaScript.mockClear();
   });
 
+  it('scrolls to the end on the first agreement tap and checks it on the second', () => {
+    const { getByTestId, queryByTestId, onAgree, UNSAFE_getByType } =
+      renderSheet();
+    const scrollToEndSpy = jest.fn();
+    UNSAFE_getByType(ScrollView).instance.scrollToEnd = scrollToEndSpy;
+    const checkbox = getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX);
+
+    fireEvent.press(checkbox);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(scrollToEndSpy).toHaveBeenCalledWith({ animated: true });
+    expect(onAgree).not.toHaveBeenCalled();
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+
+    fireEvent.scroll(
+      getByTestId(SocialTermsSheetSelectorsIDs.BODY),
+      scrollToEnd,
+    );
+    fireEvent.press(checkbox);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(
+      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).not.toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
+  });
+
+  it('scrolls hosted terms on the first agreement tap', () => {
+    const onAgree = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={onAgree}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(mockInjectJavaScript).toHaveBeenCalledWith(
+      expect.stringContaining("behavior: 'smooth'"),
+    );
+    expect(onAgree).not.toHaveBeenCalled();
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps Agree disabled and shows the scroll helper before the end is reached', () => {
     const { getByTestId, onAgree } = renderSheet();
 

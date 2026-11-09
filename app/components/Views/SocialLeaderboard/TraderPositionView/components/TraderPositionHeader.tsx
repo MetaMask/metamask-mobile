@@ -15,6 +15,7 @@ export interface TraderPositionHeaderProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
@@ -27,6 +28,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   onBack,
   onTraderPress,
   onShare,
@@ -52,6 +54,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
       traderName={traderName}
       traderImageUrl={traderImageUrl}
       traderAddress={traderAddress}
+      traderProfileId={traderProfileId}
       variant="nav"
       onPress={onTraderPress}
       testID={traderNameTestID}

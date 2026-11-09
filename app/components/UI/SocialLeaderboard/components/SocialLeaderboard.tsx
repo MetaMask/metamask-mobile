@@ -98,9 +98,13 @@ export interface SocialLeaderboardProps {
   emptyClassName?: string;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  /** Shows each row's position, with medals for the top three. */
+  showRank?: boolean;
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
+  /** Gates Follow behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -120,8 +124,10 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   onClearFilters,
   emptyClassName,
   showViewerRow = false,
+  showRank = true,
   onOutcomeChange,
   performance,
+  requireSocialProfile,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -130,6 +136,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { track } = useSocialLeaderboardAnalytics();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile,
   });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
@@ -319,7 +326,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       return (
         <Box testID={SocialLeaderboardSelectorsIDs.SKELETON}>
           {skeletonKeys.map((key) => (
-            <SocialV1TraderRowSkeleton key={key} showLeaderboardDetails />
+            <SocialV1TraderRowSkeleton
+              key={key}
+              showLeaderboardDetails
+              showRankColumn={showRank}
+            />
           ))}
         </Box>
       );
@@ -337,9 +348,12 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
               <SocialV1TraderRow
                 trader={trader}
                 metric={trader.displayMetric}
+                secondaryMetric={trader.secondaryMetric}
+                nameTag={trader.nameTag}
                 onFollowPress={handleFollowPress}
                 onTraderPress={handleTraderPress}
                 showLeaderboardDetails
+                showRankColumn={showRank}
               />
             </Animated.View>
           ))}
@@ -361,7 +375,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
           <SocialFilterEmptyState onClear={onClearFilters} />
         ) : (
           <SocialEmptyState
-            description={strings('social_leaderboard.profiles_to_follow.empty')}
+            description={strings(
+              resolution.status === 'holders'
+                ? 'token_details_v1.holders_tab.empty'
+                : 'social_leaderboard.profiles_to_follow.empty',
+            )}
             testID={SocialLeaderboardSelectorsIDs.EMPTY}
           />
         );
@@ -390,6 +408,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             onTraderPress={handleViewerPress}
             highlighted
             hideRank={viewerRow.hideRank}
+            showRankColumn={showRank}
             showLeaderboardDetails
             omitPercentage={viewerRow.omitPercentage}
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
