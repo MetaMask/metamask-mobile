@@ -291,6 +291,22 @@ jest.mock('../../app/core/Engine', () => {
         getGeoCountry: jest.fn().mockResolvedValue('BR'),
       },
       KycController: {
+        // Per-vendor session entries, as the real controller keeps them.
+        state: { sessions: {} as Record<string, unknown> },
+        // Stores accepted terms on the Iron entry like the real controller, so
+        // the onboarding funnel sees them.
+        acceptVendorDisclaimers: jest.fn(function (
+          this: { state: { sessions: Record<string, unknown> } },
+          params: { vendor: string; disclaimerIds: string[] },
+        ) {
+          this.state.sessions[params.vendor] = {
+            vendorDisclaimersAccepted: {
+              disclaimerIds: params.disclaimerIds,
+              acceptedAt: null,
+              submitted: false,
+            },
+          };
+        }),
         readSessionStatus: jest.fn().mockReturnValue(null),
         // Reinstall recovery asks for the latest vendor session before hydrate.
         // Null is a first-time user; tests that resume a session override this.
