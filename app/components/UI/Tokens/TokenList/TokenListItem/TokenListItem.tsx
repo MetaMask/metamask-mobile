@@ -50,6 +50,12 @@ import {
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
+import {
+  liveHoldingFiat,
+  type LiveQuote,
+} from '../../../../../hooks/assets/market-stats';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
@@ -156,6 +162,11 @@ interface TokenListItemProps {
    * (no token price / 24h change). Used by the Money Hub.
    */
   hideSecondaryPriceRow?: boolean;
+  /**
+   * Streamed quote for this asset. Absent until the first tick, and while the
+   * list is not streaming. The object identity is stable until this asset changes.
+   */
+  liveQuote?: LiveQuote;
 }
 
 export const TokenListItem = React.memo(
@@ -170,6 +181,7 @@ export const TokenListItem = React.memo(
     tokenPositionInList,
     tokensInList,
     hideSecondaryPriceRow = false,
+    liveQuote,
   }: TokenListItemProps) => {
     const navigation = useNavigation<AppNavigationProp>();
     const queryClient = useQueryClient();
@@ -263,12 +275,19 @@ export const TokenListItem = React.memo(
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
 
-    const pricePercentChange1d = useTokenPricePercentageChange(asset);
+    const polledPricePercentChange1d = useTokenPricePercentageChange(asset);
+    const pricePercentChange1d =
+      liveQuote?.pricePercentChange1d ?? polledPricePercentChange1d;
 
-    // Calculate token price in fiat currency
+    // Calculate token price in fiat currency. A streamed quote is already
+    // in the selected currency, so it replaces the polled native-to-fiat path.
     const tokenPriceInFiat = useMemo(() => {
       if (!asset?.address || !asset?.chainId) {
         return undefined;
+      }
+
+      if (liveQuote && !(isTestNet(asset.chainId) && !showFiatOnTestnets)) {
+        return liveQuote.price;
       }
 
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
@@ -320,6 +339,7 @@ export const TokenListItem = React.memo(
       nativeCurrency,
       showFiatOnTestnets,
       multichainAssetsRates,
+      liveQuote,
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
@@ -453,7 +473,15 @@ export const TokenListItem = React.memo(
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
-    const fiatBalance = asset.balanceFiat || '—';
+    const liveHolding = liveHoldingFiat(asset.balanceAmount, liveQuote?.price);
+    const liveFiatBalance =
+      liveHolding !== undefined && !hideFiatForTestnet && currentCurrency
+        ? formatWithThreshold(liveHolding, 0.01, getLocaleLanguageCode(), {
+            style: 'currency',
+            currency: currentCurrency,
+          })
+        : undefined;
+    const fiatBalance = liveFiatBalance || asset.balanceFiat || '—';
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
     const isFiatBalanceLoading =

@@ -270,6 +270,12 @@ jest.mock('../hooks/useTokenMarketData', () => ({
   useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
+// The live quote reads the query cache. No case here asserts a streamed price.
+jest.mock('../../../../hooks/assets/market-stats', () => ({
+  useMarketStats: () => [],
+  readLiveQuotes: () => [],
+}));
+
 const mockUseTokenAssetDetails = jest.fn(() => ({
   asset: null as Record<string, unknown> | null,
   isLoading: false,
