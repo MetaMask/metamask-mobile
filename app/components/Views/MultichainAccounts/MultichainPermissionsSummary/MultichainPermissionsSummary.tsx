@@ -557,15 +557,13 @@ const MultichainPermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <View style={styles.tabBarContainer}>
-        <TabBar
-          backgroundColor={colors.background.default}
-          tabPadding={TAB_BAR_HORIZONTAL_PADDING}
-          {...props}
-        />
-      </View>
+      <TabBar
+        backgroundColor={colors.background.default}
+        tabPadding={TAB_BAR_HORIZONTAL_PADDING}
+        {...props}
+      />
     ),
-    [colors, styles.tabBarContainer],
+    [colors],
   );
 
   const renderAccountsConnectedList = useCallback(

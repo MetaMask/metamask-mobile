@@ -25,7 +25,6 @@ const styleSheet = (params: {
     // Account List Item
     container: {
       flex: 1,
-      paddingHorizontal: 16,
     },
     accountListItem: {
       borderWidth: 0,
