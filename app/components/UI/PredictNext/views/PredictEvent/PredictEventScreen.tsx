@@ -11,7 +11,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -44,6 +43,7 @@ import {
 import { selectTopChartMarkets } from './internal/selectTopChartMarkets';
 import {
   EventLoadingHeader,
+  EventTitleHeader,
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
@@ -51,9 +51,6 @@ import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
-import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 type RulesTarget =
   | { type: 'event' }
@@ -64,72 +61,31 @@ type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
 
 const EventScreenChrome = ({
   children,
-  onBack,
-  title,
-  onRulesPress,
+  header,
 }: {
   children: React.ReactNode;
-  onBack: () => void;
-  title?: string;
-  onRulesPress?: () => void;
-}) => {
-  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
-  return (
-    <Box
-      testID={PredictEventScreenTestIds.VIEW}
-      twClassName="flex-1 bg-default"
-    >
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        includesTopInset
-        title={title}
-        titleProps={{
-          testID: PredictEventScreenTestIds.TITLE,
-          accessibilityRole: 'header',
-          numberOfLines: 1,
-        }}
-        onBack={onBack}
-        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-        endButtonIconProps={
-          onRulesPress
-            ? [
-                {
-                  iconName: IconName.Question,
-                  onPress: onRulesPress,
-                  testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
-                  accessibilityLabel: strings(
-                    'predict.rules.event_accessibility_label',
-                  ),
-                  accessibilityRole: 'button',
-                },
-              ]
-            : undefined
-        }
-      />
-      {children}
-    </Box>
-  );
-};
+  header: React.ReactNode;
+}) => (
+  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+    {header}
+    {children}
+  </Box>
+);
 
 const EventScreenLayout = ({
   children,
   onBack,
   title,
-  onRulesPress,
 }: {
   children: React.ReactNode;
   onBack: () => void;
   title?: string;
-  onRulesPress?: () => void;
 }) => {
   const tw = useTailwind();
 
   return (
     <EventScreenChrome
-      onBack={onBack}
-      title={title}
-      onRulesPress={onRulesPress}
+      header={<EventTitleHeader title={title} onBack={onBack} />}
     >
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
@@ -196,11 +152,7 @@ const EventLoadedHeader = ({
 
   return (
     <Box>
-      {game ? (
-        <GameEventHeader event={event} />
-      ) : (
-        <StandardEventHeader event={event} />
-      )}
+      {game ? <GameEventHeader event={event} /> : null}
       {marketHistory ? (
         <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
       ) : null}
@@ -353,6 +305,8 @@ export const PredictEventScreen = () => {
   if (liveEvent) {
     const event = liveEvent;
     const eventRules = event.rules?.trim();
+    const onEventRulesPress = eventRules ? handleEventRulesPress : undefined;
+    const isGameEvent = Boolean(getEventGame(event));
     const firstProjectedMarket =
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
@@ -368,9 +322,21 @@ export const PredictEventScreen = () => {
     return (
       <>
         <EventScreenChrome
-          title={event.title}
-          onBack={handleBack}
-          onRulesPress={eventRules ? handleEventRulesPress : undefined}
+          header={
+            isGameEvent ? (
+              <EventTitleHeader
+                title={event.title}
+                onBack={handleBack}
+                onRulesPress={onEventRulesPress}
+              />
+            ) : (
+              <StandardEventHeader
+                event={event}
+                onBack={handleBack}
+                onRulesPress={onEventRulesPress}
+              />
+            )
+          }
         >
           <EventMarketList
             event={event}

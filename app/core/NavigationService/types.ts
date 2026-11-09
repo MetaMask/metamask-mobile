@@ -97,7 +97,6 @@ import type {
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
 import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
-import type { VbaSourceCurrency } from '../../util/region/getVbaSourceCurrency';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -581,7 +580,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
-  RampVbaDetails: { sourceCurrency?: VbaSourceCurrency } | undefined;
+  RampVbaDetails: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -721,6 +720,10 @@ export type RootStackParamList = {
   RewardsMoneyTermsSheet:
     | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
+  RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
+  RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
+  RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
+  RewardsTaxFormView: RewardsNavigationParamList['RewardsTaxFormView'];
   /**
    * Post-accept confirmation. Registered on the root stack so it can fade
    * over the Money dashboard after the invite sheet dismisses.
@@ -1197,10 +1200,8 @@ export type RootStackParamList = {
   SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SampleFeature: undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;

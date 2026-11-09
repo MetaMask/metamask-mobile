@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
+import { X_TRUST_MARK_TEST_ID } from '../../../../UI/SocialFeed/components/XTrustMark';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -30,6 +31,19 @@ const mockOnTraderPress = jest.fn();
 describe('SocialV1TraderRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('seeds the avatar with the profile id even when the trader has a wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('seeds the avatar with the profile id when the trader has no wallet address', () => {
@@ -127,6 +141,28 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
     ).toHaveTextContent('20x Short');
+  });
+
+  it('renders the X mark when the trader is connected to X', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, xHandle: 'alpha' }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the trader has no X handle', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
   });
 
   it('renders no name tag by default', () => {
