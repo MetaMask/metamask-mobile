@@ -41,6 +41,11 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../hooks/useImmersveSpendingPrerequisites');
 jest.mock('../../hooks/useImmersveOnboardingRouter');
 
+const mockShowKycInProgressToast = jest.fn();
+jest.mock('../../util/showKycInProgressToast', () => ({
+  showKycInProgressToast: () => mockShowKycInProgressToast(),
+}));
+
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
 
@@ -204,7 +209,7 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('holds a pending KYC on this screen instead of funding, then times out to KYC_PENDING', () => {
+  it('holds a pending KYC on this screen instead of funding, then times out to wallet home with the in-progress toast', () => {
     const nextAction = deriveNextImmersveAction([
       {
         stage: 'funding',
@@ -231,24 +236,25 @@ describe('ImmersveKYCProcessing', () => {
 
     jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
-    });
+    expect(mockShowKycInProgressToast).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockReset).not.toHaveBeenCalled();
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('resets to KYC_PENDING after the pending timeout', () => {
+  it('goes to wallet home and shows the in-progress toast after the pending timeout', () => {
     setNextAction({ type: 'pending' });
     render(<ImmersveKYCProcessing />);
 
-    expect(mockReset).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockShowKycInProgressToast).not.toHaveBeenCalled();
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
-    });
+    jest.advanceTimersByTime(1);
+
+    expect(mockShowKycInProgressToast).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('routes rejected through the onboarding router', () => {

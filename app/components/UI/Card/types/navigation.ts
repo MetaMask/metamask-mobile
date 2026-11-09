@@ -121,7 +121,6 @@ export type CardOnboardingStackParamList = {
   CardOnboardingPhysicalAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
 };
 
 /**

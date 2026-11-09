@@ -10,9 +10,11 @@ import { CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
+import { showKycInProgressToast } from '../../util/showKycInProgressToast';
 import AnimatedSpinner from '../../../AnimatedSpinner';
 
-// Timeout duration before redirecting to KYC Pending screen (in milliseconds)
+// Timeout before sending the user to wallet home with the "Verification in
+// progress" toast (in milliseconds)
 const POLLING_TIMEOUT_MS = 30000;
 
 /**
@@ -20,7 +22,8 @@ const POLLING_TIMEOUT_MS = 30000;
  * Polls the registration status to check if the user was approved or rejected.
  * - VERIFIED: Navigate to PERSONAL_DETAILS to continue onboarding
  * - REJECTED: Navigate to KYC_FAILED
- * - PENDING: After 30 seconds of polling, navigate to KYC_PENDING
+ * - PENDING: After 30 seconds of polling, go to wallet home and show the
+ * "Verification in progress" toast
  */
 const VerifyingVeriffKYC = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -47,10 +50,8 @@ const VerifyingVeriffKYC = () => {
 
     timeoutRef.current = setTimeout(() => {
       stopPolling();
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
-      });
+      showKycInProgressToast();
+      navigation.navigate(Routes.WALLET.HOME);
     }, POLLING_TIMEOUT_MS);
 
     return () => {

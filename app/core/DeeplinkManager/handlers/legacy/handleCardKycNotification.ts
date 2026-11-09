@@ -13,6 +13,7 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
 import { CardVerificationState } from '../../../../components/UI/Card/types';
+import { showKycInProgressToast } from '../../../../components/UI/Card/util/showKycInProgressToast';
 
 /**
  * Card KYC notification deeplink handler
@@ -24,7 +25,7 @@ import { CardVerificationState } from '../../../../components/UI/Card/types';
  * 1. Onboarding flow (user has onboardingId): Checks registration status and navigates to:
  * - KYCFailed: If REJECTED
  * - Complete (with nextDestination: 'personal_details'): If VERIFIED
- * - KYCPending: If still PENDING
+ * - Wallet home + "Verification in progress" toast: If still PENDING
  *
  * 2. Authenticated flow (user is authenticated): Checks user details and navigates to:
  * - KYCFailed: If REJECTED
@@ -228,17 +229,10 @@ function navigateBasedOnVerificationState(
       case 'PENDING':
         if (flowType === 'onboarding') {
           Logger.log(
-            '[handleCardKycNotification] User still pending (onboarding), navigating to KYCPending',
+            '[handleCardKycNotification] User still pending (onboarding), navigating to wallet home with the in-progress toast',
           );
-          NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-            screen: Routes.CARD.HOME,
-            params: {
-              screen: Routes.CARD.ONBOARDING.ROOT,
-              params: {
-                screen: Routes.CARD.ONBOARDING.KYC_PENDING,
-              },
-            },
-          });
+          NavigationService.navigation?.navigate(Routes.WALLET.HOME);
+          showKycInProgressToast();
         } else {
           Logger.log(
             '[handleCardKycNotification] User still pending (authenticated), navigating to CardHome',
