@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import PerpsRowItem from './PerpsRowItem';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../../UI/Perps/constants/perpsAnalytics';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -68,6 +69,20 @@ describe('PerpsRowItem', () => {
     expect(params.source_section).toBe(
       PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_STOCKS_COMMODITIES,
     );
+  });
+
+  it('navigates with the source prop when provided', () => {
+    const { getByTestId } = render(
+      <PerpsRowItem
+        market={mockMarket}
+        source={PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH}
+      />,
+    );
+
+    fireEvent.press(getByTestId('market-row-BTC'));
+
+    const params = mockNavigate.mock.calls[0][1].params;
+    expect(params.source).toBe(PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH);
   });
 
   it('calls onCardPress before navigating', () => {

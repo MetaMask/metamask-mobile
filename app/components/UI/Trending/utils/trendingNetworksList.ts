@@ -165,9 +165,16 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
  */
 export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
   TRENDING_NETWORKS_LIST.filter((n) =>
-    [NetworkToCaipChainId.ETHEREUM, NetworkToCaipChainId.BNB].includes(
-      n.caipChainId as NetworkToCaipChainId,
-    ),
+    [
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+      NetworkToCaipChainId.ROBINHOOD,
+    ].includes(n.caipChainId as NetworkToCaipChainId),
+  );
+
+export const RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD: ProcessedNetwork[] =
+  RWA_NETWORKS_LIST.filter(
+    (n) => n.caipChainId !== NetworkToCaipChainId.ROBINHOOD,
   );
 
 export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(

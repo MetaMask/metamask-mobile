@@ -19,8 +19,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Checkbox,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -51,7 +52,6 @@ import { CardProviderIds } from '../../../../../core/Engine/controllers/card-con
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -129,17 +129,19 @@ export const AddressFields = ({
           )}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={addressLine1}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.address_line_1_label',
-          )}
-          testID="address-line-1-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.address_line_1_label',
+            ),
+            testID: 'address-line-1-input',
+          }}
         />
       </Box>
       {/* Address Line 2 */}
@@ -150,17 +152,19 @@ export const AddressFields = ({
           )}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={addressLine2}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.address_line_2_label',
-          )}
-          testID="address-line-2-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.address_line_2_label',
+            ),
+            testID: 'address-line-2-input',
+          }}
         />
       </Box>
       {/* City */}
@@ -169,17 +173,19 @@ export const AddressFields = ({
           {strings('card.card_onboarding.physical_address.city_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleCityChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={city}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.city_label',
-          )}
-          testID="city-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.city_label',
+            ),
+            testID: 'city-input',
+          }}
         />
       </Box>
       {/* State */}
@@ -201,17 +207,19 @@ export const AddressFields = ({
           {strings('card.card_onboarding.physical_address.zip_code_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={zipCode}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.zip_code_label',
-          )}
-          testID="zip-code-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.zip_code_label',
+            ),
+            testID: 'zip-code-input',
+          }}
         />
       </Box>
       {/* Country (read-only) */}
@@ -680,8 +688,8 @@ const PhysicalAddress = () => {
       {/* Electronic Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={electronicConsent}
-          onPress={handleElectronicConsentToggle}
+          isSelected={electronicConsent}
+          onChange={handleElectronicConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -706,15 +714,15 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-electronic-consent-checkbox"
         />
       )}
       {/* Coinme Terms Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={coinmeConsent}
-          onPress={handleCoinmeConsentToggle}
+          isSelected={coinmeConsent}
+          onChange={handleCoinmeConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -739,15 +747,15 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-coinme-terms-checkbox"
         />
       )}
       {/* CRB Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={crbConsent}
-          onPress={handleCrbConsentToggle}
+          isSelected={crbConsent}
+          onChange={handleCrbConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -798,7 +806,7 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-crb-consent-checkbox"
         />
       )}

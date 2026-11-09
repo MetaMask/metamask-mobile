@@ -1,6 +1,5 @@
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
@@ -69,33 +68,71 @@ export function isNetworkError(error: unknown): boolean {
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-export function createDepositErrorToast(
-  theme: {
-    colors: { error: { default: string }; accent04: { normal: string } };
-  },
-  onRetry?: () => void,
-) {
-  return {
-    variant: ToastVariants.Icon as const,
-    labelOptions: [
-      { label: strings('predict.deposit.error_title'), isBold: true },
-      { label: '\n', isBold: false },
-      {
-        label: strings('predict.deposit.error_description'),
-        isBold: false,
-      },
-    ],
-    iconName: IconName.Error,
-    iconColor: theme.colors.error.default,
-    backgroundColor: theme.colors.accent04.normal,
+/**
+ * Error messages that mean the order book cannot match the order at all:
+ * an empty/missing book, or depth too thin to fill the order size. The
+ * retry flow must never submit into one of these — it shows a no-match
+ * outcome instead. Covers the provider's typed codes plus the raw messages
+ * the sell matcher throws when bids exist but depth is insufficient.
+ *
+ * Built at call time: some suites partially mock the errors constants, so
+ * dereferencing PREDICT_ERROR_CODES at module load would break them.
+ */
+function getNoMatchErrorMessages(): string[] {
+  return [
+    PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+    PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY,
+    PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL,
+    'no order match',
+    'not enough bids to match user share amount',
+  ];
+}
+
+/**
+ * Determines whether a preview/order error means the book cannot match the
+ * order at all (empty book or insufficient depth), as opposed to a transient
+ * failure where a retry could still succeed.
+ *
+ * @param error - The caught error (Error, string, or unknown)
+ * @returns true when the error means there is no executable match
+ */
+export function isPredictNoMatchError(error: unknown): boolean {
+  if (!error) {
+    return false;
+  }
+  // Exact-match classification: only Error messages and plain strings can
+  // match. Any other payload (structured objects, numbers) has no meaning
+  // here and must not be stringified into '[object Object]'.
+  let message: string;
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  } else {
+    return false;
+  }
+  return getNoMatchErrorMessages().includes(message);
+}
+
+export function showDepositErrorToast(onRetry?: () => void): void {
+  const content = {
+    title: strings('predict.deposit.error_title'),
+    description: strings('predict.deposit.error_description'),
+    severity: ToastSeverity.Danger,
     hasNoTimeout: false,
-    ...(onRetry && {
-      linkButtonOptions: {
-        label: strings('predict.deposit.try_again'),
-        onPress: onRetry,
-      },
-    }),
+    showCloseButton: false,
   };
+
+  if (onRetry) {
+    toast({
+      ...content,
+      actionButtonLabel: strings('predict.deposit.try_again'),
+      actionButtonOnPress: onRetry,
+    });
+    return;
+  }
+
+  toast(content);
 }
 
 export function parseErrorMessage({

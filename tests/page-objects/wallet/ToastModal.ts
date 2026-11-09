@@ -6,22 +6,22 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { sleep } from '../../framework/Utilities';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 const DEFAULT_TOAST_DISMISS_TIMEOUT_MS = 15_000;
 const DEFAULT_TOAST_APPEAR_TIMEOUT_MS = 5_000;
 const TOAST_POLL_INTERVAL_MS = 250;
 
 class ToastModal {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
   }
 
-  get notificationTitle(): EncapsulatedElementType {
+  get notificationTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
-  get toastCloseButton(): EncapsulatedElementType {
+  get toastCloseButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON);
   }
 

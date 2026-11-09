@@ -7,6 +7,7 @@ import type { QuickBuySheetSource } from '../../QuickBuy/analytics';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from '../../QuickBuy/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
@@ -16,6 +17,7 @@ export interface AssetDetailsQuickBuyProps {
   onClose: () => void;
   /** Analytics surface reported as the QuickBuy `source`. Defaults to `'asset_details'`. */
   source?: QuickBuySheetSource;
+  initialTradeMode?: QuickBuyTradeMode;
 }
 
 /**
@@ -29,6 +31,7 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
   token,
   onClose,
   source = 'asset_details',
+  initialTradeMode,
 }) => {
   // Read only the primitive fields the target depends on, so unrelated
   // `TokenDetailsRouteParams` changes (balance, price, etc.) don't produce a
@@ -65,6 +68,7 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
       target={target}
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
+      initialTradeMode={initialTradeMode}
       analyticsContext={analyticsContext}
     />
   );

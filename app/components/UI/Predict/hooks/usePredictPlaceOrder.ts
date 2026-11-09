@@ -17,7 +17,13 @@ import {
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
-import { PlaceOrderParams, Side, type Result } from '../types';
+import {
+  PlaceOrderParams,
+  Side,
+  type OrderPreview,
+  type PredictRetryOrderState,
+  type Result,
+} from '../types';
 import { formatPrice } from '../utils/format';
 import {
   getPredictBuyAllInCost,
@@ -49,6 +55,14 @@ interface UsePredictPlaceOrderReturn {
   isLoading: boolean;
   result: Result | null;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
+  /**
+   * The preview behind the most recent submit attempt (original order or
+   * retry). The retry flow uses its price as the baseline for the 1-tick
+   * honesty rule: the last price the user actually confirmed.
+   */
+  lastSubmittedPreview: OrderPreview | null;
+  /** Retry-guard state derived from the submit lifecycle. */
+  retryOrderState: PredictRetryOrderState;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   showOrderPlacedToast: () => void;
@@ -75,6 +89,27 @@ export type PlaceOrderOutcome =
     };
 
 /**
+ * Authoritative order state for the retry guard, derived from this hook's
+ * submit lifecycle. A canceled order surfaces as a plain error here, never
+ * as not-filled, so the retry path is never entered for it.
+ */
+function getPlaceOrderRetryState({
+  isLoading,
+  result,
+}: {
+  isLoading: boolean;
+  result: Result | null;
+}): PredictRetryOrderState {
+  if (isLoading) {
+    return 'pending';
+  }
+  if (result?.success) {
+    return 'filled';
+  }
+  return 'unknown';
+}
+
+/**
  * Hook for placing Predict orders with loading states and error handling
  * @param options Configuration options for the hook
  * @returns Order placement utilities and state
@@ -88,6 +123,8 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
+  const [lastSubmittedPreview, setLastSubmittedPreview] =
+    useState<OrderPreview | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
@@ -185,6 +222,7 @@ export function usePredictPlaceOrder(
       // Disable the CTA before the pre-submit balance refresh.
       setIsLoading(true);
       setError(undefined);
+      setLastSubmittedPreview(orderParams.preview);
 
       const { side } = orderParams.preview;
 
@@ -305,6 +343,7 @@ export function usePredictPlaceOrder(
   const resetOrderNotFilled = useCallback(() => {
     setIsOrderNotFilled(false);
     setError(undefined);
+    setLastSubmittedPreview(null);
   }, []);
 
   return {
@@ -312,6 +351,8 @@ export function usePredictPlaceOrder(
     isLoading,
     result,
     placeOrder,
+    lastSubmittedPreview,
+    retryOrderState: getPlaceOrderRetryState({ isLoading, result }),
     isOrderNotFilled,
     resetOrderNotFilled,
     showOrderPlacedToast,

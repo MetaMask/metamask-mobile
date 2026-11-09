@@ -1,29 +1,40 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
+  BoxBackgroundColor,
+  Button,
   FontWeight,
+  IconName,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
+  TextField,
   TextVariant,
-  Button,
-  BoxBackgroundColor,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useNavigation } from '@react-navigation/native';
-import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   QRTabSwitcherScreens,
-  type ScanSuccess,
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
@@ -38,51 +49,97 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
-const Points = ({
-  number,
-  children,
-}: {
-  number: number;
-  children: React.ReactNode;
-}) => (
-  <Box twClassName="flex-row items-center gap-2">
-    <Box
-      backgroundColor={BoxBackgroundColor.BackgroundSection}
-      twClassName="w-8 h-8 rounded-full items-center justify-center"
+const SettingsPathDescription = () => (
+  <Text
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
+  >
+    {strings('app_settings.add_device.points.two_description_prefix')}{' '}
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Bold}
+      color={TextColor.TextAlternative}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        {number}
-      </Text>
-    </Box>
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-      {children}
+      {strings('app_settings.add_device.points.two_description_path')}
     </Text>
-  </Box>
+  </Text>
 );
+
+const INSTRUCTIONS: {
+  iconName: IconName;
+  titleKey: string;
+  descriptionKey?: string;
+}[] = [
+  {
+    iconName: IconName.Monitor,
+    titleKey: 'app_settings.add_device.points.one_title',
+    descriptionKey: 'app_settings.add_device.points.one_description',
+  },
+  {
+    iconName: IconName.Setting,
+    titleKey: 'app_settings.add_device.points.two_title',
+  },
+  {
+    iconName: IconName.QrCode,
+    titleKey: 'app_settings.add_device.points.three_title',
+    descriptionKey: 'app_settings.add_device.points.three_description',
+  },
+  {
+    iconName: IconName.Key,
+    titleKey: 'app_settings.add_device.points.four_title',
+    descriptionKey: 'app_settings.add_device.points.four_description',
+  },
+];
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
+  const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
+  // Import and existing-user Phase C pop this screen while they still read
+  // pending secrets and provisioning metadata.
+  const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
 
   const handleBack = useCallback(() => {
-    Engine.context.QrSyncController.resetState();
     navigation.goBack();
   }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (shouldKeepQrSyncState) {
+        return;
+      }
+
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
+  }, [messenger, navigation, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -112,37 +169,40 @@ const AddDeviceToWallet = () => {
     enabled: !isScannerOpen,
   });
 
-  const submitQrPayload = useCallback(async (qrPayload: string) => {
-    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
-  }, []);
-
-  const onScanSuccess = useCallback(
-    (data: ScanSuccess, content?: string) => {
-      const scannedQrPayload = content ?? data.content ?? '';
-
-      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
-        reportQrSyncFailure(err, {
-          surface: QrSyncSurfaces.SCANNER,
-          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-        });
-      });
-    },
-    [submitQrPayload],
-  );
-
   const openQRScanner = useCallback(() => {
     if (isSessionActive) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
+    // Do not pass a messenger-bound onScanSuccess. QRTabSwitcher submits the
+    // payload on its own live route messenger.
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Scanner,
       disableTabber: true,
       origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-      onScanSuccess,
     });
-  }, [navigation, onScanSuccess, isSessionActive]);
+  }, [messenger, navigation, isSessionActive]);
+
+  const submitManualQrPayload = useCallback(async () => {
+    const payload = manualQrPayload.trim();
+    if (!payload) {
+      return;
+    }
+
+    await messenger.call('QrSyncController:handleScannedQrPayload', payload);
+  }, [manualQrPayload, messenger]);
+
+  const triggerManualQrSubmit = useCallback(() => {
+    submitManualQrPayload().catch((submitError: unknown) => {
+      reportQrSyncFailure(submitError, {
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+      });
+    });
+  }, [submitManualQrPayload]);
 
   if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
@@ -154,62 +214,93 @@ const AddDeviceToWallet = () => {
       style={tw.style('flex-1 bg-default')}
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
-      <HeaderCompactStandard onBack={handleBack} includesTopInset />
-      <Box twClassName="flex-1 gap-5 px-4 py-4">
-        <Image
-          source={addDeviceToWalletImage}
-          style={tw.style('w-[130px] h-[130px] mx-auto')}
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        onBack={handleBack}
+      />
+      <Box twClassName="flex-1 pt-3" style={{ marginTop: headerInset }}>
+        <TitleStandard
+          twClassName="mb-2 px-4"
+          title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          {strings('app_settings.add_device.add_device_to_wallet')}
-        </Text>
+        {INSTRUCTIONS.map((instruction) => (
+          <ListItem
+            key={instruction.titleKey}
+            variant={ListItemVariant.TwoLines}
+            avatar={
+              <AvatarIcon
+                iconName={instruction.iconName}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={strings(instruction.titleKey)}
+            description={
+              instruction.descriptionKey ? (
+                strings(instruction.descriptionKey)
+              ) : (
+                <SettingsPathDescription />
+              )
+            }
+          />
+        ))}
 
-        <Box twClassName="flex-col gap-4 mt-2">
-          <Points number={1}>
-            {strings('app_settings.add_device.points.one')}
-          </Points>
-          <Points number={2}>
-            {strings('app_settings.add_device.points.two')}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('app_settings.add_device.points.two_bold_one')}
-            </Text>{' '}
-            {strings('app_settings.add_device.points.two_icon')}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('app_settings.add_device.points.two_bold_two')}
-            </Text>
-          </Points>
-          <Points number={3}>
-            {strings('app_settings.add_device.points.three')}
-          </Points>
-          <Points number={4}>
-            {strings('app_settings.add_device.points.four')}
-          </Points>
-        </Box>
-
-        <Box twClassName="mt-auto gap-4">
-          <Button
-            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
-            twClassName="w-full"
-            onPress={openQRScanner}
-            isDisabled={isBusy}
-            isLoading={isBusy}
+        {__DEV__ ? (
+          <Box
+            backgroundColor={BoxBackgroundColor.BackgroundSection}
+            twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
           >
-            {strings('app_settings.add_device.scan_qr_code_button')}
-          </Button>
-        </Box>
+            <Box gap={1}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+            </Box>
+            <TextField
+              value={manualQrPayload}
+              onChangeText={setManualQrPayload}
+              placeholder="Paste QR payload"
+              isDisabled={isBusy}
+              inputProps={{
+                autoCapitalize: 'none',
+                autoCorrect: false,
+                onSubmitEditing: triggerManualQrSubmit,
+                returnKeyType: 'done',
+              }}
+            />
+            <Button
+              twClassName="w-full"
+              onPress={triggerManualQrSubmit}
+              isDisabled={!manualQrPayload.trim() || isBusy}
+              isLoading={isBusy}
+            >
+              Submit QR data
+            </Button>
+          </Box>
+        ) : null}
+
+        <FooterGlass
+          twClassName="mt-auto py-2"
+          primaryButtonProps={{
+            children: strings('app_settings.add_device.scan_qr_code_button'),
+            onPress: openQRScanner,
+            isDisabled: isBusy,
+            isLoading: isBusy,
+            testID: AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
+          }}
+        />
       </Box>
     </SafeAreaView>
   );

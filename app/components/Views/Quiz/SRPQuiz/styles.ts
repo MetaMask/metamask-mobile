@@ -6,7 +6,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    screen: { justifyContent: 'center' },
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,

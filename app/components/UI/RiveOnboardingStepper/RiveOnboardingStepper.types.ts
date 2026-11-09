@@ -1,5 +1,5 @@
 import type { ViewStyle } from 'react-native';
-import type { Alignment, Fit } from 'rive-react-native';
+import type { Alignment, Fit } from '@rive-app/react-native';
 import type {
   ButtonVariant,
   IconColor,

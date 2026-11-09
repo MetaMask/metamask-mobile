@@ -222,7 +222,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       if (!assetIdBelongsToChain(assetId, caipChainId)) {
         return;
       }
-      if (assetPreferences[assetId]?.hidden === true) {
+      if (assetPreferences[assetId as CaipAssetType]?.hidden === true) {
         return;
       }
       const addressKey = addressKeyFromAssetId(assetId, isNonEvm);
@@ -464,6 +464,9 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
               onBlur={() => setFocusState(false)}
               autoFocus={false}
               placeholder={strings('token.search_tokens_placeholder')}
+              inputAccessibilityLabel={strings(
+                'token.search_tokens_placeholder',
+              )}
             />
           </Box>
         </Box>

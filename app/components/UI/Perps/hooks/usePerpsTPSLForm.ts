@@ -20,6 +20,7 @@ import {
   getTakeProfitErrorDirection,
   hasExceededSignificantFigures,
   hasTPSLValuesChanged,
+  isPositiveTriggerPrice,
   isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
@@ -29,6 +30,35 @@ import {
   validateTPSLPrices,
 } from '../utils/tpslValidation';
 import { usePerpsOrderFees } from './usePerpsOrderFees';
+
+/** Sign shown on the RoE badge and applied to the RoE value sent to the order. */
+export type TpslRoeSign = '+' | '-';
+
+const TAKE_PROFIT_DEFAULT_SIGN: TpslRoeSign = '+';
+const STOP_LOSS_DEFAULT_SIGN: TpslRoeSign = '-';
+
+const flipSign = (sign: TpslRoeSign): TpslRoeSign => (sign === '+' ? '-' : '+');
+
+/** Apply a badge sign to an unsigned RoE magnitude. */
+const applyRoeSign = (sign: TpslRoeSign, magnitude: number): number =>
+  sign === '-' ? -Math.abs(magnitude) : Math.abs(magnitude);
+
+/** Sign of a derived RoE string, falling back when it is empty / zero. */
+const roeSignFromValue = (roe: string, fallback: TpslRoeSign): TpslRoeSign => {
+  const parsed = Number.parseFloat(roe);
+  if (!roe || Number.isNaN(parsed) || parsed === 0) return fallback;
+  return parsed < 0 ? '-' : '+';
+};
+
+/** Format a signed RoE string as an unsigned magnitude for storage. */
+const toRoeMagnitude = (roe: string): string => {
+  const parsed = Number.parseFloat(roe);
+  if (!roe || Number.isNaN(parsed)) return '';
+  return safeParseRoEPercentage(Math.abs(parsed).toString());
+};
+
+/** Strip any leading sign so the RoE input only carries a magnitude. */
+const stripRoeSign = (text: string): string => text.replace(/[+\-–—]/g, '');
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -59,6 +89,8 @@ interface TPSLFormState {
   slPercentInputFocused: boolean;
   tpUsingPercentage: boolean;
   slUsingPercentage: boolean;
+  takeProfitSign: TpslRoeSign;
+  stopLossSign: TpslRoeSign;
 }
 
 interface TPSLFormHandlers {
@@ -81,6 +113,8 @@ interface TPSLFormButtons {
   handleStopLossPercentageButton: (roePercentage: number) => void;
   handleTakeProfitOff: () => void;
   handleStopLossOff: () => void;
+  handleTakeProfitSignToggle: () => void;
+  handleStopLossSignToggle: () => void;
 }
 
 interface TPSLFormValidation {
@@ -105,6 +139,32 @@ export interface UsePerpsTPSLFormReturn {
   validation: TPSLFormValidation;
   display: TPSLFormDisplay;
 }
+
+/**
+ * Resolves the inline error for one trigger price field.
+ *
+ * A non-positive price is reported first: it is rejected by the protocol
+ * regardless of which side of the reference price it falls on, and the
+ * direction rules on their own would let it through.
+ *
+ * @param price - The current trigger price value, empty when the field is unset
+ * @param isOnValidSide - Whether the price sits on the correct side of the reference price
+ * @param getWrongSideMessage - Builds the direction-specific message for a wrong-side price
+ * @returns The message to show under the field, or an empty string when there is nothing to report
+ */
+const resolveTriggerPriceError = (
+  price: string,
+  isOnValidSide: boolean,
+  getWrongSideMessage: () => string,
+): string => {
+  if (!price) return '';
+
+  if (!isPositiveTriggerPrice(price)) {
+    return strings('perps.tpsl.trigger_price_must_be_positive');
+  }
+
+  return isOnValidSide ? '' : getWrongSideMessage();
+};
 
 /**
  * Custom hook to manage TPSL form state, validation, and business logic
@@ -169,6 +229,16 @@ export function usePerpsTPSLForm(
   const [tpUsingPercentage, setTpUsingPercentage] = useState(false);
   const [slUsingPercentage, setSlUsingPercentage] = useState(false);
 
+  // RoE sign per section. The badge owns the sign; the percentage input only
+  // carries an unsigned magnitude. Signed RoE (sign × magnitude) drives the
+  // trigger-price math and the confirm payload.
+  const [takeProfitSign, setTakeProfitSign] = useState<TpslRoeSign>(
+    TAKE_PROFIT_DEFAULT_SIGN,
+  );
+  const [stopLossSign, setStopLossSign] = useState<TpslRoeSign>(
+    STOP_LOSS_DEFAULT_SIGN,
+  );
+
   // Calculate derived values
   const currentPrice =
     initialCurrentPrice ||
@@ -211,9 +281,13 @@ export function usePerpsTPSLForm(
               entryPrice,
             },
           );
-          setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+          setTakeProfitPercentage(toRoeMagnitude(roePercent));
+          setTakeProfitSign(
+            roeSignFromValue(roePercent, TAKE_PROFIT_DEFAULT_SIGN),
+          );
         } else {
           setTakeProfitPercentage('');
+          setTakeProfitSign(TAKE_PROFIT_DEFAULT_SIGN);
         }
 
         if (initialStopLossPrice) {
@@ -228,10 +302,15 @@ export function usePerpsTPSLForm(
               entryPrice,
             },
           );
-          setStopLossPercentage(safeParseRoEPercentage(roePercent));
+          setStopLossPercentage(toRoeMagnitude(roePercent));
+          setStopLossSign(roeSignFromValue(roePercent, STOP_LOSS_DEFAULT_SIGN));
         } else {
           setStopLossPercentage('');
+          setStopLossSign(STOP_LOSS_DEFAULT_SIGN);
         }
+      } else {
+        setTakeProfitSign(TAKE_PROFIT_DEFAULT_SIGN);
+        setStopLossSign(STOP_LOSS_DEFAULT_SIGN);
       }
 
       // Clear selection states when reopening
@@ -273,7 +352,10 @@ export function usePerpsTPSLForm(
             entryPrice,
           },
         );
-        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+        setTakeProfitPercentage(toRoeMagnitude(roePercent));
+        setTakeProfitSign(
+          roeSignFromValue(roePercent, TAKE_PROFIT_DEFAULT_SIGN),
+        );
         // Only clear button selection if leverage changed (not on price updates)
         if (leverageChanged) {
           setSelectedTpPercentage(null);
@@ -298,7 +380,8 @@ export function usePerpsTPSLForm(
             entryPrice,
           },
         );
-        setStopLossPercentage(safeParseRoEPercentage(roePercent));
+        setStopLossPercentage(toRoeMagnitude(roePercent));
+        setStopLossSign(roeSignFromValue(roePercent, STOP_LOSS_DEFAULT_SIGN));
         // Only clear button selection if leverage changed (not on price updates)
         if (leverageChanged) {
           setSelectedSlPercentage(null);
@@ -365,7 +448,10 @@ export function usePerpsTPSLForm(
           entryPrice,
         });
         if (roePercent && roePercent !== '') {
-          setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+          setTakeProfitPercentage(toRoeMagnitude(roePercent));
+          setTakeProfitSign(
+            roeSignFromValue(roePercent, TAKE_PROFIT_DEFAULT_SIGN),
+          );
         }
       } else if (!sanitized) {
         setTakeProfitPercentage('');
@@ -386,13 +472,14 @@ export function usePerpsTPSLForm(
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
       const finalValue = sanitizePercentageInput(
-        text,
+        stripRoeSign(text),
         takeProfitPercentage,
         DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
-      setTakeProfitPercentage(finalValue);
+      const magnitudeText = stripRoeSign(finalValue);
+      setTakeProfitPercentage(magnitudeText);
 
       // Set percentage as source of truth when user is actively typing
       setTpSourceOfTruth('percentage');
@@ -402,11 +489,12 @@ export function usePerpsTPSLForm(
       // gate on tpPriceInputFocused — a stale true value (e.g. due to iOS
       // focus/blur ordering) must not silently block the auto-fill.
       if (
-        finalValue &&
-        !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
+        magnitudeText &&
+        !Number.isNaN(Number.parseFloat(magnitudeText.replace(' ', ''))) &&
         leverage
       ) {
-        const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
+        const magnitude = Number.parseFloat(magnitudeText.replace(' ', ''));
+        const roeValue = applyRoeSign(takeProfitSign, magnitude);
         const price = calculatePriceForRoE(roeValue, true, {
           currentPrice,
           direction: actualDirection,
@@ -420,13 +508,20 @@ export function usePerpsTPSLForm(
         );
         setTakeProfitPrice(roundedPrice);
         setSelectedTpPercentage(roeValue);
-      } else if (!finalValue) {
+      } else if (!magnitudeText) {
         setTakeProfitPrice('');
         setSelectedTpPercentage(null);
       }
       setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection, leverage, entryPrice, takeProfitPercentage],
+    [
+      currentPrice,
+      actualDirection,
+      leverage,
+      entryPrice,
+      takeProfitPercentage,
+      takeProfitSign,
+    ],
   );
 
   const handleStopLossPriceChange = useCallback(
@@ -472,9 +567,9 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        // Always show stop loss RoE as positive (it's a loss magnitude)
         if (roePercent && roePercent !== '') {
-          setStopLossPercentage(safeParseRoEPercentage(roePercent));
+          setStopLossPercentage(toRoeMagnitude(roePercent));
+          setStopLossSign(roeSignFromValue(roePercent, STOP_LOSS_DEFAULT_SIGN));
         }
       } else if (!sanitized) {
         setStopLossPercentage('');
@@ -495,13 +590,14 @@ export function usePerpsTPSLForm(
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
       const finalValue = sanitizePercentageInput(
-        text,
+        stripRoeSign(text),
         stopLossPercentage,
         DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
-      setStopLossPercentage(finalValue);
+      const magnitudeText = stripRoeSign(finalValue);
+      setStopLossPercentage(magnitudeText);
 
       // Set percentage as source of truth when user is actively typing
       setSlSourceOfTruth('percentage');
@@ -511,11 +607,12 @@ export function usePerpsTPSLForm(
       // gate on slPriceInputFocused — a stale true value (e.g. due to iOS
       // focus/blur ordering) must not silently block the auto-fill.
       if (
-        finalValue &&
-        !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
+        magnitudeText &&
+        !Number.isNaN(Number.parseFloat(magnitudeText.replace(' ', ''))) &&
         leverage
       ) {
-        const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
+        const magnitude = Number.parseFloat(magnitudeText.replace(' ', ''));
+        const roeValue = applyRoeSign(stopLossSign, magnitude);
         const price = calculatePriceForRoE(roeValue, false, {
           currentPrice,
           direction: actualDirection,
@@ -528,14 +625,21 @@ export function usePerpsTPSLForm(
           DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
         );
         setStopLossPrice(roundedPrice);
-        setSelectedSlPercentage(roeValue); // Store absolute value for button comparison
-      } else if (!finalValue) {
+        setSelectedSlPercentage(roeValue);
+      } else if (!magnitudeText) {
         setStopLossPrice('');
         setSelectedSlPercentage(null);
       }
       setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection, leverage, entryPrice, stopLossPercentage],
+    [
+      currentPrice,
+      actualDirection,
+      leverage,
+      entryPrice,
+      stopLossPercentage,
+      stopLossSign,
+    ],
   );
 
   // Focus/blur event handlers to manage source of truth and prevent input interference
@@ -567,8 +671,11 @@ export function usePerpsTPSLForm(
         },
       );
       if (roePercent && roePercent !== '') {
-        const formattedPercent = safeParseRoEPercentage(roePercent);
+        const formattedPercent = toRoeMagnitude(roePercent);
         setTakeProfitPercentage(formattedPercent);
+        setTakeProfitSign(
+          roeSignFromValue(roePercent, TAKE_PROFIT_DEFAULT_SIGN),
+        );
 
         // If percentage was clamped to 0, sync price to match 0% RoE
         if (formattedPercent === '0') {
@@ -612,7 +719,10 @@ export function usePerpsTPSLForm(
       leverage &&
       !Number.isNaN(Number.parseFloat(takeProfitPercentage.replace(' ', '')))
     ) {
-      const roeValue = Number.parseFloat(takeProfitPercentage.replace(' ', ''));
+      const magnitude = Number.parseFloat(
+        takeProfitPercentage.replace(' ', ''),
+      );
+      const roeValue = applyRoeSign(takeProfitSign, magnitude);
       const price = calculatePriceForRoE(roeValue, true, {
         currentPrice,
         direction: actualDirection,
@@ -628,6 +738,7 @@ export function usePerpsTPSLForm(
     }
   }, [
     takeProfitPercentage,
+    takeProfitSign,
     leverage,
     currentPrice,
     actualDirection,
@@ -662,8 +773,9 @@ export function usePerpsTPSLForm(
         },
       );
       if (roePercent && roePercent !== '') {
-        const formattedPercent = safeParseRoEPercentage(roePercent);
+        const formattedPercent = toRoeMagnitude(roePercent);
         setStopLossPercentage(formattedPercent);
+        setStopLossSign(roeSignFromValue(roePercent, STOP_LOSS_DEFAULT_SIGN));
 
         // If percentage was clamped to 0, sync price to match 0% RoE
         if (formattedPercent === '0') {
@@ -707,7 +819,8 @@ export function usePerpsTPSLForm(
       leverage &&
       !Number.isNaN(Number.parseFloat(stopLossPercentage.replace(' ', '')))
     ) {
-      const roeValue = Number.parseFloat(stopLossPercentage.replace(' ', '')); // Negative for loss
+      const magnitude = Number.parseFloat(stopLossPercentage.replace(' ', ''));
+      const roeValue = applyRoeSign(stopLossSign, magnitude);
       const price = calculatePriceForRoE(roeValue, false, {
         currentPrice,
         direction: actualDirection,
@@ -721,7 +834,14 @@ export function usePerpsTPSLForm(
       );
       setStopLossPrice(roundedPrice);
     }
-  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
+  }, [
+    stopLossPercentage,
+    stopLossSign,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+  ]);
 
   // Button handlers for percentage quick-select
   const handleTakeProfitPercentageButton = useCallback(
@@ -764,8 +884,9 @@ export function usePerpsTPSLForm(
           '',
         );
         setTakeProfitPrice(sanitizedPriceString);
-        setTakeProfitPercentage(
-          safeParseRoEPercentage(roePercentage.toString()),
+        setTakeProfitPercentage(toRoeMagnitude(roePercentage.toString()));
+        setTakeProfitSign(
+          roeSignFromValue(roePercentage.toString(), TAKE_PROFIT_DEFAULT_SIGN),
         );
         setSelectedTpPercentage(roePercentage);
         setTpUsingPercentage(true);
@@ -821,8 +942,10 @@ export function usePerpsTPSLForm(
           '',
         );
         setStopLossPrice(sanitizedPriceString);
-        // Show the percentage as positive in the UI (magnitude of loss)
-        setStopLossPercentage(safeParseRoEPercentage(roePercentage.toString()));
+        setStopLossPercentage(toRoeMagnitude(roePercentage.toString()));
+        setStopLossSign(
+          roeSignFromValue(roePercentage.toString(), STOP_LOSS_DEFAULT_SIGN),
+        );
       } else {
         DevLogger.log(
           '[TPSL Debug] Invalid stop loss price calculated, not updating',
@@ -840,6 +963,7 @@ export function usePerpsTPSLForm(
   const handleTakeProfitOff = useCallback(() => {
     setTakeProfitPrice('');
     setTakeProfitPercentage('');
+    setTakeProfitSign(TAKE_PROFIT_DEFAULT_SIGN);
     setSelectedTpPercentage(null);
     setTpUsingPercentage(false);
     setTpSourceOfTruth(null);
@@ -848,10 +972,81 @@ export function usePerpsTPSLForm(
   const handleStopLossOff = useCallback(() => {
     setStopLossPrice('');
     setStopLossPercentage('');
+    setStopLossSign(STOP_LOSS_DEFAULT_SIGN);
     setSelectedSlPercentage(null);
     setSlUsingPercentage(false);
     setSlSourceOfTruth(null);
   }, []);
+
+  // Sign toggle. Flipping keeps the entered RoE magnitude and recomputes the
+  // trigger so the return switches between positive and negative.
+  const handleTakeProfitSignToggle = useCallback(() => {
+    const nextSign = flipSign(takeProfitSign);
+    setTakeProfitSign(nextSign);
+
+    const magnitude = Number.parseFloat(takeProfitPercentage);
+    if (takeProfitPercentage && !Number.isNaN(magnitude) && leverage) {
+      setTpSourceOfTruth('percentage');
+      setTpUsingPercentage(true);
+      const price = calculatePriceForRoE(
+        applyRoeSign(nextSign, magnitude),
+        true,
+        {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        },
+      );
+      setTakeProfitPrice(
+        roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ),
+      );
+    }
+  }, [
+    takeProfitSign,
+    takeProfitPercentage,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+  ]);
+
+  const handleStopLossSignToggle = useCallback(() => {
+    const nextSign = flipSign(stopLossSign);
+    setStopLossSign(nextSign);
+
+    const magnitude = Number.parseFloat(stopLossPercentage);
+    if (stopLossPercentage && !Number.isNaN(magnitude) && leverage) {
+      setSlSourceOfTruth('percentage');
+      setSlUsingPercentage(true);
+      const price = calculatePriceForRoE(
+        applyRoeSign(nextSign, magnitude),
+        false,
+        {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        },
+      );
+      setStopLossPrice(
+        roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ),
+      );
+    }
+  }, [
+    stopLossSign,
+    stopLossPercentage,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+  ]);
 
   // Validation logic
   // For existing positions, always validate against current price to allow setting TP/SL
@@ -889,28 +1084,32 @@ export function usePerpsTPSLForm(
   );
 
   // Take Profit Errors
-  const takeProfitError =
-    !isValidTakeProfitPrice(takeProfitPrice, {
+  const takeProfitError = resolveTriggerPriceError(
+    takeProfitPrice,
+    isValidTakeProfitPrice(takeProfitPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && takeProfitPrice
-      ? strings('perps.tpsl.take_profit_invalid_price', {
-          direction: getTakeProfitErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.take_profit_invalid_price', {
+        direction: getTakeProfitErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   // Stop Loss Errors
-  const stopLossError =
-    !isValidStopLossPrice(stopLossPrice, {
+  const stopLossError = resolveTriggerPriceError(
+    stopLossPrice,
+    isValidStopLossPrice(stopLossPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && stopLossPrice
-      ? strings('perps.tpsl.stop_loss_invalid_price', {
-          direction: getStopLossErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.stop_loss_invalid_price', {
+        direction: getStopLossErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   const stopLossLiquidationError =
     !isStopLossSafeFromLiquidation(
@@ -927,11 +1126,13 @@ export function usePerpsTPSLForm(
   const formattedTakeProfitPercentage = formatRoEPercentageDisplay(
     takeProfitPercentage,
     tpPercentInputFocused,
+    false,
   );
 
   const formattedStopLossPercentage = formatRoEPercentageDisplay(
     stopLossPercentage,
     slPercentInputFocused,
+    false,
   );
 
   // Calculate position size for expected P&L calculations
@@ -1024,6 +1225,8 @@ export function usePerpsTPSLForm(
       slPercentInputFocused,
       tpUsingPercentage,
       slUsingPercentage,
+      takeProfitSign,
+      stopLossSign,
     },
     handlers: {
       handleTakeProfitPriceChange,
@@ -1044,6 +1247,8 @@ export function usePerpsTPSLForm(
       handleStopLossPercentageButton,
       handleTakeProfitOff,
       handleStopLossOff,
+      handleTakeProfitSignToggle,
+      handleStopLossSignToggle,
     },
     validation: {
       isValid,

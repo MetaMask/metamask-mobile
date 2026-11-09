@@ -73,7 +73,6 @@ describe('navigateToTransactionDetails', () => {
     navigateToTransactionDetails(navigation, {
       transactionId: 'tx-meta-id',
       initialTypeFilter: ActivityTypeFilter.Predictions,
-      isTransactionsRedesignEnabled: true,
       chainId: 'eip155:137',
     });
 
@@ -90,23 +89,6 @@ describe('navigateToTransactionDetails', () => {
 
     navigateToTransactionDetails(navigation, {
       transactionId: 'tx-meta-id',
-      isTransactionsRedesignEnabled: true,
-    });
-
-    expect(navigation.navigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.TRANSACTION_DETAILS,
-      { transactionId: 'tx-meta-id' },
-    );
-  });
-
-  it('keeps the legacy details screen when the redesign is disabled', () => {
-    const navigation = createNavigation();
-
-    navigateToTransactionDetails(navigation, {
-      transactionId: 'tx-meta-id',
-      isTransactionsRedesignEnabled: false,
-      chainId: 'eip155:137',
     });
 
     expect(navigation.navigate).toHaveBeenNthCalledWith(

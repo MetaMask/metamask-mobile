@@ -216,12 +216,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          screen: 'AddBookmark',
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://example.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('renders bookmark button for bookmarked page', () => {
@@ -391,10 +390,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          screen: 'AddBookmark',
-          params: expect.objectContaining({
-            title: '',
-          }),
+          title: '',
         }),
       );
     });
@@ -649,12 +645,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          screen: 'AddBookmark',
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://new-site.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('does not navigate when bookmark exists for URL', () => {
@@ -722,12 +717,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          screen: 'AddBookmark',
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://example.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('uses empty string for title when title prop is empty', () => {
@@ -741,10 +735,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          screen: 'AddBookmark',
-          params: expect.objectContaining({
-            title: '',
-          }),
+          title: '',
         }),
       );
     });
@@ -762,10 +753,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          screen: 'AddBookmark',
-          params: expect.objectContaining({
-            url: 'custom-masked-url',
-          }),
+          url: 'custom-masked-url',
         }),
       );
     });
@@ -779,8 +767,8 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      expect(navigateCall[1].params.onAddBookmark).toBeDefined();
-      expect(typeof navigateCall[1].params.onAddBookmark).toBe('function');
+      expect(navigateCall[1].onAddBookmark).toBeDefined();
+      expect(typeof navigateCall[1].onAddBookmark).toBe('function');
     });
 
     it('tracks BROWSER_ADD_FAVORITES and DAPP_ADD_TO_FAVORITE analytics events with properties', () => {
@@ -830,7 +818,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -868,7 +856,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -893,7 +881,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -922,7 +910,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -946,7 +934,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -965,7 +953,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark Name',
@@ -988,7 +976,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Custom Bookmark Name',
@@ -1016,7 +1004,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: '',
@@ -1039,7 +1027,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: '',
@@ -1062,7 +1050,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'My Bookmark',
@@ -1088,7 +1076,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -1111,7 +1099,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test Bookmark',
@@ -1133,7 +1121,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: '',
@@ -1156,7 +1144,7 @@ describe('BrowserBottomBar', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
       const navigateCall = mockNavigation.navigate.mock.calls[0];
-      const onAddBookmark = navigateCall[1].params.onAddBookmark;
+      const onAddBookmark = navigateCall[1].onAddBookmark;
 
       await onAddBookmark({
         name: 'Test  Bookmark   Name',

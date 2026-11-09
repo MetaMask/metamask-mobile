@@ -1,4 +1,12 @@
 import Performance from './Performance';
 
-/* eslint-disable-next-line import-x/prefer-default-export */
 export { Performance };
+export {
+  getLastAppProfilePath,
+  getLastAppProfilingError,
+  initializeAppProfiling,
+  isAppProfilingRecording,
+  isPerformanceProfilingEnabled,
+  startAppProfiling,
+  stopAppProfiling,
+} from './appProfiling';

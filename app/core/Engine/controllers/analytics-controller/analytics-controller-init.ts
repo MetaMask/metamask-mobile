@@ -8,7 +8,8 @@ import {
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { hasTestOverrides } from '../../../../util/test/utils';
-import { getBrazePlugin } from '../../../Braze';
+import { getBrazePlugin, syncBrazeEventBlocklist } from '../../../Braze';
+import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY } from '../../../../selectors/featureFlagController/brazeEventBlocklist';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -59,13 +60,18 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsControllerMessenger,
   AnalyticsControllerInitMessenger
 > = ({ controllerMessenger, analyticsId, persistedState, initMessenger }) => {
-  const persistedAnalyticsState = persistedState.AnalyticsController;
+  const persistedAnalyticsState = persistedState.AnalyticsController ?? {};
   const defaultState = getDefaultAnalyticsControllerState();
 
+  // Defaults fill fields added after a user's last launch. The persisted slice
+  // then wins so marketing consent, eventsConfig, and queued payloads survive
+  // restart. analyticsId always comes from MMKV, which is the identity source.
   const state: AnalyticsControllerState = {
-    optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    ...defaultState,
+    ...persistedAnalyticsState,
+    optedIn: persistedAnalyticsState.optedIn ?? defaultState.optedIn,
     consentDecisionMade:
-      persistedAnalyticsState?.consentDecisionMade ??
+      persistedAnalyticsState.consentDecisionMade ??
       defaultState.consentDecisionMade,
     analyticsId,
   };
@@ -90,6 +96,24 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   controller.init().catch((error) => {
     Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
   });
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    ({ remoteFeatureFlags }) => {
+      syncBrazeEventBlocklist(
+        remoteFeatureFlags[BRAZE_EVENT_BLOCKLIST_FLAG_KEY],
+      );
+    },
+  );
+
+  const remoteFeatureFlagState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+  syncBrazeEventBlocklist(
+    remoteFeatureFlagState?.remoteFeatureFlags?.[
+      BRAZE_EVENT_BLOCKLIST_FLAG_KEY
+    ],
+  );
 
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(

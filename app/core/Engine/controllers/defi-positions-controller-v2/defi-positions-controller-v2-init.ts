@@ -7,6 +7,10 @@ import {
   type ApiPlatformClient,
 } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
+import {
+  getBackendApiUrlsOption,
+  isBackendAuthDisabled,
+} from '../../../coreBackendApiUrls';
 import type { MessengerClientInitFunction } from '../../types';
 import { DeFiPositionsControllerV2InitMessenger } from '../../messengers/defi-positions-controller-v2-messenger/defi-positions-controller-v2-messenger';
 import { store } from '../../../../store';
@@ -28,6 +32,9 @@ let apiClient: ApiPlatformClient | null = null;
 async function safeGetBearerToken(
   initMessenger: DeFiPositionsControllerV2InitMessenger,
 ): Promise<string | undefined> {
+  if (isBackendAuthDisabled()) {
+    return undefined;
+  }
   try {
     return await initMessenger.call('AuthenticationController:getBearerToken');
   } catch {
@@ -49,6 +56,7 @@ function getApiClient(
       clientProduct: 'metamask-mobile',
       clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
+      ...getBackendApiUrlsOption(),
     });
   }
   return apiClient;

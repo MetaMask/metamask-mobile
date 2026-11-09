@@ -2,20 +2,20 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PredictUnavailableSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class PredictUnavailableView {
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(PredictUnavailableSelectorsIDs.TITLE_TEXT);
   }
 
-  get description(): EncapsulatedElementType {
+  get description(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PredictUnavailableSelectorsIDs.DESCRIPTION_TEXT,
     );
   }
 
-  get gotItButton(): EncapsulatedElementType {
+  get gotItButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PredictUnavailableSelectorsIDs.BUTTON_TEXT,
     );

@@ -1,27 +1,23 @@
 import BigNumber from 'bignumber.js';
-import type {
-  PredictEvent,
-  PredictGame,
-  PredictMarket,
-  PredictOutcome,
-  PredictTeam,
-} from '../../../types';
+import type { PredictEvent, PredictGame, PredictTeam } from '../../../types';
 import {
   createGamePresentation,
+  findGameTradingQuote,
+  getGameTeamOrder,
   type GameSelection,
+  type GameSelectionQuote,
   type GameStatusLine,
+  type GameTeamOrder,
 } from '../../game';
-import { formatAskPrice } from './formatAskPrice';
+import {
+  formatAskPrice,
+  getAskPricePercent,
+  parsePredictDecimal,
+} from '../../shared/formatting';
 import { formatMultiplier } from './formatMultiplier';
-import { getAskPricePercent } from './getAskPricePercent';
-import { parsePredictDecimal } from './parsePredictDecimal';
 
 export type { GameSelection };
-
-export interface GameCardQuote {
-  market: PredictMarket;
-  outcome: PredictOutcome;
-}
+export type GameCardQuote = GameSelectionQuote;
 
 export interface GameCardTeamProjection {
   team: PredictTeam;
@@ -37,21 +33,11 @@ export interface GameCardProjection {
   teams: Record<GameSelection, GameCardTeamProjection>;
   status: Record<'compact' | 'featured', GameStatusLine>;
   hiddenMarketCount: number;
-  awayProbabilityPercent?: number;
+  /** The order the card lists Teams in, from the Game. */
+  teamOrder: GameTeamOrder;
+  /** The first Team's share of the two Team prices, as a percent. */
+  firstTeamProbabilityPercent?: number;
 }
-
-const findQuote = (
-  event: PredictEvent,
-  selection: GameSelection,
-): GameCardQuote | undefined => {
-  const matches = event.markets.flatMap((market) =>
-    market.outcomes
-      .filter((outcome) => outcome.gameSelection === selection)
-      .map((outcome) => ({ market, outcome })),
-  );
-
-  return matches.length === 1 ? matches[0] : undefined;
-};
 
 const createTeamProjection = (
   event: PredictEvent,
@@ -59,7 +45,9 @@ const createTeamProjection = (
   abbreviation: string,
   team: PredictTeam,
 ): GameCardTeamProjection => {
-  const quote = findQuote(event, selection);
+  // The Team control's quote trades the Yes side of the selection's winner
+  // Market; the Game Selection tag itself is chart association only.
+  const quote = findGameTradingQuote(event, selection);
   const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
 
   return {
@@ -97,12 +85,18 @@ export const createGameCardProjection = (
       .filter((team) => team.formattedPrice)
       .map((team) => team.quote?.market.id),
   );
-  const away = parsePredictDecimal(teams.away.quote?.outcome.askPrice);
-  const home = parsePredictDecimal(teams.home.quote?.outcome.askPrice);
-  const total = away && home ? away.plus(home) : undefined;
-  const awayProbabilityPercent =
-    away && total?.gt(0)
-      ? away.div(total).times(new BigNumber(100)).toNumber()
+  const teamOrder = getGameTeamOrder(game);
+  const [firstSelection, secondSelection] = teamOrder;
+  const first = parsePredictDecimal(
+    teams[firstSelection].quote?.outcome.askPrice,
+  );
+  const second = parsePredictDecimal(
+    teams[secondSelection].quote?.outcome.askPrice,
+  );
+  const total = first && second ? first.plus(second) : undefined;
+  const firstTeamProbabilityPercent =
+    first && total?.gt(0)
+      ? first.div(total).times(new BigNumber(100)).toNumber()
       : undefined;
 
   return {
@@ -114,6 +108,7 @@ export const createGameCardProjection = (
     hiddenMarketCount: event.markets.filter(
       (market) => !representedMarkets.has(market.id),
     ).length,
-    awayProbabilityPercent,
+    teamOrder,
+    firstTeamProbabilityPercent,
   };
 };

@@ -9,13 +9,16 @@ const choosePasswordScreenId = ['choose', 'pw'].join('_');
 
 export const OnboardingScreenIds = {
   ONBOARDING_LANDING: 'onboarding_landing',
+  ONBOARDING_SHEET: 'onboarding_sheet',
   CHOOSE_PASSWORD: choosePasswordScreenId,
   IMPORT_SRP: 'import_srp',
+  ACCOUNT_BACKUP: 'account_backup',
+  MANUAL_BACKUP_STEP1: 'manual_backup_step1',
+  MANUAL_BACKUP_STEP2: 'manual_backup_step2',
+  OPTIN_METRICS: 'optin_metrics',
   ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
   ACCOUNT_NOT_FOUND: 'account_not_found',
   SOCIAL_REHYDRATE: 'social_rehydrate',
-  SOCIAL_LOGIN_SUCCESS_NEW_USER: 'social_login_success_new_user',
-  SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'social_login_success_existing_user',
 } as const;
 
 export type OnboardingScreenId =
@@ -23,7 +26,6 @@ export type OnboardingScreenId =
 
 export const OnboardingRiveAnimationIds = {
   FOX_LOADER: 'fox_loader',
-  ONBOARDING_WORDMARK: 'onboarding_wordmark',
   FOX_APPEAR: 'fox_appear',
 } as const;
 

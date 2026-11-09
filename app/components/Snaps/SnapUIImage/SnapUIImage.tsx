@@ -73,6 +73,8 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   if (isValidUrl(value)) {
     return (
       <Image
+        // Expo Image exposes this testID to Appium; keep in sync with the SVG path.
+        testID="snaps-ui-image"
         source={{ uri: value }}
         style={[
           // eslint-disable-next-line react-native/no-inline-styles
@@ -95,7 +97,11 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   const height = propHeight ?? dimensions?.height;
 
   return (
+    // Put testID on the wrapping View — iOS XCUITest often does not surface
+    // react-native-svg SvgXml testIDs (same class of gap as snaps-ui-link-icon).
     <View
+      testID="snaps-ui-image"
+      accessible
       style={[
         // eslint-disable-next-line react-native/no-inline-styles
         {
@@ -111,7 +117,6 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
       ]}
     >
       <SvgXml
-        testID="snaps-ui-image"
         xml={value}
         // eslint-disable-next-line react-native/no-inline-styles
         style={{

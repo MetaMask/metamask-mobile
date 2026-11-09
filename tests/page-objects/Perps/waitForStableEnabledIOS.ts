@@ -1,9 +1,9 @@
 import Utilities, { sleep } from '../../framework/Utilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import type { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 async function waitForStableElementEnabled(
-  elem: EncapsulatedElementType,
+  elem: Promise<AppiumElement>,
   options: {
     timeout?: number;
     pollIntervalMs?: number;
@@ -44,7 +44,7 @@ async function waitForStableElementEnabled(
  * enforced there before tap).
  */
 export async function waitForStableEnabledIOS(
-  elem: EncapsulatedElementType,
+  elem: Promise<AppiumElement>,
   options: {
     timeout?: number;
     pollIntervalMs?: number;

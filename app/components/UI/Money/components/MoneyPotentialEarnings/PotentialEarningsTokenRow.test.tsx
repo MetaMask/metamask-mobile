@@ -172,6 +172,23 @@ describe('PotentialEarningsTokenRow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('lets the "No fee" tag wrap below the token name instead of overflowing the row', () => {
+    const { getByTestId } = render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+      />,
+    );
+
+    // Without wrapping, longer translations of the tag render over the Add button.
+    expect(getByTestId(PotentialEarningsTokenRowTestIds.NAME_ROW)).toHaveStyle({
+      flexWrap: 'wrap',
+    });
+  });
+
   it('hides the "No fee" tag when hasSubsidizedFee is false', () => {
     const { queryByText } = render(
       <PotentialEarningsTokenRow

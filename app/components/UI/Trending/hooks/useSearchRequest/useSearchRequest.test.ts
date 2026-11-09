@@ -3,8 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { act, waitFor } from '@testing-library/react-native';
 import { useState } from 'react';
 import { CaipChainId } from '@metamask/utils';
-// eslint-disable-next-line import-x/no-namespace
-import * as assetsControllers from '@metamask/assets-controllers';
+import { searchTokens } from '@metamask/assets-controllers';
 
 const createMockSearchResult = (overrides = {}) => ({
   assetId: 'eip155:1/erc20:0x123' as CaipChainId,
@@ -18,11 +17,15 @@ const createMockSearchResult = (overrides = {}) => ({
   ...overrides,
 });
 
+jest.mock('@metamask/assets-controllers', () => ({
+  searchTokens: jest.fn(),
+}));
+
 describe('useSearchRequest', () => {
   let spySearchTokens: jest.SpyInstance;
 
   beforeEach(() => {
-    spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
+    spySearchTokens = jest.mocked(searchTokens);
     jest.clearAllMocks();
   });
 
@@ -49,6 +52,68 @@ describe('useSearchRequest', () => {
 
     expect(result.current.results).toEqual(mockResults);
     expect(result.current.error).toBe(null);
+
+    unmount();
+  });
+
+  it('reports the initial search request outcome to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+        performance,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(performance.startRequest).toHaveBeenCalledWith('ETH');
+    expect(requestEnd).toHaveBeenCalledWith('success');
+
+    unmount();
+  });
+
+  it('does not repeat the previous query when the query is cleared', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const initialPerformance = {
+      startRequest: jest.fn(() => ({ end: jest.fn() })),
+    };
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      const searchRequest = useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+        performance: query ? initialPerformance : undefined,
+      });
+
+      return { ...searchRequest, setQuery };
+    });
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      result.current.setQuery('');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(spySearchTokens).toHaveBeenCalledTimes(1);
 
     unmount();
   });

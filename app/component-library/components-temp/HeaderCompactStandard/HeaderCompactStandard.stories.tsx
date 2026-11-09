@@ -30,7 +30,7 @@ export default HeaderCompactStandardMeta;
 
 export const Default = {
   args: {
-    title: 'Header Title',
+    title: 'Header title',
   },
 };
 
@@ -46,7 +46,7 @@ export const OnBack = {
 export const OnClose = {
   render: () => (
     <HeaderCompactStandard
-      title="Modal Title"
+      title="Modal title"
       onClose={() => console.log('Close pressed')}
     />
   ),

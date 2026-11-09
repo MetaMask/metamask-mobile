@@ -4,16 +4,17 @@ import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import type { BridgeToken } from '../../../Bridge/types';
+import { convertApiTokenToBridgeToken } from '../../../Bridge/utils/tokenUtils';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import type { TokenI } from '../../../Tokens/types';
 import type {
-  DiscoveryEarnAsset,
   EarnAsset,
   EarnAssetId,
   EarnAssetMetadata,
   EarnExperience,
-  HeldEarnAsset,
 } from '../../types/earnAssets';
+import { requireTrackedWalletAsset } from './requireTrackedWalletAsset';
 
 /**
  * Gets canonical CAIP-19 asset ID for an AssetsController asset.
@@ -48,65 +49,27 @@ export const getAssetEarnId = (asset: Asset): EarnAssetId | undefined => {
 };
 
 /**
- * Creates an Earn asset representing an asset held in the wallet.
+ * Normalizes AssetsController metadata for the Earn catalogue.
  *
- * @param asset - AssetsController asset held in the wallet.
+ * @param asset - AssetsController asset to normalize.
  * @param assetId - Canonical CAIP-19 asset ID.
- * @param experiences - Earn experiences available for the asset.
- * @returns Held Earn asset.
+ * @returns Metadata shared by all Earn asset consumers.
  */
-export const createHeldEarnAsset = (
+const createTrackedEarnAssetMetadata = (
   asset: Asset,
   assetId: EarnAssetId,
-  experiences: readonly EarnExperience[],
-): HeldEarnAsset => ({
-  kind: 'held',
-  asset,
-  assetId,
-  experiences,
-});
-
-/**
- * Creates an Earn asset for an asset available for discovery but not held.
- *
- * @param assetId - Canonical CAIP-19 asset ID.
- * @param metadata - Asset metadata needed to display and use the asset.
- * @param experiences - Earn experiences available for the asset.
- * @returns Discovery Earn asset.
- */
-export const createDiscoveryEarnAsset = (
-  assetId: CaipAssetType,
-  metadata: EarnAssetMetadata,
-  experiences: readonly EarnExperience[],
-): DiscoveryEarnAsset => ({
-  kind: 'discovery',
-  assetId,
-  metadata,
-  experiences,
-});
-
-/**
- * Gets display metadata from a held or discovery Earn asset.
- *
- * @param earnAsset - Earn asset whose metadata should be returned.
- * @returns Normalized metadata for the Earn asset.
- */
-export const getEarnAssetMetadata = (
-  earnAsset: EarnAsset,
 ): EarnAssetMetadata => {
-  if (earnAsset.kind === 'discovery') {
-    return earnAsset.metadata;
-  }
-
-  const { asset } = earnAsset;
-  const hasAddress = 'address' in asset;
+  const hasAddress =
+    'address' in asset &&
+    typeof asset.address === 'string' &&
+    asset.address.trim().length > 0;
 
   return {
     /**
      * EVM assets have an address property, while non-EVM assets have an assetId property.
      * Tron (TRX) staking is the only Earn-eligible non-EVM asset.
      */
-    address: hasAddress ? asset.address : earnAsset.assetId,
+    address: hasAddress ? asset.address : assetId,
     chainId: asset.chainId,
     decimals: asset.decimals,
     image: asset.image,
@@ -125,23 +88,84 @@ export const getEarnAssetMetadata = (
 };
 
 /**
- * Converts an Earn asset into the token shape used by Earn screens.
+ * Creates an Earn asset tracked by the selected account wallet.
  *
- * Held assets retain their wallet balance and fiat value. Discovery assets
- * receive a zero balance because they are not currently held.
+ * @param asset - AssetsController asset tracked by the wallet.
+ * @param assetId - Canonical CAIP-19 asset ID.
+ * @param experiences - Earn experiences associated with the asset.
+ * @returns Normalized tracked Earn asset.
+ */
+export const createTrackedEarnAsset = (
+  asset: Asset,
+  assetId: EarnAssetId,
+  experiences: readonly EarnExperience[],
+): EarnAsset => ({
+  assetId,
+  metadata: createTrackedEarnAssetMetadata(asset, assetId),
+  wallet: {
+    status: 'tracked',
+    asset,
+  },
+  experiences,
+});
+
+/**
+ * Creates an Earn asset not tracked by the selected account wallet.
+ *
+ * @param assetId - Canonical CAIP-19 asset ID.
+ * @param metadata - Asset metadata needed to display and use the asset.
+ * @param experiences - Earn experiences associated with the asset.
+ * @returns Normalized untracked Earn asset.
+ */
+export const createUntrackedEarnAsset = (
+  assetId: CaipAssetType,
+  metadata: EarnAssetMetadata,
+  experiences: readonly EarnExperience[],
+): EarnAsset => ({
+  assetId,
+  metadata,
+  wallet: {
+    status: 'untracked',
+  },
+  experiences,
+});
+
+/**
+ * Converts an Earn asset into the token shape used by Earn screens.
  *
  * @param earnAsset - Earn asset to convert.
  * @returns Token representation of the Earn asset.
+ * @throws When the operation receives an untracked asset.
  */
 export const earnAssetToToken = (earnAsset: EarnAsset): TokenI => {
-  const metadata = getEarnAssetMetadata(earnAsset);
-  const asset = earnAsset.kind === 'held' ? earnAsset.asset : undefined;
+  const asset = requireTrackedWalletAsset(earnAsset, 'Earn token conversion');
 
   return {
-    ...metadata,
-    balance: asset?.balance ?? '0',
-    balanceFiat: asset?.fiat
+    ...earnAsset.metadata,
+    balance: asset.balance,
+    balanceFiat: asset.fiat
       ? moneyFormatFiat(new BigNumber(asset.fiat.balance), asset.fiat.currency)
       : undefined,
   };
+};
+
+/**
+ * Converts an Earn asset into the token shape used by unified Swap.
+ *
+ * @param earnAsset - Earn asset to convert.
+ * @returns Bridge token with chain-specific address formatting.
+ */
+export const earnAssetToBridgeToken = (earnAsset: EarnAsset): BridgeToken => {
+  const { metadata } = earnAsset;
+
+  return convertApiTokenToBridgeToken(
+    {
+      assetId: earnAsset.assetId,
+      name: metadata.name,
+      symbol: metadata.symbol,
+      decimals: metadata.decimals,
+      iconUrl: metadata.image,
+    },
+    metadata.image,
+  );
 };

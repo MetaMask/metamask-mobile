@@ -12,7 +12,10 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
+import {
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsStatus,
+} from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../types/tron-staking.types';
 import useTronStakeApy from '../../../hooks/useTronStakeApy';
 
@@ -45,9 +48,12 @@ const TronStakePreview = ({
 }: TronStakePreviewProps) => {
   const tw = useTailwind();
 
-  const { totalStakedTrx } = useSelector(
-    selectTronSpecialAssetsBySelectedAccountGroup,
-  );
+  const {
+    status: stakingDataStatus,
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+    totalStakedTrx,
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   const { apyDecimal } = useTronStakeApy();
 
@@ -56,6 +62,16 @@ const TronStakePreview = ({
     : fee;
 
   const estimatedAnnualReward = React.useMemo(() => {
+    // The staked base is only meaningful once the shared balance request has
+    // completed and both staked values could actually be fetched.
+    if (
+      stakingDataStatus === TronSpecialAssetsStatus.Loading ||
+      stakedTrxForEnergy?.unknown ||
+      stakedTrxForBandwidth?.unknown
+    ) {
+      return '';
+    }
+
     if (!apyDecimal) {
       return '';
     }
@@ -88,7 +104,15 @@ const TronStakePreview = ({
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrx, mode, apyDecimal]);
+  }, [
+    stakeAmount,
+    totalStakedTrx,
+    mode,
+    apyDecimal,
+    stakingDataStatus,
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+  ]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;

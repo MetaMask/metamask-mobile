@@ -10,11 +10,17 @@ import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
+  type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardLink,
+  type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   FundingAssetStatus,
   type CardHomeData,
+  type CardProviderId,
+  type CardSignInLink,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
   CardType,
@@ -44,7 +50,19 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
-import { selectCardFeatureFlag } from './featureFlagController/card';
+import { selectRemoteFeatureFlags } from './featureFlagController';
+import {
+  isMoneyAccountFundingChannel,
+  resolveImmersveFundingChannel,
+  selectCardFeatureFlag,
+  selectCardLinkApiEnabled,
+  type CardRemoteFeatureFlags,
+} from './featureFlagController/card';
+import {
+  pickRoutableCardLink,
+  resolveCardEntryRouting,
+  type CardEntryRouting,
+} from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -107,10 +125,49 @@ export const selectCardActiveProviderId = createSelector(
     cardState?.activeProviderId ?? null,
 );
 
+/**
+ * Funding channel for the selected country. Null when that country is not
+ * claimed by Immersve, or its channel does not resolve.
+ */
+export const selectImmersveFundingChannelForSelectedCountry = createSelector(
+  selectRemoteFeatureFlags,
+  selectCardSelectedCountry,
+  (flags, country) =>
+    resolveImmersveFundingChannel(flags as CardRemoteFeatureFlags, country),
+);
+
+/**
+ * True when the active card provider is Immersve and the selected country's
+ * funding channel spends from the Money account.
+ */
+export const selectImmersveMoneyAccountMode = createSelector(
+  selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  (providerId, channel): boolean =>
+    providerId === CardProviderIds.Immersve &&
+    isMoneyAccountFundingChannel(channel),
+);
+
 export const selectIsCardAuthenticated = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.isAuthenticated ?? false,
+);
+
+export const selectCardSignInLink = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardSignInLink | null =>
+    (cardState?.signInLink as unknown as CardSignInLink | null) ?? null,
+);
+
+export const selectHasCardSignInLink = createSelector(
+  selectCardSignInLink,
+  (link) => link !== null,
+);
+
+export const selectHasCompletedCardMigration = createSelector(
+  selectCardSignInLink,
+  (link) => link?.status === 'completed',
 );
 
 export const selectCardProviderUserId = createSelector(
@@ -131,6 +188,12 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.moneyAccountCardLinkInProgress ?? false,
+);
+
+export const selectCardRedeemWithdrawal = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
 );
 
 export const selectCardholderAccounts = createSelector(
@@ -164,6 +227,55 @@ export const selectIsCardholder = createSelector(
   },
 );
 
+/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
+export const selectCardLinks = createSelector(
+  selectCardControllerState,
+  selectCardLinkApiEnabled,
+  (
+    cardState: CardControllerState | undefined,
+    cardLinkApiEnabled,
+  ): CardLink[] | null =>
+    cardLinkApiEnabled && !cardState?.cardLinkApiBlocked
+      ? (cardState?.cardLinks ?? null)
+      : null,
+);
+
+/** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
+const selectRoutableCardLink = createSelector(
+  selectCardLinks,
+  (links): CardLink | null => pickRoutableCardLink(links),
+);
+
+export const selectHasLinkedCard = createSelector(
+  selectRoutableCardLink,
+  (link) => link !== null,
+);
+
+export const selectLinkedCardProvider = createSelector(
+  selectRoutableCardLink,
+  (link): CardProviderId | null => link?.provider ?? null,
+);
+
+export const selectCardEntryRouting = createSelector(
+  selectCardLinkApiEnabled,
+  selectCardLinks,
+  selectHasCardholderAccounts,
+  (cardLinkApiEnabled, cardLinks, hasLegacyCardholder): CardEntryRouting =>
+    resolveCardEntryRouting({
+      cardLinkApiEnabled,
+      cardLinks,
+      hasLegacyCardholder,
+    }),
+);
+
+/** Stored links decide once Card API returned any; until then the selected account's `card_user` label. */
+export const selectHasCard = createSelector(
+  selectCardEntryRouting,
+  selectIsCardholder,
+  (routing, isCardholder) =>
+    routing.source === 'card_links' ? routing.hasCard : isCardholder,
+);
+
 export const selectCardUserLocation = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardLocation | null => {
@@ -195,6 +307,12 @@ export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
     cardState?.cardHomeDataStatus ?? 'idle',
+);
+
+export const selectCardHomeDataError = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataError | null =>
+    (cardState?.cardHomeDataError as CardHomeDataError | null) ?? null,
 );
 
 export const selectCardHomeDataFetchedThisSession = createSelector(

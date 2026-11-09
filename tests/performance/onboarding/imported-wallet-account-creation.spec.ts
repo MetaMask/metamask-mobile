@@ -6,9 +6,10 @@ import {
 } from '../../tags.performance.js';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import TimerHelper from '../../framework/TimerHelper';
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -26,18 +27,19 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}
         'Time since the user clicks on new account created until the Token list is visible',
       );
 
+      await enableHermesAppProfiling();
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(AccountListBottomSheet.accountList),
+          await AppiumAssertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
           ),
       );
 
       await AccountListBottomSheet.tapAddAccountButton();
       await screen3Timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.tokenRow('SOL')),
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.tokenRow('SOL'),
         );
       });
 

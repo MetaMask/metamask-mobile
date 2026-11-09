@@ -17,7 +17,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -48,6 +47,7 @@ import {
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { passcodeType } from '../../../util/authentication';
@@ -81,6 +81,9 @@ import {
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { hasTestOverrides } from '../../../util/test/utils';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -115,6 +118,7 @@ interface ResetPasswordProps {
  * View where users can reset their password
  */
 const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -144,13 +148,19 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   >(undefined);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
+  const passwordRef = useRef('');
 
   const reauthenticate = useCallback(async (pwd?: string) => {
-    setReady(false);
+    // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
+    // the form mounted so E2E can observe the transition to ResetForm.
+    if (!pwd) {
+      setReady(false);
+    }
     let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
+      passwordRef.current = '';
       setPassword('');
       setOriginalPassword(verifiedPassword);
       setView(ViewState.ResetForm);
@@ -167,6 +177,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('reveal_credential.warning_incorrect_password'),
         );
       }
+      setView(ViewState.ConfirmCurrent);
     }
     setReady(true);
   }, []);
@@ -197,12 +208,22 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
+        setView(ViewState.ConfirmCurrent);
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        reauthenticate();
+        // E2E builds: skip Face ID auto-reauth so change-password always uses
+        // the current-password step.
+        // Production: await biometric reauth; on success reauthenticate sets
+        // ResetForm — do not force ConfirmCurrent afterward.
+        if (hasTestOverrides) {
+          setView(ViewState.ConfirmCurrent);
+        } else {
+          await reauthenticate();
+        }
+      } else {
+        setView(ViewState.ConfirmCurrent);
       }
-      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
@@ -374,6 +395,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const onPasswordChange = useCallback((val: string) => {
+    passwordRef.current = val;
     setPassword(val);
     setConfirmPassword((prev) => (val === '' ? '' : prev));
   }, []);
@@ -401,12 +423,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation]);
 
   const reauthenticateWithPassword = useCallback(() => {
-    reauthenticate(password);
-  }, [reauthenticate, password]);
+    const pwd = passwordRef.current;
+    if (!pwd) {
+      return;
+    }
+    reauthenticate(pwd);
+  }, [reauthenticate]);
 
   const isError = useCallback(
-    () =>
-      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+    () => shouldShowPasswordMismatchError(password, confirmPassword),
     [password, confirmPassword],
   );
 
@@ -570,6 +595,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 secureTextEntry: true,
                 onSubmitEditing: reauthenticateWithPassword,
                 testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                accessibilityLabel:
+                  ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                 keyboardAppearance: themeAppearance,
                 autoComplete: 'password',
               }}
@@ -666,6 +693,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(0),
                       testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                       onSubmitEditing: jumpToConfirmPassword,
                       returnKeyType: 'next',
                       autoComplete: 'password-new',
@@ -711,6 +740,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(1),
                       testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
                         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
                       returnKeyType: 'done',
                       autoComplete: 'password-new',
@@ -810,7 +841,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}

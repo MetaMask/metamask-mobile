@@ -1,8 +1,10 @@
 import { createSelector } from 'reselect';
 import {
   formatChainIdToCaip,
+  isCrossChain,
   isNonEvmChainId,
   formatChainIdToHex,
+  isNativeAddress,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
@@ -10,17 +12,23 @@ import { RootState } from '../../reducers';
 import {
   selectSourceToken,
   selectDestToken,
+  selectDestAddress,
   selectBatchSellSourceTokens,
   selectIsSwap,
   selectIsGasIncludedSTXSendBundleSupported,
   selectIsGasIncluded7702Supported,
+  selectIsNativeGasIncludedSupported,
 } from '../../core/redux/slices/bridge';
-import { selectInternalAccountsById } from '../../selectors/accountsController';
+import {
+  getMemoizedInternalAccountByAddress,
+  selectInternalAccountsById,
+} from '../../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
 import { anyScopesMatch } from '../../components/hooks/useAccountGroupsForPermissions/utils';
+import { getIsAssetRequireActivate } from '../stellar/stellar-assets';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
@@ -98,6 +106,7 @@ export const selectGasIncludedQuoteParams = createSelector(
     selectIsSwap,
     selectIsGasIncludedSTXSendBundleSupported,
     selectIsGasIncluded7702Supported,
+    selectIsNativeGasIncludedSupported,
     selectIsGasIncluded7702BridgeEnabled,
   ],
   (
@@ -105,10 +114,19 @@ export const selectGasIncludedQuoteParams = createSelector(
     isSwap,
     gasIncludedSTXSendBundleSupport,
     gasIncluded7702Support,
+    nativeGasIncludedSupport,
     gasIncluded7702BridgeEnabled,
   ) => {
     // Enable gas-included swaps for solana
     if (sourceToken?.chainId && isSolanaChainId(sourceToken.chainId)) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
+    if (
+      nativeGasIncludedSupport &&
+      sourceToken?.address &&
+      isNativeAddress(sourceToken.address)
+    ) {
       return { gasIncluded: true, gasIncluded7702: false };
     }
 
@@ -124,5 +142,72 @@ export const selectGasIncludedQuoteParams = createSelector(
       gasIncluded: gasIncludedWith7702Enabled,
       gasIncluded7702: gasIncludedWith7702Enabled,
     };
+  },
+);
+
+/**
+ * Internal account matching the bridge destination address, if any.
+ * External / unknown recipients resolve to `undefined`.
+ */
+export const selectDestAccountForBridge = createSelector(
+  [(state: RootState) => state, selectDestAddress],
+  (state, destAddress) =>
+    destAddress
+      ? getMemoizedInternalAccountByAddress(state, destAddress)
+      : undefined,
+);
+
+/**
+ * Whether the current bridge quote request is cross-chain.
+ */
+export const selectIsCrossChainSwap = createSelector(
+  [selectSourceToken, selectDestToken],
+  (sourceToken, destToken) =>
+    Boolean(
+      sourceToken &&
+        destToken &&
+        isCrossChain(sourceToken.chainId, destToken.chainId),
+    ),
+);
+
+/**
+ * Whether a cross-chain swap destination asset still needs activation on the
+ * destination account (e.g. Stellar trustline, Ripple trust).
+ *
+ * External / unknown recipients and missing `destAddress` return `false`.
+ */
+export const selectIsDestAssetRequireActivate = createSelector(
+  [
+    (state: RootState) => state,
+    selectIsCrossChainSwap,
+    selectDestToken,
+    selectDestAccountForBridge,
+  ],
+  (state, isCrossChainSwap, destToken, destAccount) => {
+    if (!isCrossChainSwap || !destToken?.address || !destAccount?.id) {
+      return false;
+    }
+    return getIsAssetRequireActivate(state, {
+      assetId: destToken.address,
+      accountId: destAccount.id,
+    });
+  },
+);
+
+/**
+ * Whether the bridge destination account matches the active account for the
+ * destination chain. Defaults to `true` while dest account/chain settle so the
+ * Activate CTA path remains available.
+ */
+export const selectIsDestSameAsActiveAccount = createSelector(
+  [(state: RootState) => state, selectDestAccountForBridge, selectDestToken],
+  (state, destAccount, destToken) => {
+    if (!destAccount?.id || !destToken?.chainId) {
+      return true;
+    }
+    const activeAccount = selectSelectedInternalAccountByScope(state)(
+      formatChainIdToCaip(destToken.chainId),
+    );
+    return destAccount.id === activeAccount?.id;
   },
 );

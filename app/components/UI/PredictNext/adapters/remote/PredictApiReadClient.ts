@@ -1,7 +1,15 @@
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import type {
   FetchFeedParams,
+  FetchOrderCommitParams,
+  FetchOrderPreviewParams,
+  FetchPortfolioPageParams,
+  FetchPositionsParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictFeedId,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -9,6 +17,24 @@ import type {
 export interface PredictApiReadTransport {
   fetchVenueStatus(
     venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchBalance(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPositionsParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPortfolioSummary(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchFeed(
@@ -22,37 +48,83 @@ export interface PredictApiReadTransport {
     eventId: PredictEntityId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
+type PredictApiReadQueryParams = FetchFeedParams &
+  Partial<FetchSearchParams> & {
+    range?: PredictMarketHistoryRange;
+    status?: string;
+    sort?: FetchPositionsParams['sort'];
+  };
+
 export interface PredictApiReadClientOptions {
-  baseUrl: string;
+  baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
+  getBearerToken: () => Promise<string | undefined>;
 }
+
+const parseBaseUrl = (baseUrl?: string): URL | undefined => {
+  if (!baseUrl) {
+    return undefined;
+  }
+  try {
+    return new URL(baseUrl);
+  } catch {
+    return undefined;
+  }
+};
 
 export class PredictHttpError extends Error {
   readonly status: number;
+  /** Canonical error code from the response body, when the backend sends one. */
+  readonly bodyCode?: string;
 
-  constructor(status: number) {
+  constructor(status: number, bodyCode?: string) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
+    this.bodyCode = bodyCode;
   }
 }
 
 export class PredictApiReadClient implements PredictApiReadTransport {
-  readonly #baseUrl: URL;
+  readonly #baseUrl?: URL;
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
+  readonly #getBearerToken: () => Promise<string | undefined>;
 
   constructor({
     baseUrl,
     clientVersion,
     fetch: fetchFn = global.fetch,
+    getBearerToken,
   }: PredictApiReadClientOptions) {
-    this.#baseUrl = new URL(baseUrl);
+    this.#baseUrl = parseBaseUrl(baseUrl);
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
+    this.#getBearerToken = getBearerToken;
   }
 
   fetchVenueStatus(
@@ -60,6 +132,45 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
+  }
+
+  fetchBalance(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
+  }
+
+  fetchPositions(
+    venueId: PredictVenueId,
+    { status, ...params }: FetchPositionsParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'positions'],
+      // The route takes the status filter as a comma-separated list.
+      { ...params, status: status?.length ? status.join(',') : undefined },
+      options,
+    );
+  }
+
+  fetchPortfolioSummary(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'portfolio', 'summary'],
+      undefined,
+      options,
+    );
+  }
+
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
   }
 
   fetchFeed(
@@ -87,21 +198,94 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
-  async #get(
-    segments: readonly string[],
-    params?: FetchFeedParams,
+  fetchMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'markets', marketId, 'history'],
+      { range },
+      options,
+    );
+  }
+
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'search'], params, options);
+  }
+
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Commits an approved Order Preview. The body carries the Preview
+   * reference only; the backend derives every executable detail from the
+   * stored Preview and derives identity from the bearer token.
+   */
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'commit'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Every predict-api route requires a bearer token, so one is resolved for
+   * each request rather than per endpoint.
+   */
+  async #resolveBearerToken(): Promise<string> {
+    // A missing or failing token provider is an authentication failure, not a
+    // malformed response. The provider's error never reaches the caller. It is
+    // logged instead, so a locked wallet or a broken provider can be told apart
+    // from a provider that returned no token.
+    const token = await this.#getBearerToken().catch((error: unknown) => {
+      Logger.error(
+        ensureError(error, 'PredictApiReadClient.resolveBearerToken'),
+        'PredictNext: failed to get the Predict API bearer token',
+      );
+      return undefined;
+    });
+    if (!token?.trim()) {
+      throw new PredictHttpError(401);
+    }
+    return token;
+  }
+
+  async #get(
+    segments: readonly string[],
+    params?: PredictApiReadQueryParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
 
-    if (params?.cursor !== undefined) {
-      url.searchParams.set('cursor', params.cursor);
-    }
-    if (params?.limit !== undefined) {
-      url.searchParams.set('limit', String(params.limit));
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
     }
 
     const response = await this.#fetch(url.toString(), {
@@ -110,6 +294,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         Accept: 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
+        Authorization: `Bearer ${bearerToken}`,
       },
       signal: options?.signal,
     });
@@ -128,7 +313,75 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
   }
 
+  async #postAuthenticated(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+    // A write aborted while its token resolved must not go out: the token
+    // may already belong to whoever replaced the Predict User.
+    if (options?.signal?.aborted) {
+      const aborted = new Error('The request was aborted.');
+      aborted.name = 'AbortError';
+      throw aborted;
+    }
+    return this.#post(segments, body, bearerToken, options);
+  }
+
+  async #post(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    bearerToken: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const url = new URL(
+      segments.map(encodeURIComponent).join('/'),
+      this.#baseUrlWithTrailingSlash(),
+    );
+
+    const response = await this.#fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'x-metamask-clientproduct': 'metamask-mobile',
+        'x-metamask-clientversion': this.#clientVersion,
+        Authorization: `Bearer ${bearerToken}`,
+      },
+      body: JSON.stringify(body),
+      signal: options?.signal,
+    });
+
+    if (!response.ok) {
+      const bodyCode = await this.#extractErrorCode(response);
+      throw new PredictHttpError(response.status, bodyCode);
+    }
+
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      throw new PredictHttpError(response.status);
+    }
+  }
+
+  /** Reads the canonical error code from an error response body, if any. */
+  async #extractErrorCode(response: Response): Promise<string | undefined> {
+    try {
+      const body = (await response.json()) as { code?: unknown };
+      return typeof body.code === 'string' ? body.code : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   #baseUrlWithTrailingSlash(): URL {
+    if (!this.#baseUrl) {
+      throw new PredictHttpError(503);
+    }
     const url = new URL(this.#baseUrl.toString());
     url.pathname = `${url.pathname.replace(/\/$/u, '')}/`;
     return url;

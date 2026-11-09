@@ -6,6 +6,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SendView from '../../page-objects/Send/RedesignedSendView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const RECIPIENT_ADDRESS = '0xb1D018BE7a9cFD7AC6c5Cce00835a8F2386173d8';
 
@@ -18,6 +19,7 @@ test.describe(`${System}`, () => {
     { tag: '@confirmations-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
 
       await WalletView.tapWalletSendButton();
 

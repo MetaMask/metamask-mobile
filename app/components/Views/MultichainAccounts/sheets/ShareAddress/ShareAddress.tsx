@@ -34,6 +34,7 @@ import {
   trackQrCodeViewed,
 } from '../../../../../util/analytics/qrCodeViewedTracking';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -83,12 +84,13 @@ export const ShareAddress = () => {
         text: explorerButtonText,
         url: blockExplorer.url,
       });
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
+      // Sheet `goBack` pops this route before the callback, so the explorer
+      // pushes onto the screen under the sheet.
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW, {
           url: blockExplorer.url,
           title: blockExplorer.title,
-        },
+        });
       });
     }
   }, [

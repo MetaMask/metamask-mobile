@@ -1,12 +1,14 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 import { toast } from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../../util/test/renderWithProvider';
 import { PrivateKeyListIds } from './PrivateKeyList.testIds';
 import { strings } from '../../../../../locales/i18n';
 
@@ -251,7 +253,7 @@ describe('PrivateKeyList', () => {
           typeof opts.header === 'function',
       );
     expect(navOptionsWithHeader).toBeDefined();
-    const { getByText: getTextInNavHeader, unmount } = render(
+    const { getByText: getTextInNavHeader, unmount } = renderWithProvider(
       navOptionsWithHeader.header(),
     );
     expect(getTextInNavHeader(TITLE)).toBeOnTheScreen();
@@ -324,6 +326,12 @@ describe('PrivateKeyList', () => {
     expect(
       getByText(strings('multichain_accounts.private_key_list.warning_title')),
     ).toBeOnTheScreen();
+  });
+
+  it('separates the warning banner from the header by 8px', () => {
+    const { getByTestId } = renderWithPrivateKeyList();
+
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toHaveStyle({ marginTop: 8 });
   });
 
   it('renders warning banner with a "Learn more" link', () => {

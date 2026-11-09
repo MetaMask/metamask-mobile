@@ -65,6 +65,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import { isSameOrigin } from '../../../util/url';
 import {
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
@@ -72,6 +73,10 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
+import {
+  createLegacyPredictEventRef,
+  usePredictEntryActions,
+} from '../../UI/PredictNext';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
@@ -124,6 +129,8 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  isHttpPageUrl,
+  resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -135,6 +142,7 @@ import UrlAutocomplete, {
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import {
@@ -162,17 +170,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
+    fromExploreSearch,
     fromPerps,
     fromBenefit,
     fromCard,
     fromWhatsHappening,
     fromMarketInsights,
     fromMoney,
+    fromEarnStrategySelection,
   }) => {
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
     'use no memo';
     const navigation = useNavigation();
     const navigateToPerpsHome = useNavigateToPerpsHome();
+    const { openPredict } = usePredictEntryActions();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -230,6 +241,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
     // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
     const loadingUrlRef = useRef('');
+    const loadStartIdRef = useRef(0);
+    const lastBoundWebViewKeyRef = useRef<number | null>(null);
+    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
     const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
@@ -378,7 +392,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return true;
         }
 
-        const testResult = await getPhishingTestResultAsync(urlToCheck);
+        const testResult = await getPhishingTestResultAsync(
+          urlToCheck,
+          RequestSourceFlow.Browser,
+        );
         return !testResult?.result;
       },
       [whitelist],
@@ -589,12 +606,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl, webBrowserBridgeScript]);
 
+    const teardownBackgroundBridge = useCallback(() => {
+      backgroundBridgeRef.current?.onDisconnect();
+      backgroundBridgeRef.current = undefined;
+    }, []);
+
     // Cleanup bridges when tab is closed
     useEffect(
       () => () => {
-        backgroundBridgeRef.current?.onDisconnect();
+        teardownBackgroundBridge();
       },
-      [],
+      [teardownBackgroundBridge],
     );
 
     useEffect(() => {
@@ -690,9 +712,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
-        // First disconnect and reset bridge
-        backgroundBridgeRef.current?.onDisconnect();
-        backgroundBridgeRef.current = undefined;
+        let hostname: string;
+        try {
+          hostname = new URL(urlBridge).origin;
+        } catch {
+          return;
+        }
+        if (!hostname || hostname === 'null') {
+          return;
+        }
+
+        teardownBackgroundBridge();
 
         //@ts-expect-error - We should type bacgkround bridge js file
         const newBridge = new BackgroundBridge({
@@ -704,7 +734,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             getProviderState: () => void;
           }) =>
             getRpcMethodMiddleware({
-              hostname: new URL(urlBridge).origin,
+              hostname,
               getProviderState,
               navigation,
               // Website info
@@ -720,8 +750,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           isMainFrame,
         });
         backgroundBridgeRef.current = newBridge;
+        lastBoundWebViewKeyRef.current = webViewReloadKey;
       },
-      [navigation, tabId],
+      [navigation, tabId, teardownBackgroundBridge, webViewReloadKey],
     );
 
     const sendActiveAccount = useCallback(
@@ -787,10 +818,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-        // Initialize the background bridge only once the navigation has
-        // committed, so the bridge origin always matches the page actually
-        // rendered in the WebView.
-        initializeBackgroundBridge(hostName, true);
+        // Bind on commit unless the destination-origin bridge was already
+        // created when this navigation started. Recreating it here would
+        // disconnect in-flight provider traffic on permitted dapps.
+        const existingBridge = backgroundBridgeRef.current;
+        if (!existingBridge || !isSameOrigin(existingBridge.url, hostName)) {
+          initializeBackgroundBridge(hostName, true);
+        }
         // Send the active account after the bridge has been initialized for the
         // committed origin, so account data is delivered through a bridge whose
         // origin matches the rendered page.
@@ -841,6 +875,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Resolves the URL bar from a document URL reported by the WebView after a
      * back/forward navigation. Only the message matching the pending request is
      * applied; messages without a matching request are ignored.
+     *
+     * Same-origin document URLs are used so SPA path updates still apply.
+     * Otherwise the navigation event URL is used.
      */
     const handleDocumentUrlForUrlBar = useCallback(
       (payload: unknown) => {
@@ -855,9 +892,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         pendingBackForwardNavRef.current = null;
 
+        const committedUrl = resolveCommittedDocumentUrl(
+          pendingNav.url,
+          payload.url,
+        );
+
+        if (!committedUrl) {
+          Logger.log(
+            `Skipping back/forward address bar update. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+          return;
+        }
+
+        const usedPageReportedUrl = committedUrl === payload.url;
+        if (!usedPageReportedUrl) {
+          Logger.log(
+            `Using navigation URL for address bar. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+        }
+
         handleSuccessfulPageResolution({
-          title: payload.title ?? titleRef.current,
-          url: payload.url,
+          title: usedPageReportedUrl
+            ? (payload.title ?? pendingNav.title ?? titleRef.current)
+            : (pendingNav.title ?? titleRef.current),
+          url: committedUrl,
           icon: favicon,
           canGoBack: pendingNav.canGoBack,
           canGoForward: pendingNav.canGoForward,
@@ -877,7 +935,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * on iOS (RNCWebView's iOS `loadUrl` command is a no-op; Android uses
      * native `loadUrl`). Remount matches Explore's fresh-tab loadRequest path.
      */
-    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
     const navigateWebViewToUrl = useCallback((url: string) => {
       const sanitizedUrl = sanitizeUrlInput(url);
       if (!sanitizedUrl) {
@@ -1177,7 +1234,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.name) {
-            backgroundBridgeRef.current?.onMessage(dataParsed);
+            // Drop provider messages while the live bridge origin does not
+            // match the in-flight load. The destination-origin bridge is
+            // bound on allowed onLoadStart so permitted pages can talk
+            // before commit.
+            const bridgeUrl = backgroundBridgeRef.current?.url;
+            if (
+              isHttpPageUrl(loadingUrlRef.current) &&
+              bridgeUrl &&
+              !isSameOrigin(loadingUrlRef.current, bridgeUrl)
+            ) {
+              return;
+            }
+
+            // Provider messages use the frame URL from the WebView event.
+            const frameUrl = nativeEvent.url;
+            if (!isHttpPageUrl(frameUrl)) {
+              return;
+            }
+
+            backgroundBridgeRef.current?.onMessage({
+              ...dataParsed,
+              origin: frameUrl,
+            });
             return;
           }
         } catch (e: unknown) {
@@ -1196,27 +1275,69 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onLoadStart = useCallback(
       async ({ nativeEvent }: WebViewNavigationEvent) => {
+        const loadStartId = loadStartIdRef.current + 1;
+        loadStartIdRef.current = loadStartId;
         loadingUrlRef.current = nativeEvent.url;
 
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
+        const canBindProvider = isHttpPageUrl(nativeEvent.url);
+
+        // Disconnect the previous-origin bridge on cross-origin http(s)
+        // navigation start. Compare against the live bridge origin — not the
+        // last committed document — so overlapping navigations (A → B → C
+        // before B commits) tear down the connection that is actually live.
+        // Same-origin navigations keep it. Blank loads from a WebView remount
+        // must not disconnect the live provider.
+        const liveBridgeUrl = backgroundBridgeRef.current?.url;
+        if (
+          canBindProvider &&
+          liveBridgeUrl &&
+          !isSameOrigin(nativeEvent.url, liveBridgeUrl)
+        ) {
+          teardownBackgroundBridge();
+        }
 
         // Cancel loading the page if we detect its a phishing page.
         // Pass the full URL (including path) so the scanner can evaluate it,
         // not just the origin.
         const isAllowed = await isAllowedUrl(nativeEvent.url);
+        if (loadStartId !== loadStartIdRef.current) {
+          return false;
+        }
         if (!isAllowed) {
-          handleNotAllowedUrl(urlOrigin);
+          if (canBindProvider) {
+            handleNotAllowedUrl(urlOrigin);
+          }
           return false;
         }
 
-        // The background bridge is intentionally not initialized here.
-        // `onLoadStart` fires before the navigation has committed, so the bridge
-        // is initialized and the active account sent only once the navigation
-        // has committed, in `handleSuccessfulPageResolution`.
+        // Bind the destination-origin bridge as soon as the load is allowed
+        // so the incoming page can use the provider before commit. Skip when
+        // the current bridge already matches this origin on the same WebView.
+        // URL-bar navigations remount the WebView; the previous Port is dead
+        // and must be rebuilt even when the origin is unchanged.
+        if (canBindProvider && urlOrigin) {
+          const existingBridge = backgroundBridgeRef.current;
+          const webViewRemounted =
+            lastBoundWebViewKeyRef.current !== webViewReloadKey;
+          if (
+            !existingBridge ||
+            !isSameOrigin(existingBridge.url, urlOrigin) ||
+            webViewRemounted
+          ) {
+            initializeBackgroundBridge(urlOrigin, true);
+          }
+        }
         iconRef.current = undefined;
       },
-      [isAllowedUrl, handleNotAllowedUrl],
+      [
+        isAllowedUrl,
+        handleNotAllowedUrl,
+        teardownBackgroundBridge,
+        initializeBackgroundBridge,
+        webViewReloadKey,
+      ],
     );
 
     /**
@@ -1426,13 +1547,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Predictions:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_DETAILS,
-              params: {
-                marketId: item.id,
-                providerId: item.providerId,
-              },
-            });
+            if (
+              !openPredict({
+                type: 'event',
+                // Autocomplete searches legacy Polymarket markets.
+                eventRef: createLegacyPredictEventRef({
+                  marketId: item.id,
+                  providerId: item.providerId,
+                }),
+              })
+            ) {
+              // The Active Venue cannot open this market: nothing navigated.
+              isNavigatingToDetailRef.current = false;
+            }
             break;
 
           case UrlAutocompleteCategory.Sites:
@@ -1443,7 +1570,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             break;
         }
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing, navigation, openPredict],
     );
 
     /**
@@ -1473,22 +1600,32 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
 
     const handleClosePress = useCallback(() => {
-      if (fromPerps) {
+      if (fromExploreSearch) {
+        // ExploreSearch is the previous screen on the root stack; goBack keeps
+        // the user on Search instead of dismissing it to Home or Explore.
+        navigation.goBack();
+      } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
         navigation.goBack();
       } else if (fromCard) {
-        navigation.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
+        navigation.navigate(
+          Routes.CARD.ROOT,
+          {
             screen: Routes.CARD.HOME,
+            params: {
+              screen: Routes.CARD.HOME,
+            },
           },
-        });
+          { pop: true },
+        );
       } else if (fromWhatsHappening) {
         // WhatsHappeningDetailView is in the stack navigator so goBack() works correctly.
         navigation.goBack();
       } else if (fromMarketInsights) {
         // MarketInsightsView is in the stack navigator so goBack() works correctly.
+        navigation.goBack();
+      } else if (fromEarnStrategySelection) {
         navigation.goBack();
       } else if (fromMoney) {
         navigation.navigate(
@@ -1500,22 +1637,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           { pop: true },
         );
       } else {
-        // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
         // is a separate tab in the Tab Navigator, and goBack() doesn't properly
         // navigate back between tabs.
-        navigation.navigate(Routes.TRENDING_VIEW, {
-          screen: Routes.TRENDING_FEED,
-        });
+        navigation.navigate(Routes.TRENDING_VIEW);
       }
     }, [
       navigation,
       navigateToPerpsHome,
+      fromExploreSearch,
       fromPerps,
       fromBenefit,
       fromCard,
       fromWhatsHappening,
       fromMarketInsights,
+      fromEarnStrategySelection,
       fromMoney,
     ]);
 
@@ -1589,6 +1725,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const { OnLoadEnd, OnLoadProgress, OnLoadStart } =
       WebViewNavigationEventName;
 
+    const rebindBridgeOnCrossOriginBackForward = useCallback(
+      (nextUrl: string) => {
+        const liveBridgeUrl = backgroundBridgeRef.current?.url;
+        if (
+          !isHttpPageUrl(nextUrl) ||
+          !liveBridgeUrl ||
+          isSameOrigin(nextUrl, liveBridgeUrl)
+        ) {
+          return;
+        }
+
+        teardownBackgroundBridge();
+        initializeBackgroundBridge(new URLParse(nextUrl).origin, true);
+      },
+      [teardownBackgroundBridge, initializeBackgroundBridge],
+    );
+
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
         const { canGoForward, canGoBack, navigationType, loading, url, title } =
@@ -1605,11 +1758,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
 
+          if (!url) {
+            return;
+          }
+
+          // Disconnect the previous-origin bridge before the document-URL
+          // handshake when back/forward lands on a different http(s) origin.
+          rebindBridgeOnCrossOriginBackForward(url);
+
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
           const requestId = createRequestId();
           pendingBackForwardNavRef.current = {
             requestId,
+            url,
+            title,
             canGoBack,
             canGoForward,
           };
@@ -1619,12 +1782,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
 
-        // JS `location.href` can skip onLoadEnd on both platforms. Commit when
-        // the load finishes at a new origin so the URL bar can catch up.
-        if (!loading && url) {
+        // Android reports History API path changes (pushState / replaceState)
+        // through onNavigationStateChange and does not fire onLoadEnd. Commit
+        // a finished navigation when the URL changed, including same-origin
+        // SPA routes. Cross-origin location.href updates that skip onLoadEnd
+        // still commit here.
+        if (!loading && url && url !== resolvedUrlRef.current) {
           const incomingOrigin = new URLParse(url).origin;
-          const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
-          if (incomingOrigin && incomingOrigin !== activeOrigin) {
+          if (incomingOrigin) {
             handleSuccessfulPageResolution({
               title: title ?? titleRef.current,
               url,
@@ -1635,7 +1800,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
         }
       },
-      [favicon, handleSuccessfulPageResolution],
+      [
+        favicon,
+        handleSuccessfulPageResolution,
+        rebindBridgeOnCrossOriginBackForward,
+      ],
     );
 
     /*

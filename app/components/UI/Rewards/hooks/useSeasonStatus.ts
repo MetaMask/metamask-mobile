@@ -35,8 +35,6 @@ export const useSeasonStatus = ({
   const fetchSeasonStatus = useCallback(async (): Promise<void> => {
     // Don't fetch if no subscriptionId
     if (!subscriptionId) {
-      dispatch(setSeasonStatus(null));
-      dispatch(setSeasonStatusLoading(false));
       return;
     }
 
@@ -45,7 +43,9 @@ export const useSeasonStatus = ({
     }
     isLoadingRef.current = true;
 
-    dispatch(setSeasonStatusLoading(true));
+    // Resolve seasonId before loading/error writes so keyed reducers do not
+    // no-op when the global catalog is still empty.
+    let seasonId: string | undefined;
 
     try {
       // Check if there is an active season
@@ -73,25 +73,52 @@ export const useSeasonStatus = ({
         throw new Error('No season metadata found');
       }
 
+      seasonId = seasonMetadata.id;
+      dispatch(
+        setSeasonStatusLoading({ subscriptionId, seasonId, loading: true }),
+      );
+
       // Then fetch the season status using the season ID
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        seasonMetadata.id,
+        seasonId,
       );
 
-      dispatch(setSeasonStatus(statusData));
-      dispatch(setSeasonStatusError(null));
+      dispatch(setSeasonStatus({ subscriptionId, status: statusData }));
+      dispatch(
+        setSeasonStatusError({
+          subscriptionId,
+          seasonId,
+          error: null,
+        }),
+      );
     } catch (error) {
       if (error instanceof AuthorizationFailedError) {
         dispatch(resetRewardsState());
         dispatch(setCandidateSubscriptionId('retry'));
       }
       const errorMessage = handleRewardsErrorMessage(error);
-      dispatch(setSeasonStatusError(errorMessage));
+      if (seasonId) {
+        dispatch(
+          setSeasonStatusError({
+            subscriptionId,
+            seasonId,
+            error: errorMessage,
+          }),
+        );
+      }
     } finally {
       isLoadingRef.current = false;
-      dispatch(setSeasonStatusLoading(false));
+      if (seasonId) {
+        dispatch(
+          setSeasonStatusLoading({
+            subscriptionId,
+            seasonId,
+            loading: false,
+          }),
+        );
+      }
     }
   }, [dispatch, subscriptionId]);
 

@@ -55,6 +55,12 @@ export interface EarnToastOptionsConfig {
   tronWithdrawal: {
     failed: (errors: string[]) => EarnToastOptions;
   };
+  earnStrategySelection: {
+    navigationToDeposit: EarnToastOptions;
+  };
+  earnWithdrawal: {
+    detailsUnavailable: EarnToastOptions;
+  };
 }
 
 interface EarnToastLabelOptions {
@@ -249,6 +255,26 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         }),
+      },
+      earnStrategySelection: {
+        navigationToDeposit: {
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings(
+              'earn.strategy_selection.toasts.deposit_navigation.failed',
+            ),
+          }),
+          closeButtonOptions,
+        },
+      },
+      earnWithdrawal: {
+        detailsUnavailable: {
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('stake.withdrawal_details_unavailable'),
+          }),
+          closeButtonOptions,
+        },
       },
     }),
     [

@@ -1,60 +1,55 @@
+import path from 'path';
 import { transformSync } from '@babel/core';
 
 /**
- * Regression guard for the `@react-native/babel-preset` patch
- * (.yarn/patches/@react-native-babel-preset-npm-0.83.6-*.patch).
+ * Regression guard for the `unstable_transformProfile: 'hermes-stable'` pin in
+ * babel.config.js.
  *
- * That patch disables `@babel/plugin-transform-named-capturing-groups-regex` on
- * the Hermes transform profile. The transform rewrites named-capture-group
- * regexes to use `@babel/runtime/helpers/wrapRegExp`, which breaks under SES
- * lockdown (frozen intrinsics): `RegExp.prototype.exec` returns `null` for
- * strings that should match — e.g. NetworkController's `INFURA_URL_REGEX`,
- * surfacing at runtime as "Could not derive Infura network".
+ * Without that pin, babel-preset-expo falls back to its `hermes-v0` profile
+ * (the React Native CLI never sets the Babel caller's `engine`), which runs
+ * `@babel/plugin-transform-named-capturing-groups-regex`. The transform
+ * rewrites named-capture-group regexes to use
+ * `@babel/runtime/helpers/wrapRegExp`, which breaks under SES lockdown (frozen
+ * intrinsics): matches succeed with `match.groups === undefined` — e.g.
+ * NetworkController's `INFURA_URL_REGEX`, surfacing at runtime as "Could not
+ * derive Infura network".
  *
  * Modern Hermes supports named capture groups natively, so the group must
- * survive the transform untouched. The patch is version-pinned to the
- * `@react-native/babel-preset` version that `babel-preset-expo` pulls in
- * nested; an Expo SDK / React Native bump can silently drop it (Yarn does not
- * fail on an unused patch resolution). This test fails loudly if that happens.
+ * survive the transform untouched when compiled with the project config.
  */
 describe('named capturing group regex (Hermes profile)', () => {
-  const transform = (src: string): string =>
+  const projectRoot = path.resolve(__dirname, '../..');
+
+  const transform = (src: string, platform: 'ios' | 'android'): string =>
     transformSync(src, {
-      filename: 'named-capturing-groups-regex.guard.js',
+      filename: path.join(projectRoot, 'app/named-capturing-groups-regex.js'),
+      cwd: projectRoot,
+      root: projectRoot,
+      configFile: path.join(projectRoot, 'babel.config.js'),
       babelrc: false,
-      configFile: false,
-      // Mirror how Metro invokes babel-preset-expo for a native iOS bundle.
+      // Mirror how Metro invokes the project Babel config for a native bundle.
       caller: {
         name: 'metro',
         // @ts-expect-error - custom caller fields consumed by babel-preset-expo
-        platform: 'ios',
+        platform,
         supportsStaticESM: true,
       },
-      presets: [
-        [
-          // babel-preset-expo is provided transitively via @expo/metro-config + Metro
-          // (see .depcheckrc.yml); require() is required to load a Babel preset by value.
-          // eslint-disable-next-line import-x/no-extraneous-dependencies, @typescript-eslint/no-require-imports
-          require('babel-preset-expo'),
-          {
-            unstable_transformProfile: 'hermes-stable',
-            // Keep the transform output focused on the regex under test.
-            reanimated: false,
-            worklets: false,
-            enableBabelRuntime: false,
-          },
-        ],
-      ],
     })?.code ?? '';
 
-  it('preserves native named capture groups and does not inject wrapRegExp', () => {
-    const output = transform('const re = /(?<year>\\d{4})-(?<month>\\d{2})/;');
+  it.each(['ios', 'android'] as const)(
+    'preserves native named capture groups and does not inject wrapRegExp on %s',
+    (platform) => {
+      const output = transform(
+        'const re = /(?<year>\\d{4})-(?<month>\\d{2})/;',
+        platform,
+      );
 
-    // The named groups must remain in the emitted source (Hermes runs them natively).
-    expect(output).toContain('(?<year>');
-    expect(output).toContain('(?<month>');
+      // The named groups must remain in the emitted source (Hermes runs them natively).
+      expect(output).toContain('(?<year>');
+      expect(output).toContain('(?<month>');
 
-    // The down-leveling helper must NOT be introduced (it breaks under SES lockdown).
-    expect(output).not.toMatch(/wrapRegExp/);
-  });
+      // The down-leveling helper must NOT be introduced (it breaks under SES lockdown).
+      expect(output).not.toMatch(/wrapRegExp/);
+    },
+  );
 });

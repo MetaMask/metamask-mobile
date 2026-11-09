@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,6 @@ import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
-import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -37,11 +36,16 @@ import {
 } from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
   MM_PAY_TRANSACTION_TYPES,
+  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useIsTransactionPaySubmitReady,
+} from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
@@ -49,19 +53,32 @@ import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWall
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
-  TransactionType.musdConversion,
 ];
 
-export const Footer = () => {
+export function Footer() {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { isFooterVisible } = useConfirmationContext();
+
+  if (
+    isFooterVisible === false ||
+    (isFooterVisible === undefined &&
+      hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES))
+  ) {
+    return null;
+  }
+
+  return <FooterInternal />;
+}
+
+function FooterInternal() {
   const {
-    alerts,
     fieldAlerts,
     hasBlockingAlerts,
     hasDangerAlerts,
@@ -71,7 +88,6 @@ export const Footer = () => {
   const { needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
@@ -79,14 +95,18 @@ export const Footer = () => {
     TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const isMMPayTransaction = hasTransactionType(
     transactionMetadata,
     MM_PAY_TRANSACTION_TYPES,
   );
+  const isPayTokenRequiredTransaction = hasTransactionType(
+    transactionMetadata,
+    PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
+  );
   const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
-  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
-    useConfirmationContext();
+  const { isTransactionValueUpdating } = useConfirmationContext();
 
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -144,10 +164,6 @@ export const Footer = () => {
     showConfirmAlertModal,
   ]);
 
-  useEffect(() => {
-    trackAlertMetrics();
-  }, [alerts, trackAlertMetrics]);
-
   const { styles } = useStyles(styleSheet, {
     isStakingConfirmationBool,
     isFullScreenConfirmation,
@@ -190,16 +206,12 @@ export const Footer = () => {
     isTransactionValueUpdating ||
     isPayLoading ||
     (isMMPayTransaction && isPayAmountStale) ||
+    // Mirror the publish guard: pay-token-required transactions (predict and
+    // perps deposits) throw "MetaMask Pay: Cannot submit without quote" at
+    // publish when no executable quote or validated direct/fiat route exists.
+    // Block confirm in exactly those states instead of letting the tap fail.
+    (isPayTokenRequiredTransaction && !isPaySubmitReady) ||
     isGaslessLoading;
-
-  const isFooterVisible =
-    isFooterVisibleFlag ??
-    (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
-
-  if (!isFooterVisible) {
-    return null;
-  }
 
   if (
     transactionMetadata &&
@@ -284,7 +296,7 @@ export const Footer = () => {
       )}
     </>
   );
-};
+}
 
 export function FooterSkeleton() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
