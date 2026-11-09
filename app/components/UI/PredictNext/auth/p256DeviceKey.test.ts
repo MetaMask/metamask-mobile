@@ -432,10 +432,9 @@ describe('p256DeviceKey', () => {
     const material = requireDeviceMaterial(
       await ensureKalshiDeviceKey(enabledConfig, true),
     );
-    const message = Buffer.from(
-      'kalshi-a2t-request-v1\nchallenge\npub\nsalt',
-      'utf8',
-    );
+    // The retired A2T proof prefix is gone; this only pins the generic
+    // SHA-256 r||s signing the future RFC 9421 signer needs.
+    const message = Buffer.from('device-p256-salt-v1\nanything', 'utf8');
 
     const signature = await signWithKalshiDeviceKey(message);
 
