@@ -28,7 +28,7 @@ export interface MockAccountsApiTransaction {
   value: string;
   gasUsed?: number;
   effectiveGasPrice?: number;
-  valueTransfers?: Array<{
+  valueTransfers?: {
     from: string;
     to: string;
     amount?: string;
@@ -38,7 +38,7 @@ export interface MockAccountsApiTransaction {
     contractAddress?: string;
     transferType?: string;
     tokenId?: string;
-  }>;
+  }[];
   isError?: boolean;
   transactionCategory?: string;
   transactionProtocol?: string;

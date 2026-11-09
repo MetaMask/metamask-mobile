@@ -202,8 +202,11 @@ jest.mock(
       txHash?: string;
       chainId?: string;
     }) => {
-      const cached = txHash && mockCachedEvmTransactions.get(txHash.toLowerCase());
-      if (!cached?.transactionProtocol) {
+      const cached = txHash
+        ? mockCachedEvmTransactions.get(txHash.toLowerCase())
+        : undefined;
+      const transactionProtocol = cached?.transactionProtocol;
+      if (!transactionProtocol) {
         return undefined;
       }
 
@@ -220,7 +223,7 @@ jest.mock(
           blockNumber: '1',
           blockHash: '0xblock',
           value: '0',
-          transactionProtocol: cached.transactionProtocol,
+          transactionProtocol,
         },
         valueTransfers: [],
         fee: null,
