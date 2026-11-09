@@ -16,16 +16,16 @@ import { wait } from '../utils/wait.util';
 import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import AppConstants from '../../../../app/core/AppConstants';
 
-function revokeExpiredChannel(channelId: string): boolean {
+function revokeExpiredChannel(channelId: string) {
   try {
     revokeChannelPermissions(channelId);
-    return true;
   } catch (error) {
+    // connectToChannel revokes again before a channel without a session can
+    // be reused, so a leftover permission cannot authorize it.
     Logger.log(
       error,
       `SDKConnect::init() - failed to revoke expired channel ${channelId}`,
     );
-    return false;
   }
 }
 
@@ -76,15 +76,13 @@ const asyncInit = async ({
         // Only keep connections that are not expired.
         validConnections[id] = sdk.connections[id];
         validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
-      } else if (revokeExpiredChannel(id)) {
+      } else {
+        // Remove expired connections
         DevLogger.log(
           `SDKConnect::init() - removing expired connection ${id} ${sdkHostId}`,
           connInfo,
         );
-      } else {
-        // Keep the session when revoke fails so the next launch can try again.
-        validConnections[id] = sdk.connections[id];
-        validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
+        revokeExpiredChannel(id);
       }
     }
     DevLogger.log(

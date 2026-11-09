@@ -1,4 +1,3 @@
-import { PermissionController } from '@metamask/permission-controller';
 import Engine from '../../Engine';
 
 /**
@@ -9,16 +8,10 @@ import Engine from '../../Engine';
  * @throws If the PermissionController is unavailable or the revoke fails.
  */
 export const revokeChannelPermissions = (channelId: string) => {
-  const permissionsController = (
-    Engine.context as {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      PermissionController: PermissionController<any, any>;
-    }
-  ).PermissionController;
+  const { PermissionController } = Engine.context;
 
-  if (permissionsController.getPermissions(channelId)) {
-    permissionsController.revokeAllPermissions(channelId);
+  if (PermissionController.getPermissions(channelId)) {
+    PermissionController.revokeAllPermissions(channelId);
   }
 };
 

@@ -308,6 +308,28 @@ describe('connectToChannel', () => {
       expect(revokeChannelPermissions).not.toHaveBeenCalled();
     });
 
+    it('revokes permissions held by a deeplink-protocol session for the same channel', async () => {
+      (checkPermissions as jest.Mock).mockResolvedValue(true);
+      mockInstance.state.deeplinkingService = {
+        connections: {
+          [id]: { clientId: id, connected: true, originatorInfo },
+        },
+      } as unknown as SDKConnect['state']['deeplinkingService'];
+
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
+
+      expect(revokeChannelPermissions).toHaveBeenCalledWith(id);
+    });
+
     it('does not connect when leftover permissions cannot be revoked', async () => {
       (revokeChannelPermissions as jest.Mock).mockImplementationOnce(() => {
         throw new Error('revoke failed');

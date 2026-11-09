@@ -95,8 +95,9 @@ async function connectToChannel({
 
   try {
     if (!hasSession) {
-      // A channelId without a session must earn fresh approval, even if a
-      // permission from an earlier session was left behind.
+      // A channelId without a session must earn fresh approval, even if an
+      // earlier session or a deeplink-protocol session (same permission
+      // subject) left a permission behind.
       revokeChannelPermissions(id);
     }
 
