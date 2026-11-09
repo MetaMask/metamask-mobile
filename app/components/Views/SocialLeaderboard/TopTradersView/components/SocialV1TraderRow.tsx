@@ -16,6 +16,7 @@ import Animated from 'react-native-reanimated';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+import XTrustMark from '../../../../UI/SocialFeed/components/XTrustMark';
 import {
   RankMedal,
   isTopRank,
@@ -183,6 +184,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           >
             {trader.username}
           </Text>
+          {trader.xHandle ? <XTrustMark /> : null}
           {nameTag ? (
             <Tag
               severity={

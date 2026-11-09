@@ -205,39 +205,10 @@ describe('SecurityTab', () => {
       },
     );
 
-    // The one check named as a question rather than as the state we want. A
-    // green tick beside "Yes" would read as reassurance about the very thing
-    // the reader is wary of, and a red cross on "No" would fail a token for
-    // being unable to mint.
+    // The one check named as a question rather than as the state we want.
     describe('is mintable', () => {
-      it.each([
-        ['pass', 'Yes'],
-        ['fail', 'No'],
-      ] as const)(
-        'answers %s in plain text with no glyph',
-        (outcome, value) => {
-          const { getByTestId, queryByTestId } = renderTab({
-            facts: {
-              ...EVM_FACTS,
-              checks: { [ContractCheckKey.IsMintable]: { outcome, value } },
-            },
-          });
-
-          expect(
-            getByTestId(
-              SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
-            ),
-          ).toHaveTextContent(value);
-          expect(
-            queryByTestId(
-              SecurityTabSelectors.rowIcon(ContractCheckKey.IsMintable),
-            ),
-          ).toBeNull();
-        },
-      );
-
-      it('stays on the default text colour either way', () => {
-        const { getByTestId } = renderTab({
+      it('shows No in green with no glyph', () => {
+        const { getByTestId, queryByTestId } = renderTab({
           facts: {
             ...EVM_FACTS,
             checks: {
@@ -250,7 +221,44 @@ describe('SecurityTab', () => {
           getByTestId(
             SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
           ),
-        ).toHaveStyle({ color: mockTheme.colors.text.default });
+        ).toHaveTextContent('No');
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
+          ),
+        ).toHaveStyle({ color: mockTheme.colors.success.default });
+        expect(
+          queryByTestId(
+            SecurityTabSelectors.rowIcon(ContractCheckKey.IsMintable),
+          ),
+        ).toBeNull();
+      });
+
+      it('shows Yes in red with the Close glyph', () => {
+        const { getByTestId } = renderTab({
+          facts: {
+            ...EVM_FACTS,
+            checks: {
+              [ContractCheckKey.IsMintable]: { outcome: 'pass', value: 'Yes' },
+            },
+          },
+        });
+
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
+          ),
+        ).toHaveTextContent('Yes');
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
+          ),
+        ).toHaveStyle({ color: mockTheme.colors.error.default });
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowIcon(ContractCheckKey.IsMintable),
+          ),
+        ).toBeOnTheScreen();
       });
     });
 

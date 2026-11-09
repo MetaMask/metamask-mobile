@@ -5,16 +5,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaPartnerTerms from './PartnerTerms';
 import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
-import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { trackKycEvent } from '../../utils/trackKycEvent';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_ID,
   KYC_SCREEN_PERFORMANCE_CONFIG,
 } from '../../kycScreenPerformance';
 
-jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
-  ...jest.requireActual('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics'),
-  trackVbaEvent: jest.fn(),
+jest.mock('../../utils/trackKycEvent', () => ({
+  trackKycEvent: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance');
@@ -456,7 +455,7 @@ describe('VbaPartnerTerms', () => {
   describe('analytics', () => {
     const identityTermsStatuses = () =>
       jest
-        .mocked(trackVbaEvent)
+        .mocked(trackKycEvent)
         .mock.calls.filter(
           ([event]) => event.category === 'KYC Identity Terms Updated',
         )
@@ -479,7 +478,7 @@ describe('VbaPartnerTerms', () => {
         'page2_accepted',
       ]);
       expect(
-        jest.mocked(trackVbaEvent).mock.invocationCallOrder.at(-1),
+        jest.mocked(trackKycEvent).mock.invocationCallOrder.at(-1),
       ).toBeLessThan(mockOnAgree.mock.invocationCallOrder[0]);
     });
 

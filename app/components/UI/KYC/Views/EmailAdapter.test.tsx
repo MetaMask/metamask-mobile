@@ -16,6 +16,10 @@ const mockNavigation = {
   goBack: mockGoBack,
 };
 
+jest.mock('../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
@@ -307,7 +311,7 @@ describe('VbaEmailAdapter', () => {
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
-  it('shows a spinner without navigation on the loading screen', () => {
+  it('shows the fox loader without navigation on the loading screen', () => {
     mockKycController.getSessionStatusForVendor.mockReturnValue(
       new Promise(() => undefined),
     );

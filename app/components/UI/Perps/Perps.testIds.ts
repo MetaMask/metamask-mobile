@@ -1229,6 +1229,7 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
+  TOTAL_PNL_ROW: 'close-position-bottom-sheet-total-pnl-row',
   TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
   CONFIRM_BUTTON: 'close-position-bottom-sheet-confirm-button',
   FEE_DISCLAIMER: 'close-position-bottom-sheet-fee-disclaimer',

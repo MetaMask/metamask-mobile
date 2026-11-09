@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -25,6 +24,7 @@ import type { RootState } from '../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../selectors/rampsController';
 import { strings } from '../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
+import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
 import { useSelector } from 'react-redux';
@@ -220,7 +220,7 @@ const VbaEmailAdapter = () => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >
-        <ActivityIndicator testID={VbaEmailAdapterSelectorsIDs.SPINNER} />
+        <VbaFoxLoader testID={VbaEmailAdapterSelectorsIDs.SPINNER} />
       </Box>
     </SafeAreaView>
   );

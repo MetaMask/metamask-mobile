@@ -48,6 +48,11 @@ export interface SocialV1FeedAuthor {
   tradeCount30d?: number | null;
   /** Profiles following this trader. */
   followerCount?: number | null;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 interface SocialV1FeedItemBase {
