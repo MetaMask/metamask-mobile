@@ -52,12 +52,17 @@ appiumTest.describe(
             await Browser.tapCloseBrowserButton();
 
             await TabBarComponent.tapWallet();
-            await WalletView.tapOnNewTokensSection();
-            await WalletView.tapTokenNetworkFilter();
 
+            // Switch the ACTIVE network to Ethereum via the navbar network
+            // switcher. The token network filter only filters the asset list;
+            // it no longer changes the active network, so we must switch here
+            // to make Optimism non-active (and therefore deletable).
+            await WalletView.tapNetworksButtonOnNavBar();
             await NetworkListModal.changeNetworkTo(
               NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
             );
+
+            await WalletView.tapOnNewTokensSection();
             await WalletView.tapTokenNetworkFilter();
 
             await NetworkListModal.tapNetworkRowMenuButton(OPTIMISM);
