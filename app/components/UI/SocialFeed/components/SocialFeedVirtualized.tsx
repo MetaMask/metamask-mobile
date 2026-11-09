@@ -37,6 +37,7 @@ import {
   getSocialFeedListItemKey,
   type SocialFeedListItem,
 } from '../utils/buildSocialFeedListItems';
+import { getFeedItemId } from '../utils/feedItemId';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
   FEED_ROW_LAYOUT_TRANSITION,
@@ -327,8 +328,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   // Read at tap time so the row callback stays stable across socket updates.
-  // A card with a held-back update (paused or scrolled away from the top)
-  // shows an older copy than the socket already sent.
+  // A post held behind the pill (paused, or scrolled away from the top) shows
+  // an older copy than the socket already sent.
   const liveRef = useRef(live);
   liveRef.current = live;
   const handlePositionPress = useMemo(
@@ -336,10 +337,12 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       onPositionPress
         ? (post: SocialV1FeedPost) => {
             const current = liveRef.current;
-            const positionId = post.position?.positionId;
+            const feedItemId = post.position
+              ? getFeedItemId(post.position)
+              : undefined;
             onPositionPress(post, {
               isSnapshotLive: Boolean(
-                current && positionId && !current.hasPendingUpdate(positionId),
+                current && feedItemId && !current.hasPendingUpdate(feedItemId),
               ),
             });
           }

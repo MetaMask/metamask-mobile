@@ -9,7 +9,30 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 .ai-pr-analyzer/modes/dependency-audit-fix/                 @MetaMask/mobile-platform
-patches/                                                    @MetaMask/mobile-platform
+# Patches
+patches/@react-native-clipboard+clipboard+1.16.1.patch      @MetaMask/mobile-platform
+patches/micro-ftch+0.3.1.patch                              @MetaMask/mobile-platform
+patches/react-native-gzip+1.1.0.patch                       @MetaMask/mobile-platform
+patches/react-native-i18n+2.0.15.patch                      @MetaMask/mobile-platform
+patches/react-native-material-textfield+0.16.1.patch        @MetaMask/mobile-platform
+patches/react-native-modal+14.0.0-rc.1.patch                @MetaMask/mobile-platform
+patches/react-native-os+1.2.6.patch                         @MetaMask/mobile-platform
+patches/react-native-step-indicator+1.0.3.patch             @MetaMask/mobile-platform
+patches/react-native-svg+15.15.5.patch                      @MetaMask/mobile-platform
+patches/unicode-confusables+0.1.1.patch                     @MetaMask/mobile-platform
+.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch               @MetaMask/mobile-platform
+.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch   @MetaMask/mobile-platform
+.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch        @MetaMask/mobile-platform
+.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch           @MetaMask/mobile-platform
+.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch               @MetaMask/mobile-platform
+.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch          @MetaMask/mobile-platform
+.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch     @MetaMask/mobile-platform
+.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch          @MetaMask/mobile-platform
+.yarn/patches/react-native-screens-npm-4.27.0-78335f53c6.patch             @MetaMask/mobile-platform
+.yarn/patches/react-native-share-npm-12.3.1-be09b19fc2.patch               @MetaMask/mobile-platform
+.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch            @MetaMask/mobile-platform
+.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch  @MetaMask/mobile-platform
+
 .github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
@@ -469,6 +492,9 @@ app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask
 # Wallet Library initialization
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/analytics-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/listeners/ @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/messengers/analytics-controller-messenger* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confirmations

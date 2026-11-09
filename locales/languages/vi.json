@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang pUSD trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask sẽ hoán đổi sang token mà bạn mong muốn. Không áp dụng phí MetaMask khi bạn hoán đổi sang mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask sẽ hoán đổi sang token mà bạn mong muốn. Không áp dụng phí MetaMask khi bạn hoán đổi sang mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Phí chuyển đổi mUSD bao gồm phí mạng và có thể bao gồm phí từ nhà cung cấp. Không áp dụng phí MetaMask khi bạn chuyển đổi sang mUSD."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "Email",
       "password_label": "Mật khẩu",
       "login_button": "Đăng nhập",
-      "siwe_button": "Đăng nhập bằng Ethereum",
       "continue_button": "Tiếp tục",
       "uk_login_button": "Đăng nhập bằng tài khoản này",
       "signup_button": "Đăng ký",

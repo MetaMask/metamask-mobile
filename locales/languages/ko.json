@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "'예측'에서 사용하는 Polygon 네트워크를 통해 회원님의 토큰을 pUSD로 스왑합니다. 스왑 제공업체는 수수료를 부과할 수 있으나 MetaMask의 경우 수수료가 없습니다."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask가 원하는 토큰으로 스왑해 드립니다. mUSD로 스왑할 때 MetaMask 수수료는 적용되지 않습니다."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask가 원하는 토큰으로 스왑해 드립니다. mUSD로 스왑할 때 MetaMask 수수료는 적용되지 않습니다."
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD 환전 수수료에는 네트워크 비용이 포함되며 제공업체 수수료가 포함될 수 있습니다. mUSD로 환전할 때 MetaMask 수수료는 적용되지 않습니다."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "이메일",
       "password_label": "비밀번호",
       "login_button": "로그인",
-      "siwe_button": "이더리움으로 로그인하기",
       "continue_button": "계속",
       "uk_login_button": "이 계정으로 로그인",
       "signup_button": "가입",

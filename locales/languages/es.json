@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Canjearemos tus tokens por pUSD en Polygon, la red que usa Predicciones. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Las tarifas de conversión a mUSD incluyen costos de red y pueden incluir tarifas del proveedor. No se aplica ninguna tarifa de MetaMask al convertir a mUSD."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "Correo electrónico",
       "password_label": "Contraseña",
       "login_button": "Iniciar sesión",
-      "siwe_button": "Iniciar sesión con Ethereum",
       "continue_button": "Continuar",
       "uk_login_button": "Iniciar sesión con esta cuenta",
       "signup_button": "Inscribirse",

@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Polygon (予測で使用されるネットワーク) 上でトークンをpUSDに交換します。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMaskがユーザーに代わって希望のトークンをスワップします。mUSDへのスワップ時にMetaMaskの手数料は発生しません。"
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMaskがユーザーに代わって希望のトークンをスワップします。mUSDへのスワップ時にMetaMaskの手数料は発生しません。"
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD換算手数料にはネットワークコストが含まれるほか、プロバイダー手数料も含まれる場合があります。なお、mUSDへの換算時にMetaMaskの手数料は発生しません。"
       },
@@ -11916,7 +11910,6 @@
       "email_label": "メールアドレス",
       "password_label": "パスワード",
       "login_button": "サインイン",
-      "siwe_button": "イーサリアムでサインイン",
       "continue_button": "続行",
       "uk_login_button": "このアカウントでサインインする",
       "signup_button": "サインアップ",

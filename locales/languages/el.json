@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Θα ανταλλάξουμε τα tokens σας σε pUSD στο Polygon, το δίκτυο που χρησιμοποιούμε για τις Προβλέψεις. Οι πάροχοι για την ανταλλαγή ενδέχεται να χρεώνουν προμήθεια, αλλά το MetaMask όχι."
       },
-      "perps_withdraw": {
-        "transaction_fee": "Το MetaMask θα κάνει ανταλλαγή στο token που θέλετε. Δεν υπάρχει χρέωση στο MetaMask όταν κάνετε ανταλλαγή σε mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "Το MetaMask θα κάνει ανταλλαγή στο token που θέλετε. Δεν υπάρχει χρέωση στο MetaMask όταν κάνετε ανταλλαγή σε mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Τα τέλη μετατροπής σε mUSD περιλαμβάνουν τα έξοδα δικτύου και ενδέχεται να περιλαμβάνουν τα τέλη παρόχου. Δεν υπάρχει χρέωση στο MetaMask όταν μετατρέπετε σε mUSD."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "Email",
       "password_label": "Κωδικός πρόσβασης",
       "login_button": "Σύνδεση",
-      "siwe_button": "Σύνδεση με Ethereum",
       "continue_button": "Συνεχίστε",
       "uk_login_button": "Συνδεθείτε με αυτόν τον λογαριασμό",
       "signup_button": "Εγγραφή",

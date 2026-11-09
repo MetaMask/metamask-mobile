@@ -37,9 +37,10 @@ export const parseSocialNotificationDeeplinkParams = (
 export const trackSocialNotificationClick = ({
   notificationSubtype,
   notificationTemplateVariant,
+  deduplicationId,
 }: Pick<
   SocialNotificationDeeplinkParams,
-  'notificationSubtype' | 'notificationTemplateVariant'
+  'notificationSubtype' | 'notificationTemplateVariant' | 'deduplicationId'
 >): void => {
   if (notificationSubtype === undefined) {
     return;
@@ -51,6 +52,9 @@ export const trackSocialNotificationClick = ({
     .addProperties({
       [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
         notificationSubtype,
+      ...(deduplicationId !== undefined && {
+        [SocialLeaderboardEventProperties.DEDUPLICATION_ID]: deduplicationId,
+      }),
       ...(notificationTemplateVariant !== undefined && {
         [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
           notificationTemplateVariant,

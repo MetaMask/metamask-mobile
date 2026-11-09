@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Isu-swap namin ang mga token mo para sa pUSD sa Polygon, ang network na ginamit ng Predictions. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
       },
-      "perps_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Kasama sa mga bayarin sa pag-convert ng mUSD ang mga bayad sa network at posible ring kasama ang mga bayarin sa provider. Walang hihinging bayad sa MetaMask kapag nag-convert ka sa mUSD."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Mag-sign in",
-      "siwe_button": "Mag-sign in gamit ang Ethereum",
       "continue_button": "Magpatuloy",
       "uk_login_button": "Mag-sign in gamit ang account na ito",
       "signup_button": "Mag-sign up",

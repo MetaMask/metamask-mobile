@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Tokenlarınızı, Tahminler tarafından kullanılan ağ olan Polygon üzerinde pUSD ile takas edeceğiz. Takas sağlayıcıları ücret alabilir ancak MetaMask almayacaktır."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask, sizin için istediğiniz tokena takas gerçekleştirecek. mUSD'ye takas gerçekleştirirken MetaMask ücreti uygulanmaz."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask, sizin için istediğiniz tokena takas gerçekleştirecek. mUSD'ye takas gerçekleştirirken MetaMask ücreti uygulanmaz."
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD dönüştürme işlemine ağ maliyetleri dahildir ve sağlayıcı ücretleri dahil olabilir. mUSD dönüştürürken MetaMask ücreti uygulanmaz."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "E-posta",
       "password_label": "Şifre",
       "login_button": "Giriş yap",
-      "siwe_button": "Ethereum ile giriş yapın",
       "continue_button": "Devam et",
       "uk_login_button": "Bu hesapla giriş yap",
       "signup_button": "Kaydol",

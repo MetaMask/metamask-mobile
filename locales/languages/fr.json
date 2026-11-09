@@ -5226,7 +5226,7 @@
     "card_update_badge": "Mettre à jour",
     "settings": "Paramètres",
     "networks": "Réseaux",
-    "log_out": "Déconnexion",
+    "log_out": "Verrouiller",
     "notifications": "Notifications",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Rejoignez MetaMask Orange",
@@ -10276,12 +10276,6 @@
       "predict_deposit": {
         "transaction_fee": "Nous échangerons vos jetons contre des pUSD sur Polygon, le réseau utilisé par « Prédictions ». Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask échangera vos jetons pour vous. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask échangera vos jetons pour vous. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Les frais de conversion en mUSD comprennent les coûts de réseau et peuvent inclure des frais de fournisseur. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
       },
@@ -11916,7 +11910,6 @@
       "email_label": "Adresse e-mail",
       "password_label": "Mot de passe",
       "login_button": "Se connecter",
-      "siwe_button": "Connectez-vous avec Ethereum",
       "continue_button": "Continuer",
       "uk_login_button": "Se connecter avec ce compte",
       "signup_button": "Inscription",

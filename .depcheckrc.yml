@@ -118,14 +118,12 @@ ignores:
   - 'react-native-crypto'
   - 'react-native-level-fs'
   - 'react-native-os'
-  - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'
   - 'vm-browserify'
   - 'react-native-cli'
-  - 'babel-plugin-module-resolver'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'
