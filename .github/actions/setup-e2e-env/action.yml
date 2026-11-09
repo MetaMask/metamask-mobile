@@ -210,9 +210,78 @@ runs:
         ANDROID_ABI: ${{ inputs.android-abi }}
       run: |
         set -euo pipefail
-        SDKMANAGER="/opt/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+        SDK_ROOT="/opt/android-sdk"
+        SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
         IMAGE_PACKAGE="system-images;android-$ANDROID_API_LEVEL;$ANDROID_TAG;$ANDROID_ABI"
-        IMAGE_DIR="/opt/android-sdk/system-images/android-$ANDROID_API_LEVEL/$ANDROID_TAG/$ANDROID_ABI"
+        IMAGE_DIR="$SDK_ROOT/system-images/android-$ANDROID_API_LEVEL/$ANDROID_TAG/$ANDROID_ABI"
+
+        # android-e2e ships cmdline-tools. android-e2e-small (8x16) currently
+        # does not, so sdkmanager is missing and every Android Appium job dies
+        # before the emulator boots. Install Google's cmdline-tools when absent.
+        ensure_sdkmanager() {
+          if [ -x "$SDKMANAGER" ]; then
+            return 0
+          fi
+          echo "sdkmanager not found at $SDKMANAGER — installing Android cmdline-tools"
+          if [ -d "$SDK_ROOT" ]; then
+            echo "Contents of $SDK_ROOT:"
+            ls -la "$SDK_ROOT" || true
+          fi
+          if ! command -v java >/dev/null 2>&1 \
+            || ! command -v unzip >/dev/null 2>&1 \
+            || ! command -v curl >/dev/null 2>&1 \
+            || ! dpkg -s libpulse0 >/dev/null 2>&1; then
+            sudo apt-get -o DPkg::Lock::Timeout=120 update
+          fi
+          if ! command -v java >/dev/null 2>&1; then
+            echo "Java not found; installing OpenJDK 17"
+            sudo apt-get -o DPkg::Lock::Timeout=120 install -y openjdk-17-jre-headless
+          fi
+          if ! command -v unzip >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1 || ! dpkg -s libpulse0 >/dev/null 2>&1; then
+            sudo apt-get -o DPkg::Lock::Timeout=120 install -y \
+              libpulse0 \
+              libglu1-mesa \
+              libnss3 \
+              libxss1 \
+              unzip \
+              curl
+          fi
+          local cmdline_tools_build="11076708"
+          local tmpzip
+          tmpzip="$(mktemp)"
+          curl -fsSL -o "$tmpzip" \
+            "https://dl.google.com/android/repository/commandlinetools-linux-${cmdline_tools_build}_latest.zip"
+          sudo rm -rf "$SDK_ROOT/cmdline-tools" "$SDK_ROOT/cmdline-tools-staging"
+          sudo mkdir -p "$SDK_ROOT"
+          sudo unzip -q "$tmpzip" -d "$SDK_ROOT/cmdline-tools-staging"
+          rm -f "$tmpzip"
+          sudo mkdir -p "$SDK_ROOT/cmdline-tools"
+          sudo mv "$SDK_ROOT/cmdline-tools-staging/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+          sudo rm -rf "$SDK_ROOT/cmdline-tools-staging"
+          sudo chown -R "$(id -u):$(id -g)" "$SDK_ROOT"
+          if [ ! -x "$SDKMANAGER" ]; then
+            echo "::error::cmdline-tools install did not produce $SDKMANAGER"
+            exit 1
+          fi
+          # yes exits with SIGPIPE when sdkmanager closes stdin; with pipefail that fails the step.
+          set +o pipefail
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null
+          set -o pipefail
+        }
+
+        ensure_emulator() {
+          if [ -x "$SDK_ROOT/emulator/emulator" ] && [ -x "$SDK_ROOT/platform-tools/adb" ]; then
+            return 0
+          fi
+          echo "Android emulator or adb missing — installing emulator and platform-tools"
+          echo "y" | "$SDKMANAGER" --sdk_root="$SDK_ROOT" "emulator" "platform-tools"
+        }
+
+        ensure_sdkmanager
+        ensure_emulator
+        if [ ! -e /dev/kvm ]; then
+          echo "::warning::/dev/kvm is not present; the Android emulator may fail to boot on this runner."
+        fi
 
         if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
           echo "System image already installed: $IMAGE_PACKAGE"
@@ -222,16 +291,16 @@ runs:
 
         for attempt in 1 2 3; do
           echo "Installing system image (attempt $attempt/3): $IMAGE_PACKAGE"
-          if echo "y" | "$SDKMANAGER" "$IMAGE_PACKAGE" 2>&1; then
+          if echo "y" | "$SDKMANAGER" --sdk_root="$SDK_ROOT" "$IMAGE_PACKAGE" 2>&1; then
             if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
               echo "image-package=$IMAGE_PACKAGE" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           else
-            find /opt/android-sdk/.temp -type f -name '*.zip' -exec unzip -t {} \; || true
+            find "$SDK_ROOT/.temp" -type f -name '*.zip' -exec unzip -t {} \; || true
           fi
           rm -rf "$IMAGE_DIR"
-          find /opt/android-sdk/.temp -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+          find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
           sleep 10
         done
 
