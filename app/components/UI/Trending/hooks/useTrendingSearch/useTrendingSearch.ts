@@ -65,9 +65,6 @@ export const useTrendingSearch = (opts?: {
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-  // Normalized search query: whitespace trimmed and an optional ticker-style
-  // "$" prefix stripped. Branch selection and the request both use this
-  // value.
   const searchRequestQuery = debouncedQuery?.trim().replace(/^\$/, '') ?? '';
 
   // Debounce the search query
@@ -116,9 +113,6 @@ export const useTrendingSearch = (opts?: {
       );
     }
 
-    // Results are shown in API relevance order; no client-side merge or
-    // re-sort. The API's own result objects are shown. Exact assetId repeats
-    // across responses or cursor pages are dropped, first occurrence wins.
     const seen = new Set<string>();
     return searchResults
       .filter((item) => {

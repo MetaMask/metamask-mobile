@@ -166,9 +166,6 @@ describe('useTrendingSearch', () => {
   });
 
   it('returns search results in API order without merging trending matches', async () => {
-    // Search for 'ETH' which matches a trending result, but the API search
-    // response owns the order and contents — trending matches are neither
-    // merged in nor appended.
     mockUseSearchRequest.mockReturnValue({
       results: mockSearchResults,
       isLoading: false,
@@ -225,6 +222,8 @@ describe('useTrendingSearch', () => {
       expect(result.current.data).toHaveLength(2);
     });
 
+    // The API's own result objects pass through in API order; the trending
+    // list's copy is not swapped in for duplicate assetIds.
     // The API's own result objects pass through in API order; the trending
     // list's copy is not swapped in for duplicate assetIds.
     expect(result.current.data.map((item) => item.assetId)).toEqual([

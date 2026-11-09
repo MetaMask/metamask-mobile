@@ -283,8 +283,6 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
-    // The search API owns the result set and order — results render exactly
-    // as the search endpoint returns them, with no trending merge.
     const searchEthereumResult = {
       ...mockTrendingTokensData[0],
       pricePercentChange1d: '5.2',
@@ -522,8 +520,6 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
     );
     expect(searchInput).toBeOnTheScreen();
 
-    // The search API owns the result set and order — the mocked search
-    // endpoint returns only Ethereum, so no trending rows are merged in.
     const searchEthereumResult = {
       ...mockTrendingTokensData[0],
       pricePercentChange1d: '5.2',

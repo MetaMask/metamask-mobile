@@ -63,7 +63,6 @@ describe('useTokensFeed', () => {
   it('returns search results in API relevance order without re-sorting', () => {
     const { result } = renderHook(() => useTokensFeed({ query: 'wrap' }));
 
-    // The marketCap re-sort is removed: results pass through in API order.
     expect(result.current.data.map((t) => t.symbol)).toEqual([
       'AAA',
       'WBTC',

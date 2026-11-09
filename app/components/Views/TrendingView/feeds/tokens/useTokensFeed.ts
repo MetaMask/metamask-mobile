@@ -71,7 +71,6 @@ export const useTokensFeed = ({
   useFeedRefresh(refresh, refetch);
 
   const filteredData = useMemo(() => {
-    // Results are shown in API relevance order; no client-side re-sort.
     if (!hideRiskyTokens) return data;
 
     return data.filter(({ securityData }) => {
