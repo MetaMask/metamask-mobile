@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 /* eslint-disable import-x/no-nodejs-modules */
 /* eslint-disable import-x/no-commonjs */
 const path = require('path');
@@ -182,6 +182,8 @@ let eslintInstance;
  */
 function getESLintInstance() {
   if (!eslintInstance) {
+    const { FlatCompat } = require('@eslint/eslintrc');
+    const js = require('@eslint/js');
     const eslintrc = require('./.eslintrc.js');
 
     eslintrc.overrides.forEach((override) => {
@@ -234,7 +236,28 @@ function getESLintInstance() {
         ),
     );
 
-    eslintInstance = new ESLint({ baseConfig: eslintrc, useEslintrc: false });
+    // v15 is a flat config, so the legacy extends key cannot load it. The
+    // rule overrides in that block still apply. The full v15 set runs in
+    // yarn lint, not in this transformer.
+    eslintrc.overrides.forEach((override) => {
+      if (override.extends) {
+        override.extends = override.extends.filter(
+          (configName) => configName !== '@metamask/eslint-config-typescript',
+        );
+      }
+    });
+
+    const compat = new FlatCompat({
+      baseDirectory: __dirname,
+      recommendedConfig: js.configs.recommended,
+      allConfig: js.configs.all,
+    });
+    // ESLint 9 dropped useEslintrc. true skips eslint.config.mjs so this
+    // transformer still lints with the mutated legacy config only.
+    eslintInstance = new ESLint({
+      overrideConfigFile: true,
+      baseConfig: compat.config(eslintrc),
+    });
   }
   return eslintInstance;
 }
