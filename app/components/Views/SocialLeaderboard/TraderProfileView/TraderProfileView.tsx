@@ -442,6 +442,7 @@ const TraderProfileView = () => {
               traderName={headerTitle}
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
+              traderProfileId={profile.profile.profileId}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />

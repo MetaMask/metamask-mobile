@@ -16,7 +16,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
+import { TokenIcon } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
@@ -322,6 +322,7 @@ describe('usePayWithCryptoSection', () => {
         subtitle: '$12.34 available',
         isSelected: true,
         trailingElement: 'checkmark',
+        hasIconBackground: false,
         testID: 'pay-with-crypto-section-preferred-token-row',
       }),
     );
@@ -331,7 +332,7 @@ describe('usePayWithCryptoSection', () => {
         props: expect.objectContaining({
           address: TOKEN_MOCK.address,
           chainId: TOKEN_MOCK.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
       }),
     );
@@ -514,6 +515,7 @@ describe('usePayWithCryptoSection', () => {
         subtitle: '$5.00 available',
         isSelected: true,
         trailingElement: 'checkmark',
+        hasIconBackground: false,
         testID: 'pay-with-crypto-section-selected-token-row',
       }),
     );
@@ -523,7 +525,7 @@ describe('usePayWithCryptoSection', () => {
         props: expect.objectContaining({
           address: SELECTED_TOKEN_MOCK.address,
           chainId: SELECTED_TOKEN_MOCK.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
       }),
     );

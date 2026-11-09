@@ -760,6 +760,7 @@ const TraderPositionView = () => {
           tradeActions={tradeActions}
           traderImageUrl={traderImageUrl}
           traderAddress={traderAddress}
+          traderProfileId={traderId}
           onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
           emphasizedTradeId={emphasizedTradeId}
           onScroll={onScroll}
@@ -929,6 +930,7 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderId}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={effectivePositionId ? handleSharePosition : undefined}
@@ -943,6 +945,7 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderId}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
             activeTimePeriodLabel={periodLabel}

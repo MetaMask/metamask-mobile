@@ -100,7 +100,7 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
-  const { View } = jest.requireActual(
+  const { View, ScrollView } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
@@ -115,6 +115,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
   }
 
   return {
@@ -134,7 +135,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           },
           props.renderHeader?.(),
         ),
-        ReactActual.createElement(View, { testID: props.scrollTestID }),
+        ReactActual.createElement(ScrollView, {
+          testID: props.scrollTestID,
+          onScroll: props.onScroll,
+        }),
       );
     },
   };
@@ -293,6 +297,34 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    // The stock mock resets shared values every render, freezes derived
+    // values, and ignores scroll handlers, so a scrolled tab could never
+    // reach the divider's visible branch.
+    useSharedValue: (init: unknown) => {
+      const ReactActual = jest.requireActual('react') as typeof import('react');
+      const ref = ReactActual.useRef<{ value: unknown } | null>(null);
+      if (!ref.current) {
+        ref.current = { value: init };
+      }
+      return ref.current;
+    },
+    useDerivedValue: (processor: () => unknown) => ({
+      get value() {
+        return processor();
+      },
+    }),
+    useAnimatedScrollHandler:
+      (
+        handlers:
+          | ((event: { contentOffset: { y: number } }) => void)
+          | { onScroll?: (event: { contentOffset: { y: number } }) => void },
+      ) =>
+      (event: { nativeEvent?: { contentOffset: { y: number } } }) => {
+        const scrollEvent = event.nativeEvent ?? event;
+        const onScroll =
+          typeof handlers === 'function' ? handlers : handlers.onScroll;
+        onScroll?.(scrollEvent as { contentOffset: { y: number } });
+      },
   };
 });
 
@@ -364,6 +396,25 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
+  });
+
+  it('shows the tab divider only after the feed is scrolled', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const divider = screen.getByTestId(
+      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
+    );
+
+    expect(divider).toHaveStyle({ opacity: 0 });
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
+    ).toHaveStyle({ opacity: 1 });
   });
 
   it('omits tab sub-navigation pills', () => {
