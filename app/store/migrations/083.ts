@@ -45,7 +45,7 @@ const migration = (state: unknown): unknown => {
       // when `getDefaultNetworkConfigurationsByChainId()` has some breaking changes in the future.
       const networkClientId = BuiltInNetworkName.MonadTestnet;
       const chainId = ChainId[networkClientId];
-      const monadTestnetConfiguration = {
+      const monadTestnetConfiguration: NetworkConfiguration = {
         blockExplorerUrls: [BlockExplorerUrl[networkClientId]],
         chainId,
         defaultRpcEndpointIndex: 0,
@@ -54,16 +54,12 @@ const migration = (state: unknown): unknown => {
         nativeCurrency: NetworksTicker[networkClientId],
         rpcEndpoints: [
           {
-            failoverUrls: [],
             networkClientId,
             type: RpcEndpointType.Custom,
             url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],
           },
         ],
-        // Legacy `failoverUrls` is no longer part of the `NetworkController` types
-        // (removed by migration 162), but is kept here so this migration's output
-        // is unchanged.
-      } as unknown as NetworkConfiguration;
+      };
 
       // Regardless if the network already exists, we will overwrite it with the default configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
