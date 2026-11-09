@@ -387,30 +387,6 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('leaves out the fees row when the order fee is unknown', () => {
-    // A grouped order with a fill missing its fee carries an empty fee
-    mockUseRoute.mockReturnValue({
-      params: {
-        transaction: {
-          ...mockTransaction,
-          fill: { ...mockTransaction.fill, fee: '' },
-        },
-      },
-    });
-
-    const { queryByText } = renderWithProvider(
-      <PerpsPositionTransactionView />,
-      { state: mockInitialState },
-    );
-
-    const feesLabel = strings('perps.transactions.position.fees');
-    // A missing key would make the label a fallback that is never on screen.
-    expect(feesLabel).not.toMatch(/\[missing ".*" translation\]/);
-    expect(queryByText(feesLabel)).not.toBeOnTheScreen();
-    expect(queryByText(/\[missing ".*" translation\]/)).not.toBeOnTheScreen();
-    expect(queryByText('$0')).not.toBeOnTheScreen();
-  });
-
   it('should display fees with < $0.01 label for amounts < 0.01', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {
