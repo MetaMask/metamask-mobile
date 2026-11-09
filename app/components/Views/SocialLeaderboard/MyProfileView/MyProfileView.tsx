@@ -616,13 +616,14 @@ const MyProfileView: React.FC = () => {
         trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
       });
       const isClosed = activeTab === 'closed';
-      // Open rows use the feed sheet. Closed rows stay on the position screen.
-      if (!isClosed && position.positionId) {
+      // Profile rows use the feed sheet. A row with no id stays on the
+      // position screen, which can still render the snapshot.
+      if (position.positionId) {
         navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
           positionId: position.positionId,
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
-          isClosed: false,
+          isClosed,
         });
         return;
       }

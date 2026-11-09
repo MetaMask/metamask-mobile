@@ -1871,7 +1871,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('opens the position screen from a Closed row', () => {
+  it('opens the position sheet from a Closed row', () => {
     const closedSpot: Position = {
       positionId: 'doge-closed',
       tokenSymbol: 'DOGE',
@@ -1901,14 +1901,19 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
     fireEvent.press(screen.getByTestId('position-row-DOGE'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'current-user',
-      traderName: 'Giga Whale',
-      traderImageUrl: undefined,
-      traderAddress: undefined,
-      tokenSymbol: 'DOGE',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'doge-closed',
       position: closedSpot,
-      source: 'profile_position',
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
       isClosed: true,
     });
   });
