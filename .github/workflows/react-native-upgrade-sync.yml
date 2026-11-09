@@ -1,0 +1,282 @@
+name: React Native Upgrade Sync
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: react-native-upgrade-sync
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  open-sync-pull-request:
+    name: Open React Native upgrade sync pull request
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SOURCE_BRANCH: main
+      TARGET_BRANCH: react-native-continuous-upgrade
+      TEMP_BRANCH_PREFIX: rn-upgrade-sync/
+      SYNC_MARKER: '<!-- rn-upgrade-sync -->'
+      GH_PROMPT_DISABLED: '1'
+    steps:
+      # workflows: write allows the temporary ref to point at a commit that
+      # contains workflow files.
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+            workflows: write
+
+      - name: Open sync pull request
+        id: sync
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+        run: |
+          set -euo pipefail
+
+          fail() {
+            echo "::error::$1"
+            {
+              echo "## React Native upgrade sync failed"
+              echo
+              echo "$1"
+              if [[ -n "${SOURCE_SHA:-}" ]]; then
+                echo
+                printf 'Observed main SHA: %s\n' "$SOURCE_SHA"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+          require_sha() {
+            if [[ ! "$2" =~ ^[0-9a-f]{40}$ ]]; then
+              fail "$1 is not a 40-character commit SHA."
+            fi
+          }
+
+          if [[ -z "${GH_TOKEN}" ]]; then
+            fail "Token exchange did not return a token."
+          fi
+
+          if ! SOURCE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${SOURCE_BRANCH}" --jq .sha); then
+            fail "Unable to read ${SOURCE_BRANCH}."
+          fi
+          SOURCE_SHA=$(printf '%s' "$SOURCE_SHA" | tr '[:upper:]' '[:lower:]')
+          require_sha "Source ${SOURCE_BRANCH}" "$SOURCE_SHA"
+
+          if ! TARGET_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TARGET_BRANCH}" --jq .sha); then
+            fail "Unable to read ${TARGET_BRANCH}."
+          fi
+          TARGET_SHA=$(printf '%s' "$TARGET_SHA" | tr '[:upper:]' '[:lower:]')
+          require_sha "Target ${TARGET_BRANCH}" "$TARGET_SHA"
+
+          # behind_by is the number of source commits missing from the target.
+          # Zero means the observed source SHA is already contained by the target.
+          if ! BEHIND_BY=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${SOURCE_SHA}...${TARGET_SHA}" --jq .behind_by); then
+            fail "GitHub compare failed for ${SOURCE_SHA}...${TARGET_SHA}."
+          fi
+          if [[ ! "$BEHIND_BY" =~ ^[0-9]+$ ]]; then
+            fail "GitHub compare returned a non-numeric behind_by value."
+          fi
+
+          if [[ "$BEHIND_BY" == "0" ]]; then
+            {
+              echo "## React Native upgrade branch is current"
+              echo
+              printf 'Observed main SHA: %s\n' "$SOURCE_SHA"
+              echo
+              printf 'Target ref: %s (%s)\n' "$TARGET_BRANCH" "$TARGET_SHA"
+              echo
+              echo "No temporary ref or pull request was created."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if ! PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --state open --limit 100 --json number,url,headRefName,body); then
+            fail "Unable to list open pull requests targeting ${TARGET_BRANCH}."
+          fi
+          PR_COUNT=$(jq 'length' <<<"$PRS")
+          if [[ "$PR_COUNT" -eq 100 ]]; then
+            fail "Refusing to continue because the open pull request query reached its page limit."
+          fi
+
+          PREFIX_MATCHES=$(jq --arg prefix "$TEMP_BRANCH_PREFIX" '[.[] | select(.headRefName | startswith($prefix))]' <<<"$PRS")
+          PREFIX_COUNT=$(jq 'length' <<<"$PREFIX_MATCHES")
+          MARKER_COUNT=$(jq --arg marker "$SYNC_MARKER" '[.[] | select((.body // "") | contains($marker))] | length' <<<"$PREFIX_MATCHES")
+
+          if [[ "$PREFIX_COUNT" != "$MARKER_COUNT" ]]; then
+            URLS=$(jq -r '[.[].url] | join(", ")' <<<"$PREFIX_MATCHES")
+            fail "Found ${PREFIX_COUNT} open ${TEMP_BRANCH_PREFIX} pull request(s) and ${MARKER_COUNT} with the sync marker: ${URLS}"
+          fi
+
+          if [[ "$PREFIX_COUNT" -gt 1 ]]; then
+            URLS=$(jq -r '[.[].url] | join(", ")' <<<"$PREFIX_MATCHES")
+            fail "Found ${PREFIX_COUNT} open React Native upgrade sync pull requests: ${URLS}"
+          fi
+
+          if [[ "$PREFIX_COUNT" -eq 1 ]]; then
+            PR_URL=$(jq -r '.[0].url' <<<"$PREFIX_MATCHES")
+            {
+              echo "## React Native upgrade sync pull request already exists"
+              echo
+              printf 'Observed main SHA: %s\n' "$SOURCE_SHA"
+              echo
+              printf 'Target ref: %s\n' "$TARGET_BRANCH"
+              echo
+              printf 'Existing pull request: %s\n' "$PR_URL"
+              echo
+              echo "No additional temporary ref or pull request was created."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          SHORT_SHA=${SOURCE_SHA:0:12}
+          TEMP_BRANCH="${TEMP_BRANCH_PREFIX}${SHORT_SHA}-${GITHUB_RUN_ID}"
+          TEMP_REF="refs/heads/${TEMP_BRANCH}"
+
+          if ! gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" -f ref="$TEMP_REF" -f sha="$SOURCE_SHA" >/dev/null; then
+            if ! EXISTING_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${TEMP_BRANCH}" --jq .object.sha); then
+              fail "Unable to create temporary ref ${TEMP_BRANCH} at ${SOURCE_SHA}, and the existing ref could not be read."
+            fi
+            EXISTING_SHA=$(printf '%s' "$EXISTING_SHA" | tr '[:upper:]' '[:lower:]')
+            if [[ "$EXISTING_SHA" != "$SOURCE_SHA" ]]; then
+              fail "Temporary ref ${TEMP_BRANCH} points at ${EXISTING_SHA}, expected ${SOURCE_SHA}. The ref was not updated."
+            fi
+          fi
+
+          if ! READ_BACK=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${TEMP_BRANCH}" --jq .object.sha); then
+            fail "Unable to read temporary ref ${TEMP_BRANCH}."
+          fi
+          READ_BACK=$(printf '%s' "$READ_BACK" | tr '[:upper:]' '[:lower:]')
+          if [[ "$READ_BACK" != "$SOURCE_SHA" ]]; then
+            fail "Temporary ref ${TEMP_BRANCH} points at ${READ_BACK}, expected ${SOURCE_SHA}. The ref was not updated."
+          fi
+
+          PR_TITLE="chore: sync main into the React Native upgrade branch"
+          BODY_FILE=$(mktemp)
+          cat >"$BODY_FILE" <<'EOF'
+          <!-- rn-upgrade-sync -->
+
+          ## **Description**
+
+          Synchronize `__SOURCE_BRANCH__` at `__SOURCE_SHA__` into `__TARGET_BRANCH__` (`__TARGET_SHA__`) through temporary head `__TEMP_BRANCH__`.
+
+          The pull request preserves commit ancestry. Merge it with a merge commit so the observed source SHA remains an ancestor of `__TARGET_BRANCH__`.
+
+          ## Ancestry
+
+          The observed `__SOURCE_BRANCH__` SHA must remain an ancestor of `__TARGET_BRANCH__`. Merge this pull request with a merge commit.
+
+          ## Conflict resolution
+
+          Merge the current `__TARGET_BRANCH__` tip into `__TEMP_BRANCH__`, commit the resolution on `__TEMP_BRANCH__`, and preserve both long-lived branch refs. Do not push the resolution directly to `__SOURCE_BRANCH__` or `__TARGET_BRANCH__`.
+
+          ## **Changelog**
+
+          CHANGELOG entry: null
+
+          ## **Related issues**
+
+          Refs: MCWP-968
+
+          ## **Manual testing steps**
+
+          N/A — this pull request imports the observed source history. Confirm the source SHA, the merge commit, and that the source SHA is an ancestor of the target branch.
+
+          ## **Screenshots/Recordings**
+
+          N/A
+
+          ### **Before**
+
+          N/A
+
+          ### **After**
+
+          N/A
+
+          ## **Pre-merge author checklist**
+
+          - [x] I've followed [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs) and [MetaMask Mobile Coding Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md).
+          - [x] I've completed the PR template to the best of my ability
+          - [x] I've included tests if applicable
+          - [x] I've documented my code using [JSDoc](https://jsdoc.app/) format if applicable
+          - [x] I've applied the right labels on the PR (see [labeling guidelines](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md)). Not required for external contributors.
+
+          #### Performance checks (if applicable)
+
+          - [x] I've tested on Android
+            - Ideally on a mid-range device; emulator is acceptable
+          - [x] I've tested with a power user scenario
+            - Use these [power-user SRPs](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/edit-v2/401401446401?draftShareId=9d77e1e1-4bdc-4be1-9ebb-ccd916988d93) to import wallets with many accounts and tokens
+          - [x] I've instrumented key operations with Sentry traces for production performance metrics
+            - See [`trace()`](/app/util/trace.ts) for usage and [`addToken`](/app/components/Views/AddAsset/components/AddCustomToken/AddCustomToken.tsx#L274) for an example
+
+          For performance guidelines and tooling, see the [Performance Guide](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400085549067/Performance+Guide+for+Engineers).
+
+          ## **Pre-merge reviewer checklist**
+
+          - [ ] I've manually tested the PR (e.g. pull and build branch, run the app, test code being changed).
+          - [ ] I confirm that this PR addresses all acceptance criteria described in the ticket it closes and includes the necessary testing evidence such as recordings and or screenshots.
+          EOF
+          sed \
+            -e "s|__SOURCE_SHA__|${SOURCE_SHA}|g" \
+            -e "s|__TARGET_SHA__|${TARGET_SHA}|g" \
+            -e "s|__TEMP_BRANCH__|${TEMP_BRANCH}|g" \
+            -e "s|__SOURCE_BRANCH__|${SOURCE_BRANCH}|g" \
+            -e "s|__TARGET_BRANCH__|${TARGET_BRANCH}|g" \
+            "$BODY_FILE" > "${BODY_FILE}.rendered"
+          mv "${BODY_FILE}.rendered" "$BODY_FILE"
+
+          require_text() {
+            case "$2" in
+              *"$1"*) ;;
+              *) fail "$3" ;;
+            esac
+          }
+
+          BODY_RENDERED=$(cat "$BODY_FILE")
+          require_text "$SYNC_MARKER" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the sync marker."
+          require_text "$SOURCE_SHA" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the observed source SHA."
+          require_text "$TARGET_SHA" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the target SHA."
+          require_text "merge commit" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the merge-commit requirement."
+          require_text "preserve both long-lived branch refs" "$BODY_RENDERED" "Refusing to open a pull request whose body is missing the conflict-resolution procedure."
+
+          if ! PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$TARGET_BRANCH" --head "$TEMP_BRANCH" --title "$PR_TITLE" --body-file "$BODY_FILE"); then
+            fail "Unable to create the sync pull request."
+          fi
+          if ! VIEW=$(gh pr view "$PR_URL" --repo "$GITHUB_REPOSITORY" --json baseRefName,headRefName,title,body,url); then
+            fail "Unable to read created pull request ${PR_URL}."
+          fi
+          BASE_ACTUAL=$(jq -r '.baseRefName' <<<"$VIEW")
+          HEAD_ACTUAL=$(jq -r '.headRefName' <<<"$VIEW")
+          TITLE_ACTUAL=$(jq -r '.title' <<<"$VIEW")
+          BODY_ACTUAL=$(jq -r '.body' <<<"$VIEW")
+
+          if [[ "$BASE_ACTUAL" != "$TARGET_BRANCH" || "$HEAD_ACTUAL" != "$TEMP_BRANCH" || "$TITLE_ACTUAL" != "$PR_TITLE" ]]; then
+            fail "Created pull request ${PR_URL} does not match the expected base, head, or title."
+          fi
+
+          require_text "$SYNC_MARKER" "$BODY_ACTUAL" "Created pull request ${PR_URL} is missing the sync marker."
+          require_text "$SOURCE_SHA" "$BODY_ACTUAL" "Created pull request ${PR_URL} is missing the observed source SHA."
+          require_text "merge commit" "$BODY_ACTUAL" "Created pull request ${PR_URL} is missing the merge-commit requirement."
+          require_text "preserve both long-lived branch refs" "$BODY_ACTUAL" "Created pull request ${PR_URL} is missing the conflict-resolution procedure."
+
+          {
+            echo "## React Native upgrade sync pull request created"
+            echo
+            printf 'Observed main SHA: %s\n' "$SOURCE_SHA"
+            echo
+            printf 'Target ref: %s\n' "$TARGET_BRANCH"
+            echo
+            printf 'Pull request: %s\n' "$PR_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
