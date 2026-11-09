@@ -635,7 +635,6 @@ const Routes = {
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
-      KYC_PENDING: 'CardOnboardingKYCPending',
       KYC_PROCESSING: 'CardOnboardingKYCProcessing',
       FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },

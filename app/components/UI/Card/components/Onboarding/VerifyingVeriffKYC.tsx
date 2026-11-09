@@ -12,7 +12,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
 
-// Timeout duration before redirecting to KYC Pending screen (in milliseconds)
+// Timeout before sending the user to Card home (KYC still pending)
 const POLLING_TIMEOUT_MS = 30000;
 
 /**
@@ -20,7 +20,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * Polls the registration status to check if the user was approved or rejected.
  * - VERIFIED: Navigate to PERSONAL_DETAILS to continue onboarding
  * - REJECTED: Navigate to KYC_FAILED
- * - PENDING: After 30 seconds of polling, navigate to KYC_PENDING
+ * - PENDING: After 30 seconds of polling, go to Card home (pending state)
  */
 const VerifyingVeriffKYC = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -49,7 +49,7 @@ const VerifyingVeriffKYC = () => {
       stopPolling();
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME }],
       });
     }, POLLING_TIMEOUT_MS);
 
