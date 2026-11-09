@@ -49,7 +49,7 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-} from '../../../Ramp/Views/VirtualBankAccount/constants';
+} from '../../constants';
 import SentenceWithLinks from '../../components/SentenceWithLinks';
 
 /** Pages the identity-verification terms are split across ("1 of 2"). */

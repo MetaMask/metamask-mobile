@@ -1,13 +1,16 @@
 import { Text } from '@metamask/design-system-react-native';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey, type Theme } from '../../../../util/theme/models';
-import PositionCardShell, { type PositionCardTone } from './PositionCardShell';
+import PositionCardShell, {
+  type PositionCardTone,
+  washAngleFor,
+} from './PositionCardShell';
 
 const CARD_TEST_ID = 'position-card-shell-body';
 
@@ -79,9 +82,8 @@ describe('PositionCardShell', () => {
     expect(contentStyle?.gap).toBe(8);
   });
 
-  it('uses one wash that starts on the top edge, right of center', () => {
+  it('fades the success tint to clear at 70% of the wash', () => {
     const gradient = gradientOf(renderShell('positive'));
-    const losing = gradientOf(renderShell('negative'));
 
     expect(gradient.props.colors[0]).toBe(darkTheme.colors.success.muted);
     expect(gradient.props.colors[2]).toBe('#b9f30213');
@@ -89,44 +91,96 @@ describe('PositionCardShell', () => {
       `${darkTheme.colors.success.default}00`,
     );
     expect(gradient.props.locations).toEqual([0, 0.175, 0.35, 0.525, 0.7]);
-    expect(gradient.props.start.y).toBeCloseTo(0, 4);
-    expect(gradient.props.start.x).toBeCloseTo(0.8398, 3);
-    expect(gradient.props.end.y).toBeCloseTo(1, 4);
-    expect(gradient.props.end.x).toBeCloseTo(0.1602, 3);
-    expect(losing.props.start).toEqual(gradient.props.start);
-    expect(losing.props.end).toEqual(gradient.props.end);
-    expect(losing.props.locations).toEqual(gradient.props.locations);
   });
 
-  it('keeps a hairline border when the wash is tinted', () => {
-    renderShell('positive');
+  it('uses the expanded card angle before the card is measured', () => {
+    const gradient = gradientOf(renderShell('positive'));
 
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
+    expect(gradient.props.useAngle).toBe(true);
+    expect(gradient.props.angle).toBeCloseTo(214.2, 1);
   });
 
-  it('washes a losing card red and keeps the muted hairline', () => {
+  it.each([
+    ['compact', 309, 68, 192.41],
+    ['closed', 309, 130, 202.82],
+    ['expanded', 309, 210, 214.2],
+  ])(
+    'runs the wash corner to corner on a %s card',
+    (_label, width, height, expectedAngle) => {
+      const utils = renderShell('negative');
+      const clip = gradientOf(utils).parent;
+
+      act(() => {
+        clip?.props.onLayout({ nativeEvent: { layout: { width, height } } });
+      });
+
+      expect(gradientOf(utils).props.angle).toBeCloseTo(expectedAngle, 1);
+    },
+  );
+
+  it('ignores a zero-size layout', () => {
+    const utils = renderShell('positive');
+    const clip = gradientOf(utils).parent;
+
+    act(() => {
+      clip?.props.onLayout({
+        nativeEvent: { layout: { width: 0, height: 0 } },
+      });
+    });
+
+    expect(gradientOf(utils).props.angle).toBeCloseTo(214.2, 1);
+  });
+
+  it('computes CSS `to bottom left` angles from the box size', () => {
+    expect(washAngleFor(100, 100)).toBeCloseTo(225, 5);
+    expect(washAngleFor(309, 68)).toBeCloseTo(192.41, 2);
+  });
+
+  it('washes a losing card red', () => {
     const utils = renderShell('negative');
 
     expect(gradientOf(utils).props.colors[0]).toBe(
       darkTheme.colors.error.muted,
     );
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
-  it('leaves a neutral card without a wash', () => {
+  it('draws the hairline above the wash so the tint shows through it', () => {
+    const utils = renderShell('positive');
+    const card = screen.getByTestId('position-card-shell');
+    const border = screen.getByTestId('position-card-shell-border');
+    const borderStyle = StyleSheet.flatten(border.props.style);
+    const clip = gradientOf(utils).parent;
+    const layers = card.findAll((node) => typeof node.type === 'string');
+
+    expect(cardStyleOf()?.borderWidth).toBeUndefined();
+    expect(borderStyle?.position).toBe('absolute');
+    expect(borderStyle?.borderWidth).toBe(1);
+    expect(borderStyle?.borderColor).toBe(lightTheme.colors.border.muted);
+    expect(borderStyle?.borderRadius).toBe(cardStyleOf()?.borderRadius);
+    expect(border.props.pointerEvents).toBe('none');
+    expect(layers.findIndex((node) => node === border)).toBeGreaterThan(
+      layers.findIndex((node) => node === clip),
+    );
+  });
+
+  it('leaves a neutral card without a wash but keeps the hairline', () => {
     const utils = renderShell('neutral');
 
     expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('position-card-shell-border').props.style,
+      )?.borderWidth,
+    ).toBe(1);
   });
 
-  it('uses the light hairline when no tone is passed', () => {
+  it('keeps the hairline in light mode', () => {
     renderLightShell();
 
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('position-card-shell-border').props.style,
+      )?.borderColor,
+    ).toBe(lightTheme.colors.border.muted);
   });
 });

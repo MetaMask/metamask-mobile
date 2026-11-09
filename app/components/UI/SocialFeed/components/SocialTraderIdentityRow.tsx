@@ -18,6 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
+import XTrustMark from './XTrustMark';
 import { buildTraderStatLabels } from '../utils/traderStats';
 import { formatFeedPostAge } from '../utils/formatters';
 import {
@@ -85,16 +86,26 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
           twClassName="shrink min-w-0"
-          testID={testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE}
         >
-          {handle}
-        </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink min-w-0"
+            testID={
+              testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE
+            }
+          >
+            {handle}
+          </Text>
+          {author.xHandle ? <XTrustMark /> : null}
+        </Box>
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}

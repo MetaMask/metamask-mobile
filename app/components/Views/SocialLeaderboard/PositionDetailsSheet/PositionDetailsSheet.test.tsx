@@ -788,10 +788,16 @@ describe('PositionDetailsSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens on a swipe up and closes on a swipe down over the tab bar', async () => {
+    const scrollBy = (y: number) =>
+      fireEvent.scroll(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
+        { nativeEvent: { contentOffset: { x: 0, y } } },
+      );
+
+    it('opens on a scroll up and closes on a swipe down over the tab bar', async () => {
       render(<PositionDetailsSheet />);
 
-      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -40);
+      scrollBy(40);
       expect(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeOnTheScreen();
@@ -804,24 +810,24 @@ describe('PositionDetailsSheet', () => {
       ).toBeNull();
     });
 
-    it('ignores swipes shorter than the threshold', () => {
+    it('ignores a scroll shorter than the threshold', () => {
       render(<PositionDetailsSheet />);
 
-      swipe(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE, -10);
+      scrollBy(10);
 
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeNull();
     });
 
-    it('scrolls the sheet with the footer pinned below only while open', () => {
+    it('scrolls the sheet from the start and pins the footer only while open', () => {
       render(<PositionDetailsSheet />);
       const scroll = screen.getByTestId(
         PositionDetailsSheetSelectorsIDs.SCROLL,
       );
       const copyTradeId = PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON;
 
-      expect(scroll).toHaveProp('scrollEnabled', false);
+      expect(scroll).toHaveProp('scrollEnabled', true);
       expect(within(scroll).getByTestId(copyTradeId)).toBeOnTheScreen();
 
       fireEvent.press(
@@ -974,6 +980,44 @@ describe('PositionDetailsSheet', () => {
   });
 
   describe('footer', () => {
+    it.each([
+      ['profile id', { profileId: 'trader-1' }],
+      [
+        'linked address',
+        { profileId: 'other', linkedAccountAddress: '0xtrader' },
+      ],
+    ])(
+      'hides copy trade on the viewer’s own open position (by %s)',
+      (_label, profile) => {
+        mockProfile = profile;
+
+        render(<PositionDetailsSheet />);
+
+        expect(
+          screen.queryByTestId(
+            PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+          ),
+        ).toBeNull();
+      },
+    );
+
+    it('keeps Long and Short on the viewer’s own closed perp', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
     it('copies an open perp with the trader’s side and leverage', () => {
       mockParams = { ...mockParams, position: buildPerpPosition() };
       mockSheetData = perpData();

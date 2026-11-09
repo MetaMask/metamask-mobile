@@ -28,9 +28,10 @@ import {
   resolveCardProviderForCountry,
   resolveCardProvisioningWallets,
   resolveCardUkMigrationState,
+  immersveFundingChannelForCountry,
   resolveImmersveFundingChannel,
 } from './read';
-import type { ProvisioningWallet } from './types';
+import type { ImmersveFundingChannel, ProvisioningWallet } from './types';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
@@ -1624,5 +1625,28 @@ describe('resolveCardProvisioningWallets', () => {
       { wallet: 'google_wallet' },
       { wallet: 'samsung_pay', devices: ['watch'] },
     ]);
+  });
+});
+
+describe('immersveFundingChannelForCountry', () => {
+  const moneyChannel = {
+    source: 'moneyAccount',
+    fundingChannelId: 'money-channel',
+  } as ImmersveFundingChannel;
+  const countryFunding = { NZ: moneyChannel };
+
+  it('matches a lowercase country', () => {
+    expect(immersveFundingChannelForCountry(countryFunding, 'nz')).toBe(
+      moneyChannel,
+    );
+  });
+
+  it('returns null for an unknown country', () => {
+    expect(immersveFundingChannelForCountry(countryFunding, 'FR')).toBeNull();
+  });
+
+  it('returns null when the country or the map is missing', () => {
+    expect(immersveFundingChannelForCountry(countryFunding, null)).toBeNull();
+    expect(immersveFundingChannelForCountry(undefined, 'NZ')).toBeNull();
   });
 });

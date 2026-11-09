@@ -41,6 +41,11 @@ export interface TopTrader {
   followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 /**
