@@ -21,7 +21,10 @@ import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../../types/navigation';
 import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
@@ -39,21 +42,7 @@ let mockIsE2EOrPerformanceTest = false;
 let mockRiveViewReady = true;
 const mockRiveViewRef = {};
 const mockSetHybridRef = { f: jest.fn() };
-let mockRouteParams:
-  | {
-      analyticsContext?: NavigationAnalyticsContext;
-      postOnboardingRedirect?: {
-        type: MoneyPostOnboardingRedirectType;
-        preferredPaymentToken?: {
-          address: `0x${string}`;
-          chainId: `0x${string}`;
-        };
-        autoSelectFiatPayment?: boolean;
-        intent?: 'convert' | 'addMusd' | 'card';
-        cardScreen?: 'authentication' | 'onboarding';
-      };
-    }
-  | undefined;
+let mockRouteParams: MoneyOnboardingParams | undefined;
 const mockInitiateDeposit = jest.fn();
 
 const setWindowDimensions = ({
@@ -461,6 +450,7 @@ describe('MoneyOnboardingView', () => {
       mockRouteParams = {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'onboarding',
         },
       };
 
