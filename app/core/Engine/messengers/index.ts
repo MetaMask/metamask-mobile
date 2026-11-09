@@ -20,7 +20,6 @@ import {
   getAccountActivityServiceMessenger,
   getOHLCVServiceMessenger,
 } from './core-backend';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   getCronjobControllerMessenger,
   getExecutionServiceMessenger,
@@ -30,11 +29,8 @@ import {
   getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
-///: END:ONLY_INCLUDE_IF
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
@@ -135,10 +131,6 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
-import {
-  getAnalyticsControllerInitMessenger,
-  getAnalyticsControllerMessenger,
-} from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialRealtimeServiceMessenger } from './social-realtime-service-messenger';
@@ -236,7 +228,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerV2Messenger,
     getInitMessenger: getDeFiPositionsControllerV2InitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
     getInitMessenger: noop,
@@ -277,8 +268,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
@@ -295,7 +284,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
   SamplePetnamesController: {
     // Only construct the (parented) messenger when the feature is actually
     // enabled. `initMessengerClients` calls `getMessenger` unconditionally
@@ -445,10 +433,6 @@ export const MESSENGER_FACTORIES = {
   ProofOfOwnershipService: {
     getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
-  },
-  AnalyticsController: {
-    getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
