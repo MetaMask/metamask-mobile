@@ -357,6 +357,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Automatically removed detected spam NFTs from wallets (#38283)
 
+## [8.18.1]
+
+### Fixed
+
+- Fixed Add to Wallet showing for MetaMask Card users outside the US (#38879)
+
 ## [8.18.0]
 
 ### Added
@@ -15112,7 +15118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...HEAD
 [8.20.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.19.0...v8.20.0
-[8.19.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...v8.19.0
+[8.19.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.1...v8.19.0
+[8.18.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...v8.18.1
 [8.18.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.1...v8.18.0
 [8.17.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.0...v8.17.1
 [8.17.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.1...v8.17.0
